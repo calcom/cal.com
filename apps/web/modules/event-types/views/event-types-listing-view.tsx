@@ -7,6 +7,7 @@ import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
@@ -24,6 +25,7 @@ import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
+import { filterActiveLinks } from "@calcom/lib/privateLinksUtils";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -474,11 +476,19 @@ export const InfiniteEventTypeList = ({
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
+
+            // Filter out expired links using user's timezone
+            const userTimezone = dayjs.tz.guess();
+            const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
+
+            // Ensure index is within bounds for active links
+            const currentIndex = privateLinkCopyIndices[type.slug] ?? 0;
+            const safeIndex = activeHashedLinks.length > 0 ? currentIndex % activeHashedLinks.length : 0;
+
             const isPrivateURLEnabled =
-              type.hashedLink && type.hashedLink.length > 0
-                ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
-                : "";
+              activeHashedLinks.length > 0 ? activeHashedLinks[safeIndex]?.link : "";
             const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
+
             const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
               type.metadata?.managedEventConfig !== undefined &&
@@ -580,8 +590,8 @@ export const InfiniteEventTypeList = ({
                                         copyToClipboard(placeholderHashedLink);
                                         setPrivateLinkCopyIndices((prev) => {
                                           const prevIndex = prev[type.slug] ?? 0;
-                                          prev[type.slug] = (prevIndex + 1) % type.hashedLink.length;
-                                          return prev;
+                                          const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
+                                          return { ...prev, [type.slug]: nextIndex };
                                         });
                                       }}
                                     />

@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
@@ -6,6 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -25,41 +27,48 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const hashedLink = await prisma.hashedLink.findUnique({
-    where: {
-      link,
-    },
-    select: {
-      eventTypeId: true,
-      eventType: {
-        select: {
-          users: {
-            select: {
-              username: true,
-              profiles: {
-                select: {
-                  id: true,
-                  organizationId: true,
-                  username: true,
-                },
+  const hashedLinkSelect = {
+    id: true,
+    link: true,
+    eventTypeId: true,
+    expiresAt: true,
+    maxUsageCount: true,
+    usageCount: true,
+    eventType: {
+      select: {
+        users: {
+          select: {
+            username: true,
+            profiles: {
+              select: {
+                id: true,
+                organizationId: true,
+                username: true,
               },
             },
           },
-          team: {
-            select: {
-              id: true,
-              slug: true,
-              hideBranding: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
+        },
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            hideBranding: true,
+            parent: {
+              select: {
+                hideBranding: true,
               },
             },
           },
         },
       },
     },
+  } satisfies Prisma.HashedLinkSelect;
+
+  const hashedLink = await prisma.hashedLink.findUnique({
+    where: {
+      link,
+    },
+    select: hashedLinkSelect,
   });
 
   let name: string;
@@ -72,6 +81,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   if (!hashedLink) {
     return notFound;
   }
+
+  const isExpired = hashedLink.expiresAt ? new Date(hashedLink.expiresAt).getTime() < Date.now() : false;
+  const isUsageExceeded = hashedLink.maxUsageCount
+    ? hashedLink.usageCount >= hashedLink.maxUsageCount
+    : false;
+
+  // Block access if the link is expired or has exceeded its usage limit
+  if (isExpired || isUsageExceeded) {
+    return notFound;
+  }
+
   const username = hashedLink.eventType.users[0]?.username;
   const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
@@ -139,8 +159,20 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return notFound;
   }
 
+  // Check if team has API v2 feature flag enabled (same logic as team pages)
+  let useApiV2 = false;
+  if (isTeamEvent && hashedLink.eventType.team?.id) {
+    const featureRepo = new FeaturesRepository();
+    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
+      hashedLink.eventType.team.id,
+      "use-api-v2-for-team-slots"
+    );
+    useApiV2 = teamHasApiV2Route;
+  }
+
   return {
     props: {
+      useApiV2,
       eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
@@ -156,7 +188,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
-      hashedLink: link,
+      hashedLink: hashedLink?.link,
     },
   };
 }

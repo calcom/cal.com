@@ -11,6 +11,12 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
+const hashedLinkInputSchema = z.object({
+  link: z.string(),
+  expiresAt: z.date().nullable().optional(),
+  maxUsageCount: z.number().nullable().optional(),
+});
+
 const aiPhoneCallConfig = z
   .object({
     generalPrompt: z.string(),
@@ -77,7 +83,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     hosts: z.array(hostSchema),
     schedule: z.number().nullable(),
     instantMeetingSchedule: z.number().nullable(),
-    multiplePrivateLinks: z.array(z.string()),
+    multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])),
     assignAllTeamMembers: z.boolean(),
     isRRWeightsEnabled: z.boolean(),
     metadata: EventTypeMetaDataSchema,

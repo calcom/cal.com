@@ -1,97 +1,415 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import dayjs from "@calcom/dayjs";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/components/icon";
-import { showToast } from "@calcom/ui/components/toast";
+import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/privateLinksUtils";
+import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
+import { DatePicker } from "@calcom/ui/components/form";
+import { NumberInput } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const MultiplePrivateLinksController = ({
   team,
   bookerUrl,
-}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl">) => {
+  setMultiplePrivateLinksVisible,
+  userTimeZone,
+}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl"> & {
+  setMultiplePrivateLinksVisible?: (isVisible: boolean) => void;
+  userTimeZone?: string;
+}): JSX.Element => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
+  const { copyToClipboard, isCopied } = useCopy();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentLinkIndex, setCurrentLinkIndex] = useState<number | null>(null);
+  const [selectedType, setSelectedType] = useState<"time" | "usage">("usage");
+  const [expiryDate, setExpiryDate] = useState<Date>(new Date());
+  const [maxUsageCount, setMaxUsageCount] = useState<number | null>(1);
+
+  // Updates the form data directly when settings change
+  const updateLinkSettings = (
+    index: number | null,
+    type: "time" | "usage",
+    date?: Date,
+    usageCount?: number | null
+  ) => {
+    if (index === null) return;
+
+    const currentValue = formMethods.getValues("multiplePrivateLinks") || [];
+    // Convert any string values to PrivateLinkWithOptions
+    const convertedValue = currentValue.map((val: string | PrivateLinkWithOptions) =>
+      typeof val === "string" ? { link: val, expiresAt: null, maxUsageCount: 1, usageCount: 0 } : val
+    );
+
+    if (type === "time") {
+      const selectedDate = date || expiryDate;
+
+      const dateString = dayjs(selectedDate).format("YYYY-MM-DD");
+      const endOfDayInUTC = dayjs.utc(dateString).endOf("day").toDate();
+
+      convertedValue[index] = {
+        ...convertedValue[index],
+        expiresAt: endOfDayInUTC,
+        maxUsageCount: null,
+      };
+    } else if (type === "usage") {
+      convertedValue[index] = {
+        ...convertedValue[index],
+        expiresAt: null,
+        maxUsageCount: usageCount !== undefined ? usageCount : maxUsageCount,
+      };
+    }
+
+    // Update the form value and trigger form change
+    // Store the full objects so the UI can display updated settings immediately
+    formMethods.setValue("multiplePrivateLinks", convertedValue, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  };
+
+  const openSettingsDialog = (index: number, currentLink: PrivateLinkWithOptions) => {
+    setCurrentLinkIndex(index);
+    if (currentLink.expiresAt) {
+      setSelectedType("time");
+      const utcDateString = dayjs.utc(currentLink.expiresAt).format("YYYY-MM-DD");
+      setExpiryDate(new Date(utcDateString));
+    } else {
+      setSelectedType("usage");
+      setMaxUsageCount(currentLink.maxUsageCount ?? 1);
+    }
+    setIsDialogOpen(true);
+  };
+
   return (
-    <Controller
-      name="multiplePrivateLinks"
-      control={formMethods.control}
-      render={({ field: { value, onChange } }) => {
-        if (!value) {
-          value = [];
-        }
-        const addPrivateLink = () => {
-          const newPrivateLink = generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id);
-          if (!value) value = [];
-          value.push(newPrivateLink);
-          onChange(value);
-        };
+    <>
+      <Controller
+        name="multiplePrivateLinks"
+        control={formMethods.control}
+        render={({ field: { value, onChange } }) => {
+          if (!value) {
+            value = [];
+          }
 
-        const removePrivateLink = (index: number) => {
-          if (!value) value = [];
-          value.splice(index, 1);
-          onChange(value);
-        };
+          // Convert any string values to PrivateLinkWithOptions
+          const convertedValue = value.map((val: string | PrivateLinkWithOptions) =>
+            typeof val === "string" ? { link: val, expiresAt: null, maxUsageCount: null, usageCount: 0 } : val
+          );
 
-        return (
-          <ul ref={animateRef}>
-            {value &&
-              value.map((val, key) => {
-                const singleUseURL = `${bookerUrl}/d/${val}/${formMethods.getValues("slug")}`;
+          // Query all links at once instead of individually
+          const { data: allLinksData } = trpc.viewer.eventTypes.getHashedLinks.useQuery(
+            { linkIds: convertedValue.map((val) => val.link) },
+            {
+              enabled: convertedValue.length > 0,
+              refetchOnMount: true,
+            }
+          );
+
+          type HashedLinkData = {
+            id: number | string;
+            linkId: string;
+            expiresAt: Date | null;
+            maxUsageCount: number | null;
+            usageCount: number;
+          };
+
+          const linkDataMap = new Map(allLinksData?.map((data: HashedLinkData) => [data.linkId, data]) || []);
+
+          const addPrivateLink = () => {
+            const userId = formMethods.getValues("users")?.[0]?.id ?? team?.id;
+            if (!userId) return;
+
+            // Create a new private link
+            const newPrivateLink = {
+              link: generateHashedLink(userId),
+              expiresAt: null,
+              maxUsageCount: 1,
+              usageCount: 0,
+            };
+
+            // Simply add the new link without syncing existing data
+            // Server data is used for display only, not for form updates
+            const newValue = [...convertedValue, newPrivateLink];
+            onChange(newValue);
+          };
+
+          const removePrivateLink = (index: number) => {
+            const newValue = [...convertedValue];
+            newValue.splice(index, 1);
+            onChange(newValue);
+
+            // If we're removing the last link and the toggle control is passed,
+            // turn off the private links toggle
+            if (newValue.length === 0 && setMultiplePrivateLinksVisible) {
+              setMultiplePrivateLinksVisible(false);
+            }
+          };
+
+          // Helper function to check if a link is expired using the utility function with fresh data
+          const isLinkExpired = (val: PrivateLinkWithOptions) => {
+            const latestLinkData = linkDataMap.get(val.link);
+            const latestUsageCount =
+              latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
+
+            // Use the utility function with fresh server data and timezone awareness
+            return utilsIsLinkExpired(
+              {
+                expiresAt: val.expiresAt,
+                maxUsageCount: val.maxUsageCount,
+                usageCount: latestUsageCount, // Use fresh usage count from server
+              },
+              userTimeZone
+            );
+          };
+
+          // Sort links: non-expired first, then expired
+          // Within non-expired: expiry-based links (closest to expiry first), then usage-based links (newest first)
+          const sortedLinksWithIndex = convertedValue
+            .map((val, originalIndex) => ({ val, originalIndex }))
+            .sort((a, b) => {
+              const aExpired = isLinkExpired(a.val);
+              const bExpired = isLinkExpired(b.val);
+
+              // If one is expired and the other isn't, sort non-expired first
+              if (aExpired !== bExpired) {
+                return aExpired ? 1 : -1;
+              }
+
+              if (!aExpired && !bExpired) {
+                // Both non-expired: sort by expiry type and date
+                const aHasExpiry = !!a.val.expiresAt;
+                const bHasExpiry = !!b.val.expiresAt;
+
+                // Group expiry-based links before usage-based links
+                if (aHasExpiry && !bHasExpiry) {
+                  return -1;
+                }
+                if (!aHasExpiry && bHasExpiry) {
+                  return 1;
+                }
+
+                if (aHasExpiry && bHasExpiry) {
+                  // Both have expiry dates: sort by closest to expiry (soonest first)
+                  const aExpiryTime = new Date(a.val.expiresAt!).getTime();
+                  const bExpiryTime = new Date(b.val.expiresAt!).getTime();
+                  return aExpiryTime - bExpiryTime;
+                }
+                // Both are usage-based: newer links (higher original index) come first
+                return b.originalIndex - a.originalIndex;
+              } else if (aExpired && bExpired) {
+                // Both expired: older links (lower original index) come first
+                return a.originalIndex - b.originalIndex;
+              }
+
+              return 0;
+            });
+
+          return (
+            <ul ref={animateRef}>
+              {sortedLinksWithIndex.map(({ val, originalIndex }, key) => {
+                const singleUseURL = `${bookerUrl}/d/${val.link}/${formMethods.getValues("slug")}`;
+
+                const latestLinkData = linkDataMap.get(val.link);
+                const latestUsageCount =
+                  latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
+
+                let linkDescription = t("remainder_of_maximum_uses_left", {
+                  remainder: "1",
+                  maximum_uses: "1 use",
+                });
+                const isExpired = isLinkExpired(val);
+
+                if (val.expiresAt) {
+                  const expiryDate = dayjs.utc(val.expiresAt).format("MMM DD, YYYY");
+
+                  linkDescription = isExpired
+                    ? t("link_expired_on_date", { date: expiryDate })
+                    : t("expires_on_date", { date: expiryDate });
+                } else if (
+                  val.maxUsageCount !== undefined &&
+                  val.maxUsageCount !== null &&
+                  !isNaN(Number(val.maxUsageCount))
+                ) {
+                  const maxUses = val.maxUsageCount;
+                  const usedCount = latestUsageCount;
+                  const remainingUses = maxUses - usedCount;
+
+                  if (isExpired) {
+                    linkDescription = t("usage_limit_reached");
+                  } else {
+                    linkDescription = t("remainder_of_maximum_uses_left", {
+                      remainder: remainingUses,
+                      maximum_uses: `${maxUses} ${remainingUses === 1 ? "use" : "uses"}`,
+                    });
+                  }
+                }
+
                 return (
-                  <li data-testid="add-single-use-link" className="mb-4 flex items-center" key={val}>
-                    <TextField
-                      containerClassName="w-full"
-                      disabled
-                      data-testid={`generated-hash-url-${key}`}
-                      labelSrOnly
-                      type="text"
-                      defaultValue={singleUseURL}
-                      addOnSuffix={
-                        <Tooltip content={t("copy_to_clipboard")}>
-                          <Button
-                            color="minimal"
-                            size="sm"
-                            type="button"
-                            aria-label="copy link"
-                            onClick={() => {
-                              navigator.clipboard.writeText(singleUseURL);
-                              showToast(t("multiple_private_link_copied"), "success");
-                            }}>
-                            <Icon name="copy" className="ml-1 h-4 w-4" />
-                          </Button>
-                        </Tooltip>
-                      }
-                    />
-                    {value && value.length > 1 && (
-                      <Button
-                        data-testid={`remove-single-use-link-${key}`}
-                        variant="icon"
-                        StartIcon="trash-2"
-                        color="destructive"
-                        className="ml-2 border-none"
-                        onClick={() => removePrivateLink(key)}
+                  <li data-testid="add-single-use-link" className="mb-4 flex flex-col" key={val.link}>
+                    <div className="flex items-center">
+                      <TextField
+                        containerClassName={classNames("w-full")}
+                        disabled={isExpired}
+                        value={singleUseURL}
+                        readOnly
+                        className={classNames(isExpired ? "bg-red-50 text-gray-400" : "bg-gray-50")}
+                        data-testid="private-link-url"
+                        addOnSuffix={
+                          !isExpired ? (
+                            <Tooltip content={t("copy_link")}>
+                              <Button
+                                type="button"
+                                color="minimal"
+                                size="sm"
+                                StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+                                onClick={() => {
+                                  copyToClipboard(singleUseURL);
+                                  showToast(t("link_copied"), "success");
+                                }}>
+                                {!isCopied ? t("copy") : t("copied")}
+                              </Button>
+                            </Tooltip>
+                          ) : (
+                            <Badge data-testid="private-link-expired" variant="red">
+                              {t("expired")}
+                            </Badge>
+                          )
+                        }
                       />
-                    )}
+                      <div className="ml-2 flex items-center">
+                        {!isExpired && (
+                          <Button
+                            type="button"
+                            color="minimal"
+                            variant="icon"
+                            StartIcon="settings"
+                            data-testid="private-link-settings"
+                            onClick={() => openSettingsDialog(originalIndex, val)}
+                          />
+                        )}
+                        <Button
+                          data-testid={`remove-private-link-${originalIndex}`}
+                          variant="icon"
+                          type="button"
+                          StartIcon="trash-2"
+                          color="destructive"
+                          className="ml-1 border-none"
+                          onClick={() => removePrivateLink(originalIndex)}
+                        />
+                      </div>
+                    </div>
+                    <div data-testid="private-link-description" className="mt-1 text-sm text-gray-500">
+                      {linkDescription}
+                    </div>
                   </li>
                 );
               })}
+              <Button
+                color="minimal"
+                StartIcon="plus"
+                onClick={addPrivateLink}
+                data-testid="add-private-link-button">
+                {t("add_a_multiple_private_link")}
+              </Button>
+            </ul>
+          );
+        }}
+      />
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent title={t("link_settings")} type="creation">
+          <div className="mb-4 space-y-4">
+            <RadioArea.Group
+              className="space-y-2"
+              value={selectedType}
+              data-testid="private-link-radio-group"
+              onValueChange={(value: "time" | "usage") => {
+                setSelectedType(value);
+              }}>
+              <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
+                <strong className="mb-1 block">{t("usage_based_expiration")}</strong>
+                <p>
+                  {t(
+                    maxUsageCount === 1
+                      ? "usage_based_expiration_description"
+                      : "usage_based_expiration_description_plural",
+                    { count: maxUsageCount || 0 }
+                  )}
+                </p>
+                {selectedType === "usage" && (
+                  <div className="mt-2 w-[180px]">
+                    <NumberInput
+                      required
+                      min={1}
+                      data-testid="private-link-usage-count"
+                      placeholder={t("number_of_uses")}
+                      value={maxUsageCount === null ? "" : maxUsageCount}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const value = e.target.value === "" ? null : parseInt(e.target.value);
+                        if (e.target.value === "") {
+                          setMaxUsageCount(null);
+                        } else if (!isNaN(Number(value)) && Number(value) > 0) {
+                          setMaxUsageCount(value);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </RadioArea.Item>
+              <RadioArea.Item data-testid="private-link-time" value="time" className="w-full text-sm">
+                <strong className="mb-1 block">{t("time_based_expiration")}</strong>
+                <p>
+                  {t("time_based_expiration_description", { date: dayjs(expiryDate).format("MMM DD, YYYY") })}
+                </p>
+                {selectedType === "time" && (
+                  <div className="mt-2 w-[180px]">
+                    <DatePicker
+                      data-testid="private-link-expiration-date"
+                      date={expiryDate}
+                      onDatesChange={(newDate: Date) => {
+                        setExpiryDate(newDate);
+                      }}
+                    />
+                  </div>
+                )}
+              </RadioArea.Item>
+            </RadioArea.Group>
+          </div>
+
+          <div className="mb-4 mt-4 flex justify-end">
             <Button
-              color="minimal"
-              StartIcon="plus"
-              onClick={addPrivateLink}
-              data-testid="add-single-use-link-button">
-              {t("add_a_multiple_private_link")}
+              type="button"
+              color="primary"
+              data-testid="private-link-expiration-settings-save"
+              onClick={() => {
+                // Save the changes when Save button is clicked
+                if (selectedType === "time") {
+                  updateLinkSettings(currentLinkIndex, "time", expiryDate);
+                } else {
+                  updateLinkSettings(currentLinkIndex, "usage", undefined, maxUsageCount);
+                }
+                setIsDialogOpen(false);
+              }}>
+              {t("save")}
             </Button>
-          </ul>
-        );
-      }}
-    />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
