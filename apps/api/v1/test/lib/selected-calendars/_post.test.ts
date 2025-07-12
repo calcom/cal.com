@@ -95,6 +95,8 @@ describe("POST /api/selected-calendars", () => {
         unwatchAttempts: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
+        outlookSubscriptionId: null,
+        outlookSubscriptionExpiration: null,
       });
 
       await handler(req, res);
@@ -140,6 +142,8 @@ describe("POST /api/selected-calendars", () => {
         unwatchAttempts: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
+        outlookSubscriptionId: null,
+        outlookSubscriptionExpiration: null,
       });
 
       await handler(req, res);

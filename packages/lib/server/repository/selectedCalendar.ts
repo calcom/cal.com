@@ -28,6 +28,12 @@ export type FindManyArgs = {
       | {
           not: null;
         };
+    outlookSubscriptionId?:
+      | string
+      | null
+      | {
+          not: null;
+        };
   };
   orderBy?: {
     userId?: "asc" | "desc";
@@ -165,8 +171,7 @@ export class SelectedCalendarRepository {
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
+        // RN we only support google calendar and office365calendar subscriptions for now
         AND: [
           {
             OR: [
@@ -190,10 +195,32 @@ export class SelectedCalendarRepository {
           },
           {
             OR: [
-              // Either is a calendar pending to be watched
-              { googleChannelExpiration: null },
-              // Or is a calendar that is about to expire
-              { googleChannelExpiration: { lt: tomorrowTimestamp } },
+              {
+                AND: [
+                  { integration: "google_calendar" },
+                  {
+                    OR: [
+                      // Either is a calendar pending to be watched
+                      { googleChannelExpiration: null },
+                      // Or is a calendar that is about to expire
+                      { googleChannelExpiration: { lt: tomorrowTimestamp } },
+                    ],
+                  },
+                ],
+              },
+              {
+                AND: [
+                  { integration: "office365_calendar" },
+                  {
+                    OR: [
+                      // Either is a calendar pending to be watched
+                      { outlookSubscriptionExpiration: null },
+                      // Or is a calendar that is about to expire
+                      { outlookSubscriptionExpiration: { lt: tomorrowTimestamp } },
+                    ],
+                  },
+                ],
+              },
             ],
           },
         ],
@@ -207,10 +234,20 @@ export class SelectedCalendarRepository {
    */
   static async getNextBatchToUnwatch(limit = 100) {
     const where: Prisma.SelectedCalendarWhereInput = {
-      // RN we only support google calendar subscriptions for now
-      integration: "google_calendar",
-      googleChannelExpiration: { not: null },
+      // RN we only support google calendar and office365calendar subscriptions for now
       AND: [
+        {
+          OR: [
+            {
+              integration: "google_calendar",
+              googleChannelExpiration: { not: null },
+            },
+            {
+              integration: "office365_calendar",
+              outlookSubscriptionExpiration: { not: null },
+            },
+          ],
+        },
         {
           OR: [
             // Either is a calendar that has not errored during unwatch
@@ -275,6 +312,33 @@ export class SelectedCalendarRepository {
         googleChannelId,
       },
       select: {
+        credential: {
+          select: {
+            ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  static async findManyByOutlookSubscriptionIds(subscriptionIds: string[]) {
+    if (subscriptionIds.length === 0) {
+      return [];
+    }
+    return await prisma.selectedCalendar.findMany({
+      where: {
+        outlookSubscriptionId: { in: subscriptionIds },
+        integration: "office365_calendar",
+      },
+      select: {
+        id: true,
+        outlookSubscriptionId: true,
+        externalId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
