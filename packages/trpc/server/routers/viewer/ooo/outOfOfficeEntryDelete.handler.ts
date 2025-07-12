@@ -49,6 +49,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     select: {
       start: true,
       end: true,
+      deelTimeOffId: true,
       toUser: {
         select: {
           email: true,
@@ -81,6 +82,26 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     dates: `${formattedStartDate} - ${formattedEndDate}`,
     action: "cancel",
   });
+
+  try {
+    if (deletedOutOfOfficeEntry.deelTimeOffId) {
+      const deelCredential = await prisma.credential.findFirst({
+        where: {
+          userId: oooUserId,
+          type: "deel_other",
+          appId: "deel",
+        },
+      });
+
+      if (deelCredential) {
+        const { DeelService } = await import("@calcom/app-store/deel/lib/DeelService");
+        const deelService = new DeelService(deelCredential);
+        await deelService.deleteTimeOff(deletedOutOfOfficeEntry.deelTimeOffId);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to delete Deel time-off request:", error);
+  }
 
   return {};
 };

@@ -87,6 +87,72 @@ export class DeelService {
     }
   }
 
+  async updateTimeOff(timeOffId: string, request: Partial<DeelTimeOffRequest>): Promise<DeelTimeOffResponse> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.letsdeel.com/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ data: request }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.log.error("Failed to update Deel time-off request", {
+          timeOffId,
+          status: response.status,
+          error: errorText,
+        });
+        throw new Error(`Deel API error: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+      this.log.info("Successfully updated Deel time-off request", { id: result.id });
+      return result;
+    } catch (error) {
+      this.log.error("Error updating Deel time-off request", error);
+      throw error;
+    }
+  }
+
+  async deleteTimeOff(timeOffId: string): Promise<void> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(
+        `https://api.letsdeel.com/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.log.error("Failed to delete Deel time-off request", {
+          timeOffId,
+          status: response.status,
+          error: errorText,
+        });
+        throw new Error(`Deel API error: ${response.status} ${errorText}`);
+      }
+
+      this.log.info("Successfully deleted Deel time-off request", { id: timeOffId });
+    } catch (error) {
+      this.log.error("Error deleting Deel time-off request", error);
+      throw error;
+    }
+  }
+
   async getRecipientProfileId(userEmail: string): Promise<string | null> {
     try {
       const accessToken = await this.getAccessToken();
