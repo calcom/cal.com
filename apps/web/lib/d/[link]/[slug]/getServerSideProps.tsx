@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";

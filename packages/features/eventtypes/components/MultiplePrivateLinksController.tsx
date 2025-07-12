@@ -18,6 +18,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/components/form";
 import { NumberInput } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const MultiplePrivateLinksController = ({
@@ -165,12 +166,15 @@ export const MultiplePrivateLinksController = ({
             const latestUsageCount =
               latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-            // Use the utility function with fresh server data
-            return utilsIsLinkExpired({
-              expiresAt: val.expiresAt,
-              maxUsageCount: val.maxUsageCount,
-              usageCount: latestUsageCount, // Use fresh usage count from server
-            });
+            // Use the utility function with fresh server data and timezone awareness
+            return utilsIsLinkExpired(
+              {
+                expiresAt: val.expiresAt,
+                maxUsageCount: val.maxUsageCount,
+                usageCount: latestUsageCount, // Use fresh usage count from server
+              },
+              userTimeZone
+            );
           };
 
           // Sort links: non-expired first, then expired
@@ -275,6 +279,7 @@ export const MultiplePrivateLinksController = ({
                                 StartIcon={isCopied ? "clipboard-check" : "clipboard"}
                                 onClick={() => {
                                   copyToClipboard(singleUseURL);
+                                  showToast(t("link_copied"), "success");
                                 }}>
                                 {!isCopied ? t("copy") : t("copied")}
                               </Button>
@@ -343,7 +348,7 @@ export const MultiplePrivateLinksController = ({
                     maxUsageCount === 1
                       ? "usage_based_expiration_description"
                       : "usage_based_expiration_description_plural",
-                    { count: maxUsageCount }
+                    { count: maxUsageCount || 0 }
                   )}
                 </p>
                 {selectedType === "usage" && (

@@ -1,15 +1,31 @@
-export function isLinkExpired(link: {
-  expiresAt?: Date | string | null;
-  maxUsageCount?: number | null;
-  usageCount?: number | null;
-}): boolean {
-  const now = new Date();
+import dayjs from "@calcom/dayjs";
 
+export function isLinkExpired(
+  link: {
+    expiresAt?: Date | string | null;
+    maxUsageCount?: number | null;
+    usageCount?: number | null;
+  },
+  timezone?: string | null
+): boolean {
   // Check if time-based expiration has passed
   if (link.expiresAt) {
-    const expirationDate = new Date(link.expiresAt);
-    if (expirationDate < now) {
-      return true;
+    if (timezone) {
+      // Use dayjs for timezone-aware comparison
+      const now = dayjs().tz(timezone);
+      const expiration = dayjs(link.expiresAt).tz(timezone);
+
+      if (expiration.isBefore(now)) {
+        return true;
+      }
+    } else {
+      // Fallback to UTC comparison if no timezone available
+      const now = dayjs();
+      const expiration = dayjs(link.expiresAt);
+
+      if (expiration.isBefore(now)) {
+        return true;
+      }
     }
     return false;
   }
@@ -32,6 +48,6 @@ export function filterActiveLinks<
     maxUsageCount?: number | null;
     usageCount?: number | null;
   }
->(links: T[]): T[] {
-  return links.filter((link) => !isLinkExpired(link));
+>(links: T[], timezone?: string | null): T[] {
+  return links.filter((link) => !isLinkExpired(link, timezone));
 }

@@ -207,10 +207,10 @@ export class HashedLinksService {
       return eventType.owner.timeZone;
     } else if (eventType?.teamId) {
       // Team event type - try hosts first, then team members
-      if (eventType.hosts?.length > 0 && eventType.hosts[0]?.user?.timeZone) {
+      if (eventType.hosts && eventType.hosts.length > 0 && eventType.hosts[0]?.user?.timeZone) {
         return eventType.hosts[0].user.timeZone;
-      } else if (eventType.team?.members?.length > 0) {
-        return eventType.team.members[0]?.user?.timeZone;
+      } else if (eventType.team?.members && eventType.team.members.length > 0) {
+        return eventType.team.members[0]?.user?.timeZone || null;
       }
     }
     return null;

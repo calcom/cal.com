@@ -7,6 +7,7 @@ import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
@@ -476,8 +477,9 @@ export const InfiniteEventTypeList = ({
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
 
-            // Filter out expired links
-            const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink) : [];
+            // Filter out expired links using user's timezone
+            const userTimezone = dayjs.tz.guess();
+            const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
 
             // Ensure index is within bounds for active links
             const currentIndex = privateLinkCopyIndices[type.slug] ?? 0;

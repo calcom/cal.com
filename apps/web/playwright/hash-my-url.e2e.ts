@@ -132,7 +132,7 @@ test.describe("private links creation and usage", () => {
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
 
-    // After booking with a expiration date based private link, the link should be expired
+    // After booking with a expiration date based private link, the link should still be valid
     await expect(page.locator('[data-testid="private-link-expired"]')).toBeHidden();
   });
   test("generate private link with 2 usages and make 2 bookings with it", async ({ page }) => {
