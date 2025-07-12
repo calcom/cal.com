@@ -173,7 +173,7 @@ export const MultiplePrivateLinksController = ({
           };
 
           // Sort links: non-expired first, then expired
-          // We need to preserve the original index for the removePrivateLink function
+          // Within non-expired: expiry-based links (closest to expiry first), then usage-based links (newest first)
           const sortedLinksWithIndex = convertedValue
             .map((val, originalIndex) => ({ val, originalIndex }))
             .sort((a, b) => {
@@ -185,7 +185,32 @@ export const MultiplePrivateLinksController = ({
                 return aExpired ? 1 : -1;
               }
 
-              // If both have same expiry status, maintain original order
+              if (!aExpired && !bExpired) {
+                // Both non-expired: sort by expiry type and date
+                const aHasExpiry = !!a.val.expiresAt;
+                const bHasExpiry = !!b.val.expiresAt;
+
+                // Group expiry-based links before usage-based links
+                if (aHasExpiry && !bHasExpiry) {
+                  return -1;
+                }
+                if (!aHasExpiry && bHasExpiry) {
+                  return 1;
+                }
+
+                if (aHasExpiry && bHasExpiry) {
+                  // Both have expiry dates: sort by closest to expiry (soonest first)
+                  const aExpiryTime = new Date(a.val.expiresAt!).getTime();
+                  const bExpiryTime = new Date(b.val.expiresAt!).getTime();
+                  return aExpiryTime - bExpiryTime;
+                }
+                // Both are usage-based: newer links (higher original index) come first
+                return b.originalIndex - a.originalIndex;
+              } else if (aExpired && bExpired) {
+                // Both expired: older links (lower original index) come first
+                return a.originalIndex - b.originalIndex;
+              }
+
               return 0;
             });
 
@@ -194,12 +219,10 @@ export const MultiplePrivateLinksController = ({
               {sortedLinksWithIndex.map(({ val, originalIndex }, key) => {
                 const singleUseURL = `${bookerUrl}/d/${val.link}/${formMethods.getValues("slug")}`;
 
-                // Get the link data from our map instead of individual queries
                 const latestLinkData = linkDataMap.get(val.link);
                 const latestUsageCount =
                   latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-                // Determine if link is expired and create description
                 let linkDescription = t("remainder_of_maximum_uses_left", {
                   remainder: "1",
                   maximum_uses: "1 use",
@@ -217,7 +240,6 @@ export const MultiplePrivateLinksController = ({
                   val.maxUsageCount !== null &&
                   !isNaN(Number(val.maxUsageCount))
                 ) {
-                  // Calculate uses and determine if expired
                   const maxUses = val.maxUsageCount;
                   const usedCount = latestUsageCount;
                   const remainingUses = maxUses - usedCount;
