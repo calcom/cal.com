@@ -13,8 +13,8 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
+import { HashedLinksRepository } from "@calcom/lib/server/repository/hashedLinks.repository";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { PrivateLinksRepository } from "@calcom/lib/server/repository/privateLinks";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
@@ -493,7 +493,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   // Handle multiple private links using the repository
-  const privateLinksRepo = new PrivateLinksRepository(ctx.prisma);
+  const privateLinksRepo = new HashedLinksRepository(ctx.prisma);
   const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 

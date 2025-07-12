@@ -60,13 +60,48 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         },
       },
     },
-  } as const;
+  } satisfies Prisma.HashedLinkSelect;
 
   const hashedLink = await prisma.hashedLink.findUnique({
     where: {
       link,
     },
-    select: hashedLinkSelect,
+    select: {
+      id: true,
+      link: true,
+      eventTypeId: true,
+      expiresAt: true,
+      maxUsageCount: true,
+      usageCount: true,
+      eventType: {
+        select: {
+          users: {
+            select: {
+              username: true,
+              profiles: {
+                select: {
+                  id: true,
+                  organizationId: true,
+                  username: true,
+                },
+              },
+            },
+          },
+          team: {
+            select: {
+              id: true,
+              slug: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   let name: string;
@@ -175,6 +210,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // is reused for both team and user events.
       isTeamEvent,
       hashedLink: hashedLink?.link,
+      useApiV2: false,
     },
   };
 }

@@ -7,6 +7,7 @@ import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types"
 import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/privateLinksUtils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -53,21 +54,15 @@ export const MultiplePrivateLinksController = ({
     );
 
     if (type === "time") {
-      // Convert the selected date to end of day in user's timezone, then to UTC for storage
+      // Convert the selected date to end of day in UTC for storage
       const selectedDate = date || expiryDate;
-      const userTz = userTimeZone || dayjs.tz.guess();
 
-      // Create a dayjs object in the user's timezone with the selected date
-      // This ensures we're working with the date as intended in the user's timezone
-      const endOfDayInUserTz = dayjs
-        .tz(dayjs(selectedDate).format("YYYY-MM-DD"), userTz)
-        .endOf("day")
-        .utc()
-        .toDate();
+      // Store end of day in UTC - timezone handling is done during validation
+      const endOfDayInUTC = dayjs(selectedDate).utc().endOf("day").toDate();
 
       convertedValue[index] = {
         ...convertedValue[index],
-        expiresAt: endOfDayInUserTz,
+        expiresAt: endOfDayInUTC,
         maxUsageCount: null,
       };
     } else if (type === "usage") {
@@ -164,25 +159,18 @@ export const MultiplePrivateLinksController = ({
             }
           };
 
-          // Helper function to check if a link is expired
+          // Helper function to check if a link is expired using the utility function with fresh data
           const isLinkExpired = (val: PrivateLinkWithOptions) => {
             const latestLinkData = linkDataMap.get(val.link);
             const latestUsageCount =
               latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-            if (val.expiresAt) {
-              // The expiresAt date is already stored as end-of-day in user's timezone converted to UTC
-              // So we can directly compare with current time
-              return new Date(val.expiresAt).getTime() < Date.now();
-            } else if (
-              val.maxUsageCount !== undefined &&
-              val.maxUsageCount !== null &&
-              !isNaN(Number(val.maxUsageCount))
-            ) {
-              // Link is expired if usage count has reached or exceeded the limit
-              return latestUsageCount >= val.maxUsageCount;
-            }
-            return false;
+            // Use the utility function with fresh server data
+            return utilsIsLinkExpired({
+              expiresAt: val.expiresAt,
+              maxUsageCount: val.maxUsageCount,
+              usageCount: latestUsageCount, // Use fresh usage count from server
+            });
           };
 
           // Sort links: non-expired first, then expired
@@ -220,9 +208,9 @@ export const MultiplePrivateLinksController = ({
                 const isExpired = isLinkExpired(val);
 
                 if (val.expiresAt) {
-                  // Convert stored UTC date to user's timezone for display and comparison
-                  const expiryInUserTz = dayjs.utc(val.expiresAt).tz(userTimeZone || dayjs.tz.guess());
-                  const expiryDate = expiryInUserTz.format("MMM DD, YYYY");
+                  // Since we store end-of-day UTC to represent the full day globally,
+                  // display the original date without timezone conversion
+                  const expiryDate = dayjs.utc(val.expiresAt).format("MMM DD, YYYY");
 
                   linkDescription = isExpired
                     ? t("link_expired_on_date", { date: expiryDate })

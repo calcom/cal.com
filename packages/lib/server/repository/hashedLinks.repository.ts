@@ -1,6 +1,7 @@
+import dayjs from "@calcom/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { filterActiveLinks, isLinkExpired } from "@calcom/lib/privateLinksUtils";
-import { prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
+import { prisma, type PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 export type HashedLinkInputType = {
@@ -15,7 +16,7 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
-export class PrivateLinksRepository {
+export class HashedLinksRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
   private normalizeLinkInput(input: string | HashedLinkInputType): NormalizedLink {
@@ -28,7 +29,7 @@ export class PrivateLinksRepository {
         };
   }
 
-  async deleteLinks(eventTypeId: number, linksToDelete: string[], tx?: PrismaTransaction) {
+  async deleteLinks(eventTypeId: number, linksToDelete: string[]) {
     if (linksToDelete.length === 0) return;
 
     return await this.prismaClient.hashedLink.deleteMany({
@@ -39,7 +40,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  async createLink(eventTypeId: number, linkData: NormalizedLink, tx?: PrismaTransaction) {
+  async createLink(eventTypeId: number, linkData: NormalizedLink) {
     const data: Prisma.HashedLinkCreateManyInput = {
       eventTypeId,
       link: linkData.link,
@@ -53,7 +54,7 @@ export class PrivateLinksRepository {
     return await this.prismaClient.hashedLink.create({ data });
   }
 
-  async updateLink(eventTypeId: number, linkData: NormalizedLink, tx?: PrismaTransaction) {
+  async updateLink(eventTypeId: number, linkData: NormalizedLink) {
     const updateData: Prisma.HashedLinkUpdateManyMutationInput = {
       expiresAt: linkData.expiresAt,
     };
@@ -75,15 +76,13 @@ export class PrivateLinksRepository {
     eventTypeId,
     multiplePrivateLinks,
     connectedMultiplePrivateLinks,
-    tx,
   }: {
     eventTypeId: number;
     multiplePrivateLinks?: (string | HashedLinkInputType)[];
     connectedMultiplePrivateLinks: string[];
-    tx?: PrismaTransaction;
   }) {
     if (!multiplePrivateLinks || multiplePrivateLinks.length === 0) {
-      await this.deleteLinks(eventTypeId, connectedMultiplePrivateLinks, tx);
+      await this.deleteLinks(eventTypeId, connectedMultiplePrivateLinks);
       return;
     }
 
@@ -91,19 +90,19 @@ export class PrivateLinksRepository {
     const currentLinks = normalizedLinks.map((l) => l.link);
 
     const linksToDelete = connectedMultiplePrivateLinks.filter((link) => !currentLinks.includes(link));
-    await this.deleteLinks(eventTypeId, linksToDelete, tx);
+    await this.deleteLinks(eventTypeId, linksToDelete);
 
     for (const linkData of normalizedLinks) {
       const exists = connectedMultiplePrivateLinks.includes(linkData.link);
       if (!exists) {
-        await this.createLink(eventTypeId, linkData, tx);
+        await this.createLink(eventTypeId, linkData);
       } else {
-        await this.updateLink(eventTypeId, linkData, tx);
+        await this.updateLink(eventTypeId, linkData);
       }
     }
   }
 
-  async findLinksByEventTypeId(eventTypeId: number, tx?: PrismaTransaction) {
+  async findLinksByEventTypeId(eventTypeId: number) {
     return await this.prismaClient.hashedLink.findMany({
       where: {
         eventTypeId,
@@ -117,7 +116,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  async findLinkByEventTypeIdAndLink(eventTypeId: number, link: string, tx?: PrismaTransaction) {
+  async findLinkByEventTypeIdAndLink(eventTypeId: number, link: string) {
     return await this.prismaClient.hashedLink.findFirst({
       where: {
         eventTypeId,
@@ -126,7 +125,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  async findLinkWithEventTypeDetails(linkId: string, tx?: PrismaTransaction) {
+  async findLinkWithEventTypeDetails(linkId: string) {
     return await this.prismaClient.hashedLink.findUnique({
       where: {
         link: linkId,
@@ -148,7 +147,7 @@ export class PrivateLinksRepository {
     });
   }
 
-  async findLinksWithEventTypeDetails(linkIds: string[], tx?: PrismaTransaction) {
+  async findLinksWithEventTypeDetails(linkIds: string[]) {
     return await this.prismaClient.hashedLink.findMany({
       where: {
         link: {
@@ -172,10 +171,45 @@ export class PrivateLinksRepository {
     });
   }
 
-  async validateAndIncrementUsage(linkId: string, tx?: PrismaTransaction) {
+  async validateAndIncrementUsage(linkId: string) {
     const hashedLink = await this.prismaClient.hashedLink.findUnique({
       where: {
         link: linkId,
+      },
+      select: {
+        id: true,
+        expiresAt: true,
+        maxUsageCount: true,
+        usageCount: true,
+        eventType: {
+          select: {
+            userId: true,
+            teamId: true,
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    timeZone: true,
+                  },
+                },
+              },
+            },
+            profile: {
+              select: {
+                user: {
+                  select: {
+                    timeZone: true,
+                  },
+                },
+              },
+            },
+            owner: {
+              select: {
+                timeZone: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -183,14 +217,51 @@ export class PrivateLinksRepository {
       throw new Error(ErrorCode.PrivateLinkExpired);
     }
 
-    const now = new Date();
-    if (hashedLink.expiresAt && hashedLink.expiresAt < now) {
-      throw new Error(ErrorCode.PrivateLinkExpired);
+    // Use host's timezone for expiration comparison
+    if (hashedLink.expiresAt) {
+      console.log(
+        { hashedLink },
+        hashedLink.eventType,
+        hashedLink.eventType?.profile,
+        hashedLink.eventType?.owner
+      );
+      // Determine timezone based on event type structure
+      let hostTimezone: string | null = null;
+
+      if (hashedLink.eventType?.userId && hashedLink.eventType?.owner?.timeZone) {
+        // Personal event type - use owner's timezone
+        hostTimezone = hashedLink.eventType.owner.timeZone;
+      } else if (hashedLink.eventType?.teamId) {
+        // Team event type - try hosts first, then team members
+        if (hashedLink.eventType.hosts?.length > 0 && hashedLink.eventType.hosts[0]?.user?.timeZone) {
+          hostTimezone = hashedLink.eventType.hosts[0].user.timeZone;
+        } else if (hashedLink.eventType.team?.members?.length > 0) {
+          hostTimezone = hashedLink.eventType.team.members[0]?.user?.timeZone;
+        }
+      }
+      if (hostTimezone) {
+        // Use dayjs for timezone-aware comparison
+        const now = dayjs().tz(hostTimezone);
+        const expiration = dayjs(hashedLink.expiresAt).tz(hostTimezone);
+
+        if (expiration.isBefore(now)) {
+          throw new Error(ErrorCode.PrivateLinkExpired);
+        }
+      } else {
+        // Fallback to UTC comparison if no timezone available
+        const now = dayjs();
+        const expiration = dayjs(hashedLink.expiresAt);
+
+        if (expiration.isBefore(now)) {
+          throw new Error(ErrorCode.PrivateLinkExpired);
+        }
+      }
+      return hashedLink;
     }
 
     if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
       if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
-        throw new Error("Link has expired");
+        throw new Error(ErrorCode.PrivateLinkExpired);
       }
 
       try {
@@ -207,14 +278,12 @@ export class PrivateLinksRepository {
         throw new Error("Link usage limit reached");
       }
     }
-
     return hashedLink;
   }
 
   async checkUserPermissionForLink(
     link: { eventType: { teamId?: number | null; userId?: number | null } },
-    userId: number,
-    tx?: PrismaTransaction
+    userId: number
   ): Promise<boolean> {
     if (link.eventType.userId && link.eventType.userId !== userId) return false;
     if (!link.eventType.teamId) return true;
