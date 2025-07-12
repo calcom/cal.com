@@ -182,24 +182,7 @@ const nextConfig = {
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
-    optimizePackageImports: [
-      "@calcom/ui",
-      "@radix-ui/react-avatar",
-      "@radix-ui/react-dialog",
-      "@radix-ui/react-dropdown-menu",
-      "@radix-ui/react-select",
-      "@radix-ui/react-tooltip",
-      "@hookform/resolvers",
-      "react-hook-form",
-      "lucide-react",
-      "@headlessui/react",
-      "framer-motion",
-      "react-use",
-      "react-day-picker",
-      "date-fns",
-    ],
-    webpackBuildWorker: true,
-    optimizeCss: true,
+    optimizePackageImports: ["@calcom/ui"],
   },
   productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
@@ -249,41 +232,6 @@ const nextConfig = {
     }
 
     config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
-
-    // Enhanced chunk splitting for better caching
-    if (!isServer) {
-      config.optimization.splitChunks = {
-        chunks: "all",
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: "vendors",
-            priority: 10,
-            reuseExistingChunk: true,
-          },
-          common: {
-            name: "common",
-            minChunks: 2,
-            priority: 5,
-            reuseExistingChunk: true,
-          },
-          // Separate chunk for large UI libraries
-          ui: {
-            test: /[\\/]node_modules[\\/](@radix-ui|@headlessui|framer-motion)/,
-            name: "ui-libs",
-            priority: 20,
-            reuseExistingChunk: true,
-          },
-          // Separate chunk for date/time libraries
-          datetime: {
-            test: /[\\/]node_modules[\\/](date-fns|dayjs|moment)/,
-            name: "datetime-libs",
-            priority: 15,
-            reuseExistingChunk: true,
-          },
-        },
-      };
-    }
 
     config.resolve.fallback = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
