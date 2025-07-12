@@ -172,6 +172,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       useEventLevelSelectedCalendars: true,
+      optionalGuestTeamMembers: {
+        select: {
+          name: true,
+          email: true,
+          id: true,
+        },
+      },
     },
   });
 
