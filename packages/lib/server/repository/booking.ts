@@ -5,8 +5,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, AssignmentReasonEnum, RRTimestampBasis } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
 
@@ -49,6 +48,7 @@ const buildWhereClauseForActiveBookings = ({
   users,
   virtualQueuesData,
   includeNoShowInRRCalculation = false,
+  excludeSalesforceBookingsFromRR = false,
   rrTimestampBasis,
 }: {
   eventTypeId: number;
@@ -63,6 +63,7 @@ const buildWhereClauseForActiveBookings = ({
     };
   } | null;
   includeNoShowInRRCalculation: boolean;
+  excludeSalesforceBookingsFromRR?: boolean;
   rrTimestampBasis: RRTimestampBasis;
 }): Prisma.BookingWhereInput => ({
   OR: [
@@ -108,6 +109,17 @@ const buildWhereClauseForActiveBookings = ({
     ? {
         routedFromRoutingFormReponse: {
           chosenRouteId: virtualQueuesData.chosenRouteId,
+        },
+      }
+    : {}),
+  ...(excludeSalesforceBookingsFromRR
+    ? {
+        NOT: {
+          assignmentReason: {
+            some: {
+              reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
+            },
+          },
         },
       }
     : {}),
@@ -304,6 +316,7 @@ export class BookingRepository {
     endDate,
     virtualQueuesData,
     includeNoShowInRRCalculation,
+    excludeSalesforceBookingsFromRR = false,
     rrTimestampBasis,
   }: {
     users: { id: number; email: string }[];
@@ -318,6 +331,7 @@ export class BookingRepository {
       };
     } | null;
     includeNoShowInRRCalculation: boolean;
+    excludeSalesforceBookingsFromRR: boolean;
     rrTimestampBasis: RRTimestampBasis;
   }) {
     const allBookings = await this.prismaClient.booking.findMany({
@@ -328,6 +342,7 @@ export class BookingRepository {
         users,
         virtualQueuesData,
         includeNoShowInRRCalculation,
+        excludeSalesforceBookingsFromRR,
         rrTimestampBasis,
       }),
       select: {

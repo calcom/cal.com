@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { EventTypeService } from "@calcom/lib/server/service/eventType";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
@@ -1411,6 +1412,116 @@ describe("attribute weights and virtual queues", () => {
         lte: new Date("2021-06-20T11:59:59.000Z"),
       })
     );
+  });
+
+  it("should exclude Salesforce bookings from round robin when excludeSalesforceBookingsFromRR is true", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([]);
+    prismaMock.booking.findMany.mockResolvedValue([]);
+
+    // Mock Salesforce app data with excludeSalesforceBookingsFromRR set to true
+    const mockEventTypeService = vi.spyOn(EventTypeService, "getEventTypeAppDataFromId");
+    mockEventTypeService.mockResolvedValue({ excludeSalesforceBookingsFromRR: true });
+
+    await getLuckyUser({
+      availableUsers: users,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: { rrResetInterval: RRResetInterval.MONTH },
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Verify that the query excludes Salesforce assignments
+    expect(queryArgs.where?.NOT?.assignmentReason?.some?.reasonEnum).toEqual("SALESFORCE_ASSIGNMENT");
+
+    mockEventTypeService.mockRestore();
+  });
+
+  it("should include Salesforce bookings in round robin when excludeSalesforceBookingsFromRR is false", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([]);
+    prismaMock.booking.findMany.mockResolvedValue([]);
+
+    // Mock Salesforce app data with excludeSalesforceBookingsFromRR set to false
+    const mockEventTypeService = vi.spyOn(EventTypeService, "getEventTypeAppDataFromId");
+    mockEventTypeService.mockResolvedValue({ excludeSalesforceBookingsFromRR: false });
+
+    await getLuckyUser({
+      availableUsers: users,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: { rrResetInterval: RRResetInterval.MONTH },
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    });
+
+    const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
+
+    // Verify that the query does NOT exclude Salesforce assignments
+    expect(queryArgs.where?.NOT?.assignmentReason?.some?.reasonEnum).toBeUndefined();
+
+    mockEventTypeService.mockRestore();
   });
 });
 
