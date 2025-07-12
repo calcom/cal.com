@@ -14,6 +14,13 @@ import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { verifyApiKey } from "./verifyApiKey";
 
+vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX");
+
+vi.mock("@calcom/lib/crypto", () => ({
+  symmetricDecrypt: vi.fn().mockReturnValue("mocked-decrypted-value"),
+  symmetricEncrypt: vi.fn().mockReturnValue("mocked-encrypted-value"),
+}));
+
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
