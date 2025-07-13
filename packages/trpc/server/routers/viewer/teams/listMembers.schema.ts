@@ -4,7 +4,7 @@ export const ZListMembersInputSchema = z.object({
   teamId: z.number(),
   limit: z.number().default(10),
   searchTerm: z.string().optional(),
-  cursor: z.number().optional().nullable(),
+  offset: z.number().default(0),
 });
 
 export type TListMembersInputSchema = z.infer<typeof ZListMembersInputSchema>;

@@ -13,7 +13,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -25,7 +25,6 @@ import {
   DataTableWrapper,
   DataTableSelectionBar,
   useDataTable,
-  useFetchMoreOnBottomReached,
   useColumnFilters,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -171,86 +170,39 @@ function MemberListContent(props: Props) {
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { searchTerm } = useDataTable();
+  const { searchTerm, limit, offset } = useDataTable();
 
-  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
-    trpc.viewer.teams.listMembers.useInfiniteQuery(
-      {
-        limit: 10,
-        searchTerm,
-        teamId: props.team.id,
-        // TODO: send `columnFilters` to server for server side filtering
-        // filters: columnFilters,
-      },
-      {
-        enabled: !!props.team.id,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-        staleTime: 0,
-      }
-    );
+  const { data, isPending } = trpc.viewer.teams.listMembers.useQuery(
+    {
+      limit,
+      offset,
+      searchTerm,
+      teamId: props.team.id,
+    },
+    {
+      enabled: !!props.team.id,
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0,
+    }
+  );
 
   const columnFilters = useColumnFilters();
   const [rowSelection, setRowSelection] = useState({});
 
-  const removeMemberFromCache = ({
-    utils,
-    memberId,
-    teamId,
-    searchTerm,
-  }: {
-    utils: ReturnType<typeof trpc.useUtils>;
-    memberId: number;
-    teamId: number;
-    searchTerm: string;
-  }) => {
-    utils.viewer.teams.listMembers.setInfiniteData(
-      {
-        limit: 10,
-        teamId,
-        searchTerm,
-      },
-      (data) => {
-        if (!data) {
-          return {
-            pages: [],
-            pageParams: [],
-          };
-        }
-
-        return {
-          ...data,
-          pages: data.pages.map((page) => ({
-            ...page,
-            members: page.members.filter((member) => member.id !== memberId),
-          })),
-        };
-      }
-    );
-  };
-
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onMutate: async ({ teamIds }) => {
       await utils.viewer.teams.listMembers.cancel();
-      const previousValue = utils.viewer.teams.listMembers.getInfiniteData({
-        limit: 10,
+      const previousValue = utils.viewer.teams.listMembers.getData({
+        limit,
+        offset,
         teamId: teamIds[0],
         searchTerm,
       });
 
-      if (previousValue) {
-        removeMemberFromCache({
-          utils,
-          memberId: state.deleteMember.user?.id as number,
-          teamId: teamIds[0],
-          searchTerm,
-        });
-      }
       return { previousValue };
     },
     async onSuccess() {
@@ -258,6 +210,7 @@ function MemberListContent(props: Props) {
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
+      await utils.viewer.teams.listMembers.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -289,7 +242,7 @@ function MemberListContent(props: Props) {
       isOrg: checkIsOrg(props.team),
     });
 
-  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.meta?.totalRowCount ?? 0;
 
   const memorisedColumns = useMemo(() => {
     const cols: ColumnDef<User>[] = [
@@ -621,8 +574,7 @@ function MemberListContent(props: Props) {
 
     return cols;
   }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
-  //we must flatten the array of arrays from the useInfiniteQuery hook
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+  const flatData = useMemo(() => data?.members ?? [], [data]) as User[];
 
   const table = useReactTable({
     data: flatData,
@@ -648,13 +600,6 @@ function MemberListContent(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
-    tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
-  });
-
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
   return (
@@ -662,13 +607,9 @@ function MemberListContent(props: Props) {
       <DataTableWrapper
         testId="team-member-list-container"
         table={table}
-        tableContainerRef={tableContainerRef}
         isPending={isPending}
         enableColumnResizing={true}
-        paginationMode="infinite"
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
+        paginationMode="standard"
         totalRowCount={totalRowCount}
         ToolbarLeft={
           <>

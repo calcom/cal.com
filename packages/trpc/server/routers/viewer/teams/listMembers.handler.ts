@@ -29,7 +29,7 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptions) => {
-  const { cursor, limit, teamId, searchTerm } = input;
+  const { limit, offset, teamId, searchTerm } = input;
 
   const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
 
@@ -65,16 +65,10 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
       teamId: true,
       user: { select: userSelect },
     },
-    cursor: cursor ? { id: cursor } : undefined,
-    take: limit + 1,
+    skip: offset,
+    take: limit,
     orderBy: { id: "asc" },
   });
-
-  let nextCursor: typeof cursor | undefined = undefined;
-  if (teamMembers.length > limit) {
-    const nextItem = teamMembers.pop();
-    nextCursor = nextItem?.id;
-  }
 
   const membersWithApps = await Promise.all(
     teamMembers.map(async (member) => {
@@ -106,7 +100,6 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 
   return {
     members: membersWithApps,
-    nextCursor,
     meta: {
       totalRowCount: totalMembers,
     },

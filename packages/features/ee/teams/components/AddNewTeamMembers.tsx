@@ -71,23 +71,22 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
     }
   );
 
-  const { data, fetchNextPage, isFetchingNextPage, hasNextPage } =
-    trpc.viewer.teams.listMembers.useInfiniteQuery(
-      {
-        limit: 10,
-        teamId,
-      },
-      {
-        enabled: !!teamId,
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        placeholderData: keepPreviousData,
-        refetchOnWindowFocus: true,
-        refetchOnMount: true,
-        staleTime: 0,
-      }
-    );
+  const { data } = trpc.viewer.teams.listMembers.useQuery(
+    {
+      limit: 100, // Use a larger limit since this is for selection
+      offset: 0,
+      teamId,
+    },
+    {
+      enabled: !!teamId,
+      placeholderData: keepPreviousData,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0,
+    }
+  );
 
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as TeamMember[];
+  const flatData = useMemo(() => data?.members ?? [], [data]) as TeamMember[];
   const totalFetched = flatData.length;
 
   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
@@ -113,17 +112,6 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
             />
           ))}
         </ul>
-        {totalFetched && (
-          <div className="text-default text-center">
-            <Button
-              color="minimal"
-              loading={isFetchingNextPage}
-              disabled={!hasNextPage}
-              onClick={() => fetchNextPage()}>
-              {hasNextPage ? t("load_more_results") : t("no_more_results")}
-            </Button>
-          </div>
-        )}
         <Button
           color="secondary"
           data-testid="new-member-button"
