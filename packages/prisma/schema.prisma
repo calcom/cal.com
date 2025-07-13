@@ -78,6 +78,7 @@ model CalVideoSettings {
   redirectUrlOnExit                String?
   disableTranscriptionForGuests    Boolean @default(false)
   disableTranscriptionForOrganizer Boolean @default(false)
+  disableRecordingEmailsForGuests  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
