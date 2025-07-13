@@ -1815,7 +1815,7 @@
   "attendee_email_info": "The person booking's email",
   "booking_uid": "Booking UID",
   "kbar_search_placeholder": "Type a command or search...",
-  "invalid_credential": "It looks like permissions expired or were revoked for {{appName}}.",
+  "invalid_credential": "The app {{appName}} has lost access. Please reinstall the application or reconnect it to continue.",
   "invalid_credential_action": "Reinstall app",
   "reschedule_reason": "Reschedule reason",
   "choose_common_schedule_team_event": "Choose a common schedule",
