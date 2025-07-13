@@ -15,6 +15,17 @@ export class WebAppURL extends URL {
  */
 export function safeCallbackUrl(callbackUrl: string, baseUrl: string = WEBAPP_URL): string {
   if (!callbackUrl) return baseUrl.replace(/\/+$/, '');
-  if (/^https?:\/\//.test(callbackUrl)) return callbackUrl;
-  return `${baseUrl.replace(/\/+$/, '')}/${callbackUrl.replace(/^\/+/, '')}`;
+  
+  try {
+    if (/^https?:\/\//.test(callbackUrl)) {
+      const url = new URL(callbackUrl);
+      const baseHost = new URL(baseUrl).host;
+      if (url.host === baseHost) return callbackUrl;
+      return baseUrl.replace(/\/+$/, '');
+    }
+    
+    return new WebAppURL(callbackUrl).toString();
+  } catch {
+    return baseUrl.replace(/\/+$/, '');
+  }
 }

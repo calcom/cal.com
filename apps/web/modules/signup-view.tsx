@@ -479,7 +479,7 @@ export default function Signup({
                         sp.set("username", username);
                         sp.set("email", formMethods.getValues("email"));
                         router.push(
-                          `${process.env.NEXT_PUBLIC_WEBAPP_URL.replace(/\/+$/, '')}/auth/sso/saml?${sp.toString()}`
+                          `${(process.env.NEXT_PUBLIC_WEBAPP_URL || '').replace(/\/+$/, '')}/auth/sso/saml?${sp.toString()}`
                         );
                       }}
                       className={classNames(
