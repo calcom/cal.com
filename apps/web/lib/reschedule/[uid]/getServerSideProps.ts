@@ -101,8 +101,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
+  const userRepo = new UserRepository(prisma);
   const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    ? await userRepo.enrichUserWithItsProfile({ user: booking.user })
     : null;
 
   const eventUrl = await buildEventUrlFromBooking({
@@ -117,8 +118,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
   // This comes from query param and thus is considered forced
-  const canRescheduleCancelledBooking =
-    isForcedRescheduleForCancelledBooking || booking.eventType?.allowReschedulingCancelledBookings;
+  const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
   const isNonRescheduleableBooking =
     booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
 
@@ -131,8 +131,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  if (isNonRescheduleableBooking) {
-    const canReschedule = booking.status === BookingStatus.CANCELLED && canRescheduleCancelledBooking;
+  if (isNonRescheduleableBooking && !isForcedRescheduleForCancelledBooking) {
+    const canReschedule =
+      booking.status === BookingStatus.CANCELLED && canBookThroughCancelledBookingRescheduleLink;
     return {
       redirect: {
         destination: canReschedule ? eventUrl : `/booking/${uid}`,

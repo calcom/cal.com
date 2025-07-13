@@ -15,7 +15,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup", "/api/trpc/"];
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup"];
 export function checkPostMethod(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
@@ -67,10 +67,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
   if (routingFormRewriteResponse) {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
-  }
-
-  if (url.pathname.startsWith("/api/trpc/")) {
-    requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
   }
 
   if (url.pathname.startsWith("/api/auth/signup")) {
@@ -178,7 +174,6 @@ export const config = {
     "/:path*/embed",
     // API routes
     "/api/auth/signup",
-    "/api/trpc/:path*",
   ],
 };
 

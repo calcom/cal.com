@@ -1,6 +1,6 @@
 import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -18,30 +18,30 @@ type IMembership = {
   createdAt?: Date;
 };
 
-const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+const membershipSelect = {
   id: true,
   teamId: true,
   userId: true,
   accepted: true,
   role: true,
   disableImpersonation: true,
-});
+} satisfies Prisma.MembershipSelect;
 
-const teamParentSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamParentSelect = {
   id: true,
   name: true,
   slug: true,
   logoUrl: true,
   parentId: true,
   metadata: true,
-});
+} satisfies Prisma.TeamSelect;
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-});
+} satisfies Prisma.UserSelect;
 
 const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipWhereInput) => {
   const lookupTarget = ProfileRepository.getLookupTarget(upId);
@@ -197,7 +197,7 @@ export class MembershipRepository {
       })
     );
 
-    const select = Prisma.validator<Prisma.MembershipSelect>()({
+    const select = {
       id: true,
       teamId: true,
       userId: true,
@@ -232,7 +232,7 @@ export class MembershipRepository {
             : {}),
         },
       },
-    });
+    } satisfies Prisma.MembershipSelect;
 
     return await prisma.membership.findMany({
       where: prismaWhere,
