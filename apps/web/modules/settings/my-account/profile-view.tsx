@@ -13,7 +13,7 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { DisplayInfo } from "@calcom/features/users/components/UserTable/EditSheet/DisplayInfo";
-import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT, BIO_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -526,7 +526,9 @@ const ProfileForm = ({
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
     email: emailSchema,
-    bio: z.string(),
+    bio: z.string().max(BIO_LENGTH_MAX_LIMIT, {
+      message: t("max_limit_allowed_hint", { limit: BIO_LENGTH_MAX_LIMIT }),
+    }),
     secondaryEmails: z.array(
       z.object({
         id: z.number(),
@@ -709,6 +711,21 @@ const ProfileForm = ({
             setFirstRender={setFirstRender}
             height="120px"
           />
+          <div className="mt-2 flex justify-between">
+            <div>
+              {formMethods.formState.errors.bio && (
+                <p className="text-sm text-red-700">{formMethods.formState.errors.bio.message}</p>
+              )}
+            </div>
+            <p
+              className={`text-sm ${
+                (formMethods.watch("bio")?.length || 0) > BIO_LENGTH_MAX_LIMIT
+                  ? "text-red-700"
+                  : "text-subtle"
+              }`}>
+              {formMethods.watch("bio")?.length || 0}/{BIO_LENGTH_MAX_LIMIT}
+            </p>
+          </div>
         </div>
         {usersAttributes && usersAttributes?.length > 0 && (
           <div className="mt-6 flex flex-col">

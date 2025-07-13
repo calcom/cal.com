@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { FULL_NAME_LENGTH_MAX_LIMIT, BIO_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -13,7 +13,7 @@ export const ZUpdateProfileInputSchema = z.object({
   username: z.string().optional(),
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
-  bio: z.string().optional(),
+  bio: z.string().max(BIO_LENGTH_MAX_LIMIT).optional(),
   avatarUrl: z.string().nullable().optional(),
   timeZone: timeZoneSchema.optional(),
   weekStart: z.string().optional(),
