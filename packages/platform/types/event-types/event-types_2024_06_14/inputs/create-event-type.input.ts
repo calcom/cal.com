@@ -140,6 +140,13 @@ export class CalVideoSettings {
   disableRecordingForGuests?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, recording emails will not be sent to guests",
+  })
+  disableRecordingEmailsForGuests?: boolean;
+
+  @IsOptional()
   @IsUrl()
   @DocsPropertyOptional({
     description: "URL to which participants are redirected when they exit the call",

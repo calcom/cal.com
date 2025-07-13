@@ -72,6 +72,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        disableRecordingEmailsForGuests: calVideoSettings.disableRecordingEmailsForGuests ?? false,
       },
     };
   }

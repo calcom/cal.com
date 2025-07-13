@@ -423,6 +423,21 @@ const Locations: React.FC<LocationsProps> = ({
                         />
                       )}
 
+                      <Controller
+                        name="calVideoSettings.disableRecordingEmailsForGuests"
+                        defaultValue={!!eventType.calVideoSettings?.disableRecordingEmailsForGuests}
+                        render={({ field: { onChange, value } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("disable_recording_emails_for_guests")}
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
+                          );
+                        }}
+                      />
+
                       <TextField
                         label={t("enter_redirect_url_on_exit_description")}
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
