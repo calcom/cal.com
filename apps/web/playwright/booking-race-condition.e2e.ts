@@ -367,8 +367,14 @@ async function performConcurrentBookings(
     await page2.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
     // Select the dynamic test date
-    await selectAvailableDay(page1, TEST_DATE_DAY);
-    await selectAvailableDay(page2, TEST_DATE_DAY);
+    await page1
+      .locator(`[data-testid="day"][data-disabled="false"]`)
+      .filter({ hasText: new RegExp(`^${TEST_DATE_DAY}$`) })
+      .click();
+    await page2
+      .locator(`[data-testid="day"][data-disabled="false"]`)
+      .filter({ hasText: new RegExp(`^${TEST_DATE_DAY}$`) })
+      .click();
 
     // Select first available time slot
     await page1.locator('[data-testid="time"]').nth(0).waitFor();
@@ -413,25 +419,6 @@ async function performConcurrentBookings(
   });
 
   return { firstResponse, secondResponse };
-}
-
-// Defensive helper to select a calendar day by text, or fail with debug info
-async function selectAvailableDay(page: Page, targetDay: string) {
-  const dayLocator = page
-    .locator(`[data-testid="day"][data-disabled="false"]`)
-    .filter({ hasText: new RegExp(`^${targetDay}$`) });
-  const count = await dayLocator.count();
-  if (count === 0) {
-    const availableDays = await page.locator('[data-testid="day"][data-disabled="false"]').allTextContents();
-    console.error(
-      `No enabled day button found for day '${targetDay}'. Available enabled days:`,
-      availableDays
-    );
-    throw new Error(
-      `Test setup error: Could not find enabled calendar day for '${targetDay}'. See console for available days.`
-    );
-  }
-  await dayLocator.first().click();
 }
 
 async function analyzeBookingResults(
