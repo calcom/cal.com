@@ -16,15 +16,10 @@ export class WebAppURL extends URL {
 export function safeCallbackUrl(callbackUrl: string, baseUrl: string = WEBAPP_URL): string {
   if (!callbackUrl) return baseUrl.replace(/\/+$/, '');
   
+  // Always treat as relative path to prevent open redirects
+  // Even if it looks like an absolute URL, we construct it safely
   try {
-    if (/^https?:\/\//.test(callbackUrl)) {
-      const url = new URL(callbackUrl);
-      const baseHost = new URL(baseUrl).host;
-      if (url.host === baseHost) return callbackUrl;
-      return baseUrl.replace(/\/+$/, '');
-    }
-    
-    return new WebAppURL(callbackUrl).toString();
+    return new WebAppURL(callbackUrl).href;
   } catch {
     return baseUrl.replace(/\/+$/, '');
   }
