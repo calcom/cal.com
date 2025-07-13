@@ -1,6 +1,4 @@
-import { captureException } from "@sentry/nextjs";
-
-import { RedisService } from "@calcom/features/redis/RedisService";
+import { BaseCacheProxy } from "@calcom/lib/BaseCacheProxy";
 
 import type { AppFlags } from "./config";
 import { FeaturesRepository } from "./features.repository";
@@ -10,158 +8,69 @@ import type { IFeaturesRepository } from "./features.repository.interface";
  * Caching proxy for FeaturesRepository that adds Redis caching layer.
  * Falls back gracefully to the original repository when Redis is unavailable.
  */
-export class CachedFeaturesRepository implements IFeaturesRepository {
-  private redis: RedisService | null = null;
-  private readonly REDIS_KEY_VERSION = "V1";
-  private readonly CACHE_TTL = 300; // 5 minutes in seconds
-  private featuresRepository: FeaturesRepository;
-
+export class CachedFeaturesRepository
+  extends BaseCacheProxy<IFeaturesRepository, FeaturesRepository>
+  implements IFeaturesRepository
+{
   constructor(featuresRepository?: FeaturesRepository) {
-    this.featuresRepository = featuresRepository || new FeaturesRepository();
-
-    const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
-    if (UPSTASH_ENV_FOUND) {
-      try {
-        this.redis = new RedisService();
-      } catch (error) {
-        console.warn("Failed to initialize Redis service:", error);
-        this.redis = null;
-      }
-    }
+    super(featuresRepository || new FeaturesRepository(), "features");
   }
 
   async checkIfFeatureIsEnabledGlobally(slug: keyof AppFlags): Promise<boolean> {
-    const cacheKey = `${this.REDIS_KEY_VERSION}.features:global:${slug}`;
+    const cacheKey = this.buildCacheKey("global", slug);
 
-    if (this.redis) {
-      try {
-        const cachedResult = await this.redis.get<boolean>(cacheKey);
-        if (cachedResult !== null) {
-          return cachedResult;
-        }
-      } catch (error) {
-        console.warn("Redis get failed for global feature check, falling back to repository:", error);
-      }
-    }
-
-    try {
-      const result = await this.featuresRepository.checkIfFeatureIsEnabledGlobally(slug);
-
-      if (this.redis) {
-        try {
-          await this.redis.set(cacheKey, result);
-          await this.redis.expire(cacheKey, this.CACHE_TTL);
-        } catch (error) {
-          console.warn("Redis set failed for global feature check:", error);
-        }
-      }
-
-      return result;
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return this.withCache(
+      cacheKey,
+      () => this.repository.checkIfFeatureIsEnabledGlobally(slug),
+      "global feature check"
+    );
   }
 
   async checkIfUserHasFeature(userId: number, slug: string): Promise<boolean> {
-    const cacheKey = `${this.REDIS_KEY_VERSION}.features:user:${userId}:${slug}`;
+    const cacheKey = this.buildCacheKey("user", userId, slug);
 
-    if (this.redis) {
-      try {
-        const cachedResult = await this.redis.get<boolean>(cacheKey);
-        if (cachedResult !== null) {
-          return cachedResult;
-        }
-      } catch (error) {
-        console.warn("Redis get failed for user feature check, falling back to repository:", error);
-      }
-    }
-
-    try {
-      const result = await this.featuresRepository.checkIfUserHasFeature(userId, slug);
-
-      if (this.redis) {
-        try {
-          await this.redis.set(cacheKey, result);
-          await this.redis.expire(cacheKey, this.CACHE_TTL);
-        } catch (error) {
-          console.warn("Redis set failed for user feature check:", error);
-        }
-      }
-
-      return result;
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return this.withCache(
+      cacheKey,
+      () => this.repository.checkIfUserHasFeature(userId, slug),
+      "user feature check"
+    );
   }
 
   async checkIfTeamHasFeature(teamId: number, slug: keyof AppFlags): Promise<boolean> {
-    const cacheKey = `${this.REDIS_KEY_VERSION}.features:team:${teamId}:${slug}`;
+    const cacheKey = this.buildCacheKey("team", teamId, slug);
 
-    if (this.redis) {
-      try {
-        const cachedResult = await this.redis.get<boolean>(cacheKey);
-        if (cachedResult !== null) {
-          return cachedResult;
-        }
-      } catch (error) {
-        console.warn("Redis get failed for team feature check, falling back to repository:", error);
-      }
-    }
-
-    try {
-      const result = await this.featuresRepository.checkIfTeamHasFeature(teamId, slug);
-
-      if (this.redis) {
-        try {
-          await this.redis.set(cacheKey, result);
-          await this.redis.expire(cacheKey, this.CACHE_TTL);
-        } catch (error) {
-          console.warn("Redis set failed for team feature check:", error);
-        }
-      }
-
-      return result;
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return this.withCache(
+      cacheKey,
+      () => this.repository.checkIfTeamHasFeature(teamId, slug),
+      "team feature check"
+    );
   }
 
   async getAllFeatures() {
-    return this.featuresRepository.getAllFeatures();
+    return this.withoutCache(() => this.repository.getAllFeatures());
   }
 
   async getFeatureFlagMap() {
-    return this.featuresRepository.getFeatureFlagMap();
+    return this.withoutCache(() => this.repository.getFeatureFlagMap());
   }
 
   async getTeamFeatures(teamId: number) {
-    return this.featuresRepository.getTeamFeatures(teamId);
+    return this.withoutCache(() => this.repository.getTeamFeatures(teamId));
   }
 
   async invalidateCache(userId?: number, teamId?: number, slug?: string) {
-    if (!this.redis) return;
+    const keysToDelete: string[] = [];
 
-    try {
-      const keysToDelete: string[] = [];
-
-      if (slug) {
-        keysToDelete.push(`${this.REDIS_KEY_VERSION}.features:global:${slug}`);
-        if (userId) {
-          keysToDelete.push(`${this.REDIS_KEY_VERSION}.features:user:${userId}:${slug}`);
-        }
-        if (teamId) {
-          keysToDelete.push(`${this.REDIS_KEY_VERSION}.features:team:${teamId}:${slug}`);
-        }
+    if (slug) {
+      keysToDelete.push(this.buildCacheKey("global", slug));
+      if (userId) {
+        keysToDelete.push(this.buildCacheKey("user", userId, slug));
       }
-
-      for (const key of keysToDelete) {
-        await this.redis.del(key);
+      if (teamId) {
+        keysToDelete.push(this.buildCacheKey("team", teamId, slug));
       }
-    } catch (error) {
-      console.warn("Redis cache invalidation failed:", error);
     }
+
+    await this.invalidateKeys(keysToDelete);
   }
 }
