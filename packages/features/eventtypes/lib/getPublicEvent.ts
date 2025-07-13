@@ -154,8 +154,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     rescheduleWithSameRoundRobinHost: true,
     restrictionScheduleId: true,
     useBookerTimezone: true
-  },
-    satisfies Prisma.EventTypeSelect;
+  } satisfies Prisma.EventTypeSelect;
 };
 
 export async function isCurrentlyAvailable({
