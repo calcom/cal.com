@@ -254,7 +254,7 @@
 
 @layer base {
   * {
-    border-color: #e5e7eb;
+    border-color: var(--cal-border);
   }
 }
 
@@ -377,10 +377,10 @@ select:focus {
 @layer components {
   .scroll-bar {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db transparent;
+    scrollbar-color: var(--cal-text-muted) transparent;
   }
   .dark .scroll-bar {
-    scrollbar-color: #6b7280 transparent;
+    scrollbar-color: var(--cal-text-subtle) transparent;
   }
 }
 
@@ -405,14 +405,14 @@ select:focus {
     height: 0.25rem;
     flex-grow: 1;
     border-radius: 0.375rem;
-    background-color: #9ca3af;
+    background-color: var(--cal-text-muted);
   }
 
   .slider .slider-range {
     position: absolute;
     height: 100%;
     border-radius: 9999px;
-    background-color: #374151;
+    background-color: var(--cal-text);
   }
 
   .slider .slider-thumb {
@@ -421,14 +421,14 @@ select:focus {
     width: 0.75rem;
     cursor: pointer;
     border-radius: 9999px;
-    background-color: #374151;
+    background-color: var(--cal-text);
     transition-property: all;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
 
   .slider .slider-thumb:hover {
-    background-color: #4b5563;
+    background-color: var(--cal-text-subtle);
   }
 
   .slider .slider-thumb:focus {
@@ -464,17 +464,17 @@ select:focus {
   border: 0 !important;
 }
 .DateInput_input {
-  border: 1px solid #d1d5db !important;
+  border: 1px solid var(--cal-border) !important;
   border-radius: 2px !important;
   font-size: inherit !important;
   font-weight: inherit !important;
-  color: #000;
+  color: var(--cal-text-emphasis);
   padding: 11px ​11px 9px !important;
   line-height: 16px !important;
 }
 
 .DateInput_input__focused {
-  border: 2px solid #000 !important;
+  border: 2px solid var(--cal-text-emphasis) !important;
   border-radius: 2px !important;
   box-shadow: none !important;
   padding: 10px ​10px 9px !important;
@@ -650,16 +650,16 @@ select:focus {
 
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
-  background-color: #f3f4f6 !important;
+  background-color: var(--cal-bg-subtle) !important;
 }
 
 .react-tel-input .flag-dropdown .selected-flag,
 .react-tel-input .flag-dropdown.open .selected-flag {
-  background-color: #ffffff !important;
+  background-color: var(--cal-bg) !important;
 }
 
 .react-tel-input .flag-dropdown {
-  border-right-color: #e5e7eb !important;
+  border-right-color: var(--cal-border) !important;
   left: 0.125rem;
   border-top-width: 0 !important;
   border-bottom-width: 0 !important;
