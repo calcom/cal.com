@@ -12,7 +12,7 @@ type TimezoneChangeDetectionEvent =
 
 export const useTimezoneChangeDetection = (eventData: TimezoneChangeDetectionEvent) => {
   const { timezone } = useBookerTime();
-  const previousTimezoneRef = useRef<string | null>(null);
+  const previousTimezoneRef = useRef<string>(timezone);
 
   useEffect(() => {
     // Initialize the previous timezone on first render
