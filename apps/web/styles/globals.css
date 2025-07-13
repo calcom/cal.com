@@ -1,10 +1,7 @@
 /* @import rules must precede all rules aside from @charset and @layer statements. */
 @import "./raqb.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+@import "tailwindcss";
 
 /**
 * Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
@@ -337,16 +334,14 @@ html.todesktop.dark {
     https://github.com/tailwindlabs/tailwindcss/discussions/2394
     https://github.com/tailwindlabs/tailwindcss/pull/5732
 */
-@layer utilities {
+@utility no-scrollbar {
   /* Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
 
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /*
@@ -554,11 +549,9 @@ select:focus {
   color: white !important;
 }
 
-@layer utilities {
-  .transition-max-width {
-    -webkit-transition-property: max-width;
-    transition-property: max-width;
-  }
+@utility transition-max-width {
+  -webkit-transition-property: max-width;
+  transition-property: max-width;
 }
 
 #timeZone input:focus {

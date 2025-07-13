@@ -7,5 +7,5 @@ module.exports = {
     "../../packages/app-store/routing-forms/**/*.{js,ts,jsx,tsx}",
     "../../node_modules/@tremor/**/*.{js,ts,jsx,tsx}",
   ],
-  plugins: [...base.plugins],
+  plugins: [...base.plugins, require("tailwindcss-animate")],
 };
