@@ -36,6 +36,7 @@ import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMee
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import { useTimezoneChangeDetection } from "./components/hooks/useTimezoneChangeDetection";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
@@ -128,6 +129,26 @@ const BookerComponent = ({
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const isQuickAvailabilityCheckFeatureEnabled = useIsQuickAvailabilityCheckFeatureEnabled();
+
+  // Detect timezone changes and refresh slots when conditions are met
+  const eventDataForTimezoneDetection: {
+    restrictionScheduleId?: number | null;
+    useBookerTimezone?: boolean;
+  } | null = event?.data
+    ? {
+        restrictionScheduleId: event.data.restrictionScheduleId,
+        useBookerTimezone: event.data.useBookerTimezone,
+      }
+    : null;
+
+  const { shouldRefreshSlots } = useTimezoneChangeDetection(eventDataForTimezoneDetection);
+
+  // Refresh slots when timezone changes under specific conditions
+  useEffect(() => {
+    if (shouldRefreshSlots) {
+      schedule?.invalidate();
+    }
+  }, [shouldRefreshSlots, schedule]);
 
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 
