@@ -13,12 +13,24 @@ import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain } from "./lib/testUtils";
 
-// Dynamic test date: always tomorrow in UTC, used everywhere for consistency
-const TEST_DATE = new Date(Date.UTC(
-  new Date().getUTCFullYear(),
-  new Date().getUTCMonth(),
-  new Date().getUTCDate() + 1
-));
+function getNextAvailableWeekday(): Date {
+  const tomorrow = new Date(
+    Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1)
+  );
+
+  const dayOfWeek = tomorrow.getUTCDay();
+
+  if (dayOfWeek === 6) {
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 2);
+  } else if (dayOfWeek === 0) {
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  }
+
+  return tomorrow;
+}
+
+// Dynamic test date: always set to tomorrow in UTC (if not a weekend), used everywhere for consistency
+const TEST_DATE = getNextAvailableWeekday();
 const TEST_DATE_ISO = TEST_DATE.toISOString();
 const TEST_DATE_DAY = TEST_DATE.getUTCDate().toString();
 
