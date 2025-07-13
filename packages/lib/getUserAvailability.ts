@@ -699,6 +699,12 @@ type GetUsersAvailabilityProps = {
 };
 
 const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
+  if (users.length >= 50) {
+    const userIds = users.map(({ id }) => id).join(", ");
+    log.warn(
+      `High-load warning: Attempting to fetch availability for ${users.length} users. User IDs: [${userIds}], EventTypeId: [${query.eventTypeId}]`
+    );
+  }
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(

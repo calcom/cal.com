@@ -27,8 +27,24 @@ jobs:
 
       - name: Configure git
         run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions"
+          # Define authorized users and their emails using organization secret
+          # Expected format: JSON object with username -> email mapping
+          # Example: {"zomars": "zomars@cal.com", "peer": "peer@cal.com", "username3": "email3@cal.com"}
+          USER_EMAILS='${{ secrets.RELEASE_USER_EMAILS }}'
+          
+          # Extract email for the triggering user
+          USER_EMAIL=$(echo "$USER_EMAILS" | jq -r --arg user "${{ github.actor }}" '.[$user] // empty')
+          
+          # Fail if user is not authorized or not in mapping
+          if [ -z "$USER_EMAIL" ] || [ "$USER_EMAIL" = "null" ]; then
+            echo "Error: User '${{ github.actor }}' is not authorized to run the release workflow."
+            echo "Only authorized team members can trigger releases."
+            echo "Contact your administrator to be added to the authorized users list."
+            exit 1
+          fi
+          
+          git config --local user.email "$USER_EMAIL"
+          git config --local user.name "${{ github.actor }}"
 
       - uses: ./.github/actions/yarn-install
 
