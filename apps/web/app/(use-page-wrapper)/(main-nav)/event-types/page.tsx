@@ -9,9 +9,8 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
 
@@ -23,15 +22,6 @@ export const generateMetadata = async () =>
     undefined,
     "/event-types"
   );
-
-const getCachedMe = unstable_cache(
-  async (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const meCaller = await createRouterCaller(meRouter, await getTRPCContext(headers, cookies));
-    return await meCaller.get();
-  },
-  ["viewer.me.get"],
-  { revalidate: 3600 } // seconds
-);
 
 const getCachedEventGroups = unstable_cache(
   async (
@@ -53,30 +43,26 @@ const getCachedEventGroups = unstable_cache(
   { revalidate: 3600 } // seconds
 );
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async ({ searchParams }: PageProps) => {
   const _searchParams = await searchParams;
   const _headers = await headers();
   const _cookies = await cookies();
-  const context = buildLegacyCtx(_headers, _cookies, await params, _searchParams);
-  const session = await getServerSession({ req: context.req });
 
+  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
   if (!session?.user?.id) {
-    redirect("/auth/login");
+    return redirect("/auth/login");
   }
 
   const t = await getTranslate();
   const filters = getTeamsFiltersFromQuery(_searchParams);
-  const [me, userEventGroupsData] = await Promise.all([
-    getCachedMe(_headers, _cookies),
-    getCachedEventGroups(_headers, _cookies, filters),
-  ]);
+  const userEventGroupsData = await getCachedEventGroups(_headers, _cookies, filters);
 
   return (
     <ShellMainAppDir
       heading={t("event_types_page_title")}
       subtitle={t("event_types_page_subtitle")}
       CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
-      <EventTypes userEventGroupsData={userEventGroupsData} user={me} />
+      <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
     </ShellMainAppDir>
   );
 };

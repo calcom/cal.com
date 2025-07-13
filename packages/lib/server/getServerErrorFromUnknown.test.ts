@@ -26,7 +26,8 @@ const test404Codes = [
 
 const test409Codes = [
   ErrorCode.NoAvailableUsersFound,
-  ErrorCode.HostsUnavailableForBooking,
+  ErrorCode.FixedHostsUnavailableForBooking,
+  ErrorCode.RoundRobinHostsUnavailableForBooking,
   ErrorCode.AlreadySignedUpForBooking,
   ErrorCode.BookingSeatsFull,
   ErrorCode.NotEnoughAvailableSeats,

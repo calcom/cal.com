@@ -90,7 +90,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  getOutputBooking(databaseBooking: DatabaseBooking) {
+  async getOutputBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -101,6 +101,9 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+    const rescheduledToUid = databaseBooking.rescheduled
+      ? await this.getRescheduledToUid(databaseBooking.uid)
+      : undefined;
 
     const booking = {
       id: databaseBooking.id,
@@ -109,8 +112,9 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason || undefined,
-      cancelledByEmail: databaseBooking.cancelledBy || undefined,
+      cancellationReason:
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
+      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
@@ -137,6 +141,7 @@ export class OutputBookingsService_2024_08_13 {
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
+      rescheduledToUid,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -144,6 +149,11 @@ export class OutputBookingsService_2024_08_13 {
     bookingTransformed.bookingFieldsResponses = bookingResponses;
     bookingTransformed.metadata = this.getUserDefinedMetadata(metadata);
     return bookingTransformed;
+  }
+
+  async getRescheduledToUid(bookingUid: string) {
+    const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
+    return rescheduledTo?.uid;
   }
 
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
@@ -204,8 +214,9 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason || undefined,
-      cancelledByEmail: databaseBooking.cancelledBy || undefined,
+      cancellationReason:
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
+      cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
       rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
@@ -244,20 +255,23 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  getOutputCreateSeatedBooking(
+  async getOutputCreateSeatedBooking(
     databaseBooking: DatabaseBooking,
     seatUid: string
-  ): CreateSeatedBookingOutput_2024_08_13 {
-    const getSeatedBookingOutput = this.getOutputSeatedBooking(databaseBooking);
+  ): Promise<CreateSeatedBookingOutput_2024_08_13> {
+    const getSeatedBookingOutput = await this.getOutputSeatedBooking(databaseBooking);
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
+    const rescheduledToUid = databaseBooking.rescheduled
+      ? await this.getRescheduledToUid(databaseBooking.uid)
+      : undefined;
 
     const booking = {
       id: databaseBooking.id,
@@ -266,7 +280,8 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason || undefined,
+      cancellationReason:
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -283,6 +298,7 @@ export class OutputBookingsService_2024_08_13 {
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
+      rescheduledToUid,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -375,7 +391,8 @@ export class OutputBookingsService_2024_08_13 {
       description: databaseBooking.description,
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
-      cancellationReason: databaseBooking.cancellationReason || undefined,
+      cancellationReason:
+        databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,

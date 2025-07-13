@@ -52,7 +52,8 @@ export const getEventTypeById = async ({
     isPlatformManaged: true,
   } satisfies Prisma.UserSelect;
 
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const rawEventType = await eventTypeRepo.findById({ id: eventTypeId, userId });
 
   if (!rawEventType) {
     if (isTrpcCall) {

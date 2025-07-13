@@ -30,6 +30,7 @@ type UseHandleBookingProps = {
   handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
+  isBookingDryRun?: boolean;
 };
 
 export const useHandleBookEvent = ({
@@ -42,6 +43,7 @@ export const useHandleBookEvent = ({
   handleRecBooking,
   locationUrl,
   routingFormSearchParams,
+  isBookingDryRun,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -108,6 +110,7 @@ export const useHandleBookEvent = ({
         crmAppSlug,
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
+        isDryRunProp: isBookingDryRun,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

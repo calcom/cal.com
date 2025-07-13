@@ -2,9 +2,9 @@ import { createInstance } from "i18next";
 import { expect, test, describe } from "vitest";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
+import en from "@calcom/lib/server/locales/en/common.json";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import en from "@calcom/web/public/static/locales/en/common.json";
 
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";

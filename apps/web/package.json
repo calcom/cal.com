@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.4.17",
+  "version": "5.4.19",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -15,7 +15,7 @@
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "sentry:release": "NODE_OPTIONS='--max-old-space-size=6144' node scripts/create-sentry-release.js",
-    "copy-static": "node scripts/copy-app-store-static.js",
+    "copy-static": "node scripts/copy-app-store-static.js && node scripts/copy-locales-static.js",
     "build": "yarn copy-static && next build && yarn sentry:release",
     "start": "next start",
     "lint": "eslint . --ignore-path .gitignore",

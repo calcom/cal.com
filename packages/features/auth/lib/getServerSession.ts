@@ -96,6 +96,7 @@ export async function getServerSession(options: {
       email: user.email,
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
+      completedOnboarding: user.completedOnboarding,
       role: user.role,
       image: getUserAvatarUrl({
         avatarUrl: user.avatarUrl,

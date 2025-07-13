@@ -1,7 +1,5 @@
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { OOORepository as PrismaOOORepository } from "@/lib/repositories/PrismaOOORepository";
-import { ScheduleRepository as PrismaScheduleRepository } from "@/lib/repositories/PrismaScheduleRepository";
-import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
+import { AvailableSlotsModule } from "@/lib/modules/available-slots.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
@@ -26,6 +24,7 @@ import { Module } from "@nestjs/common";
     TeamsModule,
     MembershipsModule,
     TeamsEventTypesModule,
+    AvailableSlotsModule,
   ],
   providers: [
     SlotsRepository_2024_09_04,
@@ -36,9 +35,6 @@ import { Module } from "@nestjs/common";
     OrganizationsUsersRepository,
     OrganizationsRepository,
     OrganizationsTeamsRepository,
-    PrismaOOORepository,
-    PrismaScheduleRepository,
-    AvailableSlotsService,
   ],
   controllers: [SlotsController_2024_09_04],
   exports: [SlotsService_2024_09_04],
