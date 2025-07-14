@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { AppFlags } from "@calcom/features/flags/config";
+import type { AppFlags, TeamFeatures } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
@@ -15,9 +15,9 @@ type TeamWithFeatures = {
   slug: string | null;
   parentId: number | null;
   isOrganization: boolean;
-  platformBilling: { id: string } | null;
+  platformBilling: { id: number } | null;
   children: { id: number; name: string }[];
-  features: Record<string, boolean>;
+  features: TeamFeatures;
 };
 
 interface TeamFeaturesEditSheetProps {
@@ -49,7 +49,7 @@ const AVAILABLE_FEATURES: (keyof AppFlags)[] = [
 
 export function TeamFeaturesEditSheet({ team, onClose }: TeamFeaturesEditSheetProps) {
   const { t } = useLocale();
-  const [features, setFeatures] = useState<Record<string, boolean>>(team.features);
+  const [features, setFeatures] = useState<TeamFeatures>(team.features);
   const [isLoading, setIsLoading] = useState(false);
 
   const utils = trpc.useUtils();
@@ -121,7 +121,7 @@ export function TeamFeaturesEditSheet({ team, onClose }: TeamFeaturesEditSheetPr
       </div>
 
       <div className="flex justify-end space-x-3">
-        <Button variant="outline" onClick={onClose} disabled={isLoading}>
+        <Button variant="button" color="secondary" onClick={onClose} disabled={isLoading}>
           {t("cancel")}
         </Button>
         <Button onClick={handleSave} loading={isLoading}>

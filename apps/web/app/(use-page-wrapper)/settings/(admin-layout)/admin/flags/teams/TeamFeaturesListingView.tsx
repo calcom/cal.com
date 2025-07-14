@@ -10,6 +10,7 @@ import {
   DataTableToolbar,
   useDataTable,
 } from "@calcom/features/data-table";
+import type { TeamFeatures } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Badge } from "@calcom/ui/components/badge";
@@ -24,14 +25,14 @@ type TeamWithFeatures = {
   slug: string | null;
   parentId: number | null;
   isOrganization: boolean;
-  platformBilling: { id: string } | null;
+  platformBilling: { id: number } | null;
   children: { id: number; name: string }[];
-  features: Record<string, boolean>;
+  features: TeamFeatures;
 };
 
 export function TeamFeaturesListingView() {
   return (
-    <DataTableProvider useSegments={() => ({})} defaultPageSize={25}>
+    <DataTableProvider defaultPageSize={25}>
       <TeamFeaturesListingContent />
     </DataTableProvider>
   );
@@ -93,7 +94,8 @@ function TeamFeaturesListingContent() {
             {row.original.children.map((child) => (
               <Button
                 key={child.id}
-                variant="outline"
+                variant="button"
+                color="secondary"
                 size="sm"
                 onClick={() => setParentId(child.id)}
                 className="text-xs">
@@ -125,7 +127,8 @@ function TeamFeaturesListingContent() {
         cell: ({ row }) => (
           <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="button"
+              color="secondary"
               size="sm"
               onClick={() => {
                 setSelectedTeam(row.original);
@@ -134,7 +137,8 @@ function TeamFeaturesListingContent() {
               {t("edit")}
             </Button>
             <Button
-              variant="outline"
+              variant="button"
+              color="secondary"
               size="sm"
               onClick={() => {
                 setSelectedTeam(row.original);
@@ -168,7 +172,7 @@ function TeamFeaturesListingContent() {
           <>
             <DataTableToolbar.SearchBar />
             {parentId && (
-              <Button variant="outline" onClick={() => setParentId(undefined)}>
+              <Button variant="button" color="secondary" onClick={() => setParentId(undefined)}>
                 {t("back_to_all_teams")}
               </Button>
             )}
