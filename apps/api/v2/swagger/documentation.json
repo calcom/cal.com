@@ -5556,7 +5556,7 @@
       },
       "patch": {
         "operationId": "OrganizationTeamWorkflowsController_updateWorkflow",
-        "summary": "Update workflow",
+        "summary": "Update organization team workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -14530,7 +14530,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{phone: '+37122222222'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14572,7 +14572,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled.  In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{address: 'mainstreat 10, new york'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14614,7 +14614,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `friend` and the URL contains query parameter `&friend=bob`,      the text field will be prefilled with this value and disabled.  In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{friend: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14656,7 +14656,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories` and the URL contains query parameter `&calories=3000`,      the number field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{calories: 3000}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14698,7 +14698,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `reflection` and the URL contains query parameter `&reflection=Today I shipped a feature`,      the text area will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{reflection: 'Today i shipped a feature'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14750,7 +14750,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: 'italian'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14799,7 +14799,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and the URL contains query parameter `&language=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: ['en', 'it']}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14841,7 +14841,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{consultants: ['alice@gmail.com', 'bob@gmail.com']}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14889,7 +14889,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify` and the URL contains query parameter `&notify=true`,      the checkbox will be selected and the checkbox field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{notify: true}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14937,7 +14937,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: 'italian'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -14974,7 +14974,8 @@
             "type": "boolean"
           },
           "disableOnPrefill": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify` and the URL contains query parameter `&notify=true`,      the checkbox will be selected and the checkbox field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{notify: true}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -15015,7 +15016,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `videourl` and the URL contains query parameter `&videourl=https://youtube.com/abc`the url field will be prefilled with this value and disabled.       In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{videourl: 'https://caltube.com/123'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -15341,7 +15342,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled. In case of Booker atom need to pass 'name' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{name: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-fields"
           }
         },
         "required": [
@@ -15374,7 +15375,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled. In case of Booker atom need to pass 'email' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{email: 'bob@gmail.com'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           }
         },
         "required": [
@@ -15406,7 +15407,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=journey`,      the title field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=journey`,      the title field will be prefilled with this value and disabled. In case of Booker atom need to pass 'title' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{title: 'very important meeting'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           }
         },
         "required": [
@@ -15452,7 +15453,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=journey`,      the notes field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=journey`,      the notes field will be prefilled with this value and disabled. In case of Booker atom need to pass 'notes' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{notes: 'bring notebook and paper'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           }
         },
         "required": [
@@ -15482,7 +15483,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=bob@cal.com`,      the guests field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=bob@cal.com`,      the guests field will be prefilled with this value and disabled. In case of Booker atom need to pass 'guests' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{guests: ['bob@gmail.com', 'alice@gmail.com']}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           }
         },
         "required": [
@@ -15512,7 +15513,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=travel`,      the rescheduleReason field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=travel`,      the rescheduleReason field will be prefilled with this value and disabled. In case of Booker atom need to pass 'rescheduleReason' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{rescheduleReason: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           }
         },
         "required": [
@@ -16098,7 +16099,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled. In case of Booker atom need to pass 'email' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{email: 'bob@gmail.com'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "isDefault": {
             "type": "object",
@@ -16150,7 +16151,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&name=bob`,      the name field will be prefilled with this value and disabled. In case of Booker atom need to pass 'name' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{name: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-fields"
           },
           "isDefault": {
             "type": "object",
@@ -16452,7 +16453,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled.  In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{address: 'mainstreat 10, new york'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16511,7 +16512,8 @@
             "type": "boolean"
           },
           "disableOnPrefill": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify` and the URL contains query parameter `&notify=true`,      the checkbox will be selected and the checkbox field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{notify: true}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16581,7 +16583,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify` and the URL contains query parameter `&notify=true`,      the checkbox will be selected and the checkbox field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{notify: true}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16646,7 +16648,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{consultants: ['alice@gmail.com', 'bob@gmail.com']}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16716,7 +16718,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and the URL contains query parameter `&language=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: ['en', 'it']}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16781,7 +16783,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `videourl` and the URL contains query parameter `&videourl=https://youtube.com/abc`the url field will be prefilled with this value and disabled.       In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{videourl: 'https://caltube.com/123'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16845,7 +16847,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories` and the URL contains query parameter `&calories=3000`,      the number field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{calories: 3000}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16907,7 +16909,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{phone: '+37122222222'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -16977,7 +16979,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: 'italian'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -17052,7 +17054,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: 'italian'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -17117,7 +17119,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `reflection` and the URL contains query parameter `&reflection=Today I shipped a feature`,      the text area will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{reflection: 'Today i shipped a feature'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -17181,7 +17183,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `friend` and the URL contains query parameter `&friend=bob`,      the text field will be prefilled with this value and disabled.  In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{friend: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-field"
           },
           "hidden": {
             "type": "boolean",
@@ -21873,6 +21875,741 @@
           "data"
         ]
       },
+      "WorkflowTriggerOffsetDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "description": "Time value for offset before/after event trigger",
+            "example": 24
+          },
+          "unit": {
+            "type": "object",
+            "description": "Unit for the offset time",
+            "example": "hour"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ]
+      },
+      "OnBeforeEventTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "beforeEvent",
+            "description": "Trigger type for the workflow",
+            "example": "beforeEvent"
+          }
+        },
+        "required": [
+          "offset",
+          "type"
+        ]
+      },
+      "OnAfterEventTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "afterEvent",
+            "description": "Trigger type for the workflow",
+            "example": "afterEvent"
+          }
+        },
+        "required": [
+          "offset",
+          "type"
+        ]
+      },
+      "OnCancelTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "eventCancelled",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnCreationTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "newEvent",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnRescheduleTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "rescheduleEvent",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "OnAfterCalVideoGuestsNoShowTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "afterGuestsCalVideoNoShow",
+            "description": "Trigger type for the workflow",
+            "example": "afterGuestsCalVideoNoShow"
+          }
+        },
+        "required": [
+          "offset",
+          "type"
+        ]
+      },
+      "OnAfterCalVideoHostsNoShowTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "afterHostsCalVideoNoShow",
+            "description": "Trigger type for the workflow",
+            "example": "afterHostsCalVideoNoShow"
+          }
+        },
+        "required": [
+          "offset",
+          "type"
+        ]
+      },
+      "HtmlWorkflowMessageDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Subject of the message",
+            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
+          },
+          "html": {
+            "type": "string",
+            "description": "HTML content of the message (used for Emails)",
+            "example": "<p>This is a reminder from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here  {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}.</p>"
+          }
+        },
+        "required": [
+          "subject",
+          "html"
+        ]
+      },
+      "WorkflowEmailAddressStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "email_address",
+            "description": "Action to perform, send an email to a specific email address",
+            "example": "email_address"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "verifiedEmailId": {
+            "type": "number",
+            "description": "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
+            "example": "31214",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team"
+            }
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
+            "example": true
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HtmlWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "verifiedEmailId",
+          "includeCalendarEvent",
+          "message"
+        ]
+      },
+      "WorkflowEmailAttendeeStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "email_attendee",
+            "description": "Action to perform, send an email to the attendees of the event",
+            "example": "email_attendee"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
+            "example": true
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HtmlWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "includeCalendarEvent",
+          "message"
+        ]
+      },
+      "WorkflowEmailHostStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "email_host",
+            "description": "Action to perform, send an email to the host of the event",
+            "example": "email_host"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
+            "example": true
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HtmlWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "includeCalendarEvent",
+          "message"
+        ]
+      },
+      "TextWorkflowMessageDto": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Subject of the message",
+            "example": "Reminder: Your Meeting {EVENT_NAME} - {EVENT_DATE_ddd, MMM D, YYYY h:mma} with Cal.com"
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content of the message (used for SMS)",
+            "example": "This is a reminder message from {ORGANIZER} of {EVENT_NAME} to {ATTENDEE} starting here {LOCATION} {MEETING_URL} at {START_TIME_h:mma} {TIMEZONE}."
+          }
+        },
+        "required": [
+          "subject",
+          "text"
+        ]
+      },
+      "WorkflowPhoneWhatsAppAttendeeStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "whatsapp_attendee",
+            "description": "Action to perform",
+            "example": "whatsapp_attendee"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "message": {
+            "description": "Message content for this step, send a text message via whatsapp to the phone numbers of the attendees",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "message"
+        ]
+      },
+      "WorkflowPhoneWhatsAppNumberStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "whatsapp_number",
+            "description": "Action to perform, send a text message via whatsapp to a specific phone number",
+            "example": "whatsapp_number"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "verifiedPhoneId": {
+            "type": "number",
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            }
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "verifiedPhoneId",
+          "message"
+        ]
+      },
+      "WorkflowPhoneNumberStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "sms_number",
+            "description": "Action to perform, send a text message to a specific phone number",
+            "example": "sms_number"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "verifiedPhoneId": {
+            "type": "number",
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            }
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "verifiedPhoneId",
+          "message"
+        ]
+      },
+      "WorkflowPhoneAttendeeStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "sms_attendee",
+            "description": "Action to perform, send a text message to the phone numbers of the attendees",
+            "example": "sms_attendee"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "message": {
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "message"
+        ]
+      },
+      "BaseWorkflowTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "object",
+            "description": "Trigger type for the workflow"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "WorkflowActivationDto": {
         "type": "object",
         "properties": {
@@ -21915,40 +22652,59 @@
             ]
           },
           "trigger": {
-            "type": "object",
             "description": "Trigger configuration for the workflow",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnCancelTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnCreationTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              }
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "description": "Steps to execute as part of the workflow",
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowEmailAddressStepDto"
                 },
                 {
-                  "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowEmailAttendeeStepDto"
                 },
                 {
-                  "$ref": "#/components/schemas/OnCancelTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowEmailHostStepDto"
                 },
                 {
-                  "$ref": "#/components/schemas/OnCreationTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowPhoneWhatsAppAttendeeStepDto"
                 },
                 {
-                  "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowPhoneWhatsAppNumberStepDto"
                 },
                 {
-                  "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowPhoneNumberStepDto"
                 },
                 {
-                  "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+                  "$ref": "#/components/schemas/WorkflowPhoneAttendeeStepDto"
                 }
               ]
             }
-          },
-          "steps": {
-            "description": "Steps to execute as part of the workflow",
-            "items": {
-              "type": "object"
-            },
-            "type": "array"
           }
         },
         "required": [
@@ -21956,6 +22712,576 @@
           "activation",
           "trigger",
           "steps"
+        ]
+      },
+      "UpdateEmailAddressWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "email_address",
+            "description": "Action to perform, send an email to a specific email address",
+            "example": "email_address"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "verifiedEmailId": {
+            "type": "number",
+            "description": "Email address if recipient is EMAIL, required for action EMAIL_ADDRESS",
+            "example": "31214",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-an-email-for-an-org-team"
+            }
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
+            "example": true
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HtmlWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "verifiedEmailId",
+          "includeCalendarEvent",
+          "message"
+        ]
+      },
+      "UpdateEmailAttendeeWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "email_attendee",
+            "description": "Action to perform, send an email to the attendees of the event",
+            "example": "email_attendee"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
+            "example": true
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HtmlWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "includeCalendarEvent",
+          "message"
+        ]
+      },
+      "UpdateEmailHostWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "email_host",
+            "description": "Action to perform, send an email to the host of the event",
+            "example": "email_host"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether to include a calendar event in the notification, can be included with actions email_host, email_attendee, email_address",
+            "example": true
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HtmlWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "includeCalendarEvent",
+          "message"
+        ]
+      },
+      "UpdatePhoneAttendeeWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "sms_attendee",
+            "description": "Action to perform, send a text message to the phone numbers of the attendees",
+            "example": "sms_attendee"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "message": {
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "message"
+        ]
+      },
+      "UpdatePhoneWhatsAppNumberWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "whatsapp_number",
+            "description": "Action to perform, send a text message via whatsapp to a specific phone number",
+            "example": "whatsapp_number"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "verifiedPhoneId": {
+            "type": "number",
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            }
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "verifiedPhoneId",
+          "message"
+        ]
+      },
+      "UpdateWhatsAppAttendeePhoneWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "whatsapp_attendee",
+            "description": "Action to perform",
+            "example": "whatsapp_attendee"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "message": {
+            "description": "Message content for this step, send a text message via whatsapp to the phone numbers of the attendees",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "message"
+        ]
+      },
+      "UpdatePhoneNumberWorkflowStepDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number"
+            ],
+            "default": "sms_number",
+            "description": "Action to perform, send a text message to a specific phone number",
+            "example": "sms_number"
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Recipient type",
+            "example": "attendee",
+            "enum": [
+              "const",
+              "attendee",
+              "email",
+              "phone_number"
+            ]
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type for the step",
+            "example": "reminder",
+            "enum": [
+              "reminder",
+              "custom",
+              "rescheduled",
+              "completed",
+              "rating",
+              "cancelled"
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name."
+          },
+          "verifiedPhoneId": {
+            "type": "number",
+            "description": "Phone number if recipient is PHONE_NUMBER, required for actions SMS_NUMBER and WHATSAPP_NUMBER",
+            "example": "3243434",
+            "externalDocs": {
+              "url": "https://cal.com/docs/api-reference/v2/organization-team-verified-resources/verify-a-phone-number-for-an-org-team"
+            }
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TextWorkflowMessageDto"
+              }
+            ]
+          },
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
+            "example": 67244
+          }
+        },
+        "required": [
+          "action",
+          "stepNumber",
+          "recipient",
+          "template",
+          "sender",
+          "verifiedPhoneId",
+          "message"
         ]
       },
       "UpdateWorkflowDto": {
@@ -21974,20 +23300,62 @@
               }
             ]
           },
+          "trigger": {
+            "description": "Trigger configuration for the workflow",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnAfterEventTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnCancelTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnCreationTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnRescheduleTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnAfterCalVideoGuestsNoShowTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnAfterCalVideoHostsNoShowTriggerDto"
+              }
+            ]
+          },
           "steps": {
+            "type": "array",
             "description": "Steps to execute as part of the workflow",
             "items": {
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "trigger": {
-            "type": "object"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UpdateEmailAddressWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateEmailAttendeeWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateEmailHostWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneAttendeeWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneWhatsAppNumberWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateWhatsAppAttendeePhoneWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneNumberWorkflowStepDto"
+                }
+              ]
+            }
           }
-        },
-        "required": [
-          "trigger"
-        ]
+        }
       },
       "StripConnectOutputDto": {
         "type": "object",
@@ -23975,7 +25343,7 @@
         "type": "object",
         "properties": {}
       },
-      "Attendee": {
+      "CreateBookingAttendee": {
         "type": "object",
         "properties": {
           "name": {
@@ -24112,7 +25480,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -24239,7 +25607,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -24372,7 +25740,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -24541,6 +25909,86 @@
           "slug"
         ]
       },
+      "BookingAttendee": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "timeZone",
+          "absent"
+        ]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -24594,7 +26042,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -24657,7 +26111,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -24751,7 +26205,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -24814,7 +26274,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -24919,7 +26379,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "example": "en"
           },
@@ -25011,7 +26472,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25155,7 +26622,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25344,7 +26817,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25483,7 +26962,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -25925,6 +27410,21 @@
           "data"
         ]
       },
+      "MarkAbsentAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "absent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "absent"
+        ]
+      },
       "MarkAbsentBookingInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -25936,7 +27436,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/MarkAbsentAttendee"
             }
           }
         }
