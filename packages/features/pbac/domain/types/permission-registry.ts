@@ -3,6 +3,7 @@ export enum Resource {
   EventType = "eventType",
   Team = "team",
   Organization = "organization",
+  Attributes = "organization.attributes",
   Booking = "booking",
   Insights = "insights",
   Role = "role",
@@ -273,6 +274,35 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "insights",
       i18nKey: "pbac_action_read",
       descriptionI18nKey: "pbac_desc_view_team_insights",
+    },
+  },
+  [Resource.Attributes]: {
+    _resource: {
+      i18nKey: "pbac_resource_attributes",
+    },
+    [CrudAction.Read]: {
+      description: "View organization attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_organization_attributes",
+    },
+    [CrudAction.Update]: {
+      description: "Update organization attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_organization_attributes",
+    },
+    [CrudAction.Delete]: {
+      description: "Delete organization attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_organization_attributes",
+    },
+    [CrudAction.Create]: {
+      description: "Create organization attributes",
+      category: "attributes",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_organization_attributes",
     },
   },
 };
