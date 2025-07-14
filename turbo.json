@@ -1,6 +1,6 @@
 {
   "$schema": "https://turborepo.org/schema.json",
-  "pipeline": {
+  "tasks": {
     "@calcom/prisma#build": {
       "cache": false,
       "dependsOn": ["post-install"]
