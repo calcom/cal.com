@@ -586,60 +586,55 @@ const CopyTimes = ({
         <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           <li key="select all">
-            <label className="text-default flex w-full items-center justify-between">
-              <span className="px-1">{t("select_all")}</span>
-              <CheckboxField
-                description=""
-                value={t("select_all")}
-                checked={selected.length === 7}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelected([0, 1, 2, 3, 4, 5, 6]);
-                  } else if (!e.target.checked) {
-                    setSelected([]);
-                  }
-                }}
-                ref={(ref) => {
-                  if (ref) {
-                    itteratablesByKeyRef.current.push(ref as HTMLInputElement);
-                  }
-                }}
-              />
-            </label>
+            <CheckboxField
+              description={t("select_all")}
+              descriptionAsLabel
+              value={t("select_all")}
+              checked={selected.length === 7}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelected([0, 1, 2, 3, 4, 5, 6]);
+                } else if (!e.target.checked) {
+                  setSelected([]);
+                }
+              }}
+              ref={(ref) => {
+                if (ref) {
+                  itteratablesByKeyRef.current.push(ref as HTMLInputElement);
+                }
+              }}
+            />
           </li>
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
             return (
               <li key={weekday}>
-                <label className="text-default flex w-full items-center justify-between">
-                  <span className="px-1">{weekday}</span>
-                  <CheckboxField
-                    description=""
-                    value={weekdayIndex}
-                    checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
-                    disabled={disabled === weekdayIndex}
-                    onChange={(e) => {
-                      if (e.target.checked && !selected.includes(weekdayIndex)) {
-                        setSelected(selected.concat([weekdayIndex]));
-                      } else if (!e.target.checked && selected.includes(weekdayIndex)) {
-                        setSelected(selected.filter((item) => item !== weekdayIndex));
-                      }
-                    }}
-                    ref={(ref) => {
-                      if (ref && disabled !== weekdayIndex) {
-                        //we don't need to iterate over disabled elements
-                        itteratablesByKeyRef.current.push(ref as HTMLInputElement);
-                      }
-                    }}
-                  />
-                </label>
+                <CheckboxField
+                  description={weekday}
+                  descriptionAsLabel
+                  value={weekdayIndex}
+                  checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
+                  disabled={disabled === weekdayIndex}
+                  onChange={(e) => {
+                    if (e.target.checked && !selected.includes(weekdayIndex)) {
+                      setSelected(selected.concat([weekdayIndex]));
+                    } else if (!e.target.checked && selected.includes(weekdayIndex)) {
+                      setSelected(selected.filter((item) => item !== weekdayIndex));
+                    }
+                  }}
+                  ref={(ref) => {
+                    if (ref && disabled !== weekdayIndex) {
+                      itteratablesByKeyRef.current.push(ref as HTMLInputElement);
+                    }
+                  }}
+                />
               </li>
             );
           })}
         </ol>
       </div>
       <hr className="border-subtle" />
-      <div className="space-x-2 px-2 rtl:space-x-reverse">
+      <div className="flex justify-end space-x-2 px-2 rtl:space-x-reverse">
         <Button
           color="minimal"
           onClick={() => onCancel()}

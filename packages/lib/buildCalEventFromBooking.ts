@@ -1,9 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { parseRecurringEvent } from "./isRecurringEvent";
-import { getTranslation } from "./server/i18n";
 
 type DestinationCalendar = {
   id: number;
@@ -15,6 +15,8 @@ type DestinationCalendar = {
   credentialId: number | null;
   delegationCredentialId: string | null;
   domainWideDelegationCredentialId: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 } | null;
 
 type Attendee = {
