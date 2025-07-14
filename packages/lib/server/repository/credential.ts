@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import type { AppCategories } from "@calcom/prisma/enums";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -74,25 +75,35 @@ export class CredentialRepository {
     return buildNonDelegationCredential(credential);
   }
 
-  static async findManyByUserId({ userId, appId }: { userId: number; appId?: string }) {
-    const credentials = await prisma.credential.findMany({
-      where: { userId, ...(appId && { appId }) },
-      select: credentialForCalendarServiceSelect,
-    });
-    return credentials.map((credential) => buildNonDelegationCredential(credential));
-  }
+  static async findManyByUserIdOrTeamIdAndCategory({
+    category,
+    userId,
+    teamId,
+  }: {
+    category: AppCategories[];
+    userId?: number;
+    teamId?: number;
+  }) {
+    if (!userId && !teamId) return null;
 
-  static async findManyByTeamId({ teamId }: { teamId: number }) {
-    const credentials = await prisma.credential.findMany({
-      where: { teamId },
-      select: credentialForCalendarServiceSelect,
-    });
-    return credentials.map((credential) => buildNonDelegationCredential(credential));
-  }
+    const where: Prisma.CredentialWhereInput = {
+      app: {
+        categories: {
+          hasSome: category,
+        },
+      },
+    };
 
-  static async findManyByOrganizationId({ organizationId }: { organizationId: number }) {
+    if (userId) {
+      where.userId = userId;
+    }
+
+    if (teamId) {
+      where.teamId = teamId;
+    }
+
     const credentials = await prisma.credential.findMany({
-      where: { teamId: organizationId },
+      where,
       select: credentialForCalendarServiceSelect,
     });
     return credentials.map((credential) => buildNonDelegationCredential(credential));

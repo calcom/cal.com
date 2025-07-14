@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
-import DeelHrmsService from "@calcom/app-store/deel/lib/HrmsService";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
@@ -13,7 +12,7 @@ import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { AppCategories, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -381,52 +380,53 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   try {
     const hrmsCredentials = [];
 
-    const userCredentials = await CredentialRepository.findManyByUserId({ userId: oooUserId, appId: "deel" });
-    hrmsCredentials.push(...userCredentials);
+    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+      userId: oooUserId,
+      category: [AppCategories.hrms],
+    });
+
+    if (userCredentials) {
+      hrmsCredentials.push(...userCredentials);
+    }
 
     for (const teamId of teamIds) {
-      const teamCredentials = await CredentialRepository.findManyByTeamId({ teamId });
-      hrmsCredentials.push(...teamCredentials.filter((c) => c.appId === "deel"));
+      const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId,
+        category: [AppCategories.hrms],
+      });
+      if (teamCredentials) hrmsCredentials.push(...teamCredentials);
     }
 
     if (oooUserOrgId) {
-      const orgCredentials = await CredentialRepository.findManyByOrganizationId({
-        organizationId: oooUserOrgId,
+      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: oooUserOrgId,
+        category: [AppCategories.hrms],
       });
-      hrmsCredentials.push(...orgCredentials.filter((c) => c.appId === "deel"));
+      if (orgCredentials) hrmsCredentials.push(...orgCredentials);
     }
 
     for (const credential of hrmsCredentials) {
       const hrmsManager = new HrmsManager(credential);
 
-      if (credential.appId === "deel") {
-        const deelService = new DeelHrmsService(credential);
+      if (createdOrUpdatedOutOfOffice.externalId) {
+        const updatedOoo = await hrmsManager.updateOOO(createdOrUpdatedOutOfOffice.externalId, {
+          endDate: endTimeUtc.format("YYYY-MM-DD"),
+          startDate: startTimeUtc.format("YYYY-MM-DD"),
+          notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
+        });
+      } else {
+        const ooo = await hrmsManager.createOOO({
+          endDate: endTimeUtc.format("YYYY-MM-DD"),
+          startDate: startTimeUtc.format("YYYY-MM-DD"),
+          notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
+          userEmail: oooUserEmail,
+        });
 
-        const recipientProfileId = await deelService.getRecipientProfileId(oooUserEmail);
-        if (recipientProfileId) {
-          const timeOffTypeId = await deelService.getTimeOffTypeId(recipientProfileId);
-          if (timeOffTypeId) {
-            if (createdOrUpdatedOutOfOffice.externalId) {
-              await hrmsManager.updateOOO(createdOrUpdatedOutOfOffice.externalId, {
-                startDate: startTimeUtc.format("YYYY-MM-DD"),
-                endDate: endTimeUtc.format("YYYY-MM-DD"),
-                notes: input.notes || `Out of office: ${reason?.reason || ""}`,
-              });
-            } else {
-              const hrmsTimeOff = await hrmsManager.createOOO({
-                recipientProfileId,
-                startDate: startTimeUtc.format("YYYY-MM-DD"),
-                endDate: endTimeUtc.format("YYYY-MM-DD"),
-                timeOffTypeId,
-                notes: input.notes || `Out of office: ${reason?.reason || ""}`,
-              });
-
-              await prisma.outOfOfficeEntry.update({
-                where: { uuid: createdOrUpdatedOutOfOffice.uuid },
-                data: { externalId: hrmsTimeOff.id },
-              });
-            }
-          }
+        if (ooo?.id) {
+          await prisma.outOfOfficeEntry.update({
+            where: { uuid: createdOrUpdatedOutOfOffice.uuid },
+            data: { externalId: ooo.id },
+          });
         }
       }
     }

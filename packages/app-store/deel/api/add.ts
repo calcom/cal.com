@@ -1,31 +1,32 @@
+import getParsedAppKeysFromSlug from "_utils/getParsedAppKeysFromSlug";
+import { deelAuthUrl } from "deel/lib/constants";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
+import { appKeysSchema } from "../zod";
 
 const scopes = ["time-off:write", "time-off:read", "people:read"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
-  const appKeys = await getAppKeysFromSlug("deel");
-  let clientId = "";
-  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
-  if (!clientId) return res.status(400).json({ message: "Deel client id missing." });
+  const { client_id, redirect_uris } = await getParsedAppKeysFromSlug("deel", appKeysSchema);
+  if (!client_id) return res.status(400).json({ message: "Deel client id missing." });
+  if (!redirect_uris) return res.status(400).json({ message: "Deel redirect uri missing." });
 
-  const redirectUri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/deel/callback`;
   const state = encodeOAuthState(req);
 
-  const authUrl = new URL("https://app.letsdeel.com/oauth/authorize");
-  authUrl.searchParams.set("client_id", clientId);
-  authUrl.searchParams.set("redirect_uri", redirectUri);
+  const authUrl = new URL(`${deelAuthUrl}/oauth2/authorize`);
+  authUrl.searchParams.set("client_id", client_id);
+  authUrl.searchParams.set("redirect_uri", redirect_uris);
+  // testing,
+  // authUrl.searchParams.set("redirect_uri", "https://a309c11eafec.ngrok-free.app/api/integrations/deel/callback");
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("scope", scopes.join(" "));
   if (state) {
     authUrl.searchParams.set("state", state);
   }
 
+  console.log("auth url: ", authUrl.toString());
   res.status(200).json({ url: authUrl.toString() });
 }

@@ -21,13 +21,13 @@ export default class HrmsManager {
   }
 
   async createOOO(params: {
-    recipientProfileId: string;
     startDate: string;
     endDate: string;
-    timeOffTypeId: string;
+    userEmail: string;
     notes?: string;
-  }): Promise<{ id: string }> {
+  }): Promise<{ id: string } | null> {
     const hrmsService = await this.getHrmsService();
+    if (!hrmsService) return null;
     return hrmsService.createOOO(params);
   }
 

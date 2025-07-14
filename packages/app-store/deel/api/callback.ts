@@ -1,9 +1,10 @@
+import getParsedAppKeysFromSlug from "_utils/getParsedAppKeysFromSlug";
+import { deelAuthUrl } from "deel/lib/constants";
+import { appKeysSchema } from "deel/zod";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -31,25 +32,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
-  let clientId = "";
-  let clientSecret = "";
-  const appKeys = await getAppKeysFromSlug("deel");
-  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
-  if (!clientId) return res.status(400).json({ message: "Deel client id missing." });
-  if (!clientSecret) return res.status(400).json({ message: "Deel client secret missing." });
+  const { client_id, client_secret, redirect_uris } = await getParsedAppKeysFromSlug("deel", appKeysSchema);
 
-  const tokenResponse = await fetch("https://app.letsdeel.com/oauth/token", {
+  const tokenResponse = await fetch(`${deelAuthUrl}/oauth2/tokens`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`,
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
       code: code as string,
-      redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/deel/callback`,
-      client_id: clientId,
-      client_secret: clientSecret,
+      redirect_uri: redirect_uris,
+      //for testing, remove later
+      // redirect_uri: `https://a309c11eafec.ngrok-free.app/api/integrations/deel/callback`,
     }),
   });
 

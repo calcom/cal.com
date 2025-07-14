@@ -56,6 +56,12 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       "data-testid": "messaging",
     },
     {
+      name: "hrms",
+      href: getHref(baseURL, "hrms", useQueryParam),
+      icon: "users",
+      "data-testid": "hrms",
+    },
+    {
       name: "payment",
       href: getHref(baseURL, "payment", useQueryParam),
       icon: "credit-card",

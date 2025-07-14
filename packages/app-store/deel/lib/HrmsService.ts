@@ -1,11 +1,25 @@
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { HrmsService } from "@calcom/types/HrmsService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { DeelToken } from "../api/callback";
+import { deelApiUrl, deelAuthUrl } from "../lib/constants";
 import { appKeysSchema } from "../zod";
+
+// for testing remove later
+const globalTestEmail = "pperosn+c9ad711d-2a8a-4d93-ad0d-25f285a3c81e@test.org";
+
+export interface DeelPerson {
+  id: string;
+  emails: {
+    type: string | null;
+    value: string | null;
+  }[];
+  full_name: string;
+  worker_id: string;
+}
 
 export interface DeelTimeOffRequest {
   recipient_profile_id: string;
@@ -55,9 +69,11 @@ export default class DeelHrmsService implements HrmsService {
     if (key.expiryDate && Date.now() >= key.expiryDate) {
       const refreshedToken = await this.refreshToken(key.refresh_token);
 
-      await prisma.credential.update({
-        where: { id: this.credential.id },
-        data: { key: refreshedToken },
+      await CredentialRepository.updateCredentialById({
+        id: this.credential.id,
+        data: {
+          key: refreshedToken,
+        },
       });
 
       return refreshedToken.access_token;
@@ -70,7 +86,7 @@ export default class DeelHrmsService implements HrmsService {
     const appKeys = await getAppKeysFromSlug("deel");
     const { client_id, client_secret } = appKeysSchema.parse(appKeys);
 
-    const response = await fetch("https://app.deel.com/oauth2/tokens", {
+    const response = await fetch(`${deelAuthUrl}/oauth2/tokens`, {
       method: "POST",
       headers: {
         Authorization: `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`,
@@ -99,24 +115,37 @@ export default class DeelHrmsService implements HrmsService {
   }
 
   async createOOO(params: {
-    recipientProfileId: string;
     startDate: string;
     endDate: string;
-    timeOffTypeId: string;
+    userEmail: string;
     notes?: string;
   }): Promise<{ id: string }> {
     try {
       const accessToken = await this.getAccessToken();
 
+      const recipientProfileId = await this.getRecipientProfileId(params.userEmail);
+      if (!recipientProfileId) {
+        this.log.error("Recipient profile ID not found for user", { email: params.userEmail });
+        throw new Error(`Recipient profile ID not found for user: ${params.userEmail}`);
+      }
+
+      const timeOffTypeId = await this.getTimeOffTypeId(recipientProfileId);
+      if (!timeOffTypeId) {
+        this.log.error("Time-off type ID not found for recipient profile", {
+          recipientProfileId,
+        });
+        throw new Error(`Time-off type ID not found for recipient profile: ${recipientProfileId}`);
+      }
+
       const request: DeelTimeOffRequest = {
-        recipient_profile_id: params.recipientProfileId,
+        recipient_profile_id: recipientProfileId,
         start_date: params.startDate,
         end_date: params.endDate,
-        time_off_type_id: params.timeOffTypeId,
+        time_off_type_id: timeOffTypeId,
         notes: params.notes,
       };
 
-      const response = await fetch("https://api.letsdeel.com/rest/v2/time_offs", {
+      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -159,17 +188,14 @@ export default class DeelHrmsService implements HrmsService {
       if (params.endDate) request.end_date = params.endDate;
       if (params.notes) request.notes = params.notes;
 
-      const response = await fetch(
-        `https://api.letsdeel.com/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ data: request }),
-        }
-      );
+      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data: request }),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -192,15 +218,12 @@ export default class DeelHrmsService implements HrmsService {
     try {
       const accessToken = await this.getAccessToken();
 
-      const response = await fetch(
-        `https://api.letsdeel.com/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -219,12 +242,12 @@ export default class DeelHrmsService implements HrmsService {
     }
   }
 
-  async getRecipientProfileId(userEmail: string): Promise<string | null> {
+  private async getRecipientProfileId(userEmail: string): Promise<string | null> {
     try {
       const accessToken = await this.getAccessToken();
 
       const response = await fetch(
-        `https://api.letsdeel.com/rest/v2/people?search=${encodeURIComponent(userEmail)}`,
+        `${deelApiUrl}/rest/v2/people?search=${encodeURIComponent(globalTestEmail)}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -233,12 +256,15 @@ export default class DeelHrmsService implements HrmsService {
       );
 
       if (!response.ok) {
+        console.log("res: ", await response.json());
         this.log.warn("Could not find Deel person", { email: userEmail, status: response.status });
         return null;
       }
 
       const data = await response.json();
-      const person = data.data?.find((person: any) => person.email === userEmail);
+      const person = data.data?.find((person: DeelPerson) =>
+        person.emails.some((email) => email.value?.toLowerCase() === globalTestEmail.toLowerCase())
+      );
       return person?.id || null;
     } catch (error) {
       this.log.error("Error getting Deel recipient profile ID", error);
@@ -246,14 +272,12 @@ export default class DeelHrmsService implements HrmsService {
     }
   }
 
-  async getTimeOffTypeId(recipientProfileId: string): Promise<string | null> {
+  private async getTimeOffTypeId(recipientProfileId: string): Promise<string | null> {
     try {
       const accessToken = await this.getAccessToken();
 
       const response = await fetch(
-        `https://api.letsdeel.com/rest/v2/time_offs/profile/${encodeURIComponent(
-          recipientProfileId
-        )}/policies`,
+        `${deelApiUrl}/rest/v2/time_offs/profile/${encodeURIComponent(recipientProfileId)}/policies`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

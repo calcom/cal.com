@@ -1,10 +1,9 @@
 export interface HrmsService {
   createOOO(params: {
-    recipientProfileId: string;
     startDate: string;
     endDate: string;
-    timeOffTypeId: string;
     notes?: string;
+    userEmail: string;
   }): Promise<{ id: string }>;
   updateOOO(
     timeOffId: string,
