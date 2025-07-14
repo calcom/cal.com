@@ -93,7 +93,7 @@ describe("scheduleNoShowTriggers Integration", () => {
     });
   });
 
-  test("creates actual tasks in database for both host and guest no-show webhooks", async () => {
+  test("scheduling a webhook creates the correct Tasker jobs for no-show webhooks", async () => {
     const currentDate = new Date("2023-01-01T10:00:00.000Z");
     const bookingData: Partial<Booking> & { startTime: Date; id: number; location: string } = {
       id: testBookingIds[0],
@@ -124,7 +124,7 @@ describe("scheduleNoShowTriggers Integration", () => {
     expect(guestTask).toBeDefined();
   });
 
-  test("task payloads contain correct data for webhooks", async () => {
+  test("created task payloads for no-show webhooks are correct", async () => {
     const currentDate = new Date("2023-01-01T11:00:00.000Z");
     const bookingData: Partial<Booking> & { startTime: Date; id: number; location: string } = {
       id: testBookingIds[1],
@@ -196,7 +196,7 @@ describe("scheduleNoShowTriggers Integration", () => {
     });
   });
 
-  test("task handler processes payload correctly and triggers webhook", async () => {
+  test("task handler runs properly with the correct payload", async () => {
     await prisma.eventType.create({
       data: {
         id: testEventTypeId,
