@@ -138,6 +138,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       children: [
         //
         { name: "features", href: "/settings/admin/flags" },
+        { name: "teams", href: "/settings/admin/teams" },
         { name: "license", href: "/auth/setup?step=1" },
         { name: "impersonation", href: "/settings/admin/impersonation" },
         { name: "apps", href: "/settings/admin/apps/calendar" },

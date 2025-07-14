@@ -6,17 +6,17 @@ import { TeamFeaturesListingView } from "./TeamFeaturesListingView";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("team_features"),
-    (t) => t("admin_team_features_description"),
+    (t) => t("teams"),
+    (t) => t("admin_teams_description"),
     undefined,
     undefined,
-    "/settings/admin/flags/teams"
+    "/settings/admin/teams"
   );
 
 const Page = async () => {
   const t = await getTranslate();
   return (
-    <SettingsHeader title={t("team_features")} description={t("admin_team_features_description")}>
+    <SettingsHeader title={t("teams")} description={t("admin_teams_description")}>
       <TeamFeaturesListingView />
     </SettingsHeader>
   );

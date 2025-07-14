@@ -67,11 +67,6 @@ function TeamFeaturesListingContent() {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <span className="font-medium">{row.original.name}</span>
-            {row.original.isOrganization && (
-              <Badge variant="blue" className="text-xs">
-                {t("organization")}
-              </Badge>
-            )}
           </div>
         ),
       },
@@ -82,25 +77,14 @@ function TeamFeaturesListingContent() {
         cell: ({ row }) => row.original.slug || "-",
       },
       {
-        id: "subscriptionId",
-        header: t("subscription_id"),
-        cell: ({ row }) => row.original.platformBilling?.id || "-",
-      },
-      {
         id: "childTeams",
         header: t("child_teams"),
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
             {row.original.children.map((child) => (
-              <Button
-                key={child.id}
-                variant="button"
-                color="secondary"
-                size="sm"
-                onClick={() => setParentId(child.id)}
-                className="text-xs">
+              <Badge key={child.id} variant="gray" className="text-xs">
                 {child.name}
-              </Button>
+              </Badge>
             ))}
             {row.original.children.length === 0 && "-"}
           </div>
@@ -125,27 +109,17 @@ function TeamFeaturesListingContent() {
         id: "actions",
         header: t("actions"),
         cell: ({ row }) => (
-          <div className="flex gap-2">
+          <div className="ml-auto flex gap-2">
             <Button
-              variant="button"
-              color="secondary"
               size="sm"
+              StartIcon="pencil"
+              variant="icon"
+              color="secondary"
               onClick={() => {
                 setSelectedTeam(row.original);
                 setIsEditSheetOpen(true);
-              }}>
-              {t("edit")}
-            </Button>
-            <Button
-              variant="button"
-              color="secondary"
-              size="sm"
-              onClick={() => {
-                setSelectedTeam(row.original);
-                setIsEditSheetOpen(true);
-              }}>
-              {t("preview")}
-            </Button>
+              }}
+            />
           </div>
         ),
       },
