@@ -35,6 +35,8 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
+  BookingRescheduleState,
+  canRescheduleBooking,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import {
@@ -697,12 +699,13 @@ export class BookingsService_2024_08_13 {
     if (!booking) {
       throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
     }
-    if (booking.status === "CANCELLED" && !booking.rescheduled) {
+    const rescheduleState = canRescheduleBooking(booking);
+    if (rescheduleState === BookingRescheduleState.CANCELLED) {
       throw new BadRequestException(
         `Can't reschedule booking with uid=${bookingUid} because it has been cancelled. Please provide uid of a booking that is not cancelled.`
       );
     }
-    if (booking.status === "CANCELLED" && booking.rescheduled) {
+    if (rescheduleState === BookingRescheduleState.RESCHEDULED) {
       const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
       throw new BadRequestException(
         `Can't reschedule booking with uid=${bookingUid} because it has been cancelled and rescheduled already to booking with uid=${rescheduledTo?.uid}. You probably want to reschedule ${rescheduledTo?.uid} instead by passing it within the request URL.`
