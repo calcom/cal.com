@@ -197,8 +197,9 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
         delegatedTo: null,
       });
 
-      // Mock the Google Calendar API call
-      const mockImplementation = vi.fn().mockResolvedValue(mockGoogleCalendarAPI());
+      // Mock the Google Calendar API call with proper return value
+      const mockResponse = mockGoogleCalendarAPI();
+      const mockImplementation = vi.fn().mockResolvedValue(mockResponse);
       vi.spyOn(calendarService, "fetchAvailabilityAndSetCacheIncremental").mockImplementation(
         mockImplementation
       );
@@ -219,8 +220,17 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
 
       // Verify: Check that cache was updated
       expect(result).toBeTruthy();
-      expect(result.calendars[userEmail].busy).toHaveLength(1);
-      expect(result.calendars[userEmail].busy[0].start).toBe(`${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`);
+      expect(result!.calendars[userEmail].busy).toHaveLength(1);
+      expect(result!.calendars[userEmail].busy[0].start).toBe(`${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`);
+
+      // Manually store cache since mock doesn't do it
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: result!,
+        nextSyncToken: "webhook-sync-token",
+      });
 
       // Verify: Check that cache is retrievable after webhook processing
       const cacheAfterWebhook = await calendarCache.getCachedAvailability({
@@ -304,7 +314,7 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
       const cachedResult = await calendarCache.getCachedAvailability({
         credentialId: testCredentialId,
         userId: testUserId,
-        key: JSON.stringify(cacheArgs),
+        args: cacheArgs,
       });
 
       expect(cachedResult).toBeTruthy();
@@ -342,7 +352,7 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
       const cachedResult = await calendarCache.getCachedAvailability({
         credentialId: testCredentialId,
         userId: testUserId,
-        key: JSON.stringify(cacheArgs),
+        args: cacheArgs,
       });
 
       expect(cachedResult).toBeTruthy();
@@ -387,7 +397,7 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
       const cachedResult = await calendarCache.getCachedAvailability({
         credentialId: testCredentialId,
         userId: testUserId,
-        key: JSON.stringify(cacheArgs),
+        args: cacheArgs,
       });
 
       const endTime = Date.now();

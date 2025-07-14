@@ -451,9 +451,9 @@ describe("Sibling Cache Refresh Integration Tests", () => {
       });
 
       // Create cache entries for different time ranges
-      const nextWeek = new Date(TEST_DATE);
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      const nextWeekISO = nextWeek.toISOString();
+      const nextMonth = new Date(TEST_DATE);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      const nextMonthISO = nextMonth.toISOString();
 
       const cacheArgs1 = {
         timeMin: getTimeMin(TEST_DATE_ISO),
@@ -462,8 +462,8 @@ describe("Sibling Cache Refresh Integration Tests", () => {
       };
 
       const cacheArgs2 = {
-        timeMin: getTimeMin(nextWeekISO),
-        timeMax: getTimeMax(nextWeekISO),
+        timeMin: getTimeMin(nextMonthISO),
+        timeMax: getTimeMax(nextMonthISO),
         items: [{ id: cal1Email }],
       };
 
@@ -477,7 +477,7 @@ describe("Sibling Cache Refresh Integration Tests", () => {
             end: `${TEST_DATE_ISO.slice(0, 10)}T09:30:00.000Z`,
           },
         ]),
-        nextSyncToken: "sync-token-thisweek",
+        nextSyncToken: "sync-token-thismonth",
       });
 
       await calendarCache.upsertCachedAvailability({
@@ -486,30 +486,30 @@ describe("Sibling Cache Refresh Integration Tests", () => {
         args: cacheArgs2,
         value: mockGoogleCalendarAPI(cal1Email, [
           {
-            start: `${nextWeekISO.slice(0, 10)}T10:00:00.000Z`,
-            end: `${nextWeekISO.slice(0, 10)}T10:30:00.000Z`,
+            start: `${nextMonthISO.slice(0, 10)}T10:00:00.000Z`,
+            end: `${nextMonthISO.slice(0, 10)}T10:30:00.000Z`,
           },
         ]),
-        nextSyncToken: "sync-token-nextweek",
+        nextSyncToken: "sync-token-nextmonth",
       });
 
       // Verify both time range caches exist
-      const thisWeekCache = await calendarCache.getCachedAvailability({
+      const thisMonthCache = await calendarCache.getCachedAvailability({
         credentialId: testCredentialId,
         userId: testUserId,
         args: cacheArgs1,
       });
 
-      const nextWeekCache = await calendarCache.getCachedAvailability({
+      const nextMonthCache = await calendarCache.getCachedAvailability({
         credentialId: testCredentialId,
         userId: testUserId,
         args: cacheArgs2,
       });
 
-      expect(thisWeekCache).toBeTruthy();
-      expect(thisWeekCache?.nextSyncToken).toBe("sync-token-thisweek");
-      expect(nextWeekCache).toBeTruthy();
-      expect(nextWeekCache?.nextSyncToken).toBe("sync-token-nextweek");
+      expect(thisMonthCache).toBeTruthy();
+      expect(thisMonthCache?.nextSyncToken).toBe("sync-token-thismonth");
+      expect(nextMonthCache).toBeTruthy();
+      expect(nextMonthCache?.nextSyncToken).toBe("sync-token-nextmonth");
     });
   });
 });
