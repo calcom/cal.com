@@ -1306,7 +1306,7 @@ export default class SalesforceCRMService implements CRM {
       });
 
       value = findFieldValueByIdentifier(
-        await routingFormResponseDataFactory.create({ bookingUid }),
+        await routingFormResponseDataFactory.createWithBookingUid({ bookingUid }),
         fieldValue
       );
     } catch (error) {
