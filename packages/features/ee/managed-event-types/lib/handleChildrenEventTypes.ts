@@ -156,7 +156,8 @@ export default async function handleChildrenEventTypes({
       teamName: oldEventType.team?.name ?? null,
     });
     // Create event types for new users added
-    await prisma.$transaction(
+
+    const createdChildEventTypes = await prisma.$transaction(
       newUserIds.map((userId) => {
         return prisma.eventType.create({
           data: {
@@ -192,9 +193,33 @@ export default async function handleChildrenEventTypes({
             useBookerTimezone: false,
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+            allowManagedEventReassignment: managedEventTypeValues.allowManagedEventReassignment ?? false,
+            schedulingType: managedEventTypeValues.schedulingType ?? SchedulingType.MANAGED,
           },
         });
       })
+    );
+
+    // upsert Host records for each user on the parent managed event type
+    await prisma.$transaction(
+      createdChildEventTypes
+        .filter((eventType) => eventType.userId !== undefined)
+        .map((eventType) =>
+          prisma.host.upsert({
+            where: {
+              userId_eventTypeId: {
+                userId: eventType.userId as number,
+                eventTypeId: parentId,
+              },
+            },
+            update: {},
+            create: {
+              userId: eventType.userId as number,
+              eventTypeId: parentId,
+              isFixed: false,
+            },
+          })
+        )
     );
   }
 
@@ -268,6 +293,8 @@ export default async function handleChildrenEventTypes({
                   },
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+            allowManagedEventReassignment: managedEventTypeValues.allowManagedEventReassignment ?? false,
+            schedulingType: managedEventTypeValues.schedulingType ?? SchedulingType.MANAGED,
             metadata: {
               ...(eventType.metadata as Prisma.JsonObject),
               ...(metadata?.multipleDuration && "length" in unlockedFieldProps

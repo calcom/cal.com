@@ -57,7 +57,9 @@ import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number] & {
+  allowManagedEventReassignment?: boolean;
+};
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
@@ -298,7 +300,11 @@ function BookingListItem(booking: BookingItemProps) {
         ]),
   ];
 
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+  if (
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+    (booking.eventType.schedulingType === SchedulingType.MANAGED &&
+      booking.eventType.allowManagedEventReassignment)
+  ) {
     editBookingActions.push({
       id: "reassign ",
       label: t("reassign"),
@@ -506,6 +512,8 @@ function BookingListItem(booking: BookingItemProps) {
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
+          eventTypeSchedulingType={booking.eventType.schedulingType}
+          allowManagedEventReassignment={booking.eventType.allowManagedEventReassignment}
         />
       )}
       <EditLocationDialog

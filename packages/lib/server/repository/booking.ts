@@ -5,7 +5,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis } from "@calcom/prisma/enums";
+import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { UserRepository } from "./user";
@@ -135,6 +135,8 @@ export class BookingRepository {
         eventType: {
           select: {
             teamId: true,
+            parentId: true,
+            schedulingType: true,
           },
         },
       },
@@ -145,13 +147,26 @@ export class BookingRepository {
     if (userId === booking.userId) return true;
 
     // If the booking doesn't belong to the user and there's no team then return early
-    if (!booking.eventType || !booking.eventType.teamId) return false;
+    if (!booking.eventType) return false;
+
+    let teamId = booking.eventType.teamId;
+
+    // For managed event types, get teamId from parent event type
+    if (booking.eventType.schedulingType === SchedulingType.MANAGED && booking.eventType.parentId) {
+      const parentEventType = await this.prismaClient.eventType.findUnique({
+        where: { id: booking.eventType.parentId },
+        select: { teamId: true },
+      });
+      teamId = parentEventType?.teamId || teamId;
+    }
+
+    if (!teamId) return false;
 
     // TODO add checks for team and org
     const userRepo = new UserRepository(this.prismaClient);
     const isAdminOrUser = await userRepo.isAdminOfTeamOrParentOrg({
       userId,
-      teamId: booking.eventType.teamId,
+      teamId,
     });
 
     return isAdminOrUser;

@@ -31,6 +31,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -91,16 +92,28 @@ export const roundRobinManualReassignment = async ({
     throw new Error("Event type not found");
   }
 
-  const eventTypeHosts = eventType.hosts.length
-    ? eventType.hosts
-    : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-      }));
+  let eventTypeHosts: typeof eventType.hosts;
+  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED && eventType.parentId;
+  const parentEventType = isManagedEventType ? await getEventTypesFromDB(eventType.parentId ?? -1) : null;
+
+  const buildFallbackHosts = (users: typeof eventType.users) =>
+    users.map((user) => ({
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0),
+    }));
+
+  if (parentEventType) {
+    // For managed event types: use parent's hosts
+    eventTypeHosts = parentEventType.hosts.length
+      ? parentEventType.hosts
+      : buildFallbackHosts(parentEventType.users);
+  } else {
+    eventTypeHosts = eventType.hosts.length ? eventType.hosts : buildFallbackHosts(eventType.users);
+  }
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
   const currentRRHost = booking.attendees.find((attendee) =>

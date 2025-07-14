@@ -3362,5 +3362,12 @@
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "allow_managed_event_reassignment": "Allow managed event reassignment",
+  "allow_managed_event_reassignment_description": "Enable reassignment of managed event type bookings to other team members",
+  "reassign_managed_event_host": "Reassign managed event host",
+  "reassign_to_another_managed_host": "Reassign booking to another available managed event host",
+  "reassign_to_another_managed_host_description": "Select a new host for this booking",
+  "team_member_managed_event_reassign": "Manually reassign managed event host",
+  "team_member_managed_event_reassign_description": "Manually reassign managed event host to another available host",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -529,6 +529,13 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   })
   assignAllTeamMembers?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "If true, allows reassignment of managed event type bookings to other team members",
+  })
+  allowManagedEventReassignment?: boolean;
+
   @IsOptional()
   @ValidateTeamLocations_2024_06_14()
   @DocsPropertyOptional({
