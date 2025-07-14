@@ -132,66 +132,15 @@ describe("Round Robin Individual Caches Integration Tests", () => {
     vi.clearAllMocks();
 
     try {
-      // Clean up test data in proper order to respect foreign key constraints
-      // Use a transaction to ensure atomicity
-      await prisma.$transaction(async (tx) => {
-        // 1. Clear calendar cache entries for test users
-        await tx.calendarCache.deleteMany({
-          where: {
-            OR: [{ credentialId: testCredentialId1 }, { credentialId: testCredentialId2 }],
-          },
-        });
-
-        // 2. Delete selected calendars
-        await tx.selectedCalendar.deleteMany({
-          where: {
-            user: {
-              email: { contains: testUniqueId },
-            },
-          },
-        });
-
-        // 3. Delete webhooks/subscriptions
-        await tx.webhook.deleteMany({
-          where: {
-            OR: [{ userId: testUserId1 }, { userId: testUserId2 }],
-          },
-        });
-
-        // 4. Delete bookings related to test users
-        await tx.booking.deleteMany({
-          where: {
-            OR: [{ userId: testUserId1 }, { userId: testUserId2 }],
-          },
-        });
-
-        // 5. Delete credentials
-        await tx.credential.deleteMany({
-          where: {
-            user: {
-              email: { contains: testUniqueId },
-            },
-          },
-        });
-
-        // 6. Delete event types
-        await tx.eventType.deleteMany({
-          where: {
-            OR: [{ userId: testUserId1 }, { userId: testUserId2 }],
-          },
-        });
-
-        // 7. Delete users (this will cascade to other related records)
-        await tx.user.deleteMany({
-          where: {
-            email: { contains: testUniqueId },
-          },
-        });
+      // Clean up test data - let PostgreSQL cascades handle related records
+      await prisma.user.deleteMany({
+        where: {
+          email: { contains: testUniqueId },
+        },
       });
 
       // Clear calendar cache repository state
       if (calendarCache) {
-        // Clear any in-memory cache state
         calendarCache = new CalendarCacheRepository(null);
       }
 
@@ -207,20 +156,6 @@ describe("Round Robin Individual Caches Integration Tests", () => {
         `Cleanup warning for test ${testUniqueId}:`,
         error instanceof Error ? error.message : String(error)
       );
-
-      // Try basic cleanup as fallback
-      try {
-        await prisma.user.deleteMany({
-          where: {
-            email: { contains: testUniqueId },
-          },
-        });
-      } catch (fallbackError) {
-        console.warn(
-          `Fallback cleanup failed for test ${testUniqueId}:`,
-          fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
-        );
-      }
     }
   });
 
