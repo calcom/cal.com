@@ -10,6 +10,9 @@ export class ProfilesRepository {
     const profile = await this.dbRead.prisma.profile.findFirst({
       where: {
         organizationId,
+        user:{
+          isPlatformManaged: false
+        },
       },
       orderBy: {
         createdAt: "asc",
