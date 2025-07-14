@@ -29,14 +29,14 @@ const Page = async () => {
     return redirect("/settings/profile");
   }
 
-  const { canRead, canEdit, canDelete } = await getResourcePermissions({
+  const { canRead, canEdit } = await getResourcePermissions({
     userId: session.user.id,
     teamId: session.user.profile.organizationId,
     resource: Resource.Organization,
     userRole: session.user.org.role,
     fallbackRoles: {
       read: {
-        roles: [MembershipRole.MEMBER],
+        roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
       },
       update: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
