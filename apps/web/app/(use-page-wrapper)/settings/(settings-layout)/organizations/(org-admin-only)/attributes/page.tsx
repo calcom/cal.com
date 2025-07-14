@@ -28,7 +28,7 @@ const Page = async () => {
     return redirect("/settings/profile");
   }
 
-  const { canRead, canEdit } = await getResourcePermissions({
+  const { canRead, canEdit, canDelete, canCreate } = await getResourcePermissions({
     userId: session.user.id,
     teamId: session.user.profile.organizationId,
     resource: Resource.Attributes,
@@ -55,7 +55,7 @@ const Page = async () => {
 
   return (
     <SettingsHeader title={t("attributes")} description={t("attribute_meta_description")}>
-      <OrgSettingsAttributesPage />
+      <OrgSettingsAttributesPage permissions={{ canEdit, canDelete, canCreate }} />
     </SettingsHeader>
   );
 };
