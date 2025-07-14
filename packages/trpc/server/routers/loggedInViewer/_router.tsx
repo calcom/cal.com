@@ -147,7 +147,7 @@ export const loggedInViewerRouter = router({
       const aiService = createDefaultAIPhoneServiceProvider();
 
       try {
-        const { modelId, agentId } = await aiService.setupConfiguration({
+        const { llmId, agentId } = await aiService.setupConfiguration({
           calApiKey,
           timeZone: agentTimeZone,
           eventTypeId,
@@ -159,7 +159,7 @@ export const loggedInViewerRouter = router({
         const config = await AISelfServeConfigurationRepository.create({
           eventTypeId,
           enabled: true,
-          llmId: modelId,
+          llmId,
           agentId,
           agentTimeZone,
         });
@@ -175,7 +175,7 @@ export const loggedInViewerRouter = router({
     }),
   getLlm: authedProcedure.input(z.object({ llmId: z.string() })).query(async ({ input }) => {
     const aiService = createDefaultAIPhoneServiceProvider();
-    return aiService.getModelDetails(input.llmId);
+    return aiService.getLLMDetails(input.llmId);
   }),
   updateLlm: authedProcedure
     .input(
@@ -202,7 +202,7 @@ export const loggedInViewerRouter = router({
 
       const aiService = createDefaultAIPhoneServiceProvider();
 
-      return aiService.updateModelConfiguration(llmId, updateData);
+      return aiService.updateLLMConfiguration(llmId, updateData);
     }),
   makeSelfServePhoneCall: authedProcedure
     .input(z.object({ eventTypeId: z.number(), numberToCall: z.string() }))
@@ -503,22 +503,19 @@ export const loggedInViewerRouter = router({
         });
       }
 
-      // Use the provider-agnostic AI service with fault-tolerant deletion
       const aiService = createDefaultAIPhoneServiceProvider();
 
       try {
         // Delete external resources with fault tolerance
         const deletionResult = await aiService.deleteConfiguration({
-          modelId: config.llmId || undefined,
+          llmId: config.llmId || undefined,
           agentId: config.agentId || undefined,
         });
 
-        // Always delete the database record, even if external deletion had issues
         await AISelfServeConfigurationRepository.delete({
           id: config.id,
         });
 
-        // Return detailed result with any warnings about partial failures
         if (deletionResult.success) {
           return {
             success: true,
@@ -526,7 +523,6 @@ export const loggedInViewerRouter = router({
             deletionResult,
           };
         } else {
-          // Partial failure - database was cleaned up but external resources may have issues
           return {
             success: true,
             message:

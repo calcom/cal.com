@@ -25,7 +25,6 @@ export const handleCreateSelfServePhoneCall = async ({
     userId: userId,
   });
 
-  console.log("config", config);
   if (!config || !config.yourPhoneNumber) {
     throw new TRPCError({
       code: "BAD_REQUEST",
