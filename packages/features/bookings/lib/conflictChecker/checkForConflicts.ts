@@ -12,11 +12,13 @@ export function checkForConflicts({
   time,
   eventLength,
   currentSeats,
+  preSorted = false,
 }: {
   busy: BufferedBusyTimes;
   time: Dayjs;
   eventLength: number;
   currentSeats?: CurrentSeats;
+  preSorted?: boolean;
 }) {
   // Early return
   if (!Array.isArray(busy) || busy.length < 1) {
@@ -29,12 +31,17 @@ export function checkForConflicts({
   const slotStart = time.valueOf();
   const slotEnd = slotStart + eventLength * 60 * 1000;
 
-  const sortedBusyTimes = busy
-    .map((busyTime) => ({
-      start: dayjs.utc(busyTime.start).valueOf(),
-      end: dayjs.utc(busyTime.end).valueOf(),
-    }))
-    .sort((a, b) => a.start - b.start);
+  const sortedBusyTimes = preSorted
+    ? busy.map((busyTime) => ({
+        start: dayjs.utc(busyTime.start).valueOf(),
+        end: dayjs.utc(busyTime.end).valueOf(),
+      }))
+    : busy
+        .map((busyTime) => ({
+          start: dayjs.utc(busyTime.start).valueOf(),
+          end: dayjs.utc(busyTime.end).valueOf(),
+        }))
+        .sort((a, b) => a.start - b.start);
 
   for (const busyTime of sortedBusyTimes) {
     if (busyTime.start >= slotEnd) {

@@ -1178,12 +1178,14 @@ export class AvailableSlotsService {
 
         currentSeats = availabilityCheckProps.currentSeats;
       }
-      const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
-        if (!c.isSeat) {
-          r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
-        }
-        return r;
-      }, []);
+      const busySlotsFromReservedSlots = reservedSlots
+        .reduce<EventBusyDate[]>((r, c) => {
+          if (!c.isSeat) {
+            r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
+          }
+          return r;
+        }, [])
+        .sort((a, b) => dayjs.utc(a.start).valueOf() - dayjs.utc(b.start).valueOf());
 
       availableTimeSlots = availableTimeSlots
         .map((slot) => {
@@ -1191,6 +1193,7 @@ export class AvailableSlotsService {
             !checkForConflicts({
               time: slot.time,
               busy: busySlotsFromReservedSlots,
+              preSorted: true,
               ...availabilityCheckProps,
             })
           ) {
