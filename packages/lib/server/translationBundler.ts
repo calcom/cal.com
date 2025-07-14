@@ -2,12 +2,10 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import path from "path";
 
-import { CALCOM_ENV, CALCOM_VERSION } from "@calcom/lib/constants";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 
 function getLocalesPath(): string {
-  return CALCOM_ENV === "development"
-    ? path.resolve(process.cwd(), "../..", "packages/lib/server/locales")
-    : path.resolve(process.cwd(), "public/static/locales");
+  return path.resolve(process.cwd(), "public/static/locales");
 }
 
 interface LocaleCache {
