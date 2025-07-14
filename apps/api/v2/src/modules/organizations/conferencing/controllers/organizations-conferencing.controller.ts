@@ -76,7 +76,7 @@ export class OrganizationsConferencingController {
   @Get("/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get OAuth conferencing app's auth url for a team" })
-  async getTeamOAuthUrl(
+  async getOrgOAuthUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @Param("orgId") orgId: string,
@@ -109,7 +109,7 @@ export class OrganizationsConferencingController {
   @Get("/conferencing")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "List team conferencing applications" })
-  async listTeamConferencingApps(
+  async listOrgConferencingApps(
     @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
     const conferencingApps = await this.organizationsConferencingService.getConferencingApps({
@@ -136,7 +136,7 @@ export class OrganizationsConferencingController {
     enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
     required: true,
   })
-  async setTeamDefaultApp(
+  async setOrgDefaultApp(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
   ): Promise<SetDefaultConferencingAppOutputResponseDto> {
@@ -160,7 +160,7 @@ export class OrganizationsConferencingController {
     enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
     required: true,
   })
-  async getTeamDefaultApp(
+  async getOrgDefaultApp(
     @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<GetDefaultConferencingAppOutputResponseDto> {
     const defaultConferencingApp = await this.organizationsConferencingService.getDefaultConferencingApp({
@@ -182,7 +182,7 @@ export class OrganizationsConferencingController {
     enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO],
     required: true,
   })
-  async disconnectTeamApp(
+  async disconnectOrgApp(
     @GetUser() user: UserWithProfile,
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("app") app: string
@@ -202,7 +202,7 @@ export class OrganizationsConferencingController {
   @Get("/conferencing/:app/oauth/callback")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save conferencing app OAuth credentials" })
-  async saveTeamOauthCredentials(
+  async saveOrgOauthCredentials(
     @Query("state") state: string,
     @Query("code") code: string,
     @Query("error") error: string | undefined,
