@@ -198,9 +198,11 @@ const Days = ({
     
     // Allow selected date to remain clickable even without available slots,
     // but only if it's in the current browsing month to preserve auto-navigation
+    // and only if it's not explicitly excluded by the host
     const isCurrentlySelected = selected && !Array.isArray(selected) && yyyymmdd(selected) === dateKey;
     const isSelectedInCurrentMonth = isCurrentlySelected && dayjs(selected).isSame(browsingDate, "month");
-    const disabled = away ? !oooInfo?.toUser : (!included || excluded) && !isSelectedInCurrentMonth;
+    const canOverrideForSelectedDate = isSelectedInCurrentMonth && !excluded;
+    const disabled = away ? !oooInfo?.toUser : (!included || excluded) && !canOverrideForSelectedDate;
 
     return {
       day: day,
