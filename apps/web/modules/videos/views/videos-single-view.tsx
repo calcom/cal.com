@@ -158,8 +158,7 @@ export default function JoinCall(props: PageProps) {
   const handleJoinAsGuest = useCallback((guestName: string) => {
     const trimmedName = guestName.trim();
     if (!trimmedName) {
-      console.error("Guest name cannot be empty");
-      return;
+      return false;
     }
 
     setUserNameForCall(trimmedName);
@@ -308,6 +307,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleContinueAsGuest = useCallback(async () => {
     const trimmedName = userName.trim();
@@ -316,6 +316,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
     }
 
     setIsLoading(true);
+    setError(null); // clear previous errors
 
     try {
       onJoinAsGuest(trimmedName);
@@ -323,6 +324,12 @@ export function LogInOverlay(props: LogInOverlayProps) {
       setIsOpen(false);
     } catch (error) {
       console.error("Error joining as guest:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("failed_to_join_call") || "Failed to join the call. Please try again.";
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -342,9 +349,15 @@ export function LogInOverlay(props: LogInOverlayProps) {
     [userName, isLoading, handleContinueAsGuest]
   );
 
-  const handleUserNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserName(e.target.value);
-  }, []);
+  const handleUserNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUserName(e.target.value);
+      if (error) {
+        setError(null);
+      }
+    },
+    [error]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -379,6 +392,16 @@ export function LogInOverlay(props: LogInOverlayProps) {
               </Button>
             </div>
           </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Divider */}
           <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
@@ -457,9 +480,9 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           </p>
 
           {booking.attendees.length
-            ? booking.attendees.map((attendee) => (
+            ? booking.attendees.map((attendee: { id: string; email: string; name: string }) => (
                 <p key={attendee.id}>
-                  {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
+                  {attendee.name} - <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
                 </p>
               ))
             : null}
