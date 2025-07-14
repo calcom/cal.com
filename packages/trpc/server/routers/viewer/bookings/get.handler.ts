@@ -68,16 +68,7 @@ type BookingsUnionQuery = SelectQueryBuilder<
   Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
 >;
 
-export async function getBookings({
-  user,
-  prisma,
-  kysely,
-  bookingListingByStatus,
-  sort,
-  filters,
-  take,
-  skip,
-}: {
+type GetBookingsProps = {
   user: { id: number; email: string; orgId?: number | null };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
@@ -91,7 +82,15 @@ export async function getBookings({
   };
   take: number;
   skip: number;
-}) {
+};
+
+async function getKyselyQuery({
+  user,
+  prisma,
+  kysely,
+  bookingListingByStatus,
+  filters,
+}: Omit<GetBookingsProps, "skip" | "take" | "sort">): Promise<BookingsUnionQuery> {
   const membershipIdsWhereUserIsAdminOwner = (
     await prisma.membership.findMany({
       where: {
@@ -368,6 +367,20 @@ export async function getBookings({
       fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
     }
 
+    // 8. Booking Created/Updated Date Range Filters
+    if (filters?.afterCreatedDate) {
+      fullQuery = fullQuery.where("Booking.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate());
+    }
+    if (filters?.beforeCreatedDate) {
+      fullQuery = fullQuery.where("Booking.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate());
+    }
+    if (filters?.afterUpdatedDate) {
+      fullQuery = fullQuery.where("Booking.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate());
+    }
+    if (filters?.beforeUpdatedDate) {
+      fullQuery = fullQuery.where("Booking.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate());
+    }
+
     return fullQuery;
   });
 
@@ -375,23 +388,59 @@ export async function getBookings({
     return acc.union(query);
   });
 
+  return queryUnion;
+}
+
+export async function getBookingsCount({
+  user,
+  prisma,
+  kysely,
+  bookingListingByStatus,
+  filters,
+}: Omit<GetBookingsProps, "skip" | "take" | "sort">) {
+  const queryUnion = await getKyselyQuery({
+    user,
+    prisma,
+    kysely,
+    bookingListingByStatus,
+    filters,
+  });
+
+  const count = Number(
+    (
+      await kysely
+        .selectFrom(queryUnion.as("union_subquery"))
+        .select(({ fn }) => fn.countAll().as("bookingCount"))
+        .executeTakeFirst()
+    )?.bookingCount ?? 0
+  );
+
+  return count;
+}
+
+export async function getBookings({
+  user,
+  prisma,
+  kysely,
+  bookingListingByStatus,
+  sort,
+  filters,
+  take,
+  skip,
+}: GetBookingsProps) {
+  const queryUnion = await getKyselyQuery({
+    user,
+    prisma,
+    kysely,
+    bookingListingByStatus,
+    filters,
+  });
+
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
   const getBookingsUnionCompiled = kysely
     .selectFrom(queryUnion.as("union_subquery"))
     .selectAll("union_subquery")
-    .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
-    )
-    .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
-    )
-    .$if(Boolean(filters?.afterCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
-    )
-    .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
-    )
     .orderBy(orderBy.key, orderBy.order)
     .limit(take)
     .offset(skip)
