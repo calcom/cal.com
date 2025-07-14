@@ -13,6 +13,27 @@ import { test } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain } from "./lib/testUtils";
 
+function getNextAvailableWeekday(): Date {
+  const tomorrow = new Date(
+    Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate() + 1)
+  );
+
+  const dayOfWeek = tomorrow.getUTCDay();
+
+  if (dayOfWeek === 6) {
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 2);
+  } else if (dayOfWeek === 0) {
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  }
+
+  return tomorrow;
+}
+
+// Dynamic test date: always set to tomorrow in UTC (if not a weekend), used everywhere for consistency
+const TEST_DATE = getNextAvailableWeekday();
+const TEST_DATE_ISO = TEST_DATE.toISOString();
+const TEST_DATE_DAY = TEST_DATE.getUTCDate().toString();
+
 /**
  * Booking Race Condition Prevention Test
  *
@@ -116,7 +137,9 @@ async function setupTeamWithRoundRobin(users: Fixtures["users"], orgs: Fixtures[
 
   const teamMemberships = await prisma.membership.findMany({
     where: { teamId: team.id },
-    include: { user: true },
+    select: {
+      user: true, // Select full user object for type safety
+    },
   });
 
   const teamMembers = teamMemberships.map((membership) => membership.user);
@@ -195,10 +218,9 @@ async function setupCalendarCache(teamMembers: User[]) {
   // Set up calendar cache with stale data to test cache functionality
   // This simulates the production scenario where cache shows availability
   // but real calendar API might show different data
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const cacheTimeRange = {
-    timeMin: getTimeMin(tomorrow.toISOString()),
-    timeMax: getTimeMax(tomorrow.toISOString()),
+    timeMin: getTimeMin(TEST_DATE_ISO),
+    timeMax: getTimeMax(TEST_DATE_ISO),
   };
 
   const credentials = await prisma.credential.findMany({
@@ -276,6 +298,8 @@ async function enableCalendarCacheFeatures(teamId: number) {
 async function mockGoogleCalendarAPI(page: Page) {
   // Mock Google Calendar API to simulate real-world calendar data
   // This creates a mismatch with cache data to test cache functionality
+  const busyStart = `${TEST_DATE_ISO.slice(0, 10)}T08:00:00.000Z`;
+  const busyEnd = `${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`;
   await page.route("**/calendar/v3/freeBusy**", async (route: Route) => {
     const mockResponse = {
       kind: "calendar#freeBusy",
@@ -283,24 +307,24 @@ async function mockGoogleCalendarAPI(page: Page) {
         "pro-user@example.com": {
           busy: [
             {
-              start: "2025-07-02T08:00:00.000Z",
-              end: "2025-07-02T09:00:00.000Z",
+              start: busyStart,
+              end: busyEnd,
             },
           ],
         },
         "teammate-1@example.com": {
           busy: [
             {
-              start: "2025-07-02T08:00:00.000Z",
-              end: "2025-07-02T09:00:00.000Z",
+              start: busyStart,
+              end: busyEnd,
             },
           ],
         },
         "teammate-2@example.com": {
           busy: [
             {
-              start: "2025-07-02T08:00:00.000Z",
-              end: "2025-07-02T09:00:00.000Z",
+              start: busyStart,
+              end: busyEnd,
             },
           ],
         },
@@ -342,17 +366,14 @@ async function performConcurrentBookings(
     await page1.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
     await page2.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
 
-    // Select tomorrow's date
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const targetDay = tomorrow.getDate().toString();
-
+    // Select the dynamic test date
     await page1
       .locator(`[data-testid="day"][data-disabled="false"]`)
-      .filter({ hasText: new RegExp(`^${targetDay}$`) })
+      .filter({ hasText: new RegExp(`^${TEST_DATE_DAY}$`) })
       .click();
     await page2
       .locator(`[data-testid="day"][data-disabled="false"]`)
-      .filter({ hasText: new RegExp(`^${targetDay}$`) })
+      .filter({ hasText: new RegExp(`^${TEST_DATE_DAY}$`) })
       .click();
 
     // Select first available time slot
