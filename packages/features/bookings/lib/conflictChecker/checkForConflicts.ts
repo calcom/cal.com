@@ -5,6 +5,16 @@ import type { CurrentSeats } from "@calcom/lib/getUserAvailability";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 
 type BufferedBusyTimes = BufferedBusyTime[];
+type MappedBusyTime = { start: number; end: number };
+
+export function prepareBusyTimes(busy: BufferedBusyTimes): MappedBusyTime[] {
+  return busy
+    .map((busyTime) => ({
+      start: dayjs.utc(busyTime.start).valueOf(),
+      end: dayjs.utc(busyTime.end).valueOf(),
+    }))
+    .sort((a, b) => a.start - b.start);
+}
 
 // if true, there are conflicts.
 export function checkForConflicts({
@@ -12,13 +22,11 @@ export function checkForConflicts({
   time,
   eventLength,
   currentSeats,
-  preSorted = false,
 }: {
-  busy: BufferedBusyTimes;
+  busy: MappedBusyTime[];
   time: Dayjs;
   eventLength: number;
   currentSeats?: CurrentSeats;
-  preSorted?: boolean;
 }) {
   // Early return
   if (!Array.isArray(busy) || busy.length < 1) {
@@ -31,19 +39,7 @@ export function checkForConflicts({
   const slotStart = time.valueOf();
   const slotEnd = slotStart + eventLength * 60 * 1000;
 
-  const sortedBusyTimes = preSorted
-    ? busy.map((busyTime) => ({
-        start: dayjs.utc(busyTime.start).valueOf(),
-        end: dayjs.utc(busyTime.end).valueOf(),
-      }))
-    : busy
-        .map((busyTime) => ({
-          start: dayjs.utc(busyTime.start).valueOf(),
-          end: dayjs.utc(busyTime.end).valueOf(),
-        }))
-        .sort((a, b) => a.start - b.start);
-
-  for (const busyTime of sortedBusyTimes) {
+  for (const busyTime of busy) {
     if (busyTime.start >= slotEnd) {
       break;
     }
