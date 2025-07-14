@@ -560,7 +560,9 @@ export default function Success(props: PageProps) {
                         {isCancelled && bookingInfo?.cancelledBy && (
                           <>
                             <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0"><p className="break-words">{bookingInfo?.cancelledBy}</p></div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                            </div>
                           </>
                         )}
                         {previousBooking && (
