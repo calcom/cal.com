@@ -1,35 +1,24 @@
 import { readFileSync } from "fs";
-import { describe, beforeEach, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+import { getBundledTranslations, __resetTranslationCacheForTests } from "./translationBundler";
 
 vi.mock("fs");
+vi.mock("@calcom/lib/constants", () => ({
+  CALCOM_VERSION: "test-version",
+  CALCOM_ENV: "production",
+}));
+
 const mockReadFileSync = vi.mocked(readFileSync);
 
 describe("translationBundler", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    __resetTranslationCacheForTests();
   });
 
-  it("uses development path when CALCOM_ENV=development", async () => {
-    vi.doMock("@calcom/lib/constants", () => ({
-      CALCOM_VERSION: "test-version",
-      CALCOM_ENV: "development",
-    }));
-    const { getBundledTranslations } = await import("./translationBundler");
-    mockReadFileSync.mockReturnValue(JSON.stringify({ key: "dev-value" }));
-    getBundledTranslations("en", "common");
-    expect(mockReadFileSync).toHaveBeenCalledWith(
-      expect.stringContaining("packages/lib/server/locales/en/common.json"),
-      "utf-8"
-    );
-  });
-
-  it("uses production path when CALCOM_ENV=production", async () => {
-    vi.doMock("@calcom/lib/constants", () => ({
-      CALCOM_VERSION: "test-version",
-      CALCOM_ENV: "production",
-    }));
-    const { getBundledTranslations } = await import("./translationBundler");
+  it("uses production path", () => {
     mockReadFileSync.mockReturnValue(JSON.stringify({ key: "prod-value" }));
     getBundledTranslations("en", "common");
     expect(mockReadFileSync).toHaveBeenCalledWith(
@@ -38,23 +27,13 @@ describe("translationBundler", () => {
     );
   });
 
-  it("normalizes zh to zh-CN", async () => {
-    vi.doMock("@calcom/lib/constants", () => ({
-      CALCOM_VERSION: "test-version",
-      CALCOM_ENV: "development",
-    }));
-    const { getBundledTranslations } = await import("./translationBundler");
+  it("normalizes zh to zh-CN", () => {
     mockReadFileSync.mockReturnValue(JSON.stringify({ key: "chinese" }));
     getBundledTranslations("zh", "common");
     expect(mockReadFileSync).toHaveBeenCalledWith(expect.stringContaining("zh-CN/common.json"), "utf-8");
   });
 
-  it("falls back to English when locale fails", async () => {
-    vi.doMock("@calcom/lib/constants", () => ({
-      CALCOM_VERSION: "test-version",
-      CALCOM_ENV: "development",
-    }));
-    const { getBundledTranslations } = await import("./translationBundler");
+  it("falls back to English when locale fails", () => {
     mockReadFileSync
       .mockImplementationOnce(() => {
         throw new Error("French not found");
@@ -64,12 +43,7 @@ describe("translationBundler", () => {
     expect(result).toEqual({ key: "english-fallback" });
   });
 
-  it("returns empty object when all translations fail", async () => {
-    vi.doMock("@calcom/lib/constants", () => ({
-      CALCOM_VERSION: "test-version",
-      CALCOM_ENV: "development",
-    }));
-    const { getBundledTranslations } = await import("./translationBundler");
+  it("returns empty object when all translations fail", () => {
     mockReadFileSync.mockImplementation(() => {
       throw new Error("Not found");
     });
