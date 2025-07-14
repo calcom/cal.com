@@ -133,9 +133,7 @@ export const useEventTypeForm = ({
       },
       aiSelfServeConfiguration: {
         enabled: eventType.aiSelfServeConfiguration?.enabled,
-        generalPrompt: eventType.aiSelfServeConfiguration?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
-        beginMessage: eventType.aiSelfServeConfiguration?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
-        yourPhoneNumber: eventType.aiSelfServeConfiguration?.yourPhoneNumber,
+        yourPhoneNumberId: eventType.aiSelfServeConfiguration?.yourPhoneNumberId,
         numberToCall: eventType.aiSelfServeConfiguration?.numberToCall,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
@@ -412,7 +410,7 @@ export const useEventTypeForm = ({
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
-      aISelfServeConfiguration: rest.aISelfServeConfiguration,
+      aiSelfServeConfiguration: rest.aiSelfServeConfiguration,
     } satisfies EventTypeUpdateInput;
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {

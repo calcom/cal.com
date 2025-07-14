@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -129,10 +130,12 @@ async function createPhoneNumber(
   checkoutSession: Stripe.Response<Stripe.Checkout.Session>,
   metadata: CheckoutSessionMetadata
 ) {
-  const { createPhoneNumber } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
+  const aiService = createDefaultAIPhoneServiceProvider();
 
   // Create the phone number through Retell API
-  const retellPhoneNumber = await createPhoneNumber(undefined, `${metadata.userId}-${Date.now()}`);
+  const retellPhoneNumber = await aiService.createPhoneNumber({
+    nickname: `${metadata.userId}-${Date.now()}`,
+  });
 
   // Extract subscription ID correctly
   const subscriptionId =
@@ -160,7 +163,7 @@ async function createPhoneNumber(
 }
 
 async function linkPhoneNumberToAgent(phoneNumberId: number, eventTypeId: number, userId: number) {
-  const { updatePhoneNumber } = await import("@calcom/features/ee/cal-ai-phone/retellAIService");
+  const aiService = createDefaultAIPhoneServiceProvider();
 
   const config = await prisma.aISelfServeConfiguration.findFirst({
     where: {
@@ -178,7 +181,10 @@ async function linkPhoneNumberToAgent(phoneNumberId: number, eventTypeId: number
 
     if (phoneNumber) {
       // Assign agent to the new number via Retell API
-      await updatePhoneNumber(phoneNumber.phoneNumber, config.agentId);
+      await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
+        inboundAgentId: config.agentId,
+        outboundAgentId: config.agentId,
+      });
 
       // Link the new number to the AI config
       await prisma.aISelfServeConfiguration.update({

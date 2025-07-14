@@ -1,3 +1,4 @@
+import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma } from "@calcom/prisma";
@@ -82,12 +83,10 @@ async function handlePhoneNumberSubscription(session: any) {
     throw new HttpCode(400, "Missing required data for phone number subscription");
   }
 
-  const { createPhoneNumber, updatePhoneNumber } = await import(
-    "@calcom/features/ee/cal-ai-phone/retellAIService"
-  );
+  const aiService = createDefaultAIPhoneServiceProvider();
 
   // Create the phone number through Retell API
-  const retellPhoneNumber = await createPhoneNumber();
+  const retellPhoneNumber = await aiService.createPhoneNumber({ nickname: `${userId}-${Date.now()}` });
 
   // Extract subscription ID correctly
   const subscriptionId =
@@ -122,7 +121,10 @@ async function handlePhoneNumberSubscription(session: any) {
 
     if (config?.agentId) {
       // Assign agent to the new number via Retell API
-      await updatePhoneNumber(retellPhoneNumber.phone_number, config.agentId);
+      await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
+        inboundAgentId: config.agentId,
+        outboundAgentId: config.agentId,
+      });
 
       // Link the new number to the AI config
       await prisma.aISelfServeConfiguration.update({

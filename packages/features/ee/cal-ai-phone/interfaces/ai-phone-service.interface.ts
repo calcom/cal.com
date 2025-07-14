@@ -92,7 +92,7 @@ export interface AIPhoneServiceProvider {
   /**
    * Create a phone number
    */
-  createPhoneNumber(data: { areaCode?: number; nickname?: string }): Promise<AIPhoneServicePhoneNumber>;
+  createPhoneNumber(data?: { areaCode?: number; nickname?: string }): Promise<AIPhoneServicePhoneNumber>;
 
   /**
    * Delete a phone number

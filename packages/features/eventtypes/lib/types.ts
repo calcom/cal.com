@@ -74,6 +74,8 @@ type AISelfServeConfiguration = {
   agentTimeZone: string;
   enabled: boolean;
   numberToCall?: string;
+  generalPrompt?: string;
+  beginMessage?: string;
 };
 
 export type FormValues = {

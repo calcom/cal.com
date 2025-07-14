@@ -159,13 +159,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
         eventTypeId: eventType.id,
       });
       // Reset form values
-      formMethods.setValue("aiSelfServeConfiguration", {
-        generalPrompt: "",
-        beginMessage: "",
-        numberToCall: "",
-        yourPhoneNumber: null,
-        yourPhoneNumberId: null,
-      });
+      formMethods.reset();
       setDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting AI configuration:", error);
@@ -234,11 +228,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
             <h2 className="text-emphasis text-md font-medium">Cal.ai</h2>
             <p className="text-subtle text-sm">{t("use_cal_ai_to_make_call_description")}</p>
           </div>
-          <Button
-            color="destructive"
-            variant="outline"
-            onClick={() => setDeleteDialogOpen(true)}
-            StartIcon="trash">
+          <Button color="destructive" onClick={() => setDeleteDialogOpen(true)} StartIcon="trash">
             {t("delete")}
           </Button>
         </div>
@@ -251,7 +241,7 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           />
           <div className="mt-4 max-w-sm">
             {!!phoneNumbers?.length ? (
-              <Select
+              <Select<{ label: string; value: number; isDisabled: boolean }>
                 options={phoneNumbers?.map((phoneNumber) => {
                   const isAssignedToOtherEventType =
                     phoneNumber?.aiSelfServeConfigurations?.eventTypeId &&
@@ -269,7 +259,11 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                 placeholder={t("choose_phone_number")}
                 value={
                   !!assignedPhoneNumber?.phoneNumber
-                    ? { label: assignedPhoneNumber.phoneNumber, value: assignedPhoneNumber.id }
+                    ? {
+                        label: assignedPhoneNumber.phoneNumber,
+                        value: assignedPhoneNumber.id,
+                        isDisabled: true,
+                      }
                     : undefined
                 }
                 getOptionLabel={(option) => {
@@ -279,7 +273,6 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                 onChange={async (e) => {
                   console.log("e", e);
                   if (e) {
-                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", e.label);
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", e.value);
 
                     try {
@@ -289,12 +282,9 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                       });
                     } catch (error) {
                       console.error("Error assigning phone number:", error);
-                      // Reset the form values on error
-                      formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", null);
                       formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
                     }
                   } else {
-                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumber", null);
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
 
                     try {
@@ -368,11 +358,11 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                 updateLlmMutation.isPending
               }
               disabled={
-                (!assignedPhoneNumber && !!formMethods.getValues().numberToCall) ||
+                (!assignedPhoneNumber && !!formMethods.getValues("aiSelfServeConfiguration")?.numberToCall) ||
                 assignPhoneNumberMutation.isPending ||
                 unassignPhoneNumberMutation.isPending
               }>
-              {assignedPhoneNumber ? t("save_and_test_call") : t("save_changes")}
+              {t("save_and_test_call")}
             </Button>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { prisma } from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { LazyModule, SWHMap } from "./__handler";
+import { HttpCode } from "./__handler";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
 
