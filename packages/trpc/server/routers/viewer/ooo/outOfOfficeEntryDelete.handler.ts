@@ -1,7 +1,8 @@
 import { sendBookingRedirectNotification } from "@calcom/emails";
+import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -50,7 +51,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     select: {
       start: true,
       end: true,
-      deelTimeOffId: true,
+      externalId: true,
       toUser: {
         select: {
           email: true,
@@ -85,21 +86,43 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
   });
 
   try {
-    if (deletedOutOfOfficeEntry.deelTimeOffId) {
-      const hrmsCredentials = await prisma.credential.findMany({
-        where: {
-          userId: oooUserId,
-          type: { endsWith: "_other" },
-          appId: { in: ["deel"] },
-        },
-        select: credentialForCalendarServiceSelect,
+    if (deletedOutOfOfficeEntry.externalId) {
+      const hrmsCredentials = [];
+
+      const userCredentials = await CredentialRepository.findManyByUserId({
+        userId: oooUserId,
+        appId: "deel",
       });
+      hrmsCredentials.push(...userCredentials);
+
+      const user = await prisma.user.findUnique({
+        where: { id: oooUserId },
+        select: {
+          organizationId: true,
+          teams: {
+            select: { teamId: true },
+          },
+        },
+      });
+
+      if (user?.teams) {
+        for (const team of user.teams) {
+          const teamCredentials = await CredentialRepository.findManyByTeamId({ teamId: team.teamId });
+          hrmsCredentials.push(...teamCredentials.filter((c) => c.appId === "deel"));
+        }
+      }
+
+      if (user?.organizationId) {
+        const orgCredentials = await CredentialRepository.findManyByOrganizationId({
+          organizationId: user.organizationId,
+        });
+        hrmsCredentials.push(...orgCredentials.filter((c) => c.appId === "deel"));
+      }
 
       for (const credential of hrmsCredentials) {
         if (credential.appId === "deel") {
-          const HrmsManager = (await import("@calcom/lib/hrmsManager/hrmsManager")).default;
           const hrmsManager = new HrmsManager(credential);
-          await hrmsManager.deleteOOO(deletedOutOfOfficeEntry.deelTimeOffId);
+          await hrmsManager.deleteOOO(deletedOutOfOfficeEntry.externalId);
         }
       }
     }

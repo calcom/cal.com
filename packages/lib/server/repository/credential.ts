@@ -74,6 +74,30 @@ export class CredentialRepository {
     return buildNonDelegationCredential(credential);
   }
 
+  static async findManyByUserId({ userId, appId }: { userId: number; appId?: string }) {
+    const credentials = await prisma.credential.findMany({
+      where: { userId, ...(appId && { appId }) },
+      select: credentialForCalendarServiceSelect,
+    });
+    return credentials.map((credential) => buildNonDelegationCredential(credential));
+  }
+
+  static async findManyByTeamId({ teamId }: { teamId: number }) {
+    const credentials = await prisma.credential.findMany({
+      where: { teamId },
+      select: credentialForCalendarServiceSelect,
+    });
+    return credentials.map((credential) => buildNonDelegationCredential(credential));
+  }
+
+  static async findManyByOrganizationId({ organizationId }: { organizationId: number }) {
+    const credentials = await prisma.credential.findMany({
+      where: { teamId: organizationId },
+      select: credentialForCalendarServiceSelect,
+    });
+    return credentials.map((credential) => buildNonDelegationCredential(credential));
+  }
+
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
   }

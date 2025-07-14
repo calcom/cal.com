@@ -1,8 +1,11 @@
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { HrmsService } from "@calcom/types/HrmsService";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { DeelToken } from "../api/callback";
+import { appKeysSchema } from "../zod";
 
 export interface DeelTimeOffRequest {
   recipient_profile_id: string;
@@ -50,10 +53,49 @@ export default class DeelHrmsService implements HrmsService {
     const key = this.credential.key as unknown as DeelToken;
 
     if (key.expiryDate && Date.now() >= key.expiryDate) {
-      throw new Error("Deel access token expired");
+      const refreshedToken = await this.refreshToken(key.refresh_token);
+
+      await prisma.credential.update({
+        where: { id: this.credential.id },
+        data: { key: refreshedToken },
+      });
+
+      return refreshedToken.access_token;
     }
 
     return key.access_token;
+  }
+
+  private async refreshToken(refreshToken: string): Promise<DeelToken> {
+    const appKeys = await getAppKeysFromSlug("deel");
+    const { client_id, client_secret } = appKeysSchema.parse(appKeys);
+
+    const response = await fetch("https://app.deel.com/oauth2/tokens", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        redirect_uri: `${process.env.NEXTAUTH_URL}/api/integrations/deel/callback`,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to refresh Deel token: ${response.status}`);
+    }
+
+    const tokenData = await response.json();
+    return {
+      access_token: tokenData.access_token,
+      token_type: tokenData.token_type,
+      expires_in: tokenData.expires_in,
+      refresh_token: tokenData.refresh_token,
+      scope: tokenData.scope,
+      expiryDate: Date.now() + tokenData.expires_in * 1000,
+    };
   }
 
   async createOOO(params: {

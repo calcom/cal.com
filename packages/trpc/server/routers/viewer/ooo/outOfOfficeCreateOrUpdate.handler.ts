@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
+import DeelHrmsService from "@calcom/app-store/deel/lib/HrmsService";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
@@ -8,10 +9,11 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -377,29 +379,35 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   );
 
   try {
-    const hrmsCredentials = await prisma.credential.findMany({
-      where: {
-        userId: oooUserId,
-        type: { endsWith: "_other" },
-        appId: { in: ["deel"] },
-      },
-      select: credentialForCalendarServiceSelect,
-    });
+    const hrmsCredentials = [];
+
+    const userCredentials = await CredentialRepository.findManyByUserId({ userId: oooUserId, appId: "deel" });
+    hrmsCredentials.push(...userCredentials);
+
+    for (const teamId of teamIds) {
+      const teamCredentials = await CredentialRepository.findManyByTeamId({ teamId });
+      hrmsCredentials.push(...teamCredentials.filter((c) => c.appId === "deel"));
+    }
+
+    if (oooUserOrgId) {
+      const orgCredentials = await CredentialRepository.findManyByOrganizationId({
+        organizationId: oooUserOrgId,
+      });
+      hrmsCredentials.push(...orgCredentials.filter((c) => c.appId === "deel"));
+    }
 
     for (const credential of hrmsCredentials) {
-      const HrmsManager = (await import("@calcom/lib/hrmsManager/hrmsManager")).default;
       const hrmsManager = new HrmsManager(credential);
 
       if (credential.appId === "deel") {
-        const { default: DeelHrmsService } = await import("@calcom/app-store/deel/lib/HrmsService");
         const deelService = new DeelHrmsService(credential);
 
         const recipientProfileId = await deelService.getRecipientProfileId(oooUserEmail);
         if (recipientProfileId) {
           const timeOffTypeId = await deelService.getTimeOffTypeId(recipientProfileId);
           if (timeOffTypeId) {
-            if (createdOrUpdatedOutOfOffice.deelTimeOffId) {
-              await hrmsManager.updateOOO(createdOrUpdatedOutOfOffice.deelTimeOffId, {
+            if (createdOrUpdatedOutOfOffice.externalId) {
+              await hrmsManager.updateOOO(createdOrUpdatedOutOfOffice.externalId, {
                 startDate: startTimeUtc.format("YYYY-MM-DD"),
                 endDate: endTimeUtc.format("YYYY-MM-DD"),
                 notes: input.notes || `Out of office: ${reason?.reason || ""}`,
@@ -415,7 +423,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
               await prisma.outOfOfficeEntry.update({
                 where: { uuid: createdOrUpdatedOutOfOffice.uuid },
-                data: { deelTimeOffId: hrmsTimeOff.id },
+                data: { externalId: hrmsTimeOff.id },
               });
             }
           }
