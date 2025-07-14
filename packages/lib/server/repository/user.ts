@@ -461,12 +461,11 @@ export class UserRepository {
       profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
     };
   }
-
   /**
    * Similar to enrichUserWithItsProfile but skips the platform org check.
    * This function directly returns the profile without checking if it's a platform organization.
    */
-  static async enrichUserWithItsProfileSkipPlatformCheck<T extends { id: number; username: string | null }>({
+  async enrichUserWithItsProfileSkipPlatformCheck<T extends { id: number; username: string | null }>({
     user,
   }: {
     user: T;
@@ -496,7 +495,7 @@ export class UserRepository {
     };
   }
 
-  static async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
+  async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
     users: T[]
   ): Promise<
     Array<
