@@ -851,7 +851,7 @@ const UseTeamEventScheduleSettingsToggle = ({
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}
             title={t("choose_restriction_schedule")}
-            description={t("choose_restriction_schedule_description")}>
+            description={t("restriction_schedule_description")}>
             <EventTypeSchedule
               customClassNames={customClassNames?.userAvailability}
               eventType={eventType}

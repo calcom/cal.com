@@ -3317,7 +3317,7 @@ checksums:
     pbac_desc_manage_team_insights: d3eab216d5f3e34358e68b287adcc102
     read_permission_auto_enabled_tooltip: e6a994bc46d1208f07a303cd638efca2
     choose_restriction_schedule: ddc5f4cb03d3502a37e84fc5e3224c4f
-    choose_restriction_schedule_description: f99d4bd2582406f0dcb425cafc6f2b6f
+    restriction_schedule_description: f99d4bd2582406f0dcb425cafc6f2b6f
     use_booker_timezone: 4cefac1906ce1eb110e2e56b8d67e099
     use_booker_timezone_info: a4229154c78943a19c36121824f5ecc2
     load_balancing_warning: 32253dc7d247d56370c67f80da8b9cff
