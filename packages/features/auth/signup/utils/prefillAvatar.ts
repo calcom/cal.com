@@ -36,7 +36,7 @@ export const prefillAvatar = async ({ email }: IPrefillAvatar) => {
   if (!base64Image) return;
 
   const avatar = await resizeBase64Image(base64Image);
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: { email: email },
   });
 
@@ -60,24 +60,42 @@ const getImageUrlAvatarAPI = async (email: string) => {
     return null;
   }
 
-  const response = await fetch("https://avatarapi.com/v2/api.aspx", {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain",
-    },
-    body: JSON.stringify({
-      username: process.env.AVATARAPI_USERNAME,
-      password: process.env.AVATARAPI_PASSWORD,
-      email: email,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
 
-  const info = await response.json();
+  try {
+    const response = await fetch("https://avatarapi.com/v2/api.aspx", {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: JSON.stringify({
+        username: process.env.AVATARAPI_USERNAME,
+        password: process.env.AVATARAPI_PASSWORD,
+        email,
+      }),
+      signal: controller.signal,
+    });
 
-  if (!info.Success) {
-    console.log("Error from avatar api: ", info.Error);
+    clearTimeout(timeout);
+
+    const info = await response.json();
+
+    if (!info.Success) {
+      if (info.Error === "Not found") {
+        // Expected case: no avatar for this email
+        return null;
+      }
+      console.warn("Avatar API error:", info.Error);
+      return null;
+    }
+    return info.Image as string;
+  } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      console.warn("Avatar API request timed out");
+    } else {
+      console.error("Avatar API request failed:", error);
+    }
     return null;
   }
-
-  return info.Image as string;
 };

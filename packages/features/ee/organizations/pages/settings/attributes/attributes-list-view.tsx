@@ -7,18 +7,19 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Switch,
   Dropdown,
-  Button,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownItem,
   DropdownMenuItem,
-  Icon,
-  showToast,
-  Badge,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
 import { ListSkeleton } from "./ListSkeleton";
@@ -44,6 +45,7 @@ function AttributeItem({
   const mutation = trpc.viewer.attributes.toggleActive.useMutation({
     onSuccess: () => {
       showToast(t("attribute_updated_successfully"), "success");
+      revalidateAttributesList();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -110,6 +112,7 @@ function AttributeItem({
                 type="button"
                 StartIcon="trash-2"
                 color="destructive"
+                className="rounded-t-none"
                 onClick={() => setAttributeToDelete(attribute)}>
                 {t("delete")}
               </DropdownItem>

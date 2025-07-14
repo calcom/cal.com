@@ -1,42 +1,41 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState, useMemo } from "react";
+import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { classNames, parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { ArrowButton } from "@calcom/ui/components/arrow-button";
+import { UserAvatarGroup } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
-  Alert,
-  Badge,
-  Button,
-  ButtonGroup,
-  ConfirmationDialogContent,
-  CreateButton,
-  Dialog,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -44,20 +43,18 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  EmptyScreen,
-  HorizontalTabs,
-  Icon,
-  Label,
-  showToast,
-  Skeleton,
-  Switch,
-  TextField,
-  Tooltip,
-  ArrowButton,
-  UserAvatarGroup,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { Skeleton } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import useMeQuery from "@lib/hooks/useMeQuery";
+import { TRPCClientError } from "@trpc/client";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -262,7 +259,7 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.eventTypeOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
@@ -599,7 +596,7 @@ export const InfiniteEventTypeList = ({
                                   variant="icon"
                                   color="secondary"
                                   StartIcon="ellipsis"
-                                  // Unsual practice to use radix state open but for some reason this dropdown and only thi dropdown clears the border radius of this button.
+                                  // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
                                   className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
                                 />
                               </DropdownMenuTrigger>
@@ -656,7 +653,7 @@ export const InfiniteEventTypeList = ({
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
                                         StartIcon="trash"
-                                        className="w-full rounded-none">
+                                        className="w-full rounded-t-none">
                                         {t("delete")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -753,7 +750,7 @@ export const InfiniteEventTypeList = ({
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
                                   StartIcon="trash"
-                                  className="w-full rounded-none">
+                                  className="w-full rounded-t-none">
                                   {t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -761,7 +758,7 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
+                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"
@@ -801,16 +798,14 @@ export const InfiniteEventTypeList = ({
             deleteEventTypeHandler(deleteDialogTypeId);
           }}>
           <p className="mt-5">
-            <Trans
-              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
-              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-              <ul>
-                <li>Members assigned to this event type will also have their event types deleted.</li>
-                <li>
-                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                </li>
+            {deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? (
+              <ul className="ml-4 list-disc">
+                <li>{t("delete_managed_event_type_description_1")}</li>
+                <li>{t("delete_managed_event_type_description_2")}</li>
               </ul>
-            </Trans>
+            ) : (
+              t("delete_event_type_description")
+            )}
           </p>
         </ConfirmationDialogContent>
       </Dialog>
@@ -838,7 +833,6 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
 
 const CTA = ({
   profileOptions,
-  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -847,7 +841,6 @@ const CTA = ({
     membershipRole: MembershipRole | null | undefined;
     slug: string | null;
   }[];
-  isOrganization: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -889,45 +882,23 @@ const EmptyEventTypeList = ({
 };
 
 const InfiniteScrollMain = ({
-  status,
-  errorMessage,
   eventTypeGroups,
   profiles,
 }: {
-  status: string;
-  errorMessage?: string;
-  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
-  profiles: GetUserEventGroupsResponse["profiles"] | undefined;
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
+  profiles: GetUserEventGroupsResponse["profiles"];
 }) => {
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
-  const tabs = useMemo(() => {
-    return (
-      eventTypeGroups?.map((item, index) => {
-        let href = item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam";
-        // If it's the first tab and no teamId is in the URL, set href to just /event-types
-        if (index === 0 && searchParams && !searchParams.has("teamId") && !searchParams.has("noTeam")) {
-          href = "/event-types";
-        }
-        return {
-          name: item.profile.name ?? "",
-          href,
-          avatar: item.profile.image,
-          "data-testid": item.profile.name ?? "",
-        };
-      }) ?? []
-    );
-  }, [eventTypeGroups, searchParams]);
-
-  if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
-  }
-
-  if (!eventTypeGroups || !profiles || status === "pending") {
-    return <InfiniteSkeletonLoader />;
-  }
+  const tabs = eventTypeGroups.map((item) => ({
+    name: item.profile.name ?? "",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
+    avatar: item.profile.image,
+    "data-testid": item.profile.name ?? "",
+    matchFullPath: true,
+  }));
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
@@ -938,8 +909,8 @@ const InfiniteScrollMain = ({
   // This is to ensure that the bookerUrl is always the same as the one in the org branding settings
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
-    activeEventTypeGroup[0].teamId === orgBranding?.id ||
-    activeEventTypeGroup[0].parentId === orgBranding?.id
+    orgBranding &&
+    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
   }
@@ -955,20 +926,17 @@ const InfiniteScrollMain = ({
   );
 };
 
-export const EventTypesCTA = () => {
-  const { data: user } = useMeQuery();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
-  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
-    filters && { filters },
-    {
-      refetchOnWindowFocus: false,
-      gcTime: 1 * 60 * 60 * 1000,
-      staleTime: 1 * 60 * 60 * 1000,
-    }
-  );
+type Props = {
+  userEventGroupsData: GetUserEventGroupsResponse;
+  user: {
+    id: number;
+    completedOnboarding?: boolean;
+  } | null;
+};
+
+export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    getUserEventGroupsData?.profiles
+    userEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
       ?.map((profile) => {
@@ -981,28 +949,13 @@ export const EventTypesCTA = () => {
         };
       }) ?? [];
 
-  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+  return <CTA profileOptions={profileOptions} />;
 };
 
-const EventTypesPage: React.FC = () => {
-  const { data: user } = useMeQuery();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
   const router = useRouter();
-
-  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
-  const {
-    data: getUserEventGroupsData,
-    status: getUserEventGroupsStatus,
-    error: getUserEventGroupsStatusError,
-  } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(filters && { filters }, {
-    refetchOnWindowFocus: false,
-    gcTime: 1 * 60 * 60 * 1000,
-    staleTime: 1 * 60 * 60 * 1000,
-  });
 
   useEffect(() => {
     /**
@@ -1023,10 +976,8 @@ const EventTypesPage: React.FC = () => {
 
   return (
     <InfiniteScrollMain
-      profiles={getUserEventGroupsData?.profiles}
-      eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-      status={getUserEventGroupsStatus}
-      errorMessage={getUserEventGroupsStatusError?.message}
+      profiles={userEventGroupsData.profiles}
+      eventTypeGroups={userEventGroupsData.eventTypeGroups}
     />
   );
 };

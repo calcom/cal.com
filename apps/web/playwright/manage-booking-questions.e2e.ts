@@ -12,7 +12,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { test } from "./lib/fixtures";
 import {
   createHttpServer,
-  createNewEventType,
+  createNewUserEventType,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -70,6 +70,10 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+          "aria-current",
+          "page"
+        );
         await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
@@ -113,6 +117,10 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
+        await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+          "aria-current",
+          "page"
+        );
       });
 
       await test.step("Open the 'Name' field dialog", async () => {
@@ -744,8 +752,13 @@ test.describe("Text area min and max characters text", () => {
 
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
-    await createNewEventType(page, { eventTitle });
+    await createNewUserEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
       const element = page.locator('[data-testid="add-field"]');
@@ -829,7 +842,7 @@ test.describe("Text area min and max characters text", () => {
       );
       await cancelQuestion();
       // Save the event type
-      await page.locator("[data-testid=update-eventtype]").click();
+      await saveEventType(page);
 
       // Get the url of data-testid="preview-button"
       const previewButton = await page.locator('[data-testid="preview-button"]');

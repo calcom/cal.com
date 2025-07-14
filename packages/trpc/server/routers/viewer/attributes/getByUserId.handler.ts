@@ -3,7 +3,7 @@ import type { AttributeType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZGetByUserIdSchema } from "./getByUserId.schema";
 
 type GetOptions = {
@@ -13,7 +13,7 @@ type GetOptions = {
   input: ZGetByUserIdSchema;
 };
 
-type GroupedAttribute = {
+export type GroupedAttribute = {
   id: string;
   name: string;
   type: AttributeType;
@@ -37,10 +37,12 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   // Ensure user is apart of the organization
-  const membership = await prisma.membership.findFirst({
+  const membership = await prisma.membership.findUnique({
     where: {
-      userId: input.userId,
-      teamId: org.id,
+      userId_teamId: {
+        userId: input.userId,
+        teamId: org.id,
+      },
     },
   });
 
@@ -51,10 +53,15 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const userAttributes = await prisma.attributeToUser.findMany({
+  const userAttributes = await getMembershipAttributes(membership.id);
+  return groupMembershipAttributes(userAttributes);
+};
+
+async function getMembershipAttributes(membershipId: number) {
+  return await prisma.attributeToUser.findMany({
     where: {
       member: {
-        id: membership.id,
+        id: membershipId,
       },
       attributeOption: {
         attribute: {
@@ -81,8 +88,12 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
       weight: true,
     },
   });
+}
 
-  const groupedAttributes = userAttributes.reduce<GroupedAttribute[]>((acc, assignment) => {
+type MembershipAttributes = Awaited<ReturnType<typeof getMembershipAttributes>>;
+
+export function groupMembershipAttributes(membershipAttributes: MembershipAttributes): GroupedAttribute[] {
+  return membershipAttributes.reduce<GroupedAttribute[]>((acc, assignment) => {
     const { attributeOption, createdByDSyncId, weight } = assignment;
     const { attribute: attrInfo, ...optionInfo } = attributeOption;
     const optionInfoWithCreatedByDSyncId = { ...optionInfo, createdByDSyncId, weight };
@@ -105,8 +116,6 @@ const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
 
     return acc;
   }, []);
-
-  return groupedAttributes;
-};
+}
 
 export default getByUserIdHandler;

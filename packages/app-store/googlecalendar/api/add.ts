@@ -2,13 +2,26 @@ import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { GOOGLE_CALENDAR_SCOPES, SCOPE_USERINFO_PROFILE, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  // Get token from Google Calendar API
+  const loggedInUser = req.session?.user;
+
+  if (!loggedInUser) {
+    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+  }
+
+  // Ideally this should never happen, as email is there in session user but typings aren't accurate it seems
+  // TODO: So, confirm and later fix the typings
+  if (!loggedInUser.email) {
+    throw new HttpError({ statusCode: 400, message: "Session user must have an email" });
+  }
+
   const { client_id, client_secret } = await getGoogleAppKeys();
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
   const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);

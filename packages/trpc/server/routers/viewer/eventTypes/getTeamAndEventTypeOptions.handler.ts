@@ -9,7 +9,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
 import type { TGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 
@@ -53,6 +53,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
@@ -67,7 +68,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
     ),
     teamId
       ? []
-      : EventTypeRepository.findAllByUpIdWithMinimalData(
+      : eventTypeRepo.findAllByUpIdWithMinimalData(
           {
             upId: userProfile.upId,
             userId: user.id,

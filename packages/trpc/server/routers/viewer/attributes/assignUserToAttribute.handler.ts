@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZAssignUserToAttribute } from "./assignUserToAttribute.schema";
 
 type GetOptions = {
@@ -77,10 +77,12 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const membership = await prisma.membership.findFirst({
+  const membership = await prisma.membership.findUnique({
     where: {
-      userId: input.userId,
-      teamId: org.id,
+      userId_teamId: {
+        userId: input.userId,
+        teamId: org.id,
+      },
     },
   });
 

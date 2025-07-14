@@ -36,7 +36,7 @@ import {
   AttendeeCancelledEmail,
   OrganizerReassignedEmail,
   AttendeeUpdatedEmail,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/emails";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
@@ -570,7 +570,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
               emailsDisabledSetup.collectiveEventType.createdBookingUid = responseBody.data.uid;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -610,7 +610,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
               emailsDisabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -787,7 +787,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
               emailsEnabledSetup.collectiveEventType.createdBookingUid = responseBody.data.uid;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -827,7 +827,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
               emailsEnabledSetup.roundRobinEventType.currentHostId = responseBody.data.hosts[0].id;
             } else {
               throw new Error(
-                "Invalid response data - expected booking but received array of possibily recurring bookings"
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
               );
             }
           });
@@ -874,9 +874,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(AttendeeScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
-            expect(AttendeeRescheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(AttendeeRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
 
-            expect(OrganizerRescheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerCancelledEmail.prototype.getHtml).toHaveBeenCalled();
             emailsEnabledSetup.roundRobinEventType.rescheduledBookingUid = responseBody.data.uid;

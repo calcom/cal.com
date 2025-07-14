@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -124,7 +124,7 @@ async function defaultScheduleId<T extends DefaultScheduleIdEventTypeBase>({
   }, {} as { [x: number]: number | null });
 
   return eventTypes.map((eventType) => {
-    // realistically never happens, userId should't be null on personal event types.
+    // realistically never happens, userId shouldn't be null on personal event types.
     if (!eventType.userId) return eventType;
     return {
       ...eventType,

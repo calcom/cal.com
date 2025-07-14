@@ -1,7 +1,8 @@
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { createMock } from "@golevelup/ts-jest";
+import { ForbiddenException } from "@nestjs/common";
 import { ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
@@ -47,11 +48,11 @@ describe("PlatformPlanGuard", () => {
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
   });
 
-  it("should return false if the organization does not exist", async () => {
+  it("should throw ForbiddenException if the organization does not exist", async () => {
     jest.spyOn(reflector, "get").mockReturnValue("ESSENTIALS");
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue(null);
 
-    await expect(guard.canActivate(mockContext)).resolves.toBe(false);
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(ForbiddenException);
   });
 
   it("should return true if the organization is not platform", async () => {
@@ -66,7 +67,7 @@ describe("PlatformPlanGuard", () => {
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
   });
 
-  it("should return false if the organization has no subscription", async () => {
+  it("should throw ForbiddenException if the organization has no subscription", async () => {
     jest.spyOn(reflector, "get").mockReturnValue("ESSENTIALS");
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
@@ -78,10 +79,10 @@ describe("PlatformPlanGuard", () => {
       },
     });
 
-    await expect(guard.canActivate(mockContext)).resolves.toBe(false);
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(ForbiddenException);
   });
 
-  it("should return false if the user has a lower plan than required", async () => {
+  it("should throw ForbiddenException if the user has a lower plan than required", async () => {
     jest.spyOn(reflector, "get").mockReturnValue("ESSENTIALS");
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
@@ -93,7 +94,7 @@ describe("PlatformPlanGuard", () => {
       },
     });
 
-    await expect(guard.canActivate(mockContext)).resolves.toBe(false);
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(ForbiddenException);
   });
 
   it("should return true if the result is cached in Redis", async () => {
@@ -101,13 +102,6 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(redisService.redis, "get").mockResolvedValue(JSON.stringify(true));
 
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
-  });
-
-  it("should return false if the result is cached in Redis", async () => {
-    jest.spyOn(reflector, "get").mockReturnValue("ESSENTIALS");
-    jest.spyOn(redisService.redis, "get").mockResolvedValue(JSON.stringify(false));
-
-    await expect(guard.canActivate(mockContext)).resolves.toBe(false);
   });
 
   function createMockExecutionContext(context: Record<string, string | object>): ExecutionContext {

@@ -49,7 +49,7 @@ module.exports = {
     "no-restricted-imports": [
       "error",
       {
-        patterns: ["lodash"],
+        patterns: [],
       },
     ],
     "prefer-template": "error",
@@ -84,14 +84,7 @@ module.exports = {
           files: ["apps/website/**/*.{tsx,ts}"],
           rules: {
             /** TODO: Remove once website router is migrated  */
-            "@calcom/eslint/deprecated-imports-next-router": "off",
-          },
-        },
-        {
-          files: ["packages/trpc/**/*.{tsx,ts}"],
-          rules: {
-            "@typescript-eslint/ban-types": "warn",
-            "@typescript-eslint/no-explicit-any": "warn",
+            "@calcom/eslint-plugin-eslint/deprecated-imports-next-router": "off",
           },
         },
       ],

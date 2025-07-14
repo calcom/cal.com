@@ -3,7 +3,7 @@
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import {
   sdkActionManager,
@@ -15,7 +15,9 @@ import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/featur
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Icon } from "@calcom/ui/components/icon";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
@@ -146,5 +148,5 @@ export function UserPage(props: PageProps) {
     </>
   );
 }
-UserPage.isBookingPage = true;
+
 export default UserPage;

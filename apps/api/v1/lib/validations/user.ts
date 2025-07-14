@@ -43,6 +43,7 @@ enum locales {
   SR = "sr",
   SV = "sv",
   VI = "vi",
+  BN = "bn",
 }
 enum theme {
   DARK = "dark",
@@ -113,7 +114,7 @@ const schemaUserEditParams = z.object({
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
-// merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
+// merging both BaseBodyParams with RequiredParams, and omitting whatever we want at the end.
 
 const schemaUserCreateParams = z.object({
   email: emailSchema.toLowerCase(),
@@ -137,7 +138,7 @@ const schemaUserCreateParams = z.object({
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
-// merging both BaseBodyParams with RequiredParams, and omiting whatever we want at the end.
+// merging both BaseBodyParams with RequiredParams, and omitting whatever we want at the end.
 export const schemaUserEditBodyParams = schemaUserBaseBodyParams
   .merge(schemaUserEditParams)
   .omit({})

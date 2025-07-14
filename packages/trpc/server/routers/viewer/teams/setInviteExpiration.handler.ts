@@ -1,7 +1,8 @@
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 
@@ -15,7 +16,7 @@ type SetInviteExpirationOptions = {
 export const setInviteExpirationHandler = async ({ ctx, input }: SetInviteExpirationOptions) => {
   const { token, expiresInDays } = input;
 
-  const verificationToken = await prisma.verificationToken.findFirst({
+  const verificationToken = await prisma.verificationToken.findUnique({
     where: {
       token: token,
     },

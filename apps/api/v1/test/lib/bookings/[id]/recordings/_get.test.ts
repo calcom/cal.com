@@ -5,11 +5,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
+import { buildBooking } from "@calcom/lib/test/builder";
 import {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
-} from "@calcom/core/videoClient";
-import { buildBooking } from "@calcom/lib/test/builder";
+} from "@calcom/lib/videoClient";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
@@ -22,7 +22,7 @@ type CustomNextApiResponse = NextApiResponse & Response;
 const adminUserId = 1;
 const memberUserId = 10;
 
-vi.mock("@calcom/core/videoClient", () => {
+vi.mock("@calcom/lib/videoClient", () => {
   return {
     getRecordingsOfCalVideoByRoomName: vi.fn(),
     getDownloadLinkOfCalVideoByRecordingId: vi.fn(),

@@ -8,7 +8,11 @@ import {
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Avatar, Divider, Icon, FilterSearchField } from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Divider } from "@calcom/ui/components/divider";
+import { FilterSearchField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { AnimatedPopover } from "@calcom/ui/components/popover";
 
 import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
 

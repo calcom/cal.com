@@ -1,4 +1,5 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
@@ -17,13 +18,14 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getAvailableSlots } from "@calcom/platform-libraries";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import { Booking, EventType } from "@calcom/prisma/client";
 
-const eventTypeMetadataSchema = z.object({
-  multipleDuration: z.number().array().optional(),
-});
+const eventTypeMetadataSchema = z
+  .object({
+    multipleDuration: z.number().array().optional(),
+  })
+  .nullable();
 
 const DEFAULT_RESERVATION_DURATION = 5;
 
@@ -36,28 +38,39 @@ export class SlotsService_2024_09_04 {
     private readonly slotsInputService: SlotsInputService_2024_09_04,
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly teamsRepository: TeamsRepository
+    private readonly teamsRepository: TeamsRepository,
+    private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
-    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+    try {
+      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+      const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
+        input: {
+          ...queryTransformed,
+          routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,
+        },
+        ctx: {},
+      });
+      const formatted = await this.slotsOutputService.getAvailableSlots(
+        availableSlots,
+        queryTransformed.eventTypeId,
+        queryTransformed.duration,
+        query.format,
+        queryTransformed.timeZone
+      );
 
-    const availableSlots: TimeSlots = await getAvailableSlots({
-      input: {
-        ...queryTransformed,
-      },
-      ctx: {},
-    });
-
-    const formatted = await this.slotsOutputService.getAvailableSlots(
-      availableSlots,
-      queryTransformed.eventTypeId,
-      queryTransformed.duration,
-      query.format,
-      queryTransformed.timeZone
-    );
-
-    return formatted;
+      return formatted;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid time range given")) {
+          throw new BadRequestException(
+            "Invalid time range given - check the 'start' and 'end' query parameters."
+          );
+        }
+      }
+      throw error;
+    }
   }
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {
@@ -89,17 +102,8 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid start date");
     }
 
-    const metadata = eventTypeMetadataSchema.parse(eventType);
-    if (
-      input.slotDuration &&
-      metadata.multipleDuration &&
-      !metadata.multipleDuration.includes(input.slotDuration)
-    ) {
-      throw new BadRequestException(
-        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${metadata.multipleDuration.join(
-          ", "
-        )}`
-      );
+    if (input.slotDuration) {
+      this.validateSlotDuration(eventType, input.slotDuration);
     }
 
     const endDate = startDate.plus({ minutes: input.slotDuration ?? eventType.length });
@@ -107,9 +111,10 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+    const booking = await this.slotsRepository.findActiveOverlappingBooking(
       input.eventTypeId,
-      startDate.toJSDate()
+      startDate.toJSDate(),
+      endDate.toJSDate()
     );
 
     if (eventType.seatsPerTimeSlot) {
@@ -130,6 +135,8 @@ export class SlotsService_2024_09_04 {
     }
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+
+    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
 
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
@@ -158,6 +165,37 @@ export class SlotsService_2024_09_04 {
     );
 
     return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
+  }
+
+  private async checkSlotOverlap(eventTypeId: number, startDate: string, endDate: string) {
+    const overlappingReservation = await this.slotsRepository.getOverlappingSlotReservation(
+      eventTypeId,
+      startDate,
+      endDate
+    );
+
+    if (overlappingReservation) {
+      throw new UnprocessableEntityException(
+        `This time slot is already reserved by another user. Please choose a different time.`
+      );
+    }
+  }
+
+  validateSlotDuration(eventType: EventType, inputSlotDuration: number) {
+    const eventTypeMetadata = eventTypeMetadataSchema.parse(eventType.metadata);
+    if (!eventTypeMetadata?.multipleDuration) {
+      throw new BadRequestException(
+        "You passed 'slotDuration' but this event type is not a variable length event type."
+      );
+    }
+
+    if (!eventTypeMetadata.multipleDuration.includes(inputSlotDuration)) {
+      throw new BadRequestException(
+        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${eventTypeMetadata.multipleDuration.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   async canSpecifyCustomReservationDuration(authUserId: number, eventType: EventType) {
@@ -214,17 +252,8 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid start date");
     }
 
-    const metadata = eventTypeMetadataSchema.parse(eventType);
-    if (
-      input.slotDuration &&
-      metadata.multipleDuration &&
-      !metadata.multipleDuration.includes(input.slotDuration)
-    ) {
-      throw new BadRequestException(
-        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${metadata.multipleDuration.join(
-          ", "
-        )}`
-      );
+    if (input.slotDuration) {
+      this.validateSlotDuration(eventType, input.slotDuration);
     }
 
     const endDate = startDate.plus({ minutes: input.slotDuration ?? eventType.length });
@@ -232,9 +261,10 @@ export class SlotsService_2024_09_04 {
       throw new BadRequestException("Invalid end date");
     }
 
-    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+    const booking = await this.slotsRepository.findActiveOverlappingBooking(
       input.eventTypeId,
-      startDate.toJSDate()
+      startDate.toJSDate(),
+      endDate.toJSDate()
     );
 
     if (eventType.seatsPerTimeSlot) {
@@ -255,6 +285,8 @@ export class SlotsService_2024_09_04 {
     }
 
     const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+
+    await this.checkSlotOverlap(input.eventTypeId, startDate.toISO(), endDate.toISO());
 
     const slot = await this.slotsRepository.updateSlot(
       eventType.id,

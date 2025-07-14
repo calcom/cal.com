@@ -1,9 +1,11 @@
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
+import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -12,7 +14,7 @@ import { TRPCError } from "@trpc/server";
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
 
-type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
 
 export const eventOwnerProcedure = authedProcedure
   .input(
@@ -60,7 +62,7 @@ export const eventOwnerProcedure = authedProcedure
         const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
         return (
           event.team.members
-            .filter((member) => member.role === MembershipRole.OWNER || member.role === MembershipRole.ADMIN)
+            .filter((member) => checkAdminOrOwner(member.role))
             .map((member) => member.userId)
             .includes(ctx.user.id) || isOrgAdmin
         );
@@ -201,7 +203,7 @@ export const mapEventType = async (eventType: EventType) => ({
   users: await Promise.all(
     (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
       async (u) =>
-        await UserRepository.enrichUserWithItsProfile({
+        await new UserRepository(prisma).enrichUserWithItsProfile({
           user: u,
         })
     )
@@ -213,7 +215,7 @@ export const mapEventType = async (eventType: EventType) => ({
       users: await Promise.all(
         c.users.map(
           async (u) =>
-            await UserRepository.enrichUserWithItsProfile({
+            await new UserRepository(prisma).enrichUserWithItsProfile({
               user: u,
             })
         )

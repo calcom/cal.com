@@ -30,7 +30,7 @@ import {
   AttendeeRescheduledEmail,
   OrganizerCancelledEmail,
   AttendeeCancelledEmail,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/emails";
 import {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
@@ -261,7 +261,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
             emailsDisabledSetup.createdBookingUid = responseBody.data.uid;
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });
@@ -381,7 +381,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
             emailsEnabledSetup.createdBookingUid = responseBody.data.uid;
           } else {
             throw new Error(
-              "Invalid response data - expected booking but received array of possibily recurring bookings"
+              "Invalid response data - expected booking but received array of possibly recurring bookings"
             );
           }
         });

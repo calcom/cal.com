@@ -1,11 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-
-import { ssrInit } from "@server/lib/ssr";
+import prisma from "@calcom/prisma";
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
@@ -16,11 +13,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const ssr = await ssrInit(context);
-
-  await ssr.viewer.me.prefetch();
-
-  const user = await UserRepository.findUserTeams({
+  const userRepo = new UserRepository(prisma);
+  const user = await userRepo.findUserTeams({
     id: session.user.id,
   });
 
@@ -28,11 +22,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     throw new Error("User from session not found");
   }
 
-  const locale = await getLocale(context.req);
   return {
     props: {
-      ...(await serverSideTranslations(locale || "en", ["common"])),
-      trpcState: ssr.dehydrate(),
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },
   };

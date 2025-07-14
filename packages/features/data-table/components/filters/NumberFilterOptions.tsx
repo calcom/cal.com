@@ -3,7 +3,8 @@
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Form, Input, Select, Button } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Select, NumberInput } from "@calcom/ui/components/form";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
@@ -29,7 +30,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
   });
 
   return (
-    <div className="mx-3 my-2">
+    <div className="mx-3 my-2" data-testid={`number-filter-options-${column.id}`}>
       <Form
         form={form}
         handleSubmit={({ operatorOption, operand }) => {
@@ -48,8 +49,9 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
             name="operatorOption"
             control={form.control}
             render={({ field: { value } }) => (
-              <div className="-mt-2 flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Select
+                  data-testid={`number-filter-options-select-${column.id}`}
                   className="basis-1/3"
                   options={numberFilterOperatorOptions}
                   value={value}
@@ -60,12 +62,12 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
                     }
                   }}
                 />
-                <Input type="number" className="mt-2 basis-2/3" {...form.register("operand")} />
+                <NumberInput className="h-[38px] basis-2/3" {...form.register("operand")} />
               </div>
             )}
           />
 
-          <div className="bg-subtle -mx-3 mb-2 h-px" role="separator" />
+          <div className="bg-subtle -mx-3 my-2 h-px" role="separator" />
 
           <div className="flex items-center justify-between">
             <Button

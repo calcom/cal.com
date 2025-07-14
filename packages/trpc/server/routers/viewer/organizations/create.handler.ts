@@ -19,7 +19,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
 
@@ -80,6 +80,9 @@ const getIPAddress = async (url: string): Promise<string> => {
   });
 };
 
+/**
+ * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
+ */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const {
     slug,
@@ -109,6 +112,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
               slug: true,
               isOrganization: true,
               isPlatform: true,
+              name: true,
             },
           },
         },
@@ -119,7 +123,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
-  const verifiedUser = loggedInUser.completedOnboarding && !!loggedInUser.emailVerified;
 
   // We only allow creating an annual billing period if you are a system admin
   const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
@@ -132,13 +135,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
-    });
-  }
-
-  if (isPlatform && !verifiedUser) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "You need to complete onboarding before creating a platform team",
     });
   }
 
@@ -178,7 +174,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `You can't create a new team because you are already a part of ${hasExistingPlatformOrOrgTeam.team.name}`,
+    });
   }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
@@ -209,7 +208,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
   }
 
-  const autoAcceptEmail = orgOwnerEmail.split("@")[1];
+  const autoAcceptEmail = isPlatform ? "UNUSED_FOR_PLATFORM" : orgOwnerEmail.split("@")[1];
 
   const orgData = {
     name,
@@ -221,6 +220,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
     billingPeriod,
+    logoUrl: null,
+    bio: null,
+    paymentSubscriptionId: null,
   };
 
   // Create a new user and invite them as the owner of the organization
@@ -260,7 +262,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       });
     }
 
-    const user = await UserRepository.enrichUserWithItsProfile({
+    const user = await new UserRepository(prisma).enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
     });
 
@@ -306,7 +308,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     if (!organization.id) throw Error("User not created");
-    const user = await UserRepository.enrichUserWithItsProfile({
+    const user = await new UserRepository(prisma).enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
     });
 

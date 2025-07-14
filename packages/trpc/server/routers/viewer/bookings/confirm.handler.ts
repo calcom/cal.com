@@ -3,20 +3,21 @@ import { Prisma } from "@prisma/client";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
-import { getTranslation } from "@calcom/lib/server";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -30,12 +31,12 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
 
 type ConfirmOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "username" | "role" | "destinationCalendar">;
   };
   input: TConfirmInputSchema;
 };
@@ -50,8 +51,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     emailsEnabled,
     platformClientParams,
   } = input;
-
-  const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
@@ -82,7 +81,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           description: true,
           price: true,
           bookingFields: true,
+          hideOrganizerEmail: true,
           disableGuests: true,
+          customReplyToEmail: true,
           metadata: true,
           locations: true,
           team: {
@@ -110,6 +111,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
       location: true,
       userId: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          timeZone: true,
+          timeFormat: true,
+          name: true,
+          destinationCalendar: true,
+          locale: true,
+        },
+      },
       id: true,
       uid: true,
       payment: true,
@@ -124,7 +137,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   await checkIfUserIsAuthorizedToConfirmBooking({
     eventTypeId: booking.eventTypeId,
     loggedInUserId: user.id,
-    teamId: booking.eventType?.teamId,
+    teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
     bookingUserId: booking.userId,
     userRole: user.role,
   });
@@ -183,6 +196,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   );
 
   const attendeesList = await Promise.all(attendeesListPromises);
+  const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
 
   const evt: CalendarEvent = {
     type: booking?.eventType?.slug as string,
@@ -198,23 +212,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
-      email: booking.userPrimaryEmail ?? user.email,
-      name: user.name || "Unnamed",
-      username: user.username || undefined,
-      timeZone: user.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
-      language: { translate: tOrganizer, locale: user.locale ?? "en" },
+      email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+      name: booking.user?.name || "Nameless",
+      username: booking.user?.username || undefined,
+      timeZone: booking.user?.timeZone || "Europe/London",
+      timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
+      language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
     attendees: attendeesList,
     location: booking.location ?? "",
     uid: booking.uid,
-    destinationCalendar: booking?.destinationCalendar
+    destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
-      : user.destinationCalendar
-      ? [user.destinationCalendar]
+      : booking.user?.destinationCalendar
+      ? [booking.user?.destinationCalendar]
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     eventTypeId: booking.eventType?.id,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
     team: !!booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -261,12 +277,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
     const userWithCredentials = {
       ...user,
       credentials,
     };
-    const allCredentials = await getAllCredentials(userWithCredentials, {
+    const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
       ...booking.eventType,
       metadata: booking.eventType?.metadata as EventTypeMetadata,
     });

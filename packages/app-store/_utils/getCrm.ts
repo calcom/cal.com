@@ -1,12 +1,7 @@
 import logger from "@calcom/lib/logger";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM } from "@calcom/types/CrmService";
 
-import appStore from "..";
-
-type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
-
-type CrmClass = Class<CRM, [CredentialPayload, any]>;
+import { CrmServiceMap } from "../crm.apps.generated";
 
 const log = logger.getSubLogger({ prefix: ["CrmManager"] });
 export const getCrm = async (credential: CredentialPayload, appOptions: any) => {
@@ -15,19 +10,21 @@ export const getCrm = async (credential: CredentialPayload, appOptions: any) => 
 
   const crmName = crmType.split("_")[0];
 
-  const crmAppImportFn = appStore[crmName as keyof typeof appStore];
+  const crmServiceImportFn = await CrmServiceMap[crmName as keyof typeof CrmServiceMap];
 
-  if (!crmAppImportFn) {
+  if (!crmServiceImportFn) {
     log.warn(`crm of type ${crmType} is not implemented`);
     return null;
   }
 
-  const crmApp = await crmAppImportFn();
+  const CrmService = crmServiceImportFn.default;
 
-  if (crmApp && "lib" in crmApp && "CrmService" in crmApp.lib) {
-    const CrmService = crmApp.lib.CrmService as CrmClass;
-    return new CrmService(credential, appOptions);
+  if (!CrmService) {
+    log.warn(`crm of type ${crmType} is not implemented`);
+    return null;
   }
+
+  return new CrmService(credential, appOptions);
 };
 
 export default getCrm;

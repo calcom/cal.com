@@ -1,6 +1,8 @@
 export { CalProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
+export type { AvailabilitySettingsPlatformWrapperProps as AvailabilitySettingsProps } from "./availability/wrappers/AvailabilitySettingsPlatformWrapper";
+export type { AvailabilitySettingsScheduleType } from "./availability/AvailabilitySettings";
 export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";
@@ -31,3 +33,9 @@ export { ConferencingAppsViewPlatformWrapper as ConferencingAppsSettings } from 
 export { StripeConnect } from "./connect/stripe/StripeConnect";
 export { CreateEventTypePlatformWrapper as CreateEventType } from "./event-types/wrappers/CreateEventTypePlatformWrapper";
 export { PaymentForm } from "./event-types/payments/PaymentForm";
+
+export { useCreateEventType } from "./hooks/event-types/private/useCreateEventType";
+export { useCreateTeamEventType } from "./hooks/event-types/private/useCreateTeamEventType";
+
+export { useOrganizationBookings } from "./hooks/organizations/bookings/useOrganizationBookings";
+export { useOrganizationUserBookings } from "./hooks/organizations/bookings/useOrganizationUserBookings";

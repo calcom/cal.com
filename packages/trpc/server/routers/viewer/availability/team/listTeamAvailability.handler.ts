@@ -9,7 +9,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TListTeamAvailaiblityScheme } from "./listTeamAvailability.schema";
 
 type GetOptions = {
@@ -71,11 +71,12 @@ async function getTeamMembers({
     distinct: ["userId"],
   });
 
+  const userRepo = new UserRepository(prisma);
   const membershipWithUserProfile = [];
   for (const membership of memberships) {
     membershipWithUserProfile.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });
@@ -144,15 +145,6 @@ async function getInfoForAllTeams({ ctx, input }: GetOptions) {
     .findMany({
       where: {
         userId: ctx.user.id,
-        ...(searchString
-          ? {
-              OR: [
-                { user: { username: { contains: searchString } } },
-                { user: { name: { contains: searchString } } },
-                { user: { email: { contains: searchString } } },
-              ],
-            }
-          : {}),
       },
       select: {
         id: true,
@@ -201,10 +193,12 @@ export const listTeamAvailabilityHandler = async ({ ctx, input }: GetOptions) =>
     teamMembers = teamAllInfo.teamMembers;
     totalTeamMembers = teamAllInfo.totalTeamMembers;
   } else {
-    const isMember = await prisma.membership.findFirst({
+    const isMember = await prisma.membership.findUnique({
       where: {
-        teamId,
-        userId: ctx.user.id,
+        userId_teamId: {
+          userId: ctx.user.id,
+          teamId,
+        },
       },
     });
 

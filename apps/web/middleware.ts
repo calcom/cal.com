@@ -3,12 +3,9 @@ import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-import { csp } from "@lib/csp";
-
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+import { csp } from "./lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
@@ -18,10 +15,38 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+export const POST_METHODS_ALLOWED_API_ROUTES = ["/api/auth/signup"];
+export function checkPostMethod(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+  if (!POST_METHODS_ALLOWED_API_ROUTES.some((route) => pathname.startsWith(route)) && req.method === "POST") {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+  return null;
+}
+
+export function checkStaticFiles(pathname: string) {
+  const hasFileExtension = /\.(svg|png|jpg|jpeg|gif|webp|ico)$/.test(pathname);
+  // Skip Next.js internal paths (_next) and static assets
+  if (pathname.startsWith("/_next") || hasFileExtension) {
+    return NextResponse.next();
+  }
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
+
+  const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
+  if (isStaticFile) return isStaticFile;
+
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -42,10 +67,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
   if (routingFormRewriteResponse) {
     return responseWithHeaders({ url, res: routingFormRewriteResponse, req });
-  }
-
-  if (url.pathname.startsWith("/api/trpc/")) {
-    requestHeaders.set("x-cal-timezone", req.headers.get("x-vercel-ip-timezone") ?? "");
   }
 
   if (url.pathname.startsWith("/api/auth/signup")) {
@@ -71,12 +92,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       return response;
     }
   }
-
-  requestHeaders.set("x-pathname", url.pathname);
-
-  const locale = await getLocale(req);
-
-  requestHeaders.set("x-locale", locale);
 
   const res = NextResponse.next({
     request: {
@@ -110,6 +125,13 @@ const embeds = {
     if (isCOEPEnabled) {
       res.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
     }
+
+    const embedColorScheme = url.searchParams.get("ui.color-scheme");
+    if (embedColorScheme) {
+      res.headers.set("x-embedColorScheme", embedColorScheme);
+    }
+
+    res.headers.set("x-isEmbed", "true");
     return res;
   },
 };
@@ -139,46 +161,24 @@ function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; r
 export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
+  // WARNING: DO NOT ADD AN ENDING SLASH "/" TO THE PATHS BELOW
+  // THIS WILL MAKE THEM NOT MATCH AND HENCE NOT HIT MIDDLEWARE
   matcher: [
-    "/",
-    "/403",
-    "/500",
-    "/icons",
-    "/d/:path*",
-    "/more/:path*",
-    "/maintenance/:path*",
-    "/enterprise/:path*",
-    "/upgrade/:path*",
-    "/connect-and-join/:path*",
-    "/insights/:path*",
-    "/:path*/embed",
-    "/api/auth/signup",
-    "/api/trpc/:path*",
+    // Routes to enforce CSP
+    "/auth/login",
     "/login",
-    "/apps/:path*",
-    "/auth/:path*",
-    "/event-types/:path*",
-    "/workflows/:path*",
-    "/getting-started/:path*",
-    "/bookings/:path*",
-    "/video/:path*",
-    "/teams/:path*",
-    "/signup/:path*",
-    "/settings/:path*",
-    "/reschedule/:path*",
-    "/availability/:path*",
-    "/booking/:path*",
-    "/payment/:path*",
-    "/routing-forms/:path*",
-    "/team/:path*",
-    "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
+    // Routes to set cookies
+    "/apps/installed",
+    "/auth/logout",
+    // Embed Routes,
+    "/:path*/embed",
+    // API routes
+    "/api/auth/signup",
   ],
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,

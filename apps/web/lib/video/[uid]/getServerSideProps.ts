@@ -7,24 +7,118 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
+
+type CalVideoSettings = {
+  disableRecordingForGuests: boolean;
+  disableRecordingForOrganizer: boolean;
+  enableAutomaticTranscription: boolean;
+  disableTranscriptionForGuests: boolean;
+  disableTranscriptionForOrganizer: boolean;
+};
+
+const shouldEnableRecordButton = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return true;
+
+  if (isOrganizer) {
+    return !calVideoSettings.disableRecordingForOrganizer;
+  }
+
+  return !calVideoSettings.disableRecordingForGuests;
+};
+
+const shouldEnableAutomaticTranscription = ({
+  hasTeamPlan,
+  calVideoSettings,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return false;
+
+  return !!calVideoSettings.enableAutomaticTranscription;
+};
+
+const shouldEnableTranscriptionButton = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return true;
+
+  if (isOrganizer) {
+    return !calVideoSettings.disableTranscriptionForOrganizer;
+  }
+
+  return !calVideoSettings.disableTranscriptionForGuests;
+};
+
+const checkIfUserIsHost = async ({
+  booking,
+  sessionUserId,
+}: {
+  booking: {
+    user: { id: number } | null;
+    eventTypeId: number | undefined;
+  };
+  sessionUserId?: number;
+}) => {
+  if (!sessionUserId) return false;
+
+  if (!booking.eventTypeId) {
+    return booking.user?.id === sessionUserId;
+  }
+
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdWithUserAccess({
+    id: booking.eventTypeId,
+    userId: sessionUserId,
+  });
+
+  // If eventType exists, it means user is either owner, host or user
+  return !eventType;
+};
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  const ssr = await ssrInit(context);
-
-  const booking = await BookingRepository.findBookingForMeetingPage({
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
   });
+
+  // Below if block is for local testing purposes only
+  // STARTS------------------------------------------------------------------------------
+  if (booking?.references[0] && isENVDev && CAL_VIDEO_MEETING_LINK_FOR_TESTING) {
+    // meetingUrl is `null` in dev env, so setting a dummy meetingUrl (it's a past but real meeting link in production env)
+    booking.references[0].meetingUrl = CAL_VIDEO_MEETING_LINK_FOR_TESTING;
+  }
+  // ENDS--------------------------------------------------------------------------------
 
   if (!booking || booking.references.length === 0 || !booking.references[0].meetingUrl) {
     return {
@@ -48,9 +142,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       })
     : false;
 
+  const userRepo = new UserRepository(prisma);
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithItsProfile({
+        await userRepo.enrichUserWithItsProfile({
           user: booking.user,
         })
       ).profile
@@ -66,7 +161,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   //find out if the meeting is in the past
   const isPast = booking?.endTime <= exitDate;
-  if (isPast) {
+  const testingUid =
+    CAL_VIDEO_MEETING_LINK_FOR_TESTING && CAL_VIDEO_MEETING_LINK_FOR_TESTING?.split("/").pop();
+  const isTestingLink = booking?.uid === testingUid;
+
+  if (isPast && !isTestingLink) {
     return {
       redirect: {
         destination: `/video/meeting-ended/${booking?.uid}`,
@@ -95,23 +194,33 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     exp: epochTimeFourteenDaysAfter,
   });
 
+  const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+  const isOrganizer = await checkIfUserIsHost({
+    booking: {
+      eventTypeId: bookingObj.eventType?.id,
+      user: bookingObj.user,
+    },
+    sessionUserId,
+  });
+
   // set meetingPassword for guests
-  if (session?.user.id !== bookingObj.user?.id) {
-    const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
-      videoReferencePassword,
-      session?.user.id
-    );
+  if (!isOrganizer) {
+    const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
+      meetingToken: videoReferencePassword,
+      userId: sessionUserId,
+    });
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
+
   // Only for backward compatibility and setting user id in participants for organizer
   else {
     const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,
       videoReferencePassword,
-      session?.user.id
+      sessionUserId
     );
     if (!!meetingPassword) {
       bookingObj.references.forEach((bookRef) => {
@@ -121,6 +230,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const videoReference = getCalVideoReference(bookingObj.references);
+
+  const featureRepo = new FeaturesRepository();
+  const displayLogInOverlay = profile?.organizationId
+    ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
+    : false;
+
+  const showRecordingButton = shouldEnableRecordButton({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer: sessionUserId === bookingObj.user?.id,
+  });
+
+  const enableAutomaticTranscription = shouldEnableAutomaticTranscription({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+  });
+  const showTranscriptionButton = shouldEnableTranscriptionButton({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer: sessionUserId === bookingObj.user?.id,
+  });
 
   return {
     props: {
@@ -140,7 +270,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
-      trpcState: ssr.dehydrate(),
+      displayLogInOverlay,
+      loggedInUserName: sessionUserId ? session?.user?.name : undefined,
+      showRecordingButton,
+      enableAutomaticTranscription,
+      showTranscriptionButton,
+      rediectAttendeeToOnExit: isOrganizer
+        ? undefined
+        : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
+      overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
     },
   };
 }

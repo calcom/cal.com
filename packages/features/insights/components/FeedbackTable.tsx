@@ -3,7 +3,9 @@ import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { Avatar, EmptyScreen, Button } from "@calcom/ui";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 
 export const FeedbackTable = ({
   data,

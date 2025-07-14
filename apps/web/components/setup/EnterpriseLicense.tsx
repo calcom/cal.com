@@ -5,13 +5,14 @@ import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
 
-import { classNames } from "@calcom/lib";
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, TextField } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;
@@ -93,7 +94,7 @@ const EnterpriseLicense = (
           <Button
             className="w-full justify-center text-lg"
             EndIcon="external-link"
-            href="https://console.cal.com"
+            href="https://go.cal.com/get-license"
             target="_blank">
             {t("purchase_license")}
           </Button>

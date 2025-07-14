@@ -3,11 +3,17 @@ import { useState, useEffect } from "react";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getBookingResponsesSchemaWithOptionalChecks } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import type { BookerEvent } from "@calcom/features/bookings/types";
+
+import type { BookerEvent } from "../../../types";
+import type { BookerState } from "../../types";
 
 const useSkipConfirmStep = (
   bookingForm: UseBookingFormReturnType["bookingForm"],
-  bookingFields?: BookerEvent["bookingFields"]
+  bookerState: BookerState,
+  isInstantMeeting: boolean,
+  isWeekView: boolean,
+  bookingFields?: BookerEvent["bookingFields"],
+  locations?: BookerEvent["locations"]
 ) => {
   const bookingFormValues = bookingForm.getValues();
 
@@ -16,7 +22,7 @@ const useSkipConfirmStep = (
 
   useEffect(() => {
     const checkSkipStep = async () => {
-      if (!bookingFields) {
+      if (!bookingFields || (locations && locations.length > 1)) {
         setCanSkip(false);
         return;
       }
@@ -33,9 +39,11 @@ const useSkipConfirmStep = (
         setCanSkip(false);
       }
     };
-
-    checkSkipStep();
-  }, [bookingFormValues, bookingFields, rescheduleUid]);
+    const isSkipConfirmStepSupported = !isInstantMeeting && !isWeekView;
+    if (bookerState === "selecting_time" && isSkipConfirmStepSupported) {
+      checkSkipStep();
+    }
+  }, [bookingFormValues, bookingFields, rescheduleUid, bookerState, isWeekView, isInstantMeeting]);
 
   return canSkip;
 };

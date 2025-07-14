@@ -4,10 +4,11 @@ import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { CreationSource } from "@calcom/prisma/enums";
 import { RedirectType } from "@calcom/prisma/enums";
 import { _UserModel as User } from "@calcom/prisma/zod";
-import type { inferRouterOutputs } from "@calcom/trpc";
-import { TRPCError } from "@calcom/trpc";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
+import type { inferRouterOutputs } from "@trpc/server";
 
 export type UserAdminRouter = typeof userAdminRouter;
 export type UserAdminRouterOutputs = inferRouterOutputs<UserAdminRouter>;

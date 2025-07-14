@@ -21,10 +21,21 @@ export const createAProfileForAnExistingUser = async ({
   };
   organizationId: number;
 }) => {
-  const org = await TeamRepository.findById({ id: organizationId });
+  const teamRepo = new TeamRepository(prisma);
+  const org = await teamRepo.findById({ id: organizationId });
   if (!org) {
     throw new Error(`Organization with id ${organizationId} not found`);
   }
+
+  const existingProfile = await ProfileRepository.findByUserIdAndOrgId({
+    userId: user.id,
+    organizationId,
+  });
+
+  if (existingProfile) {
+    return existingProfile;
+  }
+
   const usernameInOrg = getOrgUsernameFromEmail(
     user.email,
     org.organizationSettings?.orgAutoAcceptEmail ?? null
@@ -37,7 +48,8 @@ export const createAProfileForAnExistingUser = async ({
     movedFromUserId: user.id,
   });
 
-  await UserRepository.updateWhereId({
+  const userRepo = new UserRepository(prisma);
+  await userRepo.updateWhereId({
     whereId: user.id,
     data: {
       movedToProfileId: profile.id,
