@@ -1,29 +1,12 @@
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "path";
 import path from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
-function findMonorepoRoot(): string {
-  let currentDir = process.cwd();
-  while (currentDir !== path.dirname(currentDir)) {
-    try {
-      const packageJsonPath = path.join(currentDir, "package.json");
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
-        return currentDir;
-      }
-    } catch (error) {
-      // package.json doesn't exist in this directory
-      // Just continue to the next directory
-    }
-    currentDir = path.dirname(currentDir);
-  }
-
-  return process.cwd();
+function getLocalesPath(): string {
+  return path.resolve(__dirname, "../locales");
 }
-
-const LOCALES_PATH = path.join(findMonorepoRoot(), "packages/lib/server/locales");
 
 interface LocaleCache {
   [cacheKey: string]: Record<string, string>;
@@ -45,7 +28,14 @@ function loadTranslationForLocale(locale: string, ns: string): Record<string, st
   }
 
   try {
-    const translationPath = join(LOCALES_PATH, locale, `${ns}.json`);
+    const localesPath = getLocalesPath();
+    const translationPath = join(localesPath, locale, `${ns}.json`);
+
+    if (!existsSync(translationPath)) {
+      console.warn(`Translation file not found: ${translationPath}`);
+      return {};
+    }
+
     const translations = JSON.parse(readFileSync(translationPath, "utf-8"));
     localeCache[cacheKey] = translations;
     return translations;
@@ -65,4 +55,9 @@ export function getBundledTranslations(locale: string, ns: string): Record<strin
 
   const englishTranslations = loadTranslationForLocale("en", ns);
   return englishTranslations;
+}
+
+export function __resetTranslationCacheForTests() {
+  localeCache = {};
+  cacheVersion = null;
 }

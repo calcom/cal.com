@@ -1,0 +1,30 @@
+@@ -9,8 +9,10 @@
+ import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+ import logger from "@calcom/lib/logger";
+ import { safeStringify } from "@calcom/lib/safeStringify";
++import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
+ import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
+-import { RoutingFormResponseService } from "@calcom/lib/server/service/routingForm/routingFormResponse.service";
++import { RoutingFormResponseDataFactory } from "@calcom/lib/server/service/routingForm/RoutingFormResponseDataFactory";
++import { findFieldValueByIdentifier } from "@calcom/lib/server/service/routingForm/responseData/findFieldValueByIdentifier";
+ import { prisma } from "@calcom/prisma";
+ import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
+ import type { CredentialPayload } from "@calcom/types/Credential";
+@@ -1298,8 +1300,15 @@
+     }
+ 
+     try {
+-      const routingFormResponseService = await RoutingFormResponseService.create({ bookingUid });
+-      value = await routingFormResponseService.findFieldValueByIdentifier(identifierField);
++      const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
++        logger: log,
++        routingFormResponseRepo: new RoutingFormResponseRepository(),
++      });
++
++      value = findFieldValueByIdentifier(
++        await routingFormResponseDataFactory.createWithBookingUid({ bookingUid }),
++        fieldValue
++      );
+     } catch (error) {
+       log.error("Routing form response not found", error);
+       return fieldValue;
