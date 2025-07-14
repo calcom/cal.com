@@ -50,6 +50,7 @@ export class ConferencingAppsOutputDto {
     description: "Delegation credential ID",
     nullable: true,
   })
+  @IsNumber()
   @Expose()
   @IsOptional()
   delegationCredentialId?: number | null;
