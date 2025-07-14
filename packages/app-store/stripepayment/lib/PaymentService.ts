@@ -6,6 +6,7 @@ import z from "zod";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -296,7 +297,29 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
-      throw new Error(ErrorCode.ChargeCardFailure);
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+
+        if (errorMessage.includes("your card was declined")) {
+          throw new ErrorWithCode(ErrorCode.ChargeCardFailure, "Your card was declined.");
+        }
+
+        if (errorMessage.includes("your card does not support this type of purchase")) {
+          throw new ErrorWithCode(
+            ErrorCode.ChargeCardFailure,
+            "Your card does not support this type of purchase"
+          );
+        }
+
+        if (errorMessage.includes("amount must convert to at least")) {
+          throw new ErrorWithCode(
+            ErrorCode.ChargeCardFailure,
+            "Payment amount is below the minimum charge requirement."
+          );
+        }
+      }
+
+      throw new ErrorWithCode(ErrorCode.ChargeCardFailure, "Could not charge card for payment");
     }
   }
 

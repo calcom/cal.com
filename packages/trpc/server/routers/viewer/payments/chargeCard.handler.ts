@@ -142,7 +142,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     return paymentData;
   } catch (err) {
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
+      code: "BAD_REQUEST",
       message: `Error processing payment with error ${err}`,
     });
   }
