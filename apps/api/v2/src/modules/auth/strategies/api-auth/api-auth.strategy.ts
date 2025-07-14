@@ -105,12 +105,13 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
             if (thirdPartyAccessTokenAllowed && request.authMethod === AuthMethods["ACCESS_TOKEN"]) {
               request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
               const result = await this.validateThirdPartyAccessToken(bearerToken, request);
+
               if (result.success) {
                 return this.success(this.getSuccessUser(result.data));
               }
             }
             // token was not third party token, rethrow error from authenticateBearerToken
-            if (err instanceof HttpException) {
+            if (err instanceof Error) {
               return this.error(err);
             }
           }
@@ -214,21 +215,17 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         : await this.accessTokenStrategy(authString, request, requestOrigin);
 
       if (!user) {
-        return this.error(
-          new UnauthorizedException(
-            "ApiAuthStrategy - bearer token - No user associated with the provided token"
-          )
+        throw new UnauthorizedException(
+          "ApiAuthStrategy - bearer token - No user associated with the provided token"
         );
       }
 
       return this.success(this.getSuccessUser(user));
     } catch (err) {
       if (err instanceof Error) {
-        return this.error(err);
+        throw err;
       }
-      return this.error(
-        new InternalServerErrorException("An error occurred while authenticating the request")
-      );
+      throw new InternalServerErrorException("An error occurred while authenticating the request");
     }
   }
 

@@ -111,6 +111,7 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.BookingNotAllowedByRestrictionSchedule:
     case ErrorCode.BookerLimitExceeded:
     case ErrorCode.BookerLimitExceededReschedule:
+    case ErrorCode.EventTypeNoHosts:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:

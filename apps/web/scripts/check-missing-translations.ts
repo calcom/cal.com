@@ -3,7 +3,7 @@ import { join } from "path";
 
 const TEMPLATE_LANGUAGE = "en";
 const SPECIFIC_LOCALES = process.argv.slice(2) || [];
-const LOCALES_PATH = join(__dirname, "../public/static/locales");
+const LOCALES_PATH = join(__dirname, "../../../packages/lib/server/locales");
 
 const ALL_LOCALES = readdirSync(LOCALES_PATH);
 
