@@ -1,5 +1,5 @@
 import type { User as UserType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
@@ -29,7 +29,7 @@ import {
 } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   id: true,
   avatarUrl: true,
   username: true,
@@ -48,10 +48,10 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
     },
   },
   defaultScheduleId: true,
-});
+} satisfies Prisma.UserSelect;
 
 const getPublicEventSelect = (fetchAllUsers: boolean) => {
-  return Prisma.validator<Prisma.EventTypeSelect>()({
+  return {
     id: true,
     title: true,
     description: true,
@@ -152,7 +152,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
-  });
+  } satisfies Prisma.EventTypeSelect;
 };
 
 export async function isCurrentlyAvailable({
@@ -227,20 +227,19 @@ export const getPublicEvent = async (
   username: string,
   eventSlug: string,
   isTeamEvent: boolean | undefined,
-  orgSlug: string | null,
+  org: string | null,
   prisma: PrismaClient,
   fromRedirectOfNonOrgLink: boolean,
   currentUserId?: number,
-  fetchAllUsers = false,
-  orgId?: number
+  fetchAllUsers = false
 ) => {
   const usernameList = getUsernameList(username);
-  const orgQuery = orgSlug ? getSlugOrRequestedSlug(orgSlug) : null;
+  const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await UserRepository.findUsersByUsername({
+    const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
       usernameList,
-      orgSlug: orgSlug,
+      orgSlug: org,
     });
     const users = usersInOrgContext;
 
@@ -268,27 +267,18 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
-    const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined = orgId
-      ? await prisma.team.findUniqueOrThrow({
-          where: {
-            id: orgId,
-          },
-          select: {
-            logoUrl: true,
-            name: true,
-          },
-        })
-      : orgSlug
-      ? await prisma.team.findFirstOrThrow({
-          where: {
-            slug: orgSlug,
-          },
-          select: {
-            logoUrl: true,
-            name: true,
-          },
-        })
-      : undefined;
+    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
+    if (org) {
+      orgDetails = await prisma.team.findFirstOrThrow({
+        where: {
+          slug: org,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      });
+    }
 
     return {
       ...defaultEvent,
@@ -319,14 +309,14 @@ export const getPublicEvent = async (
           ? {
               image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
               name: orgDetails?.name,
-              username: orgSlug,
+              username: org,
             }
           : {}),
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
         fromRedirectOfNonOrgLink,
-        orgSlug: orgSlug,
+        orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
         teamSlug: null,
         logoUrl: null,
@@ -407,7 +397,7 @@ export const getPublicEvent = async (
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
 
   // Map enriched users back to the hosts
   const hosts = event.hosts.map((host, index) => ({
@@ -418,7 +408,7 @@ export const getPublicEvent = async (
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await UserRepository.enrichUserWithItsProfile({
+      ? await new UserRepository(prisma).enrichUserWithItsProfile({
           user: event.owner,
         })
       : null,
@@ -447,28 +437,19 @@ export const getPublicEvent = async (
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
 
-  const orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null = orgId
-    ? await prisma.team.findUnique({
-        where: {
-          id: orgId,
-        },
-        select: {
-          logoUrl: true,
-          name: true,
-        },
-      })
-    : orgSlug
-    ? await prisma.team.findFirst({
-        where: {
-          slug: orgSlug,
-          parentId: null,
-        },
-        select: {
-          logoUrl: true,
-          name: true,
-        },
-      })
-    : undefined;
+  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
+  if (org) {
+    orgDetails = await prisma.team.findFirst({
+      where: {
+        slug: org,
+        parentId: null,
+      },
+      select: {
+        logoUrl: true,
+        name: true,
+      },
+    });
+  }
 
   let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
 
@@ -526,7 +507,7 @@ export const getPublicEvent = async (
         (eventWithUserProfiles.team?.slug === null ||
           eventWithUserProfiles.owner?.profile?.organization?.slug === null ||
           eventWithUserProfiles.team?.parent?.slug === null),
-      orgSlug: orgSlug,
+      orgSlug: org,
       teamSlug: (eventWithUserProfiles.team?.slug || teamMetadata?.requestedSlug) ?? null,
       name:
         (eventWithUserProfiles.owner?.profile?.organization?.name ||
@@ -554,9 +535,9 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
+const eventData = {
   select: getPublicEventSelect(true),
-});
+} satisfies Prisma.EventTypeArgs;
 
 type Event = Prisma.EventTypeGetPayload<typeof eventData>;
 
@@ -659,7 +640,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   if (!users.length) return null;
 
   // Batch enrich users in a single call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(users);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(users);
 
   // Map the enriched users back to include the organization info
   const usersWithUserProfile = enrichedUsers.map((user) => ({
