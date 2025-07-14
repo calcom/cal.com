@@ -37,13 +37,15 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
   getCalendarLinks,
-  getDefaultConferencingAppLocation,
-  getLocationValueForDB,
-  getOrgIdFromMemberOrTeamId,
-  getBookingDataLocation,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
 import { enrichUsersWithDelegationCredentials } from "@calcom/platform-libraries/app-store";
+import { getDefaultConferencingAppLocation } from "@calcom/platform-libraries/conferencing";
+import {
+  getLocationValueForDB,
+  getOrgIdFromMemberOrTeamId,
+  getBookingDataLocation,
+} from "@calcom/platform-libraries/locations";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
