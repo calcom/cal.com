@@ -51,3 +51,8 @@ export function getBundledTranslations(locale: string, ns: string): Record<strin
   const englishTranslations = loadTranslationForLocale("en", ns);
   return englishTranslations;
 }
+
+export function __resetTranslationCacheForTests() {
+  localeCache = {};
+  cacheVersion = null;
+}
