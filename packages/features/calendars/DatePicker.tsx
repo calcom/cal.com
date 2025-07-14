@@ -196,9 +196,11 @@ const Days = ({
     const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
     const away = isOOOAllDay;
     
-    // Allow selected date to remain clickable even without available slots
+    // Allow selected date to remain clickable even without available slots,
+    // but only if it's in the current browsing month to preserve auto-navigation
     const isCurrentlySelected = selected && !Array.isArray(selected) && yyyymmdd(selected) === dateKey;
-    const disabled = away ? !oooInfo?.toUser : (!included || excluded) && !isCurrentlySelected;
+    const isSelectedInCurrentMonth = isCurrentlySelected && dayjs(selected).isSame(browsingDate, "month");
+    const disabled = away ? !oooInfo?.toUser : (!included || excluded) && !isSelectedInCurrentMonth;
 
     return {
       day: day,
