@@ -29,6 +29,23 @@ import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
+function getEmailWorkflowRecipientEmail(
+  action: ScheduleEmailReminderAction,
+  evt: BookingInfo,
+  sendTo: string[]
+): string | null {
+  switch (action) {
+    case WorkflowActions.EMAIL_ADDRESS:
+      return sendTo[0] || null;
+    case WorkflowActions.EMAIL_HOST:
+      return evt.organizer?.email || null;
+    case WorkflowActions.EMAIL_ATTENDEE:
+      return evt.attendees?.[0]?.email || null;
+    default:
+      return null;
+  }
+}
+
 type ScheduleEmailReminderAction = Extract<
   WorkflowActions,
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
@@ -139,6 +156,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
   if (emailBody) {
+    const recipientEmail = getEmailWorkflowRecipientEmail(action, evt, sendTo);
     const variables: VariablesType = {
       eventName: evt.title || "",
       organizerName: evt.organizer.name,
@@ -153,9 +171,13 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true`,
+      cancelLink: `${bookerUrl}/booking/${evt.uid}?cancel=true${
+        recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
+      }`,
       cancelReason: evt.cancellationReason,
-      rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}`,
+      rescheduleLink: `${bookerUrl}/reschedule/${evt.uid}${
+        recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
+      }`,
       rescheduleReason: evt.rescheduleReason,
       ratingUrl: `${bookerUrl}/booking/${evt.uid}?rating`,
       noShowUrl: `${bookerUrl}/booking/${evt.uid}?noShow=true`,
