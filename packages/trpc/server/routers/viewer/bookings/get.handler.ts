@@ -80,7 +80,7 @@ type GetBookingsProps = {
     sortCreated?: "asc" | "desc";
     sortUpdated?: "asc" | "desc";
   };
-  take: number;
+  take: number | null;
   skip: number;
 };
 
