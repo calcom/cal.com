@@ -74,13 +74,13 @@ describe("scheduleNoShowTriggers Integration", () => {
       },
     });
 
-    await prisma.booking.delete({
+    await prisma.booking.deleteMany({
       where: {
         id: testBookingId,
       },
     });
 
-    await prisma.user.delete({
+    await prisma.user.deleteMany({
       where: {
         id: testUser.id,
       },
@@ -156,7 +156,7 @@ describe("scheduleNoShowTriggers Integration", () => {
     try {
       hostPayload = JSON.parse(hostTask?.payload ?? "");
     } catch (e) {
-      console.error("Failed to parse host task payload:", hostTask?.payload);
+      console.error("Failed to parse host task payload.");
       throw e;
     }
 
@@ -179,7 +179,7 @@ describe("scheduleNoShowTriggers Integration", () => {
     try {
       guestPayload = JSON.parse(guestTask?.payload ?? "");
     } catch (e) {
-      console.error("Failed to parse guest task payload:", guestTask?.payload);
+      console.error("Failed to parse guest task payload.");
       throw e;
     }
 
@@ -227,9 +227,6 @@ describe("scheduleNoShowTriggers Integration", () => {
             uid: "meeting-test-uid",
           },
         },
-      },
-      include: {
-        references: true,
       },
     });
 
