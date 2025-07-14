@@ -529,7 +529,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
       it("should get bookings count by organizationId", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/organizations/${organization.id}/bookings/count`)
+          .get(`/v2/organizations/${organization.id}/bookings/statistics`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .set(X_CAL_SECRET_KEY, oAuthClient.secret)

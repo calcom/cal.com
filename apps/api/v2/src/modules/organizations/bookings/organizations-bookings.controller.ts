@@ -63,7 +63,7 @@ export class OrganizationsBookingsController {
     };
   }
 
-  @Get("/count")
+  @Get("/statistics")
   @ApiOperation({
     summary: "Get organization bookings count",
     description: "Feel free to also use available query parameters to narrow down the results.",
