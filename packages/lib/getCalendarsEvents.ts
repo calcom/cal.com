@@ -224,12 +224,13 @@ function getServerUrlFromCredential(credential: CredentialForCalendarService): s
 /**
  * Filter selected calendars for the specific credential, handling CalDAV server URL matching
  */
-function filterSelectedCalendarsForCredential(
+export function filterSelectedCalendarsForCredential(
   selectedCalendars: SelectedCalendar[],
   credential: CredentialForCalendarService
 ): SelectedCalendar[] {
   const { type } = credential;
 
+  // For all other calendar types, use the existing logic
   if (type !== "caldav_calendar") {
     return selectedCalendars.filter((sc) => sc.integration === type);
   }
