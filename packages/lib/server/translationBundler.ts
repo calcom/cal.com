@@ -5,7 +5,7 @@ import path from "path";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
 function findMonorepoRoot(): string {
-  let currentDir = __dirname;
+  let currentDir = process.cwd();
   while (currentDir !== path.dirname(currentDir)) {
     try {
       const packageJsonPath = path.join(currentDir, "package.json");
@@ -20,7 +20,7 @@ function findMonorepoRoot(): string {
     currentDir = path.dirname(currentDir);
   }
 
-  throw new Error("Could not find monorepo root - repository structure may be corrupted");
+  return process.cwd();
 }
 
 const LOCALES_PATH = path.join(findMonorepoRoot(), "packages/lib/server/locales");
