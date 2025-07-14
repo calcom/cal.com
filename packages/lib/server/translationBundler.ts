@@ -1,11 +1,11 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "path";
 import path from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
 function getLocalesPath(): string {
-  return path.resolve(process.cwd(), "public/static/locales");
+  return path.resolve(__dirname, "../locales");
 }
 
 interface LocaleCache {
@@ -28,7 +28,14 @@ function loadTranslationForLocale(locale: string, ns: string): Record<string, st
   }
 
   try {
-    const translationPath = join(getLocalesPath(), locale, `${ns}.json`);
+    const localesPath = getLocalesPath();
+    const translationPath = join(localesPath, locale, `${ns}.json`);
+
+    if (!existsSync(translationPath)) {
+      console.warn(`Translation file not found: ${translationPath}`);
+      return {};
+    }
+
     const translations = JSON.parse(readFileSync(translationPath, "utf-8"));
     localeCache[cacheKey] = translations;
     return translations;
