@@ -13011,7 +13011,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -13130,7 +13131,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -13278,7 +13280,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -21954,7 +21957,7 @@
         "type": "object",
         "properties": {}
       },
-      "Attendee": {
+      "CreateBookingAttendee": {
         "type": "object",
         "properties": {
           "name": {
@@ -22021,7 +22024,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "description": "The preferred language of the attendee. Used for booking confirmation.",
             "example": "it",
@@ -22081,7 +22085,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -22199,7 +22203,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -22322,7 +22326,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -22473,6 +22477,81 @@
         },
         "required": ["id", "slug"]
       },
+      "BookingAttendee": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          }
+        },
+        "required": ["name", "email", "timeZone", "absent"]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -22521,7 +22600,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -22584,7 +22669,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -22670,7 +22755,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -22733,7 +22824,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -22835,7 +22926,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "example": "en"
           },
@@ -22915,7 +23007,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23054,7 +23152,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23232,7 +23336,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23366,7 +23476,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23754,6 +23870,18 @@
         },
         "required": ["status", "data"]
       },
+      "MarkAbsentAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "absent": {
+            "type": "boolean"
+          }
+        },
+        "required": ["email", "absent"]
+      },
       "MarkAbsentBookingInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -23765,7 +23893,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/MarkAbsentAttendee"
             }
           }
         }

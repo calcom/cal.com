@@ -9,8 +9,10 @@ export type RoleType = (typeof RoleType)[keyof typeof RoleType];
 
 export interface RolePermission {
   id: string;
+  roleId: string;
   resource: string;
   action: string;
+  createdAt: Date;
 }
 
 export interface Role {
@@ -43,3 +45,8 @@ export interface UpdateRolePermissionsData {
     name?: string;
   };
 }
+
+export type PermissionChange = {
+  resource: string;
+  action: string;
+};
