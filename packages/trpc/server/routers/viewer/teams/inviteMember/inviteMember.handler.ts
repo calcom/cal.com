@@ -5,6 +5,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -17,7 +18,7 @@ import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
 import type { Invitation } from "./utils";
 import {
-  ensureUserHasPermissions,
+  ensureAtleastAdminPermissions,
   findUsersWithInviteStatus,
   getOrgConnectionInfo,
   getOrgState,
@@ -259,9 +260,9 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   });
   const isAddingNewOwner = !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER);
 
-  // if (isTeamAnOrg) {
-  //   await throwIfInviterCantAddOwnerToOrg();
-  // }
+  if (isTeamAnOrg) {
+    await throwIfInviterCantAddOwnerToOrg();
+  }
 
   if (isPlatform) {
     inviterOrgId = team.id;
@@ -272,12 +273,11 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     });
   }
 
-  await ensureUserHasPermissions({
+  await ensureAtleastAdminPermissions({
     userId: inviter.id,
-    teamId: team.id,
+    teamId: inviterOrgId && isInviterOrgAdmin ? inviterOrgId : input.teamId,
     isOrg: isTeamAnOrg,
   });
-
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
     team,
@@ -287,6 +287,11 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     invitations,
   });
   return result;
+
+  async function throwIfInviterCantAddOwnerToOrg() {
+    const isInviterOrgOwner = await isOrganisationOwner(inviter.id, input.teamId);
+    if (isAddingNewOwner && !isInviterOrgOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 };
 
 export default async function inviteMemberHandler({ ctx, input }: InviteMemberOptions) {
