@@ -230,47 +230,45 @@ function filterSelectedCalendarsForCredential(
 ): SelectedCalendar[] {
   const { type } = credential;
 
-  // For CalDAV calendars, we need to match by server URL to prevent credential leakage
-  if (type === "caldav_calendar") {
-    const credentialServerUrl = getServerUrlFromCredential(credential);
-
-    if (!credentialServerUrl) {
-      log.warn("Could not extract server URL from CalDAV credential", {
-        credentialId: credential.id,
-      });
-      return [];
-    }
-
-    return selectedCalendars.filter((sc) => {
-      if (sc.integration !== type) {
-        return false;
-      }
-
-      const calendarServerUrl = getServerUrlFromCalendarExternalId(sc.externalId);
-
-      if (!calendarServerUrl) {
-        log.warn("Could not extract server URL from calendar externalId", {
-          externalId: sc.externalId,
-          integration: sc.integration,
-        });
-        return false;
-      }
-
-      const matches = credentialServerUrl === calendarServerUrl;
-
-      if (!matches) {
-        log.debug("CalDAV calendar server URL does not match credential server URL", {
-          credentialId: credential.id,
-          credentialServerUrl,
-          calendarServerUrl,
-          calendarExternalId: sc.externalId,
-        });
-      }
-
-      return matches;
-    });
+  if (type !== "caldav_calendar") {
+    return selectedCalendars.filter((sc) => sc.integration === type);
   }
 
-  // For all other calendar types, use the existing logic
-  return selectedCalendars.filter((sc) => sc.integration === type);
+  const credentialServerUrl = getServerUrlFromCredential(credential);
+
+  if (!credentialServerUrl) {
+    log.warn("Could not extract server URL from CalDAV credential", {
+      credentialId: credential.id,
+    });
+    return [];
+  }
+
+  return selectedCalendars.filter((sc) => {
+    if (sc.integration !== type) {
+      return false;
+    }
+
+    const calendarServerUrl = getServerUrlFromCalendarExternalId(sc.externalId);
+
+    if (!calendarServerUrl) {
+      log.warn("Could not extract server URL from calendar externalId", {
+        externalId: sc.externalId,
+        integration: sc.integration,
+      });
+      return false;
+    }
+
+    const matches = credentialServerUrl === calendarServerUrl;
+
+    if (!matches) {
+      log.debug("CalDAV calendar server URL does not match credential server URL", {
+        credentialId: credential.id,
+        credentialServerUrl,
+        calendarServerUrl,
+        calendarExternalId: sc.externalId,
+      });
+    }
+
+    return matches;
+  });
 }
