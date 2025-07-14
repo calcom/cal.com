@@ -127,27 +127,101 @@ describe("Round Robin Individual Caches Integration Tests", () => {
   });
 
   afterEach(async () => {
-    // Clean up only the test records we created
-    await prisma.selectedCalendar.deleteMany({
-      where: {
-        user: {
-          email: { contains: testUniqueId },
-        },
-      },
-    });
-    await prisma.credential.deleteMany({
-      where: {
-        user: {
-          email: { contains: testUniqueId },
-        },
-      },
-    });
-    await prisma.user.deleteMany({
-      where: {
-        email: { contains: testUniqueId },
-      },
-    });
-    // Don't delete the google-calendar app as it's shared across tests
+    // Reset all mocks first
+    vi.resetAllMocks();
+    vi.clearAllMocks();
+
+    try {
+      // Clean up test data in proper order to respect foreign key constraints
+      // Use a transaction to ensure atomicity
+      await prisma.$transaction(async (tx) => {
+        // 1. Clear calendar cache entries for test users
+        await tx.calendarCache.deleteMany({
+          where: {
+            OR: [{ credentialId: testCredentialId1 }, { credentialId: testCredentialId2 }],
+          },
+        });
+
+        // 2. Delete selected calendars
+        await tx.selectedCalendar.deleteMany({
+          where: {
+            user: {
+              email: { contains: testUniqueId },
+            },
+          },
+        });
+
+        // 3. Delete webhooks/subscriptions
+        await tx.webhook.deleteMany({
+          where: {
+            OR: [{ userId: testUserId1 }, { userId: testUserId2 }],
+          },
+        });
+
+        // 4. Delete bookings related to test users
+        await tx.booking.deleteMany({
+          where: {
+            OR: [{ userId: testUserId1 }, { userId: testUserId2 }],
+          },
+        });
+
+        // 5. Delete credentials
+        await tx.credential.deleteMany({
+          where: {
+            user: {
+              email: { contains: testUniqueId },
+            },
+          },
+        });
+
+        // 6. Delete event types
+        await tx.eventType.deleteMany({
+          where: {
+            OR: [{ userId: testUserId1 }, { userId: testUserId2 }],
+          },
+        });
+
+        // 7. Delete users (this will cascade to other related records)
+        await tx.user.deleteMany({
+          where: {
+            email: { contains: testUniqueId },
+          },
+        });
+      });
+
+      // Clear calendar cache repository state
+      if (calendarCache) {
+        // Clear any in-memory cache state
+        calendarCache = new CalendarCacheRepository(null);
+      }
+
+      // Reset test variables
+      testUserId1 = 0;
+      testUserId2 = 0;
+      testCredentialId1 = 0;
+      testCredentialId2 = 0;
+      testUniqueId = "";
+    } catch (error) {
+      // Log cleanup errors but don't fail the test
+      console.warn(
+        `Cleanup warning for test ${testUniqueId}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+
+      // Try basic cleanup as fallback
+      try {
+        await prisma.user.deleteMany({
+          where: {
+            email: { contains: testUniqueId },
+          },
+        });
+      } catch (fallbackError) {
+        console.warn(
+          `Fallback cleanup failed for test ${testUniqueId}:`,
+          fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+        );
+      }
+    }
   });
 
   describe("Individual Cache Creation and Retrieval", () => {

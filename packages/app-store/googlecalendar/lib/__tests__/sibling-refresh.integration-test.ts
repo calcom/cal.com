@@ -102,27 +102,102 @@ describe("Sibling Cache Refresh Integration Tests", () => {
   });
 
   afterEach(async () => {
-    // Clean up only the test records we created
-    await prisma.selectedCalendar.deleteMany({
-      where: {
-        user: {
-          email: { contains: testUniqueId },
-        },
-      },
-    });
-    await prisma.credential.deleteMany({
-      where: {
-        user: {
-          email: { contains: testUniqueId },
-        },
-      },
-    });
-    await prisma.user.deleteMany({
-      where: {
-        email: { contains: testUniqueId },
-      },
-    });
-    // Don't delete the google-calendar app as it's shared across tests
+    // Reset all mocks first
+    vi.resetAllMocks();
+    vi.clearAllMocks();
+
+    try {
+      // Clean up test data in proper order to respect foreign key constraints
+      // Use a transaction to ensure atomicity
+      await prisma.$transaction(async (tx) => {
+        // 1. Clear calendar cache entries for test user
+        await tx.calendarCache.deleteMany({
+          where: {
+            credentialId: testCredentialId,
+          },
+        });
+
+        // 2. Delete selected calendars
+        await tx.selectedCalendar.deleteMany({
+          where: {
+            user: {
+              email: { contains: testUniqueId },
+            },
+          },
+        });
+
+        // 3. Delete webhooks/subscriptions
+        await tx.webhook.deleteMany({
+          where: {
+            userId: testUserId,
+          },
+        });
+
+        // 4. Delete bookings related to test user
+        await tx.booking.deleteMany({
+          where: {
+            userId: testUserId,
+          },
+        });
+
+        // 5. Delete credentials
+        await tx.credential.deleteMany({
+          where: {
+            user: {
+              email: { contains: testUniqueId },
+            },
+          },
+        });
+
+        // 6. Delete event types
+        await tx.eventType.deleteMany({
+          where: {
+            userId: testUserId,
+          },
+        });
+
+        // 7. Delete user (this will cascade to other related records)
+        await tx.user.deleteMany({
+          where: {
+            email: { contains: testUniqueId },
+          },
+        });
+      });
+
+      // Clear calendar cache repository state
+      if (calendarCache) {
+        // Clear any in-memory cache state
+        calendarCache = new CalendarCacheRepository(null);
+      }
+
+      // Clear calendar service state
+      calendarService = null as any;
+
+      // Reset test variables
+      testUserId = 0;
+      testCredentialId = 0;
+      testUniqueId = "";
+    } catch (error) {
+      // Log cleanup errors but don't fail the test
+      console.warn(
+        `Cleanup warning for test ${testUniqueId}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+
+      // Try basic cleanup as fallback
+      try {
+        await prisma.user.deleteMany({
+          where: {
+            email: { contains: testUniqueId },
+          },
+        });
+      } catch (fallbackError) {
+        console.warn(
+          `Fallback cleanup failed for test ${testUniqueId}:`,
+          fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+        );
+      }
+    }
   });
 
   describe("Sibling Calendar Discovery", () => {

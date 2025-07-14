@@ -77,7 +77,7 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
     });
     testAppId = app.slug;
 
-    // Create test credential
+    // Create test credential with user relation
     const credential = await prisma.credential.create({
       data: {
         type: "google_calendar",
@@ -90,6 +90,13 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
         },
         userId: testUserId,
         appId: testAppId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
     testCredentialId = credential.id;
@@ -249,6 +256,13 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
       // Create CalendarService instance
       const credential = await prisma.credential.findUnique({
         where: { id: testCredentialId },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
       });
       expect(credential).toBeTruthy();
 
