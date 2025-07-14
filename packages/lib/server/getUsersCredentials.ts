@@ -53,11 +53,15 @@ export async function getUsersAndTeamsCredentialsIncludeServiceAccountKey(user: 
         {
           userId: user.id,
         },
-        {
-          teamId: {
-            in: teams.map((team) => team.id),
-          },
-        },
+        ...(teams.length > 0
+          ? [
+              {
+                teamId: {
+                  in: teams.map((team) => team.id),
+                },
+              },
+            ]
+          : []),
       ],
     },
     select: credentialForCalendarServiceSelect,
