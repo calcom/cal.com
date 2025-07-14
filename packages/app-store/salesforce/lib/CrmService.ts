@@ -1237,7 +1237,12 @@ export default class SalesforceCRMService implements CRM {
         log.error(`BookingUid not passed. Cannot get form responses without it`);
         return;
       }
-      valueToWrite = String(await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId));
+      const formValue = await this.getTextValueFromRoutingFormResponse(
+        fieldValue,
+        bookingUid,
+        recordId
+      ).toString();
+      valueToWrite = formValue || "";
     } else if (fieldValue.startsWith("{utm:")) {
       if (!bookingUid) {
         log.error(`BookingUid not passed. Cannot get tracking values without it`);
