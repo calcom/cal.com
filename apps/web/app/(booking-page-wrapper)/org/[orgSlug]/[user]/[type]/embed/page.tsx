@@ -17,13 +17,22 @@ const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 
 export type ClientPageProps = UserTypePageProps | TeamTypePageProps;
 
+export const generateMetadata = async () => {
+  return {
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
+};
+
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
 
   const eventLocale = props.eventData?.interfaceLanguage;
   const ns = "common";
-  let translations;
+  let translations: Record<string, string> = {};
   if (eventLocale) {
     const ns = "common";
     translations = await loadTranslations(eventLocale, ns);
