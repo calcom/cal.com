@@ -43,7 +43,7 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 jobs:
   e2e:
-    timeout-minutes: 20
+    timeout-minutes: 15
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-8vcpu-ubuntu-2204
     services:
@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3]
     steps:
       - uses: docker/login-action@v3
         with:

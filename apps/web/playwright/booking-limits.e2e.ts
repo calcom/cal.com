@@ -8,17 +8,10 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 
 import { test } from "./lib/fixtures";
-import {
-  bookTimeSlot,
-  confirmReschedule,
-  createUserWithLimits,
-  expectSlotNotAllowedToBook,
-} from "./lib/testUtils";
+import { bookTimeSlot, createUserWithLimits, expectSlotNotAllowedToBook } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -67,136 +60,6 @@ const getLastEventUrlWithMonth = (user: Awaited<ReturnType<typeof createUserWith
 test.describe("Booking limits", () => {
   entries(BOOKING_LIMITS_SINGLE).forEach(([limitKey, bookingLimit]) => {
     const limitUnit = intervalLimitKeyToUnit(limitKey);
-
-    // test one limit at a time
-    test.fixme(`Per ${limitUnit}`, async ({ page, users }) => {
-      const slug = `booking-limit-${limitUnit}`;
-      const singleLimit = { [limitKey]: bookingLimit };
-
-      const user = await createUserWithLimits({
-        users,
-        slug,
-        length: EVENT_LENGTH,
-        bookingLimits: singleLimit,
-      });
-
-      let slotUrl = "";
-
-      const monthUrl = getLastEventUrlWithMonth(user, firstMondayInBookingMonth);
-      await page.goto(monthUrl);
-
-      const availableDays = page.locator('[data-testid="day"][data-disabled="false"]');
-      const bookingDay = availableDays.getByText(firstMondayInBookingMonth.date().toString(), {
-        exact: true,
-      });
-
-      // finish rendering days before counting
-      await expect(bookingDay).toBeVisible({ timeout: 10_000 });
-      const availableDaysBefore = await availableDays.count();
-
-      let latestRescheduleUrl: string | null = null;
-      await test.step("can book up to limit", async () => {
-        for (let i = 0; i < bookingLimit; i++) {
-          await bookingDay.click();
-
-          await page.getByTestId("time").nth(0).click();
-          await bookTimeSlot(page);
-
-          slotUrl = page.url();
-
-          await expect(page.getByTestId("success-page")).toBeVisible();
-          latestRescheduleUrl = await page
-            .locator('span[data-testid="reschedule-link"] > a')
-            .getAttribute("href");
-
-          await page.goto(monthUrl);
-        }
-      });
-
-      const expectedAvailableDays = {
-        day: -1,
-        week: -5,
-        month: 0,
-        year: 0,
-      };
-
-      await test.step("but not over", async () => {
-        // should already have navigated to monthUrl - just ensure days are rendered
-        await expect(page.getByTestId("day").nth(0)).toBeVisible();
-
-        // ensure the day we just booked is now blocked
-        await expect(bookingDay).toBeHidden({ timeout: 10_000 });
-
-        const availableDaysAfter = await availableDays.count();
-
-        // equals 0 if no available days, otherwise signed difference
-        expect(availableDaysAfter && availableDaysAfter - availableDaysBefore).toBe(
-          expectedAvailableDays[limitUnit]
-        );
-
-        // try to book directly via form page
-        await page.goto(slotUrl);
-        await expectSlotNotAllowedToBook(page);
-      });
-
-      await test.step("but can reschedule", async () => {
-        const bookingId = latestRescheduleUrl?.split("/").pop();
-        const rescheduledBooking = await prisma.booking.findFirstOrThrow({ where: { uid: bookingId } });
-
-        const year = rescheduledBooking.startTime.getFullYear();
-        const month = String(rescheduledBooking.startTime.getMonth() + 1).padStart(2, "0");
-        const day = String(rescheduledBooking.startTime.getDate()).padStart(2, "0");
-
-        await page.goto(
-          `/${user.username}/${
-            user.eventTypes.at(-1)?.slug
-          }?rescheduleUid=${bookingId}&date=${year}-${month}-${day}&month=${year}-${month}`
-        );
-
-        const formerDay = availableDays.getByText(rescheduledBooking.startTime.getDate().toString(), {
-          exact: true,
-        });
-        await expect(formerDay).toBeVisible();
-
-        const formerTimeElement = page.locator('[data-testid="former_time_p"]');
-        await expect(formerTimeElement).toBeVisible();
-
-        await page.locator('[data-testid="time"]').nth(0).click();
-
-        await expect(page.locator('[name="name"]')).toBeDisabled();
-        await expect(page.locator('[name="email"]')).toBeDisabled();
-
-        await confirmReschedule(page);
-
-        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-        const newBooking = await prisma.booking.findFirstOrThrow({ where: { fromReschedule: bookingId } });
-        expect(newBooking).not.toBeNull();
-
-        const updatedRescheduledBooking = await prisma.booking.findFirstOrThrow({
-          where: { uid: bookingId },
-        });
-        expect(updatedRescheduledBooking.status).toBe(BookingStatus.CANCELLED);
-
-        await prisma.booking.deleteMany({
-          where: {
-            id: {
-              in: [newBooking.id, rescheduledBooking.id],
-            },
-          },
-        });
-      });
-
-      await test.step(`month after booking`, async () => {
-        await page.goto(getLastEventUrlWithMonth(user, firstMondayInBookingMonth.add(1, "month")));
-
-        // finish rendering days before counting
-        await expect(page.getByTestId("day").nth(0)).toBeVisible({ timeout: 10_000 });
-
-        // the month after we made bookings should have availability unless we hit a yearly limit
-        await expect((await availableDays.count()) === 0).toBe(limitUnit === "year");
-      });
-    });
   });
 
   test("multiple", async ({ page, users }) => {
