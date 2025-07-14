@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
+import { Input, Label } from "../form";
 import { Icon } from "../icon";
 import { showToast } from "../toast";
 
@@ -16,26 +18,71 @@ export interface FileData {
 
 interface FileUploaderProps {
   id: string;
-  buttonMsg: string;
-  onFilesChange: (files: FileData[]) => void;
-  acceptedFileTypes?: string;
+  buttonMsg?: string;
+  onFilesChange: (allFiles: FileData[], newFiles: FileData[], removedFiles: FileData[]) => void;
+  acceptedFileTypes?: TAcceptedFileTypes[];
+  showFilesList?: boolean;
   maxFiles?: number;
   maxFileSize?: number;
   disabled?: boolean;
   testId?: string;
+  multiple?: boolean;
 }
+
+const zAcceptedFileTypes = z.enum(["any", "images", "videos", "csv", "documents"]);
+type TAcceptedFileTypes = z.infer<typeof zAcceptedFileTypes>;
+
+const documentTypes = [
+  "application/pdf", // .pdf
+  "text/plain", // .txt
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  "application/vnd.ms-excel", // .xls
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+  "text/csv", // .csv
+];
+
+const acceptFileTypes: Record<TAcceptedFileTypes, { types: string[]; extensions: string[] }> = {
+  any: { types: [], extensions: [] },
+  images: {
+    types: ["image/png", "image/jpeg"],
+    extensions: [".png", ".jpg", ".jpeg"],
+  },
+  csv: {
+    types: ["text/csv"],
+    extensions: [".csv"],
+  },
+  documents: {
+    types: documentTypes,
+    extensions: [".pdf", ".txt", ".doc", ".docx", ".xls", ".xlsx", ".csv"],
+  },
+  videos: {
+    types: ["video/mp4", "video/webm", "video/ogg"],
+    extensions: [".mp4", ".webm", ".ogg"],
+  },
+};
+
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+};
 
 export default function FileUploader({
   id,
   buttonMsg,
   onFilesChange,
-  acceptedFileTypes = "image/*,video/*",
+  acceptedFileTypes = ["any"],
   maxFiles = 5,
   maxFileSize = 10 * 1024 * 1024,
   disabled = false,
+  multiple = true,
+  showFilesList = true,
   testId,
 }: FileUploaderProps) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const [files, setFiles] = useState<FileData[]>([]);
 
   const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -49,22 +96,32 @@ export default function FileUploader({
     });
   };
 
+  const defaultT = {
+    add_files: "Add Files",
+    file_size_limit_exceed: "File size exceeds limit",
+    invalid_file_type: "Invalid file type",
+    max_files_exceeded: "Maximum files exceeded",
+    files_uploaded_successfully: "Files uploaded successfully",
+    file_upload_instructions: "Upload images or videos",
+  };
+
+  const allowedTypes = acceptedFileTypes.flatMap((type) => acceptFileTypes[type].types);
+  const allowedExtensions = acceptedFileTypes.flatMap((type) => acceptFileTypes[type].extensions);
+
   const validateFile = (file: File): string | null => {
     if (file.size > maxFileSize) {
-      return t("file_size_limit_exceed");
+      return isLocaleReady ? t("file_size_limit_exceed") : defaultT["file_size_limit_exceed"];
     }
 
-    const acceptedTypes = acceptedFileTypes.split(",").map((type) => type.trim());
-    const isValidType = acceptedTypes.some((type) => {
-      if (type.endsWith("/*")) {
-        const baseType = type.slice(0, -2);
-        return file.type.startsWith(baseType);
-      }
-      return file.type === type;
-    });
+    if (acceptedFileTypes.includes("any")) {
+      return null;
+    }
 
-    if (!isValidType) {
-      return t("invalid_file_type");
+    if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
+      const extensionsString = allowedExtensions.join(",");
+      return isLocaleReady
+        ? t("invalid_file_type_with_extensions", { extensions: extensionsString })
+        : `Invalid file type. Allowed: ${extensionsString}`;
     }
 
     return null;
@@ -76,7 +133,8 @@ export default function FileUploader({
       const errors: string[] = [];
 
       if (files.length + selectedFiles.length > maxFiles) {
-        showToast(t("max_files_exceeded", { max: maxFiles }), "error");
+        const maxFileText = isLocaleReady ? t("max_files_exceeded") : `${defaultT["max_files_exceeded"]}`;
+        showToast(maxFileText, "error");
         return;
       }
 
@@ -108,8 +166,11 @@ export default function FileUploader({
       if (newFiles.length > 0) {
         const updatedFiles = [...files, ...newFiles];
         setFiles(updatedFiles);
-        onFilesChange(updatedFiles);
-        showToast(t("files_uploaded_successfully", { count: newFiles.length }), "success");
+        onFilesChange(updatedFiles, newFiles, []);
+        const successMessage = isLocaleReady
+          ? t("files_uploaded_successfully")
+          : `${defaultT["files_uploaded_successfully"]}`;
+        showToast(successMessage, "success");
       }
     },
     [files, maxFiles, maxFileSize, acceptedFileTypes, onFilesChange, t]
@@ -119,18 +180,10 @@ export default function FileUploader({
     (fileId: string) => {
       const updatedFiles = files.filter((file) => file.id !== fileId);
       setFiles(updatedFiles);
-      onFilesChange(updatedFiles);
+      onFilesChange(updatedFiles, [], [files.find((file) => file.id === fileId)!]);
     },
     [files, onFilesChange]
   );
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-  };
 
   const getFileIcon = (fileType: string) => {
     if (fileType.startsWith("image/")) return "file";
@@ -138,66 +191,71 @@ export default function FileUploader({
     return "file-text";
   };
 
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <label
-          htmlFor={id}
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            disabled ? "cursor-not-allowed opacity-50" : ""
-          }`}>
-          <Icon name="upload" className="h-4 w-4" />
-          {buttonMsg}
-        </label>
-        <input
-          id={id}
-          type="file"
-          multiple
-          accept={acceptedFileTypes}
-          onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
-          disabled={disabled}
-          className="hidden"
-          data-testid={testId}
-        />
-        {files.length > 0 && (
-          <span className="text-sm text-gray-500">
-            {files.length}/{maxFiles} files
-          </span>
-        )}
-      </div>
+  const extensionsString = allowedExtensions.length > 0 ? allowedExtensions.join(",") : "any";
 
-      {files.length > 0 && (
-        <div className="space-y-2">
+  const fileInstructionsText = isLocaleReady
+    ? t("file_upload_instructions", {
+        types: extensionsString,
+        maxSize: formatFileSize(maxFileSize),
+      })
+    : `Accepted types: ${extensionsString}; Max file size: ${formatFileSize(maxFileSize)}`;
+  const buttonText = buttonMsg ? buttonMsg : isLocaleReady ? t("add_files") : defaultT["add_files"];
+
+  return (
+    <div>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Label
+            htmlFor={id}
+            className={`mb-0 inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              disabled ? "cursor-not-allowed opacity-50" : ""
+            }`}>
+            <Icon name="upload" className="h-4 w-4" />
+            {buttonText}
+          </Label>
+          <div className="flex items-center">
+            <Input
+              id={id}
+              type="file"
+              multiple={multiple}
+              accept={allowedTypes.join(",")}
+              onChange={(e) => e.target.files && handleFileSelect(e.target.files)}
+              disabled={disabled}
+              className="hidden"
+              data-testid={testId}
+            />
+            {files.length > 0 && (
+              <span className="text-sm">
+                {files.length}/{maxFiles} files
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      {showFilesList && files.length > 0 && (
+        <div className="mt-2 space-y-1 transition">
           {files.map((fileData) => (
-            <div
-              key={fileData.id}
-              className="flex items-center justify-between rounded-md border border-gray-200 bg-gray-50 p-2">
-              <div className="flex items-center gap-2">
-                <Icon name={getFileIcon(fileData.file.type)} className="h-4 w-4 text-gray-500" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">{fileData.file.name}</p>
-                  <p className="text-xs text-gray-500">{formatFileSize(fileData.file.size)}</p>
+            <div key={fileData.id} className="flex items-center justify-between rounded-md border">
+              <div className="flex min-w-0 items-center gap-2 pl-2">
+                <Icon name={getFileIcon(fileData.file.type)} className="h-5 w-5 flex-shrink-0" />
+                <div className="min-w-0 border-l py-2 pl-3">
+                  <p className="text-emphasis truncate text-sm font-medium">{fileData.file.name}</p>
+                  <p className="text-xs">{formatFileSize(fileData.file.size)}</p>
                 </div>
               </div>
               <Button
                 variant="icon"
+                color="destructive"
                 size="sm"
+                StartIcon="x"
                 onClick={() => handleFileRemove(fileData.id)}
-                className="h-6 w-6 p-0 text-gray-400 hover:text-red-500">
-                <Icon name="x" className="h-3 w-3" />
-              </Button>
+                className="mx-2 h-6 w-6 flex-shrink-0"
+              />
             </div>
           ))}
         </div>
       )}
-
-      <p className="text-xs text-gray-500">
-        {t("file_upload_instructions", {
-          types: acceptedFileTypes.replace(/\*/g, ""),
-          maxSize: formatFileSize(maxFileSize),
-          maxFiles,
-        })}
-      </p>
+      <p className="mt-2 text-xs">{fileInstructionsText}</p>
     </div>
   );
 }
