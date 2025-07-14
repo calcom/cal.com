@@ -66,7 +66,6 @@ const OrgGeneralView = ({
     isPending,
     error,
   } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
-  const { data: user } = trpc.viewer.me.get.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -84,7 +83,11 @@ const OrgGeneralView = ({
 
   return (
     <LicenseRequired>
-      <GeneralView currentOrg={currentOrg} localeProp={user?.locale ?? "en"} permissions={permissions} />
+      <GeneralView
+        currentOrg={currentOrg}
+        localeProp={session.data?.user.locale ?? "en"}
+        permissions={permissions}
+      />
 
       {permissions.canEdit && (
         <>
