@@ -1924,6 +1924,13 @@ model Task {
   lastError           String?
   lastFailedAttemptAt DateTime?
   referenceUid        String?
+
+  // unique index on referenceUid,type to avoid duplicate tasks
+  @@unique([referenceUid, type])
+  // for finding succeeded tasks
+  @@index([succeededAt])
+  // for finding tasks that are scheduled to be executed
+  @@index([scheduledAt, succeededAt])
 }
 
 enum SMSLockState {
