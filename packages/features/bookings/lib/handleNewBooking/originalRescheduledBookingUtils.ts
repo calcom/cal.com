@@ -27,16 +27,16 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
   }
 
   if (bookingRescheduleState === BookingRescheduleState.RESCHEDULED) {
-    throw new HttpError({ statusCode: 400, message: ErrorCode.RescheduledBookingsCannotBeRescheduled });
+    throw new HttpError({ statusCode: 400, message: ErrorCode.BookingAlreadyRescheduled });
   }
   return originalBooking;
 }
 
-export function canRescheduleBooking(booking: ReturnType<typeof getOriginalRescheduledBooking>) {
-  if (booking.status === BookingStatus.CANCELLED && !booking.rescheduled) {
+export function canRescheduleBooking(booking: { status: BookingStatus; rescheduled: boolean | null }) {
+  if (booking.status === BookingStatus.CANCELLED && !booking?.rescheduled) {
     return BookingRescheduleState.CANCELLED;
   }
-  if (booking.status === BookingStatus.CANCELLED && booking.rescheduled) {
+  if (booking.status === BookingStatus.CANCELLED && booking?.rescheduled) {
     return BookingRescheduleState.RESCHEDULED;
   }
   return BookingRescheduleState.CAN_RESCHEDULE;
