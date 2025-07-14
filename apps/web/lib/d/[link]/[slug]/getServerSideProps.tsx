@@ -3,6 +3,7 @@ import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -11,6 +12,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { HashedLinksService } from "@calcom/lib/server/service/hashedLinks.service";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -36,6 +38,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     usageCount: true,
     eventType: {
       select: {
+        userId: true,
+        teamId: true,
         users: {
           select: {
             username: true,
@@ -58,6 +62,38 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
                 hideBranding: true,
               },
             },
+            members: {
+              select: {
+                user: {
+                  select: {
+                    timeZone: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        hosts: {
+          select: {
+            user: {
+              select: {
+                timeZone: true,
+              },
+            },
+          },
+        },
+        profile: {
+          select: {
+            user: {
+              select: {
+                timeZone: true,
+              },
+            },
+          },
+        },
+        owner: {
+          select: {
+            timeZone: true,
           },
         },
       },
@@ -82,7 +118,21 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return notFound;
   }
 
-  const isExpired = hashedLink.expiresAt ? new Date(hashedLink.expiresAt).getTime() < Date.now() : false;
+  const isExpired = hashedLink.expiresAt
+    ? (() => {
+        const hostTimezone = HashedLinksService.extractHostTimezone(hashedLink.eventType);
+
+        if (hostTimezone) {
+          const now = dayjs().tz(hostTimezone);
+          const expiration = dayjs(hashedLink.expiresAt).tz(hostTimezone);
+          return expiration.isBefore(now);
+        } else {
+          const now = dayjs();
+          const expiration = dayjs(hashedLink.expiresAt);
+          return expiration.isBefore(now);
+        }
+      })()
+    : false;
   const isUsageExceeded = hashedLink.maxUsageCount
     ? hashedLink.usageCount >= hashedLink.maxUsageCount
     : false;

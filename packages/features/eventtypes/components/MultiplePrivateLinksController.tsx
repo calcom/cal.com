@@ -344,12 +344,14 @@ export const MultiplePrivateLinksController = ({
               <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
                 <strong className="mb-1 block">{t("usage_based_expiration")}</strong>
                 <p>
-                  {t(
-                    maxUsageCount === 1
-                      ? "usage_based_expiration_description"
-                      : "usage_based_expiration_description_plural",
-                    { count: maxUsageCount || 0 }
-                  )}
+                  {selectedType !== "usage"
+                    ? t("usage_based_generic_expiration_description")
+                    : t(
+                        maxUsageCount === 1
+                          ? "usage_based_expiration_description"
+                          : "usage_based_expiration_description_plural",
+                        { count: maxUsageCount || 0 }
+                      )}
                 </p>
                 {selectedType === "usage" && (
                   <div className="mt-2 w-[180px]">
@@ -373,9 +375,11 @@ export const MultiplePrivateLinksController = ({
               </RadioArea.Item>
               <RadioArea.Item data-testid="private-link-time" value="time" className="w-full text-sm">
                 <strong className="mb-1 block">{t("time_based_expiration")}</strong>
-                <p>
-                  {t("time_based_expiration_description", { date: dayjs(expiryDate).format("MMM DD, YYYY") })}
-                </p>
+                {selectedType !== "time"
+                  ? t("time_based_generic_expiration_description")
+                  : t("time_based_expiration_description", {
+                      date: dayjs(expiryDate).format("MMM DD, YYYY"),
+                    })}
                 {selectedType === "time" && (
                   <div className="mt-2 w-[180px]">
                     <DatePicker

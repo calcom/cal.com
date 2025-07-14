@@ -10,7 +10,7 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
-type EventTypeForTimezone = {
+export type EventTypeForTimezone = {
   userId?: number | null;
   teamId?: number | null;
   hosts?: Array<{
@@ -119,7 +119,7 @@ export class HashedLinksService {
 
     // Handle time-based expiration with timezone awareness
     if (hashedLink.expiresAt) {
-      const hostTimezone = this.extractHostTimezone(hashedLink.eventType);
+      const hostTimezone = HashedLinksService.extractHostTimezone(hashedLink.eventType);
 
       if (hostTimezone) {
         // Use dayjs for timezone-aware comparison
@@ -202,7 +202,7 @@ export class HashedLinksService {
    * @param eventType - Event type data with potential timezone information
    * @returns Host timezone string or null if not found
    */
-  private extractHostTimezone(eventType: EventTypeForTimezone): string | null {
+  public static extractHostTimezone(eventType: EventTypeForTimezone): string | null {
     if (eventType?.userId && eventType?.owner?.timeZone) {
       // Personal event type - use owner's timezone
       return eventType.owner.timeZone;
