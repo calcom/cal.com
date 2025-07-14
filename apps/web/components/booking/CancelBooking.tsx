@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
@@ -125,7 +124,6 @@ export default function CancelBooking(props: Props) {
   const [showVerificationDialog, setShowVerificationDialog] = useState<boolean>(false);
   const [verificationEmail, setVerificationEmail] = useState<string>("");
   const [verificationError, setVerificationError] = useState<string>("");
-  const searchParams = useSearchParams();
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -176,9 +174,7 @@ export default function CancelBooking(props: Props) {
   };
 
   const verifyAndCancel = () => {
-    const emailFromParams = searchParams?.get("email");
-
-    if (!emailFromParams && !currentUserEmail) {
+    if (!currentUserEmail) {
       setShowVerificationDialog(true);
       return;
     }
