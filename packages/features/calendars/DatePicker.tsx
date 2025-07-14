@@ -195,7 +195,10 @@ const Days = ({
 
     const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
     const away = isOOOAllDay;
-    const disabled = away ? !oooInfo?.toUser : !included || excluded;
+    
+    // Allow selected date to remain clickable even without available slots
+    const isCurrentlySelected = selected && !Array.isArray(selected) && yyyymmdd(selected) === dateKey;
+    const disabled = away ? !oooInfo?.toUser : (!included || excluded) && !isCurrentlySelected;
 
     return {
       day: day,

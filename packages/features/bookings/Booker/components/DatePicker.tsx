@@ -1,3 +1,4 @@
+import React from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -90,6 +91,17 @@ export const DatePicker = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
+  // Include selected date even if it has no availability
+  const includedDatesWithSelected = React.useMemo(() => {
+    if (!selectedDate) return nonEmptyScheduleDays;
+    
+    if (nonEmptyScheduleDays.includes(selectedDate)) {
+      return nonEmptyScheduleDays;
+    }
+    
+    return [...nonEmptyScheduleDays, selectedDate];
+  }, [nonEmptyScheduleDays, selectedDate]);
+
   const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
     browsingDate,
     nonEmptyScheduleDays,
@@ -129,7 +141,7 @@ export const DatePicker = ({
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
       onMonthChange={onMonthChange}
-      includedDates={nonEmptyScheduleDays}
+      includedDates={includedDatesWithSelected}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
