@@ -6,6 +6,8 @@ import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
+import { ZListAllWithFeaturesInputSchema } from "./teamFeatures/listAllWithFeatures.schema";
+import { ZUpdateFeaturesInputSchema } from "./teamFeatures/updateFeatures.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
@@ -81,6 +83,16 @@ export const adminRouter = router({
       }),
     toggleEnabled: authedAdminProcedure.input(workspacePlatformToggleEnabledSchema).mutation(async (opts) => {
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
+      return handler(opts);
+    }),
+  }),
+  teamFeatures: router({
+    listAllWithFeatures: authedAdminProcedure.input(ZListAllWithFeaturesInputSchema).query(async (opts) => {
+      const { default: handler } = await import("./teamFeatures/listAllWithFeatures.handler");
+      return handler(opts);
+    }),
+    updateFeatures: authedAdminProcedure.input(ZUpdateFeaturesInputSchema).mutation(async (opts) => {
+      const { default: handler } = await import("./teamFeatures/updateFeatures.handler");
       return handler(opts);
     }),
   }),

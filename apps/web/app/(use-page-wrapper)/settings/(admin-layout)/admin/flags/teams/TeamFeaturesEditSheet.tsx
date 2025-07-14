@@ -53,10 +53,10 @@ export function TeamFeaturesEditSheet({ team, onClose }: TeamFeaturesEditSheetPr
   const [isLoading, setIsLoading] = useState(false);
 
   const utils = trpc.useUtils();
-  const updateFeaturesMutation = trpc.viewer.teams.updateFeatures.useMutation({
+  const updateFeaturesMutation = trpc.viewer.admin.teamFeatures.updateFeatures.useMutation({
     onSuccess: () => {
       showToast(t("team_features_updated_successfully"), "success");
-      utils.viewer.teams.listAllWithFeatures.invalidate();
+      utils.viewer.admin.teamFeatures.listAllWithFeatures.invalidate();
       onClose();
     },
     onError: (error) => {

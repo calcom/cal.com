@@ -45,7 +45,7 @@ function TeamFeaturesListingContent() {
 
   const { limit, offset, searchTerm } = useDataTable();
 
-  const { data, isPending } = trpc.viewer.teams.listAllWithFeatures.useQuery(
+  const { data, isPending } = trpc.viewer.admin.teamFeatures.listAllWithFeatures.useQuery(
     {
       limit,
       offset,
