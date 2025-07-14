@@ -3305,7 +3305,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references": {
       "get": {
         "operationId": "OrganizationsTeamsBookingsController_getBookingReferences",
-        "summary": "Get 'Booking References' for a booking",
+        "summary": "Get booking references",
         "parameters": [
           {
             "name": "Authorization",
@@ -3376,9 +3376,56 @@
         "tags": ["Orgs / Teams / Bookings"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect": {
+      "post": {
+        "operationId": "OrganizationsConferencingController_connectTeamApp",
+        "summary": "Connect your conferencing application to a team",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "app",
+            "required": true,
+            "in": "path",
+            "description": "Conferencing application type",
+            "schema": {
+              "enum": ["google-meet"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConferencingAppOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Conferencing"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_getTeamOAuthUrl",
+        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
         "summary": "Get OAuth conferencing app's auth URL for a team",
         "parameters": [
           {
@@ -3449,7 +3496,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_listTeamConferencingApps",
+        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
         "summary": "List team conferencing applications",
         "parameters": [
           {
@@ -3476,77 +3523,13 @@
         "tags": ["Orgs / Teams / Conferencing"]
       }
     },
-    "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default/{credentialId}": {
-      "post": {
-        "operationId": "OrganizationsTeamsConferencingController_setTeamDefaultAppWithCredential",
-        "summary": "Set team default conferencing application with specific credential ID",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "credentialId",
-            "required": true,
-            "in": "path",
-            "description": "Specific credential ID to use for the conferencing app",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Orgs / Teams / Conferencing"]
-      }
-    },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default": {
       "post": {
-        "operationId": "OrganizationsTeamsConferencingController_setTeamDefaultApp",
+        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
         "summary": "Set team default conferencing application",
         "parameters": [
           {
             "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3581,7 +3564,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/default": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_getTeamDefaultApp",
+        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
         "summary": "Get team default conferencing application",
         "parameters": [
           {
@@ -3620,7 +3603,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect": {
       "delete": {
-        "operationId": "OrganizationsTeamsConferencingController_disconnectTeamApp",
+        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
         "summary": "Disconnect team conferencing application",
         "parameters": [
           {
@@ -3659,7 +3642,7 @@
     },
     "/v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/callback": {
       "get": {
-        "operationId": "OrganizationsTeamsConferencingController_saveTeamOauthCredentials",
+        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
         "summary": "Save conferencing app OAuth credentials",
         "parameters": [
           {
@@ -4929,6 +4912,141 @@
           }
         },
         "tags": ["Orgs / Teams / Routing forms / Responses"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
+      "get": {
+        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
+        "summary": "Get Stripe connect URL for a team",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "returnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "onErrorReturnTo",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Stripe"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
+      "get": {
+        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
+        "summary": "Check team Stripe connection",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Stripe"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
+      "get": {
+        "operationId": "OrganizationsStripeController_save",
+        "summary": "Save Stripe credentials",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Stripe"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
@@ -7842,7 +7960,7 @@
     "/v2/bookings/{bookingUid}/references": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingReferences",
-        "summary": "Get 'Booking References' for a booking",
+        "summary": "Get booking references",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -7908,7 +8026,7 @@
     "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
-        "summary": "Get meeting Details from calendar",
+        "summary": "Get meeting details from calendar",
         "description": "Returns detailed information about a meeting including attendance metrics",
         "parameters": [
           {
@@ -8535,55 +8653,6 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Conferencing"]
-      }
-    },
-    "/v2/conferencing/{app}/default/{credentialId}": {
-      "post": {
-        "operationId": "ConferencingController_defaultWithCredential",
-        "summary": "Set your default conferencing application with specific credential ID",
-        "parameters": [
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "credentialId",
-            "required": true,
-            "in": "path",
-            "description": "Specific credential ID to use for the conferencing app",
-            "schema": {
-              "type": "number"
             }
           },
           {
@@ -9790,8 +9859,8 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestEmailVerificationCode",
-        "summary": "Request Email Verification Code",
-        "description": "Sends a verification code to the email.",
+        "summary": "Request email verification code",
+        "description": "Sends a verification code to the email",
         "parameters": [
           {
             "name": "Authorization",
@@ -9831,8 +9900,8 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/request": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestPhoneVerificationCode",
-        "summary": "Request Phone Number Verification Code",
-        "description": "Sends a verification code to the phone number.",
+        "summary": "Request phone number verification code",
+        "description": "Sends a verification code to the phone number",
         "parameters": [
           {
             "name": "Authorization",
@@ -9872,7 +9941,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyEmail",
-        "summary": "Verify an email for an org team.",
+        "summary": "Verify an email for an org team",
         "description": "Use code to verify an email",
         "parameters": [
           {
@@ -9921,7 +9990,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify": {
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyPhoneNumber",
-        "summary": "Verify a phone number for an org team.",
+        "summary": "Verify a phone number for an org team",
         "description": "Use code to verify a phone number",
         "parameters": [
           {
@@ -9970,7 +10039,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmails",
-        "summary": "Get list of verified emails of an org team.",
+        "summary": "Get list of verified emails of an org team",
         "parameters": [
           {
             "name": "teamId",
@@ -10033,7 +10102,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
-        "summary": "Get list of verified phone numbers of an org team.",
+        "summary": "Get list of verified phone numbers of an org team",
         "parameters": [
           {
             "name": "teamId",
@@ -10096,7 +10165,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id}": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmailById",
-        "summary": "Get verified email of an org team by id.",
+        "summary": "Get verified email of an org team by id",
         "parameters": [
           {
             "name": "id",
@@ -10142,7 +10211,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
-        "summary": "Get verified phone number of an org team by id.",
+        "summary": "Get verified phone number of an org team by id",
         "parameters": [
           {
             "name": "teamId",
@@ -10183,396 +10252,6 @@
           }
         },
         "tags": ["Organization Team Verified Resources"]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/oauth/auth-url": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
-        "summary": "Get OAuth conferencing app's auth url for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["zoom", "msteams"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetConferencingAppsOauthUrlResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations / Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
-        "summary": "List team conferencing applications",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConferencingAppsOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations / Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/default": {
-      "post": {
-        "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
-        "summary": "Set team default conferencing application",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations / Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/default": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
-        "summary": "Get team default conferencing application",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations / Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/disconnect": {
-      "delete": {
-        "operationId": "OrganizationsConferencingController_disconnectTeamApp",
-        "summary": "Disconnect team conferencing application",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "description": "Conferencing application type",
-            "schema": {
-              "enum": ["google-meet", "zoom", "msteams"],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DisconnectConferencingAppOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations / Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/conferencing/{app}/oauth/callback": {
-      "get": {
-        "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
-        "summary": "Save conferencing app OAuth credentials",
-        "parameters": [
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "app",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": ["Organizations / Conferencing"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/connect": {
-      "get": {
-        "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
-        "summary": "Get Stripe connect URL for a team",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "returnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "onErrorReturnTo",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripConnectOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Stripe"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/check": {
-      "get": {
-        "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
-        "summary": "Check team Stripe connection",
-        "parameters": [
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsCheckOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Stripe"]
-      }
-    },
-    "/v2/organizations/{orgId}/teams/{teamId}/stripe/save": {
-      "get": {
-        "operationId": "OrganizationsStripeController_save",
-        "summary": "Save Stripe credentials",
-        "parameters": [
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "teamId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StripCredentialsSaveOutputResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Organizations/Teams Stripe"]
       }
     },
     "/v2/routing-forms/{routingFormId}/calculate-slots": {
@@ -12279,8 +11958,8 @@
     "/v2/teams/{teamId}/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_requestEmailVerificationCode",
-        "summary": "Request Email Verification Code",
-        "description": "Sends a verification code to the Email.",
+        "summary": "Request email verification code",
+        "description": "Sends a verification code to the Email",
         "parameters": [
           {
             "name": "Authorization",
@@ -12320,8 +11999,8 @@
     "/v2/teams/{teamId}/verified-resources/phones/verification-code/request": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_requestPhoneVerificationCode",
-        "summary": "Request Phone Number Verification Code",
-        "description": "Sends a verification code to the phone number.",
+        "summary": "Request phone number verification code",
+        "description": "Sends a verification code to the phone number",
         "parameters": [
           {
             "name": "Authorization",
@@ -12361,7 +12040,7 @@
     "/v2/teams/{teamId}/verified-resources/emails/verification-code/verify": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_verifyEmail",
-        "summary": "Verify an email for a team.",
+        "summary": "Verify an email for a team",
         "description": "Use code to verify an email",
         "parameters": [
           {
@@ -12410,7 +12089,7 @@
     "/v2/teams/{teamId}/verified-resources/phones/verification-code/verify": {
       "post": {
         "operationId": "TeamsVerifiedResourcesController_verifyPhoneNumber",
-        "summary": "Verify a phone number for an org team.",
+        "summary": "Verify a phone number for an org team",
         "description": "Use code to verify a phone number",
         "parameters": [
           {
@@ -12459,7 +12138,7 @@
     "/v2/teams/{teamId}/verified-resources/emails": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedEmails",
-        "summary": "Get list of verified emails of a team.",
+        "summary": "Get list of verified emails of a team",
         "parameters": [
           {
             "name": "teamId",
@@ -12522,7 +12201,7 @@
     "/v2/teams/{teamId}/verified-resources/phones": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
-        "summary": "Get list of verified phone numbers of a team.",
+        "summary": "Get list of verified phone numbers of a team",
         "parameters": [
           {
             "name": "teamId",
@@ -12585,7 +12264,7 @@
     "/v2/teams/{teamId}/verified-resources/emails/{id}": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedEmailById",
-        "summary": "Get verified email of a team by id.",
+        "summary": "Get verified email of a team by id",
         "parameters": [
           {
             "name": "id",
@@ -12631,7 +12310,7 @@
     "/v2/teams/{teamId}/verified-resources/phones/{id}": {
       "get": {
         "operationId": "TeamsVerifiedResourcesController_getVerifiedPhoneById",
-        "summary": "Get verified phone number of a team by id.",
+        "summary": "Get verified phone number of a team by id",
         "parameters": [
           {
             "name": "teamId",
@@ -12677,8 +12356,8 @@
     "/v2/verified-resources/emails/verification-code/request": {
       "post": {
         "operationId": "UserVerifiedResourcesController_requestEmailVerificationCode",
-        "summary": "Request Email Verification Code",
-        "description": "Sends a verification code to the email.",
+        "summary": "Request email verification code",
+        "description": "Sends a verification code to the email",
         "parameters": [
           {
             "name": "Authorization",
@@ -12718,8 +12397,8 @@
     "/v2/verified-resources/phones/verification-code/request": {
       "post": {
         "operationId": "UserVerifiedResourcesController_requestPhoneVerificationCode",
-        "summary": "Request Phone Number Verification Code",
-        "description": "Sends a verification code to the phone number.",
+        "summary": "Request phone number verification code",
+        "description": "Sends a verification code to the phone number",
         "parameters": [
           {
             "name": "Authorization",
@@ -12759,7 +12438,7 @@
     "/v2/verified-resources/emails/verification-code/verify": {
       "post": {
         "operationId": "UserVerifiedResourcesController_verifyEmail",
-        "summary": "Verify an email.",
+        "summary": "Verify an email",
         "description": "Use code to verify an email",
         "parameters": [
           {
@@ -12800,7 +12479,7 @@
     "/v2/verified-resources/phones/verification-code/verify": {
       "post": {
         "operationId": "UserVerifiedResourcesController_verifyPhoneNumber",
-        "summary": "Verify a phone number.",
+        "summary": "Verify a phone number",
         "description": "Use code to verify a phone number",
         "parameters": [
           {
@@ -12841,7 +12520,7 @@
     "/v2/verified-resources/emails": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedEmails",
-        "summary": "Get list of verified emails.",
+        "summary": "Get list of verified emails",
         "parameters": [
           {
             "name": "take",
@@ -12896,7 +12575,7 @@
     "/v2/verified-resources/phones": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneNumbers",
-        "summary": "Get list of verified phone numbers.",
+        "summary": "Get list of verified phone numbers",
         "parameters": [
           {
             "name": "take",
@@ -12951,7 +12630,7 @@
     "/v2/verified-resources/emails/{id}": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedEmailById",
-        "summary": "Get verified email by id.",
+        "summary": "Get verified email by id",
         "parameters": [
           {
             "name": "id",
@@ -12989,7 +12668,7 @@
     "/v2/verified-resources/phones/{id}": {
       "get": {
         "operationId": "UserVerifiedResourcesController_getVerifiedPhoneById",
-        "summary": "Get verified phone number by id.",
+        "summary": "Get verified phone number by id",
         "parameters": [
           {
             "name": "id",
@@ -13332,7 +13011,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -13451,7 +13131,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -13599,7 +13280,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "type": "string",
             "example": "en"
@@ -20859,17 +20541,6 @@
         },
         "required": ["status", "data"]
       },
-      "GetConferencingAppsOauthUrlResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
-      },
       "ConferencingAppsOutputDto": {
         "type": "object",
         "properties": {
@@ -20894,6 +20565,30 @@
           }
         },
         "required": ["id", "type", "userId"]
+      },
+      "ConferencingAppOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetConferencingAppsOauthUrlResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          }
+        },
+        "required": ["status"]
       },
       "ConferencingAppsOutputResponseDto": {
         "type": "object",
@@ -20930,9 +20625,6 @@
           },
           "appLink": {
             "type": "string"
-          },
-          "credentialId": {
-            "type": "number"
           }
         }
       },
@@ -20960,19 +20652,6 @@
           }
         },
         "required": ["status"]
-      },
-      "ConferencingAppOutputResponseDto": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ConferencingAppsOutputDto"
-          }
-        },
-        "required": ["status", "data"]
       },
       "GoogleServiceAccountKeyInput": {
         "type": "object",
@@ -22278,7 +21957,7 @@
         "type": "object",
         "properties": {}
       },
-      "Attendee": {
+      "CreateBookingAttendee": {
         "type": "object",
         "properties": {
           "name": {
@@ -22345,7 +22024,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "description": "The preferred language of the attendee. Used for booking confirmation.",
             "example": "it",
@@ -22405,7 +22085,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -22523,7 +22203,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -22646,7 +22326,7 @@
             "description": "The attendee's details.",
             "allOf": [
               {
-                "$ref": "#/components/schemas/Attendee"
+                "$ref": "#/components/schemas/CreateBookingAttendee"
               }
             ]
           },
@@ -22797,6 +22477,81 @@
         },
         "required": ["id", "slug"]
       },
+      "BookingAttendee": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "America/New_York"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "example": "en"
+          },
+          "absent": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          }
+        },
+        "required": ["name", "email", "timeZone", "absent"]
+      },
       "BookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -22845,7 +22600,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -22908,7 +22669,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -22994,7 +22755,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23057,7 +22824,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/BookingAttendee"
             }
           },
           "guests": {
@@ -23159,7 +22926,8 @@
               "sk",
               "ta",
               "uk",
-              "zh-TW"
+              "zh-TW",
+              "bn"
             ],
             "example": "en"
           },
@@ -23239,7 +23007,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23378,7 +23152,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23556,7 +23336,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -23690,7 +23476,13 @@
           },
           "rescheduledFromUid": {
             "type": "string",
-            "example": "previous_uid_123"
+            "example": "previous_uid_123",
+            "description": "UID of the previous booking from which this booking was rescheduled."
+          },
+          "rescheduledToUid": {
+            "type": "string",
+            "example": "new_uid_456",
+            "description": "UID of the new booking to which this booking was rescheduled."
           },
           "start": {
             "type": "string",
@@ -24078,6 +23870,18 @@
         },
         "required": ["status", "data"]
       },
+      "MarkAbsentAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "absent": {
+            "type": "boolean"
+          }
+        },
+        "required": ["email", "absent"]
+      },
       "MarkAbsentBookingInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -24089,7 +23893,7 @@
           "attendees": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/MarkAbsentAttendee"
             }
           }
         }
