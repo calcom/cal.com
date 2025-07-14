@@ -111,7 +111,7 @@ export const DatePicker = ({
 
   const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
     browsingDate,
-    nonEmptyScheduleDays, // Keep using original data for month navigation logic
+    nonEmptyScheduleDays,
     onMonthChange,
     isLoading: isLoading ?? true,
   });
