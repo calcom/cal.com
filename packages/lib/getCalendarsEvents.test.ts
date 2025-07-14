@@ -7,18 +7,17 @@ import logger from "@calcom/lib/logger";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import * as crypto from "./crypto";
+import { symmetricDecrypt } from "./crypto";
 import getCalendarsEvents, {
   getCalendarsEventsWithTimezones,
   filterSelectedCalendarsForCredential,
 } from "./getCalendarsEvents";
 
-// Mock the crypto module
 vi.mock("./crypto", () => ({
   symmetricDecrypt: vi.fn(),
 }));
 
-const mockedSymmetricDecrypt = vi.mocked(crypto.symmetricDecrypt);
+const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
 
 function buildDelegationCredential(credential: CredentialPayload): CredentialForCalendarService {
   return {
