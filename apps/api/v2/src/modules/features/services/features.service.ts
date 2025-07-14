@@ -1,46 +1,47 @@
-import { Injectable, Logger } from "@nestjs/common";
-
 import type { AppFlags } from "@calcom/features/flags/config";
 import { CachedFeaturesRepository } from "@calcom/features/flags/features.repository.cached";
+import logger from "@calcom/lib/logger";
 
-@Injectable()
 export class FeaturesService {
-  private readonly logger = new Logger("FeaturesService");
+  private readonly log = logger.getSubLogger({ prefix: ["FeaturesService"] });
+  private readonly featuresRepository: CachedFeaturesRepository;
 
-  constructor(private readonly featuresRepository: CachedFeaturesRepository) {}
+  constructor(featuresRepository: CachedFeaturesRepository) {
+    this.featuresRepository = featuresRepository;
+  }
 
   async checkGlobalFeature(slug: keyof AppFlags): Promise<boolean> {
-    this.logger.debug(`Checking global feature: ${slug}`);
+    this.log.debug(`Checking global feature: ${slug}`);
     return this.featuresRepository.checkIfFeatureIsEnabledGlobally(slug);
   }
 
   async checkUserFeature(userId: number, slug: string): Promise<boolean> {
-    this.logger.debug(`Checking user feature: ${slug} for user: ${userId}`);
+    this.log.debug(`Checking user feature: ${slug} for user: ${userId}`);
     return this.featuresRepository.checkIfUserHasFeature(userId, slug);
   }
 
   async checkTeamFeature(teamId: number, slug: keyof AppFlags): Promise<boolean> {
-    this.logger.debug(`Checking team feature: ${slug} for team: ${teamId}`);
+    this.log.debug(`Checking team feature: ${slug} for team: ${teamId}`);
     return this.featuresRepository.checkIfTeamHasFeature(teamId, slug);
   }
 
   async getAllFeatures() {
-    this.logger.debug("Retrieving all features");
+    this.log.debug("Retrieving all features");
     return this.featuresRepository.getAllFeatures();
   }
 
   async getFeatureFlagMap() {
-    this.logger.debug("Retrieving feature flag map");
+    this.log.debug("Retrieving feature flag map");
     return this.featuresRepository.getFeatureFlagMap();
   }
 
   async getTeamFeatures(teamId: number) {
-    this.logger.debug(`Retrieving features for team: ${teamId}`);
+    this.log.debug(`Retrieving features for team: ${teamId}`);
     return this.featuresRepository.getTeamFeatures(teamId);
   }
 
   async invalidateFeatureCache(userId?: number, teamId?: number, slug?: string) {
-    this.logger.debug(`Invalidating feature cache - userId: ${userId}, teamId: ${teamId}, slug: ${slug}`);
+    this.log.debug(`Invalidating feature cache - userId: ${userId}, teamId: ${teamId}, slug: ${slug}`);
     return this.featuresRepository.invalidateCache(userId, teamId, slug);
   }
 
@@ -48,7 +49,7 @@ export class FeaturesService {
     slug: keyof AppFlags,
     context: { userId?: number; teamId?: number }
   ): Promise<boolean> {
-    this.logger.debug(`Checking feature ${slug} for context:`, context);
+    this.log.debug(`Checking feature ${slug} for context:`, context);
 
     if (context.teamId) {
       return this.checkTeamFeature(context.teamId, slug);
