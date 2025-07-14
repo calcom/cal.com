@@ -283,7 +283,7 @@
   "guests": "Guests",
   "guest": "Guest",
   "web_conferencing_details_to_follow": "Web conferencing details to follow in the confirmation email.",
-  "confirmation":"Confirmation",
+  "confirmation": "Confirmation",
   "what_booker_should_provide": "What your booker should provide to receive confirmations",
   "404_the_user": "The username",
   "username": "Username",
@@ -3362,5 +3362,6 @@
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "booking_already_rescheduled_error": "Booking has already been rescheduled",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
