@@ -539,6 +539,12 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
+                eb
+                  .cast<Prisma.JsonObject | null>( // Target TypeScript type
+                    eb.ref("BookingSeat.data"), // Source column
+                    "jsonb" // Target SQL type
+                  )
+                  .as("data"),
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
@@ -643,8 +649,24 @@ export async function getBookings({
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
-        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      if (booking.seatsReferences.length) {
+        const attendeeSeat = booking.seatsReferences.find(
+          (seatRef) => seatRef.attendee?.email === user.email
+        );
+
+        if (attendeeSeat && attendeeSeat.attendee) {
+          booking.responses = attendeeSeat?.data?.responses || {};
+          booking.seatsReferences = booking.seatsReferences.map((seatRef) => {
+            return {
+              referenceUid: seatRef.referenceUid,
+              attendee: seatRef.attendee,
+              data: null,
+            };
+          });
+        }
+
+        if (!booking.eventType?.seatsShowAttendees)
+          booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
       let rescheduler = null;
