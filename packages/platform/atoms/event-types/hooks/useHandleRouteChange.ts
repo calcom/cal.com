@@ -19,6 +19,8 @@ export const useHandleRouteChange = ({
   onStart,
   onEnd,
   watchTrigger,
+  isFormDirty,
+  onUnsavedChanges,
 }: {
   isTeamEventTypeDeleted: boolean;
   isleavingWithoutAssigningHosts: boolean;
@@ -31,6 +33,8 @@ export const useHandleRouteChange = ({
   onError?: (url: string) => void;
   onStart?: (handleRouteChange: (url: string) => void) => void;
   onEnd?: (handleRouteChange: (url: string) => void) => void;
+  isFormDirty?: boolean;
+  onUnsavedChanges?: (url: string) => void;
 }) => {
   useEffect(() => {
     const handleRouteChange = (url: string) => {
@@ -38,6 +42,11 @@ export const useHandleRouteChange = ({
 
       // If the event-type is deleted, we can't show the empty assignment warning
       if (isTeamEventTypeDeleted) return;
+
+      if (isFormDirty && onUnsavedChanges) {
+        onUnsavedChanges(url);
+        return;
+      }
 
       if (
         !!isTeamEventType &&
@@ -58,5 +67,15 @@ export const useHandleRouteChange = ({
       onEnd?.(handleRouteChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [watchTrigger, hosts, assignedUsers, assignAllTeamMembers, onError, onStart, onEnd]);
+  }, [
+    watchTrigger,
+    hosts,
+    assignedUsers,
+    assignAllTeamMembers,
+    onError,
+    onStart,
+    onEnd,
+    isFormDirty,
+    onUnsavedChanges,
+  ]);
 };
