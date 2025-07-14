@@ -7,7 +7,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Core Booking Functionality", () => {
   test("Should be able to book a basic event", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -25,14 +25,12 @@ test.describe("Core Booking Functionality", () => {
   });
 
   test("Should be able to reschedule a booking", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await bookTimeSlot(page, {
       name: "John Doe",
       email: "john@example.com",
-      eventTypeSlug: "30min",
-      selectFirstAvailableTime: true,
     });
 
     await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
@@ -51,14 +49,12 @@ test.describe("Core Booking Functionality", () => {
   });
 
   test("Should be able to cancel a booking", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await bookTimeSlot(page, {
       name: "John Doe",
       email: "john@example.com",
-      eventTypeSlug: "30min",
-      selectFirstAvailableTime: true,
     });
 
     await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
@@ -75,14 +71,12 @@ test.describe("Core Booking Functionality", () => {
   });
 
   test("Should display booking confirmation details", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await bookTimeSlot(page, {
       name: "John Doe",
       email: "john@example.com",
-      eventTypeSlug: "30min",
-      selectFirstAvailableTime: true,
     });
 
     await expect(page.locator('[data-testid="success-page"]')).toBeVisible();
@@ -92,7 +86,7 @@ test.describe("Core Booking Functionality", () => {
   });
 
   test("Should handle booking with custom questions", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -119,7 +113,7 @@ test.describe("Core Booking Functionality", () => {
   });
 
   test("Should handle booking with different durations", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -143,7 +137,7 @@ test.describe("Core Booking Functionality", () => {
 
 test.describe("Dynamic Booking Pages", () => {
   test("Should load dynamic user booking page", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto(`/${user.username}`);
@@ -152,15 +146,15 @@ test.describe("Dynamic Booking Pages", () => {
   });
 
   test("Should display available event types on user page", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto(`/${user.username}`);
-    await expect(page.locator('[data-testid="event-type-link"]')).toHaveCount.greaterThan(0);
+    await expect(page.locator('[data-testid="event-type-link"]')).toHaveCount(1);
   });
 
   test("Should navigate from user page to event booking", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto(`/${user.username}`);
@@ -169,7 +163,7 @@ test.describe("Dynamic Booking Pages", () => {
   });
 
   test("Should handle team booking pages", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/teams");

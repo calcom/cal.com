@@ -7,7 +7,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Organization Management", () => {
   test("Should be able to create an organization", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -19,7 +19,7 @@ test.describe("Organization Management", () => {
   });
 
   test("Should be able to invite members to organization", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -36,7 +36,7 @@ test.describe("Organization Management", () => {
   });
 
   test("Should handle organization booking flow", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -60,7 +60,7 @@ test.describe("Organization Management", () => {
   });
 
   test("Should manage organization teams", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -77,7 +77,7 @@ test.describe("Organization Management", () => {
   });
 
   test("Should handle organization settings", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -95,7 +95,7 @@ test.describe("Organization Management", () => {
 
 test.describe("Organization Attributes", () => {
   test("Should manage organization attributes", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -113,7 +113,7 @@ test.describe("Organization Attributes", () => {
   });
 
   test("Should assign attributes to members", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");
@@ -138,7 +138,7 @@ test.describe("Organization Attributes", () => {
 
 test.describe("Organization Workflows", () => {
   test("Should create organization-wide workflows", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/organizations/new");

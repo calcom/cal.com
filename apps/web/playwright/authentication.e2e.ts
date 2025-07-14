@@ -6,11 +6,11 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Authentication", () => {
   test("Should be able to login with email and password", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await page.goto("/auth/login");
 
     await page.locator('[name="email"]').fill(user.email);
-    await page.locator('[name="password"]').fill(user.password);
+    await page.locator('[name="password"]').fill(user.username || "password");
     await page.locator('[type="submit"]').click();
 
     await expect(page).toHaveURL("/event-types");
@@ -28,7 +28,7 @@ test.describe("Authentication", () => {
   });
 
   test("Should be able to logout", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
 
@@ -65,7 +65,7 @@ test.describe("Authentication", () => {
 
 test.describe("Two-Factor Authentication", () => {
   test("Should be able to enable 2FA", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/settings/security/two-factor-auth");
 
@@ -74,7 +74,7 @@ test.describe("Two-Factor Authentication", () => {
   });
 
   test("Should require 2FA code when enabled", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/security/two-factor-auth");
@@ -84,7 +84,7 @@ test.describe("Two-Factor Authentication", () => {
     await page.goto("/auth/login");
 
     await page.locator('[name="email"]').fill(user.email);
-    await page.locator('[name="password"]').fill(user.password);
+    await page.locator('[name="password"]').fill(user.username || "password");
     await page.locator('[type="submit"]').click();
 
     await expect(page.locator('[data-testid="2fa-input"]')).toBeVisible();
@@ -114,7 +114,7 @@ test.describe("API Authentication", () => {
   });
 
   test("Should allow authenticated API requests", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     const response = await page.request.get("/api/user");
@@ -122,7 +122,7 @@ test.describe("API Authentication", () => {
   });
 
   test("Should handle API key authentication", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
 
     await page.goto("/settings/developer/api-keys");

@@ -7,7 +7,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("Advanced Booking Features", () => {
   test("Should handle seat-based bookings", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -32,7 +32,7 @@ test.describe("Advanced Booking Features", () => {
   });
 
   test("Should handle payment integration", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -57,7 +57,7 @@ test.describe("Advanced Booking Features", () => {
   });
 
   test("Should handle complex booking questions", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -94,7 +94,7 @@ test.describe("Advanced Booking Features", () => {
   });
 
   test("Should handle booking with workflows", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/workflows");
     await page.locator('[data-testid="new-workflow"]').click();
@@ -128,7 +128,7 @@ test.describe("Advanced Booking Features", () => {
   });
 
   test("Should handle recurring bookings", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -156,7 +156,7 @@ test.describe("Advanced Booking Features", () => {
 
 test.describe("Booking Limits and Restrictions", () => {
   test("Should respect duration limits", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
@@ -180,7 +180,7 @@ test.describe("Booking Limits and Restrictions", () => {
   });
 
   test("Should handle minimum booking notice", async ({ page, users }) => {
-    const user = users.get();
+    const [user] = users.get();
     await user.apiLogin();
     await page.goto("/event-types");
     await page.locator('[data-testid="new-event-type"]').click();
