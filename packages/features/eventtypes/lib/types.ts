@@ -162,6 +162,7 @@ export type FormValues = {
     disableTranscriptionForGuests?: boolean;
     disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
+    disableRecordingEmailsForGuests?: boolean;
   };
   maxActiveBookingPerBookerOfferReschedule: boolean;
 };

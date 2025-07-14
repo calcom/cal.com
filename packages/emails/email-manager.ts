@@ -728,18 +728,26 @@ export const sendNoShowFeeChargedEmail = async (
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };
 
-export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+export const sendDailyVideoRecordingEmails = async (
+  calEvent: CalendarEvent,
+  downloadLink: string,
+  disableRecordingEmailsForGuests = false
+) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
+  // Always send to organizer
   emailsToSend.push(
     sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calendarEvent, downloadLink))
   );
 
-  for (const attendee of calendarEvent.attendees) {
-    emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
-    );
+  // Only send to attendees if not disabled
+  if (!disableRecordingEmailsForGuests) {
+    for (const attendee of calendarEvent.attendees) {
+      emailsToSend.push(
+        sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
+      );
+    }
   }
   await Promise.all(emailsToSend);
 };

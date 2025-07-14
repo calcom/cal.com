@@ -10,6 +10,7 @@ const calVideoSettingsSchema = z
     disableRecordingForGuests: z.boolean().optional().nullable(),
     disableRecordingForOrganizer: z.boolean().optional().nullable(),
     redirectUrlOnExit: z.string().url().optional().nullable(),
+    disableRecordingEmailsForGuests: z.boolean().optional().nullable(),
   })
   .optional()
   .nullable();
