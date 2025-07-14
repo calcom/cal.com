@@ -1,4 +1,4 @@
-import { CachedFeaturesRepository } from "@calcom/features/flags/features.repository.cached";
+import type { TeamFeatures } from "@calcom/features/flags/config";
 import prisma from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../../types";
@@ -44,6 +44,11 @@ export const listAllWithFeaturesHandler = async ({ ctx, input }: ListAllWithFeat
             name: true,
           },
         },
+        features: {
+          select: {
+            featureId: true,
+          },
+        },
       },
       orderBy: { name: "asc" },
       take: limit,
@@ -52,13 +57,47 @@ export const listAllWithFeaturesHandler = async ({ ctx, input }: ListAllWithFeat
     prisma.team.count({ where }),
   ]);
 
-  const featuresRepo = new CachedFeaturesRepository();
-  const teamsWithFeatures = await Promise.all(
-    teams.map(async (team) => ({
+  const teamsWithFeatures = teams.map((team) => {
+    const features: TeamFeatures = {} as TeamFeatures;
+
+    const allFeatureKeys = [
+      "calendar-cache",
+      "calendar-cache-serve",
+      "emails",
+      "insights",
+      "teams",
+      "webhooks",
+      "workflows",
+      "organizations",
+      "email-verification",
+      "google-workspace-directory",
+      "disable-signup",
+      "attributes",
+      "organizer-request-email-v2",
+      "delegation-credential",
+      "salesforce-crm-tasker",
+      "workflow-smtp-emails",
+      "cal-video-log-in-overlay",
+      "use-api-v2-for-team-slots",
+      "pbac",
+      "restriction-schedule",
+    ] as const;
+
+    allFeatureKeys.forEach((key) => {
+      features[key] = false;
+    });
+
+    team.features.forEach((teamFeature) => {
+      if (teamFeature.featureId in features) {
+        features[teamFeature.featureId as keyof TeamFeatures] = true;
+      }
+    });
+
+    return {
       ...team,
-      features: (await featuresRepo.getTeamFeatures(team.id)) || {},
-    }))
-  );
+      features,
+    };
+  });
 
   return {
     teams: teamsWithFeatures,
