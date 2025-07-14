@@ -18,9 +18,6 @@ export const useAtomGetEventTypes = (teamId?: number, disableBulkUpdateEventType
   if (teamId) {
     pathname = `/atoms/organizations/${organizationId}/teams/${teamId}/event-types`;
   }
-  // else if (orgId) {
-  //   pathname = `/atoms/organizations/${orgId}/event-types`;
-  // }
 
   return useQuery({
     queryKey: [QUERY_KEY, teamId, organizationId],
