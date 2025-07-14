@@ -1427,8 +1427,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.status).toEqual("cancelled");
-
-            createdBooking = data;
+            expect(data.rescheduledToUid).toEqual(rescheduledBooking.uid);
           });
       });
 
