@@ -85,6 +85,11 @@ const WriteToObjectSettings = ({
   });
 
   const startEditing = (key: string) => {
+    Object.keys(editingRows).forEach((rowKey) => {
+      if (editingRows[rowKey] && rowKey !== key) {
+        cancelEditing(rowKey);
+      }
+    });
     setEditingRows((prev) => ({ ...prev, [key]: true }));
     setEditingData((prev) => ({
       ...prev,
@@ -109,6 +114,11 @@ const WriteToObjectSettings = ({
   const saveEditing = (key: string) => {
     const editData = editingData[key];
     if (!editData) return;
+
+    if (!editData.field.trim()) {
+      showToast("Field name cannot be empty", "error");
+      return;
+    }
 
     if (editData.field !== key && Object.keys(writeToObjectData).includes(editData.field.trim())) {
       showToast("Field already exists", "error");
@@ -165,7 +175,7 @@ const WriteToObjectSettings = ({
                         onChange={(e) =>
                           setEditingData((prev) => ({
                             ...prev,
-                            [key]: { ...prev[key], field: e.target.value },
+                            [key]: { ...editData, field: e.target.value },
                           }))
                         }
                         size="sm"
@@ -187,7 +197,7 @@ const WriteToObjectSettings = ({
                             setEditingData((prev) => ({
                               ...prev,
                               [key]: {
-                                ...prev[key],
+                                ...editData,
                                 fieldType: e.value,
                                 ...(e.value === SalesforceFieldType.DATE && {
                                   value: dateFieldValueOptions[0].value,
@@ -223,7 +233,7 @@ const WriteToObjectSettings = ({
                             if (e) {
                               setEditingData((prev) => ({
                                 ...prev,
-                                [key]: { ...prev[key], value: e.value },
+                                [key]: { ...editData, value: e.value },
                               }));
                             }
                           }}
@@ -238,7 +248,7 @@ const WriteToObjectSettings = ({
                             if (e) {
                               setEditingData((prev) => ({
                                 ...prev,
-                                [key]: { ...prev[key], value: e.value },
+                                [key]: { ...editData, value: e.value },
                               }));
                             }
                           }}
@@ -249,7 +259,7 @@ const WriteToObjectSettings = ({
                           onChange={(e) =>
                             setEditingData((prev) => ({
                               ...prev,
-                              [key]: { ...prev[key], value: e.target.value },
+                              [key]: { ...editData, value: e.target.value },
                             }))
                           }
                           size="sm"
@@ -296,7 +306,7 @@ const WriteToObjectSettings = ({
                           if (e) {
                             setEditingData((prev) => ({
                               ...prev,
-                              [key]: { ...prev[key], whenToWrite: e.value },
+                              [key]: { ...editData, whenToWrite: e.value },
                             }));
                           }
                         }}
