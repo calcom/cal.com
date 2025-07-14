@@ -401,12 +401,6 @@ const TeamListCollapsible = () => {
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
-                  <VerticalTabItem
-                    name={t("event_types_page_title")}
-                    href={`/event-types?teamId=${team.id}`}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    disableChevron
-                  />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
