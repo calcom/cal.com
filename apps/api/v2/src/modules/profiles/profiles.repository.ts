@@ -14,6 +14,9 @@ export class ProfilesRepository {
       orderBy: {
         createdAt: "asc",
       },
+      select: {
+        userId: true,
+      },
     });
 
     return profile?.userId;
