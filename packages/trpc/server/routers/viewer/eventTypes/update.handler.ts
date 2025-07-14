@@ -601,7 +601,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (calVideoSettings) {
     const { hasTeamPlan } = await hasTeamPlanHandler({
-      ctx: { user: ctx.user as SessionUser },
+      ctx: { user: ctx.user },
     });
 
     if (hasTeamPlan) {
