@@ -42,9 +42,8 @@ export default function JoinCall(props: PageProps) {
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
-  const [showFlappyBird, setShowFlappyBird] = useState(
-    !!booking?.eventType?.calVideoSettings?.enableFlappyBirdGame
-  );
+  const [showFlappyBird, setShowFlappyBird] = useState(false);
+  const [userHasJoined, setUserHasJoined] = useState(false);
 
   useEffect(() => {
     let callFrame: DailyCall | undefined;
@@ -106,7 +105,23 @@ export default function JoinCall(props: PageProps) {
       setDaily(callFrame);
       callFrame.join();
 
-      // Hiding Flappy Bird game when participants join
+      // Show Flappy Bird game only after user has actually joined the meeting
+      callFrame.on("participant-updated", (event) => {
+        const isLocalParticipant = event?.participant?.local;
+        const hasJoinedCall = event?.participant?.session_id;
+
+        if (
+          isLocalParticipant &&
+          hasJoinedCall &&
+          !userHasJoined &&
+          booking?.eventType?.calVideoSettings?.enableFlappyBirdGame
+        ) {
+          setUserHasJoined(true);
+          setShowFlappyBird(true);
+        }
+      });
+
+      // Hide Flappy Bird game when other participants join
       callFrame.on("participant-joined", () => {
         setShowFlappyBird(false);
       });
@@ -127,6 +142,7 @@ export default function JoinCall(props: PageProps) {
     hasTeamPlan,
     showRecordingButton,
     showTranscriptionButton,
+    booking?.eventType?.calVideoSettings?.enableFlappyBirdGame,
   ]);
 
   return (

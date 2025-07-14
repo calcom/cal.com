@@ -11,7 +11,6 @@ interface FlappyBirdGameProps {
 
 export const FlappyBirdGame = ({ onClose }: FlappyBirdGameProps) => {
   const { t } = useLocale();
-  const [isVisible, setIsVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const loadTimeoutRef = useRef<NodeJS.Timeout>();
@@ -57,22 +56,11 @@ export const FlappyBirdGame = ({ onClose }: FlappyBirdGameProps) => {
     }
   };
 
-  if (!isVisible) return null;
-
   return (
     <div className="game-container fixed right-[30px] top-1/2 z-[999] -mt-[200px] h-[415px] w-[276px] rounded-lg max-sm:right-[10px] max-sm:-mt-[150px] max-sm:h-[300px] max-sm:w-[200px] sm:h-[415px] sm:w-[276px]">
       <div className="flex items-center justify-between rounded-t-lg bg-black/80 p-2">
         <h3 className="font-medium text-white">{t("flappy_bird_game")}</h3>
-        <div className="flex gap-2">
-          <Button
-            variant="icon"
-            color="minimal"
-            onClick={() => setIsVisible(false)}
-            StartIcon="x"
-            className="h-8 w-8"
-          />
-          <Button variant="icon" color="minimal" onClick={onClose} StartIcon="x" className="h-8 w-8" />
-        </div>
+        <Button variant="icon" color="minimal" onClick={onClose} StartIcon="x" className="h-8 w-8" />
       </div>
       <div className="relative h-[calc(100%-40px)] w-full">
         {isLoading && !hasError && (
