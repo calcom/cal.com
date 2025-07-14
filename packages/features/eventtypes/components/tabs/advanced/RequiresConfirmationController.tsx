@@ -104,7 +104,7 @@ export default function RequiresConfirmationController({
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
-                // If we uncheck requires confirmation, we also uncheck these checkbox
+                // If we uncheck requires confirmation, we also uncheck these checkboxes
                 if (!val) {
                   formMethods.setValue("requiresConfirmationWillBlockSlot", false, { shouldDirty: true });
                   formMethods.setValue("requiresConfirmationForFreeEmail", false, { shouldDirty: true });
