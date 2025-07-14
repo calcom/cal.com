@@ -3,6 +3,7 @@ import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -89,11 +90,14 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     if (deletedOutOfOfficeEntry.externalId) {
       const hrmsCredentials = [];
 
-      const userCredentials = await CredentialRepository.findManyByUserId({
+      const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
         userId: oooUserId,
-        appId: "deel",
+        category: [AppCategories.hrms],
       });
-      hrmsCredentials.push(...userCredentials);
+
+      if (userCredentials) {
+        hrmsCredentials.push(...userCredentials);
+      }
 
       const user = await prisma.user.findUnique({
         where: { id: oooUserId },
@@ -107,23 +111,25 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
 
       if (user?.teams) {
         for (const team of user.teams) {
-          const teamCredentials = await CredentialRepository.findManyByTeamId({ teamId: team.teamId });
-          hrmsCredentials.push(...teamCredentials.filter((c) => c.appId === "deel"));
+          const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+            teamId: team.teamId,
+            category: [AppCategories.hrms],
+          });
+          if (teamCredentials) hrmsCredentials.push(...teamCredentials);
         }
       }
 
       if (user?.organizationId) {
-        const orgCredentials = await CredentialRepository.findManyByOrganizationId({
-          organizationId: user.organizationId,
+        const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+          teamId: user.organizationId,
+          category: [AppCategories.hrms],
         });
-        hrmsCredentials.push(...orgCredentials.filter((c) => c.appId === "deel"));
+        if (orgCredentials) hrmsCredentials.push(...orgCredentials);
       }
 
       for (const credential of hrmsCredentials) {
-        if (credential.appId === "deel") {
-          const hrmsManager = new HrmsManager(credential);
-          await hrmsManager.deleteOOO(deletedOutOfOfficeEntry.externalId);
-        }
+        const hrmsManager = new HrmsManager(credential);
+        await hrmsManager.deleteOOO(deletedOutOfOfficeEntry.externalId);
       }
     }
   } catch (error) {

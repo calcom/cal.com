@@ -1,11 +1,118 @@
+import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
+import logger from "@calcom/lib/logger";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-export const outOfOfficeReasonList = async () => {
+const log = logger.getSubLogger({ prefix: [`[outOfOfficeReasons.handler]`] });
+
+interface OutOfOfficeReasonsHandlerOptions {
+  ctx?: {
+    user: TrpcSessionUser;
+  };
+}
+
+export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerOptions) => {
   const outOfOfficeReasons = await prisma.outOfOfficeReason.findMany({
     where: {
       enabled: true,
     },
   });
 
-  return outOfOfficeReasons;
+  if (!options?.ctx?.user?.email) {
+    log.debug("No user context provided, returning static reasons only");
+    return outOfOfficeReasons;
+  }
+
+  try {
+    const { user } = options.ctx;
+    const hrmsCredentials = [];
+
+    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+      userId: user.id,
+      category: [AppCategories.hrms],
+    });
+
+    if (userCredentials) {
+      hrmsCredentials.push(...userCredentials);
+    }
+
+    const userWithTeams = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        organizationId: true,
+        teams: {
+          select: { teamId: true },
+        },
+      },
+    });
+
+    if (userWithTeams?.teams) {
+      for (const team of userWithTeams.teams) {
+        const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+          teamId: team.teamId,
+          category: [AppCategories.hrms],
+        });
+        if (teamCredentials) hrmsCredentials.push(...teamCredentials);
+      }
+    }
+
+    if (userWithTeams?.organizationId) {
+      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+        teamId: userWithTeams.organizationId,
+        category: [AppCategories.hrms],
+      });
+      if (orgCredentials) hrmsCredentials.push(...orgCredentials);
+    }
+
+    const hrmsReasons: {
+      id: string;
+      name: string;
+      emoji?: string;
+      reason?: string;
+      userId?: number | null;
+      enabled?: boolean;
+    }[] = [];
+
+    for (const credential of hrmsCredentials) {
+      try {
+        const hrmsManager = new HrmsManager(credential);
+        const reasons = await hrmsManager.listOOOReasons(user.email);
+
+        const mappedReasons = reasons.map((reason) => ({
+          id: reason.id,
+          name: reason.name,
+          emoji: "🏖️",
+          reason: reason.name,
+          userId: null,
+          enabled: true,
+        }));
+
+        hrmsReasons.push(...mappedReasons);
+        log.info("Successfully fetched HRMS OOO reasons", {
+          appId: credential.appId,
+          count: reasons.length,
+        });
+      } catch (error) {
+        log.error("Failed to fetch HRMS OOO reasons", {
+          appId: credential.appId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    if (hrmsReasons.length > 0) {
+      log.info("Returning HRMS reasons", { count: hrmsReasons.length });
+      return hrmsReasons;
+    }
+
+    log.debug("No HRMS reasons found, falling back to static reasons");
+    return outOfOfficeReasons;
+  } catch (error) {
+    log.error("Error fetching HRMS OOO reasons, falling back to static reasons", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return outOfOfficeReasons;
+  }
 };

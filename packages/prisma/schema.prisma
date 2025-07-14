@@ -1788,12 +1788,13 @@ model OutOfOfficeEntry {
 }
 
 model OutOfOfficeReason {
-  id      Int     @id @default(autoincrement())
-  emoji   String
-  reason  String  @unique
-  enabled Boolean @default(true)
-  userId  Int?
-  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         Int     @id @default(autoincrement())
+  emoji      String
+  reason     String  @unique
+  enabled    Boolean @default(true)
+  userId     Int?
+  externalId String?
+  user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
 }

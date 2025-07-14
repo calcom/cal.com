@@ -36,7 +36,7 @@ export type BookingRedirectForm = {
   toUserName?: string;
 };
 
-type Option = { value: number; label: string };
+type Option = { value: string; label: string };
 
 export const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
@@ -125,9 +125,10 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
+
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
-    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
-    value: reason.id,
+    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason || "") : reason.reason || ""}`,
+    value: String(reason.id),
   }));
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
@@ -320,7 +321,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       className="mb-0 mt-1 text-white"
                       name="reason"
                       data-testid="reason_select"
-                      value={reasonList.find((reason) => reason.value === value)}
+                      value={reasonList.find((reason) => reason.value === String(value))}
                       placeholder={t("ooo_select_reason")}
                       options={reasonList}
                       onChange={(selectedOption) => {

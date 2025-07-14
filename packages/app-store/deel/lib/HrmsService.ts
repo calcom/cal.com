@@ -173,7 +173,7 @@ export default class DeelHrmsService implements HrmsService {
   }
 
   async updateOOO(
-    timeOffId: string,
+    externalId: string,
     params: {
       startDate?: string;
       endDate?: string;
@@ -188,7 +188,7 @@ export default class DeelHrmsService implements HrmsService {
       if (params.endDate) request.end_date = params.endDate;
       if (params.notes) request.notes = params.notes;
 
-      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`, {
+      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(externalId)}`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -200,25 +200,25 @@ export default class DeelHrmsService implements HrmsService {
       if (!response.ok) {
         const errorText = await response.text();
         this.log.error("Failed to update Deel time-off request", {
-          timeOffId,
+          externalId,
           status: response.status,
           error: errorText,
         });
         throw new Error(`Deel API error: ${response.status} ${errorText}`);
       }
 
-      this.log.info("Successfully updated Deel time-off request", { id: timeOffId });
+      this.log.info("Successfully updated Deel time-off request", { id: externalId });
     } catch (error) {
       this.log.error("Error updating Deel time-off request", error);
       throw error;
     }
   }
 
-  async deleteOOO(timeOffId: string): Promise<void> {
+  async deleteOOO(externalId: string): Promise<void> {
     try {
       const accessToken = await this.getAccessToken();
 
-      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(timeOffId)}`, {
+      const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(externalId)}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -228,17 +228,63 @@ export default class DeelHrmsService implements HrmsService {
       if (!response.ok) {
         const errorText = await response.text();
         this.log.error("Failed to delete Deel time-off request", {
-          timeOffId,
+          externalId,
           status: response.status,
           error: errorText,
         });
         throw new Error(`Deel API error: ${response.status} ${errorText}`);
       }
 
-      this.log.info("Successfully deleted Deel time-off request", { id: timeOffId });
+      this.log.info("Successfully deleted Deel time-off request", { id: externalId });
     } catch (error) {
       this.log.error("Error deleting Deel time-off request", error);
       throw error;
+    }
+  }
+
+  async listOOOReasons(userEmail: string): Promise<{ id: string; name: string }[]> {
+    try {
+      const recipientProfileId = await this.getRecipientProfileId(userEmail);
+      if (!recipientProfileId) {
+        this.log.warn("Recipient profile ID not found for user", { email: userEmail });
+        return [];
+      }
+
+      const accessToken = await this.getAccessToken();
+      const response = await fetch(
+        `${deelApiUrl}/rest/v2/time_offs/profile/${encodeURIComponent(recipientProfileId)}/policies`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        this.log.warn("Could not fetch Deel policies for OOO reasons", {
+          profileId: recipientProfileId,
+          status: response.status,
+        });
+        return [];
+      }
+
+      const data: DeelPoliciesResponse = await response.json();
+      const reasons: { id: string; name: string }[] = [];
+
+      for (const policy of data.policies || []) {
+        for (const timeOffType of policy.time_off_types || []) {
+          reasons.push({
+            id: timeOffType.id,
+            name: timeOffType.name,
+          });
+        }
+      }
+
+      this.log.info("Successfully fetched Deel OOO reasons", { count: reasons.length });
+      return reasons;
+    } catch (error) {
+      this.log.error("Error fetching Deel OOO reasons", error);
+      return [];
     }
   }
 
