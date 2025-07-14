@@ -5,31 +5,22 @@ import path from "path";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
 function findMonorepoRoot(): string {
-  // Try multiple starting points to handle both source and build contexts
-  const startingPoints = [
-    __dirname, // Original source directory
-    process.cwd(), // Current working directory (project root)
-    path.resolve("."), // Resolved current directory
-  ];
-
-  for (const startDir of startingPoints) {
-    let currentDir = startDir;
-    while (currentDir !== path.dirname(currentDir)) {
-      try {
-        const packageJsonPath = path.join(currentDir, "package.json");
-        const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-        if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
-          return currentDir;
-        }
-      } catch (error) {
-        // package.json doesn't exist in this directory
-        // Just continue to the next directory
+  let currentDir = process.cwd();
+  while (currentDir !== path.dirname(currentDir)) {
+    try {
+      const packageJsonPath = path.join(currentDir, "package.json");
+      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
+        return currentDir;
       }
-      currentDir = path.dirname(currentDir);
+    } catch (error) {
+      // package.json doesn't exist in this directory
+      // Just continue to the next directory
     }
+    currentDir = path.dirname(currentDir);
   }
 
-  throw new Error("Could not find monorepo root - repository structure may be corrupted");
+  return process.cwd();
 }
 
 const LOCALES_PATH = path.join(findMonorepoRoot(), "packages/lib/server/locales");
