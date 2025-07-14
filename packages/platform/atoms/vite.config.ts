@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         external: ["react", "fs", "path", "os", "react/jsx-runtime", "react-dom", "react-dom/client"],
         output: {
-          format: "esm", // Force ESM output
+          format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",
@@ -62,9 +62,9 @@ export default defineConfig(({ mode }) => {
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
         "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
-        "@calcom/web/public/static/locales/en/common.json": path.resolve(
+        "@calcom/lib/server/locales/en/common.json": path.resolve(
           __dirname,
-          "../../../apps/web/public/static/locales/en/common.json"
+          "../../lib/server/locales/en/common.json"
         ),
       },
     },
