@@ -92,7 +92,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           ? [
               {
                 name: "members",
-                href: `/settings/organizations/${orgBranding.slug}/members`,
+                href: "https://app.cal.com/settings/organizations/i/members",
+                isExternalLink: true,
               },
             ]
           : []),
