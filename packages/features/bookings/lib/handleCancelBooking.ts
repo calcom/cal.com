@@ -120,6 +120,13 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
+  if (bookingToDelete.endTime && bookingToDelete.endTime < new Date()) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "The event is in the past",
+    });
+  }
+
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
