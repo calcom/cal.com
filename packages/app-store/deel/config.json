@@ -6,7 +6,7 @@
   "logo": "icon.svg",
   "url": "https://go.cal.com/deel",
   "variant": "other",
-  "categories": ["other"],
+  "categories": ["other", "hrms"],
   "publisher": "Deel.com",
   "email": "support@deel.com",
   "description": "Integrate Deel with your Calendar and automatically create time-off requests when you're out of office. No manual entry. No errors. Just seamless time-off management.",

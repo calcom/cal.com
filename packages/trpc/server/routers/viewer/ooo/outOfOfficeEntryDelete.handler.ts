@@ -1,6 +1,7 @@
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -85,22 +86,25 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
 
   try {
     if (deletedOutOfOfficeEntry.deelTimeOffId) {
-      const deelCredential = await prisma.credential.findFirst({
+      const hrmsCredentials = await prisma.credential.findMany({
         where: {
           userId: oooUserId,
-          type: "deel_other",
-          appId: "deel",
+          type: { endsWith: "_other" },
+          appId: { in: ["deel"] },
         },
+        select: credentialForCalendarServiceSelect,
       });
 
-      if (deelCredential) {
-        const { DeelService } = await import("@calcom/app-store/deel/lib/DeelService");
-        const deelService = new DeelService(deelCredential);
-        await deelService.deleteTimeOff(deletedOutOfOfficeEntry.deelTimeOffId);
+      for (const credential of hrmsCredentials) {
+        if (credential.appId === "deel") {
+          const HrmsManager = (await import("@calcom/lib/hrmsManager/hrmsManager")).default;
+          const hrmsManager = new HrmsManager(credential);
+          await hrmsManager.deleteOOO(deletedOutOfOfficeEntry.deelTimeOffId);
+        }
       }
     }
   } catch (error) {
-    console.error("Failed to delete Deel time-off request:", error);
+    console.error("Failed to delete HRMS time-off request:", error);
   }
 
   return {};

@@ -11,6 +11,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -376,47 +377,53 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   );
 
   try {
-    const deelCredential = await prisma.credential.findFirst({
+    const hrmsCredentials = await prisma.credential.findMany({
       where: {
         userId: oooUserId,
-        type: "deel_other",
-        appId: "deel",
+        type: { endsWith: "_other" },
+        appId: { in: ["deel"] },
       },
+      select: credentialForCalendarServiceSelect,
     });
 
-    if (deelCredential) {
-      const { DeelService } = await import("@calcom/app-store/deel/lib/DeelService");
-      const deelService = new DeelService(deelCredential);
+    for (const credential of hrmsCredentials) {
+      const HrmsManager = (await import("@calcom/lib/hrmsManager/hrmsManager")).default;
+      const hrmsManager = new HrmsManager(credential);
 
-      const recipientProfileId = await deelService.getRecipientProfileId(oooUserEmail);
-      if (recipientProfileId) {
-        const timeOffTypeId = await deelService.getTimeOffTypeId(recipientProfileId);
-        if (timeOffTypeId) {
-          if (createdOrUpdatedOutOfOffice.deelTimeOffId) {
-            await deelService.updateTimeOff(createdOrUpdatedOutOfOffice.deelTimeOffId, {
-              start_date: startTimeUtc.format("YYYY-MM-DD"),
-              end_date: endTimeUtc.format("YYYY-MM-DD"),
-              notes: input.notes || `Out of office: ${reason?.reason || ""}`,
-            });
-          } else {
-            const deelTimeOff = await deelService.createTimeOff({
-              recipient_profile_id: recipientProfileId,
-              start_date: startTimeUtc.format("YYYY-MM-DD"),
-              end_date: endTimeUtc.format("YYYY-MM-DD"),
-              time_off_type_id: timeOffTypeId,
-              notes: input.notes || `Out of office: ${reason?.reason || ""}`,
-            });
+      if (credential.appId === "deel") {
+        const { default: DeelHrmsService } = await import("@calcom/app-store/deel/lib/HrmsService");
+        const deelService = new DeelHrmsService(credential);
 
-            await prisma.outOfOfficeEntry.update({
-              where: { uuid: createdOrUpdatedOutOfOffice.uuid },
-              data: { deelTimeOffId: deelTimeOff.id },
-            });
+        const recipientProfileId = await deelService.getRecipientProfileId(oooUserEmail);
+        if (recipientProfileId) {
+          const timeOffTypeId = await deelService.getTimeOffTypeId(recipientProfileId);
+          if (timeOffTypeId) {
+            if (createdOrUpdatedOutOfOffice.deelTimeOffId) {
+              await hrmsManager.updateOOO(createdOrUpdatedOutOfOffice.deelTimeOffId, {
+                startDate: startTimeUtc.format("YYYY-MM-DD"),
+                endDate: endTimeUtc.format("YYYY-MM-DD"),
+                notes: input.notes || `Out of office: ${reason?.reason || ""}`,
+              });
+            } else {
+              const hrmsTimeOff = await hrmsManager.createOOO({
+                recipientProfileId,
+                startDate: startTimeUtc.format("YYYY-MM-DD"),
+                endDate: endTimeUtc.format("YYYY-MM-DD"),
+                timeOffTypeId,
+                notes: input.notes || `Out of office: ${reason?.reason || ""}`,
+              });
+
+              await prisma.outOfOfficeEntry.update({
+                where: { uuid: createdOrUpdatedOutOfOffice.uuid },
+                data: { deelTimeOffId: hrmsTimeOff.id },
+              });
+            }
           }
         }
       }
     }
   } catch (error) {
-    console.error("Failed to create/update Deel time-off request:", error);
+    console.error("Failed to create/update HRMS time-off request:", error);
   }
 
   return {};
