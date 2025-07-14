@@ -1,52 +1,67 @@
-import { readFileSync } from "fs";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { readFileSync, existsSync } from "node:fs";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { getBundledTranslations, __resetTranslationCacheForTests } from "./translationBundler";
 
-vi.mock("fs");
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(),
+  existsSync: vi.fn(),
+}));
+
 vi.mock("@calcom/lib/constants", () => ({
   CALCOM_VERSION: "test-version",
 }));
 
-const mockReadFileSync = vi.mocked(readFileSync);
-
 describe("translationBundler", () => {
   beforeEach(() => {
-    vi.resetModules();
     vi.clearAllMocks();
     __resetTranslationCacheForTests();
   });
 
-  it("uses production path", () => {
-    mockReadFileSync.mockReturnValue(JSON.stringify({ key: "prod-value" }));
+  it("uses __dirname-based path", () => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ key: "prod-value" }));
     getBundledTranslations("en", "common");
-    expect(mockReadFileSync).toHaveBeenCalledWith(
-      expect.stringContaining("public/static/locales/en/common.json"),
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith(
+      expect.stringContaining("locales/en/common.json"),
       "utf-8"
     );
   });
 
   it("normalizes zh to zh-CN", () => {
-    mockReadFileSync.mockReturnValue(JSON.stringify({ key: "chinese" }));
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ key: "chinese" }));
     getBundledTranslations("zh", "common");
-    expect(mockReadFileSync).toHaveBeenCalledWith(expect.stringContaining("zh-CN/common.json"), "utf-8");
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith(
+      expect.stringContaining("zh-CN/common.json"),
+      "utf-8"
+    );
   });
 
   it("falls back to English when locale fails", () => {
-    mockReadFileSync
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync)
       .mockImplementationOnce(() => {
         throw new Error("French not found");
       })
-      .mockReturnValueOnce(JSON.stringify({ key: "english-fallback" }));
+      .mockImplementationOnce(() => JSON.stringify({ key: "english" }));
     const result = getBundledTranslations("fr", "common");
-    expect(result).toEqual({ key: "english-fallback" });
+    expect(result).toEqual({ key: "english" });
   });
 
   it("returns empty object when all translations fail", () => {
-    mockReadFileSync.mockImplementation(() => {
+    vi.mocked(existsSync).mockReturnValue(true);
+    vi.mocked(readFileSync).mockImplementation(() => {
       throw new Error("Not found");
     });
     const result = getBundledTranslations("fr", "common");
     expect(result).toEqual({});
+  });
+
+  it("returns empty object when translation file doesn't exist", () => {
+    vi.mocked(existsSync).mockReturnValue(false);
+    const result = getBundledTranslations("fr", "common");
+    expect(result).toEqual({});
+    expect(vi.mocked(readFileSync)).not.toHaveBeenCalled();
   });
 });
