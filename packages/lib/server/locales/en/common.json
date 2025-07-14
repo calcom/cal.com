@@ -957,7 +957,7 @@
   "copy_private_link_to_event": "Copy private link to event",
   "private_link_description": "Generate a private URL to share without exposing your {{appName}} username",
   "multiple_private_links_title": "Private Links",
-  "multiple_private_links_description": "Generate private URLs without exposing the username, which will be destroyed once used",
+  "multiple_private_links_description": "Generate private URLs without exposing the username, with configurable expiry and usage limits",
   "add_a_multiple_private_link": "Add new link",
   "multiple_private_link_copied": "Private link copied",
   "invitees_can_schedule": "Invitees can schedule",
