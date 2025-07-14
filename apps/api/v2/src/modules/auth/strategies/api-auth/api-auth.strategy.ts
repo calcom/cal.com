@@ -4,6 +4,7 @@ import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
@@ -57,7 +58,8 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
     private readonly profilesRepository: ProfilesRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly membershipsRepository: MembershipsRepository
   ) {
     super();
   }
@@ -183,7 +185,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("ApiAuthStrategy - oAuth client - Invalid client secret");
     }
 
-    const platformCreatorId = await this.profilesRepository.getPlatformOwnerUserId(client.organizationId);
+    const platformCreatorId = await this.membershipsRepository.findPlatformOwnerUserId(client.organizationId);
 
     if (!platformCreatorId) {
       throw new UnauthorizedException(

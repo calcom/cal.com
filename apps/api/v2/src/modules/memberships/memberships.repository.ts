@@ -20,6 +20,21 @@ export class MembershipsRepository {
     return membership;
   }
 
+  async findPlatformOwnerUserId(organizationId: number): Promise<number | null> {
+    const owner = await this.dbRead.prisma.membership.findFirst({
+      where: {
+        teamId: organizationId,
+        role: "OWNER",
+        accepted: true,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return owner?.userId ?? null;
+  }
+
   async findMembershipByTeamId(teamId: number, userId: number) {
     const membership = await this.dbRead.prisma.membership.findUnique({
       where: {
