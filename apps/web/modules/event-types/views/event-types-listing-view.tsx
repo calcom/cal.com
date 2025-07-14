@@ -653,7 +653,7 @@ export const InfiniteEventTypeList = ({
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
                                         StartIcon="trash"
-                                        className="w-full rounded-none">
+                                        className="w-full rounded-t-none">
                                         {t("delete")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -750,7 +750,7 @@ export const InfiniteEventTypeList = ({
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
                                   StartIcon="trash"
-                                  className="w-full rounded-none">
+                                  className="w-full rounded-t-none">
                                   {t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -928,7 +928,10 @@ const InfiniteScrollMain = ({
 
 type Props = {
   userEventGroupsData: GetUserEventGroupsResponse;
-  user: RouterOutputs["viewer"]["me"]["get"];
+  user: {
+    id: number;
+    completedOnboarding?: boolean;
+  } | null;
 };
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {

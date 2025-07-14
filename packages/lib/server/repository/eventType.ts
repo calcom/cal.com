@@ -1,8 +1,9 @@
 import type { EventType as PrismaEventType } from "@prisma/client";
-import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -44,12 +45,12 @@ type HostWithLegacySelectedCalendars<
   user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
 };
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-});
+} satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
   hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
@@ -68,7 +69,9 @@ function usersWithSelectedCalendars<
 }
 
 export class EventTypeRepository {
-  private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
+  constructor(private prismaClient: PrismaClient) {}
+
+  private generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
     const {
       userId,
       profileId,
@@ -122,19 +125,22 @@ export class EventTypeRepository {
     };
   };
 
-  static async create(data: IEventType) {
-    return await prisma.eventType.create({
+  async create(data: IEventType) {
+    return await this.prismaClient.eventType.create({
       data: this.generateCreateEventTypeData(data),
+      include: {
+        calVideoSettings: true,
+      },
     });
   }
 
-  static async createMany(data: IEventType[]) {
-    return await prisma.eventType.createMany({
+  async createMany(data: IEventType[]) {
+    return await this.prismaClient.eventType.createMany({
       data: data.map((d) => this.generateCreateEventTypeData(d)),
     });
   }
 
-  static async findAllByUpId(
+  async findAllByUpId(
     { upId, userId }: { upId: string; userId: number },
     {
       orderBy,
@@ -181,7 +187,7 @@ export class EventTypeRepository {
 
     if (!profileId) {
       // Lookup is by userId
-      return await prisma.eventType.findMany({
+      return await this.prismaClient.eventType.findMany({
         where: {
           userId: lookupTarget.id,
           ...where,
@@ -197,7 +203,7 @@ export class EventTypeRepository {
     if (profile?.movedFromUser) {
       // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
       // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
-      return await prisma.eventType.findMany({
+      return await this.prismaClient.eventType.findMany({
         where: {
           OR: [
             // Existing events
@@ -225,7 +231,7 @@ export class EventTypeRepository {
         orderBy,
       });
     } else {
-      return await prisma.eventType.findMany({
+      return await this.prismaClient.eventType.findMany({
         where: {
           OR: [
             {
@@ -249,7 +255,7 @@ export class EventTypeRepository {
     }
   }
 
-  static async findAllByUpIdWithMinimalData(
+  async findAllByUpIdWithMinimalData(
     { upId, userId }: { upId: string; userId: number },
     {
       orderBy,
@@ -285,7 +291,7 @@ export class EventTypeRepository {
 
     if (!profileId) {
       // Lookup is by userId
-      return await prisma.eventType.findMany({
+      return await this.prismaClient.eventType.findMany({
         where: {
           userId: lookupTarget.id,
           ...where,
@@ -301,7 +307,7 @@ export class EventTypeRepository {
     if (profile?.movedFromUser) {
       // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
       // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
-      return await prisma.eventType.findMany({
+      return await this.prismaClient.eventType.findMany({
         where: {
           OR: [
             // Existing events
@@ -329,7 +335,7 @@ export class EventTypeRepository {
         orderBy,
       });
     } else {
-      return await prisma.eventType.findMany({
+      return await this.prismaClient.eventType.findMany({
         where: {
           OR: [
             {
@@ -353,7 +359,7 @@ export class EventTypeRepository {
     }
   }
 
-  static async findTeamEventTypes({
+  async findTeamEventTypes({
     teamId,
     parentId,
     userId,
@@ -370,12 +376,12 @@ export class EventTypeRepository {
     orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
     where?: Prisma.EventTypeWhereInput;
   }) {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    const userSelect = {
       name: true,
       avatarUrl: true,
       username: true,
       id: true,
-    });
+    } satisfies Prisma.UserSelect;
 
     const select = {
       ...eventTypeSelect,
@@ -394,7 +400,7 @@ export class EventTypeRepository {
       },
     };
 
-    const teamMembership = await prisma.membership.findFirst({
+    const teamMembership = await this.prismaClient.membership.findFirst({
       where: {
         OR: [
           {
@@ -434,16 +440,16 @@ export class EventTypeRepository {
     });
   }
 
-  static async findAllByUserId({ userId }: { userId: number }) {
-    return await prisma.eventType.findMany({
+  async findAllByUserId({ userId }: { userId: number }) {
+    return await this.prismaClient.eventType.findMany({
       where: {
         userId,
       },
     });
   }
 
-  static async findTitleById({ id }: { id: number }) {
-    return await prisma.eventType.findUnique({
+  async findTitleById({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
       where: {
         id,
       },
@@ -453,8 +459,8 @@ export class EventTypeRepository {
     });
   }
 
-  static async findByIdWithUserAccess({ id, userId }: { id: number; userId: number }) {
-    return await prisma.eventType.findUnique({
+  async findByIdWithUserAccess({ id, userId }: { id: number; userId: number }) {
+    return await this.prismaClient.eventType.findUnique({
       where: {
         id,
         OR: [{ userId }, { hosts: { some: { userId } } }, { users: { some: { id: userId } } }],
@@ -462,8 +468,8 @@ export class EventTypeRepository {
     });
   }
 
-  static async findById({ id, userId }: { id: number; userId: number }) {
-    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  async findById({ id, userId }: { id: number; userId: number }) {
+    const userSelect = {
       name: true,
       avatarUrl: true,
       username: true,
@@ -472,9 +478,9 @@ export class EventTypeRepository {
       locale: true,
       defaultScheduleId: true,
       isPlatformManaged: true,
-    });
+    } satisfies Prisma.UserSelect;
 
-    const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    const CompleteEventTypeSelect = {
       id: true,
       title: true,
       slug: true,
@@ -517,6 +523,7 @@ export class EventTypeRepository {
       disableGuests: true,
       disableCancelling: true,
       disableRescheduling: true,
+      allowReschedulingCancelledBookings: true,
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
@@ -526,6 +533,8 @@ export class EventTypeRepository {
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
       assignAllTeamMembers: true,
       allowReschedulingPastBookings: true,
       hideOrganizerEmail: true,
@@ -557,6 +566,7 @@ export class EventTypeRepository {
           name: true,
           slug: true,
           parentId: true,
+          rrTimestampBasis: true,
           parent: {
             select: {
               slug: true,
@@ -585,6 +595,8 @@ export class EventTypeRepository {
           },
         },
       },
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
       users: {
         select: userSelect,
       },
@@ -596,6 +608,12 @@ export class EventTypeRepository {
         },
       },
       instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      restrictionSchedule: {
         select: {
           id: true,
           name: true,
@@ -690,15 +708,18 @@ export class EventTypeRepository {
         select: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
         },
       },
-    });
+    } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
 
-    return await prisma.eventType.findFirst({
+    return await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
@@ -727,16 +748,29 @@ export class EventTypeRepository {
     });
   }
 
-  static async findByIdMinimal({ id }: { id: number }) {
-    return await prisma.eventType.findUnique({
+  async findByIdMinimal({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findUnique({
       where: {
         id,
       },
     });
   }
 
-  static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
-    const eventType = await prisma.eventType.findUnique({
+  async findFirstEventTypeId({ slug, teamId, userId }: { slug: string; teamId?: number; userId?: number }) {
+    return this.prismaClient.eventType.findFirst({
+      where: {
+        slug,
+        ...(teamId ? { teamId } : {}),
+        ...(userId ? { userId } : {}),
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
+    const eventType = await this.prismaClient.eventType.findUnique({
       where: {
         id,
       },
@@ -763,6 +797,7 @@ export class EventTypeRepository {
           select: {
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
       },
@@ -778,8 +813,8 @@ export class EventTypeRepository {
     };
   }
 
-  static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
-    return await prisma.eventType.findMany({
+  async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
+    return await this.prismaClient.eventType.findMany({
       where: {
         OR: [
           {
@@ -795,8 +830,8 @@ export class EventTypeRepository {
     });
   }
 
-  static async findForSlots({ id }: { id: number }) {
-    const eventType = await prisma.eventType.findUnique({
+  async findForSlots({ id }: { id: number }) {
+    const eventType = await this.prismaClient.eventType.findUnique({
       where: {
         id,
       },
@@ -831,6 +866,8 @@ export class EventTypeRepository {
         maxLeadThreshold: true,
         includeNoShowInRRCalculation: true,
         useEventLevelSelectedCalendars: true,
+        restrictionScheduleId: true,
+        useBookerTimezone: true,
         team: {
           select: {
             id: true,
@@ -838,6 +875,7 @@ export class EventTypeRepository {
             includeManagedEventsInLimits: true,
             parentId: true,
             rrResetInterval: true,
+            rrTimestampBasis: true,
           },
         },
         parent: {

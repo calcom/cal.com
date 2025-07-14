@@ -43,7 +43,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -89,6 +89,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
@@ -376,6 +377,7 @@ export type PlatformParams = {
   platformBookingUrl?: string;
   platformRescheduleUrl?: string;
   platformBookingLocation?: string;
+  areCalendarEventsEnabled?: boolean;
 };
 
 export type BookingHandlerInput = {
@@ -400,6 +402,7 @@ async function handler(
     platformBookingLocation,
     hostname,
     forcedSlug,
+    areCalendarEventsEnabled = true,
   } = input;
 
   const isPlatformBooking = !!platformClientId;
@@ -453,6 +456,15 @@ async function handler(
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
+  if (!rawBookingData.rescheduleUid) {
+    await checkActiveBookingsLimitForBooker({
+      eventTypeId,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+      bookerEmail,
+      offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+    });
+  }
+
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
   }
@@ -497,7 +509,8 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const existingBooking = await BookingRepository.getValidBookingFromEventTypeForAttendee({
+    const bookingRepo = new BookingRepository(prisma);
+    const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -653,9 +666,31 @@ async function handler(
         startTime: new Date(dayjs(reqBody.start).utc().format()),
         status: BookingStatus.ACCEPTED,
       },
+      select: {
+        userId: true,
+        attendees: { select: { email: true } },
+      },
     });
 
-    if (booking) isFirstSeat = false;
+    if (booking) {
+      isFirstSeat = false;
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        const fixedHosts = users.filter((user) => user.isFixed);
+        const originalNonFixedHost = users.find((user) => !user.isFixed && user.id === booking.userId);
+
+        if (originalNonFixedHost) {
+          users = [...fixedHosts, originalNonFixedHost];
+        } else {
+          const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
+
+          // In this case, the first booking user is a fixed host, so the chosen non-fixed host is added as an attendee of the booking
+          const nonFixedAttendeeHost = users.find(
+            (user) => !user.isFixed && attendeeEmailSet.has(user.email)
+          );
+          users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
+        }
+      }
+    }
   }
 
   //checks what users are available
@@ -817,6 +852,7 @@ async function handler(
           ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)),
           eventType,
           routingFormResponse,
+          meetingStartTime: new Date(reqBody.start),
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -860,10 +896,17 @@ async function handler(
           luckyUsers.push(newLuckyUser);
         }
       }
+
       // ALL fixed users must be available
       if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
-        throw new Error(ErrorCode.HostsUnavailableForBooking);
+        throw new Error(ErrorCode.FixedHostsUnavailableForBooking);
       }
+
+      // If there are RR hosts, we need to find a lucky user
+      if ([...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 && luckyUsers.length === 0) {
+        throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
+      }
+
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
@@ -893,7 +936,7 @@ async function handler(
 
   if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     loggerWithEventDetails.error(`No available users found for round robin event.`);
-    throw new Error(ErrorCode.NoAvailableUsersFound);
+    throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
   }
 
   // If the team member is requested then they should be the organizer
@@ -1384,6 +1427,8 @@ async function handler(
             routingFormResponseId,
             organizerId: organizerUser.id,
             teamId,
+            isRerouting: !!reroutingFormResponses,
+            reroutedByEmail: reqBody.rescheduledBy,
           });
         }
       }
@@ -1488,15 +1533,6 @@ async function handler(
       evt.videoCallData = undefined;
       // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
       evt.iCalUID = undefined;
-    } else {
-      // In case of rescheduling, we need to keep the previous host destination calendar
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withDestinationCalendar(
-          originalRescheduledBooking?.destinationCalendar
-            ? [originalRescheduledBooking?.destinationCalendar]
-            : evt.destinationCalendar
-        )
-        .build();
     }
 
     const updateManager = await eventManager.reschedule(
@@ -1737,7 +1773,7 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
-    const createManager = await eventManager.create(evt);
+    const createManager = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -2196,6 +2232,7 @@ async function handler(
         email: bookerEmail,
         eventName: "Cal.com lead",
       },
+      isTeamEventType,
     });
   }
 

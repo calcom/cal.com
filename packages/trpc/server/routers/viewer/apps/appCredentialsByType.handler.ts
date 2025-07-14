@@ -1,6 +1,7 @@
 import { getAllDelegationCredentialsForUserByAppType } from "@calcom/lib/delegationCredential/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
@@ -15,7 +16,8 @@ type AppCredentialsByTypeOptions = {
 /** Used for grabbing credentials on specific app pages */
 export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentialsByTypeOptions) => {
   const { user } = ctx;
-  const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
+  const userAdminTeams = await new UserRepository(prisma).getUserAdminTeams({ userId: ctx.user.id });
+  const { user: _, ...safeCredentialSelectWithoutUser } = safeCredentialSelect;
   const userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
 
   const credentials = await prisma.credential.findMany({
@@ -30,7 +32,8 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
       ],
       type: input.appType,
     },
-    include: {
+    select: {
+      ...safeCredentialSelectWithoutUser,
       user: {
         select: {
           name: true,

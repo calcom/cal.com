@@ -34,6 +34,7 @@ import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -535,6 +536,7 @@ describe("Event types Endpoints", () => {
             body.lockTimeZoneToggleOnBookingPage
           );
           expect(createdEventType.color).toEqual(body.color);
+          expect(createdEventType.disableGuests).toEqual(false);
 
           const expectedBookingFields = [
             { ...defaultResponseBookingFieldName, ...nameBookingField },
@@ -962,6 +964,10 @@ describe("Event types Endpoints", () => {
         title: newTitle,
         scheduleId: secondSchedule.id,
         lengthInMinutesOptions: [15, 30],
+        calVideoSettings: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+        },
         bookingFields: [
           nameBookingField,
           {
@@ -1037,6 +1043,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
+          expect(updatedEventType.disableGuests).toEqual(false);
 
           const expectedBookingFields = [
             { ...defaultResponseBookingFieldName, ...nameBookingField },
@@ -1082,6 +1089,12 @@ describe("Event types Endpoints", () => {
             body.lockTimeZoneToggleOnBookingPage
           );
           expect(updatedEventType.color).toEqual(body.color);
+          expect(updatedEventType.calVideoSettings?.disableRecordingForGuests).toEqual(
+            body.calVideoSettings?.disableRecordingForGuests
+          );
+          expect(updatedEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(
+            body.calVideoSettings?.disableRecordingForOrganizer
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -1708,7 +1721,7 @@ describe("Event types Endpoints", () => {
         description: "undefined booking fields",
         length: 40,
         hidden: false,
-        slug: "undefined-booking-fields",
+        slug: `undefined-booking-fields-${randomString()}`,
         locations: [],
         schedulingType: SchedulingType.ROUND_ROBIN,
       };
@@ -1737,6 +1750,14 @@ describe("Event types Endpoints", () => {
               required: true,
               disableOnPrefill: false,
               hidden: false,
+            },
+            {
+              disableOnPrefill: false,
+              hidden: true,
+              isDefault: true,
+              required: false,
+              slug: "attendeePhoneNumber",
+              type: "phone",
             },
             {
               isDefault: true,
@@ -1840,6 +1861,130 @@ describe("Event types Endpoints", () => {
             expect(title2).not.toEqual(title);
             expect(slug2).not.toEqual(slug);
           });
+      });
+
+      it("should create event type with cal video settings", async () => {
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "event type with cal video settings",
+          slug: "event-type-with-cal-video-settings",
+          lengthInMinutes: 60,
+          calVideoSettings: {
+            disableRecordingForGuests: true,
+            disableRecordingForOrganizer: true,
+          },
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            expect(createdEventType.locations).toEqual(body.locations);
+            expect(createdEventType.calVideoSettings?.disableRecordingForGuests).toEqual(true);
+            expect(createdEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(true);
+            firstCreatedEventType = responseBody.data;
+          });
+      });
+    });
+
+    describe("toggle disable guests", () => {
+      let eventTypeWithGuestsDisabledId: number;
+
+      it("should create an event type with guests disabled", async () => {
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "Coding class guests disabled",
+          slug: "coding-class-guests-disabled",
+          description: "Let's learn how to code like a pro.",
+          lengthInMinutes: 60,
+          disableGuests: true,
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+            expect(createdEventType).toHaveProperty("id");
+            expect(createdEventType.title).toEqual(body.title);
+            expect(createdEventType.description).toEqual(body.description);
+            expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
+
+            expect(createdEventType.disableGuests).toEqual(true);
+            const guestsBookingField = createdEventType.bookingFields.find(
+              (field) => field.slug === "guests"
+            ) as GuestsDefaultFieldOutput_2024_06_14 | undefined;
+            expect(guestsBookingField?.hidden).toEqual(true);
+
+            eventTypeWithGuestsDisabledId = createdEventType.id;
+          });
+      });
+
+      it("should update an event type with guests enabled", async () => {
+        const body: UpdateEventTypeInput_2024_06_14 = {
+          disableGuests: false,
+        };
+
+        return request(app.getHttpServer())
+          .patch(`/api/v2/event-types/${eventTypeWithGuestsDisabledId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const updatedEventType = responseBody.data;
+
+            expect(updatedEventType.disableGuests).toEqual(false);
+            const guestsBookingField = updatedEventType.bookingFields.find(
+              (field) => field.slug === "guests"
+            ) as GuestsDefaultFieldOutput_2024_06_14 | undefined;
+            expect(guestsBookingField?.hidden).toEqual(false);
+
+            eventTypeWithGuestsDisabledId = updatedEventType.id;
+          });
+      });
+
+      it("should update an event type with guests disabled", async () => {
+        const body: UpdateEventTypeInput_2024_06_14 = {
+          disableGuests: true,
+        };
+
+        return request(app.getHttpServer())
+          .patch(`/api/v2/event-types/${eventTypeWithGuestsDisabledId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const updatedEventType = responseBody.data;
+
+            expect(updatedEventType.disableGuests).toEqual(true);
+            const guestsBookingField = updatedEventType.bookingFields.find(
+              (field) => field.slug === "guests"
+            ) as GuestsDefaultFieldOutput_2024_06_14 | undefined;
+            expect(guestsBookingField?.hidden).toEqual(true);
+
+            eventTypeWithGuestsDisabledId = updatedEventType.id;
+          });
+      });
+
+      afterAll(async () => {
+        if (eventTypeWithGuestsDisabledId) {
+          await eventTypesRepositoryFixture.delete(eventTypeWithGuestsDisabledId);
+        }
       });
     });
 

@@ -1,5 +1,5 @@
 require("dotenv").config({ path: "../../.env" });
-const englishTranslation = require("./public/static/locales/en/common.json");
+const englishTranslation = require("../../packages/lib/server/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
 const { version } = require("./package.json");
 const {
@@ -47,10 +47,6 @@ if (!process.env.EMAIL_FROM) {
 }
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
-
-if (!process.env.NEXT_PUBLIC_API_V2_URL) {
-  console.error("Please set NEXT_PUBLIC_API_V2_URL");
-}
 
 const getHttpsUrl = (url) => {
   if (!url) return url;
@@ -336,10 +332,6 @@ const nextConfig = {
 
     let afterFiles = [
       {
-        source: "/api/v2/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
-      },
-      {
         source: "/org/:slug",
         destination: "/team/:slug",
       },
@@ -374,6 +366,13 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
     ];
+
+    if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      afterFiles.push({
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+      });
+    }
 
     return {
       beforeFiles,
