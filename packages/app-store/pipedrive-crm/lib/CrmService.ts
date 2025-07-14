@@ -10,6 +10,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { updateTokenObjectInDb } from "../../_utils/oauth/updateTokenObject";
 import appConfig from "../config.json";
 
 type PipedriveContact = {
@@ -37,6 +38,7 @@ export default class PipedriveCrmService implements CRM {
   private apiDomain: string;
   private refreshToken: string;
   private expiryDate: number;
+  private credentialId: number;
 
   constructor(credential: CredentialPayload) {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
@@ -46,6 +48,7 @@ export default class PipedriveCrmService implements CRM {
     this.apiDomain = key.api_domain;
     this.refreshToken = key.refresh_token;
     this.expiryDate = key.expiryDate;
+    this.credentialId = credential.id;
   }
 
   private async getValidAccessToken(): Promise<string> {
@@ -87,7 +90,23 @@ export default class PipedriveCrmService implements CRM {
       this.accessToken = refreshedToken.access_token;
       this.expiryDate = Math.round(Date.now() + refreshedToken.expires_in * 1000);
 
-      this.log.debug("Token refreshed successfully");
+      const updatedTokenObject = {
+        access_token: refreshedToken.access_token,
+        refresh_token: refreshedToken.refresh_token || this.refreshToken,
+        api_domain: refreshedToken.api_domain || this.apiDomain,
+        expires_in: refreshedToken.expires_in,
+        expiryDate: this.expiryDate,
+        token_type: refreshedToken.token_type,
+        scope: refreshedToken.scope,
+      };
+
+      await updateTokenObjectInDb({
+        authStrategy: "oauth",
+        credentialId: this.credentialId,
+        tokenObject: updatedTokenObject,
+      });
+
+      this.log.debug("Token refreshed and updated in database successfully");
       return this.accessToken;
     } catch (error) {
       this.log.error("Error refreshing access token:", error);
