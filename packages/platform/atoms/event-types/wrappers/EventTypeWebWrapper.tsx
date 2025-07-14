@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -34,6 +34,12 @@ const ManagedEventTypeDialog = dynamic(
 
 const AssignmentWarningDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/AssignmentWarningDialog")
+);
+
+const UnsavedChangesWarningDialog = dynamic(() =>
+  import("@calcom/features/eventtypes/components/dialogs/UnsavedChangesWarningDialog").then((mod) => ({
+    default: mod.UnsavedChangesWarningDialog,
+  }))
 );
 
 const EventSetupTab = dynamic(() =>
@@ -118,6 +124,13 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
   const telemetry = useTelemetry();
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
+  const [isOpenUnsavedChangesDialog, setIsOpenUnsavedChangesDialog] = useState<boolean>(false);
+  const [unsavedChangesPendingRoute, setUnsavedChangesPendingRoute] = useState<string>("");
+  const [formState, setFormState] = useState<{ isDirty: boolean; dirtyFields: any; values: any }>({
+    isDirty: false,
+    dirtyFields: {},
+    values: {},
+  });
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
@@ -167,7 +180,11 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     },
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: updateMutation.mutate,
+    onFormStateChange: setFormState,
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
@@ -244,10 +261,16 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     hosts: eventType.hosts,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+    isFormDirty: formState.isDirty,
     onError: (url) => {
       setIsOpenAssignmentWarnDialog(true);
       setPendingRoute(url);
       throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
+    },
+    onUnsavedChanges: (url) => {
+      setIsOpenUnsavedChangesDialog(true);
+      setUnsavedChangesPendingRoute(url);
+      throw new Error(`Aborted route change to ${url} because of unsaved changes`);
     },
     onStart: (handleRouteChange) => {
       handleRouteChange(pathname || "");
@@ -280,6 +303,29 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
       clearTimeout(timeout);
     };
   }, []);
+
+  const handleBeforeUnload = useCallback(
+    (event: BeforeUnloadEvent) => {
+      if (formState.isDirty) {
+        const message = "You have unsaved changes. Are you sure you want to leave?";
+        event.returnValue = message;
+        return message;
+      }
+    },
+    [formState.isDirty]
+  );
+
+  useEffect(() => {
+    if (formState.isDirty) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    } else {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [formState.isDirty, handleBeforeUnload]);
 
   const onConflict = (conflicts: ChildrenEventType[]) => {
     setSlugExistsChildrenDialogOpen(conflicts);
@@ -376,6 +422,19 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
           pendingRoute={pendingRoute}
           leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
           id={eventType.id}
+        />
+        <UnsavedChangesWarningDialog
+          isOpen={isOpenUnsavedChangesDialog}
+          onOpenChange={setIsOpenUnsavedChangesDialog}
+          onSave={async () => {
+            await handleSubmit(form.getValues());
+          }}
+          onDiscard={() => {
+            form.reset();
+            setFormState({ isDirty: false, dirtyFields: {}, values: form.getValues() });
+          }}
+          pendingRoute={unsavedChangesPendingRoute}
+          isSaving={updateMutation.isPending}
         />
       </>
     </EventTypeComponent>
