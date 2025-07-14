@@ -138,6 +138,7 @@ export class HashedLinksService {
           throw new Error(ErrorCode.PrivateLinkExpired);
         }
       }
+      return hashedLink;
     }
 
     // Handle usage-based expiration
