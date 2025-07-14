@@ -297,29 +297,28 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
+
+      const errorMappings = {
+        "your card was declined": "Your card was declined.",
+        "your card does not support this type of purchase":
+          "Your card does not support this type of purchase.",
+        "amount must convert to at least": "Payment amount is below the minimum charge requirement.",
+      };
+
+      let userMessage = "Could not charge card for payment.";
+
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
 
-        if (errorMessage.includes("your card was declined")) {
-          throw new ErrorWithCode(ErrorCode.ChargeCardFailure, "Your card was declined.");
-        }
-
-        if (errorMessage.includes("your card does not support this type of purchase")) {
-          throw new ErrorWithCode(
-            ErrorCode.ChargeCardFailure,
-            "Your card does not support this type of purchase"
-          );
-        }
-
-        if (errorMessage.includes("amount must convert to at least")) {
-          throw new ErrorWithCode(
-            ErrorCode.ChargeCardFailure,
-            "Payment amount is below the minimum charge requirement."
-          );
+        for (const [key, message] of Object.entries(errorMappings)) {
+          if (errorMessage.includes(key)) {
+            userMessage = message;
+            break;
+          }
         }
       }
 
-      throw new ErrorWithCode(ErrorCode.ChargeCardFailure, "Could not charge card for payment");
+      throw new ErrorWithCode(ErrorCode.ChargeCardFailure, userMessage);
     }
   }
 
