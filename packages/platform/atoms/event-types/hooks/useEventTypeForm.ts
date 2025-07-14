@@ -133,7 +133,7 @@ export const useEventTypeForm = ({
       },
       aiSelfServeConfiguration: {
         enabled: eventType.aiSelfServeConfiguration?.enabled,
-        yourPhoneNumberId: eventType.aiSelfServeConfiguration?.yourPhoneNumberId,
+        yourPhoneNumberId: eventType.aiSelfServeConfiguration?.yourPhoneNumberId ?? undefined,
         numberToCall: eventType.aiSelfServeConfiguration?.numberToCall,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
