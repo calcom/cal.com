@@ -34,6 +34,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  GetBookingsCountOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
@@ -523,6 +524,21 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
             expect(data.map((booking) => booking.eventTypeId).sort()).toEqual(
               [orgEventTypeId, orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
             );
+          });
+      });
+
+      it("should get bookings count by organizationId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings/count`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsCountOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.count).toEqual(4);
           });
       });
 

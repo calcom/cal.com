@@ -610,6 +610,39 @@ export class BookingsService_2024_08_13 {
     };
   }
 
+  async getBookingsCount(
+    queryParams: GetBookingsInput_2024_08_13,
+    user: { email: string; id: number; orgId?: number },
+    userIds?: number[]
+  ) {
+    if (queryParams.attendeeEmail) {
+      queryParams.attendeeEmail = await this.getAttendeeEmail(queryParams.attendeeEmail, user);
+    }
+
+    const skip = 0;
+    // note(Lauris): initialize take to null to take all bookings matching the filters
+    const take = null;
+
+    const fetchedBookings: { totalCount: number } = await getAllUserBookings({
+      bookingListingByStatus: queryParams.status || [],
+      skip,
+      take,
+      filters: {
+        ...this.inputService.transformGetBookingsFilters(queryParams),
+        ...(userIds?.length ? { userIds } : {}),
+      },
+      ctx: {
+        user,
+        prisma: this.prismaReadService.prisma as unknown as PrismaClient,
+        kysely: this.kyselyReadService.kysely,
+      },
+    });
+
+    return {
+      count: fetchedBookings.totalCount,
+    };
+  }
+
   async getAttendeeEmail(queryParamsAttendeeEmail: string, user: { id: number }) {
     // note(Lauris): this is to handle attendees that are managed users - in attendee table their email is one of managed users e.g
     // urdasdqinm+clxyyy21o0003sbk7yw5z6tzg@example.com but if attendeeEmail is passed as urdasdqinm@example.com then we check if user whose

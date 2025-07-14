@@ -19,7 +19,12 @@ import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, Htt
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@calcom/platform-types";
+import {
+  GetBookingsCountOutput_2024_08_13,
+  GetBookingsOutput_2024_08_13,
+  GetOrganizationsBookingsCountInput,
+  GetOrganizationsBookingsInput,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/bookings",
@@ -55,6 +60,32 @@ export class OrganizationsBookingsController {
       status: SUCCESS_STATUS,
       data: bookings,
       pagination,
+    };
+  }
+
+  @Get("/count")
+  @ApiOperation({
+    summary: "Get organization bookings count",
+    description: "Feel free to also use available query parameters to narrow down the results.",
+  })
+  @Roles("ORG_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  async getAllOrgTeamBookingsCount(
+    @Query() queryParams: GetOrganizationsBookingsCountInput,
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetBookingsCountOutput_2024_08_13> {
+    const { userIds, ...restParams } = queryParams;
+
+    const count = await this.bookingsService.getBookingsCount(
+      { ...restParams },
+      { email: user.email, id: user.id, orgId },
+      userIds
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: count,
     };
   }
 }
