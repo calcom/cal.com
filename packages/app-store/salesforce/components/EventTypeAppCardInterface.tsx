@@ -43,6 +43,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
   const ignoreGuests = getAppData("ignoreGuests") ?? false;
+  const excludeSalesforceBookingsFromRR = getAppData("excludeSalesforceBookingsFromRR") ?? false;
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
@@ -439,6 +440,28 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             </>
           </>
         ) : null}
+
+        {/* Only show this toggle when the event type is Round Robin */}
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN && (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="refresh-ccw"
+              title={t("exclude_salesforce_bookings_from_round_robin")}
+              labelFor="exclude-salesforce-bookings-from-rr">
+              <Switch
+                id="exclude-salesforce-bookings-from-rr"
+                size="sm"
+                checked={excludeSalesforceBookingsFromRR}
+                onCheckedChange={(checked) => {
+                  setAppData("excludeSalesforceBookingsFromRR", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+            <p className="text-subtle mt-2 text-sm">
+              {t("exclude_salesforce_bookings_from_round_robin_description")}
+            </p>
+          </Section.SubSection>
+        )}
 
         <Section.SubSection>
           <WriteToObjectSettings
