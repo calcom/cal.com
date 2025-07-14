@@ -56,7 +56,7 @@ export const listAllWithFeaturesHandler = async ({ ctx, input }: ListAllWithFeat
   const teamsWithFeatures = await Promise.all(
     teams.map(async (team) => ({
       ...team,
-      features: await featuresRepo.getTeamFeatures(team.id),
+      features: (await featuresRepo.getTeamFeatures(team.id)) || {},
     }))
   );
 
