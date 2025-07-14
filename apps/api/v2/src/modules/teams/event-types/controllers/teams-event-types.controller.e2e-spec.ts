@@ -405,20 +405,23 @@ describe("Organizations Event Types Endpoints", () => {
 
           const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
           expect(responseTeamEvent).toBeDefined();
-          expect(responseTeamEvent?.hosts).toEqual([
-            {
-              userId: teamMember1.id,
-              name: teamMember1.name,
-              username: teamMember1.username,
-              avatarUrl: teamMember1.avatarUrl,
-            },
-            {
-              userId: teamMember2.id,
-              name: teamMember2.name,
-              username: teamMember2.username,
-              avatarUrl: teamMember2.avatarUrl,
-            },
-          ]);
+          expect(responseTeamEvent?.hosts).toHaveLength(2);
+          expect(responseTeamEvent?.hosts).toEqual(
+            expect.arrayContaining([
+              {
+                userId: teamMember1.id,
+                name: teamMember1.name,
+                username: teamMember1.username,
+                avatarUrl: teamMember1.avatarUrl,
+              },
+              {
+                userId: teamMember2.id,
+                name: teamMember2.name,
+                username: teamMember2.username,
+                avatarUrl: teamMember2.avatarUrl,
+              },
+            ])
+          );
 
           if (!responseTeamEvent) {
             throw new Error("Team event not found");
