@@ -1382,7 +1382,14 @@ async function handler(
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
       });
-
+      if (originalRescheduledBooking && booking && reqBody.rescheduledBy) {
+        await prisma.booking.update({
+          where: { uid: originalRescheduledBooking.uid }, // Original booking UID
+          data: {
+            rescheduledToUid: booking.uid, // Set the rescheduledToUid to the new booking's UID
+          },
+        });
+      }
       if (booking?.userId) {
         const usersRepository = new UsersRepository();
         await usersRepository.updateLastActiveAt(booking.userId);

@@ -766,6 +766,7 @@ model Booking {
   fromReschedule               String?
   recurringEventId             String?
   smsReminderNumber            String?
+  rescheduledToUid             String?                           @db.VarChar(255)
   workflowReminders            WorkflowReminder[]
   scheduledJobs                String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
   seatsReferences              BookingSeat[]
