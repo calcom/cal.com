@@ -91,27 +91,19 @@ export const DatePicker = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
-  // Include selected date even if it has no availability, but only if it's in the current browsing month
+  // Keep selected date visible even when no slots are available
   const includedDatesWithSelected = React.useMemo(() => {
-    if (!selectedDate) return nonEmptyScheduleDays;
-    
-    if (nonEmptyScheduleDays.includes(selectedDate)) {
+    if (!selectedDate || nonEmptyScheduleDays.includes(selectedDate)) {
       return nonEmptyScheduleDays;
     }
     
-    // Only include selected date if it's in the current browsing month
-    // This prevents interfering with auto-navigation to next month
-    const selectedDateInCurrentMonth = dayjs(selectedDate).isSame(browsingDate, "month");
-    if (selectedDateInCurrentMonth) {
-      return [...nonEmptyScheduleDays, selectedDate];
-    }
-    
-    return nonEmptyScheduleDays;
-  }, [nonEmptyScheduleDays, selectedDate, browsingDate]);
+    // Always show selected date - useful for reviewing existing bookings
+    return [...nonEmptyScheduleDays, selectedDate];
+  }, [nonEmptyScheduleDays, selectedDate]);
 
   const { moveToNextMonthOnNoAvailability } = useMoveToNextMonthOnNoAvailability({
     browsingDate,
-    nonEmptyScheduleDays: includedDatesWithSelected,
+    nonEmptyScheduleDays, 
     onMonthChange,
     isLoading: isLoading ?? true,
   });
