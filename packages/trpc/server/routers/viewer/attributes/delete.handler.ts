@@ -1,4 +1,7 @@
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,11 +17,31 @@ type DeleteOptions = {
 
 const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
   const org = ctx.user.organization;
+  const userRole = ctx.user.org?.role;
 
-  if (!org.id) {
+  if (!org.id || !userRole) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You need to be apart of an organization to use this feature",
+    });
+  }
+
+  const { canDelete } = await getResourcePermissions({
+    userId: ctx.user.id,
+    teamId: org.id,
+    resource: Resource.Attributes,
+    userRole,
+    fallbackRoles: {
+      delete: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!canDelete) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You don't have permission to delete attributes",
     });
   }
 

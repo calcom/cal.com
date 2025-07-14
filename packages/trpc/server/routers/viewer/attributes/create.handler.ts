@@ -1,7 +1,9 @@
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import { Prisma, MembershipRole } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,11 +22,31 @@ const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
 
 const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
+  const userRole = ctx.user.org?.role;
 
-  if (!org.id) {
+  if (!org.id || !userRole) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You need to be apart of an organization to use this feature",
+    });
+  }
+
+  const { canCreate } = await getResourcePermissions({
+    userId: ctx.user.id,
+    teamId: org.id,
+    resource: Resource.Attributes,
+    userRole,
+    fallbackRoles: {
+      create: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!canCreate) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You don't have permission to create attributes",
     });
   }
 

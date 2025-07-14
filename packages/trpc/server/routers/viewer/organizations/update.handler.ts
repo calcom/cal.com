@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
@@ -111,16 +112,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!currentOrgId) throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
 
-  const permissionCheckService = new PermissionCheckService();
+  const userRole = ctx.user?.org?.role;
+  if (!userRole) throw new TRPCError({ code: "UNAUTHORIZED", message: "User role is required." });
 
-  const isUserAuthorizedToUpdate = await permissionCheckService.checkPermission({
-    userId: ctx.user?.id,
+  const { canEdit } = await getResourcePermissions({
+    userId: ctx.user.id,
     teamId: currentOrgId,
-    permission: "organization.update",
-    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    resource: Resource.Organization,
+    userRole,
+    fallbackRoles: {
+      update: {
+        roles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
+    },
   });
 
-  if (!isUserAuthorizedToUpdate) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!canEdit) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   if (input.slug) {
     const userConflict = await prisma.team.findMany({
