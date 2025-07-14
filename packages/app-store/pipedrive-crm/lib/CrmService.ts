@@ -9,6 +9,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
 
+import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import appConfig from "../config.json";
 
 type PipedriveContact = {
@@ -52,7 +53,46 @@ export default class PipedriveCrmService implements CRM {
       return this.accessToken;
     }
 
-    return this.accessToken;
+    try {
+      const appKeys = await getAppKeysFromSlug(appConfig.slug);
+      let clientId = "";
+      let clientSecret = "";
+      if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+      if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+
+      if (!clientId || !clientSecret) {
+        throw new Error("Pipedrive client credentials missing for token refresh");
+      }
+
+      const authHeader = `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
+
+      const tokenResponse = await fetch("https://oauth.pipedrive.com/oauth/token", {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: this.refreshToken,
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error(`Token refresh failed: ${tokenResponse.status} ${tokenResponse.statusText}`);
+      }
+
+      const refreshedToken = await tokenResponse.json();
+
+      this.accessToken = refreshedToken.access_token;
+      this.expiryDate = Math.round(Date.now() + refreshedToken.expires_in * 1000);
+
+      this.log.debug("Token refreshed successfully");
+      return this.accessToken;
+    } catch (error) {
+      this.log.error("Error refreshing access token:", error);
+      throw new Error("Failed to refresh access token");
+    }
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
