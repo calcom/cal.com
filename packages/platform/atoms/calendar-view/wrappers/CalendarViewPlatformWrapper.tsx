@@ -5,12 +5,13 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
-import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+// import { LargeCalendar } from "@calcom/features/bookings/Booker/components/LargeCalendar";
+import { LargeCalendar } from "@calcom/features/troubleshooter/components/LargeCalendar";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
@@ -213,9 +214,9 @@ export const CalendarViewPlatformWrapper = (props: CalendarViewPlatformWrapperPr
         <LargeCalendar
           // need to use the displayStartDate prop to make sure we always pass in monday of the following week
           extraDays={7}
-          schedule={schedule.data}
-          isLoading={schedule.isPending}
-          event={event}
+          // schedule={schedule.data}
+          // isLoading={schedule.isPending}
+          // event={event}
         />
       </BookerSection>
     </AtomsWrapper>
