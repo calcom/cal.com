@@ -185,6 +185,7 @@ export default function Success(props: PageProps) {
     searchParams?.get("cancelledBy") ??
     session?.user?.email ??
     undefined;
+
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
@@ -858,8 +859,6 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
-                              attendees: bookingInfo?.attendees,
-                              userEmail: bookingInfo?.user?.email as string,
                             }}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
