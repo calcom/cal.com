@@ -13,27 +13,38 @@ interface Dependencies {
 export class RoutingFormResponseDataFactory {
   constructor(private readonly deps: Dependencies) {}
 
-  async create({ bookingUid, responseId }: { bookingUid?: string; responseId?: number }) {
+  async createWithBookingId(bookingId: string) {
     const log = this.deps.logger.getSubLogger({
-      prefix: ["[routingFormFieldService]", { bookingUid, responseId }],
+      prefix: ["[routingFormFieldService]", { bookingUid }],
     });
 
-    let formResponse: Awaited<ReturnType<RoutingFormResponseRepositoryInterface["findById"]>>;
-    if (responseId) {
-      formResponse = await this.deps.routingFormResponseRepo.findById(responseId);
-    } else if (bookingUid) {
-      formResponse = await this.deps.routingFormResponseRepo.findByBookingUid(bookingUid);
-    } else {
-      log.error("No bookingUid or responseId provided");
-      throw new Error("No bookingUid or responseId provided");
-    }
+    const formResponse = await this.deps.routingFormResponseRepo.findByBookingUid(bookingId);
 
     if (!formResponse) {
       log.error("Form response not found");
       throw new Error("Form response not found");
     }
 
-    const response = routingFormResponseInDbSchema.safeParse(formResponse.response);
+    return this.parseResponseData(formResponse.response);
+  }
+
+  async createWithResponseId(responseId: number) {
+    const log = this.deps.logger.getSubLogger({
+      prefix: ["[routingFormFieldService]", { responseId }],
+    });
+
+    const formResponse = await this.deps.routingFormResponseRepo.findByResponseId(responseId);
+
+    if (!formResponse) {
+      log.error("Form response not found");
+      throw new Error("Form response not found");
+    }
+
+    return this.parseResponseData(formResponse.response);
+  }
+
+  private parseResponseData(rawResponse: string): RoutingFormResponseData {
+    const response = routingFormResponseInDbSchema.safeParse(rawResponse);
     if (!response.success) {
       log.error("Form response not found");
       throw new Error("Form response not found");
