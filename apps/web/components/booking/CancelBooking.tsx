@@ -9,7 +9,8 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
-import { Label, Select, TextArea } from "@calcom/ui/components/form";
+import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
+import { Input, Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 interface InternalNotePresetsSelectProps {
@@ -76,6 +77,8 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
+    userEmail?: string;
+    attendees?: { email: string }[];
   };
   profile: {
     name: string | null;
@@ -118,6 +121,9 @@ export default function CancelBooking(props: Props) {
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
+  const [showVerificationDialog, setShowVerificationDialog] = useState<boolean>(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>("");
+  const [verificationError, setVerificationError] = useState<string>("");
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -127,6 +133,74 @@ export default function CancelBooking(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleCancellation = async () => {
+    setLoading(true);
+
+    telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
+
+    const res = await fetch("/api/cancel", {
+      body: JSON.stringify({
+        uid: booking?.uid,
+        cancellationReason: cancellationReason,
+        allRemainingBookings,
+        // @NOTE: very important this shouldn't cancel with number ID use uid instead
+        seatReferenceUid,
+        cancelledBy: currentUserEmail,
+        internalNote: internalNote,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    const bookingWithCancellationReason = {
+      ...(bookingCancelledEventProps.booking as object),
+      cancellationReason,
+    } as unknown;
+
+    if (res.status >= 200 && res.status < 300) {
+      // tested by apps/web/playwright/booking-pages.e2e.ts
+      sdkActionManager?.fire("bookingCancelled", {
+        ...bookingCancelledEventProps,
+        booking: bookingWithCancellationReason,
+      });
+      refreshData();
+    } else {
+      setLoading(false);
+      setError(`${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`);
+    }
+  };
+
+  const verifyAndCancel = () => {
+    if (!currentUserEmail) {
+      setShowVerificationDialog(true);
+      return;
+    }
+
+    handleCancellation();
+  };
+
+  const handleVerification = () => {
+    setVerificationError("");
+    if (!verificationEmail) {
+      setVerificationError(t("email_required"));
+      return;
+    }
+
+    if (
+      booking.attendees?.some(
+        (attendee) => attendee.email.toLowerCase() === verificationEmail.toLowerCase()
+      ) ||
+      verificationEmail.toLowerCase() === booking?.userEmail?.toLowerCase()
+    ) {
+      setShowVerificationDialog(false);
+      handleCancellation();
+    } else {
+      setVerificationError(t("proceed_with_cancellation_error"));
+    }
+  };
 
   return (
     <>
@@ -182,7 +256,7 @@ export default function CancelBooking(props: Props) {
           {props.isHost ? (
             <div className="-mt-2 mb-4 flex items-center gap-2">
               <Icon name="info" className="text-subtle h-4 w-4" />
-              <p className="text-default text-subtle text-sm leading-none">
+              <p className="text-subtle text-sm leading-none">
                 {t("notify_attendee_cancellation_reason_warning")}
               </p>
             </div>
@@ -201,48 +275,7 @@ export default function CancelBooking(props: Props) {
                   props.isHost &&
                   (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
-                onClick={async () => {
-                  setLoading(true);
-
-                  telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
-                  const res = await fetch("/api/cancel", {
-                    body: JSON.stringify({
-                      uid: booking?.uid,
-                      cancellationReason: cancellationReason,
-                      allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
-                      seatReferenceUid,
-                      cancelledBy: currentUserEmail,
-                      internalNote: internalNote,
-                    }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                  });
-
-                  const bookingWithCancellationReason = {
-                    ...(bookingCancelledEventProps.booking as object),
-                    cancellationReason,
-                  } as unknown;
-
-                  if (res.status >= 200 && res.status < 300) {
-                    // tested by apps/web/playwright/booking-pages.e2e.ts
-                    sdkActionManager?.fire("bookingCancelled", {
-                      ...bookingCancelledEventProps,
-                      booking: bookingWithCancellationReason,
-                    });
-                    refreshData();
-                  } else {
-                    setLoading(false);
-                    setError(
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`
-                    );
-                  }
-                }}
+                onClick={verifyAndCancel}
                 loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>
@@ -250,6 +283,34 @@ export default function CancelBooking(props: Props) {
           </div>
         </div>
       )}
+      <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
+        <DialogContent>
+          <DialogHeader title={t("verify_email")} />
+          <div className="space-y-4 py-4">
+            <p className="text-default text-sm">{t("proceed_with_cancellation_description")}</p>
+            <Input
+              type="email"
+              placeholder={t("email_placeholder")}
+              value={verificationEmail}
+              onChange={(e) => setVerificationEmail(e.target.value)}
+              className="mb-2"
+            />
+            {verificationError && <p className="text-error text-sm">{verificationError}</p>}
+            <div className="flex justify-end space-x-2">
+              <Button
+                color="secondary"
+                onClick={() => {
+                  setShowVerificationDialog(false);
+                  setVerificationError("");
+                  setVerificationEmail("");
+                }}>
+                {t("cancel")}
+              </Button>
+              <Button onClick={handleVerification}>{t("verify")}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
