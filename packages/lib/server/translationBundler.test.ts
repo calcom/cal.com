@@ -6,7 +6,6 @@ import { getBundledTranslations, __resetTranslationCacheForTests } from "./trans
 vi.mock("fs");
 vi.mock("@calcom/lib/constants", () => ({
   CALCOM_VERSION: "test-version",
-  CALCOM_ENV: "production",
 }));
 
 const mockReadFileSync = vi.mocked(readFileSync);
