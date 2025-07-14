@@ -14,11 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3]
 
     env:
-      DATABASE_URL: "postgresql://postgres:@localhost:5432/calendso"
-      DATABASE_DIRECT_URL: "postgresql://postgres:@localhost:5432/calendso"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/calendso"
+      DATABASE_DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/calendso"
       NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
       NEXT_PUBLIC_WEBAPP_URL: "http://localhost:3000"
@@ -43,9 +43,13 @@ jobs:
 
     services:
       postgres:
-        image: postgres:12.1
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
-          POSTGRES_PASSWORD: 
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: calendso
         options: >-
           --health-cmd pg_isready
@@ -87,8 +91,8 @@ jobs:
 
       - name: Run E2E tests with timing
         run: |
-          echo "Running shard ${{ matrix.shard }}/4"
-          yarn e2e --shard=${{ matrix.shard }}/4 --reporter=html,json
+          echo "Running shard ${{ matrix.shard }}/3"
+          yarn e2e --shard=${{ matrix.shard }}/3 --reporter=html,json
         env:
           NEXT_PUBLIC_IS_E2E: 1
 
