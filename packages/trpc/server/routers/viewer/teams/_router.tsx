@@ -18,6 +18,7 @@ import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
+import { ZListAllWithFeaturesInputSchema } from "./listAllWithFeatures.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
@@ -30,6 +31,7 @@ import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateFeaturesInputSchema } from "./updateFeatures.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
@@ -193,6 +195,14 @@ export const viewerTeamsRouter = router({
   }),
   skipTeamTrials: authedProcedure.input(ZSkipTeamTrialsInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./skipTeamTrials.handler");
+    return handler(opts);
+  }),
+  listAllWithFeatures: authedProcedure.input(ZListAllWithFeaturesInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listAllWithFeatures.handler");
+    return handler(opts);
+  }),
+  updateFeatures: authedProcedure.input(ZUpdateFeaturesInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./updateFeatures.handler");
     return handler(opts);
   }),
 });
