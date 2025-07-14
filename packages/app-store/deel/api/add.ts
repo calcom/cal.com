@@ -1,8 +1,8 @@
-import getParsedAppKeysFromSlug from "_utils/getParsedAppKeysFromSlug";
-import { deelAuthUrl } from "deel/lib/constants";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
+import { deelAuthUrl } from "../lib/constants";
 import { appKeysSchema } from "../zod";
 
 const scopes = ["time-off:write", "time-off:read", "people:read"];

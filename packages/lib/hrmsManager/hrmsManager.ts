@@ -32,7 +32,7 @@ export default class HrmsManager {
   }
 
   async updateOOO(
-    timeOffId: string,
+    externalId: string,
     params: {
       startDate?: string;
       endDate?: string;
@@ -40,11 +40,16 @@ export default class HrmsManager {
     }
   ): Promise<void> {
     const hrmsService = await this.getHrmsService();
-    return hrmsService.updateOOO(timeOffId, params);
+    return hrmsService.updateOOO(externalId, params);
   }
 
-  async deleteOOO(timeOffId: string): Promise<void> {
+  async deleteOOO(externalId: string): Promise<void> {
     const hrmsService = await this.getHrmsService();
-    return hrmsService.deleteOOO(timeOffId);
+    return hrmsService.deleteOOO(externalId);
+  }
+
+  async listOOOReasons(userEmail: string): Promise<{ id: string; name: string }[]> {
+    const hrmsService = await this.getHrmsService();
+    return hrmsService.listOOOReasons(userEmail);
   }
 }

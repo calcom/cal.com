@@ -80,7 +80,7 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
         const hrmsManager = new HrmsManager(credential);
         const reasons = await hrmsManager.listOOOReasons(user.email);
 
-        const mappedReasons = reasons.map((reason) => ({
+        const mappedReasons = reasons.map((reason: { id: string; name: string }) => ({
           id: reason.id,
           name: reason.name,
           emoji: "🏖️",

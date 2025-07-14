@@ -1,14 +1,14 @@
-import getParsedAppKeysFromSlug from "_utils/getParsedAppKeysFromSlug";
-import { deelAuthUrl } from "deel/lib/constants";
-import { appKeysSchema } from "deel/zod";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import metadata from "../_metadata";
+import { deelAuthUrl } from "../lib/constants";
+import { appKeysSchema } from "../zod";
 
 export interface DeelToken {
   access_token: string;
