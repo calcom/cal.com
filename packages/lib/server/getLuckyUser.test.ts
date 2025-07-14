@@ -2,7 +2,7 @@ import CalendarManagerMock from "../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi, beforeAll } from "vitest";
+import { expect, it, describe, vi, beforeAll, afterEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
@@ -24,6 +24,10 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 it("can find lucky user with maximize availability", async () => {
