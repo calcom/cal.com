@@ -11,185 +11,226 @@ import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService"
 
 import appConfig from "../config.json";
 
-type ContactSearchResult = {
-  status: string;
-  results: Array<{
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    name: string;
-  }>;
+type PipedriveContact = {
+  id: number;
+  name: string;
+  first_name: string;
+  last_name: string;
+  email: Array<{ value: string; primary: boolean }>;
 };
 
-type ContactCreateResult = {
-  status: string;
-  result: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    name: string;
-  };
+type PipedriveActivity = {
+  id: number;
+  subject: string;
+  due_date: string;
+  due_time: string;
+  duration: string;
+  note: string;
+  location: string;
+  person_id: number;
 };
 
 export default class PipedriveCrmService implements CRM {
   private log: typeof logger;
-  private tenantId: string;
-  private revertApiKey: string;
-  private revertApiUrl: string;
+  private accessToken: string;
+  private apiDomain: string;
+  private refreshToken: string;
+  private expiryDate: number;
+
   constructor(credential: CredentialPayload) {
-    this.revertApiKey = process.env.REVERT_API_KEY || "";
-    this.revertApiUrl = process.env.REVERT_API_URL || "https://api.revert.dev/";
-    this.tenantId = String(credential.teamId ? credential.teamId : credential.userId); // Question: Is this a reasonable assumption to be made? Get confirmation on the exact field to be used here.
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
+
+    const key = credential.key as any;
+    this.accessToken = key.access_token;
+    this.apiDomain = key.api_domain;
+    this.refreshToken = key.refresh_token;
+    this.expiryDate = key.expiryDate;
+  }
+
+  private async getValidAccessToken(): Promise<string> {
+    if (Date.now() < this.expiryDate) {
+      return this.accessToken;
+    }
+
+    return this.accessToken;
   }
 
   async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
+    const accessToken = await this.getValidAccessToken();
+
     const result = contactsToCreate.map(async (attendee) => {
-      const headers = new Headers();
-      headers.append("x-revert-api-token", this.revertApiKey);
-      headers.append("x-revert-t-id", this.tenantId);
-      headers.append("Content-Type", "application/json");
+      const [firstName, lastName] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
 
-      const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
-      const bodyRaw = JSON.stringify({
-        firstName: firstname,
-        lastName: lastname || "-",
-        email: attendee.email,
-      });
-
-      const requestOptions = {
-        method: "POST",
-        headers: headers,
-        body: bodyRaw,
+      const bodyData = {
+        name: attendee.name || attendee.email,
+        first_name: firstName,
+        last_name: lastName || "",
+        email: [{ value: attendee.email, primary: true }],
       };
 
       try {
-        const response = await fetch(`${this.revertApiUrl}crm/contacts`, requestOptions);
-        const result = (await response.json()) as ContactCreateResult;
-        return result;
+        const response = await fetch(`${this.apiDomain}/api/v1/persons`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bodyData),
+        });
+
+        const result = await response.json();
+        if (result.success && result.data) {
+          const contact = result.data as PipedriveContact;
+          return {
+            id: contact.id.toString(),
+            email: contact.email[0]?.value || attendee.email,
+            firstName: contact.first_name,
+            lastName: contact.last_name,
+            name: contact.name,
+          };
+        }
+        throw new Error("Failed to create contact");
       } catch (error) {
-        return Promise.reject(error);
+        this.log.error("Error creating contact:", error);
+        throw error;
       }
     });
 
-    const results = await Promise.all(result);
-    return results.map((result) => result.result);
+    return await Promise.all(result);
   }
 
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
+    const accessToken = await this.getValidAccessToken();
     const emailArray = Array.isArray(emails) ? emails : [emails];
 
-    const result = emailArray.map(async (attendeeEmail) => {
-      const headers = new Headers();
-      headers.append("x-revert-api-token", this.revertApiKey);
-      headers.append("x-revert-t-id", this.tenantId);
-      headers.append("Content-Type", "application/json");
-
-      const bodyRaw = JSON.stringify({ searchCriteria: attendeeEmail });
-
-      const requestOptions = {
-        method: "POST",
-        headers: headers,
-        body: bodyRaw,
-      };
-
+    const result = emailArray.map(async (email) => {
       try {
-        const response = await fetch(`${this.revertApiUrl}crm/contacts/search`, requestOptions);
-        const result = (await response.json()) as ContactSearchResult;
-        return result;
+        const response = await fetch(
+          `${this.apiDomain}/api/v1/persons/search?term=${encodeURIComponent(email)}&fields=email`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        const result = await response.json();
+        if (result.success && result.data?.items) {
+          return result.data.items.map((item: any) => {
+            const contact = item.item as PipedriveContact;
+            return {
+              id: contact.id.toString(),
+              email: contact.email[0]?.value || email,
+              firstName: contact.first_name,
+              lastName: contact.last_name,
+              name: contact.name,
+            };
+          });
+        }
+        return [];
       } catch (error) {
-        return { status: "error", results: [] };
+        this.log.error("Error searching contacts:", error);
+        return [];
       }
     });
+
     const results = await Promise.all(result);
-    return results[0].results;
+    return results.flat();
   }
 
   private getMeetingBody = (event: CalendarEvent): string => {
-    return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
+    return `${event.organizer.language.translate("invitee_timezone")}: ${
       event.attendees[0].timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-      event.additionalNotes || "-"
-    }`;
+    }\n\n${event.organizer.language.translate("share_additional_notes")}\n${event.additionalNotes || "-"}`;
   };
 
-  private createPipedriveEvent = async (event: CalendarEvent, contacts: Contact[]) => {
-    const eventPayload = {
-      subject: event.title,
-      startDateTime: event.startTime,
-      endDateTime: event.endTime,
-      description: this.getMeetingBody(event),
-      location: getLocation(event),
-      associations: {
-        contactId: String(contacts[0].id),
-      },
-    };
-    const headers = new Headers();
-    headers.append("x-revert-api-token", this.revertApiKey);
-    headers.append("x-revert-t-id", this.tenantId);
-    headers.append("Content-Type", "application/json");
+  private createPipedriveActivity = async (event: CalendarEvent, contacts: Contact[]) => {
+    const accessToken = await this.getValidAccessToken();
 
-    const eventBody = JSON.stringify(eventPayload);
-    const requestOptions = {
+    const startDate = new Date(event.startTime);
+    const endDate = new Date(event.endTime);
+    const duration = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+
+    const activityPayload = {
+      subject: event.title,
+      type: "meeting",
+      due_date: startDate.toISOString().split("T")[0],
+      due_time: startDate.toTimeString().split(" ")[0].substring(0, 5),
+      duration: `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`,
+      note: this.getMeetingBody(event),
+      location: getLocation(event),
+      person_id: parseInt(contacts[0].id),
+    };
+
+    const response = await fetch(`${this.apiDomain}/api/v1/activities`, {
       method: "POST",
-      headers: headers,
-      body: eventBody,
-    };
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(activityPayload),
+    });
 
-    return await fetch(`${this.revertApiUrl}crm/events`, requestOptions);
+    return response;
   };
 
-  private updateMeeting = async (uid: string, event: CalendarEvent) => {
-    const eventPayload = {
+  private updateActivity = async (uid: string, event: CalendarEvent) => {
+    const accessToken = await this.getValidAccessToken();
+
+    const startDate = new Date(event.startTime);
+    const endDate = new Date(event.endTime);
+    const duration = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
+
+    const activityPayload = {
       subject: event.title,
-      startDateTime: event.startTime,
-      endDateTime: event.endTime,
-      description: this.getMeetingBody(event),
+      due_date: startDate.toISOString().split("T")[0],
+      due_time: startDate.toTimeString().split(" ")[0].substring(0, 5),
+      duration: `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`,
+      note: this.getMeetingBody(event),
       location: getLocation(event),
     };
-    const headers = new Headers();
-    headers.append("x-revert-api-token", this.revertApiKey);
-    headers.append("x-revert-t-id", this.tenantId);
-    headers.append("Content-Type", "application/json");
 
-    const eventBody = JSON.stringify(eventPayload);
-    const requestOptions = {
-      method: "PATCH",
-      headers: headers,
-      body: eventBody,
-    };
+    const response = await fetch(`${this.apiDomain}/api/v1/activities/${uid}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(activityPayload),
+    });
 
-    return await fetch(`${this.revertApiUrl}crm/events/${uid}`, requestOptions);
+    return response;
   };
 
-  private deleteMeeting = async (uid: string) => {
-    const headers = new Headers();
-    headers.append("x-revert-api-token", this.revertApiKey);
-    headers.append("x-revert-t-id", this.tenantId);
+  private deleteActivity = async (uid: string) => {
+    const accessToken = await this.getValidAccessToken();
 
-    const requestOptions = {
+    const response = await fetch(`${this.apiDomain}/api/v1/activities/${uid}`, {
       method: "DELETE",
-      headers: headers,
-    };
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-    return await fetch(`${this.revertApiUrl}crm/events/${uid}`, requestOptions);
+    return response;
   };
 
   async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
-    const meetingEvent = await (await this.createPipedriveEvent(event, contacts)).json();
-    if (meetingEvent && meetingEvent.status === "ok") {
+    const response = await this.createPipedriveActivity(event, contacts);
+    const meetingEvent = await response.json();
+
+    if (meetingEvent.success && meetingEvent.data) {
       this.log.debug("event:creation:ok", { meetingEvent });
       return Promise.resolve({
-        uid: meetingEvent.result.id,
-        id: meetingEvent.result.id,
+        uid: meetingEvent.data.id.toString(),
+        id: meetingEvent.data.id.toString(),
         type: appConfig.slug,
         password: "",
         url: "",
         additionalInfo: { contacts, meetingEvent },
       });
     }
+
     this.log.debug("meeting:creation:notOk", { meetingEvent, event, contacts });
     return Promise.reject("Something went wrong when creating a meeting in PipedriveCRM");
   }
@@ -199,24 +240,27 @@ export default class PipedriveCrmService implements CRM {
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
-    const meetingEvent = await (await this.updateMeeting(uid, event)).json();
-    if (meetingEvent && meetingEvent.status === "ok") {
+    const response = await this.updateActivity(uid, event);
+    const meetingEvent = await response.json();
+
+    if (meetingEvent.success && meetingEvent.data) {
       this.log.debug("event:updation:ok", { meetingEvent });
       return Promise.resolve({
-        uid: meetingEvent.result.id,
-        id: meetingEvent.result.id,
+        uid: meetingEvent.data.id.toString(),
+        id: meetingEvent.data.id.toString(),
         type: appConfig.slug,
         password: "",
         url: "",
         additionalInfo: { meetingEvent },
       });
     }
+
     this.log.debug("meeting:updation:notOk", { meetingEvent, event });
     return Promise.reject("Something went wrong when updating a meeting in PipedriveCRM");
   }
 
   async deleteEvent(uid: string): Promise<void> {
-    await this.deleteMeeting(uid);
+    await this.deleteActivity(uid);
   }
 
   async getAvailability(
