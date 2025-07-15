@@ -5,7 +5,7 @@ import { calendar_v3 } from "@googleapis/calendar";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { JWT } from "googleapis-common";
 
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
