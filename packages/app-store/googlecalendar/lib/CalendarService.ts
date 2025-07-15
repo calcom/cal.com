@@ -29,6 +29,15 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
 
+type CalendarFreeBusyResponse = {
+  [calendarId: string]: {
+    busy: {
+      start: Date | string;
+      end: Date | string;
+    }[];
+  };
+};
+
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
 interface GoogleCalError extends Error {
@@ -1111,7 +1120,7 @@ export default class GoogleCalendarService implements Calendar {
     };
 
     const freeBusyResponse = {
-      calendars: calendarIds.reduce((acc, cal) => {
+      calendars: calendarIds.reduce<CalendarFreeBusyResponse>((acc, cal) => {
         acc[cal.id] = {
           busy: busyTimes.map((bt) => ({
             start: bt.start,
@@ -1119,10 +1128,10 @@ export default class GoogleCalendarService implements Calendar {
           })),
         };
         return acc;
-      }, {} as any),
+      }, {}),
     };
 
-    await (calendarCache as any).upsertCachedAvailability({
+    await calendarCache.upsertCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
       args,
