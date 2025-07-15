@@ -397,6 +397,13 @@ export class SelectedCalendarRepository {
     });
   }
 
+  static async updateManyByCredentialId(credentialId: number, data: Prisma.SelectedCalendarUpdateInput) {
+    return await prisma.selectedCalendar.updateMany({
+      where: { credentialId },
+      data,
+    });
+  }
+
   static async setErrorInWatching({ id, error }: { id: string; error: string }) {
     await SelectedCalendarRepository.updateById(id, {
       error,
