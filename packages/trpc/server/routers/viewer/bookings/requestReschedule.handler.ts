@@ -19,6 +19,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import { prisma } from "@calcom/prisma";
@@ -107,20 +108,14 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     },
   });
 
-  if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
-    const userTeamIds = userTeams.teams.map((item) => item.teamId);
-    if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
-    }
-    log.debug(
-      "Request reschedule for team booking",
-      safeStringify({
-        teamId: bookingToReschedule.eventType?.teamId,
-      })
-    );
-  }
-  if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
+  const bookingRepo = new BookingRepository(prisma);
+  const hasAccess = await bookingRepo.doesUserIdHaveAccessToBooking({
+    userId: user.id,
+    bookingId: bookingToReschedule.id,
+  });
+
+  if (!hasAccess) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "User doesn't have access to this booking" });
   }
 
   if (!bookingToReschedule) return;
