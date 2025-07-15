@@ -1,4 +1,5 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
@@ -17,7 +18,6 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getAvailableSlots } from "@calcom/platform-libraries/slots";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 import { Booking, EventType } from "@calcom/prisma/client";
 
@@ -38,13 +38,14 @@ export class SlotsService_2024_09_04 {
     private readonly slotsInputService: SlotsInputService_2024_09_04,
     private readonly membershipsService: MembershipsService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly teamsRepository: TeamsRepository
+    private readonly teamsRepository: TeamsRepository,
+    private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     try {
       const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
-      const availableSlots: TimeSlots = await getAvailableSlots({
+      const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
         input: {
           ...queryTransformed,
           routingFormResponseId: queryTransformed.routingFormResponseId ?? undefined,
