@@ -69,7 +69,7 @@ export const ReassignDialog = ({
   bookingFromRoutingForm,
   eventTypeSchedulingType,
   allowManagedEventReassignment,
-}: ReassignDialog & { eventTypeSchedulingType: string; allowManagedEventReassignment?: boolean }) => {
+}: ReassignDialog & { eventTypeSchedulingType: SchedulingType; allowManagedEventReassignment?: boolean }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [animationParentRef] = useAutoAnimate<HTMLFormElement>({

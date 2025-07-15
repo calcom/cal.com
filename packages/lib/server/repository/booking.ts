@@ -137,6 +137,7 @@ export class BookingRepository {
             teamId: true,
             parentId: true,
             schedulingType: true,
+            parent: { select: { teamId: true } },
           },
         },
       },
@@ -153,11 +154,7 @@ export class BookingRepository {
 
     // For managed event types, get teamId from parent event type
     if (booking.eventType.schedulingType === SchedulingType.MANAGED && booking.eventType.parentId) {
-      const parentEventType = await this.prismaClient.eventType.findUnique({
-        where: { id: booking.eventType.parentId },
-        select: { teamId: true },
-      });
-      teamId = parentEventType?.teamId || teamId;
+      teamId = booking.eventType.parent?.teamId || teamId;
     }
 
     if (!teamId) return false;

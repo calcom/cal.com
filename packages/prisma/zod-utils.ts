@@ -680,7 +680,6 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
   customReplyToEmail: true,
-  schedulingType: true,
   allowManagedEventReassignment: true,
 };
 

@@ -93,7 +93,7 @@ export const roundRobinManualReassignment = async ({
   }
 
   let eventTypeHosts: typeof eventType.hosts;
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED && eventType.parentId;
+  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED && !!eventType.parentId;
   const parentEventType = isManagedEventType ? await getEventTypesFromDB(eventType.parentId ?? -1) : null;
 
   const buildFallbackHosts = (users: typeof eventType.users) =>

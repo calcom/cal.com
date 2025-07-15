@@ -86,6 +86,15 @@ const checkExistentEventTypes = async ({
   }
 };
 
+const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    const chunk = array.slice(i, i + chunkSize);
+    chunks.push(chunk);
+  }
+  return chunks;
+};
+
 export default async function handleChildrenEventTypes({
   eventTypeId: parentId,
   oldEventType,
@@ -194,33 +203,35 @@ export default async function handleChildrenEventTypes({
             allowReschedulingCancelledBookings:
               managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
             allowManagedEventReassignment: managedEventTypeValues.allowManagedEventReassignment ?? false,
-            schedulingType: managedEventTypeValues.schedulingType ?? SchedulingType.MANAGED,
+            schedulingType: SchedulingType.MANAGED,
           },
         });
       })
     );
 
     // upsert Host records for each user on the parent managed event type
-    await prisma.$transaction(
-      createdChildEventTypes
-        .filter((eventType) => eventType.userId !== undefined)
-        .map((eventType) =>
-          prisma.host.upsert({
-            where: {
-              userId_eventTypeId: {
-                userId: eventType.userId as number,
-                eventTypeId: parentId,
-              },
-            },
-            update: {},
-            create: {
+    const upsertOps = createdChildEventTypes
+      .filter((eventType) => eventType.userId !== undefined)
+      .map((eventType) =>
+        prisma.host.upsert({
+          where: {
+            userId_eventTypeId: {
               userId: eventType.userId as number,
               eventTypeId: parentId,
-              isFixed: false,
             },
-          })
-        )
-    );
+          },
+          update: {},
+          create: {
+            userId: eventType.userId as number,
+            eventTypeId: parentId,
+            isFixed: false,
+          },
+        })
+      );
+
+    for (const chunk of chunkArray(upsertOps, 10)) {
+      await prisma.$transaction(chunk);
+    }
   }
 
   // Old users updated
