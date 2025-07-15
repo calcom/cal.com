@@ -192,12 +192,6 @@ export class OrganizationsTeamsConferencingController {
   @Get("/teams/:teamId/conferencing/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get team default conferencing application" })
-  @ApiParam({
-    name: "app",
-    description: "Conferencing application type",
-    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
-    required: true,
-  })
   async getTeamDefaultApp(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number

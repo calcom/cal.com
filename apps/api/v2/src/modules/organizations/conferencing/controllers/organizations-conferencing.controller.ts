@@ -40,7 +40,6 @@ import {
 import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { Request } from "express";
-import { stringify } from "querystring";
 
 import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
@@ -75,7 +74,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get OAuth conferencing app's auth url for a team" })
+  @ApiOperation({ summary: "Get OAuth conferencing app's auth url for a organization" })
   async getOrgOAuthUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -108,7 +107,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/conferencing")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "List team conferencing applications" })
+  @ApiOperation({ summary: "List organization conferencing applications" })
   async listOrgConferencingApps(
     @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
@@ -129,7 +128,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Set team default conferencing application" })
+  @ApiOperation({ summary: "Set organization default conferencing application" })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
@@ -153,13 +152,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/conferencing/default")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get team default conferencing application" })
-  @ApiParam({
-    name: "app",
-    description: "Conferencing application type",
-    enum: [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO, CAL_VIDEO],
-    required: true,
-  })
+  @ApiOperation({ summary: "Get organization default conferencing application" })
   async getOrgDefaultApp(
     @Param("orgId", ParseIntPipe) orgId: number
   ): Promise<GetDefaultConferencingAppOutputResponseDto> {
@@ -175,7 +168,7 @@ export class OrganizationsConferencingController {
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Delete("/conferencing/:app/disconnect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Disconnect team conferencing application" })
+  @ApiOperation({ summary: "Disconnect organization conferencing application" })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
