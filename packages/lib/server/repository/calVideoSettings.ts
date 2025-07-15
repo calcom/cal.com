@@ -15,6 +15,7 @@ export class CalVideoSettingsRepository {
     calVideoSettings: {
       disableRecordingForGuests?: boolean | null;
       disableRecordingForOrganizer?: boolean | null;
+      disableRecordingDownloadEmailForGuests?: boolean | null;
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
       enableAutomaticTranscription?: boolean | null;
@@ -26,6 +27,8 @@ export class CalVideoSettingsRepository {
       update: {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        disableRecordingDownloadEmailForGuests:
+          calVideoSettings.disableRecordingDownloadEmailForGuests ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
@@ -35,6 +38,8 @@ export class CalVideoSettingsRepository {
       create: {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        disableRecordingDownloadEmailForGuests:
+          calVideoSettings.disableRecordingDownloadEmailForGuests ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
