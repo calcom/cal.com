@@ -216,7 +216,7 @@ module.exports = {
         brand: "var(--cal-brand-text)",
       },
       screens: {
-        pwa: { raw: "(display-mode: standalone)" },
+        // pwa: "(display-mode: standalone)", // Removed due to Tailwind v4 CSS parsing incompatibility
       },
       keyframes: {
         "fade-in-up": {
@@ -269,10 +269,10 @@ module.exports = {
         full: "100%",
         screen: "100vw",
       }),
-      maxWidth: (theme, { breakpoints }) => ({
+      maxWidth: (theme) => ({
         0: "0",
         ...theme("spacing"),
-        ...breakpoints(theme("screens")),
+        ...theme("screens"),
         full: "100%",
         screen: "100vw",
       }),
@@ -320,7 +320,6 @@ module.exports = {
     require("@tailwindcss/typography"),
     require("tailwind-scrollbar")({ nocompatible: true }),
     require("tailwindcss-radix")(),
-    require("@savvywombat/tailwindcss-grid-areas"),
     plugin(({ addVariant }) => {
       addVariant("mac", ".mac &");
       addVariant("windows", ".windows &");

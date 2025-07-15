@@ -1,6 +1,7 @@
 /* @import rules must precede all rules aside from @charset and @layer statements. */
 @import "./raqb.css";
 
+@config "../tailwind.config.js";
 @import "tailwindcss";
 
 /**
