@@ -140,41 +140,6 @@ export class ConferencingController {
     enum: [ZOOM, OFFICE_365_VIDEO],
     required: true,
   })
-  /**
-   * Handle OAuth callback for organization or team-level conferencing endpoints
-   * @private
-   */
-  private async handleOrgOAuthCallback(
-    app: string,
-    state: string,
-    code: string,
-    error: string | undefined,
-    error_description: string | undefined,
-    decodedCallbackState: OAuthCallbackState
-  ): Promise<{ url: string }> {
-    const apiUrl = this.config.get("api.url");
-    let url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/conferencing/${app}/oauth/callback`;
-
-    // Add team segment to URL if teamId is present
-    if (decodedCallbackState.teamId) {
-      url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/conferencing/${app}/oauth/callback`;
-    }
-
-    const params: Record<string, string | undefined> = { state, code, error, error_description };
-    const headers = {
-      Authorization: `Bearer ${decodedCallbackState.accessToken}`,
-    };
-
-    try {
-      const response = await this.httpService.axiosRef.get(url, { params, headers });
-      const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
-      return { url: redirectUrl };
-    } catch (err) {
-      const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
-      return { url: fallbackUrl };
-    }
-  }
-
   async save(
     @Query("state") state: string,
     @Param("app") app: string,
@@ -192,12 +157,38 @@ export class ConferencingController {
         throw new BadRequestException(error_description);
       }
 
-      // Handle organization-based OAuth callbacks (with or without team)
-      if (decodedCallbackState.orgId) {
-        return this.handleOrgOAuthCallback(app, state, code, error, error_description, decodedCallbackState);
+      if (decodedCallbackState.teamId && decodedCallbackState.orgId) {
+        const apiUrl = this.config.get("api.url");
+        const url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/teams/${decodedCallbackState.teamId}/conferencing/${app}/oauth/callback`;
+        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const headers = {
+          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
+        };
+        try {
+          const response = await this.httpService.axiosRef.get(url, { params, headers });
+          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          return { url: redirectUrl };
+        } catch (err) {
+          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
+          return { url: fallbackUrl };
+        }
+      } else if (decodedCallbackState.orgId) {
+        const apiUrl = this.config.get("api.url");
+        const url = `${apiUrl}/organizations/${decodedCallbackState.orgId}/conferencing/${app}/oauth/callback`;
+        const params: Record<string, string | undefined> = { state, code, error, error_description };
+        const headers = {
+          Authorization: `Bearer ${decodedCallbackState.accessToken}`,
+        };
+        try {
+          const response = await this.httpService.axiosRef.get(url, { params, headers });
+          const redirectUrl = response.data?.url || decodedCallbackState.onErrorReturnTo || "";
+          return { url: redirectUrl };
+        } catch (err) {
+          const fallbackUrl = decodedCallbackState.onErrorReturnTo || "";
+          return { url: fallbackUrl };
+        }
       }
 
-      // Handle user-level OAuth callback
       return this.conferencingService.connectOauthApps(app, code, decodedCallbackState);
     } catch (error) {
       if (error instanceof HttpException || error instanceof Error) {
