@@ -31,7 +31,7 @@ export function ChartCard({
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
         <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
         <div className="flex items-center gap-2 overflow-x-auto">
-          {legend && (legend || []).length > 0 && <Legend items={legend} size={legendSize} />}
+          {legend && legend.length > 0 && <Legend items={legend} size={legendSize} />}
           {cta && (
             <Button className="shrink-0" color="secondary" onClick={cta.onClick}>
               {cta.label}
@@ -57,7 +57,6 @@ function Legend({ items, size = "default" }: { items: LegendItem[]; size?: Legen
       {items.map((item, index) => (
         <Fragment key={item.label}>
           <div
-            key={item.label}
             className="relative flex items-center gap-2 rounded-md px-1.5 py-1"
             style={{ backgroundColor: `${item.color}33` }}>
             <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />

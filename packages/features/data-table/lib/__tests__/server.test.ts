@@ -154,10 +154,7 @@ describe("makeSqlCondition", () => {
         data: { operator: "unknown" as any, operand: "test" },
       };
 
-      const result = makeSqlCondition({
-        columnName: "name",
-        filterValue,
-      });
+      const result = makeSqlCondition(filterValue);
 
       expect(result).toBeNull();
     });

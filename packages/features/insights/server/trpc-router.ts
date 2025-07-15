@@ -1732,10 +1732,6 @@ export const insightsRouter = router({
   getRoutingFunnelData: userBelongsToTeamProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      if (ctx.user.organizationId === null) {
-        return null;
-      }
-
       const timeView = EventsInsights.getTimeView(input.startDate, input.endDate);
       const dateRanges = EventsInsights.getDateRanges({
         startDate: input.startDate,
@@ -1758,7 +1754,11 @@ export const insightsRouter = router({
           columnFilters: input.columnFilters,
         },
       });
-      return await insightsRoutingService.getRoutingFunnelData(dateRanges);
+      try {
+        return await insightsRoutingService.getRoutingFunnelData(dateRanges);
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
     }),
 });
 

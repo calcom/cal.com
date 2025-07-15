@@ -39,7 +39,7 @@ export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope",
 export type InsightsRoutingServicePublicOptions = {
   scope: "user" | "org" | "team";
   userId: number;
-  orgId: number;
+  orgId: number | null;
   teamId: number | undefined;
 };
 
@@ -83,6 +83,13 @@ export class InsightsRoutingService {
    */
   async getRoutingFunnelData(dateRanges: DateRange[]) {
     if (!dateRanges.length) return [];
+
+    // Validate date formats
+    for (const range of dateRanges) {
+      if (isNaN(Date.parse(range.startDate)) || isNaN(Date.parse(range.endDate))) {
+        throw new Error(`Invalid date format in range: ${range.startDate} - ${range.endDate}`);
+      }
+    }
 
     const baseConditions = await this.getBaseConditions();
 
