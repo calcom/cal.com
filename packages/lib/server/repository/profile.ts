@@ -518,8 +518,11 @@ export class ProfileRepository {
     orgSlug,
   }: {
     usernames: string[];
-    orgSlug: string;
+    orgSlug: string | null;
   }) {
+    if (!orgSlug) {
+      return [];
+    }
     logger.debug("findManyByOrgSlugOrRequestedSlug", safeStringify({ usernames, orgSlug }));
     const profiles = await prisma.profile.findMany({
       where: {
