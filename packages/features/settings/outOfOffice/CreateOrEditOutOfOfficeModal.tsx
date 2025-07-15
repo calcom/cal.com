@@ -128,7 +128,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
     label: `${reason.emoji} ${reason.userId === null ? t(reason.reason || "") : reason.reason || ""}`,
-    value: String(reason.id),
+    value: "externalId" in reason && reason.externalId ? reason.externalId : String(reason.id),
   }));
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);

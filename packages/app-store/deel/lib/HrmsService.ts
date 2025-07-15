@@ -119,6 +119,7 @@ export default class DeelHrmsService implements HrmsService {
     endDate: string;
     userEmail: string;
     notes?: string;
+    externalId?: string;
   }): Promise<{ id: string }> {
     try {
       const accessToken = await this.getAccessToken();
@@ -129,10 +130,11 @@ export default class DeelHrmsService implements HrmsService {
         throw new Error(`Recipient profile ID not found for user: ${params.userEmail}`);
       }
 
-      const timeOffTypeId = await this.getTimeOffTypeId(recipientProfileId);
+      const timeOffTypeId = params.externalId || (await this.getTimeOffTypeId(recipientProfileId));
       if (!timeOffTypeId) {
-        this.log.error("Time-off type ID not found for recipient profile", {
+        this.log.error("Time-off type ID not found", {
           recipientProfileId,
+          externalId: params.externalId,
         });
         throw new Error(`Time-off type ID not found for recipient profile: ${recipientProfileId}`);
       }

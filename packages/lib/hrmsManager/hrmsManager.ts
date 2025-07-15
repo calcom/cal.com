@@ -25,6 +25,7 @@ export default class HrmsManager {
     endDate: string;
     userEmail: string;
     notes?: string;
+    externalId?: string;
   }): Promise<{ id: string } | null> {
     const hrmsService = await this.getHrmsService();
     if (!hrmsService) return null;

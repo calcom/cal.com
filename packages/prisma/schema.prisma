@@ -1790,10 +1790,10 @@ model OutOfOfficeEntry {
 model OutOfOfficeReason {
   id         Int     @id @default(autoincrement())
   emoji      String
-  reason     String  @unique
+  reason     String
   enabled    Boolean @default(true)
   userId     Int?
-  externalId String?
+  externalId String? @unique
   user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]

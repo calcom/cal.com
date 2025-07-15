@@ -4,6 +4,7 @@ export interface HrmsService {
     endDate: string;
     notes?: string;
     userEmail: string;
+    externalId?: string;
   }): Promise<{ id: string }>;
   updateOOO(
     externalId: string,

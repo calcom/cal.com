@@ -182,7 +182,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: oooUserId,
-      reasonId: input.reasonId,
+      reasonId: typeof input.reasonId === "string" ? null : input.reasonId,
       toUserId: toUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -192,7 +192,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: oooUserId,
-      reasonId: input.reasonId,
+      reasonId: typeof input.reasonId === "string" ? null : input.reasonId,
       toUserId: toUserId ? toUserId : null,
     },
   });
@@ -224,13 +224,12 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         },
       })
     : null;
-  const reason = await prisma.outOfOfficeReason.findUnique({
-    where: {
-      id: input.reasonId,
-    },
+  const reason = await prisma.outOfOfficeReason.findFirst({
+    where: typeof input.reasonId === "string" ? { externalId: input.reasonId } : { id: input.reasonId },
     select: {
       reason: true,
       emoji: true,
+      externalId: true,
     },
   });
   if (toUserId) {
@@ -340,7 +339,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         emoji: reason?.emoji,
         reason: reason?.reason,
       },
-      reasonId: input.reasonId,
+      reasonId: typeof input.reasonId === "string" ? null : input.reasonId || null,
       user: {
         id: oooUserId,
         name: oooUserFullName,
@@ -420,6 +419,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           startDate: startTimeUtc.format("YYYY-MM-DD"),
           notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
           userEmail: oooUserEmail,
+          externalId: reason?.externalId || undefined,
         });
 
         if (ooo?.id) {

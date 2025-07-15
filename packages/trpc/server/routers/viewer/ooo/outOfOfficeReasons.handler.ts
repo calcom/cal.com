@@ -87,6 +87,7 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
           reason: reason.name,
           userId: null,
           enabled: true,
+          externalId: reason.id,
         }));
 
         hrmsReasons.push(...mappedReasons);
