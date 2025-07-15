@@ -81,6 +81,8 @@ const BookerComponent = ({
   eventMetaChildren,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
+  const timezone = useBookerStore((s) => s.timezone);
+  const clearTimeslot = useBookerStore((s) => s.setSelectedTimeslot);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
 
@@ -181,6 +183,11 @@ const BookerComponent = ({
   );
 
   updateEmbedBookerState({ bookerState, slotsQuery: schedule });
+
+  useEffect(() => {
+    if (schedule?.invalidate) schedule.invalidate();
+    clearTimeslot(null);
+  }, [timezone]);
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");

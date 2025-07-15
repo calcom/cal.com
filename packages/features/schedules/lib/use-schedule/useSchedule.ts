@@ -49,6 +49,7 @@ export const useSchedule = ({
   enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
+  const bookerTimezone = useBookerStore((state) => state.timezone);
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -87,7 +88,7 @@ export const useSchedule = ({
     startTime,
     // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
-    timeZone: timezone!,
+    timeZone: bookerTimezone!,
     duration: duration ? `${duration}` : undefined,
     rescheduleUid,
     orgSlug,
@@ -118,7 +119,7 @@ export const useSchedule = ({
       !skipGetSchedule &&
       Boolean(username) &&
       Boolean(month) &&
-      Boolean(timezone) &&
+      Boolean(bookerTimezone) &&
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(eventId) || eventId === 0) &&
       enabledProp,
