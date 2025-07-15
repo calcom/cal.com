@@ -5,7 +5,7 @@ import { describe, test, vi, expect, beforeEach } from "vitest";
 
 import { CreationSource } from "@calcom/prisma/enums";
 
-import { UserRepository } from "./user";
+import { UserRepository } from "./user.repository";
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
