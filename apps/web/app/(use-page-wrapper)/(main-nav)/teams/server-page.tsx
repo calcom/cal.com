@@ -51,7 +51,7 @@ export const ServerTeamsListing = async ({
   const orgId = userProfile?.organizationId ?? session?.user.org?.id;
   const orgRole =
     session?.user?.org?.role ??
-    userProfile?.organization?.members.find((m: { id: number }) => m.id === userId)?.role;
+    userProfile?.organization?.members.find((m: { userId: number }) => m.userId === userId)?.role;
   const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
 
   return {

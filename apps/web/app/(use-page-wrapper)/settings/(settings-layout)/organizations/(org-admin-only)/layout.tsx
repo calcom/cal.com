@@ -12,7 +12,7 @@ const OrgAdminOnlyLayout = async ({ children }: { children: React.ReactNode }) =
   const userId = session?.user?.id;
   const orgRole =
     session?.user?.org?.role ??
-    userProfile?.organization?.members.find((m: { id: number }) => m.id === userId)?.role;
+    userProfile?.organization?.members.find((m: { userId: number }) => m.userId === userId)?.role;
   const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
 
   if (!isOrgAdminOrOwner) {
