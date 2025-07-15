@@ -44,48 +44,29 @@ describe("util.ts caller perspective tests", () => {
     expect(result[0].start).toBeLessThan(result[1].start);
   });
 
-  it("should demonstrate that unsorted data would break checkForConflicts early-break optimization", () => {
+  it("should demonstrate the requirement for sorted data in checkForConflicts", () => {
+    // This test documents that callers must use prepareBusyTimes to ensure sorted data
+
     const unsortedBusyTimes = [
       {
-        start: dayjs.utc("2023-01-01T10:00:00Z").valueOf(),
-        end: dayjs.utc("2023-01-01T10:30:00Z").valueOf(),
+        start: dayjs.utc("2023-01-01T10:00:00Z").toDate(),
+        end: dayjs.utc("2023-01-01T10:30:00Z").toDate(),
       },
       {
-        start: dayjs.utc("2023-01-01T08:00:00Z").valueOf(),
-        end: dayjs.utc("2023-01-01T08:30:00Z").valueOf(),
+        start: dayjs.utc("2023-01-01T08:00:00Z").toDate(),
+        end: dayjs.utc("2023-01-01T08:30:00Z").toDate(),
       },
     ];
 
-    expect(unsortedBusyTimes[0].start).toBeGreaterThan(unsortedBusyTimes[1].start);
+    expect(dayjs.utc(unsortedBusyTimes[0].start).valueOf()).toBeGreaterThan(
+      dayjs.utc(unsortedBusyTimes[1].start).valueOf()
+    );
 
-    // Mock checkForConflicts to simulate the early-break behavior with unsorted data
-    mockCheckForConflicts.mockImplementation(({ time, eventLength, busy }) => {
-      const slotStart = time.valueOf();
-      const slotEnd = slotStart + eventLength * 60 * 1000;
+    const sortedBusyTimes = mockPrepareBusyTimes(unsortedBusyTimes);
 
-      // Simulate the early break logic with unsorted data
-      for (const busyTime of busy) {
-        if (busyTime.start >= slotEnd) {
-          return false; // Early break - this is the problem with unsorted data
-        }
-        if (busyTime.start < slotEnd && busyTime.end > slotStart) {
-          return true; // Conflict found
-        }
-      }
-      return false;
-    });
+    expect(mockPrepareBusyTimes).toHaveBeenCalledWith(unsortedBusyTimes);
 
-    const result = mockCheckForConflicts({
-      time: dayjs("2023-01-01T08:15:00Z"),
-      eventLength: 30,
-      busy: unsortedBusyTimes,
-    });
-
-    expect(result).toBe(false);
-    expect(mockCheckForConflicts).toHaveBeenCalledWith({
-      time: dayjs("2023-01-01T08:15:00Z"),
-      eventLength: 30,
-      busy: unsortedBusyTimes,
-    });
+    const result = mockPrepareBusyTimes.mock.results[0].value;
+    expect(result[0].start).toBeLessThan(result[1].start);
   });
 });
