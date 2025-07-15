@@ -22,7 +22,8 @@ async function loadFallbackTranslations(): Promise<Record<string, string>> {
     const translations = getBundledTranslations("en", "common");
 
     if (Object.keys(translations).length === 0) {
-      throw new Error("No English fallback translations found");
+      console.warn("No English fallback translations found");
+      return {};
     }
 
     translationCache.set(cacheKey, translations);
@@ -52,7 +53,8 @@ export async function loadTranslations(_locale: string, ns: string): Promise<Rec
     const translations = getBundledTranslations(locale, ns);
 
     if (Object.keys(translations).length === 0) {
-      throw new Error(`No translations found for ${locale}/${ns}`);
+      console.warn(`No translations found for ${locale}/${ns}`);
+      return {};
     }
 
     translationCache.set(cacheKey, translations);
