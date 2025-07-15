@@ -12,7 +12,7 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import type { BookerEvent } from "@calcom/features/bookings/types";
+import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -27,27 +27,7 @@ import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
   event: {
-    data?:
-      | (Pick<
-          BookerEvent,
-          | "id"
-          | "slug"
-          | "subsetOfHosts"
-          | "requiresConfirmation"
-          | "isDynamic"
-          | "metadata"
-          | "forwardParamsSuccessRedirect"
-          | "successRedirectUrl"
-          | "length"
-          | "recurringEvent"
-          | "schedulingType"
-        > & {
-          subsetOfUsers: Pick<
-            BookerEvent["subsetOfUsers"][number],
-            "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
-          >[];
-        })
-      | null;
+    data: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
   };
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];

@@ -157,22 +157,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   });
   const bookings = useBookings({
     event: {
-      data: event.data
-        ? {
-            id: event.data.id,
-            slug: event.data.slug,
-            subsetOfHosts: event.data.subsetOfHosts,
-            requiresConfirmation: event.data.requiresConfirmation,
-            isDynamic: event.data.isDynamic,
-            metadata: event.data.metadata,
-            forwardParamsSuccessRedirect: event.data.forwardParamsSuccessRedirect,
-            successRedirectUrl: event.data.successRedirectUrl,
-            length: event.data.length,
-            recurringEvent: event.data.recurringEvent,
-            schedulingType: event.data.schedulingType,
-            subsetOfUsers: event.data.subsetOfUsers,
-          }
-        : null,
+      data: event.data,
     },
     hashedLink: props.hashedLink,
     bookingForm: bookerForm.bookingForm,
