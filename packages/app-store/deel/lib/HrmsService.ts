@@ -287,7 +287,12 @@ export default class DeelHrmsService implements HrmsService {
       for (const policy of data.policies || []) {
         for (const timeOffType of policy.time_off_types || []) {
           const reason = await prisma.outOfOfficeReason.upsert({
-            where: { externalId: timeOffType.id, credentialId: this.credential.id },
+            where: {
+              credentialId_externalId: {
+                credentialId: this.credential.id,
+                externalId: timeOffType.id,
+              },
+            },
             create: {
               reason: timeOffType.name,
               credentialId: this.credential.id,
