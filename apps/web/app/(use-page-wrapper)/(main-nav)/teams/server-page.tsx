@@ -47,8 +47,13 @@ export const ServerTeamsListing = async ({
   }
 
   const teams = await getCachedTeams(userId);
-  const orgId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
-  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
+  const userProfile = session?.user?.profile;
+  const orgId = userProfile?.organizationId ?? session?.user.org?.id;
+  const orgRole =
+    session?.user?.org?.role ??
+    userProfile?.organization?.members.find((m: { id: number }) => m.id === userId)?.role;
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgRole);
+
   return {
     Main: (
       <TeamsListing
