@@ -7,6 +7,7 @@ import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controller
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
+import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
 import {
   ManagedOrganizationWithApiKeyOutput,
   ManagedOrganizationOutput,
@@ -65,6 +66,7 @@ describe("Organizations Organizations Endpoints", () => {
 
   let managerOrg: Team;
   let managedOrg: ManagedOrganizationWithApiKeyOutput;
+  let managedOrg2: ManagedOrganizationWithApiKeyOutput;
   const managerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
   let managerOrgAdmin: User;
   let managerOrgAdminApiKey: string;
@@ -158,27 +160,36 @@ describe("Organizations Organizations Endpoints", () => {
       .expect(400);
   });
 
+  const suffix = randomString(5);
+  const metadataKey = "first-org-metadata-key";
+  const metadataValue = "first-org-metadata-value";
+  const createManagedOrganizationBody: CreateOrganizationInput = {
+    name: `org ${suffix}`,
+    slug: `org-${suffix}`,
+    metadata: { [metadataKey]: metadataValue },
+  };
+
+  const suffix2 = randomString(5);
+  const createManagedOrganizationBodySecond: CreateOrganizationInput = {
+    name: `org2 ${suffix2}`,
+    slug: `org2-${suffix2}`,
+    metadata: { key: "value" },
+  };
+
   it("should create managed organization", async () => {
-    const suffix = randomString();
-
-    const body: CreateOrganizationInput = {
-      name: `organizations organizations org ${suffix}`,
-      metadata: { key: "value" },
-    };
-
     return request(app.getHttpServer())
       .post(`/v2/organizations/${managerOrg.id}/organizations`)
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
-      .send(body)
+      .send(createManagedOrganizationBody)
       .expect(201)
       .then(async (response) => {
         const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         managedOrg = responseBody.data;
         expect(managedOrg?.id).toBeDefined();
-        expect(managedOrg?.name).toEqual(body.name);
-        expect(managedOrg?.slug).toEqual(slugify(body.name));
-        expect(managedOrg?.metadata).toEqual(body.metadata);
+        expect(managedOrg?.name).toEqual(createManagedOrganizationBody.name);
+        expect(managedOrg?.slug).toEqual(createManagedOrganizationBody.slug);
+        expect(managedOrg?.metadata).toEqual(createManagedOrganizationBody.metadata);
         expect(managedOrg?.apiKey).toBeDefined();
 
         // note(Lauris): check that managed organization is correctly setup in database
@@ -283,6 +294,36 @@ describe("Organizations Organizations Endpoints", () => {
       });
   });
 
+  it("should not create managed organization if slug already exists", async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/v2/organizations/${managerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send(createManagedOrganizationBody)
+      .expect(409);
+
+    expect(response.body.error.message).toBe(
+      `Organization with slug '${createManagedOrganizationBody.slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+    );
+  });
+
+  it("should create second managed organization", async () => {
+    return request(app.getHttpServer())
+      .post(`/v2/organizations/${managerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send(createManagedOrganizationBodySecond)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        managedOrg2 = responseBody.data;
+        expect(managedOrg2?.id).toBeDefined();
+        expect(managedOrg2?.name).toEqual(createManagedOrganizationBodySecond.name);
+        expect(managedOrg2?.slug).toEqual(createManagedOrganizationBodySecond.slug);
+        expect(managedOrg2?.metadata).toEqual(createManagedOrganizationBodySecond.metadata);
+        expect(managedOrg2?.apiKey).toBeDefined();
+      });
+  });
+
   it("should get managed organization", async () => {
     return request(app.getHttpServer())
       .get(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
@@ -304,14 +345,79 @@ describe("Organizations Organizations Endpoints", () => {
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
       .expect(200)
       .then(async (response) => {
-        const responseBody: ApiSuccessResponse<ManagedOrganizationOutput[]> = response.body;
+        const responseBody: GetManagedOrganizationsOutput = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         const responseManagedOrgs = responseBody.data;
-        expect(responseManagedOrgs?.length).toEqual(1);
-        const responseManagedOrg = responseManagedOrgs[0];
+        expect(responseManagedOrgs?.length).toEqual(2);
+        const responseManagedOrg = responseManagedOrgs.find((org) => org.id === managedOrg.id);
         expect(responseManagedOrg?.id).toBeDefined();
         expect(responseManagedOrg?.name).toEqual(managedOrg.name);
         expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+
+        const responseManagedOrg2 = responseManagedOrgs.find((org) => org.id === managedOrg2.id);
+        expect(responseManagedOrg2?.id).toBeDefined();
+        expect(responseManagedOrg2?.name).toEqual(managedOrg2.name);
+        expect(responseManagedOrg2?.metadata).toEqual(managedOrg2.metadata);
+
+        expect(responseBody.pagination).toBeDefined();
+        expect(responseBody.pagination.totalItems).toEqual(2);
+        expect(responseBody.pagination.remainingItems).toEqual(0);
+        expect(responseBody.pagination.returnedItems).toEqual(2);
+        expect(responseBody.pagination.itemsPerPage).toEqual(250);
+        expect(responseBody.pagination.currentPage).toEqual(1);
+        expect(responseBody.pagination.totalPages).toEqual(1);
+      });
+  });
+
+  it("should get managed organization by slug", async () => {
+    return request(app.getHttpServer())
+      .get(`/v2/organizations/${managerOrg.id}/organizations?slug=${managedOrg.slug}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetManagedOrganizationsOutput = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrgs = responseBody.data;
+        expect(responseManagedOrgs?.length).toEqual(1);
+        const responseManagedOrg = responseManagedOrgs.find((org) => org.id === managedOrg.id);
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.name).toEqual(managedOrg.name);
+        expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+
+        expect(responseBody.pagination).toBeDefined();
+        expect(responseBody.pagination.totalItems).toEqual(1);
+        expect(responseBody.pagination.remainingItems).toEqual(0);
+        expect(responseBody.pagination.returnedItems).toEqual(1);
+        expect(responseBody.pagination.itemsPerPage).toEqual(250);
+        expect(responseBody.pagination.currentPage).toEqual(1);
+        expect(responseBody.pagination.totalPages).toEqual(1);
+      });
+  });
+
+  it("should get managed organization by metadata key", async () => {
+    return request(app.getHttpServer())
+      .get(
+        `/v2/organizations/${managerOrg.id}/organizations?metadataKey=${metadataKey}&metadataValue=${metadataValue}`
+      )
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: GetManagedOrganizationsOutput = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrgs = responseBody.data;
+        expect(responseManagedOrgs?.length).toEqual(1);
+        const responseManagedOrg = responseManagedOrgs.find((org) => org.id === managedOrg.id);
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.name).toEqual(managedOrg.name);
+        expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+
+        expect(responseBody.pagination).toBeDefined();
+        expect(responseBody.pagination.totalItems).toEqual(1);
+        expect(responseBody.pagination.remainingItems).toEqual(0);
+        expect(responseBody.pagination.returnedItems).toEqual(1);
+        expect(responseBody.pagination.itemsPerPage).toEqual(250);
+        expect(responseBody.pagination.currentPage).toEqual(1);
+        expect(responseBody.pagination.totalPages).toEqual(1);
       });
   });
 
@@ -456,7 +562,40 @@ describe("Organizations Organizations Endpoints", () => {
       });
   });
 
-  it("should delete managed organization ", async () => {
+  it("should delete managed organization", async () => {
+    return request(app.getHttpServer())
+      .delete(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg2.id}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrg = responseBody.data;
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.id).toEqual(managedOrg2.id);
+        expect(responseManagedOrg?.name).toEqual(managedOrg2.name);
+
+        const managedOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managedOrg2.id);
+        expect(managedOrgInDb).toEqual(null);
+
+        const billings = await platformBillingRepositoryFixture.getByCustomerSubscriptionIds(
+          managerOrgBilling.customerId,
+          managerOrgBilling.subscriptionId!
+        );
+        expect(billings).toBeDefined();
+        // note(Lauris): manager billing is left and other managed org
+        expect(billings?.length).toEqual(2);
+
+        const managerOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managerOrg.id);
+        expect(managerOrgInDb).toBeDefined();
+        expect(managerOrgInDb?.id).toEqual(managerOrg.id);
+        expect(managerOrgInDb?.managedOrganizations?.length).toEqual(1);
+      });
+  });
+
+  it("should delete managed organization", async () => {
     return request(app.getHttpServer())
       .delete(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)

@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { checkPostMethod, POST_METHODS_ALLOWED_APP_ROUTES } from "./middleware";
+import { checkPostMethod } from "./middleware";
 
 describe("Middleware - POST requests restriction", () => {
   const createRequest = (path: string, method: string) => {
@@ -18,18 +18,6 @@ describe("Middleware - POST requests restriction", () => {
     const req1 = createRequest("/api/auth/signup", "POST");
     const res1 = checkPostMethod(req1);
     expect(res1).toBeNull();
-
-    const req2 = createRequest("/api/trpc/book/event", "POST");
-    const res2 = checkPostMethod(req2);
-    expect(res2).toBeNull();
-  });
-
-  it("should allow POST requests to allowed app routes", async () => {
-    POST_METHODS_ALLOWED_APP_ROUTES.forEach(async (route) => {
-      const req = createRequest(route, "POST");
-      const res = checkPostMethod(req);
-      expect(res).toBeNull();
-    });
   });
 
   it("should block POST requests to not-allowed app routes", async () => {

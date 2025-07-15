@@ -35,6 +35,7 @@ function Type({
   crmOwnerRecordType,
   crmAppSlug,
   isEmbed,
+  useApiV2,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -42,6 +43,7 @@ function Type({
     <BookingPageErrorBoundary>
       <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
         <Booker
+          useApiV2={useApiV2}
           username={user}
           eventSlug={slug}
           bookingData={booking}

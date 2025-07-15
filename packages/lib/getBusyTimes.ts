@@ -9,6 +9,7 @@ import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -17,9 +18,9 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
-import { BookingRepository as BookingRepo } from "./server/repository/booking";
+import { BookingRepository } from "./server/repository/booking";
 
-export async function getBusyTimes(params: {
+const _getBusyTimes = async (params: {
   credentials: CredentialForCalendarService[];
   userId: number;
   userEmail: string;
@@ -46,7 +47,7 @@ export async function getBusyTimes(params: {
     | null;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
-}) {
+}) => {
   const {
     credentials,
     userId,
@@ -107,7 +108,8 @@ export async function getBusyTimes(params: {
   let bookings = params.currentBookings;
 
   if (!bookings) {
-    bookings = await BookingRepo.findAllExistingBookingsForEventTypeBetween({
+    const bookingRepo = new BookingRepository(prisma);
+    bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
       userIdAndEmailMap: new Map([[userId, userEmail]]),
       eventTypeId,
       startDate: startTimeAdjustedWithMaxBuffer,
@@ -244,7 +246,9 @@ export async function getBusyTimes(params: {
     })
   );
   return busyTimes;
-}
+};
+
+export const getBusyTimes = withReporting(_getBusyTimes, "getBusyTimes");
 
 export function getStartEndDateforLimitCheck(
   startDate: string,
@@ -359,4 +363,4 @@ export async function getBusyTimesForLimitChecks(params: {
   return busyTimes;
 }
 
-export default getBusyTimes;
+export default withReporting(_getBusyTimes, "getBusyTimes");

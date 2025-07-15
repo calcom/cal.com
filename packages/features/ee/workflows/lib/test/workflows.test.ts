@@ -13,10 +13,18 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, expect, beforeAll, vi } from "vitest";
+import type { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
+import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { BookingStatus, WorkflowMethods, TimeUnit } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  WorkflowMethods,
+  TimeUnit,
+  WorkflowTriggerEvents,
+  WorkflowActions,
+} from "@calcom/prisma/enums";
 import {
   deleteRemindersOfActiveOnIds,
   scheduleBookingReminders,
@@ -24,7 +32,11 @@ import {
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
+import { scheduleEmailReminder } from "../reminders/emailReminderManager";
+import * as emailProvider from "../reminders/providers/emailProvider";
+import * as sendgridProvider from "../reminders/providers/sendgridProvider";
 
 const workflowSelect = {
   id: true,
@@ -47,7 +59,7 @@ const workflowSelect = {
   steps: true,
   activeOn: true,
   activeOnTeams: true,
-};
+} satisfies Prisma.WorkflowSelect;
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2024-05-20T11:59:59Z"));
@@ -79,15 +91,15 @@ const mockEventTypes = [
     ],
   },
 ];
-
+//2024-05-20T11:59:59Z
 const mockBookings = [
   {
     uid: "jK7Rf8iYsOpmQUw9hB1vZxP",
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T14:00:00.000Z`,
-    endTime: `2024-05-20T14:30:00.000Z`,
+    startTime: `2024-05-21T09:00:00.000Z`,
+    endTime: `2024-05-21T09:15:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -95,8 +107,8 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-20T14:30:00.000Z`,
-    endTime: `2024-05-20T15:00:00.000Z`,
+    startTime: `2024-05-21T09:15:00.000Z`,
+    endTime: `2024-05-21T09:30:00.000Z`,
     attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
@@ -139,21 +151,25 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
           sender: true,
           numberVerificationPending: true,
           includeCalendarEvent: true,
+          verifiedAt: true,
         },
       },
     },
   });
 
-  const workflowRemindersData = [
+  const workflowRemindersData: Prisma.WorkflowReminderCreateInput[] = [
     {
       booking: {
         connect: {
-          bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
+          uid: "jK7Rf8iYsOpmQUw9hB1vZxP",
         },
       },
-      uuid: "uuid-1",
-      bookingUid: "jK7Rf8iYsOpmQUw9hB1vZxP",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:00:00.000Z`,
       scheduled: false,
@@ -162,12 +178,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
+          uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
         },
       },
-      uuid: "uuid-2",
-      bookingUid: "mL4Dx9jTkQbnWEu3pR7yNcF",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -176,13 +195,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
+          uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
         },
       },
-      uuid: "uuid-3",
-
-      bookingUid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -191,13 +212,15 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
     {
       booking: {
         connect: {
-          bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
+          uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
         },
       },
-      uuid: "uuid-4",
-
-      bookingUid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
-      workflowStepId: workflow?.steps[0]?.id,
+      uuid: uuidv4(),
+      workflowStep: {
+        connect: {
+          id: workflow?.steps[0]?.id,
+        },
+      },
       method: WorkflowMethods.EMAIL,
       scheduledDate: `2024-05-22T06:30:00.000Z`,
       scheduled: false,
@@ -230,6 +253,14 @@ async function createWorkflowRemindersAndTasksForWorkflow(workflowName: string) 
 
   return workflow;
 }
+
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
+  return {
+    ...actual,
+    IS_SMS_CREDITS_ENABLED: false,
+  };
+});
 
 describe("deleteRemindersOfActiveOnIds", () => {
   test("should delete all reminders and tasks from removed event types", async ({}) => {
@@ -500,8 +531,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T13:00:00.000"),
-      new Date("2024-05-20T13:30:00.000Z"),
+      new Date("2024-05-21T08:00:00.000"),
+      new Date("2024-05-21T08:15:00.000Z"),
       new Date("2024-06-01T03:30:00.000Z"),
       new Date("2024-06-02T03:30:00.000Z"),
     ];
@@ -586,8 +617,8 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T15:30:00.000"),
-      new Date("2024-05-20T16:00:00.000Z"),
+      new Date("2024-05-21T10:15:00.000"),
+      new Date("2024-05-21T10:30:00.000Z"),
       new Date("2024-06-01T06:00:00.000Z"),
       new Date("2024-06-02T06:00:00.000Z"),
     ];
@@ -624,11 +655,11 @@ describe("scheduleBookingReminders", () => {
           {
             name: "Workflow",
             userId: 101,
-            trigger: "AFTER_EVENT",
+            trigger: "BEFORE_EVENT",
             action: "SMS_NUMBER",
             template: "REMINDER",
             activeOn: [],
-            time: 3,
+            time: 20,
             timeUnit: TimeUnit.HOUR,
             sendTo: "000",
           },
@@ -661,7 +692,8 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId,
+      true
     );
 
     // number is not verified, so sms should not send
@@ -685,20 +717,21 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null //teamId
+      null, //teamId
+      true
     );
 
     // two sms should be scheduled
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 7:30pm Asia/Kolkata",
+      includedString: "2024 May 21 at 2:30pm Asia/Kolkata",
     });
 
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 20 at 8:00pm Asia/Kolkata",
+      includedString: "2024 May 21 at 2:45pm Asia/Kolkata",
     });
 
     // sms are too far in future
@@ -726,10 +759,10 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-20T17:30:00.000"),
-      new Date("2024-05-20T18:00:00.000Z"),
-      new Date("2024-06-01T08:00:00.000Z"),
-      new Date("2024-06-02T08:00:00.000Z"),
+      new Date("2024-05-20T13:00:00.000"),
+      new Date("2024-05-20T13:15:00.000Z"),
+      new Date("2024-05-31T08:30:00.000Z"),
+      new Date("2024-06-01T08:30:00.000Z"),
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
@@ -741,6 +774,81 @@ describe("scheduleBookingReminders", () => {
         expect(reminder.scheduled).toBe(false);
       }
     });
+  });
+
+  test("should not schedule reminders if date is already in the past", async ({}) => {
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    const pastBooking = {
+      uid: "past-booking-uid",
+      eventTypeId: 1,
+      userId: 101,
+      status: BookingStatus.ACCEPTED,
+      startTime: `2024-05-21T09:00:00.000Z`,
+      endTime: `2024-05-21T09:15:00.000Z`,
+      attendees: [{ email: "attendee@example.com", locale: "en" }],
+    };
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Past Workflow",
+            userId: 101,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [],
+            time: 5,
+            timeUnit: TimeUnit.DAY,
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: [pastBooking],
+        organizer,
+      })
+    );
+
+    const workflow = await prismock.workflow.findFirst({
+      select: workflowSelect,
+    });
+
+    const bookings = await prismock.booking.findMany({
+      where: {
+        userId: organizer.id,
+      },
+      select: bookingSelect,
+    });
+
+    expect(workflow).not.toBeNull();
+
+    if (!workflow) return;
+
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      null, //teamId
+      false //isOrg
+    );
+
+    const tasks = await prismock.task.findMany({
+      where: {
+        type: "sendWorkflowEmails",
+      },
+    });
+
+    // No tasks should be created for past reminders
+    expect(tasks.length).toBe(0);
   });
 });
 
@@ -904,8 +1012,10 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     await prismock.membership.delete({
       where: {
-        userId: 101,
-        teamId: 2,
+        userId_teamId: {
+          teamId: 2, // removing from team 2
+          userId: 101, // organizer's userId
+        },
       },
     });
 
@@ -947,5 +1057,116 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
     expect(tasks.map((task) => task.referenceUid)).toEqual(
       workflowReminders.map((reminder) => reminder.uuid)
     );
+  });
+});
+
+describe("Workflow SMTP Emails Feature Flag", () => {
+  vi.spyOn(sendgridProvider, "sendSendgridMail");
+  vi.spyOn(emailProvider, "sendOrScheduleWorkflowEmails");
+
+  const mockEvt = {
+    uid: "test-uid",
+    title: "Test Event",
+    startTime: new Date().toISOString(),
+    endTime: new Date().toISOString(),
+    bookerUrl: "https://cal.com",
+    attendees: [
+      {
+        name: "Test Attendee",
+        email: "attendee@test.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+      },
+    ],
+    organizer: {
+      name: "Test Organizer",
+      email: "organizer@test.com",
+      timeZone: "UTC",
+      language: { locale: "en" },
+    },
+  };
+
+  const baseArgs = {
+    evt: mockEvt,
+    triggerEvent: WorkflowTriggerEvents.NEW_EVENT,
+    timeSpan: { time: 1, timeUnit: TimeUnit.HOUR },
+    sendTo: ["test@example.com"],
+    action: WorkflowActions.EMAIL_ATTENDEE,
+    verifiedAt: new Date(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Mock SendGrid environment variables
+    process.env.SENDGRID_API_KEY = "test-key";
+    process.env.SENDGRID_EMAIL = "test@example.com";
+  });
+
+  test("should use SMTP when team has workflow-smtp-emails feature", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(true);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+    });
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+
+  test("should use SMTP when user has workflow-smtp-emails feature", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(true);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      userId: 123,
+    });
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
+  });
+
+  test("should use SendGrid when workflow-smtp-emails feature is not enabled for team", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+  });
+
+  test("should use SendGrid when workflow-smtp-emails feature is not enabled for user", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      userId: 123,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).not.toHaveBeenCalled();
+  });
+
+  test("should use SMTP when SendGrid is not configured", async () => {
+    const featuresRepository = new FeaturesRepository();
+    vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(false);
+    vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(false);
+
+    delete process.env.SENDGRID_API_KEY;
+    delete process.env.SENDGRID_EMAIL;
+
+    await scheduleEmailReminder({
+      ...baseArgs,
+      teamId: 123,
+      userId: 456,
+    });
+
+    expect(sendgridProvider.sendSendgridMail).not.toHaveBeenCalled();
+    expect(emailProvider.sendOrScheduleWorkflowEmails).toHaveBeenCalled();
   });
 });

@@ -129,7 +129,9 @@ export default function Success(props: PageProps) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
 
-  const parsedBookingMetadata = bookingMetadataSchema.parse(bookingInfo?.metadata || {});
+  const parsed = bookingMetadataSchema.safeParse(bookingInfo?.metadata ?? null);
+  const parsedBookingMetadata = parsed.success ? parsed.data : null;
+
   const bookingWithParsedMetadata = {
     ...bookingInfo,
     metadata: parsedBookingMetadata,
@@ -149,6 +151,10 @@ export default function Success(props: PageProps) {
   );
   const { data: session } = useSession();
   const isHost = props.isLoggedInUserHost;
+
+  const [showUtmParams, setShowUtmParams] = useState(false);
+
+  const utmParams = bookingInfo.tracking;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
   const calendarLinks = getCalendarLinks({
@@ -232,6 +238,7 @@ export default function Success(props: PageProps) {
   if (eventType.isDynamic && bookingInfo.responses?.title) {
     evtName = bookingInfo.responses.title as string;
   }
+
   const eventNameObject = {
     attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
     eventType: eventType.title,
@@ -239,7 +246,7 @@ export default function Success(props: PageProps) {
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
-    eventDuration: eventType.length,
+    eventDuration: dayjs(bookingInfo.endTime).diff(bookingInfo.startTime, "minutes"),
     t,
   };
 
@@ -308,17 +315,20 @@ export default function Success(props: PageProps) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       if (isAttendee) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
         host,
         attendee,
+        interpolation: { escapeValue: false },
       });
     }
     return t(`emailed_host_and_attendee${titleSuffix}`);
@@ -539,13 +549,21 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                          </>
+                        )}
+                        {isCancelled && bookingInfo?.cancelledBy && (
+                          <>
+                            <div className="font-medium">{t("cancelled_by")}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                            </div>
                           </>
                         )}
                         {previousBooking && (
@@ -603,7 +621,7 @@ export default function Success(props: PageProps) {
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default">
+                                    <p className="text-default" data-testid="booking-host-email">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
                                   )}
@@ -678,6 +696,46 @@ export default function Success(props: PageProps) {
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
+                            </div>
+                          </>
+                        )}
+                        {!!utmParams && isHost && (
+                          <>
+                            <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
+                            <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
+                              <button
+                                data-testid="utm-dropdown"
+                                onClick={() => {
+                                  setShowUtmParams((prev) => !prev);
+                                }}
+                                className="font-medium transition hover:text-blue-500 focus:outline-none">
+                                <div className="flex items-center gap-1">
+                                  {showUtmParams ? t("hide") : t("show")}
+                                  <Icon
+                                    name={showUtmParams ? "chevron-up" : "chevron-down"}
+                                    className="size-4"
+                                  />
+                                </div>
+                              </button>
+
+                              {showUtmParams && (
+                                <div className="col-span-2 mb-2 mt-2">
+                                  {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
+                                  0 ? (
+                                    <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
+                                      {Object.entries(utmParams)
+                                        .filter(([_, value]) => Boolean(value))
+                                        .map(([key, value]) => (
+                                          <li key={key} className="text-muted space-x-1 text-sm">
+                                            <span>{key}</span>: <span>{value}</span>
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="text-muted text-sm">{t("no_utm_params")}</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </>
                         )}

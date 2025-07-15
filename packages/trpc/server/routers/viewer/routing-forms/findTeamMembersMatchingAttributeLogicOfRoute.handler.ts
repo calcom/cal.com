@@ -10,13 +10,14 @@ import type { NextApiResponse } from "next";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
@@ -54,7 +55,7 @@ async function getEnrichedSerializableForm<
 >(form: TForm) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
   };
 
   const serializableForm = await getSerializableForm({
@@ -176,7 +177,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({
@@ -255,16 +257,15 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const matchingTeamMembersIds = matchingTeamMembersWithResult.map((member) => member.userId);
-  const matchingTeamMembers = await UserRepository.findByIds({ ids: matchingTeamMembersIds });
   const matchingHosts = await enrichHostsWithDelegationCredentials({
     orgId: formOrgId,
     hosts: eventType.hosts.filter((host) => matchingTeamMembersIds.includes(host.user.id)),
   });
 
-  if (matchingTeamMembers.length !== matchingHosts.length) {
+  if (!matchingHosts.length) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Looks like not all matching team members are assigned to the event",
+      message: "No matching team members found",
     });
   }
 
@@ -273,7 +274,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     users: orderedLuckyUsers,
     perUserData,
     isUsingAttributeWeights,
-  } = matchingTeamMembers.length
+  } = matchingHosts.length
     ? await getOrderedListOfLuckyUsers({
         // Assuming all are available
         availableUsers: [

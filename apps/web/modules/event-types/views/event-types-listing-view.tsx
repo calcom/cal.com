@@ -15,7 +15,6 @@ import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
-import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -24,6 +23,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -259,7 +259,7 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.eventTypeOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
@@ -596,7 +596,7 @@ export const InfiniteEventTypeList = ({
                                   variant="icon"
                                   color="secondary"
                                   StartIcon="ellipsis"
-                                  // Unsual practice to use radix state open but for some reason this dropdown and only thi dropdown clears the border radius of this button.
+                                  // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
                                   className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
                                 />
                               </DropdownMenuTrigger>
@@ -653,7 +653,7 @@ export const InfiniteEventTypeList = ({
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
                                         StartIcon="trash"
-                                        className="w-full rounded-none">
+                                        className="w-full rounded-t-none">
                                         {t("delete")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -750,7 +750,7 @@ export const InfiniteEventTypeList = ({
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
                                   StartIcon="trash"
-                                  className="w-full rounded-none">
+                                  className="w-full rounded-t-none">
                                   {t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -758,7 +758,7 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
+                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"
@@ -928,7 +928,10 @@ const InfiniteScrollMain = ({
 
 type Props = {
   userEventGroupsData: GetUserEventGroupsResponse;
-  user: RouterOutputs["viewer"]["me"]["get"];
+  user: {
+    id: number;
+    completedOnboarding?: boolean;
+  } | null;
 };
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {

@@ -1,16 +1,19 @@
+import { getPagination } from "@/lib/pagination/pagination";
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { GetManagedOrganizationsInput_2024_08_13 } from "@/modules/organizations/organizations/inputs/get-managed-organizations.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -40,6 +43,18 @@ export class ManagedOrganizationsService {
 
     if (!organizationData.slug) {
       organizationData.slug = slugify(organizationData.name);
+    }
+
+    const existingManagedOrganization =
+      await this.managedOrganizationsRepository.getManagedOrganizationBySlug(
+        managerOrganizationId,
+        organizationData.slug
+      );
+
+    if (existingManagedOrganization) {
+      throw new ConflictException(
+        `Organization with slug '${organizationData.slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+      );
     }
 
     const organization = await this.managedOrganizationsRepository.createManagedOrganization(
@@ -99,18 +114,25 @@ export class ManagedOrganizationsService {
     return this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
   }
 
-  async getManagedOrganizations(managerOrganizationId: number) {
-    const managedOrganizations = await this.managedOrganizationsRepository.getByManagerOrganizationId(
-      managerOrganizationId
-    );
-    const managedOrganizationsIds = managedOrganizations.map(
-      (managedOrganization) => managedOrganization.managedOrganizationId
-    );
+  async getManagedOrganizations(
+    managerOrganizationId: number,
+    query: GetManagedOrganizationsInput_2024_08_13
+  ) {
+    const { items: managedOrganizations, totalItems } =
+      await this.managedOrganizationsRepository.getByManagerOrganizationIdPaginated(
+        managerOrganizationId,
+        query
+      );
 
-    const organizations = await this.organizationsRepository.findByIds(managedOrganizationsIds);
-    return organizations.map((organization) =>
-      this.managedOrganizationsOutputService.getOutputManagedOrganization(organization)
-    );
+    return {
+      organizations: managedOrganizations.map((managedOrganization) =>
+        this.managedOrganizationsOutputService.getOutputManagedOrganization(managedOrganization)
+      ),
+      pagination: getPagination({
+        ...query,
+        totalCount: totalItems,
+      }),
+    };
   }
 
   async updateManagedOrganization(managedOrganizationId: number, body: UpdateOrganizationInput) {

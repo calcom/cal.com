@@ -32,6 +32,7 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -115,7 +116,8 @@ const providers: Provider[] = [
         throw new Error(ErrorCode.InternalServerError);
       }
 
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const userRepo = new UserRepository(prisma);
+      const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: credentials.email,
       });
       // Don't leak information about it being username or password that is invalid
@@ -290,7 +292,8 @@ if (isSAMLLoginEnabled) {
       locale?: string;
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+      const userRepo = new UserRepository(prisma);
+      const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
       return {
@@ -354,9 +357,8 @@ if (isSAMLLoginEnabled) {
 
         const { id, firstName, lastName } = userInfo;
         const email = userInfo.email.toLowerCase();
-        let user = !email
-          ? undefined
-          : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
+        const userRepo = new UserRepository(prisma);
+        let user = !email ? undefined : await userRepo.findByEmailAndIncludeProfilesAndPassword({ email });
         if (!user) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
@@ -372,7 +374,7 @@ if (isSAMLLoginEnabled) {
                 createUsersAndConnectToOrgProps,
                 org,
               });
-              user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+              user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
                 email: email,
               });
             }
@@ -712,7 +714,8 @@ export const getOptions = ({
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const licenseKeyService = await LicenseKeySingleton.getInstance();
+      const deploymentRepo = new DeploymentRepository(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
       const profileId = token.profileId;
       const calendsoSession: Session = {
@@ -971,7 +974,7 @@ export const getOptions = ({
               return true;
             }
           }
-          return `auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
+          return `/auth/error?error=wrong-provider&provider=${existingUserWithEmail.identityProvider}`;
         }
 
         // Associate with organization if enabled by flag and idP is Google (for now)
@@ -1053,7 +1056,7 @@ export const getOptions = ({
               dub.track.lead({
                 clickId,
                 eventName: "Sign Up",
-                customerId: user.id.toString(),
+                externalId: user.id.toString(),
                 customerName: user.name,
                 customerEmail: user.email,
                 customerAvatar: user.image,
