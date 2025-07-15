@@ -1,53 +1,15 @@
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import path from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
-function findMonorepoRoot(): string {
-  let currentDir = __dirname;
-  logger.debug(`[translationBundler] Starting findMonorepoRoot from __dirname: ${__dirname}`);
-  while (currentDir !== path.dirname(currentDir)) {
-    try {
-      const packageJsonPath = path.join(currentDir, "package.json");
-      logger.debug(`[translationBundler] Checking for monorepo package.json at: ${packageJsonPath}`);
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
-        logger.info(`[translationBundler] Found monorepo root at: ${currentDir}`);
-        return currentDir;
-      }
-    } catch (error) {
-      logger.debug(`[translationBundler] No package.json at: ${currentDir} (or error reading it)`);
-    }
-    currentDir = path.dirname(currentDir);
-  }
-
-  let fallbackDir = process.cwd();
-  logger.debug(`[translationBundler] Fallback: starting from process.cwd(): ${process.cwd()}`);
-  while (fallbackDir !== path.dirname(fallbackDir)) {
-    try {
-      const packageJsonPath = path.join(fallbackDir, "package.json");
-      logger.debug(
-        `[translationBundler] Fallback: checking for monorepo package.json at: ${packageJsonPath}`
-      );
-      const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-      if (packageJson.workspaces && packageJson.name === "calcom-monorepo") {
-        logger.info(`[translationBundler] Fallback: found monorepo root at: ${fallbackDir}`);
-        return fallbackDir;
-      }
-    } catch (error) {
-      logger.debug(`[translationBundler] Fallback: no package.json at: ${fallbackDir} (or error reading it)`);
-    }
-    fallbackDir = path.dirname(fallbackDir);
-  }
-
-  logger.warn(`[translationBundler] Could not find monorepo root, using process.cwd(): ${process.cwd()}`);
-  return process.cwd();
+function getLocalesPath() {
+  const localesPath = path.join(process.cwd(), "public/static/locales");
+  logger.info(`[translationBundler] getLocalesPath() resolved to: ${localesPath}`);
+  return localesPath;
 }
-
-const LOCALES_PATH = path.join(findMonorepoRoot(), "packages/lib/server/locales");
-logger.info(`[translationBundler] LOCALES_PATH resolved to: ${LOCALES_PATH}`);
 
 interface LocaleCache {
   [cacheKey: string]: Record<string, string>;
@@ -73,8 +35,16 @@ function loadTranslationForLocale(locale: string, ns: string): Record<string, st
     cacheVersion = CALCOM_VERSION;
   }
 
+  const dirToCheck = join(getLocalesPath(), locale);
   try {
-    const translationPath = join(LOCALES_PATH, locale, `${ns}.json`);
+    const files = readdirSync(dirToCheck);
+    logger.info(`[translationBundler] Files in ${dirToCheck}: ${files.join(", ")}`);
+  } catch (err) {
+    logger.error(`[translationBundler] Could not list files in ${dirToCheck}:`, err);
+  }
+
+  try {
+    const translationPath = join(getLocalesPath(), locale, `${ns}.json`);
     logger.info(`[translationBundler] Attempting to load translation file: ${translationPath}`);
     const translations = JSON.parse(readFileSync(translationPath, "utf-8"));
     localeCache[cacheKey] = translations;
