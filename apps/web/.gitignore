@@ -69,6 +69,9 @@ public/embed
 # Copied app-store images
 public/app-store
 
+# Copied i18n files
+public/static/locales
+
 certificates
 # Sentry Config File
 .env.sentry-build-plugin
