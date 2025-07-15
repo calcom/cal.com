@@ -97,7 +97,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       : null,
   };
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { UserRepository } = await import("@calcom/lib/server/repository/user.repository");
 
   const userRepo = new UserRepository(prisma);
   const formWithUserInfoProfile = {
