@@ -21,7 +21,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
   return unstable_cache(async () => _getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
     revalidate: NEXTJS_CACHE_TTL,
-    tags: [`team:${teamSlug}${orgSlug ? `:${orgSlug}` : ""}`],
+    tags: [`team:${orgSlug ? `${orgSlug}:` : ""}${teamSlug}`],
   })();
 }
 
@@ -31,7 +31,7 @@ export async function getCachedTeamEventType(teamSlug: string, meetingSlug: stri
     ["team-event-type", teamSlug, meetingSlug, orgSlug ?? ""],
     {
       revalidate: NEXTJS_CACHE_TTL,
-      tags: [`event-type:${teamSlug}:${meetingSlug}${orgSlug ? `:${orgSlug}` : ""}`],
+      tags: [`event-type:${orgSlug ? `${orgSlug}:` : ""}${teamSlug}:${meetingSlug}`],
     }
   )();
 }
