@@ -244,6 +244,7 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  oooReasons             OutOfOfficeReason[]
 
   @@index([appId])
   @@index([subscriptionId])
@@ -1789,14 +1790,19 @@ model OutOfOfficeEntry {
 
 model OutOfOfficeReason {
   id         Int     @id @default(autoincrement())
-  emoji      String
+  emoji      String?
   reason     String
   enabled    Boolean @default(true)
   userId     Int?
   externalId String? @unique
   user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  credentialId Int?
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
   entries OutOfOfficeEntry[]
+
+  @@unique([credentialId, externalId])
 }
 
 // Platform

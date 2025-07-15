@@ -66,28 +66,20 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
       if (orgCredentials) hrmsCredentials.push(...orgCredentials);
     }
 
-    const hrmsReasons: {
-      id: string;
-      name: string;
-      emoji?: string;
-      reason?: string;
-      userId?: number | null;
-      enabled?: boolean;
-    }[] = [];
-
+    const hrmsReasons = [];
     for (const credential of hrmsCredentials) {
       try {
         const hrmsManager = new HrmsManager(credential);
         const reasons = await hrmsManager.listOOOReasons(user.email);
 
-        const mappedReasons = reasons.map((reason: { id: string; name: string }) => ({
+        const mappedReasons = reasons.map((reason) => ({
           id: reason.id,
           name: reason.name,
-          emoji: "🏖️",
           reason: reason.name,
           userId: null,
           enabled: true,
-          externalId: reason.id,
+          externalId: reason.externalId,
+          emoji: null,
         }));
 
         hrmsReasons.push(...mappedReasons);

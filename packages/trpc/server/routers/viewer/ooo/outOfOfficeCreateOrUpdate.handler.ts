@@ -182,7 +182,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: oooUserId,
-      reasonId: typeof input.reasonId === "string" ? null : input.reasonId,
+      reasonId: input.reasonId,
       toUserId: toUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -192,10 +192,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: oooUserId,
-      reasonId: typeof input.reasonId === "string" ? null : input.reasonId,
+      reasonId: input.reasonId,
       toUserId: toUserId ? toUserId : null,
     },
   });
+
   let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
   if (createdOrUpdatedOutOfOffice) {
     const findRedirect = await prisma.outOfOfficeEntry.findUnique({
@@ -225,7 +226,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       })
     : null;
   const reason = await prisma.outOfOfficeReason.findFirst({
-    where: typeof input.reasonId === "string" ? { externalId: input.reasonId } : { id: input.reasonId },
+    where: { id: input.reasonId },
     select: {
       reason: true,
       emoji: true,
@@ -336,10 +337,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       updatedAt: createdOrUpdatedOutOfOffice.updatedAt.toISOString(),
       notes: createdOrUpdatedOutOfOffice.notes,
       reason: {
-        emoji: reason?.emoji,
+        emoji: reason?.emoji ?? undefined,
         reason: reason?.reason,
       },
-      reasonId: typeof input.reasonId === "string" ? null : input.reasonId || null,
+      reasonId: input.reasonId,
       user: {
         id: oooUserId,
         name: oooUserFullName,
@@ -375,6 +376,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       );
     })
   );
+
+  // early return because we cannot sync ooo with hrms without the external reason id
+  if (!reason?.externalId) return {};
 
   try {
     const hrmsCredentials = [];
@@ -412,6 +416,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           endDate: endTimeUtc.format("YYYY-MM-DD"),
           startDate: startTimeUtc.format("YYYY-MM-DD"),
           notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
+          externalReasonId: reason.externalId,
+          userEmail: oooUserEmail,
         });
       } else {
         const ooo = await hrmsManager.createOOO({
@@ -419,7 +425,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
           startDate: startTimeUtc.format("YYYY-MM-DD"),
           notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
           userEmail: oooUserEmail,
-          externalId: reason?.externalId || undefined,
+          externalReasonId: reason.externalId,
         });
 
         if (ooo?.id) {

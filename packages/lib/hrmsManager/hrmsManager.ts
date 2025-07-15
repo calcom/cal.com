@@ -25,7 +25,7 @@ export default class HrmsManager {
     endDate: string;
     userEmail: string;
     notes?: string;
-    externalId?: string;
+    externalReasonId: string;
   }): Promise<{ id: string } | null> {
     const hrmsService = await this.getHrmsService();
     if (!hrmsService) return null;
@@ -38,6 +38,8 @@ export default class HrmsManager {
       startDate?: string;
       endDate?: string;
       notes?: string;
+      externalReasonId?: string;
+      userEmail: string;
     }
   ): Promise<void> {
     const hrmsService = await this.getHrmsService();
@@ -49,7 +51,7 @@ export default class HrmsManager {
     return hrmsService.deleteOOO(externalId);
   }
 
-  async listOOOReasons(userEmail: string): Promise<{ id: string; name: string }[]> {
+  async listOOOReasons(userEmail: string): Promise<{ id: number; name: string; externalId: string }[]> {
     const hrmsService = await this.getHrmsService();
     return hrmsService.listOOOReasons(userEmail);
   }

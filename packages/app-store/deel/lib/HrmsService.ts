@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { HrmsService } from "@calcom/types/HrmsService";
 
@@ -21,12 +22,19 @@ export interface DeelPerson {
   worker_id: string;
 }
 
+export enum DeelTimeOffStatus {
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+  REQUESTED = "REQUESTED",
+}
+
 export interface DeelTimeOffRequest {
   recipient_profile_id: string;
   start_date: string;
   end_date: string;
   time_off_type_id: string;
-  notes?: string;
+  description?: string;
+  status: DeelTimeOffStatus;
 }
 
 export interface DeelTimeOffResponse {
@@ -119,7 +127,7 @@ export default class DeelHrmsService implements HrmsService {
     endDate: string;
     userEmail: string;
     notes?: string;
-    externalId?: string;
+    externalReasonId: string;
   }): Promise<{ id: string }> {
     try {
       const accessToken = await this.getAccessToken();
@@ -130,21 +138,13 @@ export default class DeelHrmsService implements HrmsService {
         throw new Error(`Recipient profile ID not found for user: ${params.userEmail}`);
       }
 
-      const timeOffTypeId = params.externalId || (await this.getTimeOffTypeId(recipientProfileId));
-      if (!timeOffTypeId) {
-        this.log.error("Time-off type ID not found", {
-          recipientProfileId,
-          externalId: params.externalId,
-        });
-        throw new Error(`Time-off type ID not found for recipient profile: ${recipientProfileId}`);
-      }
-
       const request: DeelTimeOffRequest = {
         recipient_profile_id: recipientProfileId,
         start_date: params.startDate,
         end_date: params.endDate,
-        time_off_type_id: timeOffTypeId,
-        notes: params.notes,
+        time_off_type_id: params.externalReasonId,
+        description: params.notes,
+        status: DeelTimeOffStatus.APPROVED,
       };
 
       const response = await fetch(`${deelApiUrl}/rest/v2/time_offs`, {
@@ -153,7 +153,7 @@ export default class DeelHrmsService implements HrmsService {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(request),
+        body: JSON.stringify({ data: request }),
       });
 
       if (!response.ok) {
@@ -166,8 +166,9 @@ export default class DeelHrmsService implements HrmsService {
       }
 
       const result = await response.json();
-      this.log.info("Successfully created Deel time-off request", { id: result.id });
-      return { id: result.id };
+      const externalId = result.timeOffs[0]?.id;
+      this.log.info("Successfully created Deel time-off request", { id: externalId });
+      return { id: externalId };
     } catch (error) {
       this.log.error("Error creating Deel time-off request", error);
       throw error;
@@ -180,15 +181,25 @@ export default class DeelHrmsService implements HrmsService {
       startDate?: string;
       endDate?: string;
       notes?: string;
+      externalReasonId?: string;
+      userEmail: string;
     }
   ): Promise<void> {
     try {
       const accessToken = await this.getAccessToken();
 
+      const recipientProfileId = await this.getRecipientProfileId(params.userEmail);
+      if (!recipientProfileId) {
+        this.log.error("Recipient profile ID not found for user", { email: params.userEmail });
+        throw new Error(`Recipient profile ID not found for user: ${params.userEmail}`);
+      }
+
       const request: Partial<DeelTimeOffRequest> = {};
+      request.recipient_profile_id = recipientProfileId;
       if (params.startDate) request.start_date = params.startDate;
       if (params.endDate) request.end_date = params.endDate;
-      if (params.notes) request.notes = params.notes;
+      if (params.notes) request.description = params.notes;
+      if (params.externalReasonId) request.time_off_type_id = params.externalReasonId;
 
       const response = await fetch(`${deelApiUrl}/rest/v2/time_offs/${encodeURIComponent(externalId)}`, {
         method: "PATCH",
@@ -244,7 +255,7 @@ export default class DeelHrmsService implements HrmsService {
     }
   }
 
-  async listOOOReasons(userEmail: string): Promise<{ id: string; name: string }[]> {
+  async listOOOReasons(userEmail: string): Promise<{ id: number; name: string; externalId: string }[]> {
     try {
       const recipientProfileId = await this.getRecipientProfileId(userEmail);
       if (!recipientProfileId) {
@@ -271,13 +282,25 @@ export default class DeelHrmsService implements HrmsService {
       }
 
       const data: DeelPoliciesResponse = await response.json();
-      const reasons: { id: string; name: string }[] = [];
+      const reasons: { id: number; name: string; externalId: string }[] = [];
 
       for (const policy of data.policies || []) {
         for (const timeOffType of policy.time_off_types || []) {
+          const reason = await prisma.outOfOfficeReason.upsert({
+            where: { externalId: timeOffType.id, credentialId: this.credential.id },
+            create: {
+              reason: timeOffType.name,
+              credentialId: this.credential.id,
+              externalId: timeOffType.id,
+            },
+            update: {
+              reason: timeOffType.name,
+            },
+          });
           reasons.push({
-            id: timeOffType.id,
+            externalId: timeOffType.id,
             name: timeOffType.name,
+            id: reason.id,
           });
         }
       }
@@ -304,7 +327,6 @@ export default class DeelHrmsService implements HrmsService {
       );
 
       if (!response.ok) {
-        console.log("res: ", await response.json());
         this.log.warn("Could not find Deel person", { email: userEmail, status: response.status });
         return null;
       }
@@ -316,48 +338,6 @@ export default class DeelHrmsService implements HrmsService {
       return person?.id || null;
     } catch (error) {
       this.log.error("Error getting Deel recipient profile ID", error);
-      return null;
-    }
-  }
-
-  private async getTimeOffTypeId(recipientProfileId: string): Promise<string | null> {
-    try {
-      const accessToken = await this.getAccessToken();
-
-      const response = await fetch(
-        `${deelApiUrl}/rest/v2/time_offs/profile/${encodeURIComponent(recipientProfileId)}/policies`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        this.log.warn("Could not fetch Deel policies", {
-          profileId: recipientProfileId,
-          status: response.status,
-        });
-        return null;
-      }
-
-      const data: DeelPoliciesResponse = await response.json();
-
-      for (const policy of data.policies || []) {
-        for (const timeOffType of policy.time_off_types || []) {
-          if (
-            timeOffType.name?.toLowerCase().includes("vacation") ||
-            timeOffType.name?.toLowerCase().includes("pto") ||
-            timeOffType.name?.toLowerCase().includes("time off")
-          ) {
-            return timeOffType.id;
-          }
-        }
-      }
-
-      return data.policies?.[0]?.time_off_types?.[0]?.id || null;
-    } catch (error) {
-      this.log.error("Error getting Deel time-off type ID", error);
       return null;
     }
   }

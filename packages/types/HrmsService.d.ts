@@ -4,7 +4,7 @@ export interface HrmsService {
     endDate: string;
     notes?: string;
     userEmail: string;
-    externalId?: string;
+    externalReasonId: string;
   }): Promise<{ id: string }>;
   updateOOO(
     externalId: string,
@@ -12,10 +12,12 @@ export interface HrmsService {
       startDate?: string;
       endDate?: string;
       notes?: string;
+      externalReasonId?: string;
+      userEmail: string;
     }
   ): Promise<void>;
   deleteOOO(externalId: string): Promise<void>;
-  listOOOReasons(userEmail: string): Promise<{ id: string; name: string }[]>;
+  listOOOReasons(userEmail: string): Promise<{ id: number; name: string; externalId: string }[]>;
 }
 
 export type HrmsServiceClass = Class<HrmsService>;

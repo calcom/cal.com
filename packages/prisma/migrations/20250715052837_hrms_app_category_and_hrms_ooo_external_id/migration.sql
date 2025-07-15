@@ -4,8 +4,14 @@
   - A unique constraint covering the columns `[externalId]` on the table `OutOfOfficeReason` will be added. If there are existing duplicate values, this will fail.
 
 */
+-- AlterEnum
+ALTER TYPE "AppCategories" ADD VALUE 'hrms';
+
 -- DropIndex
 DROP INDEX "OutOfOfficeReason_reason_key";
+
+-- AlterTable
+ALTER TABLE "OutOfOfficeEntry" ADD COLUMN     "externalId" TEXT;
 
 -- AlterTable
 ALTER TABLE "OutOfOfficeReason" ADD COLUMN     "externalId" TEXT;

@@ -66,26 +66,6 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
   }
 
-  // Return early if no redirect user is set, and no email needs to be send.
-  if (!deletedOutOfOfficeEntry.toUser) {
-    return {};
-  }
-
-  const t = await getTranslation(ctx.user.locale ?? "en", "common");
-
-  const formattedStartDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.start);
-  const formattedEndDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.end);
-
-  await sendBookingRedirectNotification({
-    language: t,
-    fromEmail: oooUserEmail,
-    eventOwner: oooUserName || oooUserEmail,
-    toEmail: deletedOutOfOfficeEntry.toUser.email,
-    toName: deletedOutOfOfficeEntry.toUser.username || "",
-    dates: `${formattedStartDate} - ${formattedEndDate}`,
-    action: "cancel",
-  });
-
   try {
     if (deletedOutOfOfficeEntry.externalId) {
       const hrmsCredentials = [];
@@ -135,6 +115,26 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
   } catch (error) {
     console.error("Failed to delete HRMS time-off request:", error);
   }
+
+  // Return early if no redirect user is set, and no email needs to be send.
+  if (!deletedOutOfOfficeEntry.toUser) {
+    return {};
+  }
+
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+  const formattedStartDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.start);
+  const formattedEndDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.end);
+
+  await sendBookingRedirectNotification({
+    language: t,
+    fromEmail: oooUserEmail,
+    eventOwner: oooUserName || oooUserEmail,
+    toEmail: deletedOutOfOfficeEntry.toUser.email,
+    toName: deletedOutOfOfficeEntry.toUser.username || "",
+    dates: `${formattedStartDate} - ${formattedEndDate}`,
+    action: "cancel",
+  });
 
   return {};
 };
