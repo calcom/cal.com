@@ -1,7 +1,8 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import { getSanitizedCalEvent } from "@calcom/lib/CalEventParser";
+import { getSanitizedCalEvent, sanitizeText } from "@calcom/lib/CalEventParser";
+// Add sanitizeText import
 import { formatPrice } from "@calcom/lib/price";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -64,9 +65,15 @@ export const BaseScheduledEmail = (
   }
 
   const sanitizedCalEvent = getSanitizedCalEvent(props.calEvent);
-  const additionalNotesDescription = props.calEvent.additionalNotes
-    ? sanitizedCalEvent.additionalNotes || ""
-    : "";
+  const additionalNotesDescription = sanitizedCalEvent.additionalNotes || "";
+  const rejectionReason = sanitizedCalEvent.rejectionReason || "";
+  const cancellationReason = sanitizedCalEvent.cancellationReason || "";
+  const title = sanitizedCalEvent.title || "";
+  const description = sanitizedCalEvent.description || "";
+  const rescheduledBySanitized = rescheduledBy ? sanitizeText(rescheduledBy) : "";
+  const reassignedName = props.reassigned?.name ? sanitizeText(props.reassigned.name) : "";
+  const reassignedReason = props.reassigned?.reason ? sanitizeText(props.reassigned.reason) : "";
+  const reassignedByUser = props.reassigned?.byUser ? sanitizeText(props.reassigned.byUser) : "";
 
   return (
     <BaseEmailHtml
@@ -76,31 +83,25 @@ export const BaseScheduledEmail = (
       title={t(
         props.title
           ? props.title
-          : props.calEvent.recurringEvent?.count
+          : sanitizedCalEvent.recurringEvent?.count
           ? "your_event_has_been_scheduled_recurring"
           : "your_event_has_been_scheduled"
       )}
       callToAction={
         props.callToAction === null
           ? null
-          : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
+          : props.callToAction || <ManageLink attendee={props.attendee} calEvent={sanitizedCalEvent} />
       }
       subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
-      {props.calEvent.rejectionReason && (
+      {rejectionReason && (
         <>
-          <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
+          <Info label={t("rejection_reason")} description={rejectionReason} withSpacer />
         </>
       )}
-      {props.calEvent.cancellationReason && (
+      {cancellationReason && (
         <Info
-          label={t(
-            props.calEvent.cancellationReason.startsWith("$RCH$")
-              ? "reason_for_reschedule"
-              : "cancellation_reason"
-          )}
-          description={
-            !!props.calEvent.cancellationReason && props.calEvent.cancellationReason.replace("$RCH$", "")
-          } // Removing flag to distinguish reschedule from cancellation
+          label={t(cancellationReason.startsWith("$RCH$") ? "reason_for_reschedule" : "cancellation_reason")}
+          description={cancellationReason.replace("$RCH$", "")}
           withSpacer
         />
       )}
@@ -109,7 +110,10 @@ export const BaseScheduledEmail = (
           <Info
             label={t("reassigned_to")}
             description={
-              <PersonInfo name={props.reassigned.name || undefined} email={props.reassigned.email} />
+              <PersonInfo
+                name={reassignedName || undefined}
+                email={sanitizeText(props.reassigned.email) || props.reassigned.email}
+              />
             }
             withSpacer
           />
@@ -120,23 +124,29 @@ export const BaseScheduledEmail = (
       )}
       {props.reassigned && props.reassigned.byUser && (
         <>
-          <Info label={t("reassigned_by")} description={props.reassigned.byUser} withSpacer />
-          {props.reassigned?.reason && (
-            <Info label={t("reason")} description={props.reassigned.reason} withSpacer />
-          )}
+          <Info label={t("reassigned_by")} description={reassignedByUser} withSpacer />
+          {reassignedReason && <Info label={t("reason")} description={reassignedReason} withSpacer />}
         </>
       )}
-      {rescheduledBy && <Info label={t("rescheduled_by")} description={rescheduledBy} withSpacer />}
-      <Info label={t("what")} description={props.calEvent.title} withSpacer />
-      <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
-      <WhoInfo calEvent={props.calEvent} t={t} />
-      <LocationInfo calEvent={props.calEvent} t={t} />
-      <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
-      {props.calEvent.additionalNotes && (
+      {rescheduledBySanitized && (
+        <Info label={t("rescheduled_by")} description={rescheduledBySanitized} withSpacer />
+      )}
+      <Info label={t("what")} description={title} withSpacer />
+      <WhenInfo
+        timeFormat={timeFormat}
+        calEvent={sanitizedCalEvent}
+        t={t}
+        timeZone={timeZone}
+        locale={locale}
+      />
+      <WhoInfo calEvent={sanitizedCalEvent} t={t} />
+      <LocationInfo calEvent={sanitizedCalEvent} t={t} />
+      <Info label={t("description")} description={description} withSpacer formatted />
+      {sanitizedCalEvent.additionalNotes && (
         <Info label={t("additional_notes")} description={additionalNotesDescription} withSpacer />
       )}
-      {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
-      <UserFieldsResponses t={t} calEvent={props.calEvent} isOrganizer={props.isOrganizer} />
+      {props.includeAppsStatus && <AppsStatus calEvent={sanitizedCalEvent} t={t} />}
+      <UserFieldsResponses t={t} calEvent={sanitizedCalEvent} isOrganizer={props.isOrganizer} />
       {props.calEvent.paymentInfo?.amount && (
         <Info
           label={props.calEvent.paymentInfo.paymentOption === "HOLD" ? t("no_show_fee") : t("price")}
