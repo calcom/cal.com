@@ -42,7 +42,6 @@ import { TextAreaField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { MeetingTimeInTimezones } from "@calcom/ui/components/popover";
 import type { ActionType } from "@calcom/ui/components/table";
-import { TableActions } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -491,6 +490,186 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
+  const Actions = () => {
+    // Build all possible actions, disabling as needed
+    const editEventActions: ActionType[] = [
+      // Reschedule
+      {
+        id: "reschedule",
+        icon: "clock",
+        label: t("reschedule_booking"),
+        href: `/reschedule/${booking.uid}${
+          booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+        }`,
+        disabled: isBookingInPast && !booking.eventType.allowReschedulingPastBookings,
+      },
+      // Request reschedule
+      {
+        id: "reschedule_request",
+        icon: "send",
+        iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+        label: t("send_reschedule_request"),
+        onClick: () => setIsOpenRescheduleDialog(true),
+        disabled: isBookingInPast && !booking.eventType.allowReschedulingPastBookings,
+      },
+      // Reroute (if team booking)
+      isBookingFromRoutingForm
+        ? {
+            id: "reroute",
+            label: t("reroute"),
+            onClick: () => setRerouteDialogIsOpen(true),
+            icon: "waypoints",
+            disabled: false,
+          }
+        : null,
+      // Edit location
+      {
+        id: "change_location",
+        label: t("edit_location"),
+        onClick: () => setIsOpenLocationDialog(true),
+        icon: "map-pin",
+        disabled: false,
+      },
+      // Add guests
+      booking.eventType?.disableGuests
+        ? null
+        : {
+            id: "add_members",
+            label: t("additional_guests"),
+            onClick: () => setIsOpenAddGuestsDialog(true),
+            icon: "user-plus",
+            disabled: false,
+          },
+      // Reassign (if round robin)
+      booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN
+        ? {
+            id: "reassign",
+            label: t("reassign"),
+            onClick: () => setIsOpenReassignDialog(true),
+            icon: "users",
+            disabled: false,
+          }
+        : null,
+      ...(isPending ? pendingActions : []),
+    ].filter(Boolean) as ActionType[];
+
+    const cancelEventAction: ActionType = {
+      id: "cancel",
+      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
+      href: `/booking/${booking.uid}?cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
+      icon: "close",
+      color: "destructive",
+      disabled: isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed),
+    };
+
+    // After event actions
+    const afterEventActions: ActionType[] = [
+      {
+        id: "view_recordings",
+        label: t("view_recordings"),
+        onClick: () => setViewRecordingsDialogIsOpen(true),
+        icon: "video",
+        disabled: !(isBookingInPast && isConfirmed && isCalVideoLocation && booking.isRecorded),
+      },
+      {
+        id: "meeting_session_details",
+        label: t("view_session_details"),
+        onClick: () => setMeetingSessionDetailsDialogIsOpen(true),
+        icon: "info",
+        disabled: !(isBookingInPast && isConfirmed && isCalVideoLocation),
+      },
+      booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD"
+        ? {
+            id: "charge_card",
+            label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+            onClick: () => setChargeCardDialogIsOpen(true),
+            icon: "credit-card",
+            disabled: cardCharged,
+          }
+        : null,
+      {
+        id: "no_show",
+        label:
+          attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
+        onClick: () => {
+          if (attendeeList.length === 1) {
+            const attendee = attendeeList[0];
+            noShowMutation.mutate({
+              bookingUid: booking.uid,
+              attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+            });
+            return;
+          }
+          setIsNoShowDialogOpen(true);
+        },
+        icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : "eye-off",
+        disabled: !(isBookingInPast || isOngoing),
+      },
+    ].filter(Boolean) as ActionType[];
+
+    return (
+      <Dropdown>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+        </DropdownMenuTrigger>
+        <DropdownMenuPortal>
+          <DropdownMenuContent>
+            {/* Edit Event Section */}
+            <DropdownMenuLabel>{t("edit_event")}</DropdownMenuLabel>
+            {editEventActions.map((action) => (
+              <DropdownMenuItem key={action.id}>
+                <DropdownItem
+                  type="button"
+                  color={action.color}
+                  StartIcon={action.icon}
+                  href={action.href}
+                  disabled={action.disabled}
+                  onClick={action.onClick}
+                  data-bookingid={action.bookingId}
+                  className={action.disabled ? "text-muted" : undefined}>
+                  {action.label}
+                </DropdownItem>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            {/* After Event Section */}
+            <DropdownMenuLabel>{t("after_event")}</DropdownMenuLabel>
+            {afterEventActions.map((action) => (
+              <DropdownMenuItem key={action.id} disabled={action.disabled}>
+                <DropdownItem
+                  type="button"
+                  color={action.color}
+                  StartIcon={action.icon}
+                  href={action.href}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                  data-bookingid={action.bookingId}
+                  className={action.disabled ? "text-muted" : undefined}>
+                  {action.label}
+                </DropdownItem>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem key="no_show" disabled={cancelEventAction.disabled}>
+              <DropdownItem
+                type="button"
+                color={cancelEventAction.color}
+                StartIcon={cancelEventAction.icon}
+                href={cancelEventAction.href}
+                onClick={cancelEventAction.onClick}
+                disabled={cancelEventAction.disabled}
+                data-bookingid={cancelEventAction.bookingId}
+                className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                {cancelEventAction.label}
+              </DropdownItem>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenuPortal>
+      </Dropdown>
+    );
+  };
 
   return (
     <>
@@ -726,32 +905,14 @@ function BookingListItem(booking: BookingItemProps) {
             </Link>
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
-            {isUpcoming && !isCancelled ? (
-              <>
-                {isPending && <TableActions actions={pendingActions} />}
-                {isConfirmed && <TableActions actions={bookedActions} />}
-                {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-              </>
-            ) : null}
-            {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-            {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
-            {isCalVideoLocation && (
-              <TableActions
-                actions={[{ id: "video_options", label: t("video_options"), actions: videoOptionsActions }]}
-              />
-            )}
+            {/* Refactored: Single three-dot dropdown for all actions, always visible, disabled if not relevant */}
+            <Actions />
+            {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">
                 <RequestSentMessage />
               </div>
             )}
-            {booking.status === "ACCEPTED" &&
-              booking.paid &&
-              booking.payment[0]?.paymentOption === "HOLD" && (
-                <div className="ml-2">
-                  <TableActions actions={chargeCardActions} />
-                </div>
-              )}
           </div>
         </div>
         <BookingItemBadges
