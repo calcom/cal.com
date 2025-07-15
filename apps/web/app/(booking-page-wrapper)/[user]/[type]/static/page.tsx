@@ -26,7 +26,7 @@ const getCachedBookingData = unstable_cache(
     const username = usernames[0];
     const slug = slugify(params.type);
 
-    const [user] = await getUsersInOrgContext([username], null);
+    const [user] = await getUsersInOrgContext([username], "");
 
     if (!user) {
       return { notFound: true } as const;
