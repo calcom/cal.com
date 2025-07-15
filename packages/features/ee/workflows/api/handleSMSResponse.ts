@@ -2,8 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { determineOptOutType } from "../lib/reminders/providers/twilioProvider";
-import { WorkflowOptOutContactRepository } from "../lib/repository/workflowOptOutContact";
-import { WorkflowOptOutService } from "../lib/service/workflowOptOutService";
+import { WorkflowOptOutContactRepository } from "../lib/repository/workflowOptOutContact.repository";
+import { WorkflowOptOutService } from "../lib/service/workflowOptOutService.service";
 
 const handleSMSResponse = async (request: NextRequest) => {
   try {

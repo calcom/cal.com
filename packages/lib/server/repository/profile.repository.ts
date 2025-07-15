@@ -12,7 +12,7 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
-import { getParsedTeam } from "./teamUtils";
+import { getParsedTeam } from "./teamUtils.repository";
 
 const userSelect = {
   name: true,

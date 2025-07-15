@@ -5,13 +5,13 @@ import { metadata as office365CalendarMetaData } from "@calcom/app-store/office3
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential.repository";
+import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential.repository";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential.repository";
 import prisma from "@calcom/prisma";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { UserRepository } from "../server/repository/user";
+import { UserRepository } from "../server/repository/user.repository";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,

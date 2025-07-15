@@ -5,11 +5,11 @@ import {
 
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { AppRepository } from "@calcom/lib/server/repository/app";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { AppRepository } from "@calcom/lib/server/repository/app.repository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential.repository";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar.repository";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType.repository";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 import prisma from "@calcom/prisma";
 
 const testUser = {

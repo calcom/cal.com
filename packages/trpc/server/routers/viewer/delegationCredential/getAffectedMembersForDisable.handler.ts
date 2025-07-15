@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential.repository";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership.repository";
 
 import type { TDelegationCredentialGetAffectedMembersForDisableSchema } from "./schema";
 

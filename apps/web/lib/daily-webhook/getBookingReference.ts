@@ -1,7 +1,7 @@
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference.repository";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 

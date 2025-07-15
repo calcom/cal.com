@@ -1,5 +1,5 @@
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits.repository";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership.repository";
 
 import { TRPCError } from "@trpc/server";
 

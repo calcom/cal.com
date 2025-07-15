@@ -7,7 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { getParsedTeam } from "./teamUtils";
+import { getParsedTeam } from "./teamUtils.repository";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {

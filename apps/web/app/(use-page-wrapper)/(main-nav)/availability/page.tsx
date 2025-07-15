@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization.repository";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";

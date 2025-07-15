@@ -1,7 +1,7 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 

@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { TeamRepository } from "@calcom/lib/server/repository/team.repository";
+import { WorkflowService } from "@calcom/lib/server/service/workflows.service";
 
-import { TeamService } from "./team";
+import { TeamService } from "./team.service";
 
 vi.mock("@calcom/features/ee/billing/teams");
-vi.mock("@calcom/lib/server/repository/team");
-vi.mock("@calcom/lib/server/service/workflows");
+vi.mock("@calcom/lib/server/repository/team.repository");
+vi.mock("@calcom/lib/server/service/workflows.service");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 class Database {

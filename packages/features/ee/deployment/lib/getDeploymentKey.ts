@@ -1,6 +1,6 @@
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
+import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface.repository";
 
 const log = logger.getSubLogger({ prefix: ["getDeploymentKey"] });
 

@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow.repository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

@@ -11,7 +11,7 @@ import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/li
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";

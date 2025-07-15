@@ -8,7 +8,10 @@ import {
 import { prisma } from "@calcom/prisma";
 import type { FilterSegment, UserFilterSegmentPreference } from "@calcom/prisma/client";
 
-import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema } from "./filterSegment.type";
+import type {
+  TCreateFilterSegmentInputSchema,
+  TUpdateFilterSegmentInputSchema,
+} from "./filterSegment.type.repository";
 
 export interface IFilterSegmentRepository {
   get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }): Promise<{

@@ -9,7 +9,7 @@ import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFrom
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 

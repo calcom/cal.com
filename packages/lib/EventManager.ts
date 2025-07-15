@@ -21,7 +21,7 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential.repository";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";

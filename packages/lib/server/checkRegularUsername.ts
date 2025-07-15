@@ -1,6 +1,6 @@
 import slugify from "@calcom/lib/slugify";
 
-import { ProfileRepository } from "./repository/profile";
+import { ProfileRepository } from "./repository/profile.repository";
 import { isUsernameReservedDueToMigration } from "./username";
 
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {

@@ -1,7 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
+import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots.repository";
 
 export const selectedSlotsRepositoryModule = createModule();
 selectedSlotsRepositoryModule

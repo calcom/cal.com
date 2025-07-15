@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform.repository";
 
 import type { workspacePlatformToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";

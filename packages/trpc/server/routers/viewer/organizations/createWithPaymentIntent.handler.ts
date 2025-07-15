@@ -1,7 +1,7 @@
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding.repository";
 
 import { TRPCError } from "@trpc/server";
 

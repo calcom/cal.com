@@ -1,4 +1,4 @@
-import { StripeService } from "@calcom/lib/server/service/stripe";
+import { StripeService } from "@calcom/lib/server/service/stripe.service";
 
 import type { TStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 

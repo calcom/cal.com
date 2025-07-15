@@ -66,8 +66,8 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { BookingRepository } from "@calcom/lib/server/repository/booking.repository";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow.repository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
