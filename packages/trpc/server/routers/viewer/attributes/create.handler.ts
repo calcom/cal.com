@@ -44,7 +44,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
     userId: ctx.user.id,
     teamId: org.id,
     resource: Resource.Attributes,
-    userRole: membership!.role,
+    userRole: membership.role,
     fallbackRoles: {
       create: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
