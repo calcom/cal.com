@@ -235,7 +235,7 @@ export class OrganizationsTeamsConferencingController {
   @Get("/teams/:teamId/conferencing/:app/oauth/callback")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save conferencing app OAuth credentials" })
-  async saveTeamOauthCredentials(
+  async handleTeamOauthCallback(
     @Query("state") state: string,
     @Query("code") code: string,
     @Query("error") error: string | undefined,

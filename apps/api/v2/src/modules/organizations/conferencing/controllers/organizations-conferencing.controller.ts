@@ -195,7 +195,7 @@ export class OrganizationsConferencingController {
   @Get("/conferencing/:app/oauth/callback")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save conferencing app OAuth credentials" })
-  async saveOrgOauthCredentials(
+  async handleOrgOauthCallback(
     @Query("state") state: string,
     @Query("code") code: string,
     @Query("error") error: string | undefined,
