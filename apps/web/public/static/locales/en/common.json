@@ -48,6 +48,10 @@
   "calvideo_settings_description": "Configure video meeting preferences including recording permissions for hosts and attendees.",
   "disable_recording_for_guests": "Disable recording for guests",
   "enable_automatic_transcription": "Enable automatic transcription after joining the meeting",
+  "cache_status": "Cache Status",
+  "last_updated": "Last updated: {{timestamp}}",
+  "delete_cached_data": "Delete cached data",
+  "cache_deletion_placeholder": "Cache deletion will be implemented in future update",
   "enable_automatic_recording": "Enable automatic recording after organizer joins the meeting",
   "video_options": "Video Options",
   "get_meeting_session_details": "Get Meeting Session Details",
@@ -3364,5 +3368,9 @@
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "cache_status": "Cache Status",
+  "last_updated": "Last updated: {{timestamp}}",
+  "delete_cached_data": "Delete cached data",
+  "cache_deletion_placeholder": "Cache deletion will be implemented in future update",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

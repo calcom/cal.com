@@ -1715,6 +1715,7 @@ model CalendarCache {
   key          String
   value        Json
   expiresAt    DateTime
+  updatedAt    DateTime    @updatedAt
   credentialId Int
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)

@@ -97,7 +97,8 @@ const ConnectedCalendarList = ({
                           destination={cal.externalId === destinationCalendarId}
                           credentialId={cal.credentialId}
                           eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
-                          delegationCredentialId={connectedCalendar.delegationCredentialId}
+                          delegationCredentialId={connectedCalendar.delegationCredentialId || null}
+                          cacheUpdatedAt={cacheStatus?.[cal.credentialId] || null}
                         />
                       ))}
                     </ul>
@@ -161,6 +162,15 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
       suspense: true,
       refetchOnWindowFocus: false,
     }
+  );
+
+  const credentialIds =
+    query.data?.connectedCalendars.flatMap((item) => item.calendars?.map((cal) => cal.credentialId) || []) ||
+    [];
+
+  const { data: cacheStatus } = trpc.viewer.calendars.cacheStatus.useQuery(
+    { credentialIds },
+    { enabled: credentialIds.length > 0 }
   );
   const { isPending } = props;
   const showScopeSelector = !!props.eventTypeId;

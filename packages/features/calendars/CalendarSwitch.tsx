@@ -6,6 +6,14 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -22,6 +30,7 @@ export type ICalendarSwitchProps = {
   delegationCredentialId: string | null;
   eventTypeId: number | null;
   disabled?: boolean;
+  cacheUpdatedAt?: Date | null;
 };
 
 type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
@@ -103,14 +112,49 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           }}
         />
       </div>
-      <label
-        className={classNames(
-          "ml-3 break-all text-sm font-medium leading-5",
-          disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer"
+      <div className="flex flex-1 items-center justify-between">
+        <label
+          className={classNames(
+            "ml-3 break-all text-sm font-medium leading-5",
+            disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer"
+          )}
+          htmlFor={externalId}>
+          {name}
+        </label>
+        {type === "google_calendar" && props.cacheUpdatedAt && (
+          <Dropdown>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" className="ml-2" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem className="focus:ring-muted">
+                <div className="px-2 py-1">
+                  <div className="text-sm font-medium text-gray-900">{t("cache_status")}</div>
+                  <div className="text-xs text-gray-500">
+                    {t("last_updated", {
+                      timestamp: new Intl.DateTimeFormat("en-US", {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      }).format(new Date(props.cacheUpdatedAt)),
+                    })}
+                  </div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="outline-none">
+                <DropdownItem
+                  type="button"
+                  color="destructive"
+                  StartIcon="trash"
+                  onClick={() => {
+                    showToast(t("cache_deletion_placeholder"), "success");
+                  }}>
+                  {t("delete_cached_data")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Dropdown>
         )}
-        htmlFor={externalId}>
-        {name}
-      </label>
+      </div>
       {!!props.destination && (
         <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
           <Icon name="arrow-left" className="h-4 w-4" />
