@@ -114,6 +114,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     },
   });
 
+  // if booking belongs to team, check if user is a member of the team, if not, throw error
   if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
     const userTeamIds = userTeams.teams.map((item) => item.teamId);
     if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
@@ -139,6 +140,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        accepted: true,
       },
     });
 
@@ -152,25 +154,23 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // if booking belongs to user(not team or managed event type), allow all owner and admin of the user to reschedule the booking
   if (!bookingBelongsToTeam && !bookingBelongsToManagedEventType) {
-    const ownerAndAdminsOfUser = await prisma.user.findMany({
+    const ownerAndAdminsOfUser = await prisma.membership.findMany({
       where: {
-        teams: {
-          some: {
-            teamId: {
-              in: userTeams.teams.map((item) => item.teamId),
-            },
-            role: {
-              in: ["ADMIN", "OWNER"],
-            },
-          },
+        teamId: {
+          in: userTeams.teams.map((item) => item.teamId),
         },
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+        accepted: true,
+      },
+      select: {
+        userId: true,
       },
     });
+    const adminAndOwnerIds = ownerAndAdminsOfUser.map((item) => item.userId);
 
-    if (
-      !ownerAndAdminsOfUser.some((admin) => admin.id === user.id) &&
-      bookingToReschedule.userId !== user.id
-    ) {
+    if (!adminAndOwnerIds.includes(user.id) && bookingToReschedule.userId !== user.id) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User isn't owner of the current booking",
