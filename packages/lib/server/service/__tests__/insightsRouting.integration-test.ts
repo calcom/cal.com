@@ -322,7 +322,17 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual(Prisma.sql`"formUserId" = ${testData.user.id}`);
+      expect(conditions).toMatchInlineSnapshot(`
+        e {
+          "strings": [
+            ""formUserId" = ",
+            " AND "formTeamId" IS NULL",
+          ],
+          "values": [
+            ${testData.user.id},
+          ],
+        }
+      `);
 
       await testData.cleanup();
     });
@@ -378,9 +388,24 @@ describe("InsightsRoutingService Integration Tests", () => {
 
       const conditions = await service.getAuthorizationConditions();
 
-      expect(conditions).toEqual(
-        Prisma.sql`"formTeamId" = ANY(${[testData.org.id, testData.team.id, team2.id, team3.id]})`
-      );
+      expect(conditions).toMatchInlineSnapshot(`
+        e {
+          "strings": [
+            "("formTeamId" = ANY(",
+            ")) OR ("formUserId" = ",
+            " AND "formTeamId" IS NULL)",
+          ],
+          "values": [
+            [
+              ${testData.org.id},
+              ${testData.team.id},
+              ${team2.id},
+              ${team3.id},
+            ],
+            ${testData.user.id},
+          ],
+        }
+      `);
 
       await testData.cleanup();
     });
@@ -470,7 +495,7 @@ describe("InsightsRoutingService Integration Tests", () => {
 
       // First call should build conditions
       const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual(Prisma.sql`"formUserId" = ${testData.user.id}`);
+      expect(conditions1).toEqual(Prisma.sql`"formUserId" = ${testData.user.id} AND "formTeamId" IS NULL`);
 
       // Second call should use cached conditions
       const conditions2 = await service.getAuthorizationConditions();
@@ -528,15 +553,112 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const results = await service.getBaseConditions();
-      expect(results).toEqual(Prisma.sql`("formUserId" = ${testData.user.id}) AND (${dateCondition})`);
+      expect(results).toEqual(
+        Prisma.sql`("formUserId" = ${testData.user.id} AND "formTeamId" IS NULL) AND (${dateCondition})`
+      );
 
       await testData.cleanup();
     });
 
-    it("should filter out unauthorized responses", async () => {
+    it("should include personal form in org scope", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
         orgRole: MembershipRole.OWNER,
+      });
+
+      const personalForm = await prisma.app_RoutingForms_Form.create({
+        data: {
+          name: "My Personal Form",
+          userId: testData.user.id,
+          teamId: null,
+          fields: [
+            {
+              id: "text-field-id",
+              type: "text",
+              label: "Name",
+              required: true,
+            },
+          ],
+        },
+      });
+
+      const personalFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `personal-form-filler-${randomUUID()}`,
+          formId: personalForm.id,
+          response: {
+            "text-field-id": {
+              label: "Name",
+              value: "Personal Form Response",
+            },
+          },
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "org",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const baseConditions = await service.getBaseConditions();
+      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+        SELECT id FROM "RoutingFormResponseDenormalized" WHERE ${baseConditions}
+      `;
+
+      // Should only return the authorized user's form response
+      expect(results).toHaveLength(2);
+      expect(results[0]?.id).toBe(testData.formResponse.id);
+      expect(results[1]?.id).toBe(personalFormResponse.id);
+
+      // Clean up
+      await prisma.app_RoutingForms_FormResponse.delete({
+        where: { id: personalFormResponse.id },
+      });
+      await prisma.app_RoutingForms_Form.delete({
+        where: { id: personalForm.id },
+      });
+      await testData.cleanup();
+    });
+
+    it("should get personal form response", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const personalForm = await prisma.app_RoutingForms_Form.create({
+        data: {
+          name: "My Personal Form",
+          userId: testData.user.id,
+          teamId: null,
+          fields: [
+            {
+              id: "text-field-id",
+              type: "text",
+              label: "Name",
+              required: true,
+            },
+          ],
+        },
+      });
+
+      const personalFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `personal-form-filler-${randomUUID()}`,
+          formId: personalForm.id,
+          response: {
+            "text-field-id": {
+              label: "Name",
+              value: "Personal Form Response",
+            },
+          },
+        },
       });
 
       // Create another user and form
@@ -595,15 +717,15 @@ describe("InsightsRoutingService Integration Tests", () => {
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(testData.formResponse.id);
+      expect(results[0]?.id).toBe(personalFormResponse.id);
       expect(results[0]?.id).not.toBe(otherFormResponse.id);
 
       // Clean up
-      await prisma.app_RoutingForms_FormResponse.delete({
-        where: { id: otherFormResponse.id },
+      await prisma.app_RoutingForms_FormResponse.deleteMany({
+        where: { id: { in: [personalFormResponse.id, otherFormResponse.id] } },
       });
-      await prisma.app_RoutingForms_Form.delete({
-        where: { id: otherForm.id },
+      await prisma.app_RoutingForms_Form.deleteMany({
+        where: { id: { in: [personalForm.id, otherForm.id] } },
       });
       await prisma.user.delete({
         where: { id: otherUser.id },
@@ -959,7 +1081,7 @@ describe("InsightsRoutingService Integration Tests", () => {
       SELECT 1 FROM "Booking" b
       INNER JOIN "Attendee" a ON a."bookingId" = b."id"
       WHERE b."uid" = "RoutingFormResponseDenormalized"."bookingUid"
-      AND (${Prisma.sql`(a."name" ILIKE ${`%john@example.com%`}) OR (a."email" ILIKE ${`%john@example.com%`})`})
+      AND (${Prisma.sql`(a.name ILIKE ${`%john@example.com%`}) OR (a.email ILIKE ${`%john@example.com%`})`})
     ))`
       );
 
@@ -1000,11 +1122,11 @@ describe("InsightsRoutingService Integration Tests", () => {
         Prisma.sql`("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
           defaultFilters.endDate
         }::timestamp) AND (EXISTS (
-      SELECT 1 FROM "RoutingFormResponseField" rrf
-      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-      AND rrf."fieldId" = ${"custom-field-id"}
-      AND rrf."valueString" = ${"test value"}
-    ))`
+        SELECT 1 FROM "RoutingFormResponseField" rrf
+        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        AND rrf."fieldId" = ${"custom-field-id"}
+        AND rrf."valueString" = ${"test value"}
+      ))`
       );
 
       await testData.cleanup();
@@ -1047,7 +1169,7 @@ describe("InsightsRoutingService Integration Tests", () => {
         SELECT 1 FROM "RoutingFormResponseField" rrf
         WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
         AND rrf."fieldId" = ${"custom-multi-field-id"}
-        AND rrf."valueStringArray" && ${["option1", "option2"]}
+        AND rrf."valueStringArray" @> ${["option1", "option2"]}
       ))`
       );
 
@@ -1104,11 +1226,11 @@ describe("InsightsRoutingService Integration Tests", () => {
         }::timestamp) AND ("bookingStatusOrder" = ANY(${[
           "pending",
         ]}))) AND ("bookingAssignmentReason" ILIKE ${`%manual%`})) AND (EXISTS (
-      SELECT 1 FROM "RoutingFormResponseField" rrf
-      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-      AND rrf."fieldId" = ${"custom-field-id"}
-      AND rrf."valueString" = ${"test"}
-    ))`
+        SELECT 1 FROM "RoutingFormResponseField" rrf
+        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        AND rrf."fieldId" = ${"custom-field-id"}
+        AND rrf."valueString" = ${"test"}
+      ))`
       );
 
       await testData.cleanup();
@@ -1243,11 +1365,11 @@ describe("InsightsRoutingService Integration Tests", () => {
         Prisma.sql`(("createdAt" >= ${defaultFilters.startDate}::timestamp AND "createdAt" <= ${
           defaultFilters.endDate
         }::timestamp) AND ("bookingStatusOrder" = ANY(${["pending"]}))) AND (EXISTS (
-      SELECT 1 FROM "RoutingFormResponseField" rrf
-      WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
-      AND rrf."fieldId" = ${"custom-field-id"}
-      AND rrf."valueString" = ${"test"}
-    ))`
+        SELECT 1 FROM "RoutingFormResponseField" rrf
+        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        AND rrf."fieldId" = ${"custom-field-id"}
+        AND rrf."valueString" = ${"test"}
+      ))`
       );
 
       await testData.cleanup();

@@ -334,7 +334,7 @@ export class InsightsRoutingService {
 
     const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)];
 
-    return Prisma.sql`"formTeamId" = ANY(${teamIds})`;
+    return Prisma.sql`("formTeamId" = ANY(${teamIds})) OR ("formUserId" = ${options.userId} AND "formTeamId" IS NULL)`;
   }
 
   private async buildTeamAuthorizationCondition(
@@ -412,21 +412,16 @@ export class InsightsRoutingService {
       return null;
     }
 
-    const _nameCondition = makeSqlCondition(filterValue);
-    const _emailCondition = makeSqlCondition(filterValue);
+    const textCondition = makeSqlCondition(filterValue);
 
-    if (!_nameCondition && !_emailCondition) {
+    if (!textCondition) {
       return null;
     }
 
-    const nameCondition = _nameCondition ? Prisma.sql`a.name ${_nameCondition}` : undefined;
-    const emailCondition = _emailCondition ? Prisma.sql`a.email ${_emailCondition}` : undefined;
+    const nameCondition = Prisma.sql`a.name ${textCondition}`;
+    const emailCondition = Prisma.sql`a.email ${textCondition}`;
 
-    const conditions = [nameCondition, emailCondition].filter(Boolean) as Prisma.Sql[];
-    const combinedCondition = conditions.reduce((acc, condition, index) => {
-      if (index === 0) return condition;
-      return Prisma.sql`(${acc}) OR (${condition})`;
-    });
+    const combinedCondition = Prisma.sql`(${nameCondition}) OR (${emailCondition})`;
 
     return Prisma.sql`EXISTS (
       SELECT 1 FROM "Booking" b
