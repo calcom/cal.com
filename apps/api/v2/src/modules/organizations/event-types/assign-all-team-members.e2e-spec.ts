@@ -63,6 +63,7 @@ describe("Assign all team members", () => {
   let firstManagedUser: CreateManagedUserData;
   let secondManagedUser: CreateManagedUserData;
 
+  let collectiveEventType: TeamEventTypeOutput_2024_06_14;
   let roundRobinEventType: TeamEventTypeOutput_2024_06_14;
 
   beforeAll(async () => {
@@ -306,8 +307,14 @@ describe("Assign all team members", () => {
           expect(data.schedulingType).toEqual("collective");
           const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
           const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
-          evaluateHost({ userId: firstManagedUser.user.id }, dataFirstHost);
-          evaluateHost({ userId: secondManagedUser.user.id }, dataSecondHost);
+          evaluateHost(
+            { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
+            dataFirstHost
+          );
+          evaluateHost(
+            { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
+            dataSecondHost
+          );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
@@ -315,6 +322,7 @@ describe("Assign all team members", () => {
           const secondHost = eventTypeHosts.find((host) => host.userId === secondManagedUser.user.id);
           expect(firstHost).toBeDefined();
           expect(secondHost).toBeDefined();
+          collectiveEventType = data;
         });
     });
 
@@ -490,9 +498,12 @@ describe("Assign all team members", () => {
   });
 
   function evaluateHost(expected: Host, received: Host | undefined) {
-    expect(expected.userId).toEqual(received?.userId);
-    expect(expected.mandatory).toEqual(received?.mandatory);
-    expect(expected.priority).toEqual(received?.priority);
+    if (!received) {
+      throw new Error(`Host is undefined. Expected userId: ${expected.userId}`);
+    }
+    expect(expected.userId).toEqual(received.userId);
+    expect(expected.mandatory).toEqual(received.mandatory);
+    expect(expected.priority).toEqual(received.priority);
   }
 
   afterAll(async () => {
