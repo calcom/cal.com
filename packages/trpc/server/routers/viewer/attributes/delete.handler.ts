@@ -18,7 +18,7 @@ type DeleteOptions = {
 const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
   const org = ctx.user.organization;
 
-  const { role: userOrgRole } = await prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
       organizationId: org.id,
@@ -28,7 +28,7 @@ const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
     },
   });
 
-  if (!org.id || !userOrgRole) {
+  if (!org.id || !membership) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You need to be apart of an organization to use this feature",
@@ -39,7 +39,7 @@ const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
     userId: ctx.user.id,
     teamId: org.id,
     resource: Resource.Attributes,
-    userRole: userOrgRole,
+    userRole: membership.role,
     fallbackRoles: {
       delete: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
