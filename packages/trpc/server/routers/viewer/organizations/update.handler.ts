@@ -112,23 +112,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!currentOrgId) throw new TRPCError({ code: "BAD_REQUEST", message: "Organization ID is required." });
 
-  const { role: userOrgRole } = await prisma.membership.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
-      organizationId: currentOrgId,
+      teamId: currentOrgId,
     },
     select: {
       role: true,
     },
   });
 
-  if (!userOrgRole) throw new TRPCError({ code: "UNAUTHORIZED", message: "User role is required." });
+  if (!membership) throw new TRPCError({ code: "UNAUTHORIZED", message: "User role is required." });
 
   const { canEdit } = await getResourcePermissions({
     userId: ctx.user.id,
     teamId: currentOrgId,
     resource: Resource.Organization,
-    userRole: userOrgRole,
+    userRole: membership.role,
     fallbackRoles: {
       update: {
         roles: [MembershipRole.OWNER, MembershipRole.ADMIN],
