@@ -61,6 +61,48 @@ describe("Organizations Event Types Endpoints", () => {
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
 
+    async function ensureManagedEventType(): Promise<TeamEventTypeOutput_2024_06_14> {
+      if (!managedEventType) {
+        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-managed-${randomString()}`,
+          slug: `teams-event-types-managed-${randomString()}`,
+          description: "Our team will review your codebase.",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "MANAGED",
+          hosts: [
+            {
+              userId: teamMember1.id,
+              mandatory: true,
+              priority: "high",
+            },
+            {
+              userId: teamMember2.id,
+              mandatory: false,
+              priority: "low",
+            },
+          ],
+        };
+
+        const setupResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(setupBody)
+          .expect(201);
+
+        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = setupResponse.body;
+        const responseTeamEvent = setupResponseBody.data.find((event) => event.teamId === team.id);
+        if (responseTeamEvent) {
+          managedEventType = responseTeamEvent;
+        }
+      }
+      return managedEventType;
+    }
+
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -444,44 +486,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("managed team event types should be returned when fetching event types of users", async () => {
-      if (!managedEventType) {
-        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
-          title: `teams-event-types-managed-${randomString()}`,
-          slug: `teams-event-types-managed-${randomString()}`,
-          description: "Our team will review your codebase.",
-          lengthInMinutes: 60,
-          locations: [
-            {
-              type: "integration",
-              integration: "cal-video",
-            },
-          ],
-          schedulingType: "MANAGED",
-          hosts: [
-            {
-              userId: teamMember1.id,
-              mandatory: true,
-              priority: "high",
-            },
-            {
-              userId: teamMember2.id,
-              mandatory: false,
-              priority: "low",
-            },
-          ],
-        };
-
-        const setupResponse = await request(app.getHttpServer())
-          .post(`/v2/teams/${team.id}/event-types`)
-          .send(setupBody)
-          .expect(201);
-
-        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = setupResponse.body;
-        const responseTeamEvent = setupResponseBody.data.find((event) => event.teamId === team.id);
-        if (responseTeamEvent) {
-          managedEventType = responseTeamEvent;
-        }
-      }
+      await ensureManagedEventType();
 
       return request(app.getHttpServer())
         .get(`/v2/event-types?username=${teamMember1.username}`)
@@ -501,44 +506,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("managed team event type should be returned when fetching event types of users", async () => {
-      if (!managedEventType) {
-        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
-          title: `teams-event-types-managed-${randomString()}`,
-          slug: `teams-event-types-managed-${randomString()}`,
-          description: "Our team will review your codebase.",
-          lengthInMinutes: 60,
-          locations: [
-            {
-              type: "integration",
-              integration: "cal-video",
-            },
-          ],
-          schedulingType: "MANAGED",
-          hosts: [
-            {
-              userId: teamMember1.id,
-              mandatory: true,
-              priority: "high",
-            },
-            {
-              userId: teamMember2.id,
-              mandatory: false,
-              priority: "low",
-            },
-          ],
-        };
-
-        const setupResponse = await request(app.getHttpServer())
-          .post(`/v2/teams/${team.id}/event-types`)
-          .send(setupBody)
-          .expect(201);
-
-        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = setupResponse.body;
-        const responseTeamEvent = setupResponseBody.data.find((event) => event.teamId === team.id);
-        if (responseTeamEvent) {
-          managedEventType = responseTeamEvent;
-        }
-      }
+      await ensureManagedEventType();
 
       return request(app.getHttpServer())
         .get(`/v2/event-types?username=${teamMember1.username}&eventSlug=${managedEventType?.slug}`)
@@ -657,44 +625,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("should update managed event-type", async () => {
-      if (!managedEventType) {
-        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
-          title: `teams-event-types-managed-${randomString()}`,
-          slug: `teams-event-types-managed-${randomString()}`,
-          description: "Our team will review your codebase.",
-          lengthInMinutes: 60,
-          locations: [
-            {
-              type: "integration",
-              integration: "cal-video",
-            },
-          ],
-          schedulingType: "MANAGED",
-          hosts: [
-            {
-              userId: teamMember1.id,
-              mandatory: true,
-              priority: "high",
-            },
-            {
-              userId: teamMember2.id,
-              mandatory: false,
-              priority: "low",
-            },
-          ],
-        };
-
-        const setupResponse = await request(app.getHttpServer())
-          .post(`/v2/teams/${team.id}/event-types`)
-          .send(setupBody)
-          .expect(201);
-
-        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = setupResponse.body;
-        const responseTeamEvent = setupResponseBody.data.find((event) => event.teamId === team.id);
-        if (responseTeamEvent) {
-          managedEventType = responseTeamEvent;
-        }
-      }
+      await ensureManagedEventType();
 
       const newTitle = `teams-event-types-managed-updated-${randomString()}`;
       const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
@@ -755,44 +686,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("should assign all members to managed event-type", async () => {
-      if (!managedEventType) {
-        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
-          title: `teams-event-types-managed-${randomString()}`,
-          slug: `teams-event-types-managed-${randomString()}`,
-          description: "Our team will review your codebase.",
-          lengthInMinutes: 60,
-          locations: [
-            {
-              type: "integration",
-              integration: "cal-video",
-            },
-          ],
-          schedulingType: "MANAGED",
-          hosts: [
-            {
-              userId: teamMember1.id,
-              mandatory: true,
-              priority: "high",
-            },
-            {
-              userId: teamMember2.id,
-              mandatory: false,
-              priority: "low",
-            },
-          ],
-        };
-
-        const setupResponse = await request(app.getHttpServer())
-          .post(`/v2/teams/${team.id}/event-types`)
-          .send(setupBody)
-          .expect(201);
-
-        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = setupResponse.body;
-        const responseTeamEvent = setupResponseBody.data.find((event) => event.teamId === team.id);
-        if (responseTeamEvent) {
-          managedEventType = responseTeamEvent;
-        }
-      }
+      await ensureManagedEventType();
 
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         assignAllTeamMembers: true,
@@ -858,44 +752,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("should delete managed event-type", async () => {
-      if (!managedEventType) {
-        const setupBody: CreateTeamEventTypeInput_2024_06_14 = {
-          title: `teams-event-types-managed-${randomString()}`,
-          slug: `teams-event-types-managed-${randomString()}`,
-          description: "Our team will review your codebase.",
-          lengthInMinutes: 60,
-          locations: [
-            {
-              type: "integration",
-              integration: "cal-video",
-            },
-          ],
-          schedulingType: "MANAGED",
-          hosts: [
-            {
-              userId: teamMember1.id,
-              mandatory: true,
-              priority: "high",
-            },
-            {
-              userId: teamMember2.id,
-              mandatory: false,
-              priority: "low",
-            },
-          ],
-        };
-
-        const setupResponse = await request(app.getHttpServer())
-          .post(`/v2/teams/${team.id}/event-types`)
-          .send(setupBody)
-          .expect(201);
-
-        const setupResponseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = setupResponse.body;
-        const responseTeamEvent = setupResponseBody.data.find((event) => event.teamId === team.id);
-        if (responseTeamEvent) {
-          managedEventType = responseTeamEvent;
-        }
-      }
+      await ensureManagedEventType();
 
       return request(app.getHttpServer())
         .delete(`/v2/teams/${team.id}/event-types/${managedEventType?.id}`)
