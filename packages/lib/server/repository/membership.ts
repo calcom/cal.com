@@ -1,6 +1,5 @@
 import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole, Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -25,7 +24,7 @@ const membershipSelect = {
   accepted: true,
   role: true,
   disableImpersonation: true,
-} satisfies Prisma.MembershipSelect;
+};
 
 const teamParentSelect = {
   id: true,
@@ -34,14 +33,14 @@ const teamParentSelect = {
   logoUrl: true,
   parentId: true,
   metadata: true,
-} satisfies Prisma.TeamSelect;
+};
 
 const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-} satisfies Prisma.UserSelect;
+};
 
 const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipWhereInput) => {
   const lookupTarget = ProfileRepository.getLookupTarget(upId);
@@ -168,10 +167,10 @@ export class MembershipRepository {
               // As required by getByViewHandler - Make it configurable
               orderBy: [
                 {
-                  position: "desc",
+                  position: Prisma.SortOrder.desc,
                 },
                 {
-                  id: "asc",
+                  id: Prisma.SortOrder.asc,
                 },
               ],
             },
@@ -221,10 +220,10 @@ export class MembershipRepository {
                   },
                   orderBy: [
                     {
-                      position: "desc",
+                      position: Prisma.SortOrder.desc,
                     },
                     {
-                      id: "asc",
+                      id: Prisma.SortOrder.asc,
                     },
                   ],
                 },
@@ -232,7 +231,7 @@ export class MembershipRepository {
             : {}),
         },
       },
-    } satisfies Prisma.MembershipSelect;
+    };
 
     return await prisma.membership.findMany({
       where: prismaWhere,

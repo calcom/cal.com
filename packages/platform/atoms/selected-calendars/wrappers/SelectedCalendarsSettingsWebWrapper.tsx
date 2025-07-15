@@ -41,7 +41,6 @@ const ConnectedCalendarList = ({
   onChanged,
   destinationCalendarId,
   isDisabled,
-  cacheStatus,
 }: {
   fromOnboarding?: boolean;
   scope: SelectedCalendarSettingsScope;
@@ -51,7 +50,6 @@ const ConnectedCalendarList = ({
   onChanged?: () => unknown | Promise<unknown>;
   destinationCalendarId?: string;
   isDisabled: boolean;
-  cacheStatus?: Record<number, Date> | undefined;
 }) => {
   const { t } = useLocale();
   const shouldUseEventTypeScope = scope === SelectedCalendarSettingsScope.EventType;
@@ -100,7 +98,7 @@ const ConnectedCalendarList = ({
                           credentialId={cal.credentialId}
                           eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
                           delegationCredentialId={connectedCalendar.delegationCredentialId || null}
-                          cacheUpdatedAt={cacheStatus?.[cal.credentialId] || null}
+                          cacheUpdatedAt={query.data?.cacheStatus?.[cal.credentialId] || null}
                         />
                       ))}
                     </ul>
@@ -166,14 +164,6 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
     }
   );
 
-  const credentialIds =
-    query.data?.connectedCalendars.flatMap((item) => item.calendars?.map((cal) => cal.credentialId) || []) ||
-    [];
-
-  const { data: cacheStatus } = trpc.viewer.calendars.cacheStatus.useQuery(
-    { credentialIds },
-    { enabled: credentialIds.length > 0 }
-  );
   const { isPending } = props;
   const showScopeSelector = !!props.eventTypeId;
   const isDisabled = disabledScope ? disabledScope === scope : false;
@@ -198,7 +188,6 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
             eventTypeId={eventTypeId}
             items={query.data.connectedCalendars}
             isDisabled={isDisabled}
-            cacheStatus={cacheStatus}
           />
         ) : null}
       </SelectedCalendarsSettings>
