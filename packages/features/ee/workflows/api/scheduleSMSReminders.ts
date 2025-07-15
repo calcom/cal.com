@@ -20,7 +20,7 @@ import { select } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
-import { WorkflowOptOutService } from "../lib/service/workflowOptOutService.service";
+import { WorkflowOptOutService } from "../lib/service/workflowOptOutService";
 
 export async function handler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
