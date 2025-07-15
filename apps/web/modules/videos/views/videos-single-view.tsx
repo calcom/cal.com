@@ -2,6 +2,7 @@
 
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
+import type { DailyMeetingState } from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
 import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
@@ -43,7 +44,7 @@ export default function JoinCall(props: PageProps) {
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
   const [showFlappyBird, setShowFlappyBird] = useState(false);
-  const [userHasJoined, setUserHasJoined] = useState(false);
+  const [meetingState, setMeetingState] = useState<DailyMeetingState>("new");
 
   useEffect(() => {
     let callFrame: DailyCall | undefined;
@@ -103,28 +104,26 @@ export default function JoinCall(props: PageProps) {
       }
 
       setDaily(callFrame);
-      callFrame.join();
 
-      // Show Flappy Bird game only after user has actually joined the meeting
-      callFrame.on("participant-updated", (event) => {
-        const isLocalParticipant = event?.participant?.local;
-        const hasJoinedCall = event?.participant?.session_id;
-
-        if (
-          isLocalParticipant &&
-          hasJoinedCall &&
-          !userHasJoined &&
-          booking?.eventType?.calVideoSettings?.enableFlappyBirdGame
-        ) {
-          setUserHasJoined(true);
+      // Track meeting state changes
+      callFrame.on("joined-meeting", () => {
+        setMeetingState("joined-meeting");
+        if (booking?.eventType?.calVideoSettings?.enableFlappyBirdGame) {
           setShowFlappyBird(true);
         }
+      });
+
+      callFrame.on("left-meeting", () => {
+        setMeetingState("left-meeting");
+        setShowFlappyBird(false);
       });
 
       // Hide Flappy Bird game when other participants join
       callFrame.on("participant-joined", () => {
         setShowFlappyBird(false);
       });
+
+      callFrame.join();
 
       return () => {
         if (callFrame) {
@@ -156,7 +155,9 @@ export default function JoinCall(props: PageProps) {
           showTranscriptionButton={showTranscriptionButton}
         />
       </div>
-      {showFlappyBird && <FlappyBirdGame onClose={() => setShowFlappyBird(false)} />}
+      {meetingState === "joined-meeting" && showFlappyBird && (
+        <FlappyBirdGame onClose={() => setShowFlappyBird(false)} />
+      )}
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
           <img

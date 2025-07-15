@@ -57,19 +57,19 @@ export const FlappyBirdGame = ({ onClose }: FlappyBirdGameProps) => {
   };
 
   return (
-    <div className="game-container fixed right-[30px] top-1/2 z-[999] -mt-[200px] h-[415px] w-[276px] rounded-lg max-sm:right-[10px] max-sm:-mt-[150px] max-sm:h-[300px] max-sm:w-[200px] sm:h-[415px] sm:w-[276px]">
-      <div className="flex items-center justify-between rounded-t-lg bg-black/80 p-2">
-        <h3 className="font-medium text-white">{t("flappy_bird_game")}</h3>
-        <Button variant="icon" color="minimal" onClick={onClose} StartIcon="x" className="h-8 w-8" />
+    <div className="fixed right-[30px] top-1/2 z-[999] -mt-[200px] hidden h-[415px] w-[276px] rounded-lg bg-black/80 sm:block">
+      <div className="flex h-[40px] items-center justify-between p-2">
+        <h3 className="font-medium text-white">{t("play_while_you_wait")}</h3>
+        <Button variant="icon" color="minimal" onClick={onClose} StartIcon="x" className="size-8" />
       </div>
-      <div className="relative h-[calc(100%-40px)] w-full">
+      <div className="relative h-[calc(100%-40px)] w-full overflow-hidden">
         {isLoading && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-b-lg bg-black/80">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
             <div className="loader" />
           </div>
         )}
         {hasError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-b-lg bg-black/80 p-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-4">
             <Icon name="triangle-alert" className="mb-2 h-8 w-8 text-yellow-500" />
             <p className="text-center text-white">{t("game_load_error")}</p>
             <Button color="secondary" StartIcon="refresh-cw" className="mt-4" onClick={handleRetry}>
@@ -80,8 +80,8 @@ export const FlappyBirdGame = ({ onClose }: FlappyBirdGameProps) => {
           <iframe
             ref={iframeRef}
             src="https://cal.games"
-            className="h-full w-full rounded-b-lg border-none"
-            title={t("flappy_bird_game")}
+            className="h-[415px] w-[276px]"
+            title={t("play_while_you_wait")}
             onLoad={handleLoad}
             sandbox="allow-scripts allow-same-origin"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"

@@ -3363,5 +3363,6 @@
   "enable_flappy_bird_game_description": "Add a fun Flappy Bird game to keep users entertained while waiting for others to join",
   "flappy_bird_game": "Flappy Bird Game",
   "game_load_error": "Failed to load the game",
+  "play_while_you_wait": "Play while you wait",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
