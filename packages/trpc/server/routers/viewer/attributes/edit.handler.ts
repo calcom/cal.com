@@ -19,9 +19,18 @@ type GetOptions = {
 
 const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
-  const userRole = ctx.user.org?.role;
 
-  if (!org.id || !userRole) {
+  const { role: userOrgRole } = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      organizationId: org.id,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!org.id || !userOrgRole) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You need to be apart of an organization to use this feature",
@@ -32,7 +41,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     userId: ctx.user.id,
     teamId: org.id,
     resource: Resource.Attributes,
-    userRole,
+    userRole: userOrgRole,
     fallbackRoles: {
       update: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
