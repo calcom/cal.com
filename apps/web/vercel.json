@@ -23,6 +23,10 @@
     {
       "path": "/api/cron/selected-calendars",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/calendar-sync-cleanup",
+      "schedule": "0 2 * * *"
     }
   ],
   "functions": {
