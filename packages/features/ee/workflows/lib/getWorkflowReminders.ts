@@ -147,29 +147,6 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
-          user: {
-            select: {
-              email: true,
-            },
-          },
-          team: {
-            select: {
-              members: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                    },
-                  },
-                  role: true,
-                },
-                where: {
-                  role: "OWNER",
-                },
-                take: 1,
-              },
-            },
-          },
         },
       },
     },
