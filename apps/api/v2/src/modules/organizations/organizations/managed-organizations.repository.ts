@@ -25,13 +25,15 @@ export class ManagedOrganizationsRepository {
     });
   }
 
-  async getManagedOrganizationBySlug(managerOrganizationId: number, managedOrganizationSlug: string) {
+  async getManagedOrganizationBySlug(managerOrganizationId: number, managedOrganizationSlug?: string) {
     return this.dbRead.prisma.managedOrganization.findFirst({
       where: {
         managerOrganizationId,
-        managedOrganization: {
-          slug: managedOrganizationSlug,
-        },
+        managedOrganization: managedOrganizationSlug
+          ? {
+              slug: managedOrganizationSlug,
+            }
+          : undefined,
       },
     });
   }
