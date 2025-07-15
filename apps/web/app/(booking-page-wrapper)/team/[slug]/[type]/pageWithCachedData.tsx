@@ -9,6 +9,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, type GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
+import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
@@ -19,13 +20,7 @@ import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
 
-import {
-  getCachedTeamData,
-  getEnrichedEventType,
-  type TeamData,
-  getCRMData,
-  shouldUseApiV2ForTeamSlots,
-} from "./queries";
+import { getCachedTeamData, getEnrichedEventType, getCRMData, shouldUseApiV2ForTeamSlots } from "./queries";
 
 const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
