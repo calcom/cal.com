@@ -1189,7 +1189,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        const existingSyncToken = (cached as any)?.nextSyncToken || undefined;
+        const existingSyncToken = cached && "nextSyncToken" in cached ? cached.nextSyncToken : undefined;
 
         const { events, nextSyncToken } = await this.fetchEventsIncremental(
           selectedCalendar.externalId,
@@ -1377,7 +1377,7 @@ export default class GoogleCalendarService implements Calendar {
         },
       });
 
-      const existingSyncToken = (cached as any)?.nextSyncToken || undefined;
+      const existingSyncToken = cached && "nextSyncToken" in cached ? cached.nextSyncToken : undefined;
 
       const { events, nextSyncToken } = await this.fetchEventsIncremental(
         calendar.externalId,
