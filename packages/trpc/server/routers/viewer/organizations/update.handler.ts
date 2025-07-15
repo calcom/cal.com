@@ -115,7 +115,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { role: userOrgRole } = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
-      organizationId: org.id,
+      organizationId: currentOrgId,
     },
     select: {
       role: true,
