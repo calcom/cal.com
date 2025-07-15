@@ -149,7 +149,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     }
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: errorMessage,
+      message: tOrganizer(errorMessage),
     });
   }
 };
