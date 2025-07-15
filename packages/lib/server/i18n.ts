@@ -2,7 +2,6 @@ import { createInstance } from "i18next";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 
-const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 
 /**
@@ -11,22 +10,9 @@ const i18nInstanceCache = new Map<string, any>();
  * @returns {Promise<Record<string, string>>} English translations object or empty object on failure
  */
 async function loadFallbackTranslations(): Promise<Record<string, string>> {
-  const cacheKey = `en-common-${CALCOM_VERSION}`;
-
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey)!;
-  }
-
   try {
     const { getBundledTranslations } = await import("./translationBundler");
     const translations = getBundledTranslations("en", "common");
-
-    if (Object.keys(translations).length === 0) {
-      console.warn("No English fallback translations found");
-      return {};
-    }
-
-    translationCache.set(cacheKey, translations);
     return translations;
   } catch (error) {
     console.error("Could not load fallback translations:", error);
@@ -42,22 +28,10 @@ async function loadFallbackTranslations(): Promise<Record<string, string>> {
  */
 export async function loadTranslations(_locale: string, ns: string): Promise<Record<string, string>> {
   const locale = _locale === "zh" ? "zh-CN" : _locale;
-  const cacheKey = `${locale}-${ns}-${CALCOM_VERSION}`;
-
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey)!;
-  }
 
   try {
     const { getBundledTranslations } = await import("./translationBundler");
     const translations = getBundledTranslations(locale, ns);
-
-    if (Object.keys(translations).length === 0) {
-      console.warn(`No translations found for ${locale}/${ns}`);
-      return {};
-    }
-
-    translationCache.set(cacheKey, translations);
     return translations;
   } catch (error) {
     console.warn(`Failed to load translations for ${locale}/${ns}, falling back to English:`, error);
