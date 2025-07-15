@@ -28,6 +28,8 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+  initialAvailabilityData?: any;
+  availabilityInput?: any;
 };
 
 export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
@@ -154,6 +156,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
+    initialAvailabilityData: props.initialAvailabilityData,
+    availabilityInput: props.availabilityInput,
   });
   const bookings = useBookings({
     event,

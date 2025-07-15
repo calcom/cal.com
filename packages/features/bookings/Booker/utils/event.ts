@@ -72,6 +72,8 @@ export const useScheduleForEvent = ({
   teamMemberEmail,
   isTeamEvent,
   useApiV2 = true,
+  initialAvailabilityData,
+  availabilityInput,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -87,6 +89,8 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
   useApiV2?: boolean;
+  initialAvailabilityData?: any;
+  availabilityInput?: any;
 } = {}) => {
   const { timezone } = useBookerTime();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
@@ -113,6 +117,8 @@ export const useScheduleForEvent = ({
     orgSlug,
     teamMemberEmail,
     useApiV2: useApiV2,
+    initialAvailabilityData,
+    availabilityInput,
   });
 
   return {

@@ -28,6 +28,8 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+  initialAvailabilityData?: any;
+  availabilityInput?: any;
 };
 
 export const useSchedule = ({
@@ -47,6 +49,8 @@ export const useSchedule = ({
   teamMemberEmail,
   useApiV2 = false,
   enabled: enabledProp = true,
+  initialAvailabilityData,
+  availabilityInput,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -141,8 +145,12 @@ export const useSchedule = ({
         ...options,
         // Only enable if we're not using API V2
         enabled: options.enabled && !isCallingApiV2Slots,
+        ...(initialAvailabilityData ? { initialData: initialAvailabilityData } : {}),
       })
-    : trpc.viewer.slots.getSchedule.useQuery(input, options);
+    : trpc.viewer.slots.getSchedule.useQuery(input, {
+        ...options,
+        ...(initialAvailabilityData ? { initialData: initialAvailabilityData } : {}),
+      });
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
