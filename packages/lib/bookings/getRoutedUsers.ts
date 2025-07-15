@@ -53,6 +53,10 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
     return null;
   }
 
+  if (typeof window === "undefined") {
+    return null;
+  }
+
   const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
     attributesQueryValue: eventType.rrSegmentQueryValue ?? null,
     teamId: eventType.team.id,
