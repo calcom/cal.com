@@ -12,7 +12,7 @@ import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar.repository";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {

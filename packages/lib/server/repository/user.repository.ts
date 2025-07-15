@@ -16,8 +16,8 @@ import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
 import { withSelectedCalendars } from "../withSelectedCalendars";
-import { ProfileRepository } from "./profile";
-import { getParsedTeam } from "./teamUtils";
+import { ProfileRepository } from "./profile.repository";
+import { getParsedTeam } from "./teamUtils.repository";
 
 export type { UserWithLegacySelectedCalendars } from "../withSelectedCalendars";
 export { withSelectedCalendars };

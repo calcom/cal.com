@@ -1,5 +1,5 @@
-import { CredentialRepository } from "../../../lib/server/repository/credential";
-import { EventTypeService } from "../../../lib/server/service/eventType";
+import { CredentialRepository } from "../../../lib/server/repository/credential.repository";
+import { EventTypeService } from "../../../lib/server/service/eventType.service";
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";

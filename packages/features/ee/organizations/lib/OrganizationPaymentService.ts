@@ -6,8 +6,8 @@ import {
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding.repository";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import type { BillingPeriod } from "@calcom/prisma/enums";

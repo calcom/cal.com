@@ -2,7 +2,7 @@ import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/clie
 
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
 
-import type { IDeploymentRepository } from "./deployment.interface";
+import type { IDeploymentRepository } from "./deployment.interface.repository";
 
 export class DeploymentRepository implements IDeploymentRepository {
   constructor(private prisma: PrismaClientWithoutExtensions | PrismaClientWithExtensions) {}

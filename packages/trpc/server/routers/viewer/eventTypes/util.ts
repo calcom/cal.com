@@ -2,8 +2,8 @@ import { z } from "zod";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType.repository";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";

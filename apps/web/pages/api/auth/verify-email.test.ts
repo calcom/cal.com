@@ -1,4 +1,4 @@
-import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/organization";
+import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/organization.repository";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 

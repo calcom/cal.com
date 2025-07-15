@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
-import { UserRepository } from "../repository/user";
+import { UserRepository } from "../repository/user.repository";
 
 interface CreateUserInput {
   email: string;

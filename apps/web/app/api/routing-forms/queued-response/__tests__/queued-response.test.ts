@@ -3,11 +3,11 @@ import { beforeEach, describe, it, expect, vi } from "vitest";
 import { onSubmissionOfFormResponse } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import { getResponseToStore } from "@calcom/app-store/routing-forms/lib/getResponseToStore";
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse.repository";
 
 import { queuedResponseHandler } from "../route";
 
-vi.mock("@calcom/lib/server/repository/formResponse");
+vi.mock("@calcom/lib/server/repository/formResponse.repository");
 
 const mockRoutingFormResponseRepository = {
   getQueuedFormResponseFromId: vi.fn(),

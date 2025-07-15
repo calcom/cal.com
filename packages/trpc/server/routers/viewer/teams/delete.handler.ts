@@ -1,5 +1,5 @@
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { TeamService } from "@calcom/lib/server/service/team";
+import { TeamService } from "@calcom/lib/server/service/team.service";
 
 import { TRPCError } from "@trpc/server";
 

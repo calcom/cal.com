@@ -1,7 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/lib/server/repository/booking.repository";
 
 export const bookingRepositoryModule = createModule();
 bookingRepositoryModule

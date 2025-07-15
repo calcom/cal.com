@@ -3,7 +3,7 @@ import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user.repository";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {

@@ -6,8 +6,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import logger from "../../logger";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
-import { LookupTarget, ProfileRepository } from "./profile";
-import { withSelectedCalendars } from "./user";
+import { LookupTarget, ProfileRepository } from "./profile.repository";
+import { withSelectedCalendars } from "./user.repository";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {

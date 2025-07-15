@@ -1,6 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/lib/CalendarManager";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
-import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar.repository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

@@ -7,12 +7,12 @@ import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
 } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
+import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes.service";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
 
-vi.mock("@calcom/lib/service/attribute/server/getAttributes");
+vi.mock("@calcom/lib/service/attribute/server/getAttributes.service");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));

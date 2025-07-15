@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsRoutingService } from "../../service/insightsRouting";
+import { InsightsRoutingService } from "../../service/insightsRouting.service";
 
 // Helper function to create unique test data
 async function createTestData({

@@ -9,8 +9,8 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { EventRepository } from "@calcom/lib/server/repository/event.repository";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";

@@ -7,9 +7,9 @@ import {
 
 import { describe, test, expect, vi } from "vitest";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/lib/server/repository/user.repository";
 
-vi.mock("@calcom/lib/server/repository/user", () => {
+vi.mock("@calcom/lib/server/repository/user.repository", () => {
   return {
     UserRepository: vi.fn().mockImplementation(() => ({
       enrichUserWithItsProfile: vi.fn(),

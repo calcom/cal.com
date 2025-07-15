@@ -10,7 +10,7 @@ import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow.repository";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";

@@ -109,7 +109,7 @@ export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
-export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar.repository";
 export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 export { createHandler as createApiKeyHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create.handler";
 export { getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";

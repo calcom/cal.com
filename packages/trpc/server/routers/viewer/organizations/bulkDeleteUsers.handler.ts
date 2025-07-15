@@ -1,6 +1,6 @@
 import { TeamBilling } from "@calcom/ee/billing/teams";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

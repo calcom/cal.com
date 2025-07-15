@@ -13,10 +13,10 @@ import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
-import { MembershipRepository } from "./membership";
-import { LookupTarget, ProfileRepository } from "./profile";
-import type { UserWithLegacySelectedCalendars } from "./user";
-import { withSelectedCalendars } from "./user";
+import { MembershipRepository } from "./membership.repository";
+import { LookupTarget, ProfileRepository } from "./profile.repository";
+import type { UserWithLegacySelectedCalendars } from "./user.repository";
+import { withSelectedCalendars } from "./user.repository";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";

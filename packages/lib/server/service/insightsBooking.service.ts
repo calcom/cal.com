@@ -4,8 +4,8 @@ import { z } from "zod";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { MembershipRepository } from "../repository/membership";
-import { TeamRepository } from "../repository/team";
+import { MembershipRepository } from "../repository/membership.repository";
+import { TeamRepository } from "../repository/team.repository";
 
 export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({

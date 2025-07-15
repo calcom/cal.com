@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
-import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
+import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface.repository";
 import prisma from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
