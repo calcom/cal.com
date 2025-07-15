@@ -1,5 +1,6 @@
 import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
-import { MembershipRole, Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -167,10 +168,10 @@ export class MembershipRepository {
               // As required by getByViewHandler - Make it configurable
               orderBy: [
                 {
-                  position: Prisma.SortOrder.desc,
+                  position: "desc",
                 },
                 {
-                  id: Prisma.SortOrder.asc,
+                  id: "asc",
                 },
               ],
             },
@@ -220,10 +221,10 @@ export class MembershipRepository {
                   },
                   orderBy: [
                     {
-                      position: Prisma.SortOrder.desc,
+                      position: "desc",
                     },
                     {
-                      id: Prisma.SortOrder.asc,
+                      id: "asc",
                     },
                   ],
                 },
