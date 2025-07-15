@@ -173,6 +173,9 @@ export function getSlugOrRequestedSlug(slug: string) {
 }
 
 export function whereClauseForOrgWithSlugOrRequestedSlug(slug: string) {
+  if (!slug) {
+    throw new Error("slug parameter cannot be null or empty");
+  }
   const slugifiedValue = slugify(slug);
 
   return {
