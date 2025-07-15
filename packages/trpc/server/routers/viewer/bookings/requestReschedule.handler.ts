@@ -147,7 +147,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     if (!userIsOwnerOrAdminOfTeam && bookingToReschedule.userId !== user.id) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "User isn't owner of the current booking",
+        message: "User isn't authorized to request reschedule the current booking",
       });
     }
   }
@@ -173,7 +173,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     if (!adminAndOwnerIds.includes(user.id) && bookingToReschedule.userId !== user.id) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "User isn't owner of the current booking",
+        message: "User isn't authorized to request reschedule the current booking",
       });
     }
   }
