@@ -341,36 +341,20 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     });
   };
 
-  useEffect(() => {
-    if (!props.firstRender) {
+  const initializeEditorContent = useCallback(() => {
+    const htmlString = props.getText();
+    console.log("ToolbarPlugin: initializing editor content", { htmlString });
+
+    if (htmlString) {
       editor.update(() => {
         const root = $getRoot();
-        if (root) {
-          editor.update(() => {
-            const parser = new DOMParser();
-            // Create a new TextNode
-            const dom = parser.parseFromString(props.getText(), "text/html");
+        root.clear();
 
-            const nodes = $generateNodesFromDOM(editor, dom);
-            const paragraph = $createParagraphNode();
-            root.clear().append(paragraph);
-            paragraph.select();
-            $insertNodes(nodes);
-          });
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.updateTemplate]);
-
-  useEffect(() => {
-    if (props.setFirstRender) {
-      props.setFirstRender(false);
-      editor.update(() => {
         const parser = new DOMParser();
-        const dom = parser.parseFromString(props.getText(), "text/html");
-
+        const dom = parser.parseFromString(htmlString, "text/html");
         const nodes = $generateNodesFromDOM(editor, dom);
+
+        console.log("ToolbarPlugin: inserting nodes", { nodes: nodes.length });
 
         $getRoot().select();
         try {
@@ -382,23 +366,39 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           nodes.forEach((n) => paragraphNode.append(n));
           $getRoot().append(paragraphNode);
         }
+      });
+    }
+  }, [editor, props.getText]);
 
-        editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-          editorState.read(() => {
-            const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-            props.setText(
-              textInHtml.replace(
-                /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
-                "<p class='editor-paragraph'></p>"
-              )
-            );
-          });
-          if (!prevEditorState._selection) editor.blur();
+  useEffect(() => {
+    if (!props.firstRender && props.updateTemplate) {
+      console.log("ToolbarPlugin: updateTemplate triggered", { updateTemplate: props.updateTemplate });
+      initializeEditorContent();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.updateTemplate, props.firstRender, initializeEditorContent]);
+
+  useEffect(() => {
+    if (props.setFirstRender) {
+      console.log("ToolbarPlugin: first render initialization");
+      props.setFirstRender(false);
+      initializeEditorContent();
+
+      editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+        editorState.read(() => {
+          const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+          props.setText(
+            textInHtml.replace(
+              /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
+              "<p class='editor-paragraph'></p>"
+            )
+          );
         });
+        if (!prevEditorState._selection) editor.blur();
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [initializeEditorContent]);
 
   useEffect(() => {
     return mergeRegister(
