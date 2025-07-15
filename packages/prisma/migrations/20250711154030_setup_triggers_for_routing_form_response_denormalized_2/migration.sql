@@ -200,13 +200,13 @@ BEGIN
         "bookingEndTime" = NEW."endTime",
         "eventTypeId" = NEW."eventTypeId",
         "eventTypeParentId" = (
-            SELECT et."parentId" 
-            FROM "EventType" et 
+            SELECT et."parentId"
+            FROM "EventType" et
             WHERE et.id = NEW."eventTypeId"
         ),
         "eventTypeSchedulingType" = (
-            SELECT et."schedulingType" 
-            FROM "EventType" et 
+            SELECT et."schedulingType"
+            FROM "EventType" et
             WHERE et.id = NEW."eventTypeId"
         )
     WHERE rfrd."bookingId" = NEW.id;
@@ -387,7 +387,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Clear assignment reason for all responses linked to this booking
     UPDATE "RoutingFormResponseDenormalized" rfrd
-    SET "bookingAssignmentReason" = ''
+    SET "bookingAssignmentReason" = NULL
     WHERE rfrd."bookingId" = OLD."bookingId";
     RETURN OLD;
 END;
