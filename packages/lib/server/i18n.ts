@@ -1,6 +1,6 @@
 import { createInstance } from "i18next";
 
-import { CALCOM_VERSION } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
@@ -10,25 +10,27 @@ const i18nInstanceCache = new Map<string, any>();
  * Implements caching to avoid redundant network requests
  * @returns {Promise<Record<string, string>>} English translations object or empty object on failure
  */
-async function loadFallbackTranslations(): Promise<Record<string, string>> {
-  const cacheKey = `en-common-${CALCOM_VERSION}`;
+async function loadFallbackTranslations() {
+  const cacheKey = "en-common";
 
   if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey)!;
+    return translationCache.get(cacheKey);
   }
 
   try {
-    const { getBundledTranslations } = await import("./translationBundler");
-    const translations = getBundledTranslations("en", "common");
+    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`, {
+      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+    });
 
-    if (Object.keys(translations).length === 0) {
-      throw new Error("No English fallback translations found");
+    if (!res.ok) {
+      throw new Error(`Failed to fetch fallback translations: ${res.status}`);
     }
 
+    const translations = await res.json();
     translationCache.set(cacheKey, translations);
     return translations;
   } catch (error) {
-    console.error("Could not load fallback translations:", error);
+    console.error("Could not fetch fallback translations:", error);
     return {};
   }
 }
@@ -39,22 +41,25 @@ async function loadFallbackTranslations(): Promise<Record<string, string>> {
  * @param {string} ns - The namespace for the translations
  * @returns {Promise<Record<string, string>>} Translations object or fallback translations on failure
  */
-export async function loadTranslations(_locale: string, ns: string): Promise<Record<string, string>> {
+export async function loadTranslations(_locale: string, ns: string) {
   const locale = _locale === "zh" ? "zh-CN" : _locale;
-  const cacheKey = `${locale}-${ns}-${CALCOM_VERSION}`;
+  const cacheKey = `${locale}-${ns}`;
 
   if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey)!;
+    return translationCache.get(cacheKey);
   }
 
   try {
-    const { getBundledTranslations } = await import("./translationBundler");
-    const translations = getBundledTranslations(locale, ns);
+    const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
+    const response = await fetch(url, {
+      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+    });
 
-    if (Object.keys(translations).length === 0) {
-      throw new Error(`No translations found for ${locale}/${ns}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch translations: ${response.status}`);
     }
 
+    const translations = await response.json();
     translationCache.set(cacheKey, translations);
     return translations;
   } catch (error) {
@@ -71,7 +76,7 @@ export async function loadTranslations(_locale: string, ns: string): Promise<Rec
  * @returns {Promise<Function>} A translation function bound to the specified locale and namespace
  */
 export const getTranslation = async (locale: string, ns: string) => {
-  const cacheKey = `${locale}-${ns}-${CALCOM_VERSION}`;
+  const cacheKey = `${locale}-${ns}`;
   if (i18nInstanceCache.has(cacheKey)) {
     return i18nInstanceCache.get(cacheKey).getFixedT(locale, ns);
   }

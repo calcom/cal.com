@@ -23,7 +23,7 @@ const translationKeyRegex = /(?<!\w)(?:t\(("[^"]*")(?:,\s*\{[^}]*\})?\)|i18nKey=
 /** @type {import("i18n-unused/src/types/index.ts").RunOptions} */
 const config = {
   //   localesPath: localePath, //  uncomment to run on all locales (to calculate kb savings)
-  localesPath: path.join("./packages/lib/server/locales", "/en"),
+  localesPath: path.join("./apps/website", "/public/static/locales", "/en"),
   srcPath: "./apps/website",
   srcExtensions: ["ts", "tsx"],
   translationContextSeparator: ":",
