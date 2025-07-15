@@ -20,7 +20,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ANY(${["option1", "option2", "option3"]})`);
+      expect(result).toEqual(Prisma.sql`= ANY(${["option1", "option2", "option3"]})`);
     });
 
     it("should work with table alias", () => {
@@ -31,7 +31,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ANY(${[1, 2, 3]})`);
+      expect(result).toEqual(Prisma.sql`= ANY(${[1, 2, 3]})`);
     });
   });
 
@@ -44,7 +44,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ${"option1"}`);
+      expect(result).toEqual(Prisma.sql`= ${"option1"}`);
     });
 
     it("should work with numeric values", () => {
@@ -55,7 +55,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ${123}`);
+      expect(result).toEqual(Prisma.sql`= ${123}`);
     });
   });
 
@@ -68,7 +68,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ${"test"}`);
+      expect(result).toEqual(Prisma.sql`= ${"test"}`);
     });
 
     it("should create not equals condition", () => {
@@ -79,7 +79,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` != ${"test"}`);
+      expect(result).toEqual(Prisma.sql`!= ${"test"}`);
     });
 
     it("should create contains condition", () => {
@@ -90,7 +90,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` ILIKE ${`%test%`}`);
+      expect(result).toEqual(Prisma.sql`ILIKE ${`%test%`}`);
     });
 
     it("should create not contains condition", () => {
@@ -101,7 +101,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` NOT ILIKE ${`%test%`}`);
+      expect(result).toEqual(Prisma.sql`NOT ILIKE ${`%test%`}`);
     });
 
     it("should create starts with condition", () => {
@@ -112,7 +112,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` ILIKE ${`test%`}`);
+      expect(result).toEqual(Prisma.sql`ILIKE ${`test%`}`);
     });
 
     it("should create ends with condition", () => {
@@ -123,7 +123,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` ILIKE ${`%test`}`);
+      expect(result).toEqual(Prisma.sql`ILIKE ${`%test`}`);
     });
 
     it("should create is empty condition", () => {
@@ -134,7 +134,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ''`);
+      expect(result).toEqual(Prisma.sql`= ''`);
     });
 
     it("should create is not empty condition", () => {
@@ -145,7 +145,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` != ''`);
+      expect(result).toEqual(Prisma.sql`!= ''`);
     });
 
     it("should return null for unknown text operator", () => {
@@ -169,7 +169,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ${42}`);
+      expect(result).toEqual(Prisma.sql`= ${42}`);
     });
 
     it("should create not equals condition", () => {
@@ -180,7 +180,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` != ${42}`);
+      expect(result).toEqual(Prisma.sql`!= ${42}`);
     });
 
     it("should create greater than condition", () => {
@@ -191,7 +191,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` > ${42}`);
+      expect(result).toEqual(Prisma.sql`> ${42}`);
     });
 
     it("should create greater than or equal condition", () => {
@@ -202,7 +202,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` >= ${42}`);
+      expect(result).toEqual(Prisma.sql`>= ${42}`);
     });
 
     it("should create less than condition", () => {
@@ -213,7 +213,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` < ${42}`);
+      expect(result).toEqual(Prisma.sql`< ${42}`);
     });
 
     it("should create less than or equal condition", () => {
@@ -224,7 +224,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` <= ${42}`);
+      expect(result).toEqual(Prisma.sql`<= ${42}`);
     });
 
     it("should return null for unknown number operator", () => {
@@ -259,7 +259,7 @@ describe("makeSqlCondition", () => {
 
       const result = makeSqlCondition(filterValue);
 
-      expect(result).toEqual(Prisma.sql` = ANY(${[]})`);
+      expect(result).toEqual(Prisma.sql`= ANY(${[]})`);
     });
   });
 });
