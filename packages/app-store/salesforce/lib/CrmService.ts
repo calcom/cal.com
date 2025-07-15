@@ -1304,10 +1304,11 @@ export default class SalesforceCRMService implements CRM {
         logger: log,
         routingFormResponseRepo: new RoutingFormResponseRepository(),
       });
+      // console.log(routingFormResponseDataFactory);
 
       value = findFieldValueByIdentifier(
-        await routingFormResponseDataFactory.createWithBookingUid({ bookingUid }),
-        fieldValue
+        await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
+        identifierField
       );
     } catch (error) {
       log.error("Routing form response not found", error);
