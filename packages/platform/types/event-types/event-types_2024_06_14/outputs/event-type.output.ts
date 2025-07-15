@@ -304,10 +304,13 @@ class BaseEventTypeOutput_2024_06_14 {
   })
   metadata!: Record<string, unknown>;
 
+  @IsOptional()
   @IsInt()
+  @Min(0)
   @DocsProperty({ example: 0 })
   position!: number;
 
+  @IsOptional()
   @IsBoolean()
   @DocsProperty({ example: false })
   hidden!: boolean;

@@ -10,6 +10,7 @@ import {
   IsInt,
   IsBoolean,
   IsOptional,
+  IsObject,
   Min,
   ValidateNested,
   IsArray,
@@ -287,6 +288,23 @@ class BaseUpdateEventTypeInput {
   @IsInt()
   @Min(0)
   @DocsPropertyOptional({
+    description: "Price for an event type",
+    example: 0,
+  })
+  price?: number;
+
+  @IsOptional()
+  @IsString()
+  @DocsPropertyOptional({
+    description: "Currency for price associated with the event type",
+    example: 0,
+  })
+  currency?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @DocsPropertyOptional({
     description: "Position of the event type in the list. Lower numbers appear first.",
     example: 0,
   })
@@ -295,12 +313,13 @@ class BaseUpdateEventTypeInput {
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "Whether the event type should be hidden from public view",
+    description: "Whether the event type should be hidden from public view.",
     example: false,
   })
   hidden?: boolean;
 
   @IsOptional()
+  @IsObject()
   @Type(() => Object)
   @DocsPropertyOptional({
     description: "Custom metadata for the event type. Can include pricing information, custom settings, etc.",

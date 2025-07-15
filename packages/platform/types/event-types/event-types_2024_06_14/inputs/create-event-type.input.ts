@@ -10,6 +10,7 @@ import {
   IsInt,
   IsBoolean,
   IsOptional,
+  IsObject,
   Min,
   IsUrl,
   IsEnum,
@@ -326,6 +327,7 @@ class BaseCreateEventTypeInput {
   hidden?: boolean;
 
   @IsOptional()
+  @IsObject()
   @Type(() => Object)
   @DocsPropertyOptional({
     description: "Custom metadata for the event type. Can include pricing information, custom settings, etc.",
