@@ -24,7 +24,7 @@ const membershipSelect = {
   accepted: true,
   role: true,
   disableImpersonation: true,
-};
+} satisfies Prisma.MembershipSelect;
 
 const teamParentSelect = {
   id: true,
@@ -33,14 +33,14 @@ const teamParentSelect = {
   logoUrl: true,
   parentId: true,
   metadata: true,
-};
+} satisfies Prisma.TeamSelect;
 
 const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-};
+} satisfies Prisma.UserSelect;
 
 const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipWhereInput) => {
   const lookupTarget = ProfileRepository.getLookupTarget(upId);
@@ -231,7 +231,7 @@ export class MembershipRepository {
             : {}),
         },
       },
-    };
+    } satisfies Prisma.MembershipSelect;
 
     return await prisma.membership.findMany({
       where: prismaWhere,
