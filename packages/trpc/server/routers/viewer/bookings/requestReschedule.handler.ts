@@ -130,6 +130,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     );
   }
 
+  // for managed event type, check if user is owner or admin of the team, if not, throw error
   if (bookingBelongsToManagedEventType && bookingToReschedule.eventType?.teamId) {
     const userIsOwnerOrAdminOfTeam = await prisma.membership.findFirst({
       where: {
@@ -149,8 +150,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     }
   }
 
+  // if booking belongs to user(not team or managed event type), allow all owner and admin of the user to reschedule the booking
   if (!bookingBelongsToTeam && !bookingBelongsToManagedEventType) {
-    // all the owner and admin of the user can reschedule the booking
     const ownerAndAdminsOfUser = await prisma.user.findMany({
       where: {
         teams: {
