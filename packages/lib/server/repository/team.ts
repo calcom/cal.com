@@ -54,7 +54,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
     ...teamSelect,
     metadata: true,
     isOrganization: true,
-  } satisfies Prisma.TeamSelect;
+  } satisfies TeamSelect;
   if (lookupBy.havingMemberWithId) where.members = { some: { userId: lookupBy.havingMemberWithId } };
 
   if ("id" in lookupBy) {
