@@ -56,7 +56,9 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const locale = user?.locale ?? ctx.locale;
   const { members = [], ..._organization } = user.profile?.organization || {};
-  const isOrgAdmin = members.some((member: any) => ["OWNER", "ADMIN"].includes(member.role));
+  // TODO: Update this if we ever enable multi-orgs
+  const singleOrgMemebrship = members[0];
+  const isOrgAdmin = ["ADMIN", "OWNER"].includes(singleOrgMemebrship.role);
 
   if (isOrgAdmin) {
     logger.debug("User is an org admin", safeStringify({ userId: user.id }));
@@ -67,6 +69,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     ..._organization,
     id: user.profile?.organization?.id ?? null,
     isOrgAdmin,
+    role: singleOrgMemebrship.role,
     metadata: orgMetadata,
     requestedSlug: orgMetadata?.requestedSlug ?? null,
   };
