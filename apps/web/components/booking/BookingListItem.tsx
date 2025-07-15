@@ -207,6 +207,13 @@ function BookingListItem(booking: BookingItemProps) {
     mutation.mutate(body);
   };
 
+  const getSeatReferenceUid = () => {
+    const seatReferenceUid = booking.seatsReferences.find(
+      (seat) => seat.attendee?.email === userEmail
+    )?.referenceUid;
+    return seatReferenceUid;
+  };
+
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -243,7 +250,9 @@ function BookingListItem(booking: BookingItemProps) {
             id: "reschedule",
             icon: "clock" as const,
             label: t("reschedule_booking"),
-            href: `/reschedule/${booking.uid}`,
+            href: `/reschedule/${booking.uid}${
+              getSeatReferenceUid() ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+            }`,
           },
           {
             id: "reschedule_request",
