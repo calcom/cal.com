@@ -89,14 +89,24 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   if (!bookingToReschedule.userId) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Booking to reschedule doesn't have an owner",
+    });
   }
 
   if (!bookingToReschedule.eventType && !bookingToReschedule.dynamicEventSlugRef) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "EventType not found for current booking.",
+    });
   }
 
-  const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
+  // check if also includes managed event type
+  const bookingBelongsToTeam =
+    !!bookingToReschedule.eventType?.teamId || !!bookingToReschedule.eventType?.parentId;
+
+  // if booking doesn't belongs to team, then allow all admin and owner to reschedule
 
   const userTeams = await prisma.user.findUniqueOrThrow({
     where: {
@@ -108,9 +118,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
+    // if team event, and user is not part of team
     const userTeamIds = userTeams.teams.map((item) => item.teamId);
     if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User isn't a member on the team",
+      });
     }
     log.debug(
       "Request reschedule for team booking",
@@ -119,8 +133,30 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       })
     );
   }
-  if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
+
+  if (!bookingBelongsToTeam) {
+    // all the owner and admin that can reschedule the booking
+    const ownerAndAdminsOfUser = await prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            teamId: {
+              in: userTeams.teams.map((item) => item.teamId),
+            },
+            role: {
+              in: ["ADMIN", "OWNER"],
+            },
+          },
+        },
+      },
+    });
+
+    if (!ownerAndAdminsOfUser.some((admin) => admin.id === user.id)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User isn't owner of the current booking",
+      });
+    }
   }
 
   if (!bookingToReschedule) return;
@@ -219,7 +255,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   cancellationReason && director.setCancellationReason(cancellationReason);
   if (Object.keys(event).length) {
     // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
-    await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
+    await director.buildForRescheduleEmail({
+      allowRescheduleForCancelledBooking: true,
+    });
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
   }
