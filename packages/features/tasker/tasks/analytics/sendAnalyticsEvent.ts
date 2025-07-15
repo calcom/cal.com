@@ -1,7 +1,7 @@
 import AnalyticsManager from "@calcom/lib/analyticsManager/analyticsManager";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential.repository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credentialRepository";
 
 import { sendAnalyticsEventSchema } from "./schema";
 

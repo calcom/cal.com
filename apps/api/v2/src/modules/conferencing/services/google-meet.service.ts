@@ -1,5 +1,5 @@
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencingRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import { BadRequestException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 

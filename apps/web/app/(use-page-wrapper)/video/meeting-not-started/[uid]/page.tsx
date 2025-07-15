@@ -5,7 +5,7 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking.repository";
+import { BookingRepository } from "@calcom/lib/server/repository/bookingRepository";
 import { prisma } from "@calcom/prisma";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";

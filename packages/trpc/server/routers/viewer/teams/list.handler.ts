@@ -1,4 +1,4 @@
-import { TeamRepository } from "@calcom/lib/server/repository/team.repository";
+import { TeamRepository } from "@calcom/lib/server/repository/teamRepository";
 import prisma from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";

@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { BookingRepository } from "@calcom/lib/server/repository/booking.repository";
+import { BookingRepository } from "@calcom/lib/server/repository/bookingRepository";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 

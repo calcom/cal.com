@@ -22,8 +22,8 @@ import {
   OrgTeamOutputResponseDto,
   OrgTeamsOutputResponseDto,
 } from "@/modules/organizations/teams/index/outputs/organization-team.output";
-import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizationsTeamsService";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   UseGuards,

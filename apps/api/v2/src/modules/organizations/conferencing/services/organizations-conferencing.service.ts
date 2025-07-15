@@ -1,11 +1,11 @@
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
 import { DefaultConferencingAppsOutputDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencingRepository";
+import { ConferencingService } from "@/modules/conferencing/services/conferencingService";
+import { GoogleMeetService } from "@/modules/conferencing/services/googleMeetService";
+import { TeamsRepository } from "@/modules/teams/teams/teamsRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 

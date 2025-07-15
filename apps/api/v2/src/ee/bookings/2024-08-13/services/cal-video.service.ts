@@ -1,5 +1,5 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
-import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookingsRepository";
+import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/outputService";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import {

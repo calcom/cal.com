@@ -14,7 +14,7 @@ import {
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
+import { ConferencingService } from "@/modules/conferencing/services/conferencingService";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { HttpService } from "@nestjs/axios";
 import { Logger } from "@nestjs/common";

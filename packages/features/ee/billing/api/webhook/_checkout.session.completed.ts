@@ -1,5 +1,5 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits.repository";
+import { CreditsRepository } from "@calcom/lib/server/repository/creditsRepository";
 
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";

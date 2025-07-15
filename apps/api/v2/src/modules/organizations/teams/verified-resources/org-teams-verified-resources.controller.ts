@@ -25,7 +25,7 @@ import {
   TeamVerifiedPhoneOutputData,
   TeamVerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
-import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
+import { VerifiedResourcesService } from "@/modules/verified-resources/services/verifiedResourcesService";
 import {
   Body,
   Controller,

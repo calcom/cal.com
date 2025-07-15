@@ -1,4 +1,4 @@
-import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
+import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managedOrganizationsRepository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 

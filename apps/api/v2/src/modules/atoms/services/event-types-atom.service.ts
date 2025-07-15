@@ -1,13 +1,13 @@
-import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/eventTypesService";
 import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { AtomsRepository } from "@/modules/atoms/atoms.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { AtomsRepository } from "@/modules/atoms/atomsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teamsEventTypesService";
+import { UsersService } from "@/modules/users/services/usersService";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
 
 import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";

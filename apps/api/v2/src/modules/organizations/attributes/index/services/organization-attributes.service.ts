@@ -1,6 +1,6 @@
 import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
 import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
-import { OrganizationAttributesRepository } from "@/modules/organizations/attributes/index/organization-attributes.repository";
+import { OrganizationAttributesRepository } from "@/modules/organizations/attributes/index/organizationAttributesRepository";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

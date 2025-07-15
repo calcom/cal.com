@@ -1,7 +1,7 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
+import { MembershipUserSelect } from "@/modules/teams/memberships/teamsMembershipsRepository";
 import { Injectable } from "@nestjs/common";
 
 import type { Prisma } from "@calcom/prisma/client";

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding.repository";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboardingRepository";
 
 import type { SWHMap } from "./__handler";
 

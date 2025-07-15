@@ -4,8 +4,8 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   BadRequestException,
   Controller,

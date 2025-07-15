@@ -1,8 +1,8 @@
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizationsTeamsRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { Injectable } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";

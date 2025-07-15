@@ -21,7 +21,7 @@ import { DeleteAttributeOptionOutput } from "@/modules/organizations/attributes/
 import { GetOptionUserOutput } from "@/modules/organizations/attributes/options/outputs/get-option-user.output";
 import { GetAllAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/get-option.output";
 import { UpdateAttributeOptionOutput } from "@/modules/organizations/attributes/options/outputs/update-option.output";
-import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
+import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organizationAttributesOptionService";
 import {
   Body,
   Controller,

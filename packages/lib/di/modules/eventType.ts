@@ -1,7 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType.repository";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 
 export const eventTypeRepositoryModule = createModule();
 eventTypeRepositoryModule

@@ -11,9 +11,9 @@ import { CreateTeamOutput } from "@/modules/teams/teams/outputs/teams/create-tea
 import { GetTeamOutput } from "@/modules/teams/teams/outputs/teams/get-team.output";
 import { GetTeamsOutput } from "@/modules/teams/teams/outputs/teams/get-teams.output";
 import { UpdateTeamOutput } from "@/modules/teams/teams/outputs/teams/update-team.output";
-import { TeamsService } from "@/modules/teams/teams/services/teams.service";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { TeamsService } from "@/modules/teams/teams/services/teamsService";
+import { TeamsRepository } from "@/modules/teams/teams/teamsRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Delete, Patch, Post, Body } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";

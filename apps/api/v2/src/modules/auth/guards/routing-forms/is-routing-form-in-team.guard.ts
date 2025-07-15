@@ -1,4 +1,4 @@
-import { RoutingFormsRepository } from "@/modules/routing-forms/routing-forms.repository";
+import { RoutingFormsRepository } from "@/modules/routing-forms/routingFormsRepository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 

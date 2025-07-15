@@ -8,10 +8,10 @@ import {
   StripCredentialsCheckOutputResponseDto,
   StripCredentialsSaveOutputResponseDto,
 } from "@/modules/stripe/outputs/stripe.output";
-import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
+import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripeService";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { HttpService } from "@nestjs/axios";
 import {
   Controller,

@@ -1,5 +1,5 @@
-import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slotsService";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teamsEventTypesRepository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { Request } from "express";
 

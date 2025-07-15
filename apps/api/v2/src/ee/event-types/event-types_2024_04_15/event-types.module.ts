@@ -1,6 +1,6 @@
 import { EventTypesController_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/controllers/event-types.controller";
 import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
-import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/eventTypesService";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";

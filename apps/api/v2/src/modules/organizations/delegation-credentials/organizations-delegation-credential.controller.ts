@@ -16,7 +16,7 @@ import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegat
 import { CreateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/create-delegation-credential.output";
 import { DelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/delegation-credential.output";
 import { UpdateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/update-delegation-credential.output";
-import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
+import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizationsDelegationCredentialService";
 import {
   Controller,
   UseGuards,

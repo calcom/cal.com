@@ -1,10 +1,10 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeController } from "@/modules/stripe/controllers/stripe.controller";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { StripeService } from "@/modules/stripe/stripeService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { UsersModule } from "@/modules/users/users.module";
 import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";

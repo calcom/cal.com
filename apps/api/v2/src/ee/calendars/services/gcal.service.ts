@@ -1,10 +1,10 @@
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
 import type { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selectedCalendarsRepository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { calendar_v3 } from "@googleapis/calendar";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";

@@ -1,7 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { FindTeamMembersMatchingAttributeQueryDto } from "@/modules/atoms/inputs/find-team-members-matching-attribute.input";
-import { AttributesAtomsService } from "@/modules/atoms/services/attributes-atom.service";
-import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
+import { AttributesAtomsService } from "@/modules/atoms/services/attributesAtomService";
+import { ConferencingAtomsService } from "@/modules/atoms/services/conferencingAtomService";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";

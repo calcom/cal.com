@@ -1,12 +1,9 @@
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import {
-  CredentialsRepository,
-  CredentialsWithUserEmail,
-} from "@/modules/credentials/credentials.repository";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { CalendarsRepository } from "@/ee/calendars/calendarsRepository";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository, CredentialsWithUserEmail } from "@/modules/credentials/credentialsRepository";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selectedCalendarsRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import {
   Injectable,
   InternalServerErrorException,

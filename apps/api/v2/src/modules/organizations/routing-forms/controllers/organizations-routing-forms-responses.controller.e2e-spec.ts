@@ -1,7 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";

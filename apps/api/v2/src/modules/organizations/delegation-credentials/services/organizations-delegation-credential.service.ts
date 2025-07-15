@@ -9,7 +9,7 @@ import {
   MicrosoftServiceAccountKeyInput,
 } from "@/modules/organizations/delegation-credentials/inputs/service-account-key.input";
 import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
-import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
+import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizationsDelegationCredentialRepository";
 import { InjectQueue } from "@nestjs/bull";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 import { User } from "@prisma/client";

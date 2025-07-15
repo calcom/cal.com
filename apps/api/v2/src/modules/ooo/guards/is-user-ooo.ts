@@ -1,4 +1,4 @@
-import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
+import { UserOOORepository } from "@/modules/ooo/repositories/oooRepository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 

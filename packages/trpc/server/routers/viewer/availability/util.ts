@@ -1,6 +1,6 @@
 import type { User } from "@prisma/client";
 
-import { HostRepository } from "@calcom/lib/server/repository/host.repository";
+import { HostRepository } from "@calcom/lib/server/repository/hostRepository";
 import type { PrismaClient } from "@calcom/prisma";
 
 export const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {

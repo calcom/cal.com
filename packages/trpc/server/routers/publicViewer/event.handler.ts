@@ -1,4 +1,4 @@
-import { EventRepository } from "@calcom/lib/server/repository/event.repository";
+import { EventRepository } from "@calcom/lib/server/repository/eventRepository";
 
 import type { TEventInputSchema } from "./event.schema";
 

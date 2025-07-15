@@ -1,7 +1,7 @@
-import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
+import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizationsWebhooksRepository";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
-import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
+import { WebhooksRepository } from "@/modules/webhooks/webhooksRepository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()

@@ -12,8 +12,8 @@ import {
 import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
 import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { EventTypeWebhooksService } from "@/modules/webhooks/services/event-type-webhooks.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { EventTypeWebhooksService } from "@/modules/webhooks/services/eventTypeWebhooksService";
+import { WebhooksService } from "@/modules/webhooks/services/webhooksService";
 import {
   Controller,
   Post,

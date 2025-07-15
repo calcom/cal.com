@@ -1,6 +1,6 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
+import { AppsRepository } from "@/modules/apps/appsRepository";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import { BadRequestException, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

@@ -1,7 +1,7 @@
 import { stripe } from "@calcom/features/ee/payments/server/stripe";
 
 import { OrganizationBilling } from "./organization-billing";
-import { OrganizationBillingRepository } from "./organization-billing.repository";
+import { OrganizationBillingRepository } from "./organizationBillingRepository";
 
 export class InternalOrganizationBilling extends OrganizationBilling {
   constructor(

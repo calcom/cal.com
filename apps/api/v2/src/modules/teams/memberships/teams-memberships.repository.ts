@@ -1,5 +1,5 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { Injectable } from "@nestjs/common";

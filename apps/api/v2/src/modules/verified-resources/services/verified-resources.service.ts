@@ -1,5 +1,5 @@
-import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
-import { UsersVerifiedResourcesRepository } from "@/modules/verified-resources/users-verified-resources.repository";
+import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teamsVerifiedResourcesRepository";
+import { UsersVerifiedResourcesRepository } from "@/modules/verified-resources/usersVerifiedResourcesRepository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 
 import {

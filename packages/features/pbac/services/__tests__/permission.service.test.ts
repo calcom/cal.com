@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 
 import type { PermissionString } from "../../domain/types/permission-registry";
 import { CrudAction, PERMISSION_REGISTRY, Resource } from "../../domain/types/permission-registry";
-import { PermissionService } from "../permission.service";
+import { PermissionService } from "../permissionService";
 
 describe("PermissionService", () => {
   let service: PermissionService;

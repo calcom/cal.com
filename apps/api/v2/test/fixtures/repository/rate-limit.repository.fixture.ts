@@ -1,4 +1,4 @@
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { TestingModule } from "@nestjs/testing";
 
 export class RateLimitRepositoryFixture {

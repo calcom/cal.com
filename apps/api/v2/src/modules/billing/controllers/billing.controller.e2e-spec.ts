@@ -1,10 +1,10 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { StripeService } from "@/modules/stripe/stripe.service";
+import { StripeService } from "@/modules/stripe/stripeService";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";

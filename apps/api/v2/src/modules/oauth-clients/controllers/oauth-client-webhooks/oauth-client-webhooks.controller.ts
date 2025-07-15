@@ -13,8 +13,8 @@ import {
 import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
 import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { OAuthClientWebhooksService } from "@/modules/webhooks/services/oauth-clients-webhooks.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { OAuthClientWebhooksService } from "@/modules/webhooks/services/oauth-clients-webhooksService";
+import { WebhooksService } from "@/modules/webhooks/services/webhooksService";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Webhook, MembershipRole } from "@prisma/client";

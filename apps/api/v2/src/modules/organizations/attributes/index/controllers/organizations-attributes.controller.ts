@@ -16,7 +16,7 @@ import {
   GetSingleAttributeOutput,
 } from "@/modules/organizations/attributes/index/outputs/get-organization-attributes.output";
 import { UpdateOrganizationAttributesOutput } from "@/modules/organizations/attributes/index/outputs/update-organization-attributes.output";
-import { OrganizationAttributesService } from "@/modules/organizations/attributes/index/services/organization-attributes.service";
+import { OrganizationAttributesService } from "@/modules/organizations/attributes/index/services/organizationAttributesService";
 import {
   Body,
   Controller,

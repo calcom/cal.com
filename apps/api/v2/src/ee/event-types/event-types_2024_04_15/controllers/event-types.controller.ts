@@ -12,15 +12,15 @@ import {
   GetEventTypesOutput,
 } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/update-event-type.output";
-import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/eventTypesService";
 import { VERSION_2024_04_15, VERSION_2024_06_11 } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   UseGuards,

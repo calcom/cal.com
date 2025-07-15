@@ -11,13 +11,13 @@ import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-cli
 import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauthClientsUsersOutputService";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauthClientsUsersService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import {
   Body,
   Controller,

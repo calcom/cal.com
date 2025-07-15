@@ -14,8 +14,8 @@ import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pag
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user.repository";
+import { RoutingFormRepository } from "@calcom/lib/server/repository/routingFormRepository";
+import { UserRepository } from "@calcom/lib/server/repository/userRepository";
 
 import { getRoutedUrl } from "./getRoutedUrl";
 

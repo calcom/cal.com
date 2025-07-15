@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHandler";
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";

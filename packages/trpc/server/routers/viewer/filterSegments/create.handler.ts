@@ -1,5 +1,5 @@
-import { FilterSegmentRepository } from "@calcom/lib/server/repository/filterSegment.repository";
-import type { TCreateFilterSegmentInputSchema } from "@calcom/lib/server/repository/filterSegment.type.repository";
+import { FilterSegmentRepository } from "@calcom/lib/server/repository/filterSegmentRepository";
+import type { TCreateFilterSegmentInputSchema } from "@calcom/lib/server/repository/filterSegmentTypeRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 export const createFilterSegmentHandler = async ({

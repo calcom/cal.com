@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
-import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKey.repository";
+import { ApiKeyRepository } from "@calcom/lib/server/repository/apiKeyRepository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

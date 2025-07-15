@@ -1,12 +1,12 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
-import { PermissionCheckService } from "./permission-check.service";
-import { RoleService } from "./role.service";
+import { PermissionCheckService } from "./permissionCheckService";
+import { RoleService } from "./roleService";
 
 interface IRoleManager {
   isPBACEnabled: boolean;

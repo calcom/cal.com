@@ -1,6 +1,6 @@
 import type { Team } from "@prisma/client";
 
-import type { OrganizationBillingRepository } from "./organization-billing.repository";
+import type { OrganizationBillingRepository } from "./organizationBillingRepository";
 
 export abstract class OrganizationBilling {
   protected organization: Pick<Team, "id" | "slug" | "name" | "billingPeriod">;

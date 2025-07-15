@@ -16,7 +16,7 @@ import { UpdateOrganizationInput } from "@/modules/organizations/organizations/i
 import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
 import { GetManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/get-managed-organization.output";
 import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
-import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
+import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managedOrganizationsService";
 import {
   Controller,
   UseGuards,

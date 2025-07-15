@@ -1,4 +1,4 @@
-import { AttributeToUserRepository } from "../../../server/repository/attributeToUser.repository";
+import { AttributeToUserRepository } from "../../../server/repository/attributeToUserRepository";
 
 export const getWhereClauseForAttributeOptionsManagedByCalcom = () => {
   // Neither created nor updated by DSync

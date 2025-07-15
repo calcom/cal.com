@@ -1,7 +1,7 @@
-import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
-import { UserOOOService } from "@/modules/ooo/services/ooo.service";
-import { OrgUsersOOORepository } from "@/modules/organizations/users/ooo/organizations-users-ooo.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UserOOORepository } from "@/modules/ooo/repositories/oooRepository";
+import { UserOOOService } from "@/modules/ooo/services/oooService";
+import { OrgUsersOOORepository } from "@/modules/organizations/users/ooo/organizations-users-oooRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

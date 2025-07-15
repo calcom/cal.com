@@ -1,4 +1,4 @@
-import { DbOrgMembership } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { DbOrgMembership } from "@/modules/organizations/memberships/organizationsMembershipRepository";
 import {
   MultiSelectAttribute,
   NumberAttribute,

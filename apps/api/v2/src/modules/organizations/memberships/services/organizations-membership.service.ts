@@ -1,9 +1,9 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
-import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizationsMembershipRepository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
-import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
+import { OrganizationsMembershipOutputService } from "./organizationsMembershipOutputService";
 
 @Injectable()
 export class OrganizationsMembershipService {

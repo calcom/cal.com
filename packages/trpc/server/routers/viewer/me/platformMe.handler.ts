@@ -1,6 +1,6 @@
 import type { Session } from "next-auth";
 
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type MeOptions = {

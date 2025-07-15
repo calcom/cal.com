@@ -4,8 +4,8 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsMembershipsController } from "@/modules/teams/memberships/controllers/teams-memberships.controller";
-import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
-import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
+import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teamsMembershipsService";
+import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teamsMembershipsRepository";
 import { Module } from "@nestjs/common";
 
 @Module({

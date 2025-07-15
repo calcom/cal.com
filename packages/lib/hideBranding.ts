@@ -1,5 +1,5 @@
 import logger from "./logger";
-import { ProfileRepository } from "./server/repository/profile.repository";
+import { ProfileRepository } from "./server/repository/profileRepository";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
 type Team = {

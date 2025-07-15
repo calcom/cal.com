@@ -1,6 +1,6 @@
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-output.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oauth-clients/oauthClientsOutputService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

@@ -1,4 +1,4 @@
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 
 export class BaseStrategy {
   success!: (user: unknown) => void;

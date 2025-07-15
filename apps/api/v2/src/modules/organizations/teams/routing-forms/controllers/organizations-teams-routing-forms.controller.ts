@@ -13,7 +13,7 @@ import {
   GetRoutingFormsOutput,
   RoutingFormOutput,
 } from "@/modules/organizations/routing-forms/outputs/get-routing-forms.output";
-import { OrganizationsTeamsRoutingFormsService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms.service";
+import { OrganizationsTeamsRoutingFormsService } from "@/modules/organizations/teams/routing-forms/services/organizationsTeamsRoutingFormsService";
 import { Controller, Get, Param, Query, UseGuards, ParseIntPipe } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";

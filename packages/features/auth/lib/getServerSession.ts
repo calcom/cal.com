@@ -7,8 +7,8 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user.repository";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deploymentRepository";
+import { UserRepository } from "@calcom/lib/server/repository/userRepository";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });

@@ -1,6 +1,6 @@
-import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
-import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/outputSchedulesService";
+import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizationsSchedulesRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Injectable } from "@nestjs/common";
 
 import { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";

@@ -1,9 +1,9 @@
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsUsersRepository } from "@/modules/organizations//users/index/organizations-users.repository";
+import { OrganizationsUsersRepository } from "@/modules/organizations//users/index/organizationsUsersRepository";
 import { OrganizationsBookingsController } from "@/modules/organizations/bookings/organizations-bookings.controller";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizationsTeamsRepository";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";

@@ -1,4 +1,4 @@
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsRepository } from "@/ee/calendars/calendarsRepository";
 import { CreateIcsFeedInputDto } from "@/ee/calendars/input/create-ics.input";
 import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
 import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
@@ -8,11 +8,11 @@ import {
   DeletedCalendarCredentialsOutputResponseDto,
   DeletedCalendarCredentialsOutputDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
-import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
-import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
-import { OutlookService } from "@/ee/calendars/services/outlook.service";
+import { AppleCalendarService } from "@/ee/calendars/services/appleCalendarService";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { GoogleCalendarService } from "@/ee/calendars/services/gcalService";
+import { IcsFeedService } from "@/ee/calendars/services/icsFeedService";
+import { OutlookService } from "@/ee/calendars/services/outlookService";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
@@ -20,7 +20,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   Get,

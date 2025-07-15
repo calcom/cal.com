@@ -1,12 +1,12 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
-import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/eventTypesService";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedulesService";
 import { Locales } from "@/lib/enums/locales";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 

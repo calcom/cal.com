@@ -1,13 +1,13 @@
 import { AppConfig } from "@/config/type";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookingsRepository";
 import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
-import { BillingRepository } from "@/modules/billing/billing.repository";
-import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
+import { BillingRepository } from "@/modules/billing/billingRepository";
+import { BillingConfigService } from "@/modules/billing/services/billingConfigService";
 import { PlatformPlan } from "@/modules/billing/types";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { StripeService } from "@/modules/stripe/stripeService";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { InjectQueue } from "@nestjs/bull";
 import {
   BadRequestException,

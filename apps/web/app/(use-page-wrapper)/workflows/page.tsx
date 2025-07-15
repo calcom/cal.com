@@ -2,7 +2,7 @@
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 // import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-// import { WorkflowRepository } from "@calcom/lib/server/repository/workflow.repository";
+// import { WorkflowRepository } from "@calcom/lib/server/repository/workflowRepository";
 import LegacyPage from "@calcom/features/ee/workflows/pages/index";
 
 const Page = async () => {

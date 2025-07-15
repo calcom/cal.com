@@ -1,6 +1,6 @@
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
-import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
+import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizationsTeamsMembershipsRepository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()

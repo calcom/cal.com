@@ -1,10 +1,10 @@
 import { AppConfig } from "@/config/type";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import {
   Injectable,
   NotFoundException,

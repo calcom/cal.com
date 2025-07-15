@@ -7,9 +7,9 @@ import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/
 import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.input";
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
 import { RefreshTokenInput } from "@/modules/oauth-clients/inputs/refresh-token.input";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauthFlowService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import {
   BadRequestException,
   Body,

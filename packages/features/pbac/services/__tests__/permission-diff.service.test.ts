@@ -1,7 +1,7 @@
 import type { RolePermission } from "@prisma/client";
 import { describe, it, expect } from "vitest";
 
-import { PermissionDiffService } from "../permission-diff.service";
+import { PermissionDiffService } from "../permissionDiffService";
 
 describe("PermissionDiffService", () => {
   const service = new PermissionDiffService();

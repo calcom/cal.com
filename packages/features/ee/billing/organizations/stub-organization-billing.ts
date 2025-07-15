@@ -1,5 +1,5 @@
 import { OrganizationBilling } from "./organization-billing";
-import { OrganizationBillingRepository } from "./organization-billing.repository";
+import { OrganizationBillingRepository } from "./organizationBillingRepository";
 
 export class StubOrganizationBilling extends OrganizationBilling {
   constructor(

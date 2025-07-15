@@ -2,7 +2,7 @@ import { decodeHTML } from "entities";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";

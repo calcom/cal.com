@@ -24,8 +24,8 @@ import {
   UserOooOutputResponseDto,
   UserOoosOutputResponseDto,
 } from "@/modules/ooo/outputs/ooo.output";
-import { UserOOOService } from "@/modules/ooo/services/ooo.service";
-import { OrgUsersOOOService } from "@/modules/organizations/users/ooo/services/organization-users-ooo.service";
+import { UserOOOService } from "@/modules/ooo/services/oooService";
+import { OrgUsersOOOService } from "@/modules/organizations/users/ooo/services/organizationUsersOooService";
 import {
   Controller,
   UseGuards,

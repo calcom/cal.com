@@ -1,5 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teamsEventTypesRepository";
 import { Controller, Req, NotFoundException, Param, Post, Body } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { Request } from "express";

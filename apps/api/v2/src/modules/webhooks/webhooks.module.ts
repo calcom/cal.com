@@ -9,11 +9,11 @@ import { OrganizationsModule } from "../organizations/organizations.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { UsersModule } from "../users/users.module";
 import { WebhooksController } from "./controllers/webhooks.controller";
-import { EventTypeWebhooksService } from "./services/event-type-webhooks.service";
-import { OAuthClientWebhooksService } from "./services/oauth-clients-webhooks.service";
-import { UserWebhooksService } from "./services/user-webhooks.service";
-import { WebhooksService } from "./services/webhooks.service";
-import { WebhooksRepository } from "./webhooks.repository";
+import { EventTypeWebhooksService } from "./services/eventTypeWebhooksService";
+import { OAuthClientWebhooksService } from "./services/oauthClientsWebhooksService";
+import { UserWebhooksService } from "./services/userWebhooksService";
+import { WebhooksService } from "./services/webhooksService";
+import { WebhooksRepository } from "./webhooksRepository";
 
 @Module({
   imports: [

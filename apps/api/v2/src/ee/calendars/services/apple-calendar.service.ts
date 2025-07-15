@@ -1,6 +1,6 @@
 import { CredentialSyncCalendarApp } from "@/ee/calendars/calendars.interface";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 

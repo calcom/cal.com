@@ -1,6 +1,6 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizationsDelegationCredentialRepository";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizationsMembershipService";
 import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,
@@ -9,8 +9,8 @@ import {
   MULTIPLE_SELECTED_CALENDARS_FOUND,
   NO_SELECTED_CALENDAR_FOUND,
   SelectedCalendarsRepository,
-} from "@/modules/selected-calendars/selected-calendars.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+} from "@/modules/selected-calendars/selectedCalendarsRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { SelectedCalendarRepository } from "@calcom/platform-libraries";

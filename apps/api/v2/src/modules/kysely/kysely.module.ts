@@ -1,5 +1,5 @@
-import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
-import { KyselyWriteService } from "@/modules/kysely/kysely-write.service";
+import { KyselyReadService } from "@/modules/kysely/kyselyReadService";
+import { KyselyWriteService } from "@/modules/kysely/kyselyWriteService";
 import { Module } from "@nestjs/common";
 
 @Module({

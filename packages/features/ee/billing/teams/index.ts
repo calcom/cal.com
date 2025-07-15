@@ -3,7 +3,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { InternalTeamBilling } from "./internal-team-billing";
 import { StubTeamBilling } from "./stub-team-billing";
 import type { TeamBilling as _TeamBilling, TeamBillingInput } from "./team-billing";
-import { TeamBillingRepository } from "./team-billing.repository";
+import { TeamBillingRepository } from "./teamBillingRepository";
 
 export class TeamBilling {
   static repo = new TeamBillingRepository();

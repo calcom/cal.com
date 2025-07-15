@@ -1,6 +1,6 @@
 import { WorkflowActivationDto, TriggerDtoType } from "@/modules/workflows/inputs/create-workflow.input";
 import { WorkflowOutput, WorkflowStepOutputDto } from "@/modules/workflows/outputs/workflow.output";
-import { WorkflowType } from "@/modules/workflows/workflows.repository";
+import { WorkflowType } from "@/modules/workflows/workflowsRepository";
 import { Injectable } from "@nestjs/common";
 
 import {

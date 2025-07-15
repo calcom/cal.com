@@ -1,12 +1,12 @@
-import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
-import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
-import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
-import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
-import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
-import { PrismaSelectedSlotsRepository } from "@/lib/repositories/prisma-selected-slots.repository";
-import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
-import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { AvailableSlotsService } from "@/lib/services/available-slots.service";
+import { PrismaBookingRepository } from "@/lib/repositories/prismaBookingRepository";
+import { PrismaEventTypeRepository } from "@/lib/repositories/prismaEventTypeRepository";
+import { PrismaOOORepository } from "@/lib/repositories/prismaOOORepository";
+import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prismaRoutingFormResponseRepository";
+import { PrismaScheduleRepository } from "@/lib/repositories/prismaScheduleRepository";
+import { PrismaSelectedSlotsRepository } from "@/lib/repositories/prismaSelectedSlotsRepository";
+import { PrismaTeamRepository } from "@/lib/repositories/prismaTeamRepository";
+import { PrismaUserRepository } from "@/lib/repositories/prismaUserRepository";
+import { AvailableSlotsService } from "@/lib/services/availableSlotsService";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
 

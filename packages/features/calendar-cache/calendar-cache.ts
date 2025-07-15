@@ -1,13 +1,13 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Calendar } from "@calcom/types/Calendar";
 
-import { CalendarCacheRepository } from "./calendar-cache.repository";
-import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
-import { CalendarCacheRepositoryMock } from "./calendar-cache.repository.mock";
+import { CalendarCacheRepository } from "./calendarCacheRepository";
+import type { ICalendarCacheRepository } from "./calendarCacheRepositoryInterface";
+import { CalendarCacheRepositoryMock } from "./calendarCacheRepositoryMock";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCache"] });
 

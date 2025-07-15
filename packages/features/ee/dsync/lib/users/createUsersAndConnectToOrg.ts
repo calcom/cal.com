@@ -1,5 +1,5 @@
-import { MembershipRepository } from "@calcom/lib/server/repository/membership.repository";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { MembershipRepository } from "@calcom/lib/server/repository/membershipRepository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";

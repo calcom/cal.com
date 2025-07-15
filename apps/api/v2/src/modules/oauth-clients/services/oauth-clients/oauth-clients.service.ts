@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { CreateOAuthClientInput, UpdateOAuthClientInput } from "@calcom/platform-types";
 
-import { OAuthClientRepository } from "../../oauth-client.repository";
-import { OAuthClientsInputService } from "./oauth-clients-input.service";
-import { OAuthClientsOutputService } from "./oauth-clients-output.service";
+import { OAuthClientRepository } from "../../oauthClientRepository";
+import { OAuthClientsInputService } from "./oauthClientsInputService";
+import { OAuthClientsOutputService } from "./oauthClientsOutputService";
 
 @Injectable()
 export class OAuthClientsService {

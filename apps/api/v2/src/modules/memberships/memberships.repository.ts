@@ -1,4 +1,4 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
 import { Injectable } from "@nestjs/common";
 
 import { MembershipRole } from "@calcom/prisma/client";

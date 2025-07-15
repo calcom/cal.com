@@ -1,6 +1,6 @@
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 
-import { FeaturesRepository } from "../../features.repository";
+import { FeaturesRepository } from "../../featuresRepository";
 
 /**
  * TRPC procedure that returns a map of all feature flags and their enabled status.

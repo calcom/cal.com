@@ -1,14 +1,14 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
 import { OrganizationsStripeController } from "@/modules/organizations/stripe/organizations-stripe.controller";
-import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
+import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizationsStripeService";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizationsTeamsRepository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RedisService } from "@/modules/redis/redis.service";
+import { RedisService } from "@/modules/redis/redisService";
 import { StripeModule } from "@/modules/stripe/stripe.module";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { Module } from "@nestjs/common";
 
 @Module({

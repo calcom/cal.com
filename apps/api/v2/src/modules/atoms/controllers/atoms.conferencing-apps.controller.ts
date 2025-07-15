@@ -1,5 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
+import { ConferencingAtomsService } from "@/modules/atoms/services/conferencingAtomService";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";

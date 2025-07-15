@@ -1,4 +1,4 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 

@@ -1,4 +1,4 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 

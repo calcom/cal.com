@@ -1,7 +1,7 @@
-import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizations-routing-forms.repository";
-import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
-import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizationsRoutingFormsRepository";
+import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizationsTeamsRoutingFormsResponsesOutputService";
+import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slotsService";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teamsEventTypesRepository";
 import {
   BadRequestException,
   Injectable,

@@ -1,7 +1,7 @@
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { UsersService } from "@/modules/users/services/usersService";
+import { WebhooksService } from "@/modules/webhooks/services/webhooksService";
 import {
   BadRequestException,
   CanActivate,

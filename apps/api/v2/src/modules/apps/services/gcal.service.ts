@@ -1,4 +1,4 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
+import { AppsRepository } from "@/modules/apps/appsRepository";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";

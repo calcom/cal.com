@@ -1,7 +1,7 @@
 import { startSpan } from "@sentry/nextjs";
 
 import type { Watchlist } from "../watchlist.model";
-import { WatchlistRepository } from "../watchlist.repository";
+import { WatchlistRepository } from "../watchlistRepository";
 
 /**
  * Controllers use Presenters to convert the data to a UI-friendly format just before

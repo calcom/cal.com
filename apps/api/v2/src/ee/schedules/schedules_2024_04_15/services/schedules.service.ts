@@ -1,8 +1,8 @@
 import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
-import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.repository";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedulesRepository";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
+import { UserWithProfile, UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 

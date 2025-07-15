@@ -14,11 +14,11 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsWorkflowInTeam } from "@/modules/auth/guards/workflows/is-workflow-in-team";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
 import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outputs/workflow.output";
-import { TeamWorkflowsService } from "@/modules/workflows/services/team-workflows.service";
+import { TeamWorkflowsService } from "@/modules/workflows/services/teamWorkflowsService";
 import {
   Controller,
   Get,

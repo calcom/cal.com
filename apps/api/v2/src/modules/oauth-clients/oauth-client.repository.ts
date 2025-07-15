@@ -1,5 +1,5 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { Injectable } from "@nestjs/common";
 import type { PlatformOAuthClient, Prisma } from "@prisma/client";
 

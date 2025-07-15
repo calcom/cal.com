@@ -1,8 +1,8 @@
 import type { Session } from "next-auth";
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
+import { UserRepository } from "@calcom/lib/server/repository/userRepository";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";

@@ -10,11 +10,11 @@ import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controller
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-output.service";
-import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthClientUsersOutputService } from "@/modules/oauth-clients/services/oauth-clients-users-outputService";
+import { OAuthClientsService } from "@/modules/oauth-clients/services/oauth-clients/oauthClientsService";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import {
   Body,
   Controller,

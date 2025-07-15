@@ -1,5 +1,5 @@
-import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/output.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
+import { OutputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/outputService";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/outputService";
 import { Injectable, PipeTransform } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 

@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type z from "zod";
 
 import logger from "@calcom/lib/logger";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential.repository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credentialRepository";
 import prisma from "@calcom/prisma";
 
 import type { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";

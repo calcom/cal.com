@@ -1,5 +1,5 @@
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
-import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
+import { WebhooksRepository } from "@/modules/webhooks/webhooksRepository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()

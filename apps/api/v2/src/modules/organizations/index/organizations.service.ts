@@ -1,4 +1,4 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

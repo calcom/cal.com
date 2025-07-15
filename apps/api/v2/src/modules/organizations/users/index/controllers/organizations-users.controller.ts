@@ -23,7 +23,7 @@ import {
 } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
 import { GetOrganizationUserOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/users/index/services/organizations-users-service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   UseGuards,

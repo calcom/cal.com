@@ -4,7 +4,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { GetUnifiedCalendarEventOutput } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
 import { GoogleCalendarEventOutputPipe } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
-import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/google-calendar.service";
+import { GoogleCalendarService } from "@/modules/cal-unified-calendars/services/googleCalendarService";
 import { Controller, Get, Param, UseGuards, HttpCode, HttpStatus, BadRequestException } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiParam, ApiHeader, ApiOperation } from "@nestjs/swagger";
 

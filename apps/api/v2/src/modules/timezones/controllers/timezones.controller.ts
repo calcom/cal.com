@@ -1,5 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { TimezonesService } from "@/modules/timezones/services/timezones.service";
+import { TimezonesService } from "@/modules/timezones/services/timezonesService";
 import { Controller, Get } from "@nestjs/common";
 import { ApiExcludeController, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 

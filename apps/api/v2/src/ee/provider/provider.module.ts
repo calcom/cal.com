@@ -1,5 +1,5 @@
 import { CalProviderController } from "@/ee/provider/provider.controller";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";

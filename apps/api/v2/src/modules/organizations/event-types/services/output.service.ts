@@ -1,6 +1,6 @@
-import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/outputEventTypesService";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teamsEventTypesRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host, DestinationCalendar, CalVideoSettings } from "@prisma/client";
 import { SchedulingType, Team } from "@prisma/client";

@@ -1,6 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { FeaturesRepository } from "../features.repository";
+import { FeaturesRepository } from "../featuresRepository";
 
 /**
  * Use Cases represent individual operations, like "Create Feature" or "Sign In" or "Toggle Feature".

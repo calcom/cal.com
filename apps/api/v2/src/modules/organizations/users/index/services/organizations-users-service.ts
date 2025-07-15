@@ -1,7 +1,7 @@
-import { EmailService } from "@/modules/email/email.service";
+import { EmailService } from "@/modules/email/emailService";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
-import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
+import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizationsUsersRepository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException, ForbiddenException } from "@nestjs/common";
 import { Team, CreationSource } from "@prisma/client";

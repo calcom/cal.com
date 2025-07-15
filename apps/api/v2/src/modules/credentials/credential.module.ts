@@ -1,4 +1,4 @@
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import { Module } from "@nestjs/common";
 
 @Module({

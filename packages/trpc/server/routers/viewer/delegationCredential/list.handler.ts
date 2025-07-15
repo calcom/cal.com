@@ -1,4 +1,4 @@
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential.repository";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredentialRepository";
 import { encryptedServiceAccountKeySchema } from "@calcom/lib/server/serviceAccountKey";
 import type { PrismaClient } from "@calcom/prisma";
 

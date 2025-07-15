@@ -26,7 +26,7 @@ import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
 import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 
-import { SchedulesAtomsService } from "../services/schedules-atom.service";
+import { SchedulesAtomsService } from "../services/schedulesAtomService";
 
 /*
 Endpoints used only by platform atoms, reusing code from other modules, data is already formatted and ready to be used by frontend atoms

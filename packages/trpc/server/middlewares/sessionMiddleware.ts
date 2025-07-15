@@ -4,8 +4,8 @@ import type { Session } from "next-auth";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
+import { UserRepository } from "@calcom/lib/server/repository/userRepository";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 

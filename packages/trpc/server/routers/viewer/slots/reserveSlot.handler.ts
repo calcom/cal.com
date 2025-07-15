@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots.repository";
+import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlotsRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 

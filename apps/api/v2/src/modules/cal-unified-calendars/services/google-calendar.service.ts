@@ -1,5 +1,5 @@
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
-import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcal.service";
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookingReferencesRepository";
+import { GoogleCalendarService as GCalService } from "@/ee/calendars/services/gcalService";
 import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
 import { calendar_v3 } from "@googleapis/calendar";
 import { Injectable, UnauthorizedException } from "@nestjs/common";

@@ -1,6 +1,6 @@
 import type { GetServerSidePropsResult } from "next";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 
 export const getServerSideProps = async (): Promise<GetServerSidePropsResult<{ isOrg: boolean }>> => {
   const featuresRepository = new FeaturesRepository();

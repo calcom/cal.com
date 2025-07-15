@@ -1,5 +1,5 @@
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { Module } from "@nestjs/common";
 
 @Module({

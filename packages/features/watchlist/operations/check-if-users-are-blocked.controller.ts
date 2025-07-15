@@ -1,6 +1,6 @@
 import { startSpan } from "@sentry/nextjs";
 
-import { WatchlistRepository } from "../watchlist.repository";
+import { WatchlistRepository } from "../watchlistRepository";
 
 function presenter(containsBlockedUser: boolean) {
   return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {

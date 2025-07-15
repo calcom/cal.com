@@ -1,4 +1,4 @@
-import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { BookingSeatRepository } from "@/modules/booking-seat/bookingSeatRepository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
 

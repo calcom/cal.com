@@ -1,5 +1,5 @@
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookingsService";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { GetBookingsInput_2024_08_13 } from "@calcom/platform-types";

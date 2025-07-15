@@ -1,4 +1,4 @@
-import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizationsMembershipRepository";
 import {
   Injectable,
   CanActivate,

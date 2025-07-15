@@ -1,14 +1,14 @@
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
+import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizationsEventTypesRepository";
 import {
   TransformedCreateTeamEventTypeInput,
   TransformedUpdateTeamEventTypeInput,
-} from "@/modules/organizations/event-types/services/input.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+} from "@/modules/organizations/event-types/services/inputService";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/outputService";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teamsEventTypesService";
+import { UsersService } from "@/modules/users/services/usersService";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { Injectable, Logger } from "@nestjs/common";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

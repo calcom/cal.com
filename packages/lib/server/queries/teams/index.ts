@@ -16,8 +16,8 @@ import {
 } from "@calcom/prisma/zod-utils";
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
-import { getTeam, getOrg } from "../../repository/team.repository";
-import { UserRepository } from "../../repository/user.repository";
+import { getTeam, getOrg } from "../../repository/teamRepository";
+import { UserRepository } from "../../repository/userRepository";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 

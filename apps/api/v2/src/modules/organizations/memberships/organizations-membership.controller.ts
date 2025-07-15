@@ -19,7 +19,7 @@ import { DeleteOrgMembership } from "@/modules/organizations/memberships/outputs
 import { GetAllOrgMemberships } from "@/modules/organizations/memberships/outputs/get-all-memberships.output";
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizationsMembershipService";
 import {
   Controller,
   UseGuards,

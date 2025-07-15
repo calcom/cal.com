@@ -4,17 +4,17 @@ import { AtomsConferencingAppsController } from "@/modules/atoms/controllers/ato
 import { AtomsController } from "@/modules/atoms/controllers/atoms.controller";
 import { AtomsEventTypesController } from "@/modules/atoms/controllers/atoms.event-types.controller";
 import { AtomsSchedulesController } from "@/modules/atoms/controllers/atoms.schedules.controller";
-import { AttributesAtomsService } from "@/modules/atoms/services/attributes-atom.service";
-import { ConferencingAtomsService } from "@/modules/atoms/services/conferencing-atom.service";
-import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
-import { SchedulesAtomsService } from "@/modules/atoms/services/schedules-atom.service";
+import { AttributesAtomsService } from "@/modules/atoms/services/attributesAtomService";
+import { ConferencingAtomsService } from "@/modules/atoms/services/conferencingAtomService";
+import { EventTypesAtomService } from "@/modules/atoms/services/eventTypesAtomService";
+import { SchedulesAtomsService } from "@/modules/atoms/services/schedulesAtomService";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RedisService } from "@/modules/redis/redis.service";
+import { RedisService } from "@/modules/redis/redisService";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
-import { UsersService } from "@/modules/users/services/users.service";
+import { UsersService } from "@/modules/users/services/usersService";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 

@@ -1,4 +1,4 @@
-import { UsersRepository } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 

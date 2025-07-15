@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization.repository";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organizationRepository";
 
 /**
  * It assumes that a user can only impersonate the members of the organization he is logged in to.

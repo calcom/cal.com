@@ -2,7 +2,7 @@ import { getTranslate } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import Shell from "@calcom/features/shell/Shell";
 
 import UpgradeTipWrapper from "./UpgradeTipWrapper";

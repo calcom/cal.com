@@ -1,4 +1,4 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/eventTypesRepository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { DateTime } from "luxon";
 

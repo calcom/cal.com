@@ -16,7 +16,7 @@ import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-
 import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
 import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   UseGuards,

@@ -1,5 +1,5 @@
 import logger from "@calcom/lib/logger";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

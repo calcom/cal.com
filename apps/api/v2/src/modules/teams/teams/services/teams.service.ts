@@ -1,8 +1,8 @@
-import { StripeService } from "@/modules/stripe/stripe.service";
-import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
+import { StripeService } from "@/modules/stripe/stripeService";
+import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teamsMembershipsRepository";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
 import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teamsRepository";
 import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 

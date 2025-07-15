@@ -13,8 +13,8 @@ import {
 } from "@/modules/webhooks/outputs/user-webhook.output";
 import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { UserWebhooksService } from "@/modules/webhooks/services/user-webhooks.service";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { UserWebhooksService } from "@/modules/webhooks/services/userWebhooksService";
+import { WebhooksService } from "@/modules/webhooks/services/webhooksService";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";

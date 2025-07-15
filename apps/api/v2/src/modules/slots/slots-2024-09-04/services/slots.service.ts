@@ -1,12 +1,12 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { AvailableSlotsService } from "@/lib/services/available-slots.service";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
-import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
-import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
-import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/eventTypesRepository";
+import { AvailableSlotsService } from "@/lib/services/availableSlotsService";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
+import { MembershipsService } from "@/modules/memberships/services/membershipsService";
+import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slotsOutputService";
+import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slotsInputService";
+import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slotsOutputService";
+import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slotsRepository";
+import { TeamsRepository } from "@/modules/teams/teams/teamsRepository";
 import {
   BadRequestException,
   ForbiddenException,

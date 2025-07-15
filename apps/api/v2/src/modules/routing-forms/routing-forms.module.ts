@@ -1,8 +1,8 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RoutingFormsController } from "@/modules/routing-forms/controllers/routing-forms.controller";
-import { RoutingFormsRepository } from "@/modules/routing-forms/routing-forms.repository";
-import { RoutingFormsService } from "@/modules/routing-forms/services/routing-forms.service";
+import { RoutingFormsRepository } from "@/modules/routing-forms/routingFormsRepository";
+import { RoutingFormsService } from "@/modules/routing-forms/services/routingFormsService";
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";

@@ -1,9 +1,9 @@
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
 import { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selectedCalendarsRepository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";

@@ -9,8 +9,8 @@ import { NextResponse } from "next/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential.repository";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential.repository";
+import { CredentialRepository } from "@calcom/lib/server/repository/credentialRepository";
+import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredentialRepository";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
 

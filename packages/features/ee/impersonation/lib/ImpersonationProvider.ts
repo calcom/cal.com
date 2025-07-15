@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { getSession } from "@calcom/features/auth/lib/getSession";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";

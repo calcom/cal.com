@@ -1,13 +1,13 @@
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { CalendarsRepository } from "@/ee/calendars/calendarsRepository";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import { DestinationCalendarsController } from "@/modules/destination-calendars/controllers/destination-calendars.controller";
-import { DestinationCalendarsRepository } from "@/modules/destination-calendars/destination-calendars.repository";
-import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
+import { DestinationCalendarsRepository } from "@/modules/destination-calendars/destinationCalendarsRepository";
+import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destinationCalendarsService";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selectedCalendarsRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Module } from "@nestjs/common";
 
 @Module({

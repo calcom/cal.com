@@ -3,7 +3,7 @@ import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomai
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";

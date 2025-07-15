@@ -21,8 +21,8 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm.repository";
-import { UserRepository } from "@calcom/lib/server/repository/user.repository";
+import { RoutingFormRepository } from "@calcom/lib/server/repository/routingFormRepository";
+import { UserRepository } from "@calcom/lib/server/repository/userRepository";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";

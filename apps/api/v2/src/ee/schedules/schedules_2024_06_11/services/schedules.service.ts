@@ -1,7 +1,7 @@
-import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
-import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
-import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedulesRepository";
+import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/inputSchedulesService";
+import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/outputSchedulesService";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
 

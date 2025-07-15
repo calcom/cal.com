@@ -3,13 +3,13 @@ import { AuthMethods } from "@/lib/enums/auth-methods";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { DeploymentsService } from "@/modules/deployments/deployments.service";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
+import { DeploymentsService } from "@/modules/deployments/deploymentsService";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauthFlowService";
+import { ProfilesRepository } from "@/modules/profiles/profilesRepository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { UsersService } from "@/modules/users/services/usersService";
+import { UserWithProfile, UsersRepository } from "@/modules/users/usersRepository";
 import {
   HttpException,
   Injectable,

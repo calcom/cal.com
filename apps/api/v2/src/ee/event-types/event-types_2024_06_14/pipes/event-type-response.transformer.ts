@@ -3,10 +3,7 @@ import { plainToClass } from "class-transformer";
 
 import { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 
-import {
-  DatabaseEventType,
-  OutputEventTypesService_2024_06_14,
-} from "../services/output-event-types.service";
+import { DatabaseEventType, OutputEventTypesService_2024_06_14 } from "../services/outputEventTypesService";
 
 type EventTypeResponse = DatabaseEventType & { ownerId: number };
 

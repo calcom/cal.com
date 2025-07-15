@@ -6,13 +6,13 @@ import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
-import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
+import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendarCacheRepositoryInterface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar.repository";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendarRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {

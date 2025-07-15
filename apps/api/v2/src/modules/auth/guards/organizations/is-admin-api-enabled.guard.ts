@@ -1,5 +1,5 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { RedisService } from "@/modules/redis/redis.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { RedisService } from "@/modules/redis/redisService";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 

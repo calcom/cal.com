@@ -4,7 +4,7 @@ import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark
 import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
+import { PlatformBookingsService } from "@/ee/bookings/shared/platformBookingsService";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -12,14 +12,14 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { BillingService } from "@/modules/billing/services/billing.service";
-import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
+import { BillingService } from "@/modules/billing/services/billingService";
+import { KyselyReadService } from "@/modules/kysely/kyselyReadService";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauthClientsUsersService";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauthFlowService";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { UsersService } from "@/modules/users/services/usersService";
+import { UsersRepository, UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   Post,

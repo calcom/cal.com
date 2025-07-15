@@ -6,7 +6,7 @@ import {
 } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface.repository";
+import type { IDeploymentRepository } from "@calcom/lib/server/repository/deploymentInterfaceRepository";
 
 import { generateNonce, createSignature } from "./private-api-utils";
 

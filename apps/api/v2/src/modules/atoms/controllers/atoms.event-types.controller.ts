@@ -5,7 +5,7 @@ import {
   EventTypesAppInput,
 } from "@/modules/atoms/inputs/event-types-app.input";
 import { GetAtomPublicEventTypeQueryParams } from "@/modules/atoms/inputs/get-atom-public-event-type-query-params.input";
-import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
+import { EventTypesAtomService } from "@/modules/atoms/services/eventTypesAtomService";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -15,7 +15,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   Get,

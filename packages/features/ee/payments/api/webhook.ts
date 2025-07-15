@@ -9,7 +9,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
-import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
+import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platformOauthClientRepository";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";

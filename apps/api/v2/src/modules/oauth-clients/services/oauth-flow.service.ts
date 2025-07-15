@@ -3,9 +3,9 @@ import {
   KeysDto,
   KeysResponseDto,
 } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { RedisService } from "@/modules/redis/redis.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { RedisService } from "@/modules/redis/redisService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { DateTime } from "luxon";
 

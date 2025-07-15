@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import { MembershipRole } from "@calcom/prisma/client";
 
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {

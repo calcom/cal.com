@@ -1,7 +1,7 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/eventTypesRepository";
+import { OAuthClientRepository } from "@/modules/oauth-clients/oauthClientRepository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauthClientsUsersService";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { Injectable } from "@nestjs/common";
 
 import { PlatformOAuthClient } from "@calcom/prisma/client";

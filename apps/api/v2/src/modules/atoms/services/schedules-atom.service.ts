@@ -1,6 +1,6 @@
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UsersRepository } from "@/modules/users/users.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
+import { UsersRepository } from "@/modules/users/usersRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { Logger } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 

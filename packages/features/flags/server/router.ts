@@ -4,7 +4,7 @@ import type { AppFlags } from "@calcom/features/flags/config";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
-import { FeaturesRepository } from "../features.repository";
+import { FeaturesRepository } from "../featuresRepository";
 import { map } from "./procedures/map";
 
 export const featureFlagRouter = router({

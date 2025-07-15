@@ -5,8 +5,8 @@ import { RoleType } from "@calcom/prisma/enums";
 import type { Role } from "../../domain/models/Role";
 import type { IRoleRepository } from "../../domain/repositories/IRoleRepository";
 import type { PermissionString } from "../../domain/types/permission-registry";
-import type { PermissionDiffService } from "../permission-diff.service";
-import { RoleService } from "../role.service";
+import type { PermissionDiffService } from "../permissionDiffService";
+import { RoleService } from "../roleService";
 
 vi.mock("../../infrastructure/repositories/RoleRepository");
 vi.mock("../permission-diff.service");

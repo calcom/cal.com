@@ -1,13 +1,13 @@
 import { CreateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/create-organization-attribute-option.input";
 import { UpdateOrganizationAttributeOptionInput } from "@/modules/organizations/attributes/options/inputs/update-organizaiton-attribute-option.input.ts";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizationsMembershipService";
+import { PrismaReadService } from "@/modules/prisma/prismaReadService";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
 
-import { GetOrganizationAttributeAssignedOptionsProp } from "./services/organization-attributes-option.service";
+import { GetOrganizationAttributeAssignedOptionsProp } from "./services/organizationAttributesOptionService";
 
 @Injectable()
 export class OrganizationAttributeOptionRepository {

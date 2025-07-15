@@ -1,10 +1,10 @@
-import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/inputEventTypesService";
 import { transformTeamLocationsApiToInternal } from "@/ee/event-types/event-types_2024_06_14/transformers/api-to-internal/locations";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
-import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencingRepository";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizationsConferencingService";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teamsEventTypesRepository";
+import { TeamsRepository } from "@/modules/teams/teams/teamsRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import {

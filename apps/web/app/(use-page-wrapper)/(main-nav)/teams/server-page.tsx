@@ -4,8 +4,8 @@ import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
-import { TeamRepository } from "@calcom/lib/server/repository/team.repository";
-import { TeamService } from "@calcom/lib/server/service/team.service";
+import { TeamRepository } from "@calcom/lib/server/repository/teamRepository";
+import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 

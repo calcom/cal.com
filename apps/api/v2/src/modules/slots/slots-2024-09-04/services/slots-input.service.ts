@@ -1,10 +1,10 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/eventTypesRepository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizationsTeamsRepository";
+import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizationsUsersRepository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teamsEventTypesRepository";
+import { TeamsRepository } from "@/modules/teams/teams/teamsRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 

@@ -7,9 +7,9 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
-import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
+import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookingReferencesService";
+import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookingsService";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/calVideoService";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
@@ -18,8 +18,8 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UsersService } from "@/modules/users/services/usersService";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   Post,

@@ -10,7 +10,7 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user.repository";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/userRepository";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";

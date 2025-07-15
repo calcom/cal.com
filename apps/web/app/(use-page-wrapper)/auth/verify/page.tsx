@@ -2,7 +2,7 @@ import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { z } from "zod";
 
-import { StripeService } from "@calcom/lib/server/service/stripe.service";
+import { StripeService } from "@calcom/lib/server/service/stripeService";
 
 import VerifyPage from "~/auth/verify-view";
 

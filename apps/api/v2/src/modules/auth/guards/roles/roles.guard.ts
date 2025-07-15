@@ -1,8 +1,8 @@
 import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { RedisService } from "@/modules/redis/redis.service";
+import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
+import { RedisService } from "@/modules/redis/redisService";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";

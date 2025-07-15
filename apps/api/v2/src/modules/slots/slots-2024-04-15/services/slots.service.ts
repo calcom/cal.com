@@ -1,5 +1,5 @@
-import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
-import { SlotsRepository_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.repository";
+import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/eventTypesRepository";
+import { SlotsRepository_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slotsRepository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { v4 as uuid } from "uuid";
 

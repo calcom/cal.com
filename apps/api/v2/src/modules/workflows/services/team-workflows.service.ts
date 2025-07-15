@@ -1,10 +1,10 @@
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
+import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teamsVerifiedResourcesRepository";
 import { CreateWorkflowDto } from "@/modules/workflows/inputs/create-workflow.input";
 import { UpdateWorkflowDto } from "@/modules/workflows/inputs/update-workflow.input";
-import { WorkflowsInputService } from "@/modules/workflows/services/workflows.input.service";
-import { WorkflowsOutputService } from "@/modules/workflows/services/workflows.output.service";
-import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
+import { WorkflowsInputService } from "@/modules/workflows/services/workflowsInputService";
+import { WorkflowsOutputService } from "@/modules/workflows/services/workflowsOutputService";
+import { WorkflowsRepository } from "@/modules/workflows/workflowsRepository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()

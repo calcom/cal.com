@@ -12,7 +12,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsWebhookInOrg } from "@/modules/auth/guards/organizations/is-webhook-in-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
+import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooksService";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
@@ -22,7 +22,7 @@ import {
 } from "@/modules/webhooks/outputs/team-webhook.output";
 import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import { WebhooksService } from "@/modules/webhooks/services/webhooksService";
 import {
   Controller,
   UseGuards,

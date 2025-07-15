@@ -1,15 +1,15 @@
 import { getPagination } from "@/lib/pagination/pagination";
-import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
+import { ApiKeysService } from "@/modules/api-keys/services/apiKeysService";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managedOrganizationsBillingService";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizationsMembershipService";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { GetManagedOrganizationsInput_2024_08_13 } from "@/modules/organizations/organizations/inputs/get-managed-organizations.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
-import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
-import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
+import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managedOrganizationsRepository";
+import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managedOrganizationsOutputService";
+import { ProfilesRepository } from "@/modules/profiles/profilesRepository";
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";

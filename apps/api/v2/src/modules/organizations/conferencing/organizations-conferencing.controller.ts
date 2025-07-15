@@ -20,10 +20,10 @@ import {
 } from "@/modules/conferencing/outputs/get-conferencing-apps.output";
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
-import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
-import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { ConferencingService } from "@/modules/conferencing/services/conferencingService";
+import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizationsConferencingService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   Get,

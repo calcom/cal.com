@@ -5,11 +5,11 @@ import { notFound } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { AppFlags } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { RoleService } from "@calcom/features/pbac/services/role.service";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permissionCheckService";
+import { RoleService } from "@calcom/features/pbac/services/roleService";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";

@@ -1,5 +1,5 @@
-import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
-import { RedisService } from "@/modules/redis/redis.service";
+import { DeploymentsRepository } from "@/modules/deployments/deploymentsRepository";
+import { RedisService } from "@/modules/redis/redisService";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/components/OtherTeamsListing";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization.repository";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organizationRepository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

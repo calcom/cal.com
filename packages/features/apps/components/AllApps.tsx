@@ -6,7 +6,7 @@ import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { UserAdminTeams } from "@calcom/lib/server/repository/user.repository";
+import type { UserAdminTeams } from "@calcom/lib/server/repository/userRepository";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";

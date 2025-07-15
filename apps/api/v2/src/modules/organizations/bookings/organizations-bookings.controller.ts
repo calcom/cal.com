@@ -1,4 +1,4 @@
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
+import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookingsService";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,

@@ -18,7 +18,7 @@ import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import type {
   WorkflowActions,
   WorkflowTemplates,

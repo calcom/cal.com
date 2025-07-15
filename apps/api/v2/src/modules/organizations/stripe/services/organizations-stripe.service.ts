@@ -1,6 +1,6 @@
-import { AppsRepository } from "@/modules/apps/apps.repository";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
+import { AppsRepository } from "@/modules/apps/appsRepository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
+import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripeService";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
 import { Logger, UnauthorizedException } from "@nestjs/common";

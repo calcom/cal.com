@@ -1,24 +1,24 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookingsRepository";
 import {
   eventTypeBookingFieldsSchema,
   EventTypeWithOwnerAndTeam,
-} from "@/ee/bookings/2024-08-13/services/bookings.service";
+} from "@/ee/bookings/2024-08-13/services/bookingsService";
 import {
   bookingResponsesSchema,
   seatedBookingDataSchema,
-} from "@/ee/bookings/2024-08-13/services/output.service";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+} from "@/ee/bookings/2024-08-13/services/outputService";
+import { PlatformBookingsService } from "@/ee/bookings/shared/platformBookingsService";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/eventTypesRepository";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/outputEventTypesService";
 import { apiToInternalintegrationsMapping } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
-import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
-import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
-import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { BookingSeatRepository } from "@/modules/booking-seat/bookingSeatRepository";
+import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauthClientsUsersService";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauthFlowService";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

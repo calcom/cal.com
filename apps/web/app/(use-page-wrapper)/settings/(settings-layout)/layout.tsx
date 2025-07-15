@@ -5,7 +5,7 @@ import React from "react";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { TeamFeatures } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

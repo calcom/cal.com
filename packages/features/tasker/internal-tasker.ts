@@ -1,6 +1,6 @@
-import { Task } from "./repository";
 import type { TaskTypes } from "./tasker";
 import { type TaskerCreate, type Tasker } from "./tasker";
+import { Task } from "./taskerRepository";
 import tasksMap, { tasksConfig } from "./tasks";
 
 /**

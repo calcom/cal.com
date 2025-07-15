@@ -1,4 +1,4 @@
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { Injectable } from "@nestjs/common";
 
 import { PrismaOOORepository as PrismaOOORepositoryLib } from "@calcom/platform-libraries/repositories";

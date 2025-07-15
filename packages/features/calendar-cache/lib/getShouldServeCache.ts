@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { FeaturesRepository } from "@calcom/features/flags/featuresRepository";
 
 export async function getShouldServeCache(shouldServeCache?: boolean | undefined, teamId?: number) {
   if (typeof shouldServeCache === "boolean") return shouldServeCache;

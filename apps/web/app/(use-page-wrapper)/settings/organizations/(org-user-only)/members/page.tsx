@@ -3,7 +3,7 @@ import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute.repository";
+import { AttributeRepository } from "@calcom/lib/server/repository/attributeRepository";
 import { viewerOrganizationsRouter } from "@calcom/trpc/server/routers/viewer/organizations/_router";
 
 import { MembersView } from "~/members/members-view";

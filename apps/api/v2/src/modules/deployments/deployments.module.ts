@@ -1,9 +1,9 @@
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { RedisService } from "@/modules/redis/redis.service";
+import { RedisService } from "@/modules/redis/redisService";
 import { Module } from "@nestjs/common";
 
-import { DeploymentsRepository } from "./deployments.repository";
-import { DeploymentsService } from "./deployments.service";
+import { DeploymentsRepository } from "./deploymentsRepository";
+import { DeploymentsService } from "./deploymentsService";
 
 @Module({
   imports: [PrismaModule],

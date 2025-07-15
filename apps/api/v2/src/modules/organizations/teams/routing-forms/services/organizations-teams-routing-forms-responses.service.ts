@@ -1,7 +1,7 @@
-import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
+import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizationsTeamsRoutingFormsResponsesOutputService";
 import { Injectable } from "@nestjs/common";
 
-import { OrganizationsTeamsRoutingFormsResponsesRepository } from "../repositories/organizations-teams-routing-forms-responses.repository";
+import { OrganizationsTeamsRoutingFormsResponsesRepository } from "../repositories/organizationsTeamsRoutingFormsResponsesRepository";
 
 @Injectable()
 export class OrganizationsTeamsRoutingFormsResponsesService {

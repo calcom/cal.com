@@ -16,15 +16,15 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
-import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
-import { OrganizationsEventTypesService } from "@/modules/organizations/event-types/services/organizations-event-types.service";
-import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
+import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/inputService";
+import { OrganizationsEventTypesService } from "@/modules/organizations/event-types/services/organizationsEventTypesService";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/outputService";
 import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/create-team-event-type.output";
 import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/delete-team-event-type.output";
 import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-team-event-type.output";
 import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
 import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   UseGuards,

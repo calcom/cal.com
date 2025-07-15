@@ -1,6 +1,6 @@
 import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/eventTypesRepository";
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import {
   transformBookingFieldsApiToInternal,
@@ -24,7 +24,7 @@ import {
   InternalLocation,
   InternalLocationSchema,
 } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";

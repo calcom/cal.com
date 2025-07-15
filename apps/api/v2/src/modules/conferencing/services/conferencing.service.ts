@@ -1,11 +1,11 @@
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
-import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
-import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
-import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencingRepository";
+import { GoogleMeetService } from "@/modules/conferencing/services/googleMeetService";
+import { Office365VideoService } from "@/modules/conferencing/services/office365VideoService";
+import { ZoomVideoService } from "@/modules/conferencing/services/zoomVideoService";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
+import { UsersRepository } from "@/modules/users/usersRepository";
 import {
   BadRequestException,
   InternalServerErrorException,

@@ -1,5 +1,5 @@
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile.repository";
+import { ProfileRepository } from "@calcom/lib/server/repository/profileRepository";
 import { prisma } from "@calcom/prisma";
 import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 

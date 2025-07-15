@@ -8,17 +8,17 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
+import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizationsStripeService";
 import {
   StripConnectOutputDto,
   StripConnectOutputResponseDto,
   StripCredentialsCheckOutputResponseDto,
   StripCredentialsSaveOutputResponseDto,
 } from "@/modules/stripe/outputs/stripe.output";
-import { StripeService } from "@/modules/stripe/stripe.service";
+import { StripeService } from "@/modules/stripe/stripeService";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { UserWithProfile } from "@/modules/users/usersRepository";
 import {
   Controller,
   Get,

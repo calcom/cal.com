@@ -1,4 +1,4 @@
-import { AttributeRepository } from "@calcom/lib/server/repository/attribute.repository";
+import { AttributeRepository } from "@calcom/lib/server/repository/attributeRepository";
 
 import { TRPCError } from "@trpc/server";
 

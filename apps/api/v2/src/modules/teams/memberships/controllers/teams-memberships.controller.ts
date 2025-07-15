@@ -3,7 +3,7 @@ import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teamsEventTypesService";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
@@ -12,7 +12,7 @@ import { GetTeamMembershipOutput } from "@/modules/teams/memberships/outputs/get
 import { GetTeamMembershipsOutput } from "@/modules/teams/memberships/outputs/get-team-memberships.output";
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { UpdateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/update-team-membership.output";
-import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
+import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teamsMembershipsService";
 import {
   Controller,
   UseGuards,

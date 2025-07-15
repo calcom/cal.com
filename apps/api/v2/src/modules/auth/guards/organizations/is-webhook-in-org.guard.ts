@@ -1,6 +1,6 @@
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
-import { RedisService } from "@/modules/redis/redis.service";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
+import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizationsWebhooksRepository";
+import { RedisService } from "@/modules/redis/redisService";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
 

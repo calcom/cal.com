@@ -1,14 +1,14 @@
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsService } from "@/ee/calendars/services/calendarsService";
 import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
 import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
 import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GCalService } from "@/modules/apps/services/gcal.service";
+import { GCalService } from "@/modules/apps/services/gcalService";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentialsRepository";
 import {
   BadRequestException,
   Controller,

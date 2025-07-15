@@ -5,9 +5,9 @@ import prisma from "@calcom/prisma";
 import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
-import { AttributeRepository } from "../../../server/repository/attribute.repository";
-import { AttributeToUserRepository } from "../../../server/repository/attributeToUser.repository";
-import { MembershipRepository } from "../../../server/repository/membership.repository";
+import { AttributeRepository } from "../../../server/repository/attributeRepository";
+import { AttributeToUserRepository } from "../../../server/repository/attributeToUserRepository";
+import { MembershipRepository } from "../../../server/repository/membershipRepository";
 import type { AttributeId } from "../types";
 
 type UserId = number;

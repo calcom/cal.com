@@ -1,4 +1,4 @@
-import { WorkflowsRepository, WorkflowType } from "@/modules/workflows/workflows.repository";
+import { WorkflowsRepository, WorkflowType } from "@/modules/workflows/workflowsRepository";
 import {
   Injectable,
   CanActivate,

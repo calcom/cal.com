@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import type { UpdateArguments } from "@calcom/lib/server/repository/selectedCalendar.repository";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar.repository";
+import type { UpdateArguments } from "@calcom/lib/server/repository/selectedCalendarRepository";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendarRepository";
 import prisma from "@calcom/prisma";
 
 import {

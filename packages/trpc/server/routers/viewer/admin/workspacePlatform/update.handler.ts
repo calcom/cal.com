@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform.repository";
+import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatformRepository";
 
 import { TRPCError } from "@trpc/server";
 
