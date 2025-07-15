@@ -666,7 +666,7 @@ const TeamMemberSchedule = ({
         {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
       </div>
-      <div className="flex w-full flex-col pt-2 ">
+      <div className="flex w-full flex-col pt-2">
         {isPending ? (
           <Spinner className="mt-2 h-6 w-6" />
         ) : (
@@ -845,13 +845,13 @@ const UseTeamEventScheduleSettingsToggle = ({
           </div>
         )}
       </div>
-      {!isPlatform && isRestrictionScheduleEnabled ? (
+      {!isPlatform && true ? (
         <div className="border-subtle space-y-6 rounded-lg border p-6">
           <SettingsToggle
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}
             title={t("choose_restriction_schedule")}
-            description={t("choose_restriction_schedule_description")}>
+            description={t("restriction_schedule_description")}>
             <EventTypeSchedule
               customClassNames={customClassNames?.userAvailability}
               eventType={eventType}
