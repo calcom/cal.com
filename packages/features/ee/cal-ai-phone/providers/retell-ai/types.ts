@@ -68,6 +68,14 @@ export interface RetellAIRepository {
     area_code?: number;
     nickname?: string;
   }): Promise<TCreatePhoneNumberResponseSchema>;
+  importPhoneNumber(data: {
+    phone_number: string;
+    termination_uri: string;
+    sip_trunk_auth_username?: string;
+    sip_trunk_auth_password?: string;
+    nickname?: string;
+    inbound_webhook_url?: string;
+  }): Promise<TCreatePhoneNumberResponseSchema>;
   deletePhoneNumber(phoneNumber: string): Promise<void>;
   getPhoneNumber(phoneNumber: string): Promise<TGetPhoneNumberSchema>;
   updatePhoneNumber(

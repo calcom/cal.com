@@ -1,3 +1,5 @@
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
 import type { TGetRetellLLMSchema, TCreatePhoneSchema } from "../../zod-utils";
 import { RetellAIError } from "./errors";
@@ -47,6 +49,26 @@ export class RetellAIService {
     });
 
     return { llmId: llm.llm_id, agentId: agent.agent_id };
+  }
+
+  async importPhoneNumber(data: {
+    phoneNumber: string;
+    terminationUri: string;
+    sipTrunkAuthUsername?: string;
+    sipTrunkAuthPassword?: string;
+    nickname?: string;
+    userId: number;
+  }) {
+    const { userId, ...rest } = data;
+    const importedPhoneNumber = await this.repository.importPhoneNumber(rest);
+    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+    await PhoneNumberRepository.createPhoneNumber({
+      phoneNumber: importedPhoneNumber.phoneNumber,
+      userId,
+      provider: "Custom telephony",
+    });
+
+    return importedPhoneNumber;
   }
 
   async deleteAIConfiguration(config: AIConfigurationDeletion): Promise<DeletionResult> {
@@ -143,8 +165,40 @@ export class RetellAIService {
     return this.repository.createPhoneNumber(data);
   }
 
-  async deletePhoneNumber(phoneNumber: string) {
-    return this.repository.deletePhoneNumber(phoneNumber);
+  async deletePhoneNumber({
+    phoneNumber,
+    userId,
+    deleteFromDB = false,
+  }: {
+    phoneNumber: string;
+    userId: number;
+    deleteFromDB: boolean;
+  }) {
+    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+
+    const phoneNumberToDelete = await PhoneNumberRepository.findMinimalPhoneNumber({
+      phoneNumber,
+      userId,
+    });
+    if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
+      throw new Error("Phone number is still active");
+    }
+    if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.CANCELLED) {
+      throw new Error("Phone number is already cancelled");
+    }
+
+    if (deleteFromDB) {
+      await PhoneNumberRepository.deletePhoneNumber({ phoneNumber, userId });
+    }
+
+    await this.repository.deletePhoneNumber(phoneNumber);
+    // Remove phone number from AI configurations
+    const { AISelfServeConfigurationRepository } = await import(
+      "@calcom/lib/server/repository/aiSelfServeConfiguration"
+    );
+    await AISelfServeConfigurationRepository.removePhoneNumberFromConfigurations({
+      phoneNumberId: phoneNumberToDelete.id,
+    });
   }
 
   async getPhoneNumber(phoneNumber: string) {

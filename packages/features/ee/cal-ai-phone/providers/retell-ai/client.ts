@@ -193,4 +193,36 @@ export class RetellAIApiClient implements RetellAIRepository {
       throw new RetellAIError("Failed to create phone call", "createPhoneCall", error);
     }
   }
+
+  async importPhoneNumber(data: {
+    phoneNumber: string;
+    terminationUri: string;
+    sipTrunkAuthUsername?: string;
+    sipTrunkAuthPassword?: string;
+    nickname?: string;
+  }): Promise<TCreatePhoneNumberResponseSchema> {
+    try {
+      console.log("client.data", data);
+      const response = await this.httpClient("/import-phone-number", {
+        method: "POST",
+        body: JSON.stringify({
+          phone_number: data.phoneNumber,
+          termination_uri: data.terminationUri,
+          sip_trunk_auth_username: data.sipTrunkAuthUsername,
+          sip_trunk_auth_password: data.sipTrunkAuthPassword,
+          nickname: data.nickname,
+        }),
+      });
+      console.log("client.response", response);
+      const result = ZCreatePhoneNumberResponseSchema.parse(response);
+      return {
+        phoneNumber: result.phone_number,
+        inboundAgentId: result?.inbound_agent_id,
+        outboundAgentId: result?.outbound_agent_id,
+        nickname: result?.nickname,
+      };
+    } catch (error) {
+      throw new RetellAIError("Failed to import phone number", "importPhoneNumber", error);
+    }
+  }
 }

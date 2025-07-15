@@ -274,6 +274,32 @@ export const loggedInViewerRouter = router({
       });
     }),
 
+  import: authedProcedure
+    .input(
+      z.object({
+        phoneNumber: z.string(),
+        terminationUri: z.string(),
+        sipTrunkAuthUsername: z.string().optional(),
+        sipTrunkAuthPassword: z.string().optional(),
+        nickname: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { phoneNumber, terminationUri, sipTrunkAuthUsername, sipTrunkAuthPassword, nickname } = input;
+      const aiService = createDefaultAIPhoneServiceProvider();
+
+      const importedPhoneNumber = await aiService.importPhoneNumber({
+        phoneNumber,
+        terminationUri,
+        sipTrunkAuthUsername,
+        sipTrunkAuthPassword,
+        nickname,
+        userId: ctx.user.id,
+      });
+
+      return importedPhoneNumber;
+    }),
+
   cancel: authedProcedure.input(z.object({ phoneNumberId: z.number() })).mutation(async ({ ctx, input }) => {
     const { phoneNumberId } = input;
 
@@ -313,18 +339,13 @@ export const loggedInViewerRouter = router({
         },
       });
 
-      // Remove phone number from AI configurations
-      const { AISelfServeConfigurationRepository } = await import(
-        "@calcom/lib/server/repository/aiSelfServeConfiguration"
-      );
-      await AISelfServeConfigurationRepository.removePhoneNumberFromConfigurations({
-        phoneNumberId,
-      });
-
       // Delete the phone number from AI service
       try {
         const aiService = createDefaultAIPhoneServiceProvider();
-        await aiService.deletePhoneNumber(phoneNumber.phoneNumber);
+        await aiService.deletePhoneNumber({
+          phoneNumber: phoneNumber.phoneNumber,
+          userId: ctx.user.id,
+        });
       } catch (error) {
         // Log the error but don't fail the cancellation
         console.error(
@@ -341,6 +362,18 @@ export const loggedInViewerRouter = router({
         message: "Failed to cancel subscription. Please try again or contact support.",
       });
     }
+  }),
+
+  delete: authedProcedure.input(z.object({ phoneNumber: z.string() })).mutation(async ({ ctx, input }) => {
+    const aiService = createDefaultAIPhoneServiceProvider();
+
+    await aiService.deletePhoneNumber({
+      phoneNumber: input.phoneNumber,
+      userId: ctx.user.id,
+      deleteFromDB: true,
+    });
+
+    return { message: "Phone number deleted successfully" };
   }),
 
   stripeCustomer: authedProcedure.query(async ({ ctx }) => {
