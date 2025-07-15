@@ -102,11 +102,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     });
   }
 
-  // check if also includes managed event type
-  const bookingBelongsToTeam =
-    !!bookingToReschedule.eventType?.teamId || !!bookingToReschedule.eventType?.parentId;
-
-  // if booking doesn't belongs to team, then allow all admin and owner to reschedule
+  const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
+  const bookingBelongsToManagedEventType = !!bookingToReschedule.eventType?.parentId;
 
   const userTeams = await prisma.user.findUniqueOrThrow({
     where: {
@@ -118,7 +115,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
-    // if team event, and user is not part of team
     const userTeamIds = userTeams.teams.map((item) => item.teamId);
     if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
       throw new TRPCError({
@@ -134,8 +130,27 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     );
   }
 
-  if (!bookingBelongsToTeam) {
-    // all the owner and admin that can reschedule the booking
+  if (bookingBelongsToManagedEventType && bookingToReschedule.eventType?.teamId) {
+    const userIsOwnerOrAdminOfTeam = await prisma.membership.findFirst({
+      where: {
+        userId: user.id,
+        teamId: bookingToReschedule.eventType?.teamId,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+    });
+
+    if (!userIsOwnerOrAdminOfTeam && bookingToReschedule.userId !== user.id) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User isn't owner of the current booking",
+      });
+    }
+  }
+
+  if (!bookingBelongsToTeam && !bookingBelongsToManagedEventType) {
+    // all the owner and admin of the user can reschedule the booking
     const ownerAndAdminsOfUser = await prisma.user.findMany({
       where: {
         teams: {
@@ -151,7 +166,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       },
     });
 
-    if (!ownerAndAdminsOfUser.some((admin) => admin.id === user.id)) {
+    if (
+      !ownerAndAdminsOfUser.some((admin) => admin.id === user.id) &&
+      bookingToReschedule.userId !== user.id
+    ) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message: "User isn't owner of the current booking",
