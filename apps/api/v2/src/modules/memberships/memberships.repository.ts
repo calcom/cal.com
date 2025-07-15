@@ -24,7 +24,7 @@ export class MembershipsRepository {
     const owner = await this.dbRead.prisma.membership.findFirst({
       where: {
         teamId: organizationId,
-        role: "OWNER",
+        role: MembershipRole.OWNER,
         accepted: true,
       },
       select: {
