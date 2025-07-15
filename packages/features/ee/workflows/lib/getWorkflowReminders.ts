@@ -262,6 +262,7 @@ export function getWorkflowRecipientEmail(reminder: PartialWorkflowReminder): st
     case "WHATSAPP_ATTENDEE":
       return reminder.booking?.attendees?.[0]?.email || null;
     case "SMS_NUMBER":
+      return reminder.booking?.attendees?.[0]?.email || null;
     case "WHATSAPP_NUMBER":
       return null;
     default:
