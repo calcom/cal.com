@@ -27,44 +27,11 @@ export const outOfOfficeReasonList = async (options?: OutOfOfficeReasonsHandlerO
 
   try {
     const { user } = options.ctx;
-    const hrmsCredentials = [];
 
-    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+    const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
       userId: user.id,
       category: [AppCategories.hrms],
     });
-
-    if (userCredentials) {
-      hrmsCredentials.push(...userCredentials);
-    }
-
-    const userWithTeams = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        organizationId: true,
-        teams: {
-          select: { teamId: true },
-        },
-      },
-    });
-
-    if (userWithTeams?.teams) {
-      for (const team of userWithTeams.teams) {
-        const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
-          teamId: team.teamId,
-          category: [AppCategories.hrms],
-        });
-        if (teamCredentials) hrmsCredentials.push(...teamCredentials);
-      }
-    }
-
-    if (userWithTeams?.organizationId) {
-      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
-        teamId: userWithTeams.organizationId,
-        category: [AppCategories.hrms],
-      });
-      if (orgCredentials) hrmsCredentials.push(...orgCredentials);
-    }
 
     const hrmsReasons = [];
     for (const credential of hrmsCredentials) {

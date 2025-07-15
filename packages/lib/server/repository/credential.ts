@@ -109,6 +109,55 @@ export class CredentialRepository {
     return credentials.map((credential) => buildNonDelegationCredential(credential));
   }
 
+  static async findCredentialsByUserIdAndCategory({
+    userId,
+    category,
+  }: {
+    userId: number;
+    category: AppCategories[];
+  }) {
+    const credentials = [];
+
+    const userCredentials = await this.findManyByUserIdOrTeamIdAndCategory({
+      userId,
+      category,
+    });
+
+    if (userCredentials) {
+      credentials.push(...userCredentials);
+    }
+
+    const userWithTeams = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        organizationId: true,
+        teams: {
+          select: { teamId: true },
+        },
+      },
+    });
+
+    if (userWithTeams?.teams) {
+      for (const team of userWithTeams.teams) {
+        const teamCredentials = await this.findManyByUserIdOrTeamIdAndCategory({
+          teamId: team.teamId,
+          category,
+        });
+        if (teamCredentials) credentials.push(...teamCredentials);
+      }
+    }
+
+    if (userWithTeams?.organizationId) {
+      const orgCredentials = await this.findManyByUserIdOrTeamIdAndCategory({
+        teamId: userWithTeams.organizationId,
+        category,
+      });
+      if (orgCredentials) credentials.push(...orgCredentials);
+    }
+
+    return credentials;
+  }
+
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
   }

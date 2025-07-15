@@ -68,44 +68,10 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
 
   try {
     if (deletedOutOfOfficeEntry.externalId) {
-      const hrmsCredentials = [];
-
-      const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+      const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
         userId: oooUserId,
         category: [AppCategories.hrms],
       });
-
-      if (userCredentials) {
-        hrmsCredentials.push(...userCredentials);
-      }
-
-      const user = await prisma.user.findUnique({
-        where: { id: oooUserId },
-        select: {
-          organizationId: true,
-          teams: {
-            select: { teamId: true },
-          },
-        },
-      });
-
-      if (user?.teams) {
-        for (const team of user.teams) {
-          const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
-            teamId: team.teamId,
-            category: [AppCategories.hrms],
-          });
-          if (teamCredentials) hrmsCredentials.push(...teamCredentials);
-        }
-      }
-
-      if (user?.organizationId) {
-        const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
-          teamId: user.organizationId,
-          category: [AppCategories.hrms],
-        });
-        if (orgCredentials) hrmsCredentials.push(...orgCredentials);
-      }
 
       for (const credential of hrmsCredentials) {
         const hrmsManager = new HrmsManager(credential);

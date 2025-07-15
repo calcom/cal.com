@@ -381,32 +381,10 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (!reason?.externalId) return {};
 
   try {
-    const hrmsCredentials = [];
-
-    const userCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
+    const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
       userId: oooUserId,
       category: [AppCategories.hrms],
     });
-
-    if (userCredentials) {
-      hrmsCredentials.push(...userCredentials);
-    }
-
-    for (const teamId of teamIds) {
-      const teamCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
-        teamId,
-        category: [AppCategories.hrms],
-      });
-      if (teamCredentials) hrmsCredentials.push(...teamCredentials);
-    }
-
-    if (oooUserOrgId) {
-      const orgCredentials = await CredentialRepository.findManyByUserIdOrTeamIdAndCategory({
-        teamId: oooUserOrgId,
-        category: [AppCategories.hrms],
-      });
-      if (orgCredentials) hrmsCredentials.push(...orgCredentials);
-    }
 
     for (const credential of hrmsCredentials) {
       const hrmsManager = new HrmsManager(credential);
