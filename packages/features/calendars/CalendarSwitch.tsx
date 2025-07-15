@@ -31,6 +31,7 @@ export type ICalendarSwitchProps = {
   eventTypeId: number | null;
   disabled?: boolean;
   cacheUpdatedAt?: Date | null;
+  googleChannelId?: string | null;
 };
 
 type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
@@ -121,7 +122,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           htmlFor={externalId}>
           {name}
         </label>
-        {type === "google_calendar" && props.cacheUpdatedAt && (
+        {type === "google_calendar" && props.googleChannelId && (
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" className="ml-2" />
@@ -131,26 +132,30 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
                 <div className="px-2 py-1">
                   <div className="text-sm font-medium text-gray-900">{t("cache_status")}</div>
                   <div className="text-xs text-gray-500">
-                    {t("last_updated", {
-                      timestamp: new Intl.DateTimeFormat("en-US", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      }).format(new Date(props.cacheUpdatedAt)),
-                    })}
+                    {props.cacheUpdatedAt &&
+                      t("last_updated", {
+                        timestamp: new Intl.DateTimeFormat("en-US", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        }).format(new Date(props.cacheUpdatedAt)),
+                        interpolation: { escapeValue: false },
+                      })}
                   </div>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem className="outline-none">
-                <DropdownItem
-                  type="button"
-                  color="destructive"
-                  StartIcon="trash"
-                  onClick={() => {
-                    showToast(t("cache_deletion_placeholder"), "success");
-                  }}>
-                  {t("delete_cached_data")}
-                </DropdownItem>
-              </DropdownMenuItem>
+              {props.cacheUpdatedAt && (
+                <DropdownMenuItem className="outline-none">
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    StartIcon="trash"
+                    onClick={() => {
+                      showToast(t("cache_deletion_placeholder"), "success");
+                    }}>
+                    {t("delete_cached_data")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </Dropdown>
         )}

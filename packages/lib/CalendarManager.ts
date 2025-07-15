@@ -50,7 +50,7 @@ export const getCalendarCredentialsWithoutDelegation = (credentials: CredentialP
 
 export const getConnectedCalendars = async (
   calendarCredentials: ReturnType<typeof getCalendarCredentials>,
-  selectedCalendars: { externalId: string }[],
+  selectedCalendars: { externalId: string; updatedAt?: Date | null; googleChannelId?: string | null }[],
   destinationCalendarExternalId?: string
 ) => {
   let destinationCalendar: IntegrationCalendar | undefined;
@@ -81,6 +81,12 @@ export const getConnectedCalendars = async (
               isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
               credentialId,
               delegationCredentialId,
+              updatedAt:
+                selectedCalendars.find((selected) => selected.externalId === cal.externalId)?.updatedAt ||
+                null,
+              googleChannelId:
+                selectedCalendars.find((selected) => selected.externalId === cal.externalId)
+                  ?.googleChannelId || null,
             };
           }),
           ["primary"]

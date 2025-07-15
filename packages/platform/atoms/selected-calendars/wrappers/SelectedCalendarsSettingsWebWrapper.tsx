@@ -41,7 +41,6 @@ const ConnectedCalendarList = ({
   onChanged,
   destinationCalendarId,
   isDisabled,
-  cacheStatus,
 }: {
   fromOnboarding?: boolean;
   scope: SelectedCalendarSettingsScope;
@@ -51,7 +50,6 @@ const ConnectedCalendarList = ({
   onChanged?: () => unknown | Promise<unknown>;
   destinationCalendarId?: string;
   isDisabled: boolean;
-  cacheStatus?: Record<number, Date>;
 }) => {
   const { t } = useLocale();
   const shouldUseEventTypeScope = scope === SelectedCalendarSettingsScope.EventType;
@@ -100,7 +98,8 @@ const ConnectedCalendarList = ({
                           credentialId={cal.credentialId}
                           eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
                           delegationCredentialId={connectedCalendar.delegationCredentialId || null}
-                          cacheUpdatedAt={cacheStatus?.[cal.credentialId] || null}
+                          cacheUpdatedAt={cal.updatedAt || null}
+                          googleChannelId={cal.googleChannelId || null}
                         />
                       ))}
                     </ul>
@@ -190,7 +189,6 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
             eventTypeId={eventTypeId}
             items={query.data.connectedCalendars}
             isDisabled={isDisabled}
-            cacheStatus={query.data.cacheStatus}
           />
         ) : null}
       </SelectedCalendarsSettings>
