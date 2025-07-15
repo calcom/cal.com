@@ -257,8 +257,7 @@ export class SelectedCalendarRepository {
   }
 
   static async findMany({ where, select, orderBy }: FindManyArgs) {
-    const args = { where, select, orderBy } satisfies Prisma.SelectedCalendarFindManyArgs;
-    return await prisma.selectedCalendar.findMany(args);
+    return await prisma.selectedCalendar.findMany({ where, select, orderBy });
   }
 
   static async findUniqueOrThrow({ where }: { where: Prisma.SelectedCalendarWhereInput }) {

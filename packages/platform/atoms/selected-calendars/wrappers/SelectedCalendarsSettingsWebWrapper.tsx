@@ -41,6 +41,7 @@ const ConnectedCalendarList = ({
   onChanged,
   destinationCalendarId,
   isDisabled,
+  cacheStatus,
 }: {
   fromOnboarding?: boolean;
   scope: SelectedCalendarSettingsScope;
@@ -50,6 +51,7 @@ const ConnectedCalendarList = ({
   onChanged?: () => unknown | Promise<unknown>;
   destinationCalendarId?: string;
   isDisabled: boolean;
+  cacheStatus?: Record<number, Date> | undefined;
 }) => {
   const { t } = useLocale();
   const shouldUseEventTypeScope = scope === SelectedCalendarSettingsScope.EventType;
@@ -196,6 +198,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
             eventTypeId={eventTypeId}
             items={query.data.connectedCalendars}
             isDisabled={isDisabled}
+            cacheStatus={cacheStatus}
           />
         ) : null}
       </SelectedCalendarsSettings>
