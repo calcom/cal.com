@@ -65,7 +65,7 @@ test.describe("Booking Race Condition Prevention", () => {
     await setupGoogleCalendarCredentials(teamMembers);
     await createIdenticalBookingHistories(teamMembers, teamEvent.id);
 
-    const { selectedDate, selectedDateISO } = await getDynamicBookingDate(page, org, team, teamEvent);
+    const { selectedDate, selectedDateISO } = getFixedBookingDate();
 
     const { targetHost, calendarCacheHits } = await setupCalendarCache(teamMembers, selectedDateISO);
     await enableCalendarCacheFeatures(team.id);
@@ -187,42 +187,11 @@ async function createIdenticalBookingHistories(teamMembers: User[], eventTypeId:
   }
 }
 
-async function getDynamicBookingDate(
-  page: Page,
-  org: any,
-  team: any,
-  teamEvent: EventType
-): Promise<{ selectedDate: string; selectedDateISO: string }> {
-  await doOnOrgDomain({ orgSlug: org.slug, page }, async () => {
-    await page.goto(`/org/${org.slug}/${team.slug}/${teamEvent.slug}`);
-
-    await page.waitForSelector('[data-testid="day"]');
-
-    await page.getByTestId("incrementMonth").click();
-
-    await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
-  });
-
-  const firstAvailableDayText = await page
-    .locator('[data-testid="day"][data-disabled="false"]')
-    .nth(0)
-    .textContent();
-
-  if (!firstAvailableDayText) {
-    throw new Error("No available day found");
-  }
-
-  const currentDate = new Date();
-  const nextMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth() + 1,
-    parseInt(firstAvailableDayText)
-  );
-  const selectedDateISO = nextMonth.toISOString();
-
+function getFixedBookingDate(): { selectedDate: string; selectedDateISO: string } {
+  const fixedDate = new Date("2050-09-05T10:00:00.000Z");
   return {
-    selectedDate: firstAvailableDayText,
-    selectedDateISO,
+    selectedDate: "5",
+    selectedDateISO: fixedDate.toISOString(),
   };
 }
 
