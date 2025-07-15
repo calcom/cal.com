@@ -1,6 +1,8 @@
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -150,7 +152,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
 
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: `Error processing payment with error ${err.message || err}`,
+      message: `Error processing payment with error ${err}`,
     });
   }
 };
