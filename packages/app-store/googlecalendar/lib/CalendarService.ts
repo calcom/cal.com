@@ -455,68 +455,54 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
+  private async fetchEventsPaginated(
+    calendarId: string,
+    options: {
+      syncToken?: string;
+      pageToken?: string;
+    } = {}
+  ): Promise<{ events: calendar_v3.Schema$Event[]; nextSyncToken?: string }> {
+    const calendar = await this.authedCalendar();
+    const allEvents: calendar_v3.Schema$Event[] = [];
+    let pageToken: string | undefined = options.pageToken;
+    let nextSyncToken: string | undefined;
+
+    do {
+      const response = await calendar.events.list({
+        calendarId,
+        syncToken: options.syncToken,
+        pageToken,
+        singleEvents: true,
+        maxResults: 2500,
+      });
+
+      if (response.data.items) {
+        allEvents.push(...response.data.items);
+      }
+
+      pageToken = response.data.nextPageToken || undefined;
+      nextSyncToken = response.data.nextSyncToken || undefined;
+    } while (pageToken);
+
+    return {
+      events: allEvents,
+      nextSyncToken,
+    };
+  }
+
   async fetchEventsIncremental(
     calendarId: string,
     syncToken?: string
   ): Promise<{ events: calendar_v3.Schema$Event[]; nextSyncToken?: string }> {
     log.debug("fetchEventsIncremental", safeStringify({ calendarId, syncToken }));
-    const calendar = await this.authedCalendar();
 
     try {
-      const allEvents: calendar_v3.Schema$Event[] = [];
-      let pageToken: string | undefined;
-      let nextSyncToken: string | undefined;
-
-      do {
-        const response = await calendar.events.list({
-          calendarId,
-          syncToken,
-          pageToken,
-          singleEvents: true,
-          maxResults: 2500,
-        });
-
-        if (response.data.items) {
-          allEvents.push(...response.data.items);
-        }
-
-        pageToken = response.data.nextPageToken || undefined;
-        nextSyncToken = response.data.nextSyncToken || undefined;
-      } while (pageToken);
-
-      return {
-        events: allEvents,
-        nextSyncToken,
-      };
+      return await this.fetchEventsPaginated(calendarId, { syncToken });
     } catch (error) {
       const err = error as GoogleCalError;
       if (err.code === 410) {
         log.info("Sync token expired, performing full resync", { calendarId });
-
-        const allEvents: calendar_v3.Schema$Event[] = [];
-        let pageToken: string | undefined;
-        let nextSyncToken: string | undefined;
-
-        do {
-          const response = await calendar.events.list({
-            calendarId,
-            pageToken,
-            singleEvents: true,
-            maxResults: 2500,
-          });
-
-          if (response.data.items) {
-            allEvents.push(...response.data.items);
-          }
-
-          pageToken = response.data.nextPageToken || undefined;
-          nextSyncToken = response.data.nextSyncToken || undefined;
-        } while (pageToken);
-
-        return {
-          events: allEvents,
-          nextSyncToken,
-        };
+        return await this.fetchEventsPaginated(calendarId);
       }
       throw err;
     }
