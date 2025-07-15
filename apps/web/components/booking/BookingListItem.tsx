@@ -369,7 +369,8 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
+  // Remove cancel option if cancellation is disabled or booking has already ended
+  if (isDisabledCancelling || isBookingInPast) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
   }
 

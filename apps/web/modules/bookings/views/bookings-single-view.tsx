@@ -379,7 +379,8 @@ export default function Success(props: PageProps) {
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
   const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
-  const canCancel = !eventType?.disableCancelling;
+  // Allow cancellation only if it's not disabled and the booking hasn't ended yet
+  const canCancel = !eventType?.disableCancelling && !isBookingInPast;
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
