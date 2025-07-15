@@ -91,6 +91,13 @@ export const roundRobinManualReassignment = async ({
     throw new Error("Event type not found");
   }
 
+  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
+    roundRobinReassignLogger.error(
+      `Event type ${eventTypeId} has more than one round robin group, so reassignment is not allowed`
+    );
+    throw new Error("Reassignment not allowed with more than one round robin group");
+  }
+
   const eventTypeHosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
