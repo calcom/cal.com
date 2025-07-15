@@ -845,7 +845,7 @@ const UseTeamEventScheduleSettingsToggle = ({
           </div>
         )}
       </div>
-      {!isPlatform && true ? (
+      {!isPlatform && isRestrictionScheduleEnabled ? (
         <div className="border-subtle space-y-6 rounded-lg border p-6">
           <SettingsToggle
             checked={restrictScheduleForHosts}
