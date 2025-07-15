@@ -14,7 +14,7 @@ const copyLocalesStatic = () => {
     const namespace = localeMatch[2];
 
     // Create destination directory if it doesn't exist
-    const destDir = path.join(process.cwd(), "public", "static", "locales", locale);
+    const destDir = path.join(process.cwd(), "public", "locales", locale);
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
     }

@@ -6,7 +6,7 @@ import { CALCOM_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
 function getLocalesPath() {
-  const localesPath = path.join(process.cwd(), "public/static/locales");
+  const localesPath = path.join(process.cwd(), "public/locales");
   logger.info(`[translationBundler] getLocalesPath() resolved to: ${localesPath}`);
   return localesPath;
 }
