@@ -2,14 +2,14 @@ import type { Prisma } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { unstable_cache } from "next/cache";
 
-import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import {
   getEventTypeHosts,
   getProfileFromEvent,
   getUsersFromEvent,
   processEventDataShared,
 } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { getPublicEventSelect } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { getTeamEventType } from "@calcom/features/eventtypes/lib/getTeamEventType";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -19,7 +19,7 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
-  return unstable_cache(async () => _getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
+  return unstable_cache(async () => getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
     revalidate: NEXTJS_CACHE_TTL,
     tags: [`team:${orgSlug ? `${orgSlug}:` : ""}${teamSlug}`],
   })();
@@ -27,77 +27,13 @@ export async function getCachedTeamData(teamSlug: string, orgSlug: string | null
 
 export async function getCachedTeamEventType(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
   return unstable_cache(
-    async () => _getTeamEventType(teamSlug, meetingSlug, orgSlug),
+    async () => getTeamEventType(teamSlug, meetingSlug, orgSlug),
     ["team-event-type", teamSlug, meetingSlug, orgSlug ?? ""],
     {
       revalidate: NEXTJS_CACHE_TTL,
       tags: [`event-type:${orgSlug ? `${orgSlug}:` : ""}${teamSlug}:${meetingSlug}`],
     }
   )();
-}
-
-export type TeamData = Awaited<ReturnType<typeof _getTeamData>>;
-
-async function _getTeamData(teamSlug: string, orgSlug: string | null) {
-  return await prisma.team.findFirst({
-    where: {
-      ...getSlugOrRequestedSlug(teamSlug),
-      parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
-    },
-    orderBy: {
-      slug: { sort: "asc", nulls: "last" },
-    },
-    select: {
-      id: true,
-      isPrivate: true,
-      hideBranding: true,
-      parent: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          bannerUrl: true,
-          logoUrl: true,
-          hideBranding: true,
-          organizationSettings: {
-            select: {
-              allowSEOIndexing: true,
-            },
-          },
-        },
-      },
-      logoUrl: true,
-      name: true,
-      slug: true,
-      brandColor: true,
-      darkBrandColor: true,
-      theme: true,
-      isOrganization: true,
-      organizationSettings: {
-        select: {
-          allowSEOIndexing: true,
-        },
-      },
-    },
-  });
-}
-
-async function _getTeamEventType(teamSlug: string, meetingSlug: string, orgSlug: string | null) {
-  return await prisma.eventType.findFirst({
-    where: {
-      team: {
-        ...getSlugOrRequestedSlug(teamSlug),
-        parent: orgSlug ? getSlugOrRequestedSlug(orgSlug) : null,
-      },
-      OR: [{ slug: meetingSlug }, { slug: { startsWith: `${meetingSlug}-team-id-` } }],
-    },
-    // IMPORTANT:
-    // This ensures that the queried event type has everything expected in Booker
-    select: getPublicEventSelect(false),
-    orderBy: {
-      slug: "asc",
-    },
-  });
 }
 
 export async function getEnrichedEventType({
