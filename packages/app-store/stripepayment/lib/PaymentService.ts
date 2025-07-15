@@ -299,10 +299,12 @@ export class PaymentService implements IAbstractPaymentService {
       log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
 
       const errorMappings = {
-        "your card was declined": "Your card was declined.",
+        "your card was declined":
+          "Payment declined. Please try a different card or contact your bank for assistance.",
         "your card does not support this type of purchase":
-          "Your card does not support this type of purchase.",
-        "amount must convert to at least": "Payment amount is below the minimum charge requirement.",
+          "This card type isn't supported for this purchase. Please use a different payment method.",
+        "amount must convert to at least":
+          "Minimum payment amount is $0.50 USD. Please increase your payment amount.",
       };
 
       let userMessage = "Could not charge card for payment.";
