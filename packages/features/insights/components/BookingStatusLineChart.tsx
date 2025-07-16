@@ -39,7 +39,7 @@ export const BookingStatusLineChart = () => {
   return (
     <ChartCard title={t("event_trends")}>
       <LineChart
-        className="linechart mt-4 h-80"
+        className="linechart ml-4 mt-4 h-80 sm:ml-0"
         data={eventsTimeLine ?? []}
         categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)", "No-Show (Guest)"]}
         index="Month"
