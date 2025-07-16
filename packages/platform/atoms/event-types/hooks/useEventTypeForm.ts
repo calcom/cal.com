@@ -139,7 +139,7 @@ export const useEventTypeForm = ({
       calVideoSettings: eventType.calVideoSettings,
       maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
       maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
-      showOptimizedSlots: eventType.showOptimizedSlots || undefined,
+      showOptimizedSlots: eventType.showOptimizedSlots ?? false,
     };
   }, [eventType, periodDates]);
 
