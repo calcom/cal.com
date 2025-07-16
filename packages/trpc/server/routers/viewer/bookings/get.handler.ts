@@ -642,9 +642,11 @@ export async function getBookings({
 
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
+      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user or host of the booking
       if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
-        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+        booking.attendees = booking.attendees.filter(
+          (attendee) => attendee.email === user.email || user.id === booking.user?.id
+        );
       }
 
       let rescheduler = null;
