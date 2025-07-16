@@ -984,6 +984,76 @@ describe("intersect function comprehensive tests", () => {
       expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:30:00.250Z").valueOf());
       expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T10:00:00.500Z").valueOf());
     });
+
+    it("should demonstrate performance characteristics of subtract function with UTC vs timezone modes", () => {
+      const TIMEZONE = "America/New_York";
+      const SOURCE_COUNT = 500;
+      const EXCLUDED_COUNT = 250;
+
+      const createUTCRanges = (count: number, startDate: string, offsetHours: number) => {
+        const ranges = [];
+        const baseDate = dayjs.utc(startDate);
+        for (let i = 0; i < count; i++) {
+          const start = baseDate.add(i * 2 + offsetHours, "hour");
+          const end = start.add(1, "hour");
+          ranges.push({ start, end });
+        }
+        return ranges;
+      };
+
+      const createTimezoneRanges = (count: number, startDate: string, offsetHours: number) => {
+        const ranges = [];
+        const baseDate = dayjs(startDate).tz(TIMEZONE);
+        for (let i = 0; i < count; i++) {
+          const start = baseDate.add(i * 2 + offsetHours, "hour");
+          const end = start.add(1, "hour");
+          ranges.push({ start, end });
+        }
+        return ranges;
+      };
+
+      const utcSourceRanges = createUTCRanges(SOURCE_COUNT, "2024-01-01T00:00:00Z", 0);
+      const utcExcludedRanges = createUTCRanges(EXCLUDED_COUNT, "2024-01-01T02:00:00Z", 1);
+
+      const utcStartTime = performance.now();
+      const utcResult = subtract(utcSourceRanges, utcExcludedRanges);
+      const utcEndTime = performance.now();
+      const utcExecutionTime = utcEndTime - utcStartTime;
+
+      const timezoneSourceRanges = createTimezoneRanges(SOURCE_COUNT, "2024-01-01T00:00:00", 0);
+      const timezoneExcludedRanges = createTimezoneRanges(EXCLUDED_COUNT, "2024-01-01T02:00:00", 1);
+
+      const timezoneStartTime = performance.now();
+      const timezoneResult = subtract(timezoneSourceRanges, timezoneExcludedRanges);
+      const timezoneEndTime = performance.now();
+      const timezoneExecutionTime = timezoneEndTime - timezoneStartTime;
+
+      console.log(`Subtract function performance comparison:`);
+      console.log(`  UTC mode: ${utcExecutionTime.toFixed(2)}ms`);
+      console.log(`  Timezone mode: ${timezoneExecutionTime.toFixed(2)}ms`);
+      console.log(`  Speed ratio (UTC/Timezone): ${(utcExecutionTime / timezoneExecutionTime).toFixed(2)}x`);
+      console.log(`  Processed ${SOURCE_COUNT} source ranges and ${EXCLUDED_COUNT} excluded ranges`);
+      console.log(
+        `  UTC result: ${utcResult.length} ranges, Timezone result: ${timezoneResult.length} ranges`
+      );
+
+      expect(utcResult.length).toBeGreaterThanOrEqual(0);
+      expect(timezoneResult.length).toBeGreaterThanOrEqual(0);
+      expect(utcExecutionTime).toBeLessThan(5000); // Should complete within 5 seconds
+      expect(timezoneExecutionTime).toBeLessThan(5000); // Should complete within 5 seconds
+
+      utcResult.forEach((range) => {
+        expect(range.start).toBeDefined();
+        expect(range.end).toBeDefined();
+        expect(range.start.isBefore(range.end)).toBe(true);
+      });
+
+      timezoneResult.forEach((range) => {
+        expect(range.start).toBeDefined();
+        expect(range.end).toBeDefined();
+        expect(range.start.isBefore(range.end)).toBe(true);
+      });
+    });
   });
 
   describe("result validation", () => {
