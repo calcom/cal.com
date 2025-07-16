@@ -137,6 +137,8 @@ export const useEventTypeForm = ({
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
       customReplyToEmail: eventType.customReplyToEmail || null,
       calVideoSettings: eventType.calVideoSettings,
+      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker || null,
+      maxActiveBookingPerBookerOfferReschedule: eventType.maxActiveBookingPerBookerOfferReschedule,
     };
   }, [eventType, periodDates]);
 
@@ -174,6 +176,10 @@ export const useEventTypeForm = ({
               redirectUrlOnExit: z.string().url().nullish(),
               disableRecordingForOrganizer: z.boolean().nullable(),
               disableRecordingForGuests: z.boolean().nullable(),
+              enableAutomaticTranscription: z.boolean().nullable(),
+              enableAutomaticRecordingForOrganizer: z.boolean().nullable(),
+              disableTranscriptionForGuests: z.boolean().nullable(),
+              disableTranscriptionForOrganizer: z.boolean().nullable(),
             })
             .optional()
             .nullable(),

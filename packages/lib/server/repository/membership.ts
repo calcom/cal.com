@@ -1,6 +1,6 @@
-import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
+import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -18,30 +18,30 @@ type IMembership = {
   createdAt?: Date;
 };
 
-const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+const membershipSelect = {
   id: true,
   teamId: true,
   userId: true,
   accepted: true,
   role: true,
   disableImpersonation: true,
-});
+} satisfies Prisma.MembershipSelect;
 
-const teamParentSelect = Prisma.validator<Prisma.TeamSelect>()({
+const teamParentSelect = {
   id: true,
   name: true,
   slug: true,
   logoUrl: true,
   parentId: true,
   metadata: true,
-});
+} satisfies Prisma.TeamSelect;
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
-});
+} satisfies Prisma.UserSelect;
 
 const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipWhereInput) => {
   const lookupTarget = ProfileRepository.getLookupTarget(upId);
@@ -70,6 +70,37 @@ const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipW
 };
 
 export class MembershipRepository {
+  constructor(private readonly prismaClient: PrismaClient = prisma) {}
+
+  async hasMembership({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
+    const membership = await this.prismaClient.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!membership;
+  }
+
+  async listAcceptedTeamMemberIds({ teamId }: { teamId: number }): Promise<number[]> {
+    const memberships =
+      (await this.prismaClient.membership.findMany({
+        where: {
+          teamId,
+          accepted: true,
+        },
+        select: {
+          userId: true,
+        },
+      })) || [];
+    const teamMemberIds = memberships.map((membership) => membership.userId);
+    return teamMemberIds;
+  }
+
   static async create(data: IMembership) {
     return await prisma.membership.create({
       data: {
@@ -166,7 +197,7 @@ export class MembershipRepository {
       })
     );
 
-    const select = Prisma.validator<Prisma.MembershipSelect>()({
+    const select = {
       id: true,
       teamId: true,
       userId: true,
@@ -201,7 +232,7 @@ export class MembershipRepository {
             : {}),
         },
       },
-    });
+    } satisfies Prisma.MembershipSelect;
 
     return await prisma.membership.findMany({
       where: prismaWhere,
@@ -232,11 +263,13 @@ export class MembershipRepository {
     });
   }
 
-  static async findFirstByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
-    return await prisma.membership.findFirst({
+  static async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
+    return await prisma.membership.findUnique({
       where: {
-        userId,
-        teamId,
+        userId_teamId: {
+          userId,
+          teamId,
+        },
       },
     });
   }
@@ -363,6 +396,26 @@ export class MembershipRepository {
           },
         },
       },
+    });
+  }
+
+  static async findAllByTeamIds({
+    teamIds,
+    select = { userId: true },
+  }: {
+    teamIds: number[];
+    select?: Prisma.MembershipSelect;
+  }) {
+    return prisma.membership.findMany({
+      where: {
+        team: {
+          id: {
+            in: teamIds,
+          },
+        },
+        accepted: true,
+      },
+      select,
     });
   }
 }
