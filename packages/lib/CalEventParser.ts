@@ -40,7 +40,9 @@ export const sanitizeText = (input: string | null | undefined): string => {
 };
 
 const breakUrl = (input: string): string => {
-  return input.replace(/(https?:\/\/)/g, "hxxp://").replace(/(?<!\[)\./g, "[.]");
+  return input
+    .replace(/(https?|ftp|file|sftp):\/\//g, "$1://") // Keeping original protocol
+    .replace(/((?:https?|ftp|file|sftp):\/\/[^ ]+)(?<!\[)\./g, "$1[.]"); // Replacing dots in url
 };
 
 export const getWho = (
@@ -50,7 +52,7 @@ export const getWho = (
   >,
   t: TFunction
 ) => {
-  let attendeesFromCalEvent = [...calEvent.attendees];
+  let attendeesFromCalEvent = calEvent.attendees ? [...calEvent.attendees] : [];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
     attendeesFromCalEvent = [];
   }
@@ -59,25 +61,27 @@ export const getWho = (
       (attendee) =>
         `${sanitizeText(attendee?.name) || t("guest")}${
           attendee.phoneNumber ? ` - ${sanitizeText(attendee.phoneNumber)}` : ""
-        }\n${!isSmsCalEmail(attendee.email) ? sanitizeText(attendee.email) : ""}`
+        }${!isSmsCalEmail(attendee.email) ? `\n${sanitizeText(attendee.email)}` : ""}`
     )
-    .join("\n");
+    .join("\n")
+    .trim();
 
   const organizer = calEvent.hideOrganizerEmail
     ? `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}`
     : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeText(
         calEvent.organizer.email
-      )}`;
+      )}`.trim();
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
         .map((member) => `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeText(member.email)}`)
         .join("\n")
-    : [];
+        .trim()
+    : "";
 
   const result = `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
-    teamMembers.length ? `\n${teamMembers}` : ""
-  }`;
+    teamMembers ? `\n${teamMembers}` : ""
+  }`.trim();
   return result;
 };
 
@@ -395,7 +399,8 @@ export const getRichDescriptionHTML = (
 export const getRichDescription = (
   calEvent: RichDescriptionCalEvent,
   t_?: TFunction /*, attendee?: Person*/,
-  includeAppStatus = false
+  includeAppStatus = false,
+  includeWhen = false // Default to false to match unit tests
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
@@ -403,7 +408,7 @@ export const getRichDescription = (
   const parts = [
     getCancellationReason(calEvent, t),
     getWhat(calEvent, t),
-    getWhen(calEvent, t),
+    includeWhen ? getWhen(calEvent, t) : "",
     getWho(calEvent, t),
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
@@ -413,7 +418,7 @@ export const getRichDescription = (
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot
     calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
-    calEvent.paymentInfo ? `${t("pay_now")}:\n${calEvent.paymentInfo.link}` : "",
+    calEvent.paymentInfo ? `${t("pay_now")}:\n${sanitizeText(calEvent.paymentInfo.link)}` : "",
   ]
     .filter(Boolean) // Remove empty strings
     .join("\n\n") // Double newline between major sections
