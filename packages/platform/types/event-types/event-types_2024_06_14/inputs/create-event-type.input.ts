@@ -152,6 +152,13 @@ export class CalVideoSettings {
     description: "If true, enables the Flappy Bird game in the waiting room",
   })
   enableFlappyBirdGame?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic transcription for the event",
+  })
+  enableAutomaticTranscription?: boolean;
 }
 
 class BaseCreateEventTypeInput {
