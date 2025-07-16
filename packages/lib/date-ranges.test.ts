@@ -1083,7 +1083,7 @@ describe("intersect function comprehensive tests", () => {
     });
 
     it("should reproduce getBusyTimes scheduling pipeline scenario causing futureLimit.timezone.test.ts failures", () => {
-      const TIMEZONE = "Asia/Kolkata";
+      const TIMEZONE = "Asia/Kolkata"; // IST timezone used in failing test
 
       const calendarBusyTimes = [
         { start: new Date("2024-05-31T12:30:00.000Z"), end: new Date("2024-05-31T13:30:00.000Z") },
@@ -1102,7 +1102,7 @@ describe("intersect function comprehensive tests", () => {
 
       const openSeatsDateRanges = [
         {
-          start: dayjs("2024-05-31T12:30:00.000Z"),
+          start: dayjs("2024-05-31T12:00:00.000Z").tz(TIMEZONE),
           end: dayjs("2024-05-31T18:30:00.000Z").tz(TIMEZONE),
         },
       ];
@@ -1122,25 +1122,13 @@ describe("intersect function comprehensive tests", () => {
         "valueOf:",
         openSeatsDateRanges[0].start.valueOf()
       );
-      console.log(
-        "Excluded range end:",
-        openSeatsDateRanges[0].end.format(),
-        "valueOf:",
-        openSeatsDateRanges[0].end.valueOf()
-      );
 
       const sourceTimestamp = new Date(sourceRanges[0].start.valueOf()).valueOf();
-      const excludedStartTimestamp = new Date(openSeatsDateRanges[0].start.valueOf()).valueOf();
-      const excludedEndTimestamp = new Date(openSeatsDateRanges[0].end.valueOf()).valueOf();
+      const excludedTimestamp = new Date(openSeatsDateRanges[0].start.valueOf()).valueOf();
 
       console.log("Source timestamp (new Date().valueOf()):", sourceTimestamp);
-      console.log("Excluded start timestamp (new Date().valueOf()):", excludedStartTimestamp);
-      console.log("Excluded end timestamp (new Date().valueOf()):", excludedEndTimestamp);
-      console.log("Start timestamps equal:", sourceTimestamp === excludedStartTimestamp);
-      console.log(
-        "Should be excluded (start <= source < end):",
-        excludedStartTimestamp <= sourceTimestamp && sourceTimestamp < excludedEndTimestamp
-      );
+      console.log("Excluded timestamp (new Date().valueOf()):", excludedTimestamp);
+      console.log("Timestamps equal:", sourceTimestamp === excludedTimestamp);
 
       const result = subtract(sourceRanges, openSeatsDateRanges);
 
@@ -1150,12 +1138,74 @@ describe("intersect function comprehensive tests", () => {
         result.forEach((slot, i) => {
           console.log(`Slot ${i}: ${slot.start.format()} - ${slot.end.format()}`);
         });
-      } else {
-        console.log("SUCCESS: All slots were properly excluded");
       }
       console.log("=== END REPRODUCTION ===");
 
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(0);
+    });
+
+    it("should reproduce getUserAvailability scenario where subtract extends ranges instead of excluding busy times", () => {
+      const dateRanges = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
+        { start: dayjs("2024-06-02T04:00:00.000Z"), end: dayjs("2024-06-02T12:30:00.000Z") },
+        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
+        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
+        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+      ];
+
+      const formattedBusyTimes = [
+        { start: dayjs("2024-06-01T18:30:00.000Z"), end: dayjs("2024-06-02T18:30:00.000Z") },
+      ];
+
+      console.log("=== getUserAvailability SCENARIO REPRODUCTION ===");
+      console.log(
+        "INPUT dateRanges:",
+        JSON.stringify(dateRanges.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() })))
+      );
+      console.log(
+        "INPUT formattedBusyTimes:",
+        JSON.stringify(
+          formattedBusyTimes.map((b) => ({ start: b.start.toISOString(), end: b.end.toISOString() }))
+        )
+      );
+
+      const result = subtract(dateRanges, formattedBusyTimes);
+
+      console.log(
+        "OUTPUT result:",
+        JSON.stringify(result.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() })))
+      );
+
+      const expectedBuggyOutput = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-06-01T18:30:00.000Z") }, // BUG: end extended to busy time start
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T18:30:00.000Z") }, // BUG: end extended to busy time start
+        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
+        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
+        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+      ];
+
+      console.log(
+        "EXPECTED buggy output:",
+        JSON.stringify(
+          expectedBuggyOutput.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() }))
+        )
+      );
+
+      if (result.length === expectedBuggyOutput.length) {
+        console.log("SUCCESS: Reproduced the getUserAvailability bug!");
+        console.log("BUG: First range end extended from 12:30 to 18:30 instead of being properly subtracted");
+        console.log(
+          "BUG: Second range end extended from 12:30 to 18:30 instead of being properly subtracted"
+        );
+      } else {
+        console.log("UNEXPECTED: Result length doesn't match expected buggy output");
+      }
+      console.log("=== END REPRODUCTION ===");
+
+      expect(result).toHaveLength(5);
+      expect(result[0].end.toISOString()).toBe("2024-06-01T18:30:00.000Z"); // Shows the bug: extended instead of subtracted
+      expect(result[1].end.toISOString()).toBe("2024-06-01T18:30:00.000Z"); // Shows the bug: extended instead of subtracted
     });
   });
 });
