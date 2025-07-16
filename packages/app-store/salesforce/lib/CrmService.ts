@@ -9,8 +9,10 @@ import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
 import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
-import { RoutingFormResponseService } from "@calcom/lib/server/service/routingForm/routingFormResponse.service";
+import { RoutingFormResponseDataFactory } from "@calcom/lib/server/service/routingForm/RoutingFormResponseDataFactory";
+import { findFieldValueByIdentifier } from "@calcom/lib/server/service/routingForm/responseData/findFieldValueByIdentifier";
 import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -1298,15 +1300,24 @@ export default class SalesforceCRMService implements CRM {
       return fieldValue;
     }
 
-    try {
-      const routingFormResponseService = await RoutingFormResponseService.create({ bookingUid });
-      value = await routingFormResponseService.findFieldValueByIdentifier(identifierField);
-    } catch (error) {
-      log.error("Routing form response not found", error);
-      return fieldValue;
+    const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
+      logger: log,
+      routingFormResponseRepo: new RoutingFormResponseRepository(),
+    });
+    const findFieldResult = findFieldValueByIdentifier(
+      await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
+      identifierField
+    );
+    if (findFieldResult.success) {
+      value = findFieldResult.data;
+      return String(value);
     }
-
-    return value.toString();
+    log.error(
+      `Could not find field value for identifier ${identifierField} in bookingUid ${bookingUid}`,
+      `failed with error: ${findFieldResult.error}`
+    );
+    // If the field is not found, return the original field value
+    return fieldValue;
   }
 
   private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string) {
