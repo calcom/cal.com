@@ -1,5 +1,6 @@
 import type z from "zod";
 
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
 import { zodNonRouterField } from "@calcom/app-store/routing-forms/zod";
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import logger from "@calcom/lib/logger";
@@ -59,7 +60,7 @@ export class RoutingFormResponseService {
 
   async findFieldValueByIdentifier(identifier: string) {
     // Find the field id based on the identifier that's passed
-    const field = this.fields.find((field) => field.identifier === identifier);
+    const field = this.fields.find((field) => getFieldIdentifier(field) === identifier);
 
     if (!field) {
       this.log.error(`Field with identifier ${identifier} not found`);
