@@ -3378,7 +3378,6 @@
   "delete_cached_data": "Delete cached data",
   "cache_deleted_successfully": "Cache deleted successfully",
   "error_deleting_cache": "Error deleting cache",
-  "remove_app": "Remove App",
   "confirm_delete_cache": "Are you sure you want to delete the cached data? This action cannot be undone.",
   "yes_delete_cache": "Yes, delete cache",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
