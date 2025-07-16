@@ -378,7 +378,7 @@ export type PlatformParams = {
 };
 
 export type BookingHandlerInput = {
-  bookingData: Record<string, any>;
+  bookingData: Record<string, unknown>;
   userId?: number;
   // These used to come from headers but now we're passing them as params
   hostname?: string;

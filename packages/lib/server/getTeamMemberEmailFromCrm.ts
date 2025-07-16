@@ -57,7 +57,7 @@ async function getAttributeRoutingConfig(
   if ("route" in data) {
     return data.route.attributeRoutingConfig ?? null;
   }
-  const { routingFormResponseId, eventTypeId } = data;
+  const { routingFormResponseId } = data;
 
   const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
