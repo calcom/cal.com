@@ -190,7 +190,7 @@ export default function CancelBooking(props: Props) {
     }
 
     if (
-      booking.attendees?.some(
+      booking?.attendees?.some(
         (attendee) => attendee.email.toLowerCase() === verificationEmail.toLowerCase()
       ) ||
       verificationEmail.toLowerCase() === booking?.userEmail?.toLowerCase()
