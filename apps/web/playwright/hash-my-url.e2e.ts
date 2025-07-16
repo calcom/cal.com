@@ -28,7 +28,7 @@ test.describe("private links creation and usage", () => {
     await expect(page.locator("[data-testid=event-title]")).toBeVisible();
 
     // We wait for the page to load
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     const hashedLinkCheck = page.locator('[data-testid="multiplePrivateLinksCheck"]');
     await expect(hashedLinkCheck).toBeVisible();
@@ -162,7 +162,7 @@ test.describe("private links creation and usage", () => {
     await expect(page.locator('[data-testid="private-link-radio-group"]')).toBeVisible();
     await page.locator('[data-testid="private-link-usage-count"]').fill("2");
     await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("networkidle");
     // click update
     await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),

@@ -59,7 +59,7 @@ export const MultiplePrivateLinksController = ({
       const selectedDate = date || expiryDate;
 
       const dateString = dayjs(selectedDate).format("YYYY-MM-DD");
-      const endOfDayInUTC = dayjs.utc(dateString).endOf("day").toDate();
+      const endOfDayInUTC = dayjs.utc(`${dateString}T23:59:59.999Z`).toDate();
 
       convertedValue[index] = {
         ...convertedValue[index],
@@ -238,10 +238,16 @@ export const MultiplePrivateLinksController = ({
                   if (isExpired) {
                     linkDescription = t("usage_limit_reached");
                   } else {
-                    linkDescription = t("remainder_of_maximum_uses_left", {
-                      remainder: remainingUses,
-                      maximum_uses: `${maxUses} ${remainingUses === 1 ? "use" : "uses"}`,
-                    });
+                    linkDescription =
+                      remainingUses === 1
+                        ? t("remainder_of_maximum_uses_left_singular", {
+                            remainder: remainingUses,
+                            maximum: maxUses,
+                          })
+                        : t("remainder_of_maximum_uses_left_plural", {
+                            remainder: remainingUses,
+                            maximum: maxUses,
+                          });
                   }
                 }
 
