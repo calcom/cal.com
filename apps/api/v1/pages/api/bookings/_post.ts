@@ -254,6 +254,13 @@ async function handler(req: NextApiRequest) {
       throw new HttpError({ statusCode: 400, message: knownError.message });
     }
 
+    if (
+      knownError?.message?.includes("Cannot destructure property") ||
+      knownError?.message?.includes("No EventType found")
+    ) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
     throw error;
   }
 }

@@ -249,7 +249,7 @@ describe("POST /api/bookings", () => {
 
       await handler(req, res);
 
-      expect(res._getStatusCode()).toBe(500);
+      expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
           message: expect.stringContaining("Cannot destructure property 'profile'"),
@@ -273,7 +273,7 @@ describe("POST /api/bookings", () => {
 
       await handler(req, res);
 
-      expect(res._getStatusCode()).toBe(500);
+      expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
           message: "No EventType found",
