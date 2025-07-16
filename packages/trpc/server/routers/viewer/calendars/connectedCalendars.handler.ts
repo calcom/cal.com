@@ -23,8 +23,26 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       prisma,
     });
 
+  const credentialIds = connectedCalendars.map((cal) => cal.credentialId);
+  const cacheStatuses = await prisma.calendarCache.groupBy({
+    by: ["credentialId"],
+    where: {
+      credentialId: { in: credentialIds },
+    },
+    _max: {
+      updatedAt: true,
+    },
+  });
+
+  const cacheStatusMap = new Map(cacheStatuses.map((cache) => [cache.credentialId, cache._max.updatedAt]));
+
+  const enrichedConnectedCalendars = connectedCalendars.map((calendar) => ({
+    ...calendar,
+    cacheUpdatedAt: cacheStatusMap.get(calendar.credentialId) || null,
+  }));
+
   return {
-    connectedCalendars,
+    connectedCalendars: enrichedConnectedCalendars,
     destinationCalendar,
   };
 };
