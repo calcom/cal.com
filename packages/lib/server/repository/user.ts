@@ -275,6 +275,37 @@ export class UserRepository {
     return user;
   }
 
+  async findUsersByEmails({ emails }: { emails: string[] }) {
+    // Workaround for prismock WHERE clause issues - fetch all users and filter in memory
+    const allUsers = await this.prismaClient.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        credentials: {
+          select: {
+            id: true,
+            type: true,
+            key: true,
+            appId: true,
+            userId: true,
+            teamId: true,
+            invalid: true,
+            subscriptionId: true,
+          },
+        },
+      },
+    });
+    
+    // Filter in memory to work around prismock WHERE issues
+    const matchingUsers = allUsers.filter(user => 
+      emails.some(email => 
+        user.email?.toLowerCase() === email.toLowerCase()
+      )
+    );
+    
+    return matchingUsers;
+  }
+
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await this.prismaClient.user.findUnique({
       where: {

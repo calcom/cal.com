@@ -666,6 +666,108 @@ export class AvailableSlotsService {
     "getUsersWithCredentials"
   );
 
+  private async getGuestBusyTimesForReschedule(
+    rescheduleUid: string,
+    dateFrom: string,
+    dateTo: string,
+    loggerWithEventDetails: Logger<unknown>
+  ): Promise<EventBusyDate[]> {
+    try {
+      loggerWithEventDetails.debug("Starting guest busy times fetch", {
+        rescheduleUid,
+        dateFrom,
+        dateTo,
+      });
+      
+      // Get the original booking with attendees
+      const bookingRepo = this.dependencies.bookingRepo;
+      const originalBooking = await bookingRepo.findOriginalRescheduledBooking(rescheduleUid);
+      
+      loggerWithEventDetails.debug("Original booking found", {
+        originalBooking: originalBooking ? {
+          id: originalBooking.id,
+          attendeesCount: originalBooking.attendees?.length || 0,
+          attendeeEmails: originalBooking.attendees?.map((a) => a.email) || [],
+        } : null,
+      });
+      
+      if (!originalBooking || !originalBooking.attendees || originalBooking.attendees.length === 0) {
+        return [];
+      }
+
+      // Get attendee emails
+      const attendeeEmails = originalBooking.attendees.map((attendee) => attendee.email);
+      
+      // Check which attendees are Cal.com users
+      const userRepo = this.dependencies.userRepo;
+      const calcomUsers = await userRepo.findUsersByEmails({ emails: attendeeEmails });
+
+      loggerWithEventDetails.debug("Cal.com users lookup result", {
+        attendeeEmails,
+        calcomUsersFound: calcomUsers.length,
+        calcomUserEmails: calcomUsers.map((u) => u.email),
+      });
+
+      if (calcomUsers.length === 0) {
+        return [];
+      }
+
+      loggerWithEventDetails.debug("Found Cal.com users among attendees", {
+        attendeeEmails,
+        calcomUserEmails: calcomUsers.map((u) => u.email),
+      });
+
+      // Get busy times for all Cal.com guest users
+      const allGuestBusyTimes: EventBusyDate[] = [];
+      
+      if (calcomUsers.length > 0) {
+        const userIds = calcomUsers.map(user => user.id);
+        const userEmails = calcomUsers.map(user => user.email);
+        
+        // Get bookings for all guest users at once
+        const userBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
+          userIds,
+          userEmails,
+          dateFrom: new Date(dateFrom),
+          dateTo: new Date(dateTo),
+        });
+
+        loggerWithEventDetails.debug("Found user bookings for guest availability", {
+          userBookingsCount: userBookings.length,
+        });
+
+        // Convert bookings to busy times  
+        const busyTimes = userBookings
+          .filter((booking) => booking && booking.startTime && booking.endTime)
+          .map((booking) => ({
+            start: booking.startTime,
+            end: booking.endTime,
+            title: `Guest busy: ${booking.title || "Unavailable"}`,
+            source: `guest-${booking.userId || 'unknown'}`,
+          }));
+
+        loggerWithEventDetails.debug("Generated guest busy times", {
+          busyTimesCount: busyTimes.length,
+        });
+
+        allGuestBusyTimes.push(...busyTimes);
+      }
+
+      return allGuestBusyTimes;
+    } catch (error) {
+      loggerWithEventDetails.error("Error getting guest busy times for reschedule", { 
+        error: error instanceof Error ? {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        } : error,
+        rescheduleUid 
+      });
+      // Return empty array to continue with normal flow if there's an error
+      return [];
+    }
+  }
+
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
@@ -804,6 +906,26 @@ export class AvailableSlotsService {
     const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
 
+    // Get guest busy times for reschedule before getUsersAvailability
+    let guestBusyTimes: EventBusyDate[] = [];
+    if (input.rescheduleUid && eventType.schedulingType !== SchedulingType.COLLECTIVE) {
+      loggerWithEventDetails.debug("Getting guest busy times for reschedule before getUsersAvailability", {
+        rescheduleUid: input.rescheduleUid,
+        schedulingType: eventType.schedulingType,
+      });
+      
+      guestBusyTimes = await this.getGuestBusyTimesForReschedule(
+        input.rescheduleUid,
+        startTime.format(),
+        endTime.format(),
+        loggerWithEventDetails
+      );
+      
+      loggerWithEventDetails.debug("Guest busy times retrieved", {
+        guestBusyTimesCount: guestBusyTimes.length,
+      });
+    }
+
     // TODO: DI getUsersAvailability
     const premappedUsersAvailability = await getUsersAvailability({
       users,
@@ -827,10 +949,11 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes: guestBusyTimes, // Pass guest busy times to getUsersAvailability
       },
     });
     /* We get all users working hours and busy slots */
-    const allUsersAvailability = premappedUsersAvailability.map(
+    let allUsersAvailability = premappedUsersAvailability.map(
       (
         { busy, dateRanges, oooExcludedDateRanges, currentSeats: _currentSeats, timeZone, datesOutOfOffice },
         index
@@ -847,6 +970,13 @@ export class AvailableSlotsService {
         };
       }
     );
+
+    // Guest busy times are now handled within getUsersAvailability
+    if (guestBusyTimes.length > 0) {
+      loggerWithEventDetails.debug("Guest busy times processed within getUsersAvailability", {
+        guestBusyTimesCount: guestBusyTimes.length,
+      });
+    }
 
     return {
       allUsersAvailability,
