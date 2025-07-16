@@ -469,6 +469,14 @@ export const InfiniteEventTypeList = ({
     return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
   };
 
+  const userTimezone = extractHostTimezone({
+    userId: firstItem.userId,
+    teamId: firstItem?.teamId,
+    hosts: firstItem?.hosts,
+    owner: firstItem?.owner,
+    team: firstItem?.team,
+  });
+
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
@@ -477,15 +485,6 @@ export const InfiniteEventTypeList = ({
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
 
-            // TODO: Add support for hosts, team and profile for extracting host timezone
-            const userTimezone = extractHostTimezone({
-              userId: type.userId,
-              teamId: type?.teamId,
-              hosts: null,
-              profile: null,
-              owner: type?.owner,
-              team: null,
-            });
             const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
 
             // Ensure index is within bounds for active links

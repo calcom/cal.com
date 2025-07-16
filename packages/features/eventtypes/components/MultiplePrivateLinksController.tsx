@@ -214,9 +214,9 @@ export const MultiplePrivateLinksController = ({
                 const latestUsageCount =
                   latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-                let linkDescription = t("remainder_of_maximum_uses_left", {
+                let linkDescription = t("remainder_of_maximum_use_left_singular", {
                   remainder: "1",
-                  maximum_uses: "1 use",
+                  maximum: "1",
                 });
                 const isExpired = isLinkExpired(val);
 

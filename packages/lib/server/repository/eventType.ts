@@ -61,6 +61,7 @@ const userSelect = {
   avatarUrl: true,
   username: true,
   id: true,
+  timeZone: true,
 } satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
@@ -180,6 +181,21 @@ export class EventTypeRepository {
       hosts: {
         include: {
           user: { select: userSelect },
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
         },
       },
     };
@@ -392,6 +408,7 @@ export class EventTypeRepository {
       avatarUrl: true,
       username: true,
       id: true,
+      timeZone: true,
     } satisfies Prisma.UserSelect;
 
     const select = {
@@ -408,6 +425,21 @@ export class EventTypeRepository {
           user: { select: userSelect },
         },
         take: 5,
+      },
+      team: {
+        select: {
+          id: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
       },
     };
 
@@ -489,6 +521,7 @@ export class EventTypeRepository {
       locale: true,
       defaultScheduleId: true,
       isPlatformManaged: true,
+      timeZone: true,
     } satisfies Prisma.UserSelect;
 
     const CompleteEventTypeSelect = {

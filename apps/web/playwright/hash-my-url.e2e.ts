@@ -60,7 +60,7 @@ test.describe("private links creation and usage", () => {
 
     await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     // After booking with a usage-based private link, the link should be expired
     await expect(page.locator('[data-testid="private-link-description"]')).toContainText(
@@ -95,7 +95,7 @@ test.describe("private links creation and usage", () => {
     await expect(page.locator("[data-testid=event-title]")).toBeVisible();
 
     // We wait for the page to load
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     const privateLinkCheck = page.locator('[data-testid="multiplePrivateLinksCheck"]');
     await expect(privateLinkCheck).toBeVisible();
@@ -130,7 +130,7 @@ test.describe("private links creation and usage", () => {
 
     await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     // After booking with a expiration date based private link, the link should still be valid
     await expect(page.locator('[data-testid="private-link-expired"]')).toBeHidden();
@@ -146,7 +146,7 @@ test.describe("private links creation and usage", () => {
     await expect(page.locator("[data-testid=event-title]")).toBeVisible();
 
     // We wait for the page to load
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     const privateLinkCheck = page.locator('[data-testid="multiplePrivateLinksCheck"]');
     await expect(privateLinkCheck).toBeVisible();
@@ -187,7 +187,7 @@ test.describe("private links creation and usage", () => {
 
     await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     // After booking twice with a 2 usages based private link, the link should be expired
     await expect(page.locator('[data-testid="private-link-description"]')).toContainText(

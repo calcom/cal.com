@@ -1,7 +1,25 @@
 import dayjs from "@calcom/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 
-import type { EventTypeForTimezone } from "./server/service/hashedLinks.service";
+export type EventTypeForTimezone = {
+  userId?: number | null;
+  teamId?: number | null;
+  hosts?: Array<{
+    user: {
+      timeZone: string | null;
+    } | null;
+  }> | null;
+  owner?: {
+    timeZone: string | null;
+  } | null;
+  team?: {
+    members?: Array<{
+      user?: {
+        timeZone: string | null;
+      } | null;
+    }> | null;
+  } | null;
+};
 
 export type HashedLinkData = {
   id: number;

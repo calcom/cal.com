@@ -10,31 +10,6 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
-export type EventTypeForTimezone = {
-  userId?: number | null;
-  teamId?: number | null;
-  hosts?: Array<{
-    user: {
-      timeZone: string | null;
-    } | null;
-  }> | null;
-  profile?: {
-    user: {
-      timeZone: string | null;
-    } | null;
-  } | null;
-  owner?: {
-    timeZone: string | null;
-  } | null;
-  team?: {
-    members?: Array<{
-      user?: {
-        timeZone: string | null;
-      } | null;
-    }> | null;
-  } | null;
-};
-
 export class HashedLinksService {
   private hashedLinksRepository: HashedLinksRepository;
 
