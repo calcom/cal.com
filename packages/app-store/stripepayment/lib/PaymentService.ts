@@ -370,9 +370,19 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
+    //  Get only the attendee who made the booking
+    const newAttendee = event.attendees.find((a) => a.email === booking.user?.email);
+
+    if (!newAttendee) {
+      console.warn(`[PaymentService] No matching attendee for booking ID ${booking.id}`);
+      return;
+    }
+
+    // Send email only to the new attendee
     await sendAwaitingPaymentEmailAndSMS(
       {
         ...event,
+        attendees: [newAttendee], //  filter out others
         paymentInfo: {
           link: createPaymentLink({
             paymentUid: paymentData.uid,
