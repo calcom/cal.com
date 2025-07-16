@@ -1178,29 +1178,28 @@ describe("intersect function comprehensive tests", () => {
         JSON.stringify(result.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() })))
       );
 
-      // What the result SHOULD be (correct behavior): Since busy time doesn't overlap, all ranges should remain unchanged
-      const expectedCorrectOutput = [
+      // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
+      const expectedCorrectedOutput = [
         { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
         { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
-        { start: dayjs("2024-06-02T04:00:00.000Z"), end: dayjs("2024-06-02T12:30:00.000Z") },
         { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
         { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
         { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
       ];
 
       console.log(
-        "EXPECTED correct output:",
+        "EXPECTED corrected output:",
         JSON.stringify(
-          expectedCorrectOutput.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() }))
+          expectedCorrectedOutput.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() }))
         )
       );
 
       console.log("=== END REPRODUCTION ===");
 
-      expect(result).toHaveLength(6); // Should be 6 unchanged ranges (current buggy logic produces 5)
-      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // Should remain 12:30 (current buggy logic extends to 18:30)
-      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // Should remain 12:30 (current buggy logic extends to 18:30)
-      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeDefined(); // Should be present (current buggy logic excludes it)
+      expect(result).toHaveLength(5); // Correct: June 2 range is properly excluded
+      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // Correct: no extension
+      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // Correct: no extension
+      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeUndefined(); // Correct: June 2 excluded
     });
   });
 });
