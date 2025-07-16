@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TEventTypeInputSchema } from "./getByViewer.schema";
+import { TeamAccessUseCase } from "./teamAccessUseCase";
 
 type GetByViewerOptions = {
   ctx: {
@@ -61,7 +62,14 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const memberships = profileMemberships.map((membership) => ({
+  // Filter memberships based on PBAC permissions
+  const teamAccessUseCase = new TeamAccessUseCase();
+  const accessibleMemberships = await teamAccessUseCase.filterTeamsByEventTypeReadPermission(
+    profileMemberships,
+    user.id
+  );
+
+  const memberships = accessibleMemberships.map((membership) => ({
     ...membership,
     team: {
       ...membership.team,
@@ -69,7 +77,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     },
   }));
 
-  const teamMemberships = profileMemberships.map((membership) => ({
+  const teamMemberships = accessibleMemberships.map((membership) => ({
     teamId: membership.team.id,
     membershipRole: membership.role,
   }));
@@ -119,14 +127,11 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     await Promise.all(
       memberships
         .filter((mmship) => {
-          if (mmship.team.isOrganization) {
-            return false;
-          } else {
-            if (!filters || !hasFilter(filters)) {
-              return true;
-            }
-            return filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
+          // Organization memberships are already filtered out in TeamAccessUseCase
+          if (!filters || !hasFilter(filters)) {
+            return true;
           }
+          return filters?.teamIds?.includes(mmship?.team?.id || 0) ?? false;
         })
         .map(async (membership) => {
           const orgMembership = teamMemberships.find(
