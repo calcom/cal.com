@@ -484,7 +484,7 @@ function BookingListItem(booking: BookingItemProps) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="rounded-lg" key="no_show" disabled={cancelEventAction.disabled}>
+            <DropdownMenuItem className="rounded-lg" key={cancelEventAction.id} disabled={cancelEventAction.disabled}>
               <DropdownItem
                 type="button"
                 color={cancelEventAction.color}
