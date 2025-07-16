@@ -239,9 +239,7 @@ describe("POST /api/bookings", () => {
 
   describe("Errors", () => {
     test("Missing required data", async () => {
-      (getEventTypesFromDB as any).mockRejectedValue(
-        new Error("Cannot destructure property 'profile' of 'eventType' as it is undefined")
-      );
+      (getEventTypesFromDB as any).mockRejectedValue(new Error(ErrorCode.RequestBodyInvalid));
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
@@ -259,7 +257,7 @@ describe("POST /api/bookings", () => {
     });
 
     test("Invalid eventTypeId", async () => {
-      (getEventTypesFromDB as any).mockRejectedValue(new Error("No EventType found"));
+      (getEventTypesFromDB as any).mockRejectedValue(new Error(ErrorCode.EventTypeNotFound));
 
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
