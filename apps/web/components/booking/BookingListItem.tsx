@@ -593,10 +593,9 @@ function BookingListItem(booking: BookingItemProps) {
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
           <DropdownMenuContent>
-            {/* Edit Event Section */}
-            <DropdownMenuLabel>{t("edit_event")}</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
             {editEventActions.map((action) => (
-              <DropdownMenuItem key={action.id}>
+              <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
                 <DropdownItem
                   type="button"
                   color={action.color}
@@ -611,9 +610,9 @@ function BookingListItem(booking: BookingItemProps) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>{t("after_event")}</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
             {afterEventActions.map((action) => (
-              <DropdownMenuItem key={action.id} disabled={action.disabled}>
+              <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
                 <DropdownItem
                   type="button"
                   color={action.color}
@@ -628,7 +627,7 @@ function BookingListItem(booking: BookingItemProps) {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem key="no_show" disabled={cancelEventAction.disabled}>
+            <DropdownMenuItem className="rounded-lg" key="no_show" disabled={cancelEventAction.disabled}>
               <DropdownItem
                 type="button"
                 color={cancelEventAction.color}
