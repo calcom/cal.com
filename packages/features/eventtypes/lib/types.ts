@@ -172,6 +172,7 @@ export type FormValues = {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
     enableAutomaticTranscription?: boolean;
+    enableAutomaticRecordingForOrganizer?: boolean;
     disableTranscriptionForGuests?: boolean;
     disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
