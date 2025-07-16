@@ -204,7 +204,6 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
-
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
           restrictionScheduleId: null,
@@ -317,7 +316,6 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
-
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
@@ -382,7 +380,6 @@ describe("handleChildrenEventTypes", () => {
           },
           useBookerTimezone: false,
           lockTimeZoneToggleOnBookingPage: false,
-
           requiresBookerEmailVerification: false,
           allowReschedulingCancelledBookings: false,
         },
@@ -441,6 +438,7 @@ describe("handleChildrenEventTypes", () => {
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
+        lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
         workflows: [],
         parentId: 1,
@@ -477,7 +475,6 @@ describe("handleChildrenEventTypes", () => {
           customReplyToEmail: null,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
-
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
           restrictionScheduleId: null,
@@ -504,7 +501,6 @@ describe("handleChildrenEventTypes", () => {
           useEventLevelSelectedCalendars: undefined,
           customReplyToEmail: null,
           lockTimeZoneToggleOnBookingPage: false,
-
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
           restrictionScheduleId: null,
