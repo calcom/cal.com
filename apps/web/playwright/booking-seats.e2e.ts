@@ -124,7 +124,7 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
@@ -163,7 +163,11 @@ test.describe("Reschedule for booking with seats", () => {
     );
 
     await submitAndWaitForResponse(page, "/api/cancel", {
-      action: () => page.locator('[data-testid="confirm_cancel"]').click(),
+      action: async () => {
+        await page.locator('[data-testid="confirm_cancel"]').click();
+        await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+        await page.locator('[data-testid="verify-email-trigger"]').click();
+      },
     });
 
     const oldBooking = await prisma.booking.findFirst({

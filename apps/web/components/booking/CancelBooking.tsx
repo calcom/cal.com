@@ -283,21 +283,30 @@ export default function CancelBooking(props: Props) {
           </div>
         </div>
       )}
-      <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
+      <Dialog
+        open={showVerificationDialog}
+        onOpenChange={setShowVerificationDialog}
+        data-testid="verify-email-dialog">
         <DialogContent>
           <DialogHeader title={t("verify_email")} />
           <div className="space-y-4 py-4">
             <p className="text-default text-sm">{t("proceed_with_cancellation_description")}</p>
             <Input
+              data-testid="verify-email-input"
               type="email"
               placeholder={t("email_placeholder")}
               value={verificationEmail}
               onChange={(e) => setVerificationEmail(e.target.value)}
               className="mb-2"
             />
-            {verificationError && <p className="text-error text-sm">{verificationError}</p>}
+            {verificationError && (
+              <p data-testid="verify-email-error" className="text-error text-sm">
+                {verificationError}
+              </p>
+            )}
             <div className="flex justify-end space-x-2">
               <Button
+                data-testid="verify-email-cancel-trigger"
                 color="secondary"
                 onClick={() => {
                   setShowVerificationDialog(false);
@@ -306,7 +315,9 @@ export default function CancelBooking(props: Props) {
                 }}>
                 {t("cancel")}
               </Button>
-              <Button onClick={handleVerification}>{t("verify")}</Button>
+              <Button onClick={handleVerification} data-testid="verify-email-trigger">
+                {t("verify")}
+              </Button>
             </div>
           </div>
         </DialogContent>
