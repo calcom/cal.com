@@ -45,6 +45,7 @@ import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
@@ -82,6 +83,29 @@ const FEATURES = [
     },
   },
 ];
+
+// Component to handle long URL prefixes in username field
+function UrlPrefix({ url }: { url: string }) {
+  const maxLength = 30;
+  
+  // Show full URL if it's short enough
+  if (url.length <= maxLength) {
+    return <span className="text-muted text-sm font-medium leading-none">{url}</span>;
+  }
+  
+  // For long URLs, show beginning and end with ellipsis in middle
+  const startChars = Math.floor(maxLength * 0.6);
+  const endChars = Math.floor(maxLength * 0.3);
+  const truncated = `${url.substring(0, startChars)}...${url.substring(url.length - endChars)}`;
+  
+  return (
+    <Tooltip content={url}>
+      <span className="text-muted text-sm font-medium leading-none cursor-help">
+        {truncated}
+      </span>
+    </Tooltip>
+  );
+}
 
 function UsernameField({
   username,
@@ -159,7 +183,7 @@ function UsernameField({
 }
 
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
-  const separator = url.includes("?") ? "&" : "?";
+  const separator = url.indexOf("?") !== -1 ? "&" : "?";
   const param = `${key}=${encodeURIComponent(value)}`;
   return `${url}${separator}${param}`;
 }
@@ -228,7 +252,7 @@ export default function Signup({
     }
   };
 
-  const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
+  const isPlatformUser = redirectUrl?.indexOf("platform") !== -1 && redirectUrl?.indexOf("new") !== -1;
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
@@ -397,12 +421,16 @@ export default function Signup({
                       data-testid="signup-usernamefield"
                       setPremium={(value) => setPremiumUsername(value)}
                       addOnLeading={
-                        orgSlug
-                          ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
-                              URL_PROTOCOL_REGEX,
-                              ""
-                            )}/`
-                          : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                        <UrlPrefix
+                          url={
+                            orgSlug
+                              ? `${getOrgFullOrigin(orgSlug, { protocol: true }).replace(
+                                  URL_PROTOCOL_REGEX,
+                                  ""
+                                )}/`
+                              : `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                          }
+                        />
                       }
                     />
                   ) : null}
