@@ -1239,7 +1239,8 @@ export default class SalesforceCRMService implements CRM {
         log.error(`BookingUid not passed. Cannot get form responses without it`);
         return;
       }
-      valueToWrite = String(await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId));
+      const formValue = await this.getTextValueFromRoutingFormResponse(fieldValue, bookingUid, recordId);
+      valueToWrite = formValue || "";
     } else if (fieldValue.startsWith("{utm:")) {
       if (!bookingUid) {
         log.error(`BookingUid not passed. Cannot get tracking values without it`);
@@ -1299,23 +1300,24 @@ export default class SalesforceCRMService implements CRM {
       return fieldValue;
     }
 
-    try {
-      const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
-        logger: log,
-        routingFormResponseRepo: new RoutingFormResponseRepository(),
-      });
-      // console.log(routingFormResponseDataFactory);
-
-      value = findFieldValueByIdentifier(
-        await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
-        identifierField
-      );
-    } catch (error) {
-      log.error("Routing form response not found", error);
-      return fieldValue;
+    const routingFormResponseDataFactory = new RoutingFormResponseDataFactory({
+      logger: log,
+      routingFormResponseRepo: new RoutingFormResponseRepository(),
+    });
+    const findFieldResult = findFieldValueByIdentifier(
+      await routingFormResponseDataFactory.createWithBookingUid(bookingUid),
+      identifierField
+    );
+    if (findFieldResult.success) {
+      value = findFieldResult.data;
+      return String(value);
     }
-
-    return value;
+    log.error(
+      `Could not find field value for identifier ${identifierField} in bookingUid ${bookingUid}`,
+      `failed with error: ${findFieldResult.error}`
+    );
+    // If the field is not found, return the original field value
+    return fieldValue;
   }
 
   private async getTextValueFromBookingTracking(fieldValue: string, bookingUid: string) {

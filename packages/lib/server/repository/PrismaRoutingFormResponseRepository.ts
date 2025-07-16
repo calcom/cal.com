@@ -6,7 +6,7 @@ import type { RoutingFormResponseRepositoryInterface } from "./RoutingFormRespon
 export class PrismaRoutingFormResponseRepository implements RoutingFormResponseRepositoryInterface {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
-  findById(id: number) {
+  findByIdIncludeForm(id: number) {
     return this.prismaClient.app_RoutingForms_FormResponse.findUnique({
       where: {
         id,
@@ -21,7 +21,7 @@ export class PrismaRoutingFormResponseRepository implements RoutingFormResponseR
     });
   }
 
-  findByBookingUid(bookingUid: string) {
+  findByBookingUidIncludeForm(bookingUid: string) {
     return this.prismaClient.app_RoutingForms_FormResponse.findUnique({
       where: {
         routedToBookingUid: bookingUid,

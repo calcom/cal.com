@@ -1,11 +1,21 @@
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+
 import type { RoutingFormResponseData } from "./types";
 
-export function findFieldValueByIdentifier(data: RoutingFormResponseData, identifier: string) {
-  const field = data.fields.find((field) => field.identifier === identifier);
+type FindFieldValueByIdentifierResult =
+  | { success: true; data: string | string[] | number | null }
+  | { success: false; error: string };
+
+export function findFieldValueByIdentifier(
+  data: RoutingFormResponseData,
+  identifier: string
+): FindFieldValueByIdentifierResult {
+  const field = data.fields.find((field) => getFieldIdentifier(field) === identifier);
   if (!field) {
-    throw new Error(`Field with identifier ${identifier} not found`);
+    return { success: false, error: `Field with identifier ${identifier} not found` };
   }
 
   const fieldValue = data.response[field.id]?.value;
-  return fieldValue ?? null;
+
+  return { success: true, data: fieldValue ?? null };
 }
