@@ -51,6 +51,14 @@ interface BodyValue {
   start: { dateTime: string };
 }
 
+// Helper to get the canonical cache window
+function getNormalizedCacheWindow() {
+  return {
+    timeMin: dayjs().startOf("day").toISOString(),
+    timeMax: dayjs().add(2, "month").endOf("day").toISOString(),
+  };
+}
+
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
@@ -301,12 +309,11 @@ export default class Office365CalendarService implements Calendar {
     selectedCalendars: IntegrationCalendar[],
     forceRefresh = false
   ): Promise<EventBusyDate[]> {
-    const dateFromParsed = new Date(dateFrom);
-    const dateToParsed = new Date(dateTo);
-
+    // Use normalized window for cache key
+    const { timeMin, timeMax } = getNormalizedCacheWindow();
     const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+      new Date(timeMin).toISOString()
+    )}&endDateTime=${encodeURIComponent(new Date(timeMax).toISOString())}`;
 
     const calendarSelectParams = "$select=showAs,start,end";
 
@@ -324,11 +331,9 @@ export default class Office365CalendarService implements Calendar {
       }
 
       // ---- CACHING LOGIC START ----
-      const normalizedTimeMin = dayjs(dateFrom).startOf("day").toISOString();
-      const normalizedTimeMax = dayjs(dateTo).endOf("day").toISOString();
       const cacheArgs = {
-        timeMin: normalizedTimeMin,
-        timeMax: normalizedTimeMax,
+        timeMin,
+        timeMax,
         items: selectedCalendarIds.map((id) => ({ id })),
       };
       const calendarCache = new CalendarCacheRepository(this);
@@ -394,10 +399,9 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
-    // Choose a time range (e.g., now to 2 months ahead)
-    const dateFrom = new Date().toISOString();
-    const dateTo = dayjs().add(2, "month").toISOString();
-    await this.getAvailability(dateFrom, dateTo, selectedCalendars, true); // forceRefresh = true
+    // Use normalized window for cache
+    const { timeMin, timeMax } = getNormalizedCacheWindow();
+    await this.getAvailability(timeMin, timeMax, selectedCalendars, true); // forceRefresh = true
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
