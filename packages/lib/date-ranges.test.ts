@@ -1040,7 +1040,7 @@ describe("intersect function comprehensive tests", () => {
   });
 
   describe("timezone offset exclusion bug", () => {
-    it("should fail when mixing UTC and timezone-aware dayjs objects in subtract", () => {
+    it("should succesfully mix UTC and timezone-aware dayjs objects in subtract", () => {
       const TIMEZONE = "Asia/Kolkata"; // IST timezone (+05:30)
 
       const sourceRanges = [
@@ -1059,42 +1059,12 @@ describe("intersect function comprehensive tests", () => {
         },
       ];
 
-      console.log("=== MIXED TIMEZONE CONTEXT BUG ===");
-
-      const getAdjustedTimestamp = (date: any) => date.valueOf() + date.utcOffset() * 60000;
-
-      console.log(
-        "Source (UTC) start:",
-        sourceRanges[0].start.format(),
-        "offset:",
-        sourceRanges[0].start.utcOffset()
-      );
-      console.log("Source adjusted:", getAdjustedTimestamp(sourceRanges[0].start));
-
-      console.log(
-        "Excluded (IST) start:",
-        excludedRanges[0].start.format(),
-        "offset:",
-        excludedRanges[0].start.utcOffset()
-      );
-      console.log("Excluded adjusted:", getAdjustedTimestamp(excludedRanges[0].start));
-
-      const utcAdjusted = getAdjustedTimestamp(sourceRanges[0].start);
-      const istAdjusted = getAdjustedTimestamp(excludedRanges[0].start);
-
-      console.log("UTC adjusted timestamp:", utcAdjusted);
-      console.log("IST adjusted timestamp:", istAdjusted);
-      console.log("Difference:", istAdjusted - utcAdjusted, "ms");
-
       const result = subtract(sourceRanges, excludedRanges);
 
       expect(result).toHaveLength(0);
-
-      console.log("Result length (should be 0):", result.length);
-      console.log("=== END BUG DEMONSTRATION ===");
     });
 
-    it("should demonstrate timezone offset calculation issue with edge case", () => {
+    it("should demonstrate timezone handling when same timezone", () => {
       const TIMEZONE = "Asia/Kolkata";
 
       const sourceRange = {
@@ -1107,38 +1077,9 @@ describe("intersect function comprehensive tests", () => {
         end: dayjs("2024-05-31T18:00:00.000Z").tz(TIMEZONE),
       };
 
-      const getAdjustedTimestamp = (date: any) => date.valueOf() + date.utcOffset() * 60000;
-
-      console.log("=== TIMEZONE OFFSET DEBUG ===");
-      console.log("Source start:", sourceRange.start.format(), "UTC offset:", sourceRange.start.utcOffset());
-      console.log("Source start valueOf:", sourceRange.start.valueOf());
-      console.log("Source start adjusted:", getAdjustedTimestamp(sourceRange.start));
-
-      console.log(
-        "Excluded start:",
-        excludedRange.start.format(),
-        "UTC offset:",
-        excludedRange.start.utcOffset()
-      );
-      console.log("Excluded start valueOf:", excludedRange.start.valueOf());
-      console.log("Excluded start adjusted:", getAdjustedTimestamp(excludedRange.start));
-
-      console.log("Excluded end:", excludedRange.end.format(), "UTC offset:", excludedRange.end.utcOffset());
-      console.log("Excluded end valueOf:", excludedRange.end.valueOf());
-      console.log("Excluded end adjusted:", getAdjustedTimestamp(excludedRange.end));
-
-      const shouldExclude =
-        getAdjustedTimestamp(excludedRange.start) <= getAdjustedTimestamp(sourceRange.start) &&
-        getAdjustedTimestamp(sourceRange.end) <= getAdjustedTimestamp(excludedRange.end);
-
-      console.log("Should exclude source range:", shouldExclude);
-
       const result = subtract([sourceRange], [excludedRange]);
 
       expect(result).toHaveLength(0);
-
-      console.log("Actual result length:", result.length);
-      console.log("=== END DEBUG ===");
     });
   });
 });

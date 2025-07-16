@@ -309,33 +309,36 @@ export function subtract(
 ) {
   const result: DateRange[] = [];
 
-  // Sort excludedRanges by start time to avoid sorting inside the loop
-  excludedRanges.sort((a, b) => (a.start.valueOf() > b.start.valueOf() ? 1 : -1));
+  const sortedExcludedRanges = [...excludedRanges]
+    .map((range) => ({
+      start: range.start,
+      startValue: new Date(range.start.valueOf()).valueOf(),
+      end: range.end,
+      endValue: new Date(range.end.valueOf()).valueOf(),
+    }))
+    .sort((a, b) => (a.startValue > b.startValue ? 1 : -1));
 
   // Iterate over each source range
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
-    let currentStartValue = currentStart.valueOf() + currentStart.utcOffset() * 60000;
+    let currentStartValue = new Date(currentStart.valueOf()).valueOf();
     let excludedIndex = 0;
 
-    const sourceEndValue = sourceEnd.valueOf() + sourceEnd.utcOffset() * 60000;
+    const sourceEndValue = new Date(sourceEnd.valueOf()).valueOf();
 
     // Process overlapping excludedRanges
     while (excludedIndex < excludedRanges.length) {
-      const excludedStartValue =
-        excludedRanges[excludedIndex].start.valueOf() +
-        excludedRanges[excludedIndex].start.utcOffset() * 60000;
-      const excludedEndValue =
-        excludedRanges[excludedIndex].end.valueOf() + excludedRanges[excludedIndex].end.utcOffset() * 60000;
+      const excludedStartValue = sortedExcludedRanges[excludedIndex].startValue;
+      const excludedEndValue = sortedExcludedRanges[excludedIndex].endValue;
       // If excluded range starts after current start, add non-overlapping part
       if (excludedStartValue > currentStartValue) {
-        result.push({ start: currentStart, end: excludedRanges[excludedIndex].start });
+        result.push({ start: currentStart, end: sortedExcludedRanges[excludedIndex].start });
       }
 
       // Update currentStart to the maximum of the current start or the excluded end
       if (excludedEndValue > currentStartValue) {
-        currentStart = excludedRanges[excludedIndex].end;
-        currentStartValue = currentStart.valueOf() + currentStart.utcOffset() * 60000;
+        currentStart = sortedExcludedRanges[excludedIndex].end;
+        currentStartValue = sortedExcludedRanges[excludedIndex].endValue;
       }
 
       // Break if we no longer overlap
