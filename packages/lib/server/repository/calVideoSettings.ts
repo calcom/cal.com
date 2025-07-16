@@ -84,6 +84,7 @@ export class CalVideoSettingsRepository {
         disableRecordingForGuests: true,
         disableRecordingForOrganizer: true,
         enableAutomaticTranscription: true,
+        enableAutomaticRecordingForOrganizer: true,
         disableTranscriptionForGuests: true,
         disableTranscriptionForOrganizer: true,
         redirectUrlOnExit: true,
