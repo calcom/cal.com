@@ -19,6 +19,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
@@ -28,23 +29,6 @@ import emailRatingTemplate from "./templates/emailRatingTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
-
-function getEmailWorkflowRecipientEmail(
-  action: ScheduleEmailReminderAction,
-  evt: BookingInfo,
-  sendTo: string[]
-): string | null {
-  switch (action) {
-    case WorkflowActions.EMAIL_ADDRESS:
-      return sendTo[0] || null;
-    case WorkflowActions.EMAIL_HOST:
-      return evt.organizer?.email || null;
-    case WorkflowActions.EMAIL_ATTENDEE:
-      return evt.attendees?.[0]?.email || null;
-    default:
-      return null;
-  }
-}
 
 type ScheduleEmailReminderAction = Extract<
   WorkflowActions,
@@ -156,7 +140,12 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   const bookerUrl = evt.bookerUrl ?? WEBSITE_URL;
 
   if (emailBody) {
-    const recipientEmail = getEmailWorkflowRecipientEmail(action, evt, sendTo);
+    const recipientEmail = getWorkflowRecipientEmail({
+      action,
+      attendeeEmail: attendeeToBeUsedInMail.email,
+      organizerEmail: evt.organizer.email,
+      sendToEmail: sendTo[0],
+    });
     const variables: VariablesType = {
       eventName: evt.title || "",
       organizerName: evt.organizer.name,

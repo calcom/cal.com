@@ -107,10 +107,20 @@ export async function handler(req: NextRequest) {
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
         );
 
+        const recipientEmail = getWorkflowRecipientEmail({
+          action: reminder.workflowStep.action || WorkflowActions.SMS_NUMBER,
+          attendeeEmail: reminder.booking.attendees[0].email,
+          organizerEmail: reminder.booking.user?.email,
+        });
+
         const urls = {
           meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true` || "",
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+            recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+          }`,
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
+            recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+          }`,
         };
 
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
@@ -128,16 +138,8 @@ export async function handler(req: NextRequest) {
           additionalNotes: reminder.booking?.description,
           responses: responses,
           meetingUrl,
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
-            getWorkflowRecipientEmail(reminder)
-              ? `&cancelledBy=${encodeURIComponent(getWorkflowRecipientEmail(reminder)!)}`
-              : ""
-          }`,
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
-            getWorkflowRecipientEmail(reminder)
-              ? `?rescheduledBy=${encodeURIComponent(getWorkflowRecipientEmail(reminder)!)}`
-              : ""
-          }`,
+          cancelLink,
+          rescheduleLink,
           attendeeTimezone: reminder.booking.attendees[0].timeZone,
           eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
             reminder.booking.attendees[0].timeZone

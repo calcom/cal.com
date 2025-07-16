@@ -188,6 +188,13 @@ export async function handler(req: NextRequest) {
             reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
           );
 
+          const recipientEmail = getWorkflowRecipientEmail({
+            action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
+            attendeeEmail: reminder.booking.attendees[0].email,
+            organizerEmail: reminder.booking.user?.email,
+            sendToEmail: reminder.workflowStep.sendTo,
+          });
+
           const variables: VariablesType = {
             eventName: reminder.booking.eventType?.title || "",
             organizerName: reminder.booking.user?.name || "",
@@ -201,14 +208,10 @@ export async function handler(req: NextRequest) {
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
             cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
-              getWorkflowRecipientEmail(reminder)
-                ? `&cancelledBy=${encodeURIComponent(getWorkflowRecipientEmail(reminder)!)}`
-                : ""
+              recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
             }`,
             rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
-              getWorkflowRecipientEmail(reminder)
-                ? `?rescheduledBy=${encodeURIComponent(getWorkflowRecipientEmail(reminder)!)}`
-                : ""
+              recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
             }`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
             noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,

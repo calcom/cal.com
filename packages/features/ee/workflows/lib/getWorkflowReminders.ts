@@ -8,8 +8,6 @@ type PartialWorkflowStep =
       workflow: {
         userId?: number;
         teamId?: number;
-        user?: { email: string } | null;
-        team?: { members: { user: { email: string }; role: string }[] } | null;
       };
     })
   | null;
@@ -223,23 +221,31 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   return unscheduledReminders;
 }
 
-export function getWorkflowRecipientEmail(reminder: PartialWorkflowReminder): string | null {
-  if (!reminder?.workflowStep?.action) return null;
-
-  const action = reminder.workflowStep.action;
+export function getWorkflowRecipientEmail({
+  action,
+  organizerEmail,
+  attendeeEmail,
+  sendToEmail,
+}: {
+  action: string;
+  organizerEmail?: string;
+  attendeeEmail?: string;
+  sendToEmail?: string | null;
+}): string | null {
+  // const action = reminder.workflowStep.action;
 
   switch (action) {
     case "EMAIL_ADDRESS":
-      return reminder.workflowStep.sendTo || null;
+      return sendToEmail || null;
     case "EMAIL_HOST":
-      return reminder.booking?.user?.email || null;
+      return organizerEmail || null;
     case "EMAIL_ATTENDEE":
-      return reminder.booking?.attendees?.[0]?.email || null;
+      return attendeeEmail || null;
     case "SMS_ATTENDEE":
+      return attendeeEmail || null;
     case "WHATSAPP_ATTENDEE":
-      return reminder.booking?.attendees?.[0]?.email || null;
+      return attendeeEmail || null;
     case "SMS_NUMBER":
-      return reminder.booking?.attendees?.[0]?.email || null;
     case "WHATSAPP_NUMBER":
       return null;
     default:
