@@ -147,6 +147,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
         { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
+        { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
   ];

@@ -22,7 +22,7 @@ import { Input } from "@calcom/ui/form";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
+import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -38,6 +38,7 @@ export default function JoinCall(props: PageProps) {
     overrideName,
     showRecordingButton,
     enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
     showTranscriptionButton,
     rediectAttendeeToOnExit,
   } = props;
