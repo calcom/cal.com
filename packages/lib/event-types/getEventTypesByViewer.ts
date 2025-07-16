@@ -51,6 +51,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   if (isFilterSet && filters?.upIds && !isUpIdInFilter) {
     shouldListUserEvents = true;
   }
+  const eventTypeRepo = new EventTypeRepository(prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
@@ -63,7 +64,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       }
     ),
     shouldListUserEvents
-      ? EventTypeRepository.findAllByUpId(
+      ? eventTypeRepo.findAllByUpId(
           {
             upId: userProfile.upId,
             userId: user.id,
