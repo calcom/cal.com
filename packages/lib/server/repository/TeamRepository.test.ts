@@ -123,15 +123,15 @@ describe("TeamRepository", () => {
       expect(prismaMock.team.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
         select: {
+          id: true,
+          metadata: true,
+          parentId: true,
+          isOrganization: true,
           members: {
             select: {
               accepted: true,
             },
           },
-          id: true,
-          metadata: true,
-          parentId: true,
-          isOrganization: true,
         },
       });
       expect(result).toEqual(mockTeam);

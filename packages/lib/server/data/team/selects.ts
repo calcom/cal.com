@@ -101,3 +101,59 @@ export const teamBookingPageSelect: TeamSelect = {
     },
   },
 };
+
+export const teamWithMembersSelect: TeamSelect = {
+  id: true,
+  metadata: true,
+  parentId: true,
+  isOrganization: true,
+  members: {
+    select: {
+      accepted: true,
+    },
+  },
+};
+
+export const teamWithOrganizationSettingsSelect: TeamSelect = {
+  parent: {
+    select: {
+      isOrganization: true,
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+          orgProfileRedirectsToVerifiedDomain: true,
+          orgAutoAcceptEmail: true,
+        },
+      },
+    },
+  },
+};
+
+export const teamForUserMembershipSelect: TeamSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+  isOrganization: true,
+  metadata: true,
+  inviteTokens: {
+    select: {
+      token: true,
+      expires: true,
+      expiresInDays: true,
+      identifier: true,
+    },
+  },
+  parent: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      isPrivate: true,
+      isOrganization: true,
+      logoUrl: true,
+      metadata: true,
+    },
+  },
+  parentId: true,
+};
