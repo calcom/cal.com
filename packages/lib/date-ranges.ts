@@ -307,50 +307,26 @@ export function subtract(
   sourceRanges: (DateRange & { [x: string]: unknown })[],
   excludedRanges: DateRange[]
 ) {
-  const result: DateRange[] = [];
+  const result = [];
+  const sortedExcludedRanges = [...excludedRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
-  const sortedExcludedRanges = [...excludedRanges]
-    .map((range) => ({
-      start: range.start,
-      startValue: new Date(range.start.valueOf()).valueOf(),
-      end: range.end,
-      endValue: new Date(range.end.valueOf()).valueOf(),
-    }))
-    .sort((a, b) => (a.startValue > b.startValue ? 1 : -1));
-
-  // Iterate over each source range
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
-    let currentStartValue = new Date(currentStart.valueOf()).valueOf();
-    let excludedIndex = 0;
 
-    const sourceEndValue = new Date(sourceEnd.valueOf()).valueOf();
+    for (const excludedRange of sortedExcludedRanges) {
+      if (excludedRange.start.valueOf() >= sourceEnd.valueOf()) break;
+      if (excludedRange.end.valueOf() <= currentStart.valueOf()) continue;
 
-    // Process overlapping excludedRanges
-    while (excludedIndex < excludedRanges.length) {
-      const excludedStartValue = sortedExcludedRanges[excludedIndex].startValue;
-      const excludedEndValue = sortedExcludedRanges[excludedIndex].endValue;
-      // If excluded range starts after current start, add non-overlapping part
-      if (excludedStartValue > currentStartValue) {
-        result.push({ start: currentStart, end: sortedExcludedRanges[excludedIndex].start });
+      if (excludedRange.start.valueOf() > currentStart.valueOf()) {
+        result.push({ start: currentStart, end: excludedRange.start, ...passThrough });
       }
 
-      // Update currentStart to the maximum of the current start or the excluded end
-      if (excludedEndValue > currentStartValue) {
-        currentStart = sortedExcludedRanges[excludedIndex].end;
-        currentStartValue = sortedExcludedRanges[excludedIndex].endValue;
+      if (excludedRange.end.valueOf() > currentStart.valueOf()) {
+        currentStart = excludedRange.end;
       }
-
-      // Break if we no longer overlap
-      if (excludedEndValue > sourceEndValue) {
-        break;
-      }
-
-      excludedIndex++;
     }
 
-    // If there’s still time remaining after the last excluded range, add the remaining range
-    if (sourceEndValue > currentStartValue) {
+    if (sourceEnd.valueOf() > currentStart.valueOf()) {
       result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
