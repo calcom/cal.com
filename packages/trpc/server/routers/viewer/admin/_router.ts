@@ -6,6 +6,11 @@ import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
+import { ZListAllWithFeaturesInputSchema } from "./teamFeatures/listAllWithFeatures.schema";
+import { ZUpdateFeaturesInputSchema } from "./teamFeatures/updateFeatures.schema";
+import { ZChangeMemberRoleInputSchema } from "./teamMembers/changeMemberRole.schema";
+import { ZDeleteMemberInputSchema } from "./teamMembers/deleteMember.schema";
+import { ZListMembersInputSchema } from "./teamMembers/listMembers.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
@@ -81,6 +86,30 @@ export const adminRouter = router({
       }),
     toggleEnabled: authedAdminProcedure.input(workspacePlatformToggleEnabledSchema).mutation(async (opts) => {
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
+      return handler(opts);
+    }),
+  }),
+  teamFeatures: router({
+    listAllWithFeatures: authedAdminProcedure.input(ZListAllWithFeaturesInputSchema).query(async (opts) => {
+      const { default: handler } = await import("./teamFeatures/listAllWithFeatures.handler");
+      return handler(opts);
+    }),
+    updateFeatures: authedAdminProcedure.input(ZUpdateFeaturesInputSchema).mutation(async (opts) => {
+      const { default: handler } = await import("./teamFeatures/updateFeatures.handler");
+      return handler(opts);
+    }),
+  }),
+  teamMembers: router({
+    listMembers: authedAdminProcedure.input(ZListMembersInputSchema).query(async (opts) => {
+      const { default: handler } = await import("./teamMembers/listMembers.handler");
+      return handler(opts);
+    }),
+    changeMemberRole: authedAdminProcedure.input(ZChangeMemberRoleInputSchema).mutation(async (opts) => {
+      const { default: handler } = await import("./teamMembers/changeMemberRole.handler");
+      return handler(opts);
+    }),
+    deleteMember: authedAdminProcedure.input(ZDeleteMemberInputSchema).mutation(async (opts) => {
+      const { default: handler } = await import("./teamMembers/deleteMember.handler");
       return handler(opts);
     }),
   }),

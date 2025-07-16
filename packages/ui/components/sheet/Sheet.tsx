@@ -61,8 +61,10 @@ SheetOverlay.displayName = "SheetOverlay";
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitives.Content>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content>
->(({ className, ...props }, forwardedRef) => {
+  React.ComponentPropsWithoutRef<typeof SheetPrimitives.Content> & {
+    fullscreen?: boolean;
+  }
+>(({ className, fullscreen = false, ...props }, forwardedRef) => {
   return (
     <SheetPortal>
       <SheetOverlay>
@@ -70,14 +72,25 @@ const SheetContent = React.forwardRef<
           ref={forwardedRef}
           className={classNames(
             // base
-            "fixed inset-y-4 mx-auto flex w-[95vw] flex-1 flex-col overflow-y-auto rounded-xl border p-4 shadow-lg focus:outline-none sm:right-2 sm:max-w-lg sm:p-6",
-            // "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:p-6 p-4 shadow-lg rounded-xl border ",
+            "fixed flex flex-1 flex-col overflow-y-auto border shadow-lg focus:outline-none",
+            // conditional sizing and positioning based on fullscreen prop
+            fullscreen
+              ? [
+                  // fullscreen: take up entire viewport on desktop, keep mobile behavior
+                  "inset-4 rounded-xl p-4 sm:inset-2 sm:p-6",
+                  // fullscreen animations
+                  "data-[state=closed]:animate-hide data-[state=open]:animate-dialogOverlayShow",
+                ]
+              : [
+                  // default: right-side sheet behavior
+                  "inset-y-4 mx-auto w-[95vw] rounded-xl p-4 sm:right-2 sm:max-w-lg sm:p-6",
+                  // default animations
+                  "data-[state=closed]:animate-SheetSlideRightAndFade data-[state=open]:animate-SheetSlideLeftAndFade",
+                ],
             // border color
             "border-subtle",
             // background color
             "bg-default",
-            // transition
-            "data-[state=closed]:animate-SheetSlideRightAndFade data-[state=open]:animate-SheetSlideLeftAndFade",
             className
           )}
           {...props}
