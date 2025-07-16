@@ -25,9 +25,9 @@ type TeamWithFeatures = {
   slug: string | null;
   parentId: number | null;
   isOrganization: boolean;
-  platformBilling: { id: string } | null;
+  platformBilling: { id: number } | null;
   children: { id: number; name: string }[];
-  features: Record<string, boolean>;
+  features: Record<string, boolean> | null;
 };
 
 export function TeamFeaturesListingView() {
@@ -110,13 +110,15 @@ function TeamFeaturesListingContent() {
         header: t("features"),
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
-            {Object.entries(row.original.features)
-              .filter(([, enabled]) => enabled)
-              .map(([feature]) => (
-                <Badge key={feature} variant="green" className="text-xs">
-                  {feature}
-                </Badge>
-              ))}
+            {row.original.features
+              ? Object.entries(row.original.features)
+                  .filter(([, enabled]) => enabled)
+                  .map(([feature]) => (
+                    <Badge key={feature} variant="green" className="text-xs">
+                      {feature}
+                    </Badge>
+                  ))
+              : "-"}
           </div>
         ),
       },
