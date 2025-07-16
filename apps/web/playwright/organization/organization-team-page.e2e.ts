@@ -17,7 +17,6 @@ test.describe("Organization Team page", () => {
       hasSubteam: true,
       isOrgVerified: true,
       isDnsSetup: true,
-      orgRequestedSlug: "example",
       schedulingType: SchedulingType.ROUND_ROBIN,
     });
     const { team: org } = await orgMember.getOrgMembership();
