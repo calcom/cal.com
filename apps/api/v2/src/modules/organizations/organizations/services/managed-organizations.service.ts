@@ -45,11 +45,10 @@ export class ManagedOrganizationsService {
       organizationData.slug = slugify(organizationData.name);
     }
 
+    const slug = organizationData.slug!;
+
     const existingManagedOrganization =
-      await this.managedOrganizationsRepository.getManagedOrganizationBySlug(
-        managerOrganizationId,
-        organizationData.slug
-      );
+      await this.managedOrganizationsRepository.getManagedOrganizationBySlug(managerOrganizationId, slug);
 
     if (existingManagedOrganization) {
       throw new ConflictException(
