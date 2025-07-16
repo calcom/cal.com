@@ -1,11 +1,10 @@
-import { Grid } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import classNames from "@calcom/ui/classNames";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { KPICard } from "./KPICard";
 
 export const BookingKPICards = () => {
@@ -30,17 +29,9 @@ export const BookingKPICards = () => {
     }
   );
 
-  const categories: {
+  const eventCategories: {
     title: string;
-    index:
-      | "created"
-      | "completed"
-      | "rescheduled"
-      | "cancelled"
-      | "no_show"
-      | "rating"
-      | "csat"
-      | "no_show_guest";
+    index: "created" | "completed" | "rescheduled" | "cancelled";
   }[] = [
     {
       title: t("events_created"),
@@ -58,6 +49,12 @@ export const BookingKPICards = () => {
       title: t("events_cancelled"),
       index: "cancelled",
     },
+  ];
+
+  const performanceCategories: {
+    title: string;
+    index: "rating" | "no_show" | "no_show_guest" | "csat";
+  }[] = [
     {
       title: t("event_ratings"),
       index: "rating",
@@ -77,41 +74,112 @@ export const BookingKPICards = () => {
   ];
 
   if (isPending) {
-    return <LoadingKPICards categories={categories} />;
+    return (
+      <LoadingKPICards eventCategories={eventCategories} performanceCategories={performanceCategories} />
+    );
   }
 
   if (!isSuccess || !data) return null;
 
   return (
-    <>
-      <Grid numColsSm={2} numColsLg={4} className="gap-x-4 gap-y-4">
-        {categories.map((item) => (
-          <KPICard
-            key={item.title}
-            title={item.title}
-            value={data[item.index].count}
-            previousMetricData={data[item.index]}
-            previousDateRange={data.previousRange}
-          />
-        ))}
-      </Grid>
-    </>
+    <div className="space-y-4">
+      <ChartCard title={t("events")}>
+        <StatContainer>
+          {eventCategories.map((item, index) => (
+            <StatItem key={item.title} index={index}>
+              <KPICard
+                title={item.title}
+                value={data[item.index].count}
+                previousMetricData={data[item.index]}
+                previousDateRange={data.previousRange}
+              />
+            </StatItem>
+          ))}
+        </StatContainer>
+      </ChartCard>
+
+      <ChartCard title={t("performance")}>
+        <StatContainer>
+          {performanceCategories.map((item, index) => (
+            <StatItem key={item.title} index={index} length={performanceCategories.length}>
+              <KPICard
+                title={item.title}
+                value={data[item.index].count}
+                previousMetricData={data[item.index]}
+                previousDateRange={data.previousRange}
+              />
+            </StatItem>
+          ))}
+        </StatContainer>
+      </ChartCard>
+    </div>
   );
 };
 
-const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
-  const { categories } = props;
+const LoadingKPICards = (props: {
+  eventCategories: { title: string; index: string }[];
+  performanceCategories: { title: string; index: string }[];
+}) => {
+  const { eventCategories, performanceCategories } = props;
+  const { t } = useLocale();
+
   return (
-    <Grid numColsSm={2} numColsLg={4} className="gap-x-4 gap-y-4">
-      {categories.map((item) => (
-        <CardInsights key={item.title}>
-          <SkeletonContainer className="flex w-full flex-col">
-            <SkeletonText className="mt-2 h-4 w-32" />
-            <SkeletonText className="mt-2 h-6 w-16" />
-            <SkeletonText className="mt-4 h-6 w-44" />
-          </SkeletonContainer>
-        </CardInsights>
-      ))}
-    </Grid>
+    <div className="space-y-4">
+      <ChartCard title={t("events")}>
+        <StatContainer>
+          {eventCategories.map((item, index) => (
+            <StatItem key={item.title} index={index} length={eventCategories.length}>
+              <div>
+                <SkeletonText className="mb-2 h-4 w-24" />
+                <div className="items-baseline justify-start space-x-3 truncate">
+                  <SkeletonText className="h-8 w-16" />
+                </div>
+                <div className="mt-4 justify-start space-x-2">
+                  <SkeletonText className="h-4 w-20" />
+                </div>
+              </div>
+            </StatItem>
+          ))}
+        </StatContainer>
+      </ChartCard>
+
+      <ChartCard title={t("performance")}>
+        <StatContainer>
+          {performanceCategories.map((item, index) => (
+            <StatItem key={item.title} index={index} length={performanceCategories.length}>
+              <div>
+                <SkeletonText className="mb-2 h-4 w-24" />
+                <div className="items-baseline justify-start space-x-3 truncate">
+                  <SkeletonText className="h-8 w-16" />
+                </div>
+                <div className="mt-4 justify-start space-x-2">
+                  <SkeletonText className="h-4 w-20" />
+                </div>
+              </div>
+            </StatItem>
+          ))}
+        </StatContainer>
+      </ChartCard>
+    </div>
   );
 };
+
+// StatContainer: wraps the grid
+function StatContainer({ children }: { children: React.ReactNode }) {
+  return <div className="group grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
+}
+
+// StatItem: handles border logic
+function StatItem({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <div
+      className={classNames(
+        "border-muted flex-1 p-4",
+        index === 0 && "border-b sm:border-r md:border-b-0 md:border-r",
+        index === 1 && "border-b sm:border-r-0 md:border-b-0 md:border-r",
+        index === 2 && "border-b sm:border-b-0 sm:border-r md:border-b-0"
+      )}>
+      {children}
+    </div>
+  );
+}
