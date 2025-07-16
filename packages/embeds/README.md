@@ -166,8 +166,8 @@ For example, if your page is `https.example.com/contact`, you can enable logging
 #### Routing Prerendering System
 The prerendering system optimizes the initial load:
 ```typescript
-Cal.prerender({
-  calLink: "organization/event-type",
+Cal("prerender", {
+  calLink,
   type: "modal"
 });
 ```
@@ -178,24 +178,63 @@ Key aspects:
 - Loads the booking page but doesn't send the slots availability request
 - Tries to reuse whenever it makes sense and do a fresh load otherwise
 
-Iframe Reuse and Reload Conditions. There could be three situations:
+Modal's Iframe Reuse and Reload Conditions. There could be four situations:
 
-1. Reuse
-2. Reuse the iframe but refetch the slots
-3. Do a fresh load in iframe
+1. Show modal as is. No connect and no requests happen - Corresponding action is "noAction"
+2. Connect but don't fetch the slots- Corresponding action is "connect-no-slots-fetch"
+3. Connect and fetch the slots - Corresponding action is "connect"
+4. Do a fresh load in iframe. Corresponding action is "fullReload"
 
-- **Reuse**:
-  - Modal opens when
-    - Modal is not in a failed state
-    - config, params are same as the last time
-    - No threshold violations
+- **Show modal as is**:
+  - Modal is not in a failed state
+  - config, params are same as the last time
+  - No time threshold violations
 
-- **Reuse the iframe but refetch the slots**:
+- **Connect but don't fetch the slots**:
   - Only embed `config` changes (handled via "connect" flow)
   - Query query params changes (handled via "connect" flow)
   - Crossed slots stale time threshold (EMBED_MODAL_IFRAME_SLOT_STALE_TIME)
 
-- **Fresh Reload Conditions**:
+- **Connect and fetch the slots**:
+  - Slots are stale
+  - Crossed slots stale time threshold (EMBED_MODAL_IFRAME_SLOT_STALE_TIME)
+
+- **Do a fresh load in iframe**:
   - Different path being loaded(i.e. /pro vs /free)
   - Modal is in a failed state
   - Time since last render exceeds EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS
+
+
+#### Prerendering headless router
+
+**Without namespace:**
+Prerender when there are high chances of user clicking the CTA.
+```js
+Cal('prerender', {
+  calLink: "router?formId=123&ONLY_THOSE_FIELDS_THAT_ARE_REQUIRED_BY_ROUTING_RULES_SHOULD_BE_PRESENT_HERE",
+  // Prerender right now works only with "modal", so 'element click' embed is able to reuse this prerendered iframe
+  type: "modal",
+  // Shows skeleton loader for a Team Event's booking slots page
+  pageType: "team.event.booking.slots"
+});
+```
+Using the prerendered iframe with a CTA:
+```js
+<button data-cal-link="router?formId=123&ALL_FIELDS_HERE">Demo</button>
+```
+
+**With namespace:**
+Prerender when there are high changes of user clicking the CTA.
+```js
+Cal.ns.myNamespace('prerender', {
+  calLink: "router?formId=123&ONLY_THOSE_FIELDS_THAT_ARE_REQUIRED_BY_ROUTING_RULES_SHOULD_BE_PRESENT_HERE",
+  // Prerender right now works only with "modal", so 'element click' embed is able to reuse this prerendered iframe
+  type: "modal"
+  // Shows skeleton loader for a Team Event's booking slots page
+  pageType: "team.event.booking.slots"
+});
+```
+Using the prerendered iframe with a CTA:
+```js
+<button data-cal-namespace="myNamespace" data-cal-link="router?formId=123&ALL_FIELDS_HERE">Demo</button>
+```
