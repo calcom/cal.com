@@ -378,7 +378,8 @@ export type PlatformParams = {
 };
 
 export type BookingHandlerInput = {
-  bookingData: Record<string, unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bookingData: Record<string, any>;
   userId?: number;
   // These used to come from headers but now we're passing them as params
   hostname?: string;
