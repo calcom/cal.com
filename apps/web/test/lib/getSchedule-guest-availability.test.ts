@@ -323,10 +323,10 @@ describe("getSchedule - Guest Availability Feature", () => {
       },
     });
 
-    // Both 10:30 AM IST and 1:30 PM IST should be excluded
+    // Both 10:30 AM IST and 12:30 PM IST should be excluded
     // because guest1 and guest2 are busy at those times respectively
     // Guest1 busy: 10:30-11:30 AM IST (05:00-06:00 GMT) - excludes 05:00:00.000Z
-    // Guest2 busy: 12:30-1:30 PM IST (07:00-08:00 GMT) - excludes 08:00:00.000Z  
+    // Guest2 busy: 12:30-1:30 PM IST (07:00-08:00 GMT) - excludes 07:00:00.000Z  
     expect(schedule).toHaveTimeSlots(
       [
         // `05:00:00.000Z`, // 10:30 AM IST - Should be excluded (guest1 busy)
