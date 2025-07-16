@@ -1,3 +1,4 @@
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -24,17 +25,10 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
     });
 
   const credentialIds = connectedCalendars.map((cal) => cal.credentialId);
-  const cacheStatuses = await prisma.calendarCache.groupBy({
-    by: ["credentialId"],
-    where: {
-      credentialId: { in: credentialIds },
-    },
-    _max: {
-      updatedAt: true,
-    },
-  });
+  const cacheRepository = new CalendarCacheRepository();
+  const cacheStatuses = await cacheRepository.getCacheStatusByCredentialIds(credentialIds);
 
-  const cacheStatusMap = new Map(cacheStatuses.map((cache) => [cache.credentialId, cache._max.updatedAt]));
+  const cacheStatusMap = new Map(cacheStatuses.map((cache) => [cache.credentialId, cache.updatedAt]));
 
   const enrichedConnectedCalendars = connectedCalendars.map((calendar) => ({
     ...calendar,
