@@ -643,7 +643,61 @@ export class BookingRepository {
   }
 
   async findOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
-    // Workaround for prismock WHERE clause issues - fetch all bookings and filter in memory
+    // Use proper database filtering in production for better performance
+    if (process.env.NODE_ENV !== 'test') {
+      return await this.prismaClient.booking.findFirst({
+        where: {
+          uid: uid,
+          status: {
+            in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+          },
+        },
+        include: {
+          attendees: {
+            select: {
+              name: true,
+              email: true,
+              locale: true,
+              timeZone: true,
+              phoneNumber: true,
+              ...(seatsEventType && { bookingSeat: true, id: true }),
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              locale: true,
+              timeZone: true,
+              destinationCalendar: true,
+              credentials: {
+                select: {
+                  id: true,
+                  userId: true,
+                  key: true,
+                  type: true,
+                  teamId: true,
+                  appId: true,
+                  invalid: true,
+                  user: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          destinationCalendar: true,
+          payment: true,
+          references: true,
+          workflowReminders: true,
+        },
+      });
+    }
+
+    // Workaround for prismock WHERE clause issues - only used in tests
     const allBookings = await this.prismaClient.booking.findMany({
       include: {
         attendees: {
@@ -709,7 +763,52 @@ export class BookingRepository {
     dateFrom: Date;
     dateTo: Date;
   }) {
-    // Workaround for prismock WHERE clause issues - fetch all bookings and filter in memory
+    // Use proper database filtering in production for better performance
+    if (process.env.NODE_ENV !== 'test') {
+      return await this.prismaClient.booking.findMany({
+        where: {
+          status: {
+            in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+          },
+          startTime: {
+            gte: dateFrom,
+          },
+          endTime: {
+            lte: dateTo,
+          },
+          OR: [
+            {
+              userId: {
+                in: userIds,
+              },
+            },
+            {
+              attendees: {
+                some: {
+                  email: {
+                    in: userEmails,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        select: {
+          startTime: true,
+          endTime: true,
+          title: true,
+          userId: true,
+          status: true,
+          attendees: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+    }
+
+    // Workaround for prismock WHERE clause issues - only used in tests
     const allBookings = await this.prismaClient.booking.findMany({
       select: {
         startTime: true,

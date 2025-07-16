@@ -276,23 +276,26 @@ export class UserRepository {
   }
 
   async findUsersByEmails({ emails }: { emails: string[] }) {
-    // Workaround for prismock WHERE clause issues - fetch all users and filter in memory
+    // Use proper database filtering in production for better performance
+    if (process.env.NODE_ENV !== 'test') {
+      return await this.prismaClient.user.findMany({
+        where: {
+          email: {
+            in: emails,
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+    }
+
+    // Workaround for prismock WHERE clause issues - only used in tests
     const allUsers = await this.prismaClient.user.findMany({
       select: {
         id: true,
         email: true,
-        credentials: {
-          select: {
-            id: true,
-            type: true,
-            key: true,
-            appId: true,
-            userId: true,
-            teamId: true,
-            invalid: true,
-            subscriptionId: true,
-          },
-        },
       },
     });
     
