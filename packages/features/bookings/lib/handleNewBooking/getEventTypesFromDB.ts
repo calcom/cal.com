@@ -183,10 +183,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
 
     const { profile, hosts, users, ...restEventType } = eventType;
 
-    if (!profile) {
-      throw new Error(ErrorCode.RequestBodyInvalid);
-    }
-
     const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
     const hostsWithSelectedCalendars = hosts.map((host) => ({
