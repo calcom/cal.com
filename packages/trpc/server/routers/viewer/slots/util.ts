@@ -5,7 +5,10 @@ import { v4 as uuid } from "uuid";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
-import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import {
+  checkForConflicts,
+  prepareBusyTimes,
+} from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
@@ -1185,12 +1188,14 @@ export class AvailableSlotsService {
         return r;
       }, []);
 
+      const preparedBusySlots = prepareBusyTimes(busySlotsFromReservedSlots);
+
       availableTimeSlots = availableTimeSlots
         .map((slot) => {
           if (
             !checkForConflicts({
               time: slot.time,
-              busy: busySlotsFromReservedSlots,
+              busy: preparedBusySlots,
               ...availabilityCheckProps,
             })
           ) {

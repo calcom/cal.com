@@ -2,15 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import type { CurrentSeats } from "@calcom/lib/getUserAvailability";
-import type { EventBusyDate } from "@calcom/types/Calendar";
 
-import { checkForConflicts } from "./checkForConflicts";
+import { checkForConflicts, prepareBusyTimes } from "./checkForConflicts";
 
 describe("checkForConflicts", () => {
   const createTestData = (time: string) => ({
     time: dayjs(time),
     eventLength: 30,
-    busy: [] as EventBusyDate[],
+    busy: prepareBusyTimes([]),
   });
 
   describe("currentSeats handling", () => {
@@ -41,12 +40,12 @@ describe("checkForConflicts", () => {
     it("should return false when busy period ends before slot starts", () => {
       const result = checkForConflicts({
         ...createTestData("2023-01-01T09:00:00Z"),
-        busy: [
+        busy: prepareBusyTimes([
           {
             start: dayjs.utc("2023-01-01T08:00:00Z").toDate(),
             end: dayjs.utc("2023-01-01T08:30:00Z").toDate(),
           },
-        ],
+        ]),
       });
       expect(result).toBe(false);
     });
@@ -54,12 +53,12 @@ describe("checkForConflicts", () => {
     it("should return false when busy period starts after slot ends", () => {
       const result = checkForConflicts({
         ...createTestData("2023-01-01T09:00:00Z"),
-        busy: [
+        busy: prepareBusyTimes([
           {
             start: dayjs.utc("2023-01-01T10:00:00Z").toDate(),
             end: dayjs.utc("2023-01-01T10:30:00Z").toDate(),
           },
-        ],
+        ]),
       });
       expect(result).toBe(false);
     });
@@ -67,12 +66,12 @@ describe("checkForConflicts", () => {
     it("should return true when slot start falls within busy period", () => {
       const result = checkForConflicts({
         ...createTestData("2023-01-01T09:15:00Z"),
-        busy: [
+        busy: prepareBusyTimes([
           {
             start: dayjs.utc("2023-01-01T09:00:00Z").toDate(),
             end: dayjs.utc("2023-01-01T09:30:00Z").toDate(),
           },
-        ],
+        ]),
       });
       expect(result).toBe(true);
     });
@@ -80,12 +79,12 @@ describe("checkForConflicts", () => {
     it("should return true when slot end falls within busy period", () => {
       const result = checkForConflicts({
         ...createTestData("2023-01-01T08:45:00Z"),
-        busy: [
+        busy: prepareBusyTimes([
           {
             start: dayjs.utc("2023-01-01T09:00:00Z").toDate(),
             end: dayjs.utc("2023-01-01T09:30:00Z").toDate(),
           },
-        ],
+        ]),
       });
       expect(result).toBe(true);
     });
@@ -512,6 +511,50 @@ describe("checkForConflicts", () => {
         ],
       });
       expect(result).toBe(true);
+    });
+  });
+
+  describe("sorted input validation", () => {
+    it("should work correctly with pre-sorted and mapped busy times", () => {
+      const sortedBusyTimes = [
+        {
+          start: dayjs.utc("2023-01-01T08:00:00Z").valueOf(),
+          end: dayjs.utc("2023-01-01T08:30:00Z").valueOf(),
+        },
+        {
+          start: dayjs.utc("2023-01-01T10:00:00Z").valueOf(),
+          end: dayjs.utc("2023-01-01T10:30:00Z").valueOf(),
+        },
+      ];
+
+      const result = checkForConflicts({
+        time: dayjs("2023-01-01T09:00:00Z"),
+        eventLength: 30,
+        busy: sortedBusyTimes,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it("should fail with unsorted busy times due to early break optimization", () => {
+      const unsortedBusyTimes = [
+        {
+          start: dayjs.utc("2023-01-01T10:00:00Z").valueOf(),
+          end: dayjs.utc("2023-01-01T10:30:00Z").valueOf(),
+        },
+        {
+          start: dayjs.utc("2023-01-01T08:00:00Z").valueOf(),
+          end: dayjs.utc("2023-01-01T08:30:00Z").valueOf(),
+        },
+      ];
+
+      const result = checkForConflicts({
+        time: dayjs("2023-01-01T08:15:00Z"),
+        eventLength: 30,
+        busy: unsortedBusyTimes,
+      });
+
+      expect(result).toBe(false);
     });
   });
 });
