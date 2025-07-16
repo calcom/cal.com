@@ -53,7 +53,7 @@ describe("handleChildrenEventTypes", () => {
       }
       // For single action transactions
       if (typeof actions === "function") {
-        return Promise.resolve(actions());
+        return Promise.resolve(actions);
       }
       return Promise.resolve(actions);
     });

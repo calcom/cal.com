@@ -512,7 +512,7 @@ function BookingListItem(booking: BookingItemProps) {
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
-          eventTypeSchedulingType={booking.eventType.schedulingType}
+          eventTypeSchedulingType={booking.eventType.schedulingType || SchedulingType.ROUND_ROBIN}
           allowManagedEventReassignment={booking.eventType.allowManagedEventReassignment}
         />
       )}
