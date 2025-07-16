@@ -309,23 +309,40 @@ export function subtract(
 ) {
   const result: DateRange[] = [];
 
+  // Sort excludedRanges by start time to avoid sorting inside the loop
+  excludedRanges.sort((a, b) => (a.start.isAfter(b.start) ? 1 : -1));
+
+  // Iterate over each source range
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
+    let currentStartValue = currentStart.valueOf();
+    let excludedIndex = 0;
 
-    const overlappingRanges = excludedRanges.filter(
-      ({ start, end }) => start.isBefore(sourceEnd) && end.isAfter(sourceStart)
-    );
+    // Process overlapping excludedRanges
+    while (excludedIndex < excludedRanges.length) {
+      const { start: excludedStart, end: excludedEnd } = excludedRanges[excludedIndex];
 
-    overlappingRanges.sort((a, b) => (a.start.isAfter(b.start) ? 1 : -1));
-
-    for (const { start: excludedStart, end: excludedEnd } of overlappingRanges) {
-      if (excludedStart.isAfter(currentStart)) {
+      // If excluded range starts after current start, add non-overlapping part
+      if (excludedStart.valueOf() > currentStartValue) {
         result.push({ start: currentStart, end: excludedStart });
       }
-      currentStart = excludedEnd.isAfter(currentStart) ? excludedEnd : currentStart;
+
+      // Update currentStart to the maximum of the current start or the excluded end
+      if (excludedEnd.valueOf() > currentStartValue) {
+        currentStart = excludedEnd;
+        currentStartValue = excludedEnd.valueOf();
+      }
+
+      // Break if we no longer overlap
+      if (excludedEnd.valueOf() > sourceEnd.valueOf()) {
+        break;
+      }
+
+      excludedIndex++;
     }
 
-    if (sourceEnd.isAfter(currentStart)) {
+    // If there’s still time remaining after the last excluded range, add the remaining range
+    if (sourceEnd.valueOf() > currentStartValue) {
       result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
