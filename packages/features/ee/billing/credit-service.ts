@@ -199,6 +199,15 @@ export class CreditService {
 
     //check if user is member of team that has available credits
     for (const membership of memberships) {
+      const team = await (tx ?? prisma).team.findUnique({
+        where: { id: membership.teamId },
+        select: { id: true, isPlatform: true, slug: true },
+      });
+
+      if (team?.isPlatform && !team.slug) {
+        continue;
+      }
+
       const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
 
       const allCredits = await this._getAllCreditsForTeam({ teamId: membership.teamId, tx });

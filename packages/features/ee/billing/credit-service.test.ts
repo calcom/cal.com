@@ -13,7 +13,12 @@ import { CreditService as OriginalCreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
 
-const MOCK_TX = prisma;
+const MOCK_TX = {
+  ...prisma,
+  team: {
+    findUnique: vi.fn(),
+  },
+};
 
 vi.mock("@calcom/prisma", () => {
   return {
@@ -641,6 +646,54 @@ describe("CreditService", () => {
           creditType: CreditType.ADDITIONAL,
         });
       });
+    });
+
+    it("should skip unpublished platform organizations and return regular team with credits", async () => {
+      vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        { teamId: 1 },
+        { teamId: 2 },
+      ]);
+
+      const mockTeamFindUnique = vi
+        .fn()
+        .mockResolvedValueOnce({ id: 1, isPlatform: true, slug: null })
+        .mockResolvedValueOnce({ id: 2, isPlatform: false, slug: "regular-team" });
+
+      (MOCK_TX.team.findUnique as any).mockImplementation(mockTeamFindUnique);
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "2",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 200,
+        additionalCredits: 100,
+      });
+
+      const result = await creditService.getTeamWithAvailableCredits(1);
+
+      expect(result).toEqual({
+        teamId: 2,
+        availableCredits: 300,
+        creditType: CreditType.MONTHLY,
+      });
+
+      expect(mockTeamFindUnique).toHaveBeenCalledTimes(2);
+      expect(mockTeamFindUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+        select: { id: true, isPlatform: true, slug: true },
+      });
+      expect(mockTeamFindUnique).toHaveBeenCalledWith({
+        where: { id: 2 },
+        select: { id: true, isPlatform: true, slug: true },
+      });
+
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX as any);
     });
   });
 });
