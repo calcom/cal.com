@@ -184,24 +184,4 @@ export class HashedLinksService {
 
     return !!membership;
   }
-
-  /**
-   * Extracts the host timezone from event type data
-   * @param eventType - Event type data with potential timezone information
-   * @returns Host timezone string or null if not found
-   */
-  public static extractHostTimezone(eventType: EventTypeForTimezone): string | null {
-    if (eventType?.userId && eventType?.owner?.timeZone) {
-      // Personal event type - use owner's timezone
-      return eventType.owner.timeZone;
-    } else if (eventType?.teamId) {
-      // Team event type - try hosts first, then team members
-      if (eventType.hosts && eventType.hosts.length > 0 && eventType.hosts[0]?.user?.timeZone) {
-        return eventType.hosts[0].user.timeZone;
-      } else if (eventType.team?.members && eventType.team.members.length > 0) {
-        return eventType.team.members[0]?.user?.timeZone || null;
-      }
-    }
-    return null;
-  }
 }
