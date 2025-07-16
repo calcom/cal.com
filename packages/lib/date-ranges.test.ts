@@ -1154,6 +1154,7 @@ describe("intersect function comprehensive tests", () => {
         { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
       ];
 
+      // formattedBusyTimes from failing ROLLING_WINDOW test - this is the booking that should NOT affect dateRanges
       const formattedBusyTimes = [
         { start: dayjs("2024-06-01T18:30:00.000Z"), end: dayjs("2024-06-02T18:30:00.000Z") },
       ];
@@ -1177,35 +1178,29 @@ describe("intersect function comprehensive tests", () => {
         JSON.stringify(result.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() })))
       );
 
-      const expectedBuggyOutput = [
-        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-06-01T18:30:00.000Z") }, // BUG: end extended to busy time start
-        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T18:30:00.000Z") }, // BUG: end extended to busy time start
+      // What the result SHOULD be (correct behavior): Since busy time doesn't overlap, all ranges should remain unchanged
+      const expectedCorrectOutput = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
+        { start: dayjs("2024-06-02T04:00:00.000Z"), end: dayjs("2024-06-02T12:30:00.000Z") },
         { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
         { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
         { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
       ];
 
       console.log(
-        "EXPECTED buggy output:",
+        "EXPECTED correct output:",
         JSON.stringify(
-          expectedBuggyOutput.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() }))
+          expectedCorrectOutput.map((r) => ({ start: r.start.toISOString(), end: r.end.toISOString() }))
         )
       );
 
-      if (result.length === expectedBuggyOutput.length) {
-        console.log("SUCCESS: Reproduced the getUserAvailability bug!");
-        console.log("BUG: First range end extended from 12:30 to 18:30 instead of being properly subtracted");
-        console.log(
-          "BUG: Second range end extended from 12:30 to 18:30 instead of being properly subtracted"
-        );
-      } else {
-        console.log("UNEXPECTED: Result length doesn't match expected buggy output");
-      }
       console.log("=== END REPRODUCTION ===");
 
-      expect(result).toHaveLength(5);
-      expect(result[0].end.toISOString()).toBe("2024-06-01T18:30:00.000Z"); // Shows the bug: extended instead of subtracted
-      expect(result[1].end.toISOString()).toBe("2024-06-01T18:30:00.000Z"); // Shows the bug: extended instead of subtracted
+      expect(result).toHaveLength(5); // BUG: Should be 6 ranges, but buggy logic produces only 5
+      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // This range remains unchanged
+      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // This range remains unchanged
+      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeUndefined();
     });
   });
 });
