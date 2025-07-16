@@ -229,9 +229,12 @@ export const getManageLink = (
     return getPlatformManageLink(calEvent, t);
   }
 
-  return `${t("need_to_reschedule_or_cancel")} ${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(
-    calEvent
-  )}?changes=true`;
+  const uid = getUid(calEvent);
+  const rescheduledBy = encodeURIComponent(calEvent.organizer.email);
+  return {
+    href: `https://cal.com/reschedule/${uid}?rescheduledBy=${rescheduledBy}`,
+    text: t("reschedule"),
+  };
 };
 
 export const getPlatformCancelLink = (
@@ -399,8 +402,7 @@ export const getRichDescriptionHTML = (
 export const getRichDescription = (
   calEvent: RichDescriptionCalEvent,
   t_?: TFunction /*, attendee?: Person*/,
-  includeAppStatus = false,
-  includeWhen = false // Default to false to match unit tests
+  includeAppStatus = false
 ) => {
   const t = t_ ?? calEvent.organizer.language.translate;
 
@@ -408,7 +410,6 @@ export const getRichDescription = (
   const parts = [
     getCancellationReason(calEvent, t),
     getWhat(calEvent, t),
-    includeWhen ? getWhen(calEvent, t) : "",
     getWho(calEvent, t),
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
@@ -418,7 +419,7 @@ export const getRichDescription = (
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot
     calEvent.seatsPerTimeSlot ? "" : getManageLink(calEvent, t),
-    calEvent.paymentInfo ? `${t("pay_now")}:\n${sanitizeText(calEvent.paymentInfo.link)}` : "",
+    calEvent.paymentInfo ? `${t("pay_now")}:\n${calEvent.paymentInfo.link}` : "",
   ]
     .filter(Boolean) // Remove empty strings
     .join("\n\n") // Double newline between major sections
