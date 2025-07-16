@@ -498,7 +498,7 @@ describe("Organizations Event Types Endpoints", () => {
 
           const data = responseBody.data;
           const managedEvents = data.filter((event) => event.slug === managedEventType.slug);
-          expect(managedEvents.length).toBeGreaterThanOrEqual(1);
+          expect(managedEvents.length).toEqual(1);
           expect(managedEvents[0].slug).toEqual(managedEventType.slug);
           expect(managedEvents[0].ownerId).toEqual(teamMember1.id);
           expect(managedEvents[0].id).not.toEqual(managedEventType.id);
@@ -556,7 +556,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const data = responseBody.data;
-          expect(data.length).toBeGreaterThanOrEqual(2);
+          expect(data.length).toEqual(2);
 
           const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "collective");
           const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "managed");

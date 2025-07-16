@@ -347,8 +347,14 @@ describe("Assign all team members", () => {
           expect(data.schedulingType).toEqual("roundRobin");
           const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
           const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
-          evaluateHost({ userId: firstManagedUser.user.id }, dataFirstHost);
-          evaluateHost({ userId: secondManagedUser.user.id }, dataSecondHost);
+          evaluateHost(
+            { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
+            dataFirstHost
+          );
+          evaluateHost(
+            { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
+            dataSecondHost
+          );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
@@ -405,8 +411,14 @@ describe("Assign all team members", () => {
           expect(data.schedulingType).toEqual("roundRobin");
           const dataFirstHost = data.hosts.find((host) => host.userId === firstManagedUser.user.id);
           const dataSecondHost = data.hosts.find((host) => host.userId === secondManagedUser.user.id);
-          evaluateHost({ userId: firstManagedUser.user.id }, dataFirstHost);
-          evaluateHost({ userId: secondManagedUser.user.id }, dataSecondHost);
+          evaluateHost(
+            { userId: firstManagedUser.user.id, mandatory: false, priority: "medium" },
+            dataFirstHost
+          );
+          evaluateHost(
+            { userId: secondManagedUser.user.id, mandatory: false, priority: "medium" },
+            dataSecondHost
+          );
 
           const eventTypeHosts = await hostsRepositoryFixture.getEventTypeHosts(data.id);
           expect(eventTypeHosts.length).toEqual(2);
