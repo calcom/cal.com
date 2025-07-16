@@ -389,7 +389,10 @@ const RoundRobinHosts = ({
             size="sm"
             StartIcon="plus"
             onClick={() => {
-              const currentHosts = getValues("hosts").filter((host) => !host.isFixed);
+              const allHosts = getValues("hosts");
+              const currentHosts = allHosts.filter((host) => !host.isFixed);
+              const fixedHosts = allHosts.filter((host) => host.isFixed);
+
               // If no groups exist yet, create two groups
               if (hostGroups?.length === 0 && currentHosts.length > 0) {
                 const firstGroup = {
@@ -403,13 +406,14 @@ const RoundRobinHosts = ({
                 const updatedHostGroups = [firstGroup, secondGroup];
                 setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
 
-                const updatedHosts = currentHosts.map((host) => {
+                const updatedRRHosts = currentHosts.map((host) => {
                   if (!host.groupId && !host.isFixed) {
                     return { ...host, groupId: firstGroup.id };
                   }
                   return host;
                 });
-                setValue("hosts", updatedHosts, { shouldDirty: true });
+                // Preserve fixed hosts when updating
+                setValue("hosts", [...fixedHosts, ...updatedRRHosts], { shouldDirty: true });
               } else {
                 // If groups already exist, just add one more group
                 const newGroup = {
@@ -443,16 +447,22 @@ const RoundRobinHosts = ({
                 descriptionClassName={customClassNames?.enableWeights?.description}
                 onCheckedChange={(active) => {
                   onChange(active);
-                  const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+                  const allHosts = getValues("hosts");
+                  const fixedHosts = allHosts.filter((host) => host.isFixed);
+                  const rrHosts = allHosts.filter((host) => !host.isFixed);
                   const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-                  setValue("hosts", sortedRRHosts);
+                  // Preserve fixed hosts when updating
+                  setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
                 }}>
                 <EditWeightsForAllTeamMembers
                   teamMembers={teamMembers}
                   value={value}
                   onChange={(hosts) => {
+                    const allHosts = getValues("hosts");
+                    const fixedHosts = allHosts.filter((host) => host.isFixed);
                     const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
-                    setValue("hosts", sortedRRHosts, { shouldDirty: true });
+                    // Preserve fixed hosts when updating
+                    setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
                   }}
                   assignAllTeamMembers={assignAllTeamMembers}
                   assignRRMembersUsingSegment={assignRRMembersUsingSegment}
