@@ -19,7 +19,7 @@ RETURNS VOID AS $$
 BEGIN
     -- Delete existing entry if any
     DELETE FROM "RoutingFormResponseDenormalized" WHERE id = response_id;
-    
+
     -- Insert form response with all related data
     INSERT INTO "RoutingFormResponseDenormalized" (
         id,
@@ -49,7 +49,7 @@ BEGIN
         "utm_term",
         "utm_content"
     )
-    SELECT 
+    SELECT
         r.id,
         r."formId",
         f.name as "formName",
@@ -86,8 +86,8 @@ BEGIN
         t.utm_content
     FROM "App_RoutingForms_FormResponse" r
     INNER JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
-    INNER JOIN "users" u ON f."userId" = u.id
     LEFT JOIN "Booking" b ON b.uid = r."routedToBookingUid"
+    LEFT JOIN "users" u ON b."userId" = u.id
     LEFT JOIN "EventType" et ON b."eventTypeId" = et.id
     LEFT JOIN "Tracking" t ON t."bookingId" = b.id
     WHERE r.id = response_id;
@@ -232,7 +232,7 @@ BEGIN
         "bookingUserName" = NULL,
         "bookingUserEmail" = NULL,
         "bookingUserAvatarUrl" = NULL,
-        "bookingAssignmentReason" = '',
+        "bookingAssignmentReason" = NULL,
         "eventTypeId" = NULL,
         "eventTypeParentId" = NULL,
         "eventTypeSchedulingType" = NULL,
