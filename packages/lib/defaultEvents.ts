@@ -135,6 +135,8 @@ const commons = {
   rrTimestampBasis: null,
   interfaceLanguage: null,
   customReplyToEmail: null,
+  restrictionScheduleId: null,
+  useBookerTimezone: false,
   profileId: null,
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
@@ -197,8 +199,10 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   // Multiple users can come in case of a team round-robin booking and in that case dynamic link won't be a user.
   // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
   users = arrayCast(users);
-
-  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/gi, "+").split("+")).flat();
+  const allUsers = users
+    .map((user) => user.replace(/( |%20|%2b)/gi, "+").split("+"))
+    .flat()
+    .filter(Boolean);
   return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 

@@ -23,6 +23,9 @@ type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
   enableAutomaticTranscription: boolean;
+  enableAutomaticRecordingForOrganizer: boolean;
+  disableTranscriptionForGuests: boolean;
+  disableTranscriptionForOrganizer: boolean;
 };
 
 const shouldEnableRecordButton = ({
@@ -57,6 +60,40 @@ const shouldEnableAutomaticTranscription = ({
   return !!calVideoSettings.enableAutomaticTranscription;
 };
 
+const shouldEnableAutomaticRecording = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan || !isOrganizer) return false;
+  if (!calVideoSettings) return false;
+
+  return !!calVideoSettings.enableAutomaticRecordingForOrganizer;
+};
+
+const shouldEnableTranscriptionButton = ({
+  hasTeamPlan,
+  calVideoSettings,
+  isOrganizer,
+}: {
+  hasTeamPlan: boolean;
+  calVideoSettings?: CalVideoSettings | null;
+  isOrganizer: boolean;
+}) => {
+  if (!hasTeamPlan) return false;
+  if (!calVideoSettings) return true;
+
+  if (isOrganizer) {
+    return !calVideoSettings.disableTranscriptionForOrganizer;
+  }
+
+  return !calVideoSettings.disableTranscriptionForGuests;
+};
+
 const checkIfUserIsHost = async ({
   booking,
   sessionUserId,
@@ -73,7 +110,8 @@ const checkIfUserIsHost = async ({
     return booking.user?.id === sessionUserId;
   }
 
-  const eventType = await EventTypeRepository.findByIdWithUserAccess({
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdWithUserAccess({
     id: booking.eventTypeId,
     userId: sessionUserId,
   });
@@ -85,7 +123,8 @@ const checkIfUserIsHost = async ({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
 
-  const booking = await BookingRepository.findBookingForMeetingPage({
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingForMeetingPage({
     bookingUid: context.query.uid as string,
   });
 
@@ -119,9 +158,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       })
     : false;
 
+  const userRepo = new UserRepository(prisma);
   const profile = booking.user
     ? (
-        await UserRepository.enrichUserWithItsProfile({
+        await userRepo.enrichUserWithItsProfile({
           user: booking.user,
         })
       ).profile
@@ -215,12 +255,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const showRecordingButton = shouldEnableRecordButton({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
-    isOrganizer: sessionUserId === bookingObj.user?.id,
+    isOrganizer,
   });
 
   const enableAutomaticTranscription = shouldEnableAutomaticTranscription({
     hasTeamPlan: !!hasTeamPlan,
     calVideoSettings: bookingObj.eventType?.calVideoSettings,
+  });
+
+  const enableAutomaticRecordingForOrganizer = shouldEnableAutomaticRecording({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer,
+  });
+
+  const showTranscriptionButton = shouldEnableTranscriptionButton({
+    hasTeamPlan: !!hasTeamPlan,
+    calVideoSettings: bookingObj.eventType?.calVideoSettings,
+    isOrganizer,
   });
 
   return {
@@ -245,6 +297,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
       enableAutomaticTranscription,
+      enableAutomaticRecordingForOrganizer,
+      showTranscriptionButton,
       rediectAttendeeToOnExit: isOrganizer
         ? undefined
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,

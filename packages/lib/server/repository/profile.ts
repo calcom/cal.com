@@ -6,7 +6,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
@@ -14,7 +14,7 @@ import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/Use
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
@@ -26,22 +26,22 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   endTime: true,
   bufferTime: true,
   isPlatformManaged: true,
-});
+} satisfies Prisma.UserSelect;
 
-const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+const membershipSelect = {
   id: true,
   teamId: true,
   userId: true,
   accepted: true,
   role: true,
   disableImpersonation: true,
-});
+} satisfies Prisma.MembershipSelect;
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
-const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsSelect>()({
+const organizationSettingsSelect = {
   allowSEOIndexing: true,
   orgProfileRedirectsToVerifiedDomain: true,
-});
+} satisfies Prisma.OrganizationSettingsSelect;
 const organizationSelect = {
   id: true,
   slug: true,
@@ -364,10 +364,12 @@ export class ProfileRepository {
     if (!organizationId) {
       return null;
     }
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        userId,
-        organizationId,
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -401,10 +403,12 @@ export class ProfileRepository {
     organizationId: number;
     username: string;
   }) {
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        username,
-        organizationId,
+        username_organizationId: {
+          username,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -661,9 +665,20 @@ export class ProfileRepository {
     return normalizeProfile(profile);
   }
 
-  static async findByUserIdAndOrgSlug({ userId, orgSlug }: { userId: number; orgSlug: string }) {
-    const profile = await prisma.profile.findFirst({
-      where: { userId, organization: { slug: orgSlug } },
+  static async findByUserIdAndOrgSlug({
+    userId,
+    organizationId,
+  }: {
+    userId: number;
+    organizationId: number;
+  }) {
+    const profile = await prisma.profile.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
+      },
       include: {
         organization: {
           select: organizationSelect,

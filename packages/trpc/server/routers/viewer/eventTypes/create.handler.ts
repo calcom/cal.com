@@ -126,7 +126,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const profile = ctx.user.profile;
   try {
-    const eventType = await EventTypeRepository.create({
+    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+    const eventType = await eventTypeRepo.create({
       ...data,
       profileId: profile.id,
     });

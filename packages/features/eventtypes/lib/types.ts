@@ -152,10 +152,16 @@ export type FormValues = {
   secondaryEmailId?: number;
   isRRWeightsEnabled: boolean;
   maxLeadThreshold?: number;
+  restrictionScheduleId: number | null;
+  useBookerTimezone: boolean;
+  restrictionScheduleName: string | null;
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
     enableAutomaticTranscription?: boolean;
+    enableAutomaticRecordingForOrganizer?: boolean;
+    disableTranscriptionForGuests?: boolean;
+    disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
   };
   maxActiveBookingPerBookerOfferReschedule: boolean;

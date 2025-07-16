@@ -312,7 +312,11 @@ async function createOrganizationAndAddMembersAndTeams({
           const newUser = await createUserAndEventType({
             user: {
               ...member.memberData,
-              password: member.memberData.password.create?.hash,
+              theme:
+                member.memberData.theme === "dark" || member.memberData.theme === "light"
+                  ? member.memberData.theme
+                  : undefined,
+              password: member.memberData.password.create?.hash ?? "",
             },
             eventTypes: [
               {
@@ -1181,6 +1185,7 @@ async function main() {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
           isAdminAPIEnabled: true,
+          isAdminReviewed: true,
         },
       },
       members: [
@@ -1277,6 +1282,7 @@ async function main() {
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "dunder-mifflin.com",
+          isAdminReviewed: true,
         },
       },
       members: [

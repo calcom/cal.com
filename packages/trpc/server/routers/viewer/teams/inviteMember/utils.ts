@@ -84,7 +84,7 @@ export function checkInputEmailIsValid(email: string) {
 }
 
 export async function getTeamOrThrow(teamId: number) {
-  const team = await prisma.team.findFirst({
+  const team = await prisma.team.findUnique({
     where: {
       id: teamId,
     },
@@ -150,7 +150,7 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   // If he is invited to a sub-team and is already part of the organization.
   if (
     team.parentId &&
-    UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    new UserRepository(prisma).isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
     return INVITE_STATUS.CAN_BE_INVITED;
   }
@@ -565,7 +565,7 @@ export function getAutoJoinStatus({
 
   const isAutoAcceptEmail = connectionInfoMap[invitee.email].autoAccept;
   const isUserMemberOfTheTeamsParentOrganization = team.parentId
-    ? UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
+    ? new UserRepository(prisma).isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
     : null;
 
   if (isUserMemberOfTheTeamsParentOrganization) {
