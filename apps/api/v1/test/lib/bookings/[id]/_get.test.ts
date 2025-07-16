@@ -167,7 +167,7 @@ describe("GET /api/bookings/[id]", () => {
 
       await handler(req, res);
 
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(403);
     });
   });
 });

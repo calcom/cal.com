@@ -2,9 +2,11 @@ import type { NextApiRequest } from "next";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
+import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleExpand } from "~/lib/validations/shared/queryExpandRelations";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
@@ -90,7 +92,7 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  */
 
 export async function getHandler(req: NextApiRequest) {
-  const { query } = req;
+  const { query, userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
 
   const queryFilterForExpand = schemaQuerySingleOrMultipleExpand.parse(req.query.expand);
@@ -113,7 +115,61 @@ export async function getHandler(req: NextApiRequest) {
     throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
   }
 
+  await checkBookingAccess(req, booking);
+
   return { booking: schemaBookingReadPublic.parse(booking) };
+}
+
+async function checkBookingAccess(req: NextApiRequest, booking: any) {
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+
+  if (isSystemWideAdmin) {
+    return;
+  }
+
+  if (isOrganizationOwnerOrAdmin) {
+    const bookingUserId = booking.userId;
+    if (bookingUserId) {
+      const accessibleUsersIds = await getAccessibleUsers({
+        adminUserId: userId,
+        memberUserIds: [bookingUserId],
+      });
+      if (accessibleUsersIds.length > 0) return;
+    }
+  }
+
+  if (booking.userId === userId) {
+    return;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+
+  if (user && booking.attendees?.some((attendee: any) => attendee.email === user.email)) {
+    return;
+  }
+
+  if (booking.eventType?.userId === userId) {
+    return;
+  }
+
+  if (booking.eventType?.teamId) {
+    const teamMembership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: booking.eventType.teamId,
+        role: { in: ["ADMIN", "OWNER"] },
+        accepted: true,
+      },
+    });
+    if (teamMembership) {
+      return;
+    }
+  }
+
+  throw new HttpError({ statusCode: 403, message: "You are not authorized to access this booking" });
 }
 
 export default defaultResponder(getHandler);
