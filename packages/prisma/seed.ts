@@ -584,6 +584,67 @@ async function createOrganizationAndAddMembersAndTeams({
   }
 }
 
+async function enablePlatformForExistingTeams() {
+  console.log("🔧 Setting up platform access for existing teams...");
+
+  // Find admin users and their teams
+  const adminUsers = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    include: {
+      teams: {
+        include: {
+          team: true
+        }
+      }
+    }
+  });
+
+  for (const user of adminUsers) {
+    for (const membership of user.teams) {
+      const teamId = membership.teamId;
+
+
+      await prisma.team.update({
+        where: { id: teamId },
+        data: { isPlatform: true }
+      });
+
+      // Create platform billing record if it doesn't exist
+      await prisma.platformBilling.upsert({
+        where: { id: teamId },
+        create: {
+          id: teamId,
+          customerId: "cus_dev_dummy",
+          subscriptionId: "sub_dev_dummy",
+          plan: "starter"
+        },
+        update: {
+          customerId: "cus_dev_dummy",
+          subscriptionId: "sub_dev_dummy",
+          plan: "starter"
+        }
+      });
+
+      console.log(`✅ Enabled platform for team ID: ${teamId}`);
+    }
+  }
+
+  // Set license key from environment variable
+  const licenseKey = process.env.CALCOM_LICENSE_KEY || "59c0bed7-8b21-4280-8514-e022fbfc24c7";
+  await prisma.deployment.upsert({
+    where: { id: 1 },
+    create: {
+      id: 1,
+      licenseKey: licenseKey
+    },
+    update: {
+      licenseKey: licenseKey
+    }
+  });
+
+  console.log("✅ Platform setup complete for local development");
+}
+
 async function main() {
   await createUserAndEventType({
     user: {
@@ -1341,6 +1402,8 @@ async function main() {
       },
     ],
   });
+
+  await enablePlatformForExistingTeams();
 }
 
 main()
