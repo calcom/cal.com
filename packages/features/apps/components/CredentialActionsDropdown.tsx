@@ -98,22 +98,20 @@ export default function CredentialActionsDropdown({
           {canDisconnect && hasCache && <hr className="my-1" />}
           {canDisconnect && (
             <DropdownMenuItem className="outline-none">
-              <div className="w-full">
-                <DisconnectIntegration
-                  credentialId={credentialId}
-                  onSuccess={() => {
-                    onSuccess?.();
-                    setDropdownOpen(false);
-                  }}
-                  buttonProps={{
-                    variant: "button",
-                    color: "destructive",
-                    className: "w-full justify-start p-2",
-                    StartIcon: "trash",
-                  }}
-                  label={t("remove_app")}
-                />
-              </div>
+              <DisconnectIntegration
+                credentialId={credentialId}
+                onSuccess={() => {
+                  onSuccess?.();
+                  setDropdownOpen(false);
+                }}
+                buttonProps={{
+                  variant: "button",
+                  color: "destructive",
+                  className: "w-full justify-start p-2",
+                  StartIcon: "trash",
+                }}
+                label={t("remove_app")}
+              />
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
