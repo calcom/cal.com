@@ -159,7 +159,7 @@ class BaseUpdateEventTypeInput {
   @ValidateInputBookingFields_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Complete set of booking form fields. This array replaces all existing booking fields (both default and custom). To modify existing fields, first fetch the current event type, then include all desired fields (default + custom + new/modified) in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
+      "Complete set of booking form fields. This array replaces all existing booking fields. To modify existing fields, first fetch the current event type, then include all desired fields in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
