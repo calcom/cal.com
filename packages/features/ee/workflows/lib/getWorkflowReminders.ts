@@ -147,29 +147,6 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
-          user: {
-            select: {
-              email: true,
-            },
-          },
-          team: {
-            select: {
-              members: {
-                select: {
-                  user: {
-                    select: {
-                      email: true,
-                    },
-                  },
-                  role: true,
-                },
-                where: {
-                  role: "OWNER",
-                },
-                take: 1,
-              },
-            },
-          },
         },
       },
     },
@@ -262,6 +239,7 @@ export function getWorkflowRecipientEmail(reminder: PartialWorkflowReminder): st
     case "WHATSAPP_ATTENDEE":
       return reminder.booking?.attendees?.[0]?.email || null;
     case "SMS_NUMBER":
+      return reminder.booking?.attendees?.[0]?.email || null;
     case "WHATSAPP_NUMBER":
       return null;
     default:
