@@ -41,6 +41,7 @@ import framerFeatures from "./framer-features";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
+import { isSmoothScrollAvailableInUserAgent } from "./utils/isSmoothScrollAvailableInUserAgent";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
 
 const BookerComponent = ({
@@ -156,8 +157,13 @@ const BookerComponent = ({
   const scrolledToTimeslotsOnce = useRef(false);
   const scrollToTimeSlots = () => {
     if (isMobile && !scrolledToTimeslotsOnce.current) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
-      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (isSmoothScrollAvailableInUserAgent()) {
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
+        timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+      } else {
+        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
+        timeslotsRef.current?.scrollIntoView(true);
+      }
       scrolledToTimeslotsOnce.current = true;
     }
   };
