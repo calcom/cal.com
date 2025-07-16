@@ -354,154 +354,94 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const BookingActions = () => {
-    const editEventActions: ActionType[] = [
-      {
-        id: "reschedule",
-        icon: "clock",
-        label: t("reschedule_booking"),
-        href: `/reschedule/${booking.uid}${
-          booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-        }`,
-        disabled:
-          (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-      },
-      {
-        id: "reschedule_request",
-        icon: "send",
-        iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-        label: t("send_reschedule_request"),
-        onClick: () => setIsOpenRescheduleDialog(true),
-        disabled:
-          (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-      },
-      isBookingFromRoutingForm
-        ? {
-            id: "reroute",
-            label: t("reroute"),
-            onClick: () => setRerouteDialogIsOpen(true),
-            icon: "waypoints",
-            disabled: false,
-          }
-        : null,
-      {
-        id: "change_location",
-        label: t("edit_location"),
-        onClick: () => setIsOpenLocationDialog(true),
-        icon: "map-pin",
-        disabled: false,
-      },
-      booking.eventType?.disableGuests
-        ? null
-        : {
-            id: "add_members",
-            label: t("additional_guests"),
-            onClick: () => setIsOpenAddGuestsDialog(true),
-            icon: "user-plus",
-            disabled: false,
-          },
-      // Reassign (if round robin)
-      booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN
-        ? {
-            id: "reassign",
-            label: t("reassign"),
-            onClick: () => setIsOpenReassignDialog(true),
-            icon: "users",
-            disabled: false,
-          }
-        : null,
-    ].filter(Boolean) as ActionType[];
 
-    const afterEventActions: ActionType[] = [
-      ...videoOptionsActions,
-      booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD"
-        ? {
-            id: "charge_card",
-            label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
-            onClick: () => setChargeCardDialogIsOpen(true),
-            icon: "credit-card",
-            disabled: cardCharged,
-          }
-        : null,
-      {
-        id: "no_show",
-        label:
-          attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
-        onClick: () => {
-          if (attendeeList.length === 1) {
-            const attendee = attendeeList[0];
-            noShowMutation.mutate({
-              bookingUid: booking.uid,
-              attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-            });
-            return;
-          }
-          setIsNoShowDialogOpen(true);
+  const editEventActions: ActionType[] = [
+    {
+      id: "reschedule",
+      icon: "clock",
+      label: t("reschedule_booking"),
+      href: `/reschedule/${booking.uid}${
+        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+      }`,
+      disabled:
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+    },
+    {
+      id: "reschedule_request",
+      icon: "send",
+      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+      label: t("send_reschedule_request"),
+      onClick: () => setIsOpenRescheduleDialog(true),
+      disabled:
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+    },
+    isBookingFromRoutingForm
+      ? {
+          id: "reroute",
+          label: t("reroute"),
+          onClick: () => setRerouteDialogIsOpen(true),
+          icon: "waypoints",
+          disabled: false,
+        }
+      : null,
+    {
+      id: "change_location",
+      label: t("edit_location"),
+      onClick: () => setIsOpenLocationDialog(true),
+      icon: "map-pin",
+      disabled: false,
+    },
+    booking.eventType?.disableGuests
+      ? null
+      : {
+          id: "add_members",
+          label: t("additional_guests"),
+          onClick: () => setIsOpenAddGuestsDialog(true),
+          icon: "user-plus",
+          disabled: false,
         },
-        icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : "eye-off",
-        disabled: !(isBookingInPast || isOngoing),
-      },
-    ].filter(Boolean) as ActionType[];
+    // Reassign (if round robin)
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN
+      ? {
+          id: "reassign",
+          label: t("reassign"),
+          onClick: () => setIsOpenReassignDialog(true),
+          icon: "users",
+          disabled: false,
+        }
+      : null,
+  ].filter(Boolean) as ActionType[];
 
-    return (
-      <Dropdown>
-        <DropdownMenuTrigger asChild>
-          <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
-        </DropdownMenuTrigger>
-        <DropdownMenuPortal>
-          <DropdownMenuContent>
-            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
-            {editEventActions.map((action) => (
-              <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                <DropdownItem
-                  type="button"
-                  color={action.color}
-                  StartIcon={action.icon}
-                  href={action.href}
-                  disabled={action.disabled}
-                  onClick={action.onClick}
-                  data-bookingid={action.bookingId}
-                  className={action.disabled ? "text-muted" : undefined}>
-                  {action.label}
-                </DropdownItem>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-            {afterEventActions.map((action) => (
-              <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                <DropdownItem
-                  type="button"
-                  color={action.color}
-                  StartIcon={action.icon}
-                  href={action.href}
-                  onClick={action.onClick}
-                  disabled={action.disabled}
-                  data-bookingid={action.bookingId}
-                  className={action.disabled ? "text-muted" : undefined}>
-                  {action.label}
-                </DropdownItem>
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="rounded-lg" key={cancelEventAction.id} disabled={cancelEventAction.disabled}>
-              <DropdownItem
-                type="button"
-                color={cancelEventAction.color}
-                StartIcon={cancelEventAction.icon}
-                href={cancelEventAction.href}
-                onClick={cancelEventAction.onClick}
-                disabled={cancelEventAction.disabled}
-                data-bookingid={cancelEventAction.bookingId}
-                className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                {cancelEventAction.label}
-              </DropdownItem>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenuPortal>
-      </Dropdown>
-    );
-  };
+  const afterEventActions: ActionType[] = [
+    ...videoOptionsActions,
+    booking.status === "ACCEPTED" && booking.paid && booking.payment[0]?.paymentOption === "HOLD"
+      ? {
+          id: "charge_card",
+          label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
+          onClick: () => setChargeCardDialogIsOpen(true),
+          icon: "credit-card",
+          disabled: cardCharged,
+        }
+      : null,
+    {
+      id: "no_show",
+      label:
+        attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
+      onClick: () => {
+        if (attendeeList.length === 1) {
+          const attendee = attendeeList[0];
+          noShowMutation.mutate({
+            bookingUid: booking.uid,
+            attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
+          });
+          return;
+        }
+        setIsNoShowDialogOpen(true);
+      },
+      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : "eye-off",
+      disabled: !(isBookingInPast || isOngoing),
+    },
+  ].filter(Boolean) as ActionType[];
 
   return (
     <>
@@ -738,7 +678,67 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isPending && isUpcoming && !isCancelled && <TableActions actions={pendingActions} />}
-            {!isPending && !(isTabRecurring && isRecurring) && !isCancelled && <BookingActions />}
+            {!isPending && !(isTabRecurring && isRecurring) && !isCancelled && (
+              <Dropdown>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+                </DropdownMenuTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
+                    {editEventActions.map((action) => (
+                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                        <DropdownItem
+                          type="button"
+                          color={action.color}
+                          StartIcon={action.icon}
+                          href={action.href}
+                          disabled={action.disabled}
+                          onClick={action.onClick}
+                          data-bookingid={action.bookingId}
+                          className={action.disabled ? "text-muted" : undefined}>
+                          {action.label}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
+                    {afterEventActions.map((action) => (
+                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                        <DropdownItem
+                          type="button"
+                          color={action.color}
+                          StartIcon={action.icon}
+                          href={action.href}
+                          onClick={action.onClick}
+                          disabled={action.disabled}
+                          data-bookingid={action.bookingId}
+                          className={action.disabled ? "text-muted" : undefined}>
+                          {action.label}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="rounded-lg"
+                      key={cancelEventAction.id}
+                      disabled={cancelEventAction.disabled}>
+                      <DropdownItem
+                        type="button"
+                        color={cancelEventAction.color}
+                        StartIcon={cancelEventAction.icon}
+                        href={cancelEventAction.href}
+                        onClick={cancelEventAction.onClick}
+                        disabled={cancelEventAction.disabled}
+                        data-bookingid={cancelEventAction.bookingId}
+                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                        {cancelEventAction.label}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenuPortal>
+              </Dropdown>
+            )}
             {isTabRecurring && isRecurring && <TableActions actions={[cancelEventAction]} />}
             {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
