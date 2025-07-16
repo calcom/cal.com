@@ -598,7 +598,7 @@ async function handler(
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
-  const crmRecordId: string | undefined = undefined; // TODO: Extract from CRM contact data when available
+  const crmRecordId: string | undefined = reqBody.crmRecordId ?? undefined;
 
   let routingFormResponse = null;
 
