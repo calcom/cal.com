@@ -67,7 +67,7 @@ export default function CredentialActionsDropdown({
               <div className="px-2 py-1">
                 <div className="text-sm font-medium text-gray-900">{t("cache_status")}</div>
                 <div className="text-xs text-gray-500">
-                  {t("last_updated", {
+                  {t("cache_last_updated", {
                     timestamp: new Intl.DateTimeFormat("en-US", {
                       dateStyle: "short",
                       timeStyle: "short",

@@ -3365,7 +3365,7 @@
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "event_type_no_hosts": "No hosts are assigned to event type",
   "cache_status": "Cache Status",
-  "last_updated": "Last updated: {{timestamp}}",
+  "cache_last_updated": "Last updated: {{timestamp}}",
   "delete_cached_data": "Delete cached data",
   "cache_deleted_successfully": "Cache deleted successfully",
   "error_deleting_cache": "Error deleting cache",
