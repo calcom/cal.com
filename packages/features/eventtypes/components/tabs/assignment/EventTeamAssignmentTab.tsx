@@ -780,6 +780,11 @@ export const EventTeamAssignmentTab = ({
     name: "schedulingType",
   });
 
+  const hostGroups = useWatch({
+    control,
+    name: "hostGroups",
+  });
+
   return (
     <div>
       {team && !isManagedEventType && (
@@ -861,8 +866,16 @@ export const EventTeamAssignmentTab = ({
                       {!!(
                         eventType.team?.rrTimestampBasis &&
                         eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                      ) ? (
-                        <Tooltip content={t("rr_load_balancing_disabled")}>
+                      ) || hostGroups?.length > 1 ? (
+                        <Tooltip
+                          content={
+                            !!(
+                              eventType.team?.rrTimestampBasis &&
+                              eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                            )
+                              ? t("rr_load_balancing_disabled")
+                              : t("rr_load_balancing_disabled_with_groups")
+                          }>
                           <div className="w-full">
                             <RadioArea.Item
                               value="loadBalancing"
