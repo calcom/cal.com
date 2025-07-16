@@ -10,7 +10,6 @@ import { DateTime } from "luxon";
 
 import { dynamicEvent } from "@calcom/platform-libraries";
 import {
-  ById_2024_09_04,
   ByUsernameAndEventTypeSlug_2024_09_04,
   ByTeamSlugAndEventTypeSlug_2024_09_04,
   GetSlotsInput_2024_09_04,
@@ -46,6 +45,11 @@ export class SlotsInputService_2024_09_04 {
     const usernameList = "usernames" in query ? query.usernames : [];
     const timeZone = query.timeZone;
     const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
+    const rescheduleUid = query.bookingUidToReschedule || null;
+    const routedTeamMemberIds = query.routedTeamMemberIds || null;
+    const skipContactOwner = query.skipContactOwner || false;
+    const teamMemberEmail = query.teamMemberEmail || null;
+    const routingFormResponseId = query.routingFormResponseId || null;
 
     return {
       isTeamEvent,
@@ -57,6 +61,11 @@ export class SlotsInputService_2024_09_04 {
       usernameList,
       timeZone,
       orgSlug,
+      rescheduleUid,
+      routedTeamMemberIds,
+      skipContactOwner,
+      teamMemberEmail,
+      routingFormResponseId,
     };
   }
 

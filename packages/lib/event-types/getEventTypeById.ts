@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 //import "server-only";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
@@ -41,7 +41,7 @@ export const getEventTypeById = async ({
   isTrpcCall = false,
   isUserOrganizationAdmin,
 }: getEventTypeByIdProps) => {
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     name: true,
     avatarUrl: true,
     username: true,
@@ -50,9 +50,10 @@ export const getEventTypeById = async ({
     locale: true,
     defaultScheduleId: true,
     isPlatformManaged: true,
-  });
+  } satisfies Prisma.UserSelect;
 
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const rawEventType = await eventTypeRepo.findById({ id: eventTypeId, userId });
 
   if (!rawEventType) {
     if (isTrpcCall) {
@@ -66,11 +67,12 @@ export const getEventTypeById = async ({
   const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  const userRepo = new UserRepository(prisma);
   const eventTeamMembershipsWithUserProfile = [];
   for (const eventTeamMembership of rawEventType.team?.members || []) {
     eventTeamMembershipsWithUserProfile.push({
       ...eventTeamMembership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: eventTeamMembership.user,
       }),
     });
@@ -81,7 +83,7 @@ export const getEventTypeById = async ({
     childrenWithUserProfile.push({
       ...child,
       owner: child.owner
-        ? await UserRepository.enrichUserWithItsProfile({
+        ? await userRepo.enrichUserWithItsProfile({
             user: child.owner,
           })
         : null,
@@ -91,7 +93,7 @@ export const getEventTypeById = async ({
   const eventTypeUsersWithUserProfile = [];
   for (const eventTypeUser of rawEventType.users) {
     eventTypeUsersWithUserProfile.push(
-      await UserRepository.enrichUserWithItsProfile({
+      await userRepo.enrichUserWithItsProfile({
         user: eventTypeUser,
       })
     );
@@ -112,6 +114,9 @@ export const getEventTypeById = async ({
       rawEventType.schedule?.id ||
       (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
       null,
+    restrictionScheduleId: rawEventType.restrictionScheduleId || null,
+    restrictionScheduleName: rawEventType.restrictionSchedule?.name || null,
+    useBookerTimezone: rawEventType.useBookerTimezone || false,
     instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),

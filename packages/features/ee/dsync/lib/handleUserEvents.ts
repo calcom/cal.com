@@ -33,7 +33,7 @@ async function syncCustomAttributesToUser({
   };
   directoryId: string;
 }) {
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       email: userEmail,
     },
@@ -62,7 +62,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   const eventData = event.data as User;
   const userEmail = eventData.email;
   // Check if user exists in DB
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       email: userEmail,
     },
@@ -79,7 +79,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
 
   if (user) {
     if (eventData.active) {
-      if (UserRepository.isAMemberOfOrganization({ user, organizationId })) {
+      if (await new UserRepository(prisma).isAMemberOfOrganization({ user, organizationId })) {
         await syncCustomAttributesToUser({
           event,
           userEmail,

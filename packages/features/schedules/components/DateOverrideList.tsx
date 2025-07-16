@@ -106,7 +106,7 @@ const DateOverrideList = ({
                 <DialogTrigger asChild>
                   <Button
                     tooltip={t("edit")}
-                    className="text-default"
+                    className="text-default h-5"
                     color="minimal"
                     variant="icon"
                     StartIcon="pencil"
@@ -116,7 +116,7 @@ const DateOverrideList = ({
             />
             <Tooltip content="Delete">
               <Button
-                className="text-default"
+                className="text-default h-5"
                 data-testid="delete-button"
                 title={t("date_overrides_delete_on_date", {
                   date: new Intl.DateTimeFormat(i18n.language, {
