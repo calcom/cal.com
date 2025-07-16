@@ -86,21 +86,19 @@ const FEATURES = [
 
 // Component to handle long URL prefixes in username field
 function UrlPrefix({ url }: { url: string }) {
-  const maxLength = 30;
+  const maxLength = 25; // Reduced to give more space for user input
   
   // Show full URL if it's short enough
   if (url.length <= maxLength) {
     return <span className="text-muted text-sm font-medium leading-none">{url}</span>;
   }
   
-  // For long URLs, show beginning and end with ellipsis in middle
-  const startChars = Math.floor(maxLength * 0.6);
-  const endChars = Math.floor(maxLength * 0.3);
-  const truncated = `${url.substring(0, startChars)}...${url.substring(url.length - endChars)}`;
+  // For long URLs, show only beginning portion with ellipsis
+  const truncated = `${url.substring(0, maxLength - 3)}...`;
   
   return (
     <Tooltip content={url}>
-      <span className="text-muted text-sm font-medium leading-none cursor-help">
+      <span className="text-muted text-sm font-medium leading-none">
         {truncated}
       </span>
     </Tooltip>
