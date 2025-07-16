@@ -15,19 +15,20 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 type AvailabilityListProps = {
-  me: RouterOutputs["viewer"]["me"]["get"];
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
 };
-export function AvailabilityList({ availabilities, me }: AvailabilityListProps) {
+export function AvailabilityList({ availabilities }: AvailabilityListProps) {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const utils = trpc.useUtils();
   const router = useRouter();
+  const { data: user } = useMeQuery();
 
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onMutate: async ({ scheduleId }) => {
@@ -148,9 +149,9 @@ export function AvailabilityList({ availabilities, me }: AvailabilityListProps) 
               {availabilities.schedules.map((schedule) => (
                 <ScheduleListItem
                   displayOptions={{
-                    hour12: me?.timeFormat ? me.timeFormat === 12 : undefined,
-                    timeZone: me?.timeZone,
-                    weekStart: me?.weekStart || "Sunday",
+                    hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
+                    timeZone: user?.timeZone,
+                    weekStart: user?.weekStart || "Sunday",
                   }}
                   key={schedule.id}
                   schedule={schedule}

@@ -71,7 +71,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     rrTimestampBasis: input.rrTimestampBasis,
   };
 
-  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+  if (
+    input.logo &&
+    (input.logo.startsWith("data:image/png;base64,") ||
+      input.logo.startsWith("data:image/jpeg;base64,") ||
+      input.logo.startsWith("data:image/jpg;base64,"))
+  ) {
     data.logoUrl = await uploadLogo({ teamId: input.id, logo: input.logo });
   } else if (typeof input.logo !== "undefined" && !input.logo) {
     data.logoUrl = null;

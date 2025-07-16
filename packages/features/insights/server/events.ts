@@ -65,6 +65,7 @@ export interface DateRange {
   startDate: string;
   endDate: string;
   formattedDate: string;
+  formattedDateFull: string;
 }
 
 export interface GetDateRangesParams {
@@ -330,6 +331,13 @@ class EventsInsights {
             wholeStart: startDate,
             wholeEnd: endDate,
           }),
+          formattedDateFull: this.formatPeriodFull({
+            start: currentStartDate,
+            end: currentEndDate,
+            timeView,
+            wholeStart: startDate,
+            wholeEnd: endDate,
+          }),
         });
         break;
       }
@@ -338,6 +346,13 @@ class EventsInsights {
         startDate: currentStartDate.toISOString(),
         endDate: currentEndDate.toISOString(),
         formattedDate: this.formatPeriod({
+          start: currentStartDate,
+          end: currentEndDate,
+          timeView,
+          wholeStart: startDate,
+          wholeEnd: endDate,
+        }),
+        formattedDateFull: this.formatPeriodFull({
           start: currentStartDate,
           end: currentEndDate,
           timeView,
@@ -385,6 +400,46 @@ class EventsInsights {
 
         if (start.format("YYYY") !== end.format("YYYY")) {
           return `${start.format(`${startFormat} , YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
+        }
+
+        if (omitYear) {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}`;
+        } else {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
+        }
+      case "month":
+        return omitYear ? start.format("MMM") : start.format("MMM YYYY");
+      case "year":
+        return start.format("YYYY");
+      default:
+        return "";
+    }
+  }
+
+  static formatPeriodFull({
+    start,
+    end,
+    timeView,
+    wholeStart,
+    wholeEnd,
+  }: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+    timeView: TimeViewType;
+    wholeStart: dayjs.Dayjs;
+    wholeEnd: dayjs.Dayjs;
+  }): string {
+    const omitYear = wholeStart.year() === wholeEnd.year();
+
+    switch (timeView) {
+      case "day":
+        return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+      case "week":
+        const startFormat = "MMM D";
+        const endFormat = "MMM D";
+
+        if (start.format("YYYY") !== end.format("YYYY")) {
+          return `${start.format(`${startFormat}, YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
         }
 
         if (omitYear) {
@@ -483,14 +538,20 @@ class EventsInsights {
             ? booking.seatsReferences.map((ref) => ref.attendee)
             : booking.attendees;
 
+        // List all no-show guests (name and email)
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
+
         const formattedAttendees = attendeeList
           .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
           .filter(Boolean);
 
-        return [
-          booking.uid,
-          { attendeeList: formattedAttendees, noShowGuest: attendeeList[0]?.noShow || false },
-        ];
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
       })
     );
 
@@ -510,7 +571,8 @@ class EventsInsights {
         return [
           uid,
           {
-            noShowGuest: data.noShowGuest,
+            noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
             ...attendeeFields,
           },
         ];
@@ -527,7 +589,7 @@ class EventsInsights {
 
         return {
           ...bookingTimeStatus,
-          noShowGuest: false,
+          noShowGuests: null,
           ...nullAttendeeFields,
         };
       }
@@ -542,14 +604,15 @@ class EventsInsights {
 
         return {
           ...bookingTimeStatus,
-          noShowGuest: false,
+          noShowGuests: null,
           ...nullAttendeeFields,
         };
       }
 
       return {
         ...bookingTimeStatus,
-        noShowGuest: attendeeData.noShowGuest,
+        noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
         ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });
