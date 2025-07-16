@@ -170,40 +170,83 @@ export const MultiplePrivateLinksController = ({
             );
           };
 
-          // Sort links: non-expired first, then expired
-          // Within non-expired: expiry-based links (closest to expiry first), then usage-based links (newest first)
+          const getLinkDescription = (link: PrivateLinkWithOptions, latestUsageCount?: number) => {
+            const isExpired = isLinkExpired(link);
+            const usageCount = latestUsageCount ?? (link.usageCount || 0);
+
+            if (link.expiresAt) {
+              const expiryDate = dayjs.utc(link.expiresAt).format("MMM DD, YYYY");
+              return isExpired
+                ? t("link_expired_on_date", { date: expiryDate })
+                : t("expires_on_date", { date: expiryDate });
+            } else if (
+              link.maxUsageCount !== undefined &&
+              link.maxUsageCount !== null &&
+              !isNaN(Number(link.maxUsageCount))
+            ) {
+              const maxUses = link.maxUsageCount;
+              const remainingUses = maxUses - usageCount;
+
+              if (isExpired) {
+                return t("usage_limit_reached");
+              } else {
+                return remainingUses === 1
+                  ? t("remainder_of_maximum_use_left_singular", {
+                      remainder: remainingUses,
+                      maximum: maxUses,
+                    })
+                  : t("remainder_of_maximum_uses_left_plural", {
+                      remainder: remainingUses,
+                      maximum: maxUses,
+                    });
+              }
+            }
+
+            // Default case for links without expiry or usage limits
+            return t("remainder_of_maximum_use_left_singular", {
+              remainder: "1",
+              maximum: "1",
+            });
+          };
+
           const sortedLinksWithIndex = convertedValue
-            .map((val, originalIndex) => ({ val, originalIndex }))
+            .map((val, originalIndex) => {
+              const expired = isLinkExpired(val);
+              const hasExpiry = !!val.expiresAt;
+              const expiryTime = hasExpiry ? new Date(val.expiresAt!).getTime() : null;
+
+              return {
+                val,
+                originalIndex,
+                expired,
+                hasExpiry,
+                expiryTime,
+              };
+            })
             .sort((a, b) => {
-              const aExpired = isLinkExpired(a.val);
-              const bExpired = isLinkExpired(b.val);
-
-              if (aExpired !== bExpired) {
-                return aExpired ? 1 : -1;
+              // Sort expired links last
+              if (a.expired !== b.expired) {
+                return a.expired ? 1 : -1;
               }
 
-              if (!aExpired && !bExpired) {
-                const aHasExpiry = !!a.val.expiresAt;
-                const bHasExpiry = !!b.val.expiresAt;
-
-                if (aHasExpiry && !bHasExpiry) {
-                  return -1;
-                }
-                if (!aHasExpiry && bHasExpiry) {
-                  return 1;
+              // Both not expired
+              if (!a.expired && !b.expired) {
+                // Prefer links with expiry date
+                if (a.hasExpiry !== b.hasExpiry) {
+                  return a.hasExpiry ? -1 : 1;
                 }
 
-                if (aHasExpiry && bHasExpiry) {
-                  const aExpiryTime = new Date(a.val.expiresAt!).getTime();
-                  const bExpiryTime = new Date(b.val.expiresAt!).getTime();
-                  return aExpiryTime - bExpiryTime;
+                // Both have expiry, sort by expiry time
+                if (a.hasExpiry && b.hasExpiry) {
+                  return a.expiryTime! - b.expiryTime!;
                 }
+
+                // Neither has expiry: preserve original order (descending)
                 return b.originalIndex - a.originalIndex;
-              } else if (aExpired && bExpired) {
-                return a.originalIndex - b.originalIndex;
               }
 
-              return 0;
+              // Both expired: preserve original order (ascending)
+              return a.originalIndex - b.originalIndex;
             });
 
           return (
@@ -215,42 +258,8 @@ export const MultiplePrivateLinksController = ({
                 const latestUsageCount =
                   latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-                let linkDescription = t("remainder_of_maximum_use_left_singular", {
-                  remainder: "1",
-                  maximum: "1",
-                });
                 const isExpired = isLinkExpired(val);
-
-                if (val.expiresAt) {
-                  const expiryDate = dayjs.utc(val.expiresAt).format("MMM DD, YYYY");
-
-                  linkDescription = isExpired
-                    ? t("link_expired_on_date", { date: expiryDate })
-                    : t("expires_on_date", { date: expiryDate });
-                } else if (
-                  val.maxUsageCount !== undefined &&
-                  val.maxUsageCount !== null &&
-                  !isNaN(Number(val.maxUsageCount))
-                ) {
-                  const maxUses = val.maxUsageCount;
-                  const usedCount = latestUsageCount;
-                  const remainingUses = maxUses - usedCount;
-
-                  if (isExpired) {
-                    linkDescription = t("usage_limit_reached");
-                  } else {
-                    linkDescription =
-                      remainingUses === 1
-                        ? t("remainder_of_maximum_use_left_singular", {
-                            remainder: remainingUses,
-                            maximum: maxUses,
-                          })
-                        : t("remainder_of_maximum_uses_left_plural", {
-                            remainder: remainingUses,
-                            maximum: maxUses,
-                          });
-                  }
-                }
+                const linkDescription = getLinkDescription(val, latestUsageCount);
 
                 return (
                   <li data-testid="add-single-use-link" className="mb-4 flex flex-col" key={val.link}>
