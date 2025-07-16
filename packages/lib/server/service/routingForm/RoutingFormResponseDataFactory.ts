@@ -16,7 +16,7 @@ export class RoutingFormResponseDataFactory {
       prefix: ["[routingFormFieldService]", { bookingUid }],
     });
 
-    const formResponse = await this.deps.routingFormResponseRepo.findByBookingUid(bookingUid);
+    const formResponse = await this.deps.routingFormResponseRepo.findByBookingUidIncludeForm(bookingUid);
 
     if (!formResponse) {
       log.error("Form response not found");
@@ -31,7 +31,7 @@ export class RoutingFormResponseDataFactory {
       prefix: ["[routingFormFieldService]", { responseId }],
     });
 
-    const formResponse = await this.deps.routingFormResponseRepo.findById(responseId);
+    const formResponse = await this.deps.routingFormResponseRepo.findByIdIncludeForm(responseId);
 
     if (!formResponse) {
       log.error("Form response not found");
