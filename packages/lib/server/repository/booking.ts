@@ -644,7 +644,7 @@ export class BookingRepository {
 
   async findOriginalRescheduledBooking(uid: string, seatsEventType?: boolean) {
     // Use proper database filtering in production for better performance
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== "test") {
       return await this.prismaClient.booking.findFirst({
         where: {
           uid: uid,
@@ -744,9 +744,12 @@ export class BookingRepository {
     });
 
     // Filter in memory to work around prismock WHERE issues
-    const matchingBooking = allBookings.find(booking => 
-      booking.uid === uid && 
-      [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING].includes(booking.status)
+    const matchingBooking = allBookings.find(
+      (booking) =>
+        booking.uid === uid &&
+        (booking.status === BookingStatus.ACCEPTED ||
+          booking.status === BookingStatus.CANCELLED ||
+          booking.status === BookingStatus.PENDING)
     );
 
     return matchingBooking || null;
@@ -764,7 +767,7 @@ export class BookingRepository {
     dateTo: Date;
   }) {
     // Use proper database filtering in production for better performance
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== "test") {
       return await this.prismaClient.booking.findMany({
         where: {
           status: {
@@ -823,36 +826,36 @@ export class BookingRepository {
         },
       },
     });
-    
+
     // Filter in memory to work around prismock WHERE issues
-    const matchingBookings = allBookings.filter(booking => {
+    const matchingBookings = allBookings.filter((booking) => {
       // Check status
       if (booking.status !== BookingStatus.ACCEPTED && booking.status !== BookingStatus.PENDING) {
         return false;
       }
-      
+
       // Check date range
       if (booking.startTime < dateFrom || booking.endTime > dateTo) {
         return false;
       }
-      
+
       // Check if booking belongs to any of the user IDs
       if (booking.userId && userIds.includes(booking.userId)) {
         return true;
       }
-      
+
       // Check if any attendee email matches
       if (booking.attendees) {
-        const attendeeEmails = booking.attendees.map(a => a.email?.toLowerCase()).filter(Boolean);
-        const matchingEmails = userEmails.map(e => e.toLowerCase());
-        if (attendeeEmails.some(email => matchingEmails.includes(email as string))) {
+        const attendeeEmails = booking.attendees.map((a) => a.email?.toLowerCase()).filter(Boolean);
+        const matchingEmails = userEmails.map((e) => e.toLowerCase());
+        if (attendeeEmails.some((email) => matchingEmails.includes(email as string))) {
           return true;
         }
       }
-      
+
       return false;
     });
-    
+
     return matchingBookings;
   }
 
