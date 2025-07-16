@@ -129,14 +129,17 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   const bookerState = useBookerStore((s) => s.state);
   const params = useSearchParams();
 
-  const defaultCount = params.get("occurenceCount");
+  const defaultCount = params.get("occurrenceCount");
   const recurringEvent = event.recurringEvent;
   const maxOccurences = recurringEvent?.count;
 
   useEffect(() => {
     if (!recurringEvent || !maxOccurences) return;
 
-    setRecurringEventCount(getValidCount(recurringEventCount, maxOccurences, defaultCount));
+    const validCount = getValidCount(recurringEventCount, maxOccurences, defaultCount);
+    if (validCount !== recurringEventCount) {
+      setRecurringEventCount(validCount);
+    }
   }, [defaultCount, recurringEvent, recurringEventCount, maxOccurences, setRecurringEventCount]);
 
   if (!recurringEvent || recurringEventCount === null || !validateCount(recurringEventCount, maxOccurences))
