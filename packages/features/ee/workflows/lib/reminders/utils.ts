@@ -40,10 +40,16 @@ export const getSMSMessageWithVariables = async (
   attendeeToBeUsedInSMS: AttendeeInBookingInfo,
   action: WorkflowActions
 ) => {
+  const recipientEmail = action === WorkflowActions.SMS_ATTENDEE ? attendeeToBeUsedInSMS.email : null;
+
   const urls = {
     meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
-    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
-    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true${
+      recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
+    }`,
+    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}${
+      recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
+    }`,
   };
 
   const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
