@@ -1197,10 +1197,10 @@ describe("intersect function comprehensive tests", () => {
 
       console.log("=== END REPRODUCTION ===");
 
-      expect(result).toHaveLength(5); // BUG: Should be 6 ranges, but buggy logic produces only 5
-      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // This range remains unchanged
-      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // This range remains unchanged
-      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeUndefined();
+      expect(result).toHaveLength(6); // Should be 6 unchanged ranges (current buggy logic produces 5)
+      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // Should remain 12:30 (current buggy logic extends to 18:30)
+      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // Should remain 12:30 (current buggy logic extends to 18:30)
+      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeDefined(); // Should be present (current buggy logic excludes it)
     });
   });
 });
