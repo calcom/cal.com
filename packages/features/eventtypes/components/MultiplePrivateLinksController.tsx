@@ -240,7 +240,7 @@ export const MultiplePrivateLinksController = ({
                   } else {
                     linkDescription =
                       remainingUses === 1
-                        ? t("remainder_of_maximum_uses_left_singular", {
+                        ? t("remainder_of_maximum_use_left_singular", {
                             remainder: remainingUses,
                             maximum: maxUses,
                           })

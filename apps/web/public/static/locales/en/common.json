@@ -3368,7 +3368,7 @@
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "event_type_no_hosts": "No hosts are assigned to event type",
   "remainder_of_maximum_uses_left_plural": "{{remainder}} of {{maximum}} uses left",
-  "remainder_of_maximum_uses_left_singular": "{{remainder}} of {{maximum}} use left",
+  "remainder_of_maximum_use_left_singular": "{{remainder}} of {{maximum}} use left",
   "expires_on_date": "Expires on {{date}}, end of day",
   "single_use": "Single use",
   "time_based_expiration": "Time-based expiration",
