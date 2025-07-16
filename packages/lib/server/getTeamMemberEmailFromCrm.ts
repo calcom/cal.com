@@ -21,7 +21,7 @@ interface EventData {
   length: number;
 }
 
-const returnNullValue = { email: null, recordType: null, crmAppSlug: null };
+const returnNullValue = { email: null, recordType: null, crmAppSlug: null, recordId: null };
 
 async function findUserByEmailWhoIsAHostOfEventType({
   email,
@@ -117,7 +117,12 @@ function getEnabledRoutingFormAppSlugFromQuery(query: ParsedUrlQuery) {
 async function getOwnerEmailFromCrm(
   eventData: EventData,
   email: string
-): Promise<{ email: string | null; recordType: string | null; crmAppSlug: string | null }> {
+): Promise<{
+  email: string | null;
+  recordType: string | null;
+  crmAppSlug: string | null;
+  recordId: string | null;
+}> {
   const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
 
   if (!crmContactOwner?.email) return returnNullValue;
@@ -198,7 +203,12 @@ async function getTeamMemberEmailForResponseOrContact({
    */
   chosenRoute?: LocalRoute;
   crmAppSlug?: string;
-}) {
+}): Promise<{
+  email: string | null;
+  recordType: string | null;
+  crmAppSlug: string | null;
+  recordId: string | null;
+}> {
   const eventTypeId = eventData.id;
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return returnNullValue;
 
@@ -223,7 +233,7 @@ async function getTeamMemberEmailForResponseOrContact({
     });
 
     if (skipContactOwner) return returnNullValue;
-    if (email) return { email, recordType, crmAppSlug };
+    if (email) return { email, recordType, crmAppSlug, recordId: null };
   } else {
     log.debug("Getting the contact owner email from CRM");
     return await getOwnerEmailFromCrm(eventData, bookerEmail);
@@ -240,7 +250,12 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
   query: ParsedUrlQuery;
   eventData: EventData;
   chosenRoute?: LocalRoute;
-}) {
+}): Promise<{
+  email: string | null;
+  recordType: string | null;
+  crmAppSlug: string | null;
+  recordId: string | null;
+}> {
   // Without email no lookup is possible
   if (!query.email || typeof query.email !== "string") {
     return returnNullValue;

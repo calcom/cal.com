@@ -597,6 +597,7 @@ async function handler(
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+  const crmRecordId: string | undefined = undefined; // TODO: Extract from CRM contact data when available
 
   let routingFormResponse = null;
 
@@ -1397,6 +1398,7 @@ async function handler(
             teamMemberEmail: contactOwnerEmail,
             recordType: reqBody.crmOwnerRecordType,
             routingFormResponseId,
+            recordId: crmRecordId,
           });
         } else if (routingFormResponseId && teamId) {
           assignmentReason = await AssignmentReasonRecorder.routingFormRoute({

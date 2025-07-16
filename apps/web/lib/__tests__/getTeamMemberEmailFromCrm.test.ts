@@ -29,9 +29,9 @@ function mockGetCRMContactOwnerForRRLeadSkip({
 }) {
   vi.mocked(getCRMContactOwnerForRRLeadSkip).mockImplementation((_bookerEmail, _eventMetadata) => {
     if (_bookerEmail === bookerEmail) {
-      return Promise.resolve({ email: teamMemberEmail, recordType: null, crmAppSlug: null });
+      return Promise.resolve({ email: teamMemberEmail, recordType: null, crmAppSlug: null, recordId: null });
     }
-    return Promise.resolve({ email: null, recordType: null, crmAppSlug: null });
+    return Promise.resolve({ email: null, recordType: null, crmAppSlug: null, recordId: null });
   });
 }
 
