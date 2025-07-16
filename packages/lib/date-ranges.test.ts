@@ -1081,5 +1081,81 @@ describe("intersect function comprehensive tests", () => {
 
       expect(result).toHaveLength(0);
     });
+
+    it("should reproduce getBusyTimes scheduling pipeline scenario causing futureLimit.timezone.test.ts failures", () => {
+      const TIMEZONE = "Asia/Kolkata";
+
+      const calendarBusyTimes = [
+        { start: new Date("2024-05-31T12:30:00.000Z"), end: new Date("2024-05-31T13:30:00.000Z") },
+        { start: new Date("2024-05-31T13:30:00.000Z"), end: new Date("2024-05-31T14:30:00.000Z") },
+        { start: new Date("2024-05-31T14:30:00.000Z"), end: new Date("2024-05-31T15:30:00.000Z") },
+        { start: new Date("2024-05-31T15:30:00.000Z"), end: new Date("2024-05-31T16:30:00.000Z") },
+        { start: new Date("2024-05-31T16:30:00.000Z"), end: new Date("2024-05-31T17:30:00.000Z") },
+        { start: new Date("2024-05-31T17:30:00.000Z"), end: new Date("2024-05-31T18:30:00.000Z") },
+      ];
+
+      const sourceRanges = calendarBusyTimes.map((value) => ({
+        ...value,
+        end: dayjs(value.end),
+        start: dayjs(value.start),
+      }));
+
+      const openSeatsDateRanges = [
+        {
+          start: dayjs("2024-05-31T12:30:00.000Z"),
+          end: dayjs("2024-05-31T18:30:00.000Z").tz(TIMEZONE),
+        },
+      ];
+
+      console.log("=== SCHEDULING PIPELINE SCENARIO REPRODUCTION ===");
+      console.log("Testing scenario that causes 6 extra slots in futureLimit.timezone.test.ts");
+
+      console.log(
+        "Source range (from calendarBusyTimes):",
+        sourceRanges[0].start.format(),
+        "valueOf:",
+        sourceRanges[0].start.valueOf()
+      );
+      console.log(
+        "Excluded range (from openSeatsDateRanges):",
+        openSeatsDateRanges[0].start.format(),
+        "valueOf:",
+        openSeatsDateRanges[0].start.valueOf()
+      );
+      console.log(
+        "Excluded range end:",
+        openSeatsDateRanges[0].end.format(),
+        "valueOf:",
+        openSeatsDateRanges[0].end.valueOf()
+      );
+
+      const sourceTimestamp = new Date(sourceRanges[0].start.valueOf()).valueOf();
+      const excludedStartTimestamp = new Date(openSeatsDateRanges[0].start.valueOf()).valueOf();
+      const excludedEndTimestamp = new Date(openSeatsDateRanges[0].end.valueOf()).valueOf();
+
+      console.log("Source timestamp (new Date().valueOf()):", sourceTimestamp);
+      console.log("Excluded start timestamp (new Date().valueOf()):", excludedStartTimestamp);
+      console.log("Excluded end timestamp (new Date().valueOf()):", excludedEndTimestamp);
+      console.log("Start timestamps equal:", sourceTimestamp === excludedStartTimestamp);
+      console.log(
+        "Should be excluded (start <= source < end):",
+        excludedStartTimestamp <= sourceTimestamp && sourceTimestamp < excludedEndTimestamp
+      );
+
+      const result = subtract(sourceRanges, openSeatsDateRanges);
+
+      console.log("Result length (should be 0 if exclusion works):", result.length);
+      if (result.length > 0) {
+        console.log("ERROR: Slots not excluded! This reproduces the futureLimit.timezone.test.ts failure");
+        result.forEach((slot, i) => {
+          console.log(`Slot ${i}: ${slot.start.format()} - ${slot.end.format()}`);
+        });
+      } else {
+        console.log("SUCCESS: All slots were properly excluded");
+      }
+      console.log("=== END REPRODUCTION ===");
+
+      expect(result).toHaveLength(6);
+    });
   });
 });
