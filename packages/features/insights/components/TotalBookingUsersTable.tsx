@@ -2,6 +2,8 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui/components/avatar";
 
+import { ChartCardItem } from "./ChartCard";
+
 export const TotalBookingUsersTable = ({
   data,
 }: {
@@ -20,9 +22,7 @@ export const TotalBookingUsersTable = ({
     <div className="overflow-hidden rounded-md">
       {filteredData.length > 0 ? (
         filteredData.map((item) => (
-          <div
-            key={item.userId}
-            className="border-subtle flex items-center justify-between border-b px-4 py-3 last:border-b-0">
+          <ChartCardItem key={item.userId} count={item.count}>
             <div className="flex items-center">
               <Avatar
                 alt={item.user.name || ""}
@@ -31,10 +31,9 @@ export const TotalBookingUsersTable = ({
                 title={item.user.name || ""}
                 className="mr-3"
               />
-              <div className="text-default text-sm font-medium">{item.user.name}</div>
+              <div>{item.user.name}</div>
             </div>
-            <div className="text-default text-sm font-medium">{item.count}</div>
-          </div>
+          </ChartCardItem>
         ))
       ) : (
         <div className="flex h-60 text-center">

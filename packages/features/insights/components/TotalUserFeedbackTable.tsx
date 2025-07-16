@@ -2,6 +2,8 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui/components/avatar";
 
+import { ChartCardItem } from "./ChartCard";
+
 export const TotalUserFeedbackTable = ({
   data,
 }: {
@@ -20,9 +22,9 @@ export const TotalUserFeedbackTable = ({
     <div className="overflow-hidden rounded-md">
       {data && data?.length > 0 ? (
         data?.map((item) => (
-          <div
+          <ChartCardItem
             key={item.userId}
-            className="border-subtle flex items-center justify-between border-b px-4 py-3 last:border-b-0">
+            count={item.averageRating ? item.averageRating.toFixed(1) : item.count}>
             <div className="flex items-center">
               <Avatar
                 alt={item.user.name || ""}
@@ -33,10 +35,7 @@ export const TotalUserFeedbackTable = ({
               />
               <div className="text-default text-sm font-medium">{item.user.name}</div>
             </div>
-            <div className="text-default text-sm font-medium">
-              {item.averageRating ? item.averageRating.toFixed(1) : item.count}
-            </div>
-          </div>
+          </ChartCardItem>
         ))
       ) : (
         <div className="flex h-60 text-center">

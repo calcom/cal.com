@@ -2722,7 +2722,7 @@
   "event_ratings": "Average Ratings",
   "event_no_show": "No-Show (Host)",
   "event_no_show_guest": "No-Show (Guest)",
-  "recent_ratings": "Recent ratings",
+  "recent_ratings": "Recent Ratings",
   "no_ratings": "No ratings submitted",
   "no_ratings_description": "Add a workflow with 'Rating' to collect ratings after meetings",
   "most_no_show_host": "Most No-Show",
