@@ -576,7 +576,7 @@ export function getAutoJoinStatus({
       autoAccept: isAMemberOfOrg,
       // User is a member of parent organization already - So, no need to create profile and membership with Org
       needToCreateProfile: false,
-      needToCreateOrgMembership: false,
+      needToCreateOrgMembership: !isAMemberOfOrg,
     };
   }
 

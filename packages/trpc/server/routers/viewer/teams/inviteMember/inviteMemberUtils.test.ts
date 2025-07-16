@@ -560,7 +560,7 @@ describe("Invite Member Utils", () => {
       });
       expect(result).toEqual({
         autoAccept: false,
-        needToCreateOrgMembership: false,
+        needToCreateOrgMembership: true,
         needToCreateProfile: false,
       });
     });
