@@ -17,7 +17,7 @@ export abstract class BaseCacheProxy<TRepository, TImplementation extends TRepos
 
   constructor(repository: TImplementation, keyPrefix: string) {
     this.repository = repository;
-    this.REDIS_KEY_VERSION = `V1.${keyPrefix}`;
+    this.REDIS_KEY_VERSION = `v1.${keyPrefix}`;
 
     const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
     if (UPSTASH_ENV_FOUND) {

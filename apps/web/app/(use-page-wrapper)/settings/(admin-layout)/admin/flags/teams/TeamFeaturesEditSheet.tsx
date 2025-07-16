@@ -121,7 +121,7 @@ export function TeamFeaturesEditSheet({ team, onClose }: TeamFeaturesEditSheetPr
       </div>
 
       <div className="flex justify-end space-x-3">
-        <Button variant="outline" onClick={onClose} disabled={isLoading}>
+        <Button color="secondary" onClick={onClose} disabled={isLoading}>
           {t("cancel")}
         </Button>
         <Button onClick={handleSave} loading={isLoading}>
