@@ -64,7 +64,7 @@ export class RoutingFormResponseService {
 
     if (!field) {
       this.log.error(`Field with identifier ${identifier} not found`);
-      throw new Error(`Field with identifier ${identifier} not found`);
+      return null;
     }
 
     const fieldValue = this.response[field.id].value;

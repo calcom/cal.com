@@ -1,7 +1,7 @@
 import prisma from "@calcom/prisma";
 
 export class RoutingFormResponseRepository {
-  static findById(id: number) {
+  static findByIdIncludeForm(id: number) {
     return prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         id,
@@ -16,7 +16,7 @@ export class RoutingFormResponseRepository {
     });
   }
 
-  static findByBookingUid(bookingUid: string) {
+  static findByBookingUidIncludeForm(bookingUid: string) {
     return prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
         routedToBookingUid: bookingUid,
