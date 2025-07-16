@@ -87,7 +87,8 @@ export const MultiplePrivateLinksController = ({
     setCurrentLinkIndex(index);
     if (currentLink.expiresAt) {
       setSelectedType("time");
-      setExpiryDate(new Date(currentLink.expiresAt));
+      const expiryDate = dayjs.utc(currentLink.expiresAt).format("YYYY-MM-DD");
+      setExpiryDate(dayjs(expiryDate).toDate());
     } else {
       setSelectedType("usage");
       setMaxUsageCount(currentLink.maxUsageCount ?? 1);
