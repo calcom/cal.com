@@ -18,10 +18,9 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
+import { Input } from "@calcom/ui/form";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
-import { Input } from "@calcom/ui/form";
 import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
@@ -110,7 +109,6 @@ export default function JoinCall(props: PageProps) {
     return () => {
       callFrame?.destroy();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -159,7 +157,6 @@ interface ProgressBarProps {
   startTime: string;
   endTime: string;
 }
-
 function ProgressBar(props: ProgressBarProps) {
   const { t } = useLocale();
   const { startTime, endTime } = props;
@@ -231,22 +228,18 @@ interface LogInOverlayProps {
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
-
   const { t } = useLocale();
   const { isLoggedIn, bookingUid } = props;
-  // const [open, setOpen] = useState(!isLoggedIn);
-  const [open, setOpen] = useState(true);
-
+  const [open, setOpen] = useState(!isLoggedIn);
+  const [guestName, setGuestName] = useState("");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="bg-white dark:bg-neutral-900 sm:max-w-md p-6 rounded-2xl shadow-2xl border-0 space-y-6"
-        aria-label={t("join_video_call")}
-      >
+        className="space-y-6 rounded-2xl border-0 bg-white p-6 shadow-2xl dark:bg-neutral-900 sm:max-w-md"
+        aria-label={t("join_video_call")}>
         {/* Title & Description */}
-        <div className="space-y-1 text-left mb-4">
-
+        <div className="mb-4 space-y-1 text-left">
           <h2 className="text-xl font-semibold leading-none text-gray-900 dark:text-white">
             {t("join_video_call")}
           </h2>
@@ -255,29 +248,31 @@ export function LogInOverlay(props: LogInOverlayProps) {
           </p>
         </div>
 
-
         {/* Guest Join Section */}
         <section aria-labelledby="guest-section" className="text-left">
           <h3 id="guest-section" className="text-base font-bold text-gray-900 dark:text-white">
             {t("continue_as_guest")}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t("ideal_for_one_time_calls")}
-          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t("ideal_for_one_time_calls")}</p>
 
           <div className="mt-4 flex w-full gap-3">
             <Input
               type="text"
               aria-label={t("your_name")}
               placeholder={t("your_name")}
-              className="flex-1 rounded-md px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+              className="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder:text-gray-500"
+              value={guestName}
+              onChange={(e) => setGuestName(e.target.value)}
             />
+
             <Button
               type="button"
               variant="outline"
-              className="px-6 bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-700 hover:text-gray-50"
-              onClick={() => setOpen(false)}
-            >
+              className="border-gray-300 bg-white px-6 text-gray-700 hover:bg-gray-50 hover:text-gray-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
+              onClick={() => {
+                console.log("Guest Name:", guestName);
+                setOpen(false);
+              }}>
               {t("continue")}
             </Button>
           </div>
@@ -288,28 +283,19 @@ export function LogInOverlay(props: LogInOverlayProps) {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200 dark:border-neutral-700" />
           </div>
-
         </div>
 
         {/* Login Section */}
-        <section
-          aria-labelledby="login-section"
-          className="space-y-6 text-left max-w-[436px] pb-8"
-        >
+        <section aria-labelledby="login-section" className="max-w-[436px] space-y-6 pb-8 text-left">
           <div className="space-y-1">
-            <h4
-              id="login-section"
-              className="text-base font-semibold text-gray-900 dark:text-white"
-            >
+            <h4 id="login-section" className="text-base font-semibold text-gray-900 dark:text-white">
               {t("sign_in_to_cal_com")}
             </h4>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {t("track_your_meetings")}
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("track_your_meetings")}</p>
           </div>
 
           <Button
-            className="w-full h-11 bg-gray-900 dark:bg-white text-white dark:text-black font-medium hover:bg-gray-800 dark:hover:bg-gray-100 flex items-center justify-center"
+            className="flex h-11 w-full items-center justify-center bg-gray-900 font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100"
             aria-label={t("log_in_to_cal_com")}
             onClick={() =>
               (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
@@ -317,12 +303,10 @@ export function LogInOverlay(props: LogInOverlayProps) {
             {t("log_in_to_cal_com")}
           </Button>
         </section>
-
       </DialogContent>
     </Dialog>
   );
 }
-
 
 interface VideoMeetingInfo {
   booking: PageProps["booking"];

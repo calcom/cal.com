@@ -1,6 +1,31 @@
 {
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react",
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "~/*": ["modules/*"],
@@ -21,7 +46,6 @@
     "experimentalDecorators": true
   },
   "include": [
-    /* Find a way to not require this - App files don't belong here. */
     "../../packages/app-store/routing-forms/env.d.ts",
     "next-env.d.ts",
     "../../packages/trpc/types/router.d.ts",
