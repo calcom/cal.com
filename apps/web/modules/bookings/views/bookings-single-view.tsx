@@ -632,7 +632,7 @@ export default function Success(props: PageProps) {
                                 </div>
                               )}
                               {bookingInfo?.attendees.map((attendee) => {
-                                const isMainAttendee = attendee.email === email;
+                                const isMainAttendee = !email || attendee.email === email;
                                 const shouldHideEmail = eventType.hideOrganizerEmail && !isMainAttendee;
 
                                 return (
