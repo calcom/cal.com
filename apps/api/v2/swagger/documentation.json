@@ -2645,6 +2645,16 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2025-07-11",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2025-07-11"
+            }
           }
         ],
         "responses": {

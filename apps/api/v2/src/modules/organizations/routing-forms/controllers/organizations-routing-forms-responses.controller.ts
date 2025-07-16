@@ -103,6 +103,15 @@ export class OrganizationsRoutingFormsResponsesController {
   }
 
   @Post("/")
+  @ApiHeader({
+    name: "cal-api-version",
+    description: `Must be set to ${VERSION_2025_07_11}`,
+    example: VERSION_2025_07_11,
+    required: true,
+    schema: {
+      default: VERSION_2025_07_11,
+    },
+  })
   @Version(VERSION_2025_07_11)
   @ApiOperation({ summary: "Create routing form response and get available slots" })
   @Roles("ORG_ADMIN")
