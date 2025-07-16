@@ -2,7 +2,7 @@
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import type { EventType } from "@prisma/client";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
@@ -31,6 +31,33 @@ vi.mock("@calcom/lib/server/i18n", () => {
 });
 
 describe("handleChildrenEventTypes", () => {
+  // Mock $transaction to return an array of created event types
+  beforeEach(() => {
+    prismaMock.$transaction.mockImplementation((actions) => {
+      if (Array.isArray(actions)) {
+        // If actions is an array of create calls, return an array of mock event types
+        return Promise.resolve(
+          actions.map((action, index) => {
+            if (typeof action === "function") {
+              // For function-based transactions, call the function
+              return action();
+            }
+            // For direct create calls, return a mock event type
+            return buildEventType({
+              id: 1000 + index,
+              userId: 4 + index,
+              parentId: 1,
+            });
+          })
+        );
+      }
+      // For single action transactions
+      if (typeof actions === "function") {
+        return Promise.resolve(actions());
+      }
+      return Promise.resolve(actions);
+    });
+  });
   describe("Shortcircuits", () => {
     it("Returns message 'No managed event type'", async () => {
       mockFindFirstEventType();
@@ -150,6 +177,8 @@ describe("handleChildrenEventTypes", () => {
           useBookerTimezone: false,
           restrictionScheduleId: null,
           allowReschedulingCancelledBookings: false,
+          schedulingType: "MANAGED",
+          workflows: undefined,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -212,6 +241,7 @@ describe("handleChildrenEventTypes", () => {
           },
           instantMeetingScheduleId: undefined,
           allowReschedulingCancelledBookings: false,
+          schedulingType: "MANAGED",
         },
         where: {
           userId_parentId: {
@@ -324,6 +354,7 @@ describe("handleChildrenEventTypes", () => {
           useBookerTimezone: false,
           restrictionScheduleId: null,
           allowReschedulingCancelledBookings: false,
+          schedulingType: "MANAGED",
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -382,6 +413,7 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           allowReschedulingCancelledBookings: false,
+          schedulingType: "MANAGED",
         },
         where: {
           userId_parentId: {
@@ -490,6 +522,7 @@ describe("handleChildrenEventTypes", () => {
           assignRRMembersUsingSegment: false,
           useEventLevelSelectedCalendars: false,
           allowReschedulingCancelledBookings: false,
+          schedulingType: "MANAGED",
         },
       });
       const { profileId, rrSegmentQueryValue, ...rest } = evType;
@@ -507,6 +540,7 @@ describe("handleChildrenEventTypes", () => {
           hashedLink: {
             deleteMany: {},
           },
+          schedulingType: "MANAGED",
         },
         where: {
           userId_parentId: {
