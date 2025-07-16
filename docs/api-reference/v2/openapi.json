@@ -2544,7 +2544,7 @@
         ]
       },
       "post": {
-        "operationId": "OrganizationsRoutingFormsResponsesController_createRoutingFormResponseV2025_07_11",
+        "operationId": "OrganizationsRoutingFormsResponsesController_createRoutingFormResponse",
         "summary": "Create routing form response and get available slots",
         "parameters": [
           {
@@ -2644,16 +2644,6 @@
             "example": true,
             "schema": {
               "type": "boolean"
-            }
-          },
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2025-07-11",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2025-07-11"
             }
           }
         ],

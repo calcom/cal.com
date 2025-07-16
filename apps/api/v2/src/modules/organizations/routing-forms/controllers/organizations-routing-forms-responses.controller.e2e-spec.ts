@@ -698,14 +698,13 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     });
   });
 
-  describe(`POST /v2/organizations/:orgId/routing-forms/:routingFormId/responses (2025-07-11 version)`, () => {
+  describe(`POST /v2/organizations/:orgId/routing-forms/:routingFormId/responses - restrictions check`, () => {
     // Helper functions to centralize API version header setting
     const createAuthenticatedRequest = (method: "get" | "post" | "patch", url: string, apiKey: string) => {
       return request(app.getHttpServer())
         [method](url)
         .set({
           Authorization: `Bearer cal_test_${apiKey}`,
-          "cal-api-version": VERSION_2025_07_11,
         });
     };
 

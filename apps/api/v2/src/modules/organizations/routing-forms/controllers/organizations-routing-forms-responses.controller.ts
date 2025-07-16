@@ -1,5 +1,4 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { VERSION_2025_07_11 } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
@@ -35,9 +34,6 @@ import { GetRoutingFormResponsesParams } from "../inputs/get-routing-form-respon
 import { UpdateRoutingFormResponseInput } from "../inputs/update-routing-form-response.input";
 import { CreateRoutingFormResponseOutput } from "../outputs/create-routing-form-response.output";
 import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-response.output";
-
-// We allow all but 2025-07-11 version in here because users might be using with any cal-api-version header, and we don't want to break it for them
-const UNVERSIONED = API_VERSIONS_VALUES.filter((v) => v !== VERSION_2025_07_11);
 
 @Controller({
   path: "/v2/organizations/:orgId/routing-forms/:routingFormId/responses",
@@ -79,45 +75,11 @@ export class OrganizationsRoutingFormsResponsesController {
   }
 
   @Post("/")
-  @Version(UNVERSIONED)
-  @ApiOperation({ summary: "Create routing form response and get available slots" })
-  @Roles("ORG_ADMIN")
-  @UseGuards(RolesGuard)
-  @PlatformPlan("ESSENTIALS")
-  async createRoutingFormResponse(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("routingFormId") routingFormId: string,
-    @Query() query: CreateRoutingFormResponseInput,
-    @Req() request: Request
-  ): Promise<CreateRoutingFormResponseOutput> {
-    const result = await this.organizationsRoutingFormsResponsesService.createRoutingFormResponseWithSlots(
-      routingFormId,
-      query,
-      request
-    );
-
-    return {
-      status: SUCCESS_STATUS,
-      data: result,
-    };
-  }
-
-  @Post("/")
-  @ApiHeader({
-    name: "cal-api-version",
-    description: `Must be set to ${VERSION_2025_07_11}`,
-    example: VERSION_2025_07_11,
-    required: true,
-    schema: {
-      default: VERSION_2025_07_11,
-    },
-  })
-  @Version(VERSION_2025_07_11)
   @ApiOperation({ summary: "Create routing form response and get available slots" })
   @Roles("ORG_ADMIN")
   @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
   @PlatformPlan("ESSENTIALS")
-  async createRoutingFormResponseV2025_07_11(
+  async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("routingFormId") routingFormId: string,
     @Query() query: CreateRoutingFormResponseInput,
