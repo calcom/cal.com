@@ -185,6 +185,7 @@ export const CheckedTeamSelect = ({
             isOpenDialog={priorityDialogOpen}
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
+            options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.priorityDialog}
           />
@@ -192,6 +193,7 @@ export const CheckedTeamSelect = ({
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}
+            options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.weightDialog}
           />

@@ -9,6 +9,7 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import { groupHostsByGroupId } from "@calcom/lib/bookings/groupHostsByGroupId";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -24,6 +25,7 @@ interface IDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   option: CheckedSelectOption;
+  options: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }
 
@@ -37,7 +39,7 @@ export const PriorityDialog = (
   }
 ) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
 
   const priorityOptions = [
@@ -53,21 +55,42 @@ export const PriorityDialog = (
     if (!!newPriority) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
-      const updatedHosts = hosts
-        .filter((host) => !host.isFixed)
-        .map((host) => {
-          return {
-            ...option,
-            value: host.userId.toString(),
-            priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
-            isFixed: false,
-            weight: host.weight,
-          };
-        });
+      const hostGroups = getValues("hostGroups");
+      const rrHosts = hosts.filter((host) => !host.isFixed);
 
-      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
 
-      onChange(sortedHosts);
+      const updateHostPriority = (host: Host) => {
+        if (host.userId === parseInt(option.value, 10)) {
+          return { ...host, priority: newPriority.value };
+        }
+        return host;
+      };
+
+      // Sort hosts within the group
+      let sortedHostGroup: Host[] = [];
+      const hostGroupToSort = groupedHosts[option.groupId ?? "default_group_id"];
+
+      if (hostGroupToSort) {
+        sortedHostGroup = hostGroupToSort
+          .map(updateHostPriority)
+          .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      }
+
+      const updatedOptions = sortedHostGroup.map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+
+      onChange(updatedOptions);
     }
     setIsOpenDialog(false);
   };
@@ -128,27 +151,50 @@ export type WeightDialogCustomClassNames = {
 };
 export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogCustomClassNames }) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
     if (!!newWeight) {
       const hosts: Host[] = getValues("hosts");
-      const updatedHosts = hosts
-        .filter((host) => !host.isFixed)
-        .map((host) => {
-          return {
-            ...option,
-            value: host.userId.toString(),
-            priority: host.priority,
-            weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
-            isFixed: false,
-          };
-        });
+      const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
+      const hostGroups = getValues("hostGroups");
+      const rrHosts = hosts.filter((host) => !host.isFixed);
 
-      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
-      onChange(sortedHosts);
+      const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
+
+      const updateHostWeight = (host: Host) => {
+        if (host.userId === parseInt(option.value, 10)) {
+          return { ...host, weight: newWeight };
+        }
+        return host;
+      };
+
+      // Sort hosts within the group
+      let sortedHostGroup: Host[] = [];
+      const hostGroupToSort = groupedHosts[option.groupId ?? "default_group_id"];
+
+      if (hostGroupToSort) {
+        sortedHostGroup = hostGroupToSort
+          .map(updateHostWeight)
+          .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+      }
+
+      const updatedOptions = sortedHostGroup.map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+
+      onChange(updatedOptions);
     }
     setIsOpenDialog(false);
   };
