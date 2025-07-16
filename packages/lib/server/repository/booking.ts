@@ -774,10 +774,10 @@ export class BookingRepository {
             in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
           },
           startTime: {
-            gte: dateFrom,
+            lt: dateTo,
           },
           endTime: {
-            lte: dateTo,
+            gt: dateFrom,
           },
           OR: [
             {
@@ -834,8 +834,8 @@ export class BookingRepository {
         return false;
       }
 
-      // Check date range
-      if (booking.startTime < dateFrom || booking.endTime > dateTo) {
+      // Check date range for overlap: booking.endTime > dateFrom && booking.startTime < dateTo
+      if (booking.endTime <= dateFrom || booking.startTime >= dateTo) {
         return false;
       }
 
