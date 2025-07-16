@@ -71,20 +71,20 @@ function InsightsPageContent() {
 
         <BookingStatusLineChart />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <PopularEventsTable />
           <AverageEventDurationChart />
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
           <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
-          <div className="lg:col-span-2">
+          <div className="sm:col-span-2">
             <RecentFeedbackTable />
           </div>
         </div>
