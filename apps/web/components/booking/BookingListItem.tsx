@@ -354,7 +354,7 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const Actions = () => {
+  const BookingActions = () => {
     const editEventActions: ActionType[] = [
       {
         id: "reschedule",
@@ -738,7 +738,7 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isPending && isUpcoming && !isCancelled && <TableActions actions={pendingActions} />}
-            {!isPending && !(isTabRecurring && isRecurring) && !isCancelled && <Actions />}
+            {!isPending && !(isTabRecurring && isRecurring) && !isCancelled && <BookingActions />}
             {isTabRecurring && isRecurring && <TableActions actions={[cancelEventAction]} />}
             {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
