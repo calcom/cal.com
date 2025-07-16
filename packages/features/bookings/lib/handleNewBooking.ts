@@ -853,12 +853,13 @@ async function handler(
           const newLuckyUser = await getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
+            // only hosts from the same group
             allRRHosts: (
               await enrichHostsWithDelegationCredentials({
                 orgId: firstUserOrgId ?? null,
                 hosts: eventTypeWithUsers.hosts,
               })
-            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // I think we only want the group hosts here
+            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id) && host.groupId === groupId),
             eventType,
             routingFormResponse,
             meetingStartTime: new Date(reqBody.start),
