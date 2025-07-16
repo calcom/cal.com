@@ -23,6 +23,13 @@ const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
 const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 
+  if (!org.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be apart of an organization to use this feature",
+    });
+  }
+
   const membership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
@@ -33,10 +40,10 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
     },
   });
 
-  if (!org.id || !membership?.role) {
+  if (!membership) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
+      message: "You need to be apart of this organization to use this feature",
     });
   }
 

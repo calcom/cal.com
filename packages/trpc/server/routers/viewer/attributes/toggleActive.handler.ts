@@ -17,6 +17,14 @@ type GetOptions = {
 
 const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
+
+  if (!org.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be apart of an organization to use this feature",
+    });
+  }
+
   const membership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
@@ -27,10 +35,10 @@ const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
     },
   });
 
-  if (!org.id || !membership) {
+  if (!membership) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "You need to be apart of an organization to use this feature",
+      message: "You need to be apart of this organization to use this feature",
     });
   }
 
