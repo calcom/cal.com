@@ -310,7 +310,7 @@ export function subtract(
   const result: DateRange[] = [];
 
   // Sort excludedRanges by start time to avoid sorting inside the loop
-  excludedRanges.sort((a, b) => (a.start.isAfter(b.start) ? 1 : -1));
+  excludedRanges.sort((a, b) => (a.start.valueOf() > b.start.valueOf() ? 1 : -1));
 
   // Iterate over each source range
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
