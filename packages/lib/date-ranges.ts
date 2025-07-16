@@ -315,26 +315,31 @@ export function subtract(
   // Iterate over each source range
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
-    let currentStartValue = currentStart.valueOf();
+    let currentStartValue = currentStart.valueOf() + currentStart.utcOffset() * 60000;
     let excludedIndex = 0;
+
+    const sourceEndValue = sourceEnd.valueOf() + sourceEnd.utcOffset() * 60000;
 
     // Process overlapping excludedRanges
     while (excludedIndex < excludedRanges.length) {
-      const { start: excludedStart, end: excludedEnd } = excludedRanges[excludedIndex];
-
+      const excludedStartValue =
+        excludedRanges[excludedIndex].start.valueOf() +
+        excludedRanges[excludedIndex].start.utcOffset() * 60000;
+      const excludedEndValue =
+        excludedRanges[excludedIndex].end.valueOf() + excludedRanges[excludedIndex].end.utcOffset() * 60000;
       // If excluded range starts after current start, add non-overlapping part
-      if (excludedStart.valueOf() > currentStartValue) {
-        result.push({ start: currentStart, end: excludedStart });
+      if (excludedStartValue > currentStartValue) {
+        result.push({ start: currentStart, end: excludedRanges[excludedIndex].start });
       }
 
       // Update currentStart to the maximum of the current start or the excluded end
-      if (excludedEnd.valueOf() > currentStartValue) {
-        currentStart = excludedEnd;
-        currentStartValue = excludedEnd.valueOf();
+      if (excludedEndValue > currentStartValue) {
+        currentStart = excludedRanges[excludedIndex].end;
+        currentStartValue = currentStart.valueOf() + currentStart.utcOffset() * 60000;
       }
 
       // Break if we no longer overlap
-      if (excludedEnd.valueOf() > sourceEnd.valueOf()) {
+      if (excludedEndValue > sourceEndValue) {
         break;
       }
 
@@ -342,7 +347,7 @@ export function subtract(
     }
 
     // If there’s still time remaining after the last excluded range, add the remaining range
-    if (sourceEnd.valueOf() > currentStartValue) {
+    if (sourceEndValue > currentStartValue) {
       result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
