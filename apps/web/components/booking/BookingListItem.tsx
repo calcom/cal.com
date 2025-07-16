@@ -191,6 +191,9 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const provider = guessEventLocationType(location);
 
+  const isDisabledCancelling = booking.eventType.disableCancelling;
+  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
@@ -242,146 +245,16 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  const editBookingActions: ActionType[] = [
-    ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
-      ? []
-      : [
-          {
-            id: "reschedule",
-            icon: "clock" as const,
-            label: t("reschedule_booking"),
-            href: `/reschedule/${booking.uid}${
-              booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-            }`,
-          },
-          {
-            id: "reschedule_request",
-            icon: "send" as const,
-            iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-            label: t("send_reschedule_request"),
-            onClick: () => {
-              setIsOpenRescheduleDialog(true);
-            },
-          },
-        ]),
-    ...(isBookingFromRoutingForm
-      ? [
-          {
-            id: "reroute",
-            label: t("reroute"),
-            onClick: () => {
-              setRerouteDialogIsOpen(true);
-            },
-            icon: "waypoints" as const,
-          },
-        ]
-      : []),
-    {
-      id: "change_location",
-      label: t("edit_location"),
-      onClick: () => {
-        setIsOpenLocationDialog(true);
-      },
-      icon: "map-pin" as const,
-    },
-    ...(booking.eventType?.disableGuests
-      ? []
-      : [
-          {
-            id: "add_members",
-            label: t("additional_guests"),
-            onClick: () => {
-              setIsOpenAddGuestsDialog(true);
-            },
-            icon: "user-plus" as const,
-          },
-        ]),
-  ];
-
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    editBookingActions.push({
-      id: "reassign ",
-      label: t("reassign"),
-      onClick: () => {
-        setIsOpenReassignDialog(true);
-      },
-      icon: "users" as const,
-    });
-  }
-
-  if (isBookingInPast || isOngoing) {
-    editBookingActions.push({
-      id: "no_show",
-      label:
-        attendeeList.length === 1 && attendeeList[0].noShow ? t("unmark_as_no_show") : t("mark_as_no_show"),
-      onClick: () => {
-        // If there's only one attendee, mark them as no-show directly without showing the dialog
-        if (attendeeList.length === 1) {
-          const attendee = attendeeList[0];
-          noShowMutation.mutate({
-            bookingUid: booking.uid,
-            attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-          });
-          return;
-        }
-
-        setIsNoShowDialogOpen(true);
-      },
-      icon: attendeeList.length === 1 && attendeeList[0].noShow ? "eye" : ("eye-off" as const),
-    });
-  }
-
-  let bookedActions: ActionType[] = [
-    {
-      id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-      /* When cancelling we need to let the UI and the API know if the intention is to
-               cancel all remaining bookings or just that booking instance. */
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-      `,
-      icon: "x" as const,
-    },
-    {
-      id: "edit_booking",
-      label: t("edit"),
-      actions: editBookingActions,
-    },
-  ];
-
-  const chargeCardActions: ActionType[] = [
-    {
-      id: "charge_card",
-      label: cardCharged ? t("no_show_fee_charged") : t("collect_no_show_fee"),
-      disabled: cardCharged,
-      onClick: () => {
-        setChargeCardDialogIsOpen(true);
-      },
-      icon: "credit-card" as const,
-    },
-  ];
-
-  const isDisabledCancelling = booking.eventType.disableCancelling;
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
-
-  if (isTabRecurring && isRecurring) {
-    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
-  }
-
-  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
-    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
-  }
-
-  if (isDisabledRescheduling) {
-    bookedActions.forEach((action) => {
-      if (action.id === "edit_booking") {
-        action.actions = action.actions?.filter(
-          ({ id }) => id !== "reschedule" && id !== "reschedule_request"
-        );
-      }
-    });
-  }
+  const cancelEventAction: ActionType = {
+    id: "cancel",
+    label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
+    href: `/booking/${booking.uid}?cancel=true${
+      isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+    }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
+    icon: "circle-x",
+    color: "destructive",
+    disabled: isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed),
+  };
 
   const RequestSentMessage = () => {
     return (
@@ -460,13 +333,6 @@ function BookingListItem(booking: BookingItemProps) {
 
   const title = booking.title;
 
-  const showViewRecordingsButton = !!(booking.isRecorded && isBookingInPast && isConfirmed);
-  const showCheckRecordingButton =
-    isBookingInPast &&
-    isConfirmed &&
-    !booking.isRecorded &&
-    (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
-
   const isCalVideoLocation =
     !booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "";
 
@@ -497,7 +363,8 @@ function BookingListItem(booking: BookingItemProps) {
         href: `/reschedule/${booking.uid}${
           booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
         }`,
-        disabled: isBookingInPast && !booking.eventType.allowReschedulingPastBookings,
+        disabled:
+          (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
       },
       {
         id: "reschedule_request",
@@ -505,7 +372,8 @@ function BookingListItem(booking: BookingItemProps) {
         iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
         label: t("send_reschedule_request"),
         onClick: () => setIsOpenRescheduleDialog(true),
-        disabled: isBookingInPast && !booking.eventType.allowReschedulingPastBookings,
+        disabled:
+          (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
       },
       isBookingFromRoutingForm
         ? {
@@ -543,17 +411,6 @@ function BookingListItem(booking: BookingItemProps) {
           }
         : null,
     ].filter(Boolean) as ActionType[];
-
-    const cancelEventAction: ActionType = {
-      id: "cancel",
-      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
-      href: `/booking/${booking.uid}?cancel=true${
-        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
-      icon: "circle-x",
-      color: "destructive",
-      disabled: isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed),
-    };
 
     const afterEventActions: ActionType[] = [
       ...videoOptionsActions,
@@ -881,7 +738,8 @@ function BookingListItem(booking: BookingItemProps) {
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isPending && isUpcoming && !isCancelled && <TableActions actions={pendingActions} />}
-            {!isPending && <Actions />}
+            {!isPending && !(isTabRecurring && isRecurring) && !isCancelled && <Actions />}
+            {isTabRecurring && isRecurring && <TableActions actions={[cancelEventAction]} />}
             {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             {isCancelled && booking.rescheduled && (
               <div className="hidden h-full items-center md:flex">
