@@ -9,6 +9,7 @@ import { describe, expect, test, vi, beforeEach } from "vitest";
 import dayjs from "@calcom/dayjs";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook, buildUser } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
@@ -252,7 +253,7 @@ describe("POST /api/bookings", () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
-          message: expect.stringContaining("Cannot destructure property 'profile'"),
+          message: ErrorCode.RequestBodyInvalid,
         })
       );
     });
@@ -276,7 +277,7 @@ describe("POST /api/bookings", () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
-          message: "No EventType found",
+          message: ErrorCode.EventTypeNotFound,
         })
       );
     });
