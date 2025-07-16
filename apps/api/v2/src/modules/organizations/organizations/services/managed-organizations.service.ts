@@ -52,7 +52,7 @@ export class ManagedOrganizationsService {
 
     if (existingManagedOrganization) {
       throw new ConflictException(
-        `Organization with slug '${organizationData.slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
+        `Organization with slug '${slug}' already exists. Please, either provide a different slug or change name so that the automatically generated slug is different.`
       );
     }
 
