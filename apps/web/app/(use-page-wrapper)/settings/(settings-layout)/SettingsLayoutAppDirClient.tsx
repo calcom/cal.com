@@ -92,7 +92,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           ? [
               {
                 name: "members",
-                href: `/settings/organizations/${orgBranding.slug}/members`,
+                href: "https://app.cal.com/settings/organizations/i/members",
+                isExternalLink: true,
               },
             ]
           : []),
@@ -146,6 +147,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
         { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
+        { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
   ];
@@ -397,12 +399,6 @@ const TeamListCollapsible = () => {
                   <VerticalTabItem
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    disableChevron
-                  />
-                  <VerticalTabItem
-                    name={t("event_types_page_title")}
-                    href={`/event-types?teamId=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
