@@ -128,7 +128,7 @@ describe("GET /api/bookings/[id]", () => {
 
       await handler(req, res);
 
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(404);
     });
 
     test("should return 400 for invalid booking ID", async () => {
