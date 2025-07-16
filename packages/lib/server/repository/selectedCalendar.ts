@@ -135,40 +135,6 @@ export class SelectedCalendarRepository {
     });
   }
 
-  static async findOrphanedCalendars({
-    credentialId,
-    validExternalIds,
-  }: {
-    credentialId: number;
-    validExternalIds: string[];
-  }) {
-    return await prisma.selectedCalendar.findMany({
-      where: {
-        credentialId,
-        externalId: {
-          notIn: validExternalIds,
-        },
-      },
-    });
-  }
-
-  static async deleteOrphanedCalendars({
-    credentialId,
-    validExternalIds,
-  }: {
-    credentialId: number;
-    validExternalIds: string[];
-  }) {
-    return await prisma.selectedCalendar.deleteMany({
-      where: {
-        credentialId,
-        externalId: {
-          notIn: validExternalIds,
-        },
-      },
-    });
-  }
-
   static async createIfNotExists(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 

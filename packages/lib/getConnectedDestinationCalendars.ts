@@ -258,6 +258,61 @@ function getSelectedCalendars({
   return user.userLevelSelectedCalendars;
 }
 
+async function cleanupOrphanedSelectedCalendars({
+  user,
+  connectedCalendars,
+}: {
+  user: UserWithCalendars;
+  connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
+}) {
+  try {
+    const googleCalendarIntegrations = connectedCalendars.filter(
+      (cal) => cal.integration?.slug === "google_calendar" && cal.calendars
+    );
+
+    if (googleCalendarIntegrations.length === 0) {
+      return;
+    }
+
+    const existingGoogleCalendarIds = new Set<string>();
+    googleCalendarIntegrations.forEach((integration) => {
+      integration.calendars?.forEach((cal) => {
+        if (cal.externalId) {
+          existingGoogleCalendarIds.add(cal.externalId);
+        }
+      });
+    });
+
+    const userSelectedCalendars = await SelectedCalendarRepository.findMany({
+      where: {
+        userId: user.id,
+        integration: "google_calendar",
+      },
+    });
+
+    const orphanedCalendars = userSelectedCalendars.filter(
+      (selectedCal) => !existingGoogleCalendarIds.has(selectedCal.externalId)
+    );
+
+    if (orphanedCalendars.length > 0) {
+      log.info(
+        `Cleaning up ${orphanedCalendars.length} orphaned Google Calendar records for user ${user.id}`,
+        { orphanedCalendarIds: orphanedCalendars.map((cal) => cal.externalId) }
+      );
+
+      await Promise.all(
+        orphanedCalendars.map((cal) =>
+          SelectedCalendarRepository.deleteById({ id: cal.id }).catch((error) => {
+            log.warn(`Failed to delete orphaned calendar ${cal.externalId}:`, error);
+          })
+        )
+      );
+    }
+  } catch (error) {
+    log.warn("Failed to cleanup orphaned selected calendars:", error);
+  }
+}
+
 /**
  * Fetches the calendars for the authenticated user or the event-type if provided
  * It also takes care of updating the destination calendar in some edge cases
@@ -365,6 +420,11 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   const noConflictingNonDelegatedConnectedCalendars = _ensureNoConflictingNonDelegatedConnectedCalendar({
     connectedCalendars,
     loggedInUser: { email: user.email },
+  });
+
+  await cleanupOrphanedSelectedCalendars({
+    user,
+    connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
   });
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
