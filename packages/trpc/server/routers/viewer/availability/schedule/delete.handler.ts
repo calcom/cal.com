@@ -52,7 +52,13 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
       (membership) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
     );
 
-    if (hasLockedTeamMembership) {
+    // Check if user is an admin/owner of any team (which gives them permission to override restrictions)
+    const hasAdminOrOwnerRole = userTeams.some(
+      (membership) => membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER
+    );
+
+    // Only block if user has locked team membership AND is not an admin/owner of any team
+    if (hasLockedTeamMembership && !hasAdminOrOwnerRole) {
       throw new TRPCError({
         code: "FORBIDDEN",
         message:
