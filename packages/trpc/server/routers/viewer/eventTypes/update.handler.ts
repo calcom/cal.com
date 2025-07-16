@@ -146,6 +146,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           workflowId: true,
         },
       },
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -207,6 +213,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
   }
 
+  const isLoadBalancingDisabled = !!(
+    (eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
+    (hostGroups && hostGroups.length > 1) ||
+    (!hostGroups && eventType.hostGroups && eventType.hostGroups.length > 1)
+  );
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
@@ -221,10 +233,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
-    maxLeadThreshold:
-      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-        ? null
-        : rest.maxLeadThreshold,
+    maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
 
