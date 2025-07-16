@@ -101,7 +101,7 @@ export const BookingKPICards = () => {
       <ChartCard title={t("performance")}>
         <StatContainer>
           {performanceCategories.map((item, index) => (
-            <StatItem key={item.title} index={index} length={performanceCategories.length}>
+            <StatItem key={item.title} index={index}>
               <KPICard
                 title={item.title}
                 value={data[item.index].count}
@@ -128,7 +128,7 @@ const LoadingKPICards = (props: {
       <ChartCard title={t("events")}>
         <StatContainer>
           {eventCategories.map((item, index) => (
-            <StatItem key={item.title} index={index} length={eventCategories.length}>
+            <StatItem key={item.title} index={index}>
               <div>
                 <SkeletonText className="mb-2 h-4 w-24" />
                 <div className="items-baseline justify-start space-x-3 truncate">

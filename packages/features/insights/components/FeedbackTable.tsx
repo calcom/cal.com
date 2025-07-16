@@ -4,6 +4,7 @@ import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const FeedbackTable = ({
   data,
@@ -39,7 +40,11 @@ export const FeedbackTable = ({
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-default text-sm font-medium">{item.rating}</div>
-              <div className="text-default max-w-xs truncate text-sm font-medium">{item.feedback}</div>
+              <Tooltip content={item.feedback}>
+                <div className="text-default max-w-32 md:max-w-52 truncate text-sm font-medium">
+                  {item.feedback}
+                </div>
+              </Tooltip>
             </div>
           </div>
         ))
