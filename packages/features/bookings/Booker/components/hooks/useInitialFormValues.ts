@@ -9,7 +9,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
 
 type UseInitialFormValuesProps = {
-  eventType?: Pick<BookerEvent, "bookingFields"> | null;
+  bookingFields?: BookerEvent["bookingFields"] | null;
   rescheduleUid: string | null;
   isRescheduling: boolean;
   email?: string | null;
@@ -53,7 +53,7 @@ const buildKey = ({
 };
 
 export function useInitialFormValues({
-  eventType,
+  bookingFields,
   rescheduleUid,
   isRescheduling,
   email,
@@ -88,11 +88,11 @@ export function useInitialFormValues({
         return;
       }
 
-      if (!eventType?.bookingFields) {
+      if (!bookingFields) {
         return {};
       }
       const querySchema = getBookingResponsesPartialSchema({
-        bookingFields: eventType.bookingFields,
+        bookingFields,
         view: rescheduleUid ? "reschedule" : "booking",
       });
 
@@ -128,7 +128,7 @@ export function useInitialFormValues({
           responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
         };
 
-        const responses = eventType.bookingFields.reduce((responses, field) => {
+        const responses = bookingFields.reduce((responses, field) => {
           return {
             ...responses,
             [field.name]: parsedQuery[field.name] || undefined,
@@ -158,7 +158,7 @@ export function useInitialFormValues({
         bookingId: bookingData?.id,
       };
 
-      const responses = eventType.bookingFields.reduce((responses, field) => {
+      const responses = bookingFields.reduce((responses, field) => {
         return {
           ...responses,
           [field.name]: bookingData?.responses[field.name],
@@ -177,7 +177,7 @@ export function useInitialFormValues({
     // TODO: Remove it. It was initially added so that we don't add extraOptions in deps but that is handled using stableHashExtraOptions now.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    eventType?.bookingFields,
+    bookingFields,
     formValues,
     isRescheduling,
     bookingData,

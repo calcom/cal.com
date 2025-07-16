@@ -103,7 +103,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
   const bookerForm = useBookingForm({
-    event: event.data ? { bookingFields: event.data.bookingFields } : null,
+    bookingFields: event.data ? event.data.bookingFields : null,
     sessionEmail: session?.user.email,
     sessionUsername: session?.user.username,
     sessionName: session?.user.name,
