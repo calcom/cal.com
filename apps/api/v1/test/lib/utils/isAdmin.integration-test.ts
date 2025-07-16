@@ -87,6 +87,8 @@ describe("isAdmin guard", () => {
     req.userId = adminUser.id;
     req.user = adminUser;
 
+    mockPermissionCheckService.checkPermission.mockResolvedValueOnce(true);
+
     const { isAdmin, scope } = await isAdminGuard(req);
     expect(isAdmin).toBe(true);
     expect(scope).toBe(ScopeOfAdmin.OrgOwnerOrAdmin);
