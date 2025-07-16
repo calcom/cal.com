@@ -28,7 +28,7 @@ export function extractHostTimezone(eventType: EventTypeForTimezone): string | n
       return eventType.team.members[0]?.user?.timeZone || null;
     }
   }
-  return null;
+  return dayjs.tz.guess();
 }
 
 /**

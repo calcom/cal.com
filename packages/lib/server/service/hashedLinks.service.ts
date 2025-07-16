@@ -15,21 +15,21 @@ export type EventTypeForTimezone = {
   teamId?: number | null;
   hosts?: Array<{
     user: {
-      timeZone: string;
+      timeZone: string | null;
     } | null;
   }> | null;
   profile?: {
     user: {
-      timeZone: string;
+      timeZone: string | null;
     } | null;
   } | null;
   owner?: {
-    timeZone: string;
+    timeZone: string | null;
   } | null;
   team?: {
     members?: Array<{
       user?: {
-        timeZone: string;
+        timeZone: string | null;
       } | null;
     }> | null;
   } | null;

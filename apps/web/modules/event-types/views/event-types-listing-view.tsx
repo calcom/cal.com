@@ -7,7 +7,6 @@ import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
@@ -17,6 +16,7 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -477,8 +477,15 @@ export const InfiniteEventTypeList = ({
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
 
-            // Filter out expired links using user's timezone
-            const userTimezone = dayjs.tz.guess();
+            // TODO: Add support for hosts, team and profile for extracting host timezone
+            const userTimezone = extractHostTimezone({
+              userId: type.userId,
+              teamId: type?.teamId,
+              hosts: null,
+              profile: null,
+              owner: type?.owner,
+              team: null,
+            });
             const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
 
             // Ensure index is within bounds for active links
