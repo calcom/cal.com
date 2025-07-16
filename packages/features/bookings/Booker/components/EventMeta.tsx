@@ -13,6 +13,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
@@ -113,8 +114,11 @@ export const EventMeta = ({
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone
-    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.lockedTimeZone) {
-      setTimezone(event?.lockedTimeZone);
+    if (event?.lockTimeZoneToggleOnBookingPage) {
+      const timezone = event.lockedTimeZone || event.schedule?.timeZone;
+      if (timezone) {
+        setTimezone(timezone);
+      }
     }
   }, [event, setTimezone]);
 
@@ -230,7 +234,11 @@ export const EventMeta = ({
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
-                    value={event.lockTimeZoneToggleOnBookingPage ? event.lockedTimeZone : timezone}
+                    value={
+                      event.lockTimeZoneToggleOnBookingPage
+                        ? event.lockedTimeZone || CURRENT_TIMEZONE
+                        : timezone
+                    }
                     onChange={({ value }) => {
                       setTimezone(value);
                       setBookerStoreTimezone(value);

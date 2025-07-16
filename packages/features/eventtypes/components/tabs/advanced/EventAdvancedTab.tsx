@@ -1017,48 +1017,63 @@ export const EventAdvancedTab = ({
       />
       <Controller
         name="lockTimeZoneToggleOnBookingPage"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
-            descriptionClassName={customClassNames?.timezoneLock?.description}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.timezoneLock?.container,
-              formMethods.getValues("lockTimeZoneToggleOnBookingPage") && "rounded-b-none"
-            )}
-            title={t("lock_timezone_toggle_on_booking_page")}
-            {...lockTimeZoneToggleOnBookingPageLocked}
-            description={t("description_lock_timezone_toggle_on_booking_page")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            data-testid="lock-timezone-toggle"
-            childrenClassName="lg:ml-0">
-            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-              <div>
-                <Controller
-                  name="lockedTimeZone"
-                  control={formMethods.control}
-                  render={({ field: { value } }) => (
-                    <>
-                      <Label className="text-default mb-2 block text-sm font-medium">
-                        <>{t("timezone")}</>
-                      </Label>
-                      <TimezoneSelect
-                        id="lockedTimeZone"
-                        value={value}
-                        onChange={(event) => {
-                          if (event)
-                            formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                        }}
-                      />
-                    </>
-                  )}
-                />
-              </div>
-            </div>
-          </SettingsToggle>
-        )}
+        render={({ field: { value, onChange } }) => {
+          // Calculate if we should show the selector based on current form state & handle backward compatibility
+          const currentLockedTimeZone = formMethods.getValues("lockedTimeZone");
+          const showSelector =
+            value &&
+            (!(eventType.lockTimeZoneToggleOnBookingPage && !eventType.lockedTimeZone) ||
+              !!currentLockedTimeZone);
+
+          return (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
+              descriptionClassName={customClassNames?.timezoneLock?.description}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.timezoneLock?.container,
+                showSelector && "rounded-b-none"
+              )}
+              title={t("lock_timezone_toggle_on_booking_page")}
+              {...lockTimeZoneToggleOnBookingPageLocked}
+              description={t("description_lock_timezone_toggle_on_booking_page")}
+              checked={value}
+              onCheckedChange={(e) => {
+                onChange(e);
+                const lockedTimeZone = e ? eventType.lockedTimeZone ?? "Europe/London" : null;
+                formMethods.setValue("lockedTimeZone", lockedTimeZone, { shouldDirty: true });
+              }}
+              data-testid="lock-timezone-toggle"
+              childrenClassName="lg:ml-0">
+              {showSelector && (
+                <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+                  <div>
+                    <Controller
+                      name="lockedTimeZone"
+                      control={formMethods.control}
+                      render={({ field: { value } }) => (
+                        <>
+                          <Label className="text-default mb-2 block text-sm font-medium">
+                            <>{t("timezone")}</>
+                          </Label>
+                          <TimezoneSelect
+                            id="lockedTimeZone"
+                            value={value ?? "Europe/London"}
+                            onChange={(event) => {
+                              if (event)
+                                formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
+                            }}
+                          />
+                        </>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+            </SettingsToggle>
+          );
+        }}
       />
       <Controller
         name="allowReschedulingPastBookings"
