@@ -80,7 +80,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const userRepository = new UserRepository(prisma);
+  const user = await userRepository.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });
@@ -95,6 +96,7 @@ export async function getServerSession(options: {
       email: user.email,
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
+      completedOnboarding: user.completedOnboarding,
       role: user.role,
       image: getUserAvatarUrl({
         avatarUrl: user.avatarUrl,
