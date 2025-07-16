@@ -3,7 +3,6 @@ import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -70,6 +69,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
                   },
                 },
               },
+              take: 1,
             },
           },
         },
@@ -100,13 +100,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     },
   } satisfies Prisma.HashedLinkSelect;
 
-  const hashedLink = await prisma.hashedLink.findUnique({
-    where: {
-      link,
-    },
-    select: hashedLinkSelect,
-  });
-
   let name: string;
   let hideBranding = false;
 
@@ -114,31 +107,24 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     notFound: true,
   } as const;
 
-  if (!hashedLink) {
+  // Use centralized validation logic to avoid duplication
+  const hashedLinksService = new HashedLinksService(prisma);
+  try {
+    await hashedLinksService.validate(link);
+  } catch (error) {
+    // Link is expired, invalid, or doesn't exist
     return notFound;
   }
 
-  const isExpired = hashedLink.expiresAt
-    ? (() => {
-        const hostTimezone = HashedLinksService.extractHostTimezone(hashedLink.eventType);
+  // If validation passes, fetch the complete data needed for rendering
+  const hashedLink = await prisma.hashedLink.findUnique({
+    where: {
+      link,
+    },
+    select: hashedLinkSelect,
+  });
 
-        if (hostTimezone) {
-          const now = dayjs().tz(hostTimezone);
-          const expiration = dayjs(hashedLink.expiresAt).tz(hostTimezone);
-          return expiration.isBefore(now);
-        } else {
-          const now = dayjs();
-          const expiration = dayjs(hashedLink.expiresAt);
-          return expiration.isBefore(now);
-        }
-      })()
-    : false;
-  const isUsageExceeded = hashedLink.maxUsageCount
-    ? hashedLink.usageCount >= hashedLink.maxUsageCount
-    : false;
-
-  // Block access if the link is expired or has exceeded its usage limit
-  if (isExpired || isUsageExceeded) {
+  if (!hashedLink) {
     return notFound;
   }
 

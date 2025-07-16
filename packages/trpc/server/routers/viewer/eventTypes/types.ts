@@ -11,11 +11,14 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 
-const hashedLinkInputSchema = z.object({
-  link: z.string(),
-  expiresAt: z.date().nullable().optional(),
-  maxUsageCount: z.number().nullable().optional(),
-});
+const hashedLinkInputSchema = z
+  .object({
+    link: z.string(),
+    expiresAt: z.date().nullish(),
+    maxUsageCount: z.number().nullish(),
+    usageCount: z.number().nullish(),
+  })
+  .strict();
 
 const aiPhoneCallConfig = z
   .object({

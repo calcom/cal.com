@@ -72,12 +72,12 @@ test.describe("private links creation and usage", () => {
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
     await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
-    await page.waitForTimeout(500); // or check if slug field is updated visually
+    await expect(page.locator('[data-testid="event-slug"]').first()).toHaveValue("somethingrandom");
 
     await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
-    await page.locator(".primary-navigation >> text=Advanced").click();
+    await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
 
     // Wait for the private link URL input to be visible and get its value
     const $url2 = await page.locator('[data-testid="private-link-url"]').inputValue();
@@ -111,7 +111,7 @@ test.describe("private links creation and usage", () => {
     await expect(page.locator('[data-testid="private-link-radio-group"]')).toBeVisible();
     await page.locator('[data-testid="private-link-time"]').click();
     await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
-    await page.waitForTimeout(500);
+    await page.waitForLoadState("networkidle");
     // click update
     await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),

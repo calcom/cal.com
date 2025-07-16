@@ -42,7 +42,7 @@ export const getHashedLinkHandler = async ({ ctx, input }: GetHashedLinkOptions)
 
   if (!hasPermission) {
     throw new TRPCError({
-      code: "UNAUTHORIZED",
+      code: "FORBIDDEN",
       message: "You don't have permission to access this link",
     });
   }

@@ -1,5 +1,5 @@
-import dayjs from "@calcom/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
 import { prisma, type PrismaClient } from "@calcom/prisma";
 
 import { HashedLinksRepository, type HashedLinkInputType } from "../repository/hashedLinks.repository";
@@ -84,13 +84,15 @@ export class HashedLinksService {
     const normalizedLinks = multiplePrivateLinks.map((input) => this.normalizeLinkInput(input));
     const currentLinks = normalizedLinks.map((l) => l.link);
 
-    // Delete links that are no longer in the list
-    const linksToDelete = connectedMultiplePrivateLinks.filter((link) => !currentLinks.includes(link));
+    const currentLinksSet = new Set(currentLinks);
+
+    const linksToDelete = connectedMultiplePrivateLinks.filter((link) => !currentLinksSet.has(link));
     await this.hashedLinksRepository.deleteLinks(eventTypeId, linksToDelete);
 
-    // Create or update links
+    const existingLinksSet = new Set(connectedMultiplePrivateLinks);
+
     for (const linkData of normalizedLinks) {
-      const exists = connectedMultiplePrivateLinks.includes(linkData.link);
+      const exists = existingLinksSet.has(linkData.link);
       if (!exists) {
         await this.hashedLinksRepository.createLink(eventTypeId, linkData);
       } else {
@@ -100,13 +102,13 @@ export class HashedLinksService {
   }
 
   /**
-   * Validates a link and increments usage count if valid
+   * Validates a link without incrementing usage count
    * Handles both time-based and usage-based expiration with timezone awareness
    * @param linkId - The hashed link ID to validate
    * @returns The validated link data
    * @throws Error with ErrorCode.PrivateLinkExpired if link is expired or invalid
    */
-  async validateAndIncrementUsage(linkId: string) {
+  async validate(linkId: string) {
     if (!linkId || typeof linkId !== "string") {
       throw new Error("Invalid link ID");
     }
@@ -117,37 +119,23 @@ export class HashedLinksService {
       throw new Error(ErrorCode.PrivateLinkExpired);
     }
 
-    // Handle time-based expiration with timezone awareness
-    if (hashedLink.expiresAt) {
-      const hostTimezone = HashedLinksService.extractHostTimezone(hashedLink.eventType);
+    validateHashedLinkData(hashedLink);
 
-      if (hostTimezone) {
-        // Use dayjs for timezone-aware comparison
-        const now = dayjs().tz(hostTimezone);
-        const expiration = dayjs(hashedLink.expiresAt).tz(hostTimezone);
+    return hashedLink;
+  }
 
-        if (expiration.isBefore(now)) {
-          throw new Error(ErrorCode.PrivateLinkExpired);
-        }
-      } else {
-        // Fallback to UTC comparison if no timezone available
-        const now = dayjs();
-        const expiration = dayjs(hashedLink.expiresAt);
+  /**
+   * Validates a link and increments usage count if valid
+   * Handles both time-based and usage-based expiration with timezone awareness
+   * @param linkId - The hashed link ID to validate
+   * @returns The validated link data
+   * @throws Error with ErrorCode.PrivateLinkExpired if link is expired or invalid
+   */
+  async validateAndIncrementUsage(linkId: string) {
+    const hashedLink = await this.validate(linkId);
+    if (hashedLink.expiresAt) return hashedLink; // Time-based links don't need usage count increment
 
-        if (expiration.isBefore(now)) {
-          throw new Error(ErrorCode.PrivateLinkExpired);
-        }
-      }
-      return hashedLink;
-    }
-
-    // Handle usage-based expiration
     if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
-      if (hashedLink.usageCount >= hashedLink.maxUsageCount) {
-        throw new Error(ErrorCode.PrivateLinkExpired);
-      }
-
-      // Increment usage count with optimistic locking
       try {
         await this.hashedLinksRepository.incrementUsage(hashedLink.id, hashedLink.maxUsageCount);
       } catch (updateError) {

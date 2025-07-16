@@ -17,6 +17,7 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -25,7 +26,6 @@ import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
-import { filterActiveLinks } from "@calcom/lib/privateLinksUtils";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";

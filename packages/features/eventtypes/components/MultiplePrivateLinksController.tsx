@@ -6,9 +6,9 @@ import dayjs from "@calcom/dayjs";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues, PrivateLinkWithOptions } from "@calcom/features/eventtypes/lib/types";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/privateLinksUtils";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -32,7 +32,7 @@ export const MultiplePrivateLinksController = ({
 }): JSX.Element => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-  const { copyToClipboard, isCopied } = useCopy();
+  const { copyToClipboard } = useCopy();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentLinkIndex, setCurrentLinkIndex] = useState<number | null>(null);
@@ -87,8 +87,7 @@ export const MultiplePrivateLinksController = ({
     setCurrentLinkIndex(index);
     if (currentLink.expiresAt) {
       setSelectedType("time");
-      const utcDateString = dayjs.utc(currentLink.expiresAt).format("YYYY-MM-DD");
-      setExpiryDate(new Date(utcDateString));
+      setExpiryDate(new Date(currentLink.expiresAt));
     } else {
       setSelectedType("usage");
       setMaxUsageCount(currentLink.maxUsageCount ?? 1);
@@ -134,7 +133,6 @@ export const MultiplePrivateLinksController = ({
             const userId = formMethods.getValues("users")?.[0]?.id ?? team?.id;
             if (!userId) return;
 
-            // Create a new private link
             const newPrivateLink = {
               link: generateHashedLink(userId),
               expiresAt: null,
@@ -142,8 +140,6 @@ export const MultiplePrivateLinksController = ({
               usageCount: 0,
             };
 
-            // Simply add the new link without syncing existing data
-            // Server data is used for display only, not for form updates
             const newValue = [...convertedValue, newPrivateLink];
             onChange(newValue);
           };
@@ -153,25 +149,21 @@ export const MultiplePrivateLinksController = ({
             newValue.splice(index, 1);
             onChange(newValue);
 
-            // If we're removing the last link and the toggle control is passed,
-            // turn off the private links toggle
             if (newValue.length === 0 && setMultiplePrivateLinksVisible) {
               setMultiplePrivateLinksVisible(false);
             }
           };
 
-          // Helper function to check if a link is expired using the utility function with fresh data
           const isLinkExpired = (val: PrivateLinkWithOptions) => {
             const latestLinkData = linkDataMap.get(val.link);
             const latestUsageCount =
               latestLinkData?.usageCount ?? ((val as PrivateLinkWithOptions).usageCount || 0);
 
-            // Use the utility function with fresh server data and timezone awareness
             return utilsIsLinkExpired(
               {
                 expiresAt: val.expiresAt,
                 maxUsageCount: val.maxUsageCount,
-                usageCount: latestUsageCount, // Use fresh usage count from server
+                usageCount: latestUsageCount,
               },
               userTimeZone
             );
@@ -185,17 +177,14 @@ export const MultiplePrivateLinksController = ({
               const aExpired = isLinkExpired(a.val);
               const bExpired = isLinkExpired(b.val);
 
-              // If one is expired and the other isn't, sort non-expired first
               if (aExpired !== bExpired) {
                 return aExpired ? 1 : -1;
               }
 
               if (!aExpired && !bExpired) {
-                // Both non-expired: sort by expiry type and date
                 const aHasExpiry = !!a.val.expiresAt;
                 const bHasExpiry = !!b.val.expiresAt;
 
-                // Group expiry-based links before usage-based links
                 if (aHasExpiry && !bHasExpiry) {
                   return -1;
                 }
@@ -204,15 +193,12 @@ export const MultiplePrivateLinksController = ({
                 }
 
                 if (aHasExpiry && bHasExpiry) {
-                  // Both have expiry dates: sort by closest to expiry (soonest first)
                   const aExpiryTime = new Date(a.val.expiresAt!).getTime();
                   const bExpiryTime = new Date(b.val.expiresAt!).getTime();
                   return aExpiryTime - bExpiryTime;
                 }
-                // Both are usage-based: newer links (higher original index) come first
                 return b.originalIndex - a.originalIndex;
               } else if (aExpired && bExpired) {
-                // Both expired: older links (lower original index) come first
                 return a.originalIndex - b.originalIndex;
               }
 
@@ -276,13 +262,12 @@ export const MultiplePrivateLinksController = ({
                                 type="button"
                                 color="minimal"
                                 size="sm"
-                                StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+                                StartIcon="copy"
                                 onClick={() => {
                                   copyToClipboard(singleUseURL);
                                   showToast(t("link_copied"), "success");
-                                }}>
-                                {!isCopied ? t("copy") : t("copied")}
-                              </Button>
+                                }}
+                              />
                             </Tooltip>
                           ) : (
                             <Badge data-testid="private-link-expired" variant="red">

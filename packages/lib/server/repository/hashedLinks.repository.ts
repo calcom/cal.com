@@ -73,15 +73,6 @@ export class HashedLinksRepository {
     });
   }
 
-  async findLinkByEventTypeIdAndLink(eventTypeId: number, link: string) {
-    return await this.prismaClient.hashedLink.findFirst({
-      where: {
-        eventTypeId,
-        link,
-      },
-    });
-  }
-
   async findLinkWithEventTypeDetails(linkId: string) {
     return await this.prismaClient.hashedLink.findUnique({
       where: {
