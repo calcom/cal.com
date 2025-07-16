@@ -16,15 +16,18 @@ describe("findFieldValueByIdentifier", () => {
   };
 
   it("returns the correct value for an existing field identifier", async () => {
-    const value = findFieldValueByIdentifier(responseData, "email");
-    expect(value).toBe("test@example.com");
+    const result = findFieldValueByIdentifier(responseData, "email");
+    expect(result.success).toBe(true);
+    // @ts-expect-error we know data is defined here
+    expect(result.data).toBe("test@example.com");
   });
 
   it("throws an error and logs when identifier is not found", () => {
     const invalidIdentifier = "unknown";
 
-    expect(() => findFieldValueByIdentifier(responseData, invalidIdentifier)).toThrow(
-      `Field with identifier ${invalidIdentifier} not found`
-    );
+    const result = findFieldValueByIdentifier(responseData, invalidIdentifier);
+    expect(result.success).toBe(false);
+    // @ts-expect-error we know error is defined here
+    expect(result.error).toBe(`Field with identifier ${invalidIdentifier} not found`);
   });
 });
