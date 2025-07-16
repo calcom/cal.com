@@ -8,7 +8,9 @@ import {
   routingFormResponsesInputSchema,
   routingFormStatsInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { readonlyPrisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
@@ -1563,6 +1565,17 @@ export const insightsRouter = router({
   routingFormResponses: userBelongsToTeamProcedure
     .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
+        userId: ctx.user.id,
+        teamId: ctx.user.organizationId ?? -1,
+        permission: "insights.read",
+        fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      });
+      if (!hasPermission) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
       return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
         teamId: input.teamId,
         startDate: input.startDate,
