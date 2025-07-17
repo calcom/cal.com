@@ -55,12 +55,13 @@ export const getCalendar = async (
   const dynamicImportEnd = performance.now();
   console.log(`[PERF] dynamic import of ${calendarType} took ${dynamicImportEnd - dynamicImportStart}ms`);
 
-  if (!isCalendarService(calendarApp)) {
+  const CalendarService = calendarApp.default;
+
+  if (!CalendarService || typeof CalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
-  log.info("Got calendarApp", calendarApp.lib.CalendarService);
-  const CalendarService = calendarApp.lib.CalendarService;
+  log.info("Got CalendarService", CalendarService);
 
   const perfEndTime = performance.now();
   console.log(`[PERF] getCalendar total time: ${perfEndTime - perfStartTime}ms`);
