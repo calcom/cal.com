@@ -179,12 +179,25 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
   it("Performance Test 1: Baseline - Simple schedules with 2 hosts", async () => {
     vi.setSystemTime("2024-05-21T00:00:13Z");
 
+    const extendedSchedule = {
+      name: "Extended availability schedule",
+      availability: [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T00:00:00.000Z"),
+          endTime: new Date("1970-01-01T23:30:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    };
+
     await createBookingScenario({
       eventTypes: [
         {
           id: 1,
-          slotInterval: 60,
-          length: 60,
+          slotInterval: 15,
+          length: 30,
           hosts: [
             { userId: 101, isFixed: false },
             { userId: 102, isFixed: true },
@@ -197,14 +210,14 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
           ...TestData.users.example,
           email: "host1@example.com",
           id: 101,
-          schedules: [TestData.schedules.IstWorkHours],
+          schedules: [extendedSchedule],
           defaultScheduleId: 101,
         },
         {
           ...TestData.users.example,
           email: "host2@example.com",
           id: 102,
-          schedules: [TestData.schedules.IstWorkHours],
+          schedules: [extendedSchedule],
           defaultScheduleId: 102,
         },
       ],
@@ -213,13 +226,13 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRange = {
       start: "2024-05-22T00:00:00.000Z",
-      end: "2024-05-29T23:59:59.999Z",
+      end: "2024-07-17T23:59:59.999Z",
     };
 
-    const metrics = await measureSlotGeneration(1, dateRange, "Baseline (2 hosts, 1 week)");
+    const metrics = await measureSlotGeneration(1, dateRange, "Baseline (2 hosts, 2 weeks)");
 
-    expect(metrics.executionTimeInMs).toBeLessThan(1000);
-    expect(metrics.totalSlots).toBeGreaterThan(0);
+    expect(metrics.executionTimeInMs).toBeLessThan(2000);
+    expect(metrics.totalSlots).toBeGreaterThan(300);
   });
 
   it("Performance Test 2: Complex schedules with lunch breaks - 8 hosts", async () => {
@@ -229,13 +242,13 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRange = {
       start: "2024-05-22T00:00:00.000Z",
-      end: "2024-05-29T23:59:59.999Z",
+      end: "2024-07-31T23:59:59.999Z",
     };
 
-    const metrics = await measureSlotGeneration(1, dateRange, "Complex schedules (8 hosts, 1 week)");
+    const metrics = await measureSlotGeneration(1, dateRange, "Complex schedules (8 hosts, 4 weeks)");
 
-    expect(metrics.executionTimeInMs).toBeLessThan(5000);
-    expect(metrics.totalSlots).toBeGreaterThan(0);
+    expect(metrics.executionTimeInMs).toBeLessThan(10000);
+    expect(metrics.totalSlots).toBeGreaterThan(400);
   });
 
   it("Performance Test 3: ROUND_ROBIN vs COLLECTIVE comparison", async () => {
@@ -243,14 +256,14 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRange = {
       start: "2024-05-22T00:00:00.000Z",
-      end: "2024-05-29T23:59:59.999Z",
+      end: "2024-07-24T23:59:59.999Z",
     };
 
     await createComplexTeamScenario(SchedulingType.ROUND_ROBIN, 4);
-    const roundRobinMetrics = await measureSlotGeneration(1, dateRange, "ROUND_ROBIN (4 hosts)");
+    const roundRobinMetrics = await measureSlotGeneration(1, dateRange, "ROUND_ROBIN (4 hosts, 3 weeks)");
 
     await createComplexTeamScenario(SchedulingType.COLLECTIVE, 4);
-    const collectiveMetrics = await measureSlotGeneration(1, dateRange, "COLLECTIVE (4 hosts)");
+    const collectiveMetrics = await measureSlotGeneration(1, dateRange, "COLLECTIVE (4 hosts, 3 weeks)");
 
     console.log(
       `Performance comparison: ROUND_ROBIN ${roundRobinMetrics.executionTimeInMs.toFixed(
@@ -258,8 +271,10 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
       )}ms vs COLLECTIVE ${collectiveMetrics.executionTimeInMs.toFixed(2)}ms`
     );
 
-    expect(roundRobinMetrics.executionTimeInMs).toBeLessThan(3000);
-    expect(collectiveMetrics.executionTimeInMs).toBeLessThan(3000);
+    expect(roundRobinMetrics.executionTimeInMs).toBeLessThan(5000);
+    expect(collectiveMetrics.executionTimeInMs).toBeLessThan(5000);
+    expect(roundRobinMetrics.totalSlots).toBeGreaterThan(350);
+    expect(collectiveMetrics.totalSlots).toBeGreaterThan(350);
   });
 
   it("Performance Test 4: Scaling with host count", async () => {
@@ -267,7 +282,7 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRange = {
       start: "2024-05-22T00:00:00.000Z",
-      end: "2024-05-29T23:59:59.999Z",
+      end: "2024-07-24T23:59:59.999Z",
     };
 
     const hostCounts = [2, 4, 8];
@@ -275,7 +290,7 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     for (const hostCount of hostCounts) {
       await createComplexTeamScenario(SchedulingType.ROUND_ROBIN, hostCount);
-      const metrics = await measureSlotGeneration(1, dateRange, `Scaling test (${hostCount} hosts)`);
+      const metrics = await measureSlotGeneration(1, dateRange, `Scaling test (${hostCount} hosts, 3 weeks)`);
       results.push({ hostCount, ...metrics });
     }
 
@@ -287,7 +302,8 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
     });
 
     results.forEach((result) => {
-      expect(result.executionTimeInMs).toBeLessThan(5000);
+      expect(result.executionTimeInMs).toBeLessThan(8000);
+      expect(result.totalSlots).toBeGreaterThan(350);
     });
   });
 
@@ -296,15 +312,28 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRange = {
       start: "2024-05-22T00:00:00.000Z",
-      end: "2024-05-29T23:59:59.999Z",
+      end: "2024-07-24T23:59:59.999Z",
+    };
+
+    const extendedFixedSchedule = {
+      name: "Extended fixed host schedule",
+      availability: [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T00:00:00.000Z"),
+          endTime: new Date("1970-01-01T23:30:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
     };
 
     await createBookingScenario({
       eventTypes: [
         {
           id: 1,
-          slotInterval: 60,
-          length: 60,
+          slotInterval: 15,
+          length: 30,
           hosts: [
             { userId: 101, isFixed: false },
             { userId: 102, isFixed: false },
@@ -340,17 +369,17 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
           ...TestData.users.example,
           email: "fixed@example.com",
           id: 104,
-          schedules: [TestData.schedules.IstWorkHours],
+          schedules: [extendedFixedSchedule],
           defaultScheduleId: 104,
         },
       ],
       bookings: [],
     });
 
-    const metrics = await measureSlotGeneration(1, dateRange, "Multi-timezone complexity");
+    const metrics = await measureSlotGeneration(1, dateRange, "Multi-timezone complexity (3 weeks)");
 
-    expect(metrics.executionTimeInMs).toBeLessThan(3000);
-    expect(metrics.totalSlots).toBeGreaterThan(0);
+    expect(metrics.executionTimeInMs).toBeLessThan(5000);
+    expect(metrics.totalSlots).toBeGreaterThan(500);
   });
 
   it("Performance Test 6: Date range size impact", async () => {
@@ -360,19 +389,19 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRanges = [
       {
-        name: "1 week",
+        name: "4 weeks",
         start: "2024-05-22T00:00:00.000Z",
-        end: "2024-05-29T23:59:59.999Z",
+        end: "2024-06-19T23:59:59.999Z",
       },
       {
-        name: "2 weeks",
+        name: "8 weeks",
         start: "2024-05-22T00:00:00.000Z",
-        end: "2024-06-05T23:59:59.999Z",
+        end: "2024-07-17T23:59:59.999Z",
       },
       {
-        name: "1 month",
+        name: "12 weeks",
         start: "2024-05-22T00:00:00.000Z",
-        end: "2024-06-22T23:59:59.999Z",
+        end: "2024-08-14T23:59:59.999Z",
       },
     ];
 
@@ -391,7 +420,8 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
     });
 
     results.forEach((result) => {
-      expect(result.executionTimeInMs).toBeLessThan(10000);
+      expect(result.executionTimeInMs).toBeLessThan(15000);
+      expect(result.totalSlots).toBeGreaterThan(150);
     });
   });
 
@@ -399,24 +429,24 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
     vi.setSystemTime("2024-05-21T00:00:13Z");
 
     const scheduleWithOverrides = {
-      name: "India with multiple date overrides",
+      name: "Extended schedule with multiple date overrides",
       availability: [
         {
           days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T04:00:00.000Z"),
-          endTime: new Date("1970-01-01T12:30:00.000Z"),
+          startTime: new Date("1970-01-01T02:00:00.000Z"),
+          endTime: new Date("1970-01-01T20:30:00.000Z"),
           date: null,
         },
         {
           days: [],
           startTime: new Date("1970-01-01T06:00:00.000Z"),
-          endTime: new Date("1970-01-01T10:00:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
           date: "2024-05-23",
         },
         {
           days: [],
           startTime: new Date("1970-01-01T08:00:00.000Z"),
-          endTime: new Date("1970-01-01T14:00:00.000Z"),
+          endTime: new Date("1970-01-01T22:00:00.000Z"),
           date: "2024-05-24",
         },
         {
@@ -429,12 +459,25 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
       timeZone: Timezones["+5:30"],
     };
 
+    const extendedFixedSchedule = {
+      name: "Extended fixed host schedule",
+      availability: [
+        {
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T00:00:00.000Z"),
+          endTime: new Date("1970-01-01T23:30:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    };
+
     await createBookingScenario({
       eventTypes: [
         {
           id: 1,
-          slotInterval: 60,
-          length: 60,
+          slotInterval: 15,
+          length: 30,
           hosts: [
             { userId: 101, isFixed: false },
             { userId: 102, isFixed: false },
@@ -462,7 +505,7 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
           ...TestData.users.example,
           email: "fixed@example.com",
           id: 103,
-          schedules: [TestData.schedules.IstWorkHours],
+          schedules: [extendedFixedSchedule],
           defaultScheduleId: 103,
         },
       ],
@@ -471,12 +514,12 @@ describe("getSlots Performance Tests - Complex Team Scenarios", () => {
 
     const dateRange = {
       start: "2024-05-22T00:00:00.000Z",
-      end: "2024-05-29T23:59:59.999Z",
+      end: "2024-07-24T23:59:59.999Z",
     };
 
-    const metrics = await measureSlotGeneration(1, dateRange, "Date overrides impact");
+    const metrics = await measureSlotGeneration(1, dateRange, "Date overrides impact (3 weeks)");
 
-    expect(metrics.executionTimeInMs).toBeLessThan(3000);
-    expect(metrics.totalSlots).toBeGreaterThan(0);
+    expect(metrics.executionTimeInMs).toBeLessThan(5000);
+    expect(metrics.totalSlots).toBeGreaterThan(500);
   });
 });
