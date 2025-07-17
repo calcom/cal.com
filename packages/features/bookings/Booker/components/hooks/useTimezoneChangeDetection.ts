@@ -28,6 +28,11 @@ export const useTimezoneChangeDetection = (eventData: TimezoneChangeDetectionEve
   }, [timezone]);
 
   const shouldRefreshSlots = () => {
+    // Don't refresh on first render when previousTimezone is not set yet
+    if (previousTimezoneRef.current === null) {
+      return false;
+    }
+
     const hasTimezoneChanged = previousTimezoneRef.current !== timezone;
     const hasRestrictionSchedule = !!eventData?.restrictionScheduleId;
     const isUsingBookerTimezone = !!eventData?.useBookerTimezone;
