@@ -19,6 +19,26 @@ import {
   ByTeamSlugAndEventTypeSlug_2024_09_04_type,
 } from "@calcom/platform-types";
 
+export type TransformedGetSlotsQuery = {
+  isTeamEvent: boolean;
+  startTime: string;
+  endTime: string;
+  duration?: number;
+  eventTypeId: number;
+  eventTypeSlug: string;
+  usernameList: string[];
+  timeZone: string | undefined;
+  orgSlug: string | null | undefined;
+  rescheduleUid: string | null;
+};
+
+export type TransformedGetSlotsQueryWithRouting = TransformedGetSlotsQuery & {
+  routedTeamMemberIds: number[] | null;
+  skipContactOwner: boolean;
+  teamMemberEmail: string | null;
+  routingFormResponseId: number | undefined;
+};
+
 @Injectable()
 export class SlotsInputService_2024_09_04 {
   constructor(
@@ -31,7 +51,7 @@ export class SlotsInputService_2024_09_04 {
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
-  async transformGetSlotsQuery(query: GetSlotsInput_2024_09_04) {
+  async transformGetSlotsQuery(query: GetSlotsInput_2024_09_04): Promise<TransformedGetSlotsQuery> {
     const eventType = await this.getEventType(query);
     if (!eventType) {
       throw new NotFoundException(`Event Type not found`);
@@ -62,7 +82,9 @@ export class SlotsInputService_2024_09_04 {
     };
   }
 
-  async transformRoutingGetSlotsQuery(query: GetSlotsInputWithRouting_2024_09_04) {
+  async transformRoutingGetSlotsQuery(
+    query: GetSlotsInputWithRouting_2024_09_04
+  ): Promise<TransformedGetSlotsQueryWithRouting> {
     const { routedTeamMemberIds, skipContactOwner, teamMemberEmail, routingFormResponseId, ...baseQuery } =
       query;
 

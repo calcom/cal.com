@@ -3,7 +3,11 @@ import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
-import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
+import {
+  SlotsInputService_2024_09_04,
+  TransformedGetSlotsQuery,
+  TransformedGetSlotsQueryWithRouting,
+} from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
@@ -33,6 +37,8 @@ const eventTypeMetadataSchema = z
   .nullable();
 
 const DEFAULT_RESERVATION_DURATION = 5;
+
+type TransformedSlotsQuery = TransformedGetSlotsQuery | TransformedGetSlotsQueryWithRouting;
 @Injectable()
 export class SlotsService_2024_09_04 {
   constructor(
@@ -46,23 +52,18 @@ export class SlotsService_2024_09_04 {
     private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
-  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+  private async fetchAndFormatSlots(queryTransformed: TransformedSlotsQuery, format?: SlotFormat) {
     try {
-      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(
-        query as GetSlotsInput_2024_09_04
-      );
-
       const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
-        input: {
-          ...queryTransformed,
-        },
+        input: queryTransformed,
         ctx: {},
       });
+
       const formatted = await this.slotsOutputService.getAvailableSlots(
         availableSlots,
         queryTransformed.eventTypeId,
         queryTransformed.duration,
-        query.format,
+        format,
         queryTransformed.timeZone
       );
 
@@ -79,41 +80,17 @@ export class SlotsService_2024_09_04 {
     }
   }
 
+  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
+    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(
+      query as GetSlotsInput_2024_09_04
+    );
+    return this.fetchAndFormatSlots(queryTransformed, query.format);
+  }
+
   async getAvailableSlotsWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
     const queryTransformed = await this.slotsInputService.transformRoutingGetSlotsQuery(query);
-    const { routedTeamMemberIds, skipContactOwner, teamMemberEmail, routingFormResponseId, ...baseQuery } =
-      queryTransformed;
 
-    try {
-      const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
-        input: {
-          ...baseQuery,
-          routedTeamMemberIds,
-          skipContactOwner,
-          teamMemberEmail,
-          routingFormResponseId,
-        },
-        ctx: {},
-      });
-      const formatted = await this.slotsOutputService.getAvailableSlots(
-        availableSlots,
-        baseQuery.eventTypeId,
-        baseQuery.duration,
-        query.format,
-        baseQuery.timeZone
-      );
-
-      return formatted;
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes("Invalid time range given")) {
-          throw new BadRequestException(
-            "Invalid time range given - check the 'start' and 'end' query parameters."
-          );
-        }
-      }
-      throw error;
-    }
+    return this.fetchAndFormatSlots(queryTransformed, query.format);
   }
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {
