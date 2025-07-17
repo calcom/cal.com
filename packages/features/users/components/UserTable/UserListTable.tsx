@@ -421,7 +421,7 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
         id: "twoFactorEnabled",
         accessorKey: "twoFactorEnabled",
         header: t("2fa"),
-        enableHiding: true,
+        enableHiding: adminOrOwner,
         enableSorting: false,
         enableColumnFilter: false,
         size: 80,
