@@ -242,9 +242,7 @@ for Logger level to be set at info, for example.
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
 
-   >  \[!IMPORTANT]
-   >
-   > `packages/prisma/schema.prisma` does not access `.env` in the root level, so you must create an `.env` file in the same level as `packages/prisma/schema.prisma`, follow these steps:
+   > **_NOTE:_** `packages/prisma/schema.prisma` does not access `.env` in the root level, so you must create an `.env` file in the same level as `packages/prisma/schema.prisma`, follow these steps:
 
    1. Create `packages/prisma/.env` file from `packages/prisma/.env.example`, by running 
    ```bash
