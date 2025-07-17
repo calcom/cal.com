@@ -159,11 +159,11 @@ export class InputOrganizationsEventTypesService {
       throw new BadRequestException("Event type to update not found");
     }
 
-    const children = await this.getChildEventTypesForManagedEventTypeUpdate(
-      eventTypeId,
-      inputEventType,
-      teamId
-    );
+    const children =
+      dbEventType.schedulingType === "MANAGED"
+        ? await this.getChildEventTypesForManagedEventTypeUpdate(eventTypeId, inputEventType, teamId)
+        : undefined;
+
     const teamEventType = {
       ...eventType,
       // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
