@@ -35,17 +35,19 @@ vi.mock("next/server", () => ({
   },
 }));
 
-const mockGetCustomerByEmail = vi.fn();
-const mockCreateThread = vi.fn();
-const mockUpsertPlainCustomer = vi.fn();
+vi.mock("@lib/plain/plain", () => {
+  const mockGetCustomerByEmail = vi.fn();
+  const mockCreateThread = vi.fn();
+  const mockUpsertPlainCustomer = vi.fn();
 
-vi.mock("@lib/plain/plain", () => ({
-  plain: {
-    getCustomerByEmail: mockGetCustomerByEmail,
-    createThread: mockCreateThread,
-  },
-  upsertPlainCustomer: mockUpsertPlainCustomer,
-}));
+  return {
+    plain: {
+      getCustomerByEmail: mockGetCustomerByEmail,
+      createThread: mockCreateThread,
+    },
+    upsertPlainCustomer: mockUpsertPlainCustomer,
+  };
+});
 
 const mockGetServerSession = vi.mocked(getServerSession);
 
@@ -124,24 +126,33 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockGetCustomerByEmail.mockResolvedValue({
+    const { plain } = vi.mocked(await import("@lib/plain/plain"));
+    plain.getCustomerByEmail.mockResolvedValue({
       data: {
         id: "customer-123",
         __typename: "Customer",
         fullName: "Test User",
         shortName: "Test",
         externalId: "123",
-        email: { email: "test@example.com", isVerified: true },
+        email: {
+          email: "test@example.com",
+          isVerified: true,
+          verifiedAt: {
+            __typename: "DateTime",
+            iso8601: "2025-01-01T00:00:00Z",
+            unixTimestamp: "1735689600",
+          },
+        },
         status: "ACTIVE",
         assignedToUser: null,
         assignedAt: null,
-        updatedAt: { iso: "2025-01-01T00:00:00Z" },
-        createdAt: { iso: "2025-01-01T00:00:00Z" },
+        updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
+        createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         markedAsSpamAt: null,
       },
     });
 
-    mockCreateThread.mockResolvedValue({
+    plain.createThread.mockResolvedValue({
       data: {
         id: "thread-123",
         __typename: "Thread",
@@ -149,7 +160,11 @@ describe("/api/support", () => {
         title: "Test message",
         description: null,
         status: "TODO",
-        statusChangedAt: { iso: "2025-01-01T00:00:00Z" },
+        statusChangedAt: {
+          __typename: "DateTime",
+          iso8601: "2025-01-01T00:00:00Z",
+          unixTimestamp: "1735689600",
+        },
         statusDetail: null,
         customer: { id: "customer-123" },
         assignedToUser: null,
@@ -160,8 +175,8 @@ describe("/api/support", () => {
         lastInboundMessageInfo: null,
         lastOutboundMessageInfo: null,
         previewText: "Test message",
-        updatedAt: { iso: "2025-01-01T00:00:00Z" },
-        createdAt: { iso: "2025-01-01T00:00:00Z" },
+        updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
+        createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
       },
     });
 
@@ -179,8 +194,8 @@ describe("/api/support", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    expect(mockGetCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
-    expect(mockCreateThread).toHaveBeenCalled();
+    expect(plain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(plain.createThread).toHaveBeenCalled();
   });
 
   it("should handle form submission with file attachments", async () => {
@@ -191,31 +206,40 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockGetCustomerByEmail.mockResolvedValue({
+    const { plain, upsertPlainCustomer } = vi.mocked(await import("@lib/plain/plain"));
+    plain.getCustomerByEmail.mockResolvedValue({
       data: null,
     });
 
-    mockUpsertPlainCustomer.mockResolvedValue({
+    upsertPlainCustomer.mockResolvedValue({
       data: {
-        result: "CREATED",
+        result: "CREATED" as const,
         customer: {
           id: "customer-456",
           __typename: "Customer",
           fullName: "Test User",
           shortName: "Test",
           externalId: "123",
-          email: { email: "test@example.com", isVerified: true },
+          email: {
+            email: "test@example.com",
+            isVerified: true,
+            verifiedAt: {
+              __typename: "DateTime",
+              iso8601: "2025-01-01T00:00:00Z",
+              unixTimestamp: "1735689600",
+            },
+          },
           status: "ACTIVE",
           assignedToUser: null,
           assignedAt: null,
-          updatedAt: { iso: "2025-01-01T00:00:00Z" },
-          createdAt: { iso: "2025-01-01T00:00:00Z" },
+          updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
+          createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
           markedAsSpamAt: null,
         },
       },
     });
 
-    mockCreateThread.mockResolvedValue({
+    plain.createThread.mockResolvedValue({
       data: {
         id: "thread-456",
         __typename: "Thread",
@@ -223,7 +247,11 @@ describe("/api/support", () => {
         title: "Test message",
         description: null,
         status: "TODO",
-        statusChangedAt: { iso: "2025-01-01T00:00:00Z" },
+        statusChangedAt: {
+          __typename: "DateTime",
+          iso8601: "2025-01-01T00:00:00Z",
+          unixTimestamp: "1735689600",
+        },
         statusDetail: null,
         customer: { id: "customer-456" },
         assignedToUser: null,
@@ -234,8 +262,8 @@ describe("/api/support", () => {
         lastInboundMessageInfo: null,
         lastOutboundMessageInfo: null,
         previewText: "Test message",
-        updatedAt: { iso: "2025-01-01T00:00:00Z" },
-        createdAt: { iso: "2025-01-01T00:00:00Z" },
+        updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
+        createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
       },
     });
 
@@ -253,9 +281,9 @@ describe("/api/support", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    expect(mockGetCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
-    expect(mockUpsertPlainCustomer).toHaveBeenCalled();
-    expect(mockCreateThread).toHaveBeenCalled();
+    expect(plain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(upsertPlainCustomer).toHaveBeenCalled();
+    expect(plain.createThread).toHaveBeenCalled();
   });
 
   it("should handle Plain customer creation error", async () => {
@@ -266,11 +294,12 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockGetCustomerByEmail.mockResolvedValue({
+    const { plain, upsertPlainCustomer } = vi.mocked(await import("@lib/plain/plain"));
+    plain.getCustomerByEmail.mockResolvedValue({
       data: null,
     });
 
-    mockUpsertPlainCustomer.mockResolvedValue({
+    upsertPlainCustomer.mockResolvedValue({
       error: {
         type: "unknown",
         message: "Customer creation failed",
@@ -297,24 +326,33 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockGetCustomerByEmail.mockResolvedValue({
+    const { plain } = vi.mocked(await import("@lib/plain/plain"));
+    plain.getCustomerByEmail.mockResolvedValue({
       data: {
         id: "customer-123",
         __typename: "Customer",
         fullName: "Test User",
         shortName: "Test",
         externalId: "123",
-        email: { email: "test@example.com", isVerified: true },
+        email: {
+          email: "test@example.com",
+          isVerified: true,
+          verifiedAt: {
+            __typename: "DateTime",
+            iso8601: "2025-01-01T00:00:00Z",
+            unixTimestamp: "1735689600",
+          },
+        },
         status: "ACTIVE",
         assignedToUser: null,
         assignedAt: null,
-        updatedAt: { iso: "2025-01-01T00:00:00Z" },
-        createdAt: { iso: "2025-01-01T00:00:00Z" },
+        updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
+        createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         markedAsSpamAt: null,
       },
     });
 
-    mockCreateThread.mockResolvedValue({
+    plain.createThread.mockResolvedValue({
       error: {
         type: "unknown",
         message: "Thread creation failed",
