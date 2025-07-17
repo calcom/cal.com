@@ -1142,12 +1142,12 @@ model App_RoutingForms_Form {
   updatedAt                DateTime                                    @updatedAt
   name                     String
   fields                   Json?
-  user                     User                                        @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  user                     User?                                       @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
   updatedBy                User?                                       @relation("updated-routing-form", fields: [updatedById], references: [id], onDelete: SetNull)
   updatedById              Int?
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
-  userId                   Int
+  userId                   Int?
   team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                   Int?
   responses                App_RoutingForms_FormResponse[]

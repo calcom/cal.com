@@ -68,7 +68,9 @@ const mockSerializableForm = {
   id: "form-id",
   fields: [{ id: "email", type: "email", label: "Email", identifier: "email" }],
   routes: [],
-  user: { id: 1 },
+  user: { id: 1, email: "test@example.com" },
+  team: null,
+  teamId: null,
 };
 
 const mockContext = (

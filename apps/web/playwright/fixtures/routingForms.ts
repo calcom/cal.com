@@ -42,7 +42,7 @@ export const createRoutingFormsFixture = () => {
       return await prisma.app_RoutingForms_Form.create({
         data: {
           name,
-          userId,
+          ...(teamId ? {} : { userId }),
           teamId,
           routes: [
             ...routes,

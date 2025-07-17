@@ -14,7 +14,7 @@ export const enrichFormWithMigrationData = <
           slug: string | null;
         } | null;
       };
-    };
+    } | null;
     team: {
       parent: {
         slug: string | null;
@@ -25,22 +25,27 @@ export const enrichFormWithMigrationData = <
 >(
   form: T
 ) => {
-  const parsedUserMetadata = userMetadata.parse(form.user.metadata ?? null);
+  const parsedUserMetadata = userMetadata.parse(form.user?.metadata ?? null);
   const parsedTeamMetadata = teamMetadataSchema.parse(form.team?.metadata ?? null);
-  const formOwnerOrgSlug = form.user.profile.organization?.slug ?? null;
-  const nonOrgUsername = parsedUserMetadata?.migratedToOrgFrom?.username ?? form.user.nonProfileUsername;
+  const formOwnerOrgSlug = form.user?.profile.organization?.slug ?? null;
+  const nonOrgUsername =
+    parsedUserMetadata?.migratedToOrgFrom?.username ?? form.user?.nonProfileUsername ?? null;
   const nonOrgTeamslug = parsedTeamMetadata?.migratedToOrgFrom?.teamSlug ?? null;
 
   return {
     ...form,
-    user: {
-      ...form.user,
-      metadata: parsedUserMetadata,
-    },
-    team: {
-      ...form.team,
-      metadata: teamMetadataSchema.parse(form.team?.metadata ?? null),
-    },
+    user: form.user
+      ? {
+          ...form.user,
+          metadata: parsedUserMetadata,
+        }
+      : null,
+    team: form.team
+      ? {
+          ...form.team,
+          metadata: teamMetadataSchema.parse(form.team?.metadata ?? null),
+        }
+      : null,
     userOrigin: formOwnerOrgSlug
       ? getOrgFullOrigin(formOwnerOrgSlug, {
           protocol: true,

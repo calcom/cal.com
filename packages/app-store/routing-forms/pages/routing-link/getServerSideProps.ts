@@ -70,7 +70,7 @@ export const getServerSideProps = async function getServerSideProps(
   const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,
-    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
+    user: form.user ? await userRepo.enrichUserWithItsProfile({ user: form.user }) : null,
   };
 
   if (
@@ -84,9 +84,9 @@ export const getServerSideProps = async function getServerSideProps(
     props: {
       isEmbed,
       profile: {
-        theme: form.user.theme,
-        brandColor: form.user.brandColor,
-        darkBrandColor: form.user.darkBrandColor,
+        theme: form.user?.theme || null,
+        brandColor: form.user?.brandColor || null,
+        darkBrandColor: form.user?.darkBrandColor || null,
       },
       form: await getSerializableForm({ form: enrichFormWithMigrationData(formWithUserProfile) }),
     },
