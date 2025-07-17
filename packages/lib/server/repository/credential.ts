@@ -158,6 +158,43 @@ export class CredentialRepository {
     return credentials;
   }
 
+  static async findManyByCategoryAndAppSlug({
+    category,
+    appSlug,
+  }: {
+    category: AppCategories[];
+    appSlug: string;
+  }) {
+    const credentials = await prisma.credential.findMany({
+      where: {
+        app: {
+          categories: {
+            hasSome: category,
+          },
+          slug: appSlug,
+        },
+      },
+      select: {
+        id: true,
+        key: true,
+        appId: true,
+        userId: true,
+        teamId: true,
+        type: true,
+        invalid: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    return credentials.map((credential) => ({
+      ...credential,
+      delegationCredentialId: null,
+    }));
+  }
+
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
   }

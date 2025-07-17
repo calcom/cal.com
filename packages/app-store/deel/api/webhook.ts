@@ -7,6 +7,9 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
@@ -85,21 +88,12 @@ async function verifyWebhookSignature(
 async function findUserByDeelEmails(
   deelEmails: { type: string | null; value: string | null }[]
 ): Promise<{ id: number; email: string } | null> {
+  const userRepository = new UserRepository(prisma);
+
   for (const emailObj of deelEmails) {
     if (!emailObj.value) continue;
 
-    const user = await prisma.user.findFirst({
-      where: {
-        email: {
-          equals: emailObj.value,
-          mode: "insensitive",
-        },
-      },
-      select: {
-        id: true,
-        email: true,
-      },
-    });
+    const user = await userRepository.findByEmailCaseInsensitive({ email: emailObj.value });
 
     if (user) {
       return user;
@@ -135,29 +129,9 @@ async function handleTimeOffCreated(payload: DeelWebhookPayload): Promise<void> 
     return;
   }
 
-  const allCredentials = await prisma.credential.findMany({
-    where: {
-      app: {
-        categories: {
-          hasSome: [AppCategories.hrms],
-        },
-        slug: "deel",
-      },
-    },
-    select: {
-      id: true,
-      key: true,
-      appId: true,
-      userId: true,
-      teamId: true,
-      type: true,
-      invalid: true,
-      user: {
-        select: {
-          email: true,
-        },
-      },
-    },
+  const allCredentials = await CredentialRepository.findManyByCategoryAndAppSlug({
+    category: [AppCategories.hrms],
+    appSlug: "deel",
   });
 
   if (!allCredentials || allCredentials.length === 0) {
@@ -165,11 +139,7 @@ async function handleTimeOffCreated(payload: DeelWebhookPayload): Promise<void> 
     return;
   }
 
-  const rawCredential = allCredentials[0];
-  const deelCredential = {
-    ...rawCredential,
-    delegationCredentialId: null,
-  };
+  const deelCredential = allCredentials[0];
 
   const hrmsService = new DeelHrmsService(deelCredential);
   const userDetails = await hrmsService.getPersonById(resource.requester.id);
@@ -194,39 +164,26 @@ async function handleTimeOffCreated(payload: DeelWebhookPayload): Promise<void> 
     return;
   }
 
-  const reason = await prisma.outOfOfficeReason.upsert({
-    where: {
-      credentialId_externalId: {
-        credentialId: deelCredential.id,
-        externalId: policyId,
-      },
-    },
-    create: {
-      reason: resource.type,
-      credentialId: deelCredential.id,
-      externalId: policyId,
-      enabled: true,
-    },
-    update: {
-      reason: resource.type,
-    },
+  const oooRepository = new PrismaOOORepository(prisma);
+
+  const reason = await oooRepository.upsertOOOReason({
+    credentialId: deelCredential.id,
+    externalId: policyId,
+    reason: resource.type,
+    enabled: true,
   });
 
   const startDate = new Date(resource.start_date);
   const endDate = new Date(resource.end_date);
 
-  await prisma.outOfOfficeEntry.create({
-    data: {
-      uuid: crypto.randomUUID(),
-      start: startDate,
-      end: endDate,
-      notes: resource.reason || `Out of office: ${resource.type}`,
-      userId: calUser.id,
-      reasonId: reason.id,
-      externalId: resource.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
+  await oooRepository.createOOOEntry({
+    uuid: crypto.randomUUID(),
+    start: startDate,
+    end: endDate,
+    notes: resource.reason || `Out of office: ${resource.type}`,
+    userId: calUser.id,
+    reasonId: reason.id,
+    externalId: resource.id,
   });
 
   log.info("Successfully created OOO entry from Deel webhook", {
