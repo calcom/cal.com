@@ -89,7 +89,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     if (
       !isSystemAdmin &&
-      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || !isOrgAdmin))
+      !isOrgAdmin &&
+      (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))
     ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
