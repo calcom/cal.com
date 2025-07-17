@@ -487,7 +487,11 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
-  if (originalRescheduledBooking && originalRescheduledBooking.rescheduled) {
+  if (
+    originalRescheduledBooking &&
+    originalRescheduledBooking.rescheduled &&
+    originalRescheduledBooking.status !== BookingStatus.CANCELLED
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: `Can't reschedule booking with uid=${originalRescheduledBooking.uid} because it has been rescheduled already. Please reschedule the new booking instead.`,
