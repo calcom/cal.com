@@ -81,15 +81,12 @@ export class SlotsService_2024_09_04 {
   }
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
-    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(
-      query as GetSlotsInput_2024_09_04
-    );
+    const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
     return this.fetchAndFormatSlots(queryTransformed, query.format);
   }
 
   async getAvailableSlotsWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
     const queryTransformed = await this.slotsInputService.transformRoutingGetSlotsQuery(query);
-
     return this.fetchAndFormatSlots(queryTransformed, query.format);
   }
 

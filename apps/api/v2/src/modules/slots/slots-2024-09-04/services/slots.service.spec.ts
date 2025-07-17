@@ -98,7 +98,7 @@ describe("SlotsService_2024_09_04", () => {
     jest.clearAllMocks();
   });
 
-  describe("getAvailableSlots", () => {
+  describe("getAvailableSlotsWithRouting", () => {
     const sharedTestData = {
       eventTypeId: 123,
       start: "2024-01-15T00:00:00.000Z",
@@ -142,7 +142,7 @@ describe("SlotsService_2024_09_04", () => {
       );
     });
 
-    it("should call getAvailableSlots with correct routing parameters when withRouting is true", async () => {
+    it("should call getAvailableSlots with correct routing parameters", async () => {
       const inputQuery = {
         ...sharedTestData.baseInputQuery,
         ...sharedTestData.routingParams,
@@ -152,35 +152,14 @@ describe("SlotsService_2024_09_04", () => {
         ...inputQuery,
       });
 
-      const { start: _1, end: _2, type: _3, ...queryWithoutStartEndAndType } = inputQuery;
+      const { start: _1, end: _2, type: _3, ...queryWithoutStartEndAndType } = sharedTestData.baseInputQuery;
 
       expect(availableSlotsService.getAvailableSlots).toHaveBeenCalledWith({
         input: {
           ...queryWithoutStartEndAndType,
           startTime: "2024-01-15T00:00:00.000Z",
           endTime: "2024-01-16T23:59:59.000Z",
-        },
-        ctx: {},
-      });
-    });
-
-    it("should call getAvailableSlots without routing parameters when withRouting is false", async () => {
-      const inputQuery = sharedTestData.baseInputQuery;
-
-      await service.getAvailableSlotsWithRouting({
-        ...inputQuery,
-      });
-      const { start: _1, end: _2, type: _3, ...queryWithoutStartEndAndType } = inputQuery;
-
-      expect(availableSlotsService.getAvailableSlots).toHaveBeenCalledWith({
-        input: {
-          ...queryWithoutStartEndAndType,
-          routedTeamMemberIds: null,
-          skipContactOwner: false,
-          teamMemberEmail: null,
-          routingFormResponseId: undefined,
-          startTime: "2024-01-15T00:00:00.000Z",
-          endTime: "2024-01-16T23:59:59.000Z",
+          ...sharedTestData.routingParams,
         },
         ctx: {},
       });
