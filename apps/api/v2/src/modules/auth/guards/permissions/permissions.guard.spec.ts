@@ -1,6 +1,7 @@
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientsOutputService } from "@/modules/oauth-clients/services/oauth-clients/oauth-clients-output.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensService } from "@/modules/tokens/tokens.service";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -19,6 +20,7 @@ describe("PermissionsGuard", () => {
     guard = new PermissionsGuard(
       reflector,
       createMock<TokensRepository>(),
+      createMock<TokensService>(),
       createMock<ConfigService>({
         get: jest.fn().mockImplementation((key: string) => {
           switch (key) {
