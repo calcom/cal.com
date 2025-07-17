@@ -225,15 +225,17 @@ async function getTeamMemberEmailForResponseOrContact({
       safeStringify({ attributeRoutingConfigGetterData, crmAppSlug })
     );
     const attributeRoutingConfig = await getAttributeRoutingConfig(attributeRoutingConfigGetterData);
-    const { email, skipContactOwner, recordType } = await getTeamMemberEmailUsingRoutingFormHandler({
-      bookerEmail,
-      eventTypeId,
-      attributeRoutingConfig,
-      crmAppSlug,
-    });
+    const { email, skipContactOwner, recordType, recordId } = await getTeamMemberEmailUsingRoutingFormHandler(
+      {
+        bookerEmail,
+        eventTypeId,
+        attributeRoutingConfig,
+        crmAppSlug,
+      }
+    );
 
     if (skipContactOwner) return returnNullValue;
-    if (email) return { email, recordType, crmAppSlug, recordId: null };
+    if (email) return { email, recordType, crmAppSlug, recordId };
   } else {
     log.debug("Getting the contact owner email from CRM");
     return await getOwnerEmailFromCrm(eventData, bookerEmail);
