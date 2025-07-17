@@ -141,7 +141,10 @@ export default class ICSFeedCalendarService implements Calendar {
   ): Promise<EventBusyDate[]> {
     const startISOString = new Date(dateFrom).toISOString();
 
-    const calendars = await this.fetchCalendars();
+    const userCalendars = await this.fetchCalendars();
+    const calendars = userCalendars.filter((calendar) => {
+      return selectedCalendars.some((selected) => selected.externalId === calendar.url);
+    });
 
     const userId = this.getUserId(selectedCalendars);
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
