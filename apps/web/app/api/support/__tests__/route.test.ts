@@ -12,6 +12,7 @@ vi.mock("@calcom/lib/constants", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
+    IS_PRODUCTION: true,
     IS_PLAIN_CHAT_ENABLED: true,
   };
 });
