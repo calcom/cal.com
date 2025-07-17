@@ -177,6 +177,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_teams",
+      scope: [Scope.Organization],
     },
     [CrudAction.Read]: {
       description: "View team details",
@@ -291,12 +292,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "booking",
       i18nKey: "pbac_action_read_team_bookings",
       descriptionI18nKey: "pbac_desc_view_team_bookings",
+      scope: [Scope.Team],
     },
     [CustomAction.ReadOrgBookings]: {
       description: "View organization bookings",
       category: "booking",
       i18nKey: "pbac_action_read_org_bookings",
       descriptionI18nKey: "pbac_desc_view_organization_bookings",
+      scope: [Scope.Organization],
     },
     [CustomAction.ReadRecordings]: {
       description: "View booking recordings",
