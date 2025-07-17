@@ -92,7 +92,7 @@ function buildSlotsWithDateRanges({
 
       let prevBoundary = null;
       for (let i = slotBoundariesValueArray.length - 1; i >= 0; i--) {
-        if (slotStartTime.valueOf() >= slotBoundariesValueArray[i]) {
+        if (slotBoundariesValueArray[i] < slotStartTime.valueOf()) {
           prevBoundary = slotBoundariesValueArray[i];
           break;
         }
