@@ -1158,6 +1158,60 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("should create a managed team event-type without hosts", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation managed without hosts",
+        slug: "coding-consultation-managed-without-hosts",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "MANAGED",
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+
+          const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
+          const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
+          const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+
+          const teammate1HasThisEvent = teammate1EventTypes.some(
+            (eventType) => eventType.slug === managedEventTypeSlug
+          );
+          const teammate2HasThisEvent = teammate2EventTypes.some(
+            (eventType) => eventType.slug === managedEventTypeSlug
+          );
+          expect(teammate1HasThisEvent).toBe(false);
+          expect(teammate2HasThisEvent).toBe(false);
+          expect(
+            teamEventTypes.filter(
+              (eventType) => eventType.schedulingType === "MANAGED" && eventType.slug === body.slug
+            ).length
+          ).toEqual(1);
+
+          const responseTeamEvent = responseBody.data.find((event) => event.teamId === team.id);
+          expect(responseTeamEvent).toBeDefined();
+          expect(responseTeamEvent?.hosts).toEqual([]);
+
+          if (!responseTeamEvent) {
+            throw new Error("Team event not found");
+          }
+        });
+    });
+
     function evaluateHost(expected: Host, received: Host | undefined) {
       expect(expected.userId).toEqual(received?.userId);
       expect(expected.mandatory).toEqual(received?.mandatory);
