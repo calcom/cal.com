@@ -1,12 +1,11 @@
 import { readFileSync, readdirSync } from "fs";
-import { join } from "path";
-import path from "path";
+import { resolve, join } from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
 function getLocalesPath() {
-  const localesPath = path.join(process.cwd(), "locales");
+  const localesPath = resolve(process.cwd(), "..", "..", "packages/lib/server/locales");
   logger.info(`[translationBundler] getLocalesPath() resolved to: ${localesPath}`);
   return localesPath;
 }
@@ -46,7 +45,11 @@ function loadTranslationForLocale(locale: string, ns: string): Record<string, st
   try {
     const translationPath = join(getLocalesPath(), locale, `${ns}.json`);
     logger.info(`[translationBundler] Attempting to load translation file: ${translationPath}`);
-    const translations = JSON.parse(readFileSync(translationPath, "utf-8"));
+    const translations = JSON.parse(
+      readFileSync(translationPath, {
+        encoding: "utf8",
+      })
+    );
     localeCache[cacheKey] = translations;
     logger.info(`[translationBundler] Successfully loaded translations for ${locale}/${ns}`);
     return translations;
