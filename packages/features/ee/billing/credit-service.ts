@@ -193,7 +193,7 @@ export class CreditService {
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
     const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
 
-    if (memberships.length === 0) {
+    if (!memberships || memberships.length === 0) {
       return null;
     }
 
