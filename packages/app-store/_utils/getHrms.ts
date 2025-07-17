@@ -24,7 +24,7 @@ export const getHrmsService = async ({
   }
 
   const hrmsServiceModule = await hrmsServiceImportFn;
-  const HrmsService = hrmsServiceModule.default;
+  const HrmsService = hrmsServiceModule.DeelHrmsService;
 
   if (!HrmsService) {
     log.warn(`hrms of type ${hrmsType} is not implemented`);
