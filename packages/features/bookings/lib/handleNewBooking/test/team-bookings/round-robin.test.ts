@@ -9,6 +9,8 @@ import {
   BookingLocations,
   getDate,
   getMockBookingAttendee,
+  getGoogleCalendarCredential,
+  mockCalendarToHaveNoBusySlots,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -21,6 +23,189 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 describe("Round Robin handleNewBooking", () => {
   setupAndTeardown();
+
+  describe("Grouped Round Robin Event", () => {
+    test("Books one host from each round robin group", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+      const teamMemberOne = [
+        {
+          name: "Team Member One",
+          username: "other-team-member-1",
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          email: "team-member-one@example.com",
+          id: 102,
+          schedule: TestData.schedules.IstMorningShift,
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: TestData.apps["google-calendar"].type,
+            externalId: "other-team-member-1@google-calendar.com",
+          },
+        },
+      ];
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        defaultScheduleId: null,
+        schedules: [TestData.schedules.IstMorningShift],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        destinationCalendar: {
+          integration: TestData.apps["google-calendar"].type,
+          externalId: "organizer@google-calendar.com",
+        },
+      });
+
+      const teamMembers = [
+        {
+          name: "Team Member 1",
+          username: "team-member-1",
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          email: "team-member-1@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstEveningShift],
+        },
+        {
+          name: "Team Member 2",
+          username: "team-member-2",
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          email: "team-member-2@example.com",
+          id: 103,
+          schedules: [TestData.schedules.IstEveningShift],
+        },
+        {
+          name: "Team Member 3",
+          username: "team-member-3",
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          email: "team-member-3@example.com",
+          id: 104,
+          schedules: [TestData.schedules.IstEveningShift],
+        },
+        {
+          name: "Team Member 4",
+          username: "team-member-4",
+          timeZone: Timezones["+5:30"],
+          defaultScheduleId: null,
+          email: "team-member-4@example.com",
+          id: 105,
+          schedules: [TestData.schedules.IstEveningShift],
+        },
+      ];
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 15,
+              schedulingType: SchedulingType.ROUND_ROBIN,
+              length: 15,
+              users: [
+                { id: teamMembers[0].id },
+                { id: teamMembers[1].id },
+                { id: teamMembers[2].id },
+                { id: teamMembers[3].id },
+              ],
+              hosts: [
+                { userId: teamMembers[0].id, isFixed: false, groupId: "group-1" },
+                { userId: teamMembers[1].id, isFixed: false, groupId: "group-1" },
+                { userId: teamMembers[2].id, isFixed: false, groupId: "group-2" },
+                { userId: teamMembers[3].id, isFixed: false, groupId: "group-2" },
+              ],
+              hostGroups: [
+                { id: "group-1", name: "Group 1" },
+                { id: "group-2", name: "Group 2" },
+              ],
+              schedule: TestData.schedules.IstMorningShift,
+              destinationCalendar: {
+                integration: TestData.apps["google-calendar"].type,
+                externalId: "event-type-1@google-calendar.com",
+              },
+            },
+          ],
+          organizer,
+          usersApartFromOrganizer: teamMembers,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        })
+      );
+
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+      const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        create: {
+          id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
+        },
+      });
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          // Try booking the first available free timeslot in both the users' schedules
+          start: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
+          end: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+        },
+      });
+      const createdBooking = await handleNewBooking({
+        bookingData: mockBookingData,
+      });
+
+      // Verify that the booking was created successfully
+      expect(createdBooking).toBeDefined();
+      expect(createdBooking.responses).toEqual(
+        expect.objectContaining({
+          email: booker.email,
+          name: booker.name,
+        })
+      );
+
+      // Verify that lucky users were selected (one from each group)
+      expect(createdBooking.luckyUsers).toBeDefined();
+      expect(createdBooking.luckyUsers).toHaveLength(2);
+
+      // Verify that the selected users are from different groups
+      const selectedUserIds = createdBooking.luckyUsers;
+      const group1UserIds = [teamMembers[0].id, teamMembers[1].id]; // group-1
+      const group2UserIds = [teamMembers[2].id, teamMembers[3].id]; // group-2
+
+      // Check that one user is from group-1 and one is from group-2
+      const hasGroup1User = selectedUserIds.some((id) => group1UserIds.includes(id));
+      const hasGroup2User = selectedUserIds.some((id) => group2UserIds.includes(id));
+
+      expect(hasGroup1User).toBe(true);
+      expect(hasGroup2User).toBe(true);
+
+      // Verify that the booking has the correct attendees
+      expect(createdBooking.attendees).toHaveLength(2);
+      expect(createdBooking.attendees[0].email).toBe(booker.email);
+
+      // The second attendee should be one of the selected lucky users
+      const secondAttendeeEmail = createdBooking.attendees[1].email;
+      const selectedUserEmails = selectedUserIds.map(
+        (id) => teamMembers.find((member) => member.id === id)?.email
+      );
+      expect(selectedUserEmails).toContain(secondAttendeeEmail);
+    });
+  });
 
   describe("Seated Round Robin Event", () => {
     test("For second seat booking, organizer remains the same with no team members included", async () => {

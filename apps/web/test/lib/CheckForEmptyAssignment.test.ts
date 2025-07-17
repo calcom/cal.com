@@ -61,7 +61,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
       checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
-        hosts: [{ userId: 101, isFixed: false, priority: 2, weight: 100, scheduleId: null }],
+        hosts: [{ userId: 101, isFixed: false, priority: 2, weight: 100, scheduleId: null, groupId: null }],
         isManagedEventType: false,
       })
     ).toBe(false);

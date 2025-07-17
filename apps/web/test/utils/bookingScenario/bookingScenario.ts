@@ -121,6 +121,7 @@ type InputHost = {
   userId: number;
   isFixed?: boolean;
   scheduleId?: number | null;
+  groupId?: string | null;
 };
 
 type InputSelectedSlot = {
@@ -215,6 +216,7 @@ export type InputEventType = {
   useEventLevelSelectedCalendars?: boolean;
   users?: { id: number }[];
   hosts?: InputHost[];
+  hostGroups?: { id: string; name: string }[];
   schedulingType?: SchedulingType;
   parent?: { id: number };
   beforeEventBuffer?: number;
@@ -290,6 +292,25 @@ export const Timezones = {
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
+    // Create host groups first if they exist
+    const groupIdMapping: Record<string, string> = {};
+    if (eventType.hostGroups?.length) {
+      for (const group of eventType.hostGroups) {
+        const createdGroup = await prismock.hostGroup.create({
+          data: {
+            id: group.id,
+            name: group.name,
+            eventType: {
+              connect: {
+                id: eventType.id,
+              },
+            },
+          },
+        });
+        groupIdMapping[group.id] = createdGroup.id;
+      }
+    }
+
     if (!eventType.hosts?.length) continue;
     for (const host of eventType.hosts) {
       const data: Prisma.HostCreateInput = {
@@ -308,6 +329,13 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
           ? {
               connect: {
                 id: host.scheduleId,
+              },
+            }
+          : undefined,
+        group: host.groupId
+          ? {
+              connect: {
+                id: groupIdMapping[host.groupId] || host.groupId,
               },
             }
           : undefined,
@@ -363,6 +391,7 @@ export async function addEventTypesToDb(
       workflows: true,
       destinationCalendar: true,
       schedule: true,
+      hostGroups: true,
     },
   });
 
@@ -473,6 +502,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
       workflows: [],
       users,
       hosts,
+      hostGroups: eventType.hostGroups || [],
       destinationCalendar: eventType.destinationCalendar
         ? {
             create: eventType.destinationCalendar,
