@@ -1,4 +1,5 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { invalidateScheduleCache } from "@calcom/lib/cache";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
@@ -119,6 +120,10 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
   });
 
   const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
+
+  await invalidateScheduleCache({
+    userId: schedule.userId,
+  });
 
   return {
     schedule,
