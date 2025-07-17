@@ -127,7 +127,7 @@ describe("/api/support", () => {
     });
 
     const { plain } = vi.mocked(await import("@lib/plain/plain"));
-    plain.getCustomerByEmail.mockResolvedValue({
+    vi.mocked(plain.getCustomerByEmail).mockResolvedValue({
       data: {
         id: "customer-123",
         __typename: "Customer",
@@ -143,23 +143,22 @@ describe("/api/support", () => {
             unixTimestamp: "1735689600",
           },
         },
-        status: "ACTIVE",
-        assignedToUser: null,
-        assignedAt: null,
+        company: null,
+        createdBy: { __typename: "SystemActor" as const, systemId: "system" },
         updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         markedAsSpamAt: null,
       },
     });
 
-    plain.createThread.mockResolvedValue({
+    vi.mocked(plain.createThread).mockResolvedValue({
       data: {
         id: "thread-123",
         __typename: "Thread",
         externalId: null,
         title: "Test message",
         description: null,
-        status: "TODO",
+        status: "Todo" as any,
         statusChangedAt: {
           __typename: "DateTime",
           iso8601: "2025-01-01T00:00:00Z",
@@ -167,17 +166,11 @@ describe("/api/support", () => {
         },
         statusDetail: null,
         customer: { id: "customer-123" },
-        assignedToUser: null,
-        assignedAt: null,
         priority: 0,
-        firstInboundMessageInfo: null,
-        firstOutboundMessageInfo: null,
-        lastInboundMessageInfo: null,
-        lastOutboundMessageInfo: null,
         previewText: "Test message",
         updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
-      },
+      } as any,
     });
 
     const request = new Request("http://localhost:3000/api/support", {
@@ -194,8 +187,8 @@ describe("/api/support", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    expect(plain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
-    expect(plain.createThread).toHaveBeenCalled();
+    expect(vi.mocked(plain.getCustomerByEmail)).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(vi.mocked(plain.createThread)).toHaveBeenCalled();
   });
 
   it("should handle form submission with file attachments", async () => {
@@ -207,13 +200,13 @@ describe("/api/support", () => {
     });
 
     const { plain, upsertPlainCustomer } = vi.mocked(await import("@lib/plain/plain"));
-    plain.getCustomerByEmail.mockResolvedValue({
+    vi.mocked(plain.getCustomerByEmail).mockResolvedValue({
       data: null,
     });
 
-    upsertPlainCustomer.mockResolvedValue({
+    vi.mocked(upsertPlainCustomer).mockResolvedValue({
       data: {
-        result: "CREATED" as const,
+        result: "Created" as any,
         customer: {
           id: "customer-456",
           __typename: "Customer",
@@ -229,9 +222,8 @@ describe("/api/support", () => {
               unixTimestamp: "1735689600",
             },
           },
-          status: "ACTIVE",
-          assignedToUser: null,
-          assignedAt: null,
+          company: null,
+          createdBy: { __typename: "SystemActor" as const, systemId: "system" },
           updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
           createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
           markedAsSpamAt: null,
@@ -239,14 +231,14 @@ describe("/api/support", () => {
       },
     });
 
-    plain.createThread.mockResolvedValue({
+    vi.mocked(plain.createThread).mockResolvedValue({
       data: {
         id: "thread-456",
         __typename: "Thread",
         externalId: null,
         title: "Test message",
         description: null,
-        status: "TODO",
+        status: "Todo" as any,
         statusChangedAt: {
           __typename: "DateTime",
           iso8601: "2025-01-01T00:00:00Z",
@@ -254,17 +246,11 @@ describe("/api/support", () => {
         },
         statusDetail: null,
         customer: { id: "customer-456" },
-        assignedToUser: null,
-        assignedAt: null,
         priority: 0,
-        firstInboundMessageInfo: null,
-        firstOutboundMessageInfo: null,
-        lastInboundMessageInfo: null,
-        lastOutboundMessageInfo: null,
         previewText: "Test message",
         updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
-      },
+      } as any,
     });
 
     const request = new Request("http://localhost:3000/api/support", {
@@ -281,9 +267,9 @@ describe("/api/support", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    expect(plain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
-    expect(upsertPlainCustomer).toHaveBeenCalled();
-    expect(plain.createThread).toHaveBeenCalled();
+    expect(vi.mocked(plain.getCustomerByEmail)).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(vi.mocked(upsertPlainCustomer)).toHaveBeenCalled();
+    expect(vi.mocked(plain.createThread)).toHaveBeenCalled();
   });
 
   it("should handle Plain customer creation error", async () => {
@@ -295,11 +281,11 @@ describe("/api/support", () => {
     });
 
     const { plain, upsertPlainCustomer } = vi.mocked(await import("@lib/plain/plain"));
-    plain.getCustomerByEmail.mockResolvedValue({
+    vi.mocked(plain.getCustomerByEmail).mockResolvedValue({
       data: null,
     });
 
-    upsertPlainCustomer.mockResolvedValue({
+    vi.mocked(upsertPlainCustomer).mockResolvedValue({
       error: {
         type: "unknown",
         message: "Customer creation failed",
@@ -327,7 +313,7 @@ describe("/api/support", () => {
     });
 
     const { plain } = vi.mocked(await import("@lib/plain/plain"));
-    plain.getCustomerByEmail.mockResolvedValue({
+    vi.mocked(plain.getCustomerByEmail).mockResolvedValue({
       data: {
         id: "customer-123",
         __typename: "Customer",
@@ -343,16 +329,15 @@ describe("/api/support", () => {
             unixTimestamp: "1735689600",
           },
         },
-        status: "ACTIVE",
-        assignedToUser: null,
-        assignedAt: null,
+        company: null,
+        createdBy: { __typename: "SystemActor" as const, systemId: "system" },
         updatedAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         createdAt: { __typename: "DateTime", iso8601: "2025-01-01T00:00:00Z", unixTimestamp: "1735689600" },
         markedAsSpamAt: null,
       },
     });
 
-    plain.createThread.mockResolvedValue({
+    vi.mocked(plain.createThread).mockResolvedValue({
       error: {
         type: "unknown",
         message: "Thread creation failed",
