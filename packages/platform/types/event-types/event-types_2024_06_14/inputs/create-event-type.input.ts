@@ -163,9 +163,16 @@ export class CalVideoSettings {
   @IsOptional()
   @IsBoolean()
   @DocsPropertyOptional({
-    description: "If true, enables the automatic recording for the event",
+    description: "If true, enables the automatic recording for the event when organizer joins the call",
   })
   enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, disables the transcription for the event when guests join the call",
+  })
+  disableTranscriptionForGuests?: boolean;
 }
 
 class BaseCreateEventTypeInput {

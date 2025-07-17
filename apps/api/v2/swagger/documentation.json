@@ -15716,7 +15716,11 @@
           },
           "enableAutomaticRecordingForOrganizer": {
             "type": "boolean",
-            "description": "If true, enables the automatic recording for the event"
+            "description": "If true, enables the automatic recording for the event when organizer joins the call"
+          },
+          "disableTranscriptionForGuests": {
+            "type": "boolean",
+            "description": "If true, disables the transcription for the event when guests join the call"
           }
         }
       },
