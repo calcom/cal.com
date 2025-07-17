@@ -80,7 +80,7 @@ function PhoneNumbersView({
     }
   }, [searchParams]);
 
-  const buyNumberMutation = trpc.viewer.loggedInViewerRouter.buy.useMutation({
+  const buyNumberMutation = trpc.viewer.phoneNumber.buy.useMutation({
     onSuccess: async (data: { checkoutUrl?: string; message?: string; phoneNumber?: any }) => {
       if (data.checkoutUrl) {
         // Redirect to Stripe checkout
@@ -88,7 +88,7 @@ function PhoneNumbersView({
       } else if (data.phoneNumber) {
         // Phone number created directly (shouldn't happen with current implementation)
         showToast(t("phone_number_purchased_successfully"), "success");
-        await utils.viewer.loggedInViewerRouter.list.invalidate();
+        await utils.viewer.phoneNumber.list.invalidate();
         await utils.viewer.me.get.invalidate();
         await revalidatePage();
         setIsBuyDialogOpen(false);
@@ -102,10 +102,10 @@ function PhoneNumbersView({
     },
   });
 
-  const importNumberMutation = trpc.viewer.loggedInViewerRouter.import.useMutation({
+  const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
     onSuccess: async (data: { message?: string }) => {
       showToast(data.message || "Phone number imported successfully", "success");
-      await utils.viewer.loggedInViewerRouter.list.invalidate();
+      await utils.viewer.phoneNumber.list.invalidate();
       await utils.viewer.me.get.invalidate();
       await formMethods.reset();
       await revalidatePage();
@@ -117,10 +117,10 @@ function PhoneNumbersView({
     },
   });
 
-  const cancelSubscriptionMutation = trpc.viewer.loggedInViewerRouter.cancel.useMutation({
+  const cancelSubscriptionMutation = trpc.viewer.phoneNumber.cancel.useMutation({
     onSuccess: async (data: { message?: string }) => {
       showToast(data.message || "Phone number subscription cancelled successfully", "success");
-      await utils.viewer.loggedInViewerRouter.list.invalidate();
+      await utils.viewer.phoneNumber.list.invalidate();
       await utils.viewer.me.get.invalidate();
       await revalidatePage();
       setCancellingNumberId(null);
@@ -132,10 +132,10 @@ function PhoneNumbersView({
     },
   });
 
-  const deletePhoneNumberMutation = trpc.viewer.loggedInViewerRouter.delete.useMutation({
+  const deletePhoneNumberMutation = trpc.viewer.phoneNumber.delete.useMutation({
     onSuccess: async () => {
       showToast("Phone number deleted successfully", "success");
-      await utils.viewer.loggedInViewerRouter.list.invalidate();
+      await utils.viewer.phoneNumber.list.invalidate();
       await revalidatePage();
       setNumberToDelete(null);
     },
@@ -463,7 +463,7 @@ export default function PhoneNumbersQueryView({
   revalidatePage: () => Promise<void>;
 }) {
   const { t } = useLocale();
-  const { data: numbers, isPending } = trpc.viewer.loggedInViewerRouter.list.useQuery(undefined, {
+  const { data: numbers, isPending } = trpc.viewer.phoneNumber.list.useQuery(undefined, {
     suspense: false,
   });
 

@@ -25,7 +25,7 @@ const getCachedPhoneNumbers = unstable_cache(
     return await PhoneNumberRepository.findPhoneNumbersFromUserId({ userId });
   },
   undefined,
-  { revalidate: 3600, tags: ["viewer.phoneNumbers.list"] } // Cache for 1 hour
+  { revalidate: 3600, tags: ["viewer.phoneNumber.list"] } // Cache for 1 hour
 );
 
 const Page = async () => {

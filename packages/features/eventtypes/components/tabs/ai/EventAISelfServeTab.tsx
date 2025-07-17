@@ -45,18 +45,16 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
 
   const formMethods = useFormContext<FormValues>();
 
-  const { data: aiConfig, isLoading: isLoadingAiConfig } =
-    trpc.viewer.loggedInViewerRouter.getConfig.useQuery({
-      eventTypeId: eventType.id,
-    });
+  const { data: aiConfig, isLoading: isLoadingAiConfig } = trpc.viewer.ai.getConfig.useQuery({
+    eventTypeId: eventType.id,
+  });
 
   const { timezone: preferredTimezone } = useTimePreferences();
 
-  const { data: llmDetails, isLoading: isLoadingLlmDetails } =
-    trpc.viewer.loggedInViewerRouter.getLlm.useQuery(
-      { llmId: aiConfig?.llmId as string },
-      { enabled: !!aiConfig?.llmId }
-    );
+  const { data: llmDetails, isLoading: isLoadingLlmDetails } = trpc.viewer.ai.getLlm.useQuery(
+    { llmId: aiConfig?.llmId as string },
+    { enabled: !!aiConfig?.llmId }
+  );
 
   useEffect(() => {
     console.log("llmDetails", llmDetails);
@@ -67,58 +65,47 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
       formMethods.setValue("aiSelfServeConfiguration.beginMessage", llmDetails.beginMessage);
     }
   }, [llmDetails]);
-  const { data: phoneNumbers } = trpc.viewer.loggedInViewerRouter.list.useQuery();
-  const makeCallMutation = trpc.viewer.loggedInViewerRouter.makeSelfServePhoneCall.useMutation();
+  const { data: phoneNumbers } = trpc.viewer.phoneNumber.list.useQuery();
+  const makeCallMutation = trpc.viewer.ai.makeSelfServePhoneCall.useMutation();
 
-  const setupMutation = trpc.viewer.loggedInViewerRouter.setup.useMutation({
+  const setupMutation = trpc.viewer.ai.setup.useMutation({
     onSuccess: () => {
-      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
+      utils.viewer.ai.getConfig.invalidate();
       showToast(t("ai_assistant_setup_successfully"), "success");
     },
     onError: (error: any) => showToast(error.message, "error"),
   });
 
-  const updateLlmMutation = trpc.viewer.loggedInViewerRouter.updateLlm.useMutation();
+  const updateLlmMutation = trpc.viewer.ai.updateLlm.useMutation();
 
-  const buyNumberMutation = trpc.viewer.loggedInViewerRouter.buy.useMutation({
+  const assignPhoneNumberMutation = trpc.viewer.phoneNumber.assignPhoneNumber.useMutation({
     onSuccess: () => {
-      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
-      utils.viewer.loggedInViewerRouter.list.invalidate();
-      showToast(t("phone_number_purchased_successfully"), "success");
-    },
-    onError: (error: any) => showToast(error.message, "error"),
-  });
-
-  const assignPhoneNumberMutation = trpc.viewer.loggedInViewerRouter.assignPhoneNumber.useMutation({
-    onSuccess: () => {
-      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
-      utils.viewer.loggedInViewerRouter.list.invalidate();
+      utils.viewer.ai.getConfig.invalidate();
+      utils.viewer.phoneNumber.list.invalidate();
       showToast(t("phone_number_assigned_successfully"), "success");
     },
     onError: (error: any) => showToast(error.message, "error"),
   });
 
-  const unassignPhoneNumberMutation = trpc.viewer.loggedInViewerRouter.unassignPhoneNumber.useMutation({
+  const unassignPhoneNumberMutation = trpc.viewer.phoneNumber.unassignPhoneNumber.useMutation({
     onSuccess: () => {
-      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
-      utils.viewer.loggedInViewerRouter.list.invalidate();
+      utils.viewer.ai.getConfig.invalidate();
+      utils.viewer.phoneNumber.list.invalidate();
       showToast(t("phone_number_unassigned_successfully"), "success");
     },
     onError: (error: any) => showToast(error.message, "error"),
   });
 
-  const deleteAiConfigMutation = trpc.viewer.loggedInViewerRouter.deleteAiConfig.useMutation({
+  const deleteAiConfigMutation = trpc.viewer.ai.deleteAiConfig.useMutation({
     onSuccess: () => {
-      utils.viewer.loggedInViewerRouter.getConfig.invalidate();
-      utils.viewer.loggedInViewerRouter.list.invalidate();
+      utils.viewer.ai.getConfig.invalidate();
+      utils.viewer.phoneNumber.list.invalidate();
       showToast(t("ai_configuration_deleted_successfully"), "success");
     },
     onError: (error: any) => showToast(error.message, "error"),
   });
 
   const setupForm = useForm<z.infer<typeof setupSchema>>({ resolver: zodResolver(setupSchema) });
-
-  console.log("form.getValues()", aiConfig, formMethods.getValues());
 
   const assignedPhoneNumber = phoneNumbers?.find((n) => n.id === aiConfig?.yourPhoneNumberId);
 

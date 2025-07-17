@@ -42,6 +42,6 @@ export const ENDPOINTS = [
   "credits",
   "filterSegments",
   "ai",
-  "phoneNumbers",
+  "phoneNumber",
   "pbac",
 ] as const;
