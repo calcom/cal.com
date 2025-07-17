@@ -28658,14 +28658,6 @@
             "nullable": true,
             "example": "accepted",
             "$ref": "#/components/schemas/CalendarEventStatus"
-          },
-          "hosts": {
-            "nullable": true,
-            "description": "Information about the event hosts (organizers)",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CalendarEventHost"
-            }
           }
         }
       },
