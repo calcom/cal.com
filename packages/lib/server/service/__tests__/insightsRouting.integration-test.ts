@@ -1080,7 +1080,7 @@ describe("InsightsRoutingService Integration Tests", () => {
         }::timestamp) AND (EXISTS (
       SELECT 1 FROM "Booking" b
       INNER JOIN "Attendee" a ON a."bookingId" = b."id"
-      WHERE b."uid" = "RoutingFormResponseDenormalized"."bookingUid"
+      WHERE b."uid" = rfrd."bookingUid"
       AND (${Prisma.sql`(a.name ILIKE ${`%john@example.com%`}) OR (a.email ILIKE ${`%john@example.com%`})`})
     ))`
       );
@@ -1123,7 +1123,7 @@ describe("InsightsRoutingService Integration Tests", () => {
           defaultFilters.endDate
         }::timestamp) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${"custom-field-id"}
         AND rrf."valueString" = ${"test value"}
       ))`
@@ -1167,7 +1167,7 @@ describe("InsightsRoutingService Integration Tests", () => {
           defaultFilters.endDate
         }::timestamp) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${"custom-multi-field-id"}
         AND rrf."valueStringArray" @> ${["option1", "option2"]}
       ))`
@@ -1227,7 +1227,7 @@ describe("InsightsRoutingService Integration Tests", () => {
           "pending",
         ]}))) AND ("bookingAssignmentReason" ILIKE ${`%manual%`})) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${"custom-field-id"}
         AND rrf."valueString" = ${"test"}
       ))`
@@ -1366,7 +1366,7 @@ describe("InsightsRoutingService Integration Tests", () => {
           defaultFilters.endDate
         }::timestamp) AND ("bookingStatusOrder" = ANY(${["pending"]}))) AND (EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${"custom-field-id"}
         AND rrf."valueString" = ${"test"}
       ))`
