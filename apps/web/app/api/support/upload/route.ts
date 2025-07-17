@@ -5,10 +5,17 @@ import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
 
+const log = logger.getSubLogger({ prefix: ["/api/support/upload"] });
+
+/**
+ * Returns a signed url from plain to upload the attachment
+ */
 export async function GET(req: NextRequest) {
   if (!IS_PLAIN_CHAT_ENABLED) {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
@@ -33,8 +40,6 @@ export async function GET(req: NextRequest) {
     email: session.user.email,
   });
 
-  console.log("plainCustomer: ", plainCustomer);
-
   if (plainCustomer.data) {
     plainCustomerId = plainCustomer.data.id;
   } else {
@@ -45,6 +50,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (error) {
+      log.error("Error getting customer info: ", safeStringify(error));
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -54,7 +60,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!plainCustomerId) {
-    return NextResponse.json({ error: "Plain customer not found" }, { status: 500 });
+    return NextResponse.json({ error: "Plain customer not found" }, { status: 404 });
   }
 
   const { data, error } = await plain.createAttachmentUploadUrl({
@@ -65,9 +71,13 @@ export async function GET(req: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json({
-      error: error.message,
-    });
+    log.error(`Error getting signed url for attachment upload: `, safeStringify(error));
+    return NextResponse.json(
+      {
+        error: error.message,
+      },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(data);

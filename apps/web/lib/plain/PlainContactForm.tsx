@@ -1,7 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
 import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
@@ -21,10 +20,7 @@ const PlainContactForm = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-
-  const { data: session } = useSession();
 
   const [data, setData] = useState<{
     message: string;
@@ -51,21 +47,19 @@ const PlainContactForm = () => {
 
       const { file } = newFile;
 
-      const res = await fetch(`/api/support/upload?name=${file.name}&size=${file.size}`).then((res) =>
-        res.json()
-      );
-      console.log("res: ", res);
-      return;
+      const res = await fetch(`/api/support/upload?name=${file.name}&size=${file.size}`);
+      if (!res.ok) {
+        showToast("Error uploading attachment", "error");
+        setIsUploadingImage(false);
+        return;
+      }
 
       const {
-        attachment: { id: attachmentId },
-        uploadUrl,
+        uploadFormUrl,
         uploadFormData,
-      } = await fetch(`/api/support/upload?name=${file.name}&size=${file.size}`).then((res) => res.json());
-
-      console.log("uploadUrl: ", uploadUrl);
-      console.log("uploadFormData: ", uploadFormData);
-      console.log("attachmentId: ", attachmentId);
+        attachment: { id: attachmentId },
+      } = await res.json();
+      setIsUploadingImage(false);
 
       const formData = new FormData();
       uploadFormData.forEach(({ key, value }: any) => {
@@ -74,18 +68,17 @@ const PlainContactForm = () => {
 
       formData.append("file", file);
 
-      fetch(uploadUrl, {
+      const uploadRes = await fetch(uploadFormUrl, {
         method: "POST",
         body: formData,
-      })
-        .then((response) => {
-          if (!response.ok) {
-            showToast("Failed to upload file", "error");
-          }
-        })
-        .catch((error) => {
-          console.log("Error uploading file: ", error?.message ? error?.message : error);
-        });
+      });
+
+      if (!uploadRes.ok) {
+        showToast(`Failed while uploading file: ${uploadRes.text}`, "error");
+        setIsUploadingImage(false);
+        return;
+      }
+
       setUploads((prev) =>
         prev.map((upload) => (upload.file === file ? { ...upload, uploading: false, attachmentId } : upload))
       );
@@ -94,6 +87,7 @@ const PlainContactForm = () => {
         attachmentIds: [...prev.attachmentIds, attachmentId],
       }));
       setIsUploadingImage(false);
+      showToast("File uploaded successfully", "success");
     } else if (removedFiles.length > 0) {
       const removedFile = removedFiles[0];
       const file = uploads.find((upload) => upload.id === removedFile.id);
@@ -109,18 +103,11 @@ const PlainContactForm = () => {
     }
   };
 
-  useEffect(() => {
-    console.log("uploads", uploads);
-    console.log("data: ", data);
-  }, [uploads, data]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError(null);
-
     try {
-      const response = await fetch("/api/plain-contact", {
+      const response = await fetch("/api/support", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +117,9 @@ const PlainContactForm = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit contact form");
+        showToast(errorData.message ?? "Failed to submit contact form", "error");
+        setIsSubmitting(false);
+        return;
       }
 
       setIsSubmitted(true);
@@ -139,8 +128,7 @@ const PlainContactForm = () => {
         attachmentIds: [],
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
+      showToast(err instanceof Error ? err.message : "An error occurred", "error");
       setIsSubmitting(false);
     }
   };
@@ -155,7 +143,7 @@ const PlainContactForm = () => {
   return (
     <div className="absolute bottom-4 right-4 z-50">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild className="hover:bg-transparent">
+        <PopoverTrigger asChild className="enabled:hover:bg-subtle bg-subtle shadow-none">
           <Button
             onClick={() => setIsOpen(true)}
             className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none">
@@ -179,17 +167,12 @@ const PlainContactForm = () => {
 
           <div>
             {isSubmitted ? (
-              <div className="text-center">
-                <div className="mb-4 text-green-600">
-                  <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h4 className="mb-2 text-lg font-medium text-gray-900">Message Sent</h4>
-                <p className="mb-4 text-sm text-gray-600">
+              <div className="py-4 text-center">
+                <h4 className="mb-2 text-lg font-medium ">Message Sent</h4>
+                <p className="text-subtle mb-4 text-sm">
                   Thank you for contacting us. We&apos;ll get back to you as soon as possible.
                 </p>
-                <Button color="minimal" onClick={resetForm} variant="button" size="sm">
+                <Button color="primary" className="my-2" onClick={resetForm} variant="button" size="base">
                   Send Another Message
                 </Button>
               </div>
@@ -223,18 +206,12 @@ const PlainContactForm = () => {
                   />
                 </div>
 
-                {error && (
-                  <div className="rounded-md bg-red-50 p-3">
-                    <p className="text-sm text-red-800">{error}</p>
-                  </div>
-                )}
-
                 <div className="mt-4 flex w-full items-center">
                   <Button
                     color="secondary"
                     variant="button"
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isUploadingImage}
                     className="w-full">
                     <div className="flex w-full justify-center">
                       {isSubmitting ? (

@@ -75,7 +75,7 @@ export default function FileUploader({
   buttonMsg,
   onFilesChange,
   acceptedFileTypes = ["any"],
-  maxFiles = 5,
+  maxFiles,
   maxFileSize = 10 * 1024 * 1024,
   disabled = false,
   multiple = true,
@@ -132,7 +132,7 @@ export default function FileUploader({
       const newFiles: FileData[] = [];
       const errors: string[] = [];
 
-      if (files.length + selectedFiles.length > maxFiles) {
+      if (maxFiles && files.length + selectedFiles.length > maxFiles) {
         const maxFileText = isLocaleReady ? t("max_files_exceeded") : `${defaultT["max_files_exceeded"]}`;
         showToast(maxFileText, "error");
         return;
@@ -167,10 +167,6 @@ export default function FileUploader({
         const updatedFiles = [...files, ...newFiles];
         setFiles(updatedFiles);
         onFilesChange(updatedFiles, newFiles, []);
-        const successMessage = isLocaleReady
-          ? t("files_uploaded_successfully")
-          : `${defaultT["files_uploaded_successfully"]}`;
-        showToast(successMessage, "success");
       }
     },
     [files, maxFiles, maxFileSize, acceptedFileTypes, onFilesChange, t]
