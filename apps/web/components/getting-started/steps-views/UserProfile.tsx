@@ -17,6 +17,8 @@ import { Label } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 
+import GenerateAboutButton from "../../ui/GenerateAboutButton";
+
 type FormData = {
   bio: string;
 };
@@ -36,6 +38,7 @@ const UserProfile = () => {
   const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const telemetry = useTelemetry();
   const [firstRender, setFirstRender] = useState(true);
+  const [updateTemplate, setUpdateTemplate] = useState(false);
 
   // Create a separate mutation for avatar updates
   const avatarMutation = trpc.viewer.me.updateProfile.useMutation({
@@ -89,6 +92,14 @@ const UserProfile = () => {
       avatarUrl: newAvatar,
     });
   }
+
+  const handleGeneratedBio = (generatedText: string) => {
+    // Update the form value
+    setValue("bio", generatedText, { shouldDirty: true });
+
+    // Trigger the Editor's built-in update mechanism
+    setUpdateTemplate((prev) => !prev);
+  };
 
   const DEFAULT_EVENT_TYPES = [
     {
@@ -145,13 +156,17 @@ const UserProfile = () => {
         </div>
       </div>
       <fieldset className="mt-8">
-        <Label className="text-default mb-2 block text-sm font-medium">{t("about")}</Label>
+        <div className="mb-2 flex items-center justify-between">
+          <Label className="text-default block text-sm font-medium">{t("about")}</Label>
+          <GenerateAboutButton onGenerated={handleGeneratedBio} />
+        </div>
         <Editor
           getText={() => md.render(getValues("bio") || user?.bio || "")}
           setText={(value: string) => setValue("bio", turndown(value))}
           excludedToolbarItems={["blockType"]}
           firstRender={firstRender}
           setFirstRender={setFirstRender}
+          updateTemplate={updateTemplate}
         />
         <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>

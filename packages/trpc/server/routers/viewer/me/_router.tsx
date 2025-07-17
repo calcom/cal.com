@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZDeleteMeInputSchema } from "./deleteMe.schema";
+import { ZLlmInputSchema } from "./llm.schema";
 import { get } from "./procedures/get";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
 
@@ -36,6 +37,10 @@ export const meRouter = router({
   }),
   updateProfile: authedProcedure.input(ZUpdateProfileInputSchema).mutation(async ({ ctx, input }) => {
     const handler = (await import("./updateProfile.handler")).updateProfileHandler;
+    return handler({ ctx, input });
+  }),
+  llm: authedProcedure.input(ZLlmInputSchema).mutation(async ({ ctx, input }) => {
+    const handler = (await import("./llm.handler")).llmHandler;
     return handler({ ctx, input });
   }),
 });
