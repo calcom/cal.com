@@ -65,5 +65,5 @@ export const getCalendar = async (
 
   const perfEndTime = performance.now();
   console.log(`[PERF] getCalendar total time: ${perfEndTime - perfStartTime}ms`);
-  return new CalendarService(credential);
+  return new CalendarService(credential as any);
 };
