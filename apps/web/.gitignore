@@ -70,7 +70,7 @@ public/embed
 public/app-store
 
 # Copied i18n files
-public/locales
+public/static/locales
 
 certificates
 # Sentry Config File
