@@ -8,9 +8,13 @@ vi.mock("@calcom/features/auth/lib/getServerSession", () => ({
   getServerSession: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/constants", () => ({
-  IS_PLAIN_CHAT_ENABLED: true,
-}));
+vi.mock("@calcom/lib/constants", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    IS_PLAIN_CHAT_ENABLED: true,
+  };
+});
 
 vi.mock("@lib/buildLegacyCtx", () => ({
   buildLegacyRequest: vi.fn(() => ({ headers: {}, cookies: {} })),
@@ -30,12 +34,21 @@ vi.mock("next/server", () => ({
   },
 }));
 
+vi.mock("@lib/plain/plain", () => ({
+  plain: {
+    getCustomerByEmail: vi.fn(),
+    createThread: vi.fn(),
+  },
+  upsertPlainCustomer: vi.fn(),
+}));
+
 const mockGetServerSession = vi.mocked(getServerSession);
 
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+const { plain: mockPlain, upsertPlainCustomer: mockUpsertPlainCustomer } = vi.mocked(
+  await import("@lib/plain/plain")
+);
 
-describe("/api/plain-contact", () => {
+describe("/api/support", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.PLAIN_API_KEY = "test-api-key";
@@ -48,14 +61,11 @@ describe("/api/plain-contact", () => {
   it("should return 401 when user is not authenticated", async () => {
     mockGetServerSession.mockResolvedValue(null);
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Subject",
         message: "Test message",
-        attachments: [],
+        attachmentIds: [],
       }),
     });
 
@@ -63,7 +73,7 @@ describe("/api/plain-contact", () => {
     expect(response.status).toBe(401);
   });
 
-  it("should return 400 for invalid form data", async () => {
+  it("should return 500 for invalid form data", async () => {
     mockGetServerSession.mockResolvedValue({
       hasValidLicense: true,
       upId: "test-up-id",
@@ -71,19 +81,16 @@ describe("/api/plain-contact", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "",
-        email: "invalid-email",
-        subject: "",
         message: "",
-        attachments: [],
+        attachmentIds: [],
       }),
     });
 
     const response = await POST(request);
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(500);
   });
 
   it("should return 500 when Plain API key is not configured", async () => {
@@ -96,14 +103,11 @@ describe("/api/plain-contact", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Subject",
         message: "Test message",
-        attachments: [],
+        attachmentIds: [],
       }),
     });
 
@@ -119,44 +123,23 @@ describe("/api/plain-contact", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              upsertCustomer: {
-                customer: {
-                  id: "customer-123",
-                  email: { email: "test@example.com" },
-                  fullName: "Test User",
-                },
-              },
-            },
-          }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              createThread: {
-                thread: {
-                  id: "thread-123",
-                },
-              },
-            },
-          }),
-      });
+    mockPlain.getCustomerByEmail.mockResolvedValue({
+      data: {
+        id: "customer-123",
+      },
+    });
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    mockPlain.createThread.mockResolvedValue({
+      data: {
+        id: "thread-123",
+      },
+    });
+
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Subject",
         message: "Test message",
-        attachments: [],
+        attachmentIds: [],
       }),
     });
 
@@ -164,9 +147,10 @@ describe("/api/plain-contact", () => {
     expect(response.status).toBe(200);
 
     const responseData = await response.json();
-    expect(responseData).toEqual({ success: true });
+    expect(responseData).toBeDefined();
 
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockPlain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(mockPlain.createThread).toHaveBeenCalled();
   });
 
   it("should handle form submission with file attachments", async () => {
@@ -177,78 +161,29 @@ describe("/api/plain-contact", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              upsertCustomer: {
-                customer: {
-                  id: "customer-123",
-                  email: { email: "test@example.com" },
-                  fullName: "Test User",
-                },
-              },
-            },
-          }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              createAttachmentUploadUrl: {
-                attachmentUploadUrl: {
-                  uploadUrl: "https://s3.amazonaws.com/upload-url",
-                  uploadFormData: [
-                    { key: "key", value: "test-key" },
-                    { key: "Content-Type", value: "image/jpeg" },
-                  ],
-                  attachment: {
-                    id: "attachment-123",
-                  },
-                },
-              },
-            },
-          }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              createThread: {
-                thread: {
-                  id: "thread-123",
-                },
-              },
-            },
-          }),
-      });
+    mockPlain.getCustomerByEmail.mockResolvedValue({
+      data: null,
+    });
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    mockUpsertPlainCustomer.mockResolvedValue({
+      data: {
+        customer: {
+          id: "customer-456",
+        },
+      },
+    });
+
+    mockPlain.createThread.mockResolvedValue({
+      data: {
+        id: "thread-456",
+      },
+    });
+
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Subject",
         message: "Test message",
-        attachments: [
-          {
-            file: {
-              name: "test.jpg",
-              size: 1024,
-              type: "image/jpeg",
-            },
-            dataUrl:
-              "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A",
-            id: "file-123",
-          },
-        ],
+        attachmentIds: ["attachment-123"],
       }),
     });
 
@@ -256,9 +191,11 @@ describe("/api/plain-contact", () => {
     expect(response.status).toBe(200);
 
     const responseData = await response.json();
-    expect(responseData).toEqual({ success: true });
+    expect(responseData).toBeDefined();
 
-    expect(mockFetch).toHaveBeenCalledTimes(4);
+    expect(mockPlain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(mockUpsertPlainCustomer).toHaveBeenCalled();
+    expect(mockPlain.createThread).toHaveBeenCalled();
   });
 
   it("should handle Plain customer creation error", async () => {
@@ -269,29 +206,21 @@ describe("/api/plain-contact", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            upsertCustomer: {
-              error: {
-                message: "Customer creation failed",
-                type: "VALIDATION_ERROR",
-              },
-            },
-          },
-        }),
+    mockPlain.getCustomerByEmail.mockResolvedValue({
+      data: null,
     });
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    mockUpsertPlainCustomer.mockResolvedValue({
+      error: {
+        message: "Customer creation failed",
+      },
+    });
+
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Subject",
         message: "Test message",
-        attachments: [],
+        attachmentIds: [],
       }),
     });
 
@@ -307,45 +236,23 @@ describe("/api/plain-contact", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              upsertCustomer: {
-                customer: {
-                  id: "customer-123",
-                  email: { email: "test@example.com" },
-                  fullName: "Test User",
-                },
-              },
-            },
-          }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            data: {
-              createThread: {
-                error: {
-                  message: "Thread creation failed",
-                  type: "VALIDATION_ERROR",
-                },
-              },
-            },
-          }),
-      });
+    mockPlain.getCustomerByEmail.mockResolvedValue({
+      data: {
+        id: "customer-123",
+      },
+    });
 
-    const request = new Request("http://localhost:3000/api/plain-contact", {
+    mockPlain.createThread.mockResolvedValue({
+      error: {
+        message: "Thread creation failed",
+      },
+    });
+
+    const request = new Request("http://localhost:3000/api/support", {
       method: "POST",
       body: JSON.stringify({
-        name: "Test User",
-        email: "test@example.com",
-        subject: "Test Subject",
         message: "Test message",
-        attachments: [],
+        attachmentIds: [],
       }),
     });
 

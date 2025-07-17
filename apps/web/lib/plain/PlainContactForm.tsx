@@ -6,8 +6,8 @@ import { Button } from "@calcom/ui/components/button";
 import { FileUploader, type FileData } from "@calcom/ui/components/file-uploader";
 import { Label, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/popover";
-import { showToast } from "@calcom/ui/toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface ContactFormData {
   name: string;
@@ -134,10 +134,12 @@ const PlainContactForm = () => {
   };
 
   const resetForm = () => {
+    setIsSubmitted(false);
     setData({
       message: "",
       attachmentIds: [],
     });
+    setUploads([]);
   };
 
   return (
