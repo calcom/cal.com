@@ -191,7 +191,7 @@ export class CreditService {
     If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
   */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(userId, tx);
+    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
 
     if (memberships.length === 0) {
       return null;
