@@ -155,6 +155,7 @@ export default class ICSFeedCalendarService implements Calendar {
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
+        const event = new ICAL.Event(vevent);
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
         // commented out because a lot of public ICS feeds that describe stuff like
@@ -162,12 +163,15 @@ export default class ICSFeedCalendarService implements Calendar {
         // added to cal.com as an ICS feed, it should probably not be ignored.
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
-        const event = new ICAL.Event(vevent);
         const title = String(vevent.getFirstPropertyValue("summary"));
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
 
+        // Ignore cancelled events
+        const status = vevent.getFirstPropertyValue("status");
+        if (status && status.toUpperCase() === "CANCELLED") return;
+				
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
