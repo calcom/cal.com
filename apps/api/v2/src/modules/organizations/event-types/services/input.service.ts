@@ -187,7 +187,7 @@ export class InputOrganizationsEventTypesService {
   ) {
     const eventType = await this.teamsEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
     if (!eventType || eventType.schedulingType !== "MANAGED") {
-      return [];
+      return undefined;
     }
 
     const ownersIds = await this.getOwnersIdsForManagedEventTypeUpdate(teamId, inputEventType, eventType);
