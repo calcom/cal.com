@@ -657,7 +657,7 @@ export class AvailableSlotsService {
   }: {
     hosts: {
       isFixed?: boolean;
-      groupId?: string;
+      groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
   }) {
@@ -692,7 +692,7 @@ export class AvailableSlotsService {
     >;
     hosts: {
       isFixed?: boolean;
-      groupId?: string | null;
+      groupId: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
     loggerWithEventDetails: Logger<unknown>;

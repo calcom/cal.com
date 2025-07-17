@@ -105,6 +105,7 @@ export const roundRobinReassignment = async ({
         weight: 100,
         schedule: null,
         createdAt: new Date(0), // use earliest possible date as fallback
+        groupId: null,
       }));
 
   if (eventType.hosts.length === 0) {
