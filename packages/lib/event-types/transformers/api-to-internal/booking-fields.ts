@@ -1,6 +1,5 @@
 import type {
   InputBookingField_2024_06_14,
-  LocationDefaultFieldOutput_2024_06_14,
   PhoneDefaultFieldOutput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
@@ -28,10 +27,7 @@ import {
   systemBeforeFieldNameSplit,
 } from "../internal-to-api";
 
-type InputBookingField =
-  | InputBookingField_2024_06_14
-  | LocationDefaultFieldOutput_2024_06_14
-  | PhoneDefaultFieldOutput_2024_06_14;
+type InputBookingField = InputBookingField_2024_06_14 | PhoneDefaultFieldOutput_2024_06_14;
 
 export function transformBookingFieldsApiToInternal(bookingFields: InputBookingField[]) {
   const customBookingFields = bookingFields.map((field) => {
@@ -195,12 +191,13 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     };
   }
 
-  if (field.type === "boolean") {
+  if ("type" in field && field.type === "boolean") {
+    const label = "label" in field && field.label ? field.label : "";
     return {
       name: field.slug,
       type: field.type,
-      label: field.label,
-      labelAsSafeHtml: `<p>${field.label}</p>\n`,
+      label,
+      labelAsSafeHtml: `<p>${label}</p>\n`,
       sources: [
         {
           id: "user",
@@ -210,19 +207,20 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
         },
       ],
       editable: "user",
-      required: !!field.required,
-      disableOnPrefill: !!field.disableOnPrefill,
-      hidden: !!field.hidden,
+      required: "required" in field ? !!field.required : false,
+      disableOnPrefill: "disableOnPrefill" in field ? !!field.disableOnPrefill : false,
+      hidden: "hidden" in field ? !!field.hidden : false,
     };
   }
 
-  if (field.type === "url") {
+  if ("type" in field && field.type === "url") {
+    const label = "label" in field && field.label ? field.label : "";
     return {
       name: field.slug,
       type: field.type,
-      label: field.label,
-      placeholder: "placeholder" in field ? field.placeholder : "",
-      labelAsSafeHtml: `<p>${field.label}</p>\n`,
+      label,
+      placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
+      labelAsSafeHtml: `<p>${label}</p>\n`,
       sources: [
         {
           id: "user",
@@ -232,16 +230,39 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
         },
       ],
       editable: "user",
-      required: !!field.required,
-      disableOnPrefill: !!field.disableOnPrefill,
-      hidden: !!field.hidden,
+      required: "required" in field ? !!field.required : false,
+      disableOnPrefill: "disableOnPrefill" in field ? !!field.disableOnPrefill : false,
+      hidden: "hidden" in field ? !!field.hidden : false,
+    };
+  }
+
+  if ("slug" in field) {
+    const label = "label" in field && field.label ? field.label : "";
+    const fieldType = "type" in field ? field.type : "text";
+    return {
+      name: field.slug,
+      type: fieldType,
+      label,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: "required" in field ? !!field.required : false,
+      placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
+      disableOnPrefill: "disableOnPrefill" in field ? !!field.disableOnPrefill : false,
+      hidden: "hidden" in field ? !!field.hidden : false,
     };
   }
 
   return {
-    name: field.slug,
-    type: field.type,
-    label: "label" in field ? field.label : "",
+    name: "unknown",
+    type: "text",
+    label: "",
     sources: [
       {
         id: "user",
@@ -251,10 +272,10 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       },
     ],
     editable: "user",
-    required: !!field.required,
-    placeholder: field.placeholder,
-    disableOnPrefill: !!field.disableOnPrefill,
-    hidden: !!field.hidden,
+    required: false,
+    placeholder: "",
+    disableOnPrefill: false,
+    hidden: false,
   };
 }
 
@@ -296,9 +317,7 @@ function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDe
   return isPhone && isAttendeePhoneNumber;
 }
 
-function fieldIsDefaultSystemLocation(
-  field: InputBookingField
-): field is LocationDefaultFieldOutput_2024_06_14 {
+function fieldIsDefaultSystemLocation(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
   return "slug" in field && field.slug === "location";
 }
 

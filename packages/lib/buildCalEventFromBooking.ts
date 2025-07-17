@@ -15,6 +15,8 @@ type DestinationCalendar = {
   credentialId: number | null;
   delegationCredentialId: string | null;
   domainWideDelegationCredentialId: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 } | null;
 
 type Attendee = {
@@ -98,9 +100,21 @@ export const buildCalEventFromBooking = async ({
     location,
     conferenceCredentialId: conferenceCredentialId ?? undefined,
     destinationCalendar: booking.destinationCalendar
-      ? [booking.destinationCalendar]
+      ? [
+          {
+            ...booking.destinationCalendar,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
+      ? [
+          {
+            ...booking.user.destinationCalendar,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]
       : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,

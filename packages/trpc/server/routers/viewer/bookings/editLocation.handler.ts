@@ -257,7 +257,28 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   });
 
   const evt = await buildCalEventFromBooking({
-    booking,
+    booking: {
+      ...booking,
+      destinationCalendar: booking.destinationCalendar
+        ? {
+            ...booking.destinationCalendar,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
+        : null,
+      user: booking.user
+        ? {
+            ...booking.user,
+            destinationCalendar: booking.user.destinationCalendar
+              ? {
+                  ...booking.user.destinationCalendar,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                }
+              : null,
+          }
+        : null,
+    },
     organizer,
     location: newLocationInEvtFormat,
     conferenceCredentialId,
