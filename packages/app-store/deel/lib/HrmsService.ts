@@ -9,9 +9,6 @@ import type { DeelToken } from "../api/callback";
 import { deelApiUrl, deelAuthUrl } from "../lib/constants";
 import { appKeysSchema } from "../zod";
 
-// for testing remove later
-const globalTestEmail = "pperosn+c9ad711d-2a8a-4d93-ad0d-25f285a3c81e@test.org";
-
 export interface DeelPerson {
   id: string;
   emails: {
@@ -62,7 +59,7 @@ export interface DeelPoliciesResponse {
   policies: DeelPolicy[];
 }
 
-export default class DeelHrmsService implements HrmsService {
+class DeelHrmsService implements HrmsService {
   private credential: CredentialPayload;
   private log: typeof logger;
 
@@ -322,14 +319,11 @@ export default class DeelHrmsService implements HrmsService {
     try {
       const accessToken = await this.getAccessToken();
 
-      const response = await fetch(
-        `${deelApiUrl}/rest/v2/people?search=${encodeURIComponent(globalTestEmail)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const response = await fetch(`${deelApiUrl}/rest/v2/people?search=${encodeURIComponent(userEmail)}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       if (!response.ok) {
         this.log.warn("Could not find Deel person", { email: userEmail, status: response.status });
@@ -338,7 +332,7 @@ export default class DeelHrmsService implements HrmsService {
 
       const data = await response.json();
       const person = data.data?.find((person: DeelPerson) =>
-        person.emails.some((email) => email.value?.toLowerCase() === globalTestEmail.toLowerCase())
+        person.emails.some((email) => email.value?.toLowerCase() === userEmail.toLowerCase())
       );
       return person?.id || null;
     } catch (error) {
@@ -346,4 +340,29 @@ export default class DeelHrmsService implements HrmsService {
       return null;
     }
   }
+
+  async getPersonById(personId: string): Promise<DeelPerson | null> {
+    try {
+      const accessToken = await this.getAccessToken();
+
+      const response = await fetch(`${deelApiUrl}/rest/v2/people/${encodeURIComponent(personId)}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        this.log.warn("Could not fetch Deel person by ID", { personId, status: response.status });
+        return null;
+      }
+
+      const data = await response.json();
+      return data as DeelPerson;
+    } catch (error) {
+      this.log.error("Error getting Deel person by ID", error);
+      return null;
+    }
+  }
 }
+
+export { DeelHrmsService };
