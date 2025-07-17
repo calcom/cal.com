@@ -2153,13 +2153,19 @@ describe("Event types Endpoints", () => {
 
         const response = await request(app.getHttpServer())
           .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
           .send(createPayload)
           .expect(201);
 
-        expect(response.body).toHaveProperty("id");
-        expect(response.body.hidden).toBe(true);
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const createdEventType = responseBody.data;
+        expect(createdEventType).toHaveProperty("id");
+        expect(createdEventType.title).toEqual(createPayload.title);
+        expect(createdEventType.slug).toEqual(createPayload.slug);
+        expect(createdEventType.lengthInMinutes).toEqual(createPayload.lengthInMinutes);
+        expect(createdEventType.hidden).toBe(true);
 
-        createdEventTypeId = response.body.data.id;
+        createdEventTypeId = createdEventType.id;
       });
 
       it("should update the hidden property to false", async () => {
@@ -2169,10 +2175,13 @@ describe("Event types Endpoints", () => {
 
         const response = await request(app.getHttpServer())
           .patch(`/api/v2/event-types/${createdEventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
           .send(updatePayload)
           .expect(200);
 
-        expect(response.body.hidden).toBe(false);
+        const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+        const updatedEventType = responseBody.data;
+        +expect(updatedEventType.hidden).toBe(false);
       });
     });
 
