@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import appStore from "..";
+import { CalendarServiceMap } from "../calendar.services.generated";
 
 interface CalendarApp {
   lib: {
@@ -39,10 +39,11 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const appStoreAccessStart = performance.now();
-  const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
-  const appStoreAccessEnd = performance.now();
-  console.log(`[PERF] appStore access took ${appStoreAccessEnd - appStoreAccessStart}ms`);
+  const calendarStoreAccessStart = performance.now();
+  const calendarAppImportFn =
+    CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
+  const calendarStoreAccessEnd = performance.now();
+  console.log(`[PERF] CalendarServiceMap access took ${calendarStoreAccessEnd - calendarStoreAccessStart}ms`);
 
   if (!calendarAppImportFn) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
@@ -50,7 +51,7 @@ export const getCalendar = async (
   }
 
   const dynamicImportStart = performance.now();
-  const calendarApp = await calendarAppImportFn();
+  const calendarApp = await calendarAppImportFn;
   const dynamicImportEnd = performance.now();
   console.log(`[PERF] dynamic import of ${calendarType} took ${dynamicImportEnd - dynamicImportStart}ms`);
 
