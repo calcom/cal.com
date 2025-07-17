@@ -1,11 +1,51 @@
-import { readFileSync, readdirSync } from "fs";
+import { readFileSync, readdirSync, existsSync } from "fs";
 import { resolve, join } from "path";
 
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
+function debugPaths(logger: any) {
+  logger.info("=== DEBUG PATHS ===");
+  logger.info(`process.cwd(): ${process.cwd()}`);
+
+  // Check what's in the root
+  try {
+    logger.info(`Root contents: ${readdirSync(process.cwd()).join(", ")}`);
+  } catch (e: any) {
+    logger.info(`Cannot read root: ${e.message}`);
+  }
+
+  // Check if public exists
+  const publicPath = join(process.cwd(), "public");
+  try {
+    logger.info(`Public exists: ${existsSync(publicPath)}`);
+    if (existsSync(publicPath)) {
+      logger.info(`Public contents: ${readdirSync(publicPath).join(", ")}`);
+    }
+  } catch (e: any) {
+    logger.info(`Cannot read public: ${e.message}`);
+  }
+
+  // Check if static exists
+  const staticPath = join(process.cwd(), "public", "static");
+  try {
+    logger.info(`Static exists: ${existsSync(staticPath)}`);
+    if (existsSync(staticPath)) {
+      logger.info(`Static contents: ${readdirSync(staticPath).join(", ")}`);
+    }
+  } catch (e: any) {
+    logger.info(`Cannot read static: ${e.message}`);
+  }
+
+  // Check the exact path we expect
+  const expectedPath = join(process.cwd(), "public", "static", "locales", "en", "common.json");
+  logger.info(`Expected path exists: ${existsSync(expectedPath)}`);
+  logger.info(`Expected path: ${expectedPath}`);
+}
+
 function getLocalesPath() {
-  const localesPath = resolve(process.cwd(), "..", "..", "packages/lib/server/locales");
+  debugPaths(logger);
+  const localesPath = resolve(process.cwd(), "static", "locales");
   logger.info(`[translationBundler] getLocalesPath() resolved to: ${localesPath}`);
   return localesPath;
 }
