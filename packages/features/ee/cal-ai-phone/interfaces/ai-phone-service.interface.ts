@@ -97,7 +97,15 @@ export interface AIPhoneServiceProvider {
   /**
    * Delete a phone number
    */
-  deletePhoneNumber(phoneNumber: string): Promise<void>;
+  deletePhoneNumber({
+    phoneNumber,
+    userId,
+    deleteFromDB,
+  }: {
+    phoneNumber: string;
+    userId: number;
+    deleteFromDB: boolean;
+  }): Promise<void>;
 
   /**
    * Get phone number details
@@ -111,6 +119,23 @@ export interface AIPhoneServiceProvider {
     phoneNumber: string,
     data: { inboundAgentId?: string | null; outboundAgentId?: string | null }
   ): Promise<AIPhoneServicePhoneNumber>;
+
+  /**
+   * Import a phone number
+   */
+  importPhoneNumber(data: {
+    phoneNumber: string;
+    terminationUri: string;
+    sipTrunkAuthUsername?: string;
+    sipTrunkAuthPassword?: string;
+    nickname?: string;
+    userId: number;
+  }): Promise<{
+    phoneNumber: string;
+    inboundAgentId?: string | null;
+    outboundAgentId?: string | null;
+    nickname?: string | null;
+  }>;
 }
 
 /**

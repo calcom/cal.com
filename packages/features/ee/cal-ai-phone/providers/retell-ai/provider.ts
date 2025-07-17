@@ -125,12 +125,33 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     sipTrunkAuthUsername?: string;
     sipTrunkAuthPassword?: string;
     nickname?: string;
-  }) {
-    return this.service.importPhoneNumber(data);
+    userId: number;
+  }): Promise<{
+    phoneNumber: string;
+    inboundAgentId?: string | null;
+    outboundAgentId?: string | null;
+    nickname?: string | null;
+  }> {
+    const result = await this.service.importPhoneNumber(data);
+
+    return {
+      phoneNumber: result.phone_number,
+      inboundAgentId: result.inbound_agent_id,
+      outboundAgentId: result.outbound_agent_id,
+      nickname: result.nickname,
+    };
   }
 
-  async deletePhoneNumber(phoneNumber: string): Promise<void> {
-    await this.service.deletePhoneNumber(phoneNumber);
+  async deletePhoneNumber({
+    phoneNumber,
+    userId,
+    deleteFromDB,
+  }: {
+    phoneNumber: string;
+    userId: number;
+    deleteFromDB: boolean;
+  }): Promise<void> {
+    await this.service.deletePhoneNumber({ phoneNumber, userId, deleteFromDB });
   }
 
   async getPhoneNumber(phoneNumber: string): Promise<AIPhoneServicePhoneNumber> {

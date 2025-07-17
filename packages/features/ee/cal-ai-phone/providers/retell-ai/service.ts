@@ -207,7 +207,7 @@ export class RetellAIService {
 
   async updatePhoneNumber(
     phoneNumber: string,
-    data: { inbound_agent_id?: string; outbound_agent_id?: string }
+    data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ) {
     return this.repository.updatePhoneNumber(phoneNumber, data);
   }

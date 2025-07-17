@@ -345,6 +345,7 @@ export const loggedInViewerRouter = router({
         await aiService.deletePhoneNumber({
           phoneNumber: phoneNumber.phoneNumber,
           userId: ctx.user.id,
+          deleteFromDB: false,
         });
       } catch (error) {
         // Log the error but don't fail the cancellation
