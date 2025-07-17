@@ -439,6 +439,11 @@ class BaseEventTypeOutput_2024_06_14 {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsProperty()
+  hidden?: boolean;
 }
 
 export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {

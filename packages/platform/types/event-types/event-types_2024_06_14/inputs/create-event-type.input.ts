@@ -439,6 +439,11 @@ class BaseCreateEventTypeInput {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional()
+  hidden?: boolean;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
