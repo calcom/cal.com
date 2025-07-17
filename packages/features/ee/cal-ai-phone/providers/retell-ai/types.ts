@@ -80,7 +80,7 @@ export interface RetellAIRepository {
   getPhoneNumber(phoneNumber: string): Promise<TGetPhoneNumberSchema>;
   updatePhoneNumber(
     phoneNumber: string,
-    data: { inbound_agent_id?: string; outbound_agent_id?: string }
+    data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ): Promise<TUpdatePhoneNumberResponseSchema>;
 
   createPhoneCall(data: {

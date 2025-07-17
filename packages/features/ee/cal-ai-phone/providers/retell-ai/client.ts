@@ -165,7 +165,7 @@ export class RetellAIApiClient implements RetellAIRepository {
 
   async updatePhoneNumber(
     phoneNumber: string,
-    data: { inbound_agent_id?: string; outbound_agent_id?: string }
+    data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ): Promise<TUpdatePhoneNumberResponseSchema> {
     try {
       const response = await this.httpClient(`/update-phone-number/${phoneNumber}`, {

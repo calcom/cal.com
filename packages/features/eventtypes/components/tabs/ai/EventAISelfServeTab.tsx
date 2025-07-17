@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormContext, Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -57,6 +57,16 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
       { llmId: aiConfig?.llmId as string },
       { enabled: !!aiConfig?.llmId }
     );
+
+  useEffect(() => {
+    console.log("llmDetails", llmDetails);
+    if (llmDetails?.generalPrompt) {
+      formMethods.setValue("aiSelfServeConfiguration.generalPrompt", llmDetails.generalPrompt);
+    }
+    if (llmDetails?.beginMessage) {
+      formMethods.setValue("aiSelfServeConfiguration.beginMessage", llmDetails.beginMessage);
+    }
+  }, [llmDetails]);
   const { data: phoneNumbers } = trpc.viewer.loggedInViewerRouter.list.useQuery();
   const makeCallMutation = trpc.viewer.loggedInViewerRouter.makeSelfServePhoneCall.useMutation();
 
@@ -241,20 +251,21 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
           />
           <div className="mt-4 max-w-sm">
             {!!phoneNumbers?.length ? (
-              <Select<{ label: string; value: number; isDisabled: boolean }>
-                options={phoneNumbers?.map((phoneNumber) => {
-                  const isAssignedToOtherEventType =
-                    phoneNumber?.aiSelfServeConfigurations?.eventTypeId &&
-                    phoneNumber?.aiSelfServeConfigurations.eventTypeId !== eventType.id;
-                  return {
-                    label: phoneNumber.phoneNumber,
-                    value: phoneNumber.id,
-                    isDisabled: !!isAssignedToOtherEventType,
-                  };
-                })}
-                isOptionDisabled={(option) => {
-                  return option.isDisabled;
-                }}
+              <Select<{ label: string; value: number | null; isDisabled: boolean }>
+                options={[
+                  { label: t("clear"), value: null, isDisabled: !assignedPhoneNumber },
+                  ...(phoneNumbers?.map((phoneNumber) => {
+                    const isAssignedToOtherEventType =
+                      phoneNumber?.aiSelfServeConfigurations?.eventTypeId &&
+                      phoneNumber?.aiSelfServeConfigurations.eventTypeId !== eventType.id;
+                    return {
+                      label: phoneNumber.phoneNumber,
+                      value: phoneNumber.id,
+                      isDisabled: !!isAssignedToOtherEventType,
+                    };
+                  }) || []),
+                ]}
+                isOptionDisabled={(option) => option.isDisabled}
                 isLoading={assignPhoneNumberMutation.isPending || unassignPhoneNumberMutation.isPending}
                 placeholder={t("choose_phone_number")}
                 value={
@@ -267,14 +278,21 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                     : undefined
                 }
                 getOptionLabel={(option) => {
-                  console.log("option", option);
+                  if (option.value === null) return t("unassign_phone_number");
                   return `${formatPhoneNumber(option.label)} ${option.isDisabled ? "(Taken)" : ""}`;
                 }}
                 onChange={async (e) => {
-                  console.log("e", e);
-                  if (e) {
+                  if (e?.value === null) {
+                    formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
+                    try {
+                      await unassignPhoneNumberMutation.mutateAsync({
+                        eventTypeId: eventType.id,
+                      });
+                    } catch (error) {
+                      console.error("Error unassigning phone number:", error);
+                    }
+                  } else if (e) {
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", e.value);
-
                     try {
                       await assignPhoneNumberMutation.mutateAsync({
                         eventTypeId: eventType.id,
@@ -286,21 +304,14 @@ export const EventAISelfServeTab = ({ eventType }: { eventType: EventTypeSetupPr
                     }
                   } else {
                     formMethods.setValue("aiSelfServeConfiguration.yourPhoneNumberId", null);
-
-                    try {
-                      await unassignPhoneNumberMutation.mutateAsync({
-                        eventTypeId: eventType.id,
-                      });
-                    } catch (error) {
-                      console.error("Error unassigning phone number:", error);
-                    }
                   }
                 }}
               />
             ) : (
               <Button
-                onClick={() => buyNumberMutation.mutate({ eventTypeId: eventType.id })}
-                loading={buyNumberMutation.isPending}>
+                onClick={() => {
+                  window.open("/settings/my-account/phone-numbers", "_blank", "noopener,noreferrer");
+                }}>
                 {t("buy_and_assign_number")}
               </Button>
             )}

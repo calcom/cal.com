@@ -109,7 +109,7 @@ export interface AIPhoneServiceProvider {
    */
   updatePhoneNumber(
     phoneNumber: string,
-    data: { inboundAgentId?: string; outboundAgentId?: string }
+    data: { inboundAgentId?: string | null; outboundAgentId?: string | null }
   ): Promise<AIPhoneServicePhoneNumber>;
 }
 

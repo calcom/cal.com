@@ -147,7 +147,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
 
   async updatePhoneNumber(
     phoneNumber: string,
-    data: { inboundAgentId?: string; outboundAgentId?: string }
+    data: { inboundAgentId?: string | null; outboundAgentId?: string | null }
   ): Promise<AIPhoneServicePhoneNumber> {
     const result = await this.service.updatePhoneNumber(phoneNumber, {
       inbound_agent_id: data.inboundAgentId,

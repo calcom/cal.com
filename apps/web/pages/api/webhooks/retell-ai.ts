@@ -10,103 +10,90 @@ const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
 
 const RetellWebhookSchema = z.object({
   event: z.enum(["call_started", "call_ended", "call_analyzed"]),
-  call: z.object({
-    call_id: z.string(),
-    agent_id: z.string().optional(),
-    from_number: z.string(),
-    to_number: z.string(),
-    direction: z.enum(["inbound", "outbound"]),
-    call_status: z.string(),
-    start_timestamp: z.number(),
-    end_timestamp: z.number().optional(),
-    disconnection_reason: z.string().optional(),
-    metadata: z.record(z.any()).optional(),
-    retell_llm_dynamic_variables: z.record(z.any()).optional(),
-    transcript: z.string().optional(),
-    opt_out_sensitive_data_storage: z.boolean().optional(),
-  }),
+  call: z
+    .object({
+      call_id: z.string(),
+      agent_id: z.string().optional(),
+      from_number: z.string(),
+      to_number: z.string(),
+      direction: z.enum(["inbound", "outbound"]),
+      call_status: z.string(),
+      start_timestamp: z.number(),
+      end_timestamp: z.number().optional(),
+      disconnection_reason: z.string().optional(),
+      metadata: z.record(z.any()).optional(),
+      retell_llm_dynamic_variables: z.record(z.any()).optional(),
+      transcript: z.string().optional(),
+      opt_out_sensitive_data_storage: z.boolean().optional(),
+      call_cost: z
+        .object({
+          product_costs: z
+            .array(
+              z.object({
+                product: z.string(),
+                unitPrice: z.number().optional(),
+                cost: z.number().optional(),
+              })
+            )
+            .optional(),
+          total_duration_seconds: z.number().optional(),
+          total_duration_unit_price: z.number().optional(),
+          total_one_time_price: z.number().optional(),
+          combined_cost: z.number().optional(),
+        })
+        .optional(),
+      call_analysis: z
+        .object({
+          call_summary: z.string().optional(),
+          in_voicemail: z.boolean().optional(),
+          user_sentiment: z.string().optional(),
+          call_successful: z.boolean().optional(),
+          custom_analysis_data: z.record(z.any()).optional(),
+        })
+        .optional(),
+    })
+    .passthrough(),
 });
 
-type RetellWebhookPayload = z.infer<typeof RetellWebhookSchema>;
-
-/**
- * Handle call_ended events from Retell AI
- * Charges 1 credit per minute for AI voice calls
- */
-async function handleCallEnded(callData: RetellWebhookPayload["call"]) {
-  try {
-    const { call_id, start_timestamp, end_timestamp, from_number, disconnection_reason } = callData;
-
-    // Skip if call didn't complete properly
-    if (!end_timestamp || !start_timestamp) {
-      log.warn(`Call ${call_id} missing timestamps, skipping credit deduction`);
-      return;
-    }
-
-    // Skip if call was cancelled or had an error
-    if (disconnection_reason && ["cancelled", "error", "hang_up_by_agent"].includes(disconnection_reason)) {
-      log.info(`Call ${call_id} ended with reason: ${disconnection_reason}, skipping credit deduction`);
-      return;
-    }
-
-    const durationMs = end_timestamp - start_timestamp;
-    const durationMinutes = Math.ceil(durationMs / (1000 * 60)); // Round up to nearest minute
-
-    if (durationMinutes <= 0) {
-      log.warn(`Call ${call_id} has invalid duration: ${durationMinutes} minutes`);
-      return;
-    }
-
-    // Find the user associated with this phone number
-    const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
-      where: {
-        phoneNumber: from_number,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    if (!phoneNumber) {
-      log.error(`No phone number found for ${from_number}, cannot deduct credits`);
-      return;
-    }
-
-    const userId = phoneNumber.user.id;
-    const creditsToDeduct = durationMinutes; // 1 credit per minute
-
-    const creditService = new CreditService();
-
-    // First check if user has enough credits
-    const hasCredits = await creditService.hasAvailableCredits({ userId });
-
-    if (!hasCredits) {
-      log.error(
-        `User ${userId} has insufficient credits for call ${call_id} (${creditsToDeduct} credits needed)`
-      );
-      // TODO: Consider sending notification to user about insufficient credits
-      return;
-    }
-
-    await creditService.chargeCredits({
-      userId,
-      credits: creditsToDeduct,
-      bookingUid: `cal-ai-call-${call_id}`,
-    });
-
-    log.info(
-      `Successfully charged ${creditsToDeduct} credits for user ${userId}, call ${call_id} (${durationMinutes} minutes)`
-    );
-  } catch (error) {
-    log.error("Error handling call_ended webhook:", safeStringify(error));
-    throw error;
+async function handleCallAnalyzed(callData: any) {
+  const { from_number, call_id, call_cost } = callData;
+  if (!call_cost || typeof call_cost.combined_cost !== "number") {
+    log.error(`No call_cost.combined_cost in payload for call ${call_id}`);
+    return;
   }
+
+  const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
+    where: { phoneNumber: from_number },
+    include: { user: { select: { id: true, email: true, name: true } } },
+  });
+
+  if (!phoneNumber) {
+    log.error(`No phone number found for ${from_number}, cannot deduct credits`);
+    return;
+  }
+
+  const userId = phoneNumber.user.id;
+  const baseCost = call_cost.combined_cost; // in cents
+  const creditsToDeduct = Math.ceil(baseCost * 1.8);
+
+  const creditService = new CreditService();
+  const hasCredits = await creditService.hasAvailableCredits({ userId });
+  if (!hasCredits) {
+    log.error(
+      `User ${userId} has insufficient credits for call ${call_id} (${creditsToDeduct} credits needed)`
+    );
+    return;
+  }
+
+  await creditService.chargeCredits({
+    userId,
+    credits: creditsToDeduct,
+  });
+
+  return {
+    success: true,
+    message: `Successfully charged ${creditsToDeduct} credits for user ${userId}, call ${call_id} (base cost: ${baseCost} cents)`,
+  };
 }
 
 /**
@@ -114,13 +101,11 @@ async function handleCallEnded(callData: RetellWebhookPayload["call"]) {
  *
  * Setup Instructions:
  * 1. Add this webhook URL to your Retell AI dashboard: https://yourdomain.com/api/webhooks/retell-ai
- * 2. Select the "call_ended" event in the Retell AI webhook configuration
- * 3. Ensure your domain is accessible from the internet (for local development, use ngrok or similar)
+ * 2. Ensure your domain is accessible from the internet (for local development, use ngrok or similar)
  *
  * This webhook will:
- * - Receive call_ended events from Retell AI
- * - Calculate call duration in minutes (rounded up)
- * - Charge 1 credit per minute from the user's credit balance
+ * - Receive call_analyzed events from Retell AI
+ * - Charge credits based on the call cost from the user's credit balance
  * - Log all transactions for audit purposes
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -128,28 +113,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  if (req.body.event !== "call_analyzed") {
+    return res.status(200).json({
+      success: true,
+      message: `No handling for ${req.body.event} for call ${req.body.call?.call_id ?? "unknown"}`,
+    });
+  }
+
   try {
-    // Parse and validate webhook payload
     const payload = RetellWebhookSchema.parse(req.body);
+    const callData = payload.call;
+    log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`);
 
-    log.info(`Received Retell AI webhook: ${payload.event} for call ${payload.call.call_id}`);
-
-    switch (payload.event) {
-      case "call_ended":
-        await handleCallEnded(payload.call);
-        break;
-
-      default:
-        log.warn(`Unhandled webhook event: ${payload.event}`);
-    }
+    const result = await handleCallAnalyzed(callData);
 
     res.status(200).json({
       success: true,
-      message: `Processed ${payload.event} for call ${payload.call.call_id}`,
+      message: result?.message ?? `Processed ${payload.event} for call ${callData.call_id}`,
     });
   } catch (error) {
     log.error("Error processing Retell AI webhook:", safeStringify(error));
-
     res.status(500).json({
       error: "Internal server error",
       message: error instanceof Error ? error.message : "Unknown error",

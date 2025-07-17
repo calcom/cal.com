@@ -506,6 +506,20 @@ export const loggedInViewerRouter = router({
         });
       }
 
+      if (!config.yourPhoneNumber?.phoneNumber) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Phone number not found for this event type.",
+        });
+      }
+
+      // unassign the phone number from the AI service
+      const aiService = createDefaultAIPhoneServiceProvider();
+      await aiService.updatePhoneNumber(config.yourPhoneNumber.phoneNumber, {
+        inboundAgentId: null,
+        outboundAgentId: null,
+      });
+
       // Update the AI configuration to unlink the phone number
       const updatedConfig = await AISelfServeConfigurationRepository.updatePhoneNumberAssignment({
         configId: config.id,
