@@ -105,15 +105,73 @@ const config: PlaywrightTestConfig = {
   },
   projects: [
     {
-      name: "@calcom/web",
+      name: "@calcom/bootstrap",
       testDir: "./apps/web/playwright",
-      testMatch: /.*\.e2e\.tsx?/,
+      testMatch: /_bootstrap\.e2e\.tsx?/,
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
+    },
+    {
+      name: "@calcom/web",
+      testDir: "./apps/web/playwright",
+      testMatch: /.*\.e2e\.tsx?/,
+      testIgnore: [/_bootstrap\.e2e\.tsx?/, /.*-branch\.e2e\.tsx?/],
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
+      use: DEFAULT_CHROMIUM,
+      dependencies: ["@calcom/bootstrap"],
+    },
+    {
+      name: "@calcom/web-bookings",
+      testDir: "./apps/web/playwright",
+      testMatch: /bookings.*-branch\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
+      use: {
+        ...DEFAULT_CHROMIUM,
+        storageState: "apps/web/playwright/state/login-bookings.json",
+      },
+      dependencies: ["@calcom/bootstrap"],
+    },
+    {
+      name: "@calcom/web-apps",
+      testDir: "./apps/web/playwright",
+      testMatch: /app.*-branch\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
+      use: {
+        ...DEFAULT_CHROMIUM,
+        storageState: "apps/web/playwright/state/login-apps.json",
+      },
+      dependencies: ["@calcom/bootstrap"],
+    },
+    {
+      name: "@calcom/web-settings",
+      testDir: "./apps/web/playwright",
+      testMatch: /settings.*-branch\.e2e\.tsx?/,
+      expect: {
+        timeout: DEFAULT_EXPECT_TIMEOUT,
+      },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
+      use: {
+        ...DEFAULT_CHROMIUM,
+        storageState: "apps/web/playwright/state/login-settings.json",
+      },
+      dependencies: ["@calcom/bootstrap"],
     },
     {
       name: "@calcom/app-store",
