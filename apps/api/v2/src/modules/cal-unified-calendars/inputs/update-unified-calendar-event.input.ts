@@ -72,38 +72,6 @@ export class UpdateUnifiedCalendarEventInput {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Object, {
-    discriminator: {
-      property: "type",
-      subTypes: [
-        { value: CalendarEventVideoLocation, name: "video" },
-        { value: CalendarEventPhoneLocation, name: "phone" },
-        { value: CalendarEventSipLocation, name: "sip" },
-        { value: CalendarEventMoreLocation, name: "more" },
-      ],
-    },
-  })
-  @ApiPropertyOptional({
-    type: "array",
-    items: {
-      oneOf: [
-        { $ref: getSchemaPath(CalendarEventVideoLocation) },
-        { $ref: getSchemaPath(CalendarEventPhoneLocation) },
-        { $ref: getSchemaPath(CalendarEventSipLocation) },
-        { $ref: getSchemaPath(CalendarEventMoreLocation) },
-      ],
-      discriminator: {
-        propertyName: "type",
-      },
-    },
-    nullable: true,
-    description: "Conference locations with entry points (video, phone, sip, more)",
-  })
-  locations?: CalendarEventLocation[];
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
   @Type(() => CalendarEventAttendee)
   @ApiPropertyOptional({
     type: [CalendarEventAttendee],

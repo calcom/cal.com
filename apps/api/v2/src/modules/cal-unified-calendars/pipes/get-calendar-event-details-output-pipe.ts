@@ -196,6 +196,8 @@ export class GoogleCalendarEventOutputPipe
           regionCode: entryPoint.regionCode,
         };
       });
+    } else if (googleEvent.location) {
+      return [{ type: "video", url: googleEvent.location }];
     } else if (googleEvent.hangoutLink) {
       return [{ type: "video", url: googleEvent.hangoutLink }];
     }

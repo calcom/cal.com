@@ -8561,6 +8561,67 @@
         "tags": [
           "Cal Unified Calendars"
         ]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "google"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cal Unified Calendars"
+        ]
       }
     },
     "/v2/calendars/ics-feed/save": {
@@ -28544,6 +28605,136 @@
           },
           "data": {
             "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateUnifiedCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees with their response status",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          },
+          "hosts": {
+            "nullable": true,
+            "description": "Information about the event hosts (organizers)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventHost"
+            }
+          }
+        }
+      },
+      "CreateRoutingFormResponseOutputData": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "description": "The ID of the event type that was routed to.",
+            "example": 123
+          },
+          "routing": {
+            "description": "The routing information.",
+            "example": {
+              "eventTypeId": 123,
+              "routing": {
+                "teamMemberIds": [
+                  101,
+                  102
+                ],
+                "teamMemberEmail": "john.doe@example.com",
+                "skipContactOwner": true
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Routing"
+              }
+            ]
+          },
+          "routingCustomMessage": {
+            "type": "string",
+            "description": "A custom message to be displayed to the user in case of routing to a custom page.",
+            "example": "This is a custom message."
+          },
+          "routingExternalRedirectUrl": {
+            "type": "string",
+            "description": "The external redirect URL to be used in case of routing to a non cal.com event type URL.",
+            "example": "https://example.com/"
+          },
+          "slots": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SlotsOutput_2024_09_04"
+              },
+              {
+                "$ref": "#/components/schemas/RangeSlotsOutput_2024_09_04"
+              }
+            ]
+          }
+        }
+      },
+      "CreateRoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateRoutingFormResponseOutputData"
           }
         },
         "required": [
