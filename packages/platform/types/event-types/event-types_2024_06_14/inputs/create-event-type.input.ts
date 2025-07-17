@@ -159,6 +159,13 @@ export class CalVideoSettings {
     description: "If true, enables the automatic transcription for the event",
   })
   enableAutomaticTranscription?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic recording for the event",
+  })
+  enableAutomaticRecordingForOrganizer?: boolean;
 }
 
 class BaseCreateEventTypeInput {
