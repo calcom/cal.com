@@ -3376,5 +3376,7 @@
   "availability_lock_updated_successfully": "Default availability lock setting updated successfully",
   "failed_bookings_by_field": "Failed Bookings By Field",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "default_availability_is_locked": "Default availability is locked",
+  "default_availability_locked_message": "Your organization's admin has locked default availability. You cannot add overrides.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

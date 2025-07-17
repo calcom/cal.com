@@ -1,8 +1,8 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
+import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 import { setupDefaultSchedule } from "@calcom/trpc/server/routers/viewer/availability/util";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -64,40 +64,13 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
   const isDefaultSchedule = user.defaultScheduleId === input.scheduleId;
   const isSettingAsDefault = input.isDefault;
 
+  // Check for locked default availability if this is the default schedule OR if we're setting it as default
   if (isDefaultSchedule || isSettingAsDefault) {
-    // Check if user is a member of any team with locked default availability
-    const userTeams = await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        accepted: true,
-      },
-      select: {
-        team: {
-          select: {
-            lockDefaultAvailability: true,
-          },
-        },
-        role: true,
-      },
-    });
-
-    // Check if user is a member (not admin/owner) of any team with locked default availability
-    const hasLockedTeamMembership = userTeams.some(
-      (membership) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
+    await checkLockedDefaultAvailabilityRestriction(
+      user.id,
+      prisma,
+      "Cannot edit default availability when team has locked default availability setting enabled"
     );
-
-    // Check if user is an admin/owner of any team (which gives them permission to override restrictions)
-    const hasAdminOrOwnerRole = userTeams.some(
-      (membership) => membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER
-    );
-
-    // Only block if user has locked team membership AND is not an admin/owner of any team
-    if (hasLockedTeamMembership && !hasAdminOrOwnerRole) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Cannot edit default availability when team has locked default availability setting enabled",
-      });
-    }
   }
 
   let updatedUser;

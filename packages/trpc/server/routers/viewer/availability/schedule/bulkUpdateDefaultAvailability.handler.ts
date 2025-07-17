@@ -1,5 +1,4 @@
-import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,39 +26,14 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
     });
   }
 
-  // Check if user is a member of any team with locked default availability
-  const userTeams = await prisma.membership.findMany({
-    where: {
-      userId: ctx.user.id,
-      accepted: true,
-    },
-    select: {
-      team: {
-        select: {
-          lockDefaultAvailability: true,
-        },
-      },
-      role: true,
-    },
-  });
-
-  // Check if user is a member (not admin/owner) of any team with locked default availability
-  const hasLockedTeamMembership = userTeams.some(
-    (membership) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
-  );
-
-  // Check if user is an admin/owner of any team (which gives them permission to override restrictions)
-  const hasAdminOrOwnerRole = userTeams.some(
-    (membership) => membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER
-  );
+  const user = ctx.user;
 
   // Only block if user has locked team membership AND is not an admin/owner of any team
-  if (hasLockedTeamMembership && !hasAdminOrOwnerRole) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Cannot edit default availability when team has locked default availability setting enabled",
-    });
-  }
+  await checkLockedDefaultAvailabilityRestriction(
+    user.id,
+    prisma,
+    "Cannot edit default availability when team has locked default availability setting enabled"
+  );
 
   return await prisma.eventType.updateMany({
     where: {

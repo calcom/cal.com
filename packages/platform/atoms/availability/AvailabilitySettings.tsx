@@ -24,6 +24,7 @@ import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
@@ -79,6 +80,7 @@ export type AvailabilitySettingsScheduleType = {
   dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   schedule: Availability[];
+  lockedDefaultAvailability?: boolean;
 };
 
 type AvailabilitySettingsProps = {
@@ -173,6 +175,7 @@ const DateOverride = ({
   weekStart,
   overridesModalClassNames,
   handleSubmit,
+  disabled,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
@@ -180,6 +183,7 @@ const DateOverride = ({
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  disabled?: boolean;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -227,7 +231,7 @@ const DateOverride = ({
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
           Trigger={
-            <Button color="secondary" StartIcon="plus" data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }
@@ -551,6 +555,14 @@ export function AvailabilitySettings({
           />
         </div>
       }>
+      {schedule.isDefault && schedule.lockedDefaultAvailability && (
+        <Alert
+          severity="warning"
+          title={t("default_availability_is_locked")}
+          message={t("default_availability_locked_message")}
+          className="mb-4"
+        />
+      )}
       <div className="mt-4 w-full md:mt-0">
         <Form
           form={form}
@@ -584,6 +596,7 @@ export function AvailabilitySettings({
                         weekStart
                       ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                     }
+                    disabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                   />
                 )}
               </div>
@@ -600,6 +613,7 @@ export function AvailabilitySettings({
                   ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                 }
                 overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                disabled={schedule.isDefault && schedule.lockedDefaultAvailability}
               />
             )}
           </div>
