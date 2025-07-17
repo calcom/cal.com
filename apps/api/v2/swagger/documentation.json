@@ -15705,6 +15705,18 @@
           "redirectUrlOnExit": {
             "type": "object",
             "description": "URL to which participants are redirected when they exit the call"
+          },
+          "enableFlappyBirdGame": {
+            "type": "boolean",
+            "description": "If true, enables the Flappy Bird game in the waiting room"
+          },
+          "enableAutomaticTranscription": {
+            "type": "boolean",
+            "description": "If true, enables the automatic transcription for the event"
+          },
+          "enableAutomaticRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, enables the automatic recording for the event"
           }
         }
       },
