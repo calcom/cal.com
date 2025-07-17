@@ -533,7 +533,6 @@ export const EventAdvancedTab = ({
     }
   );
 
-  console.log({ eventType });
   const userTimeZone = extractHostTimezone({
     userId: eventType.userId,
     teamId: eventType.teamId,
@@ -541,14 +540,7 @@ export const EventAdvancedTab = ({
     owner: eventType.owner,
     team: eventType.team,
   });
-  console.log(
-    { userTimeZone },
-    eventType.hosts,
-    eventType.owner,
-    eventType.team,
-    eventType.userId,
-    eventType.teamId
-  );
+
   let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
