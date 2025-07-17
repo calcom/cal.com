@@ -15703,7 +15703,7 @@
             "description": "If true, the guests will not be able to record the meeting"
           },
           "redirectUrlOnExit": {
-            "type": "object",
+            "type": "string",
             "description": "URL to which participants are redirected when they exit the call"
           },
           "enableFlappyBirdGame": {
