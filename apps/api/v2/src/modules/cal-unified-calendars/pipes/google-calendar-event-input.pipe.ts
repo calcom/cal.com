@@ -32,11 +32,6 @@ export class GoogleCalendarEventInputPipe
       updatePayload.attendees = this.transformAttendees(updateData.attendees);
     }
 
-    if (updateData.hosts !== undefined) {
-      // Google doesn't directly support setting hosts via API
-      // We could potentially handle this if needed
-    }
-
     if (updateData.status !== undefined) {
       updatePayload.status = this.transformEventStatus(updateData.status);
     }

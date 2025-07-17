@@ -94,18 +94,16 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.locations = this.transformLocations(googleEvent);
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
-      calendarEvent.attendees = googleEvent.attendees
-        .filter((attendee) => !attendee.organizer)
-        .map((attendee) => {
-          return {
-            email: attendee.email,
-            name: attendee.displayName,
-            responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
-            organizer: attendee.organizer,
-            self: attendee.self,
-            optional: attendee.optional,
-          };
-        });
+      calendarEvent.attendees = googleEvent.attendees.map((attendee) => {
+        return {
+          email: attendee.email,
+          name: attendee.displayName,
+          responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
+          organizer: attendee.organizer,
+          self: attendee.self,
+          optional: attendee.optional,
+        };
+      });
     }
 
     calendarEvent.status = this.transformEventStatus(googleEvent.status);
@@ -172,7 +170,7 @@ export class GoogleCalendarEventOutputPipe
           responseStatus: this.transformAttendeeResponseStatus(organizer.responseStatus),
         });
       });
-    } else {
+    } else if (googleEvent.organizer) {
       hosts.push({
         email: googleEvent.organizer.email,
         name: googleEvent.organizer.displayName,

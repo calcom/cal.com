@@ -3,11 +3,6 @@ import { Type } from "class-transformer";
 import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from "class-validator";
 
 import {
-  CalendarEventLocation,
-  CalendarEventVideoLocation,
-  CalendarEventPhoneLocation,
-  CalendarEventSipLocation,
-  CalendarEventMoreLocation,
   CalendarEventAttendee,
   CalendarEventHost,
   CalendarEventStatus,
@@ -90,15 +85,4 @@ export class UpdateUnifiedCalendarEventInput {
     example: CalendarEventStatus.ACCEPTED,
   })
   status?: CalendarEventStatus | null;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => CalendarEventHost)
-  @ApiPropertyOptional({
-    type: [CalendarEventHost],
-    nullable: true,
-    description: "Information about the event hosts (organizers)",
-  })
-  hosts?: CalendarEventHost[];
 }
