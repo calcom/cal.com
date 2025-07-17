@@ -1,6 +1,9 @@
 import * as cache from "memory-cache";
 
-import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
+import {
+  getDeploymentKey,
+  getDeploymentSignatureToken,
+} from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
@@ -20,28 +23,33 @@ export interface ILicenseKeyService {
 class LicenseKeyService implements ILicenseKeyService {
   private readonly baseUrl = CALCOM_PRIVATE_API_ROUTE;
   private readonly licenseKey: string;
+  private readonly signatureToken: string | null;
   public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
 
   // Private constructor to prevent direct instantiation
-  private constructor(licenseKey: string) {
+  private constructor(licenseKey: string, signatureToken: string | null) {
     this.baseUrl = CALCOM_PRIVATE_API_ROUTE;
     this.licenseKey = licenseKey;
+    this.signatureToken = signatureToken;
   }
 
   // Static async factory method
   public static async create(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {
     const licenseKey = await getDeploymentKey(deploymentRepo);
+    const signatureToken = await getDeploymentSignatureToken(deploymentRepo);
     const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
-    return !useNoop ? new LicenseKeyService(licenseKey) : new NoopLicenseKeyService();
+    return !useNoop ? new LicenseKeyService(licenseKey, signatureToken) : new NoopLicenseKeyService();
   }
 
   private async fetcher({
     url,
     body,
+    licenseKey,
     options = {},
   }: {
     url: string;
     body?: Record<string, unknown>;
+    licenseKey: string;
     options?: RequestInit;
   }): Promise<Response> {
     const nonce = generateNonce();
@@ -50,14 +58,13 @@ class LicenseKeyService implements ILicenseKeyService {
       ...options.headers,
       "Content-Type": "application/json",
       nonce: nonce,
-      "x-cal-license-key": this.licenseKey,
+      "x-cal-license-key": licenseKey,
     } as Record<string, string>;
 
-    const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
-    if (!signatureToken) {
+    if (!this.signatureToken) {
       logger.warn("CAL_SIGNATURE_TOKEN needs to be set to increment usage.");
     } else {
-      const signature = createSignature(body || {}, nonce, signatureToken);
+      const signature = createSignature(body || {}, nonce, this.signatureToken);
       headers["signature"] = signature;
     }
 
@@ -70,10 +77,21 @@ class LicenseKeyService implements ILicenseKeyService {
     });
   }
 
+  // Static method to validate a license key directly
+  public static async validateLicenseKey(licenseKey: string): Promise<boolean> {
+    /** We skip for E2E testing */
+    if (process.env.NEXT_PUBLIC_IS_E2E === "1") return true;
+
+    // Create a temporary instance to use instance methods
+    const service = new LicenseKeyService(licenseKey, "");
+    return service.checkLicense();
+  }
+
   async incrementUsage(usageEvent?: UsageEvent) {
     try {
       const response = await this.fetcher({
         url: `${this.baseUrl}/v1/license/usage/increment?event=${usageEvent ?? UsageEvent.BOOKING}`,
+        licenseKey: this.licenseKey,
         options: {
           method: "POST",
           mode: "cors",
@@ -94,7 +112,7 @@ class LicenseKeyService implements ILicenseKeyService {
     const cachedResponse = cache.get(url);
     if (cachedResponse) return cachedResponse;
     try {
-      const response = await this.fetcher({ url, options: { mode: "cors" } });
+      const response = await this.fetcher({ url, licenseKey: this.licenseKey, options: { mode: "cors" } });
       const data = await response.json();
       cache.put(url, data.status, this.CACHING_TIME);
       return data.status;

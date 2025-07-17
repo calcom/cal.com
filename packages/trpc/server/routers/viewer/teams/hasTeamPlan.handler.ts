@@ -3,7 +3,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type HasTeamPlanOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: number };
   };
 };
 
