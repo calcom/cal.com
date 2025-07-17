@@ -250,7 +250,7 @@ export default function Signup({
     }
   };
 
-  const isPlatformUser = redirectUrl?.indexOf("platform") !== -1 && redirectUrl?.indexOf("new") !== -1;
+  const isPlatformUser = redirectUrl && redirectUrl.indexOf("platform") !== -1 && redirectUrl.indexOf("new") !== -1;
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
