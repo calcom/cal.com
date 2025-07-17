@@ -1188,12 +1188,8 @@ describe("Organizations Event Types Endpoints", () => {
           const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
 
-          const teammate1HasThisEvent = teammate1EventTypes.some(
-            (eventType) => eventType.slug === managedEventTypeSlug
-          );
-          const teammate2HasThisEvent = teammate2EventTypes.some(
-            (eventType) => eventType.slug === managedEventTypeSlug
-          );
+          const teammate1HasThisEvent = teammate1EventTypes.some((eventType) => eventType.slug === body.slug);
+          const teammate2HasThisEvent = teammate2EventTypes.some((eventType) => eventType.slug === body.slug);
           expect(teammate1HasThisEvent).toBe(false);
           expect(teammate2HasThisEvent).toBe(false);
           expect(
