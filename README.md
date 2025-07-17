@@ -241,17 +241,32 @@ for Logger level to be set at info, for example.
 
 1. Set up the database using the Prisma schema (found in `packages/prisma/schema.prisma`)
 
-   In a development environment, run:
 
-   ```sh
-   yarn workspace @calcom/prisma db-migrate
+   >  \[!IMPORTANT]
+   >
+   > `packages/prisma/schema.prisma` does not access `.env` in the root level, so you must create an `.env` file in the same level as `packages/prisma/schema.prisma`, follow these steps:
+
+   1. Create `packages/prisma/.env` file from `packages/prisma/.env.example`, by running 
+   ```bash
+   cp packages/prisma/.env.example packages/prisma/.env
    ```
 
-   In a production environment, run:
+   2. Copy and paste your `DATABASE_URL` and `DATABASE_DIRECT_URL` into `packages/prisma/.env`
 
-   ```sh
-   yarn workspace @calcom/prisma db-deploy
-   ```
+   
+   3. Run the migration 
+
+      In a development environment, run:
+
+      ```sh
+      yarn workspace @calcom/prisma db-migrate
+      ```
+
+      In a production environment, run:
+
+      ```sh
+      yarn workspace @calcom/prisma db-deploy
+      ```
 
 1. Run [mailhog](https://github.com/mailhog/MailHog) to view emails sent during development
 
