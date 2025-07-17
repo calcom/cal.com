@@ -17,8 +17,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 
-import DisconnectIntegration from "./DisconnectIntegration";
-
 interface CredentialActionsDropdownProps {
   credentialId: number;
   integrationType: string;
@@ -39,6 +37,7 @@ export default function CredentialActionsDropdown({
   const { t } = useLocale();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [disconnectModalOpen, setDisconnectModalOpen] = useState(false);
 
   const deleteCacheMutation = trpc.viewer.calendars.deleteCache.useMutation({
     onSuccess: () => {
@@ -47,6 +46,21 @@ export default function CredentialActionsDropdown({
     },
     onError: () => {
       showToast(t("error_deleting_cache"), "error");
+    },
+  });
+
+  const utils = trpc.useUtils();
+  const disconnectMutation = trpc.viewer.credentials.delete.useMutation({
+    onSuccess: () => {
+      showToast(t("app_removed_successfully"), "success");
+      onSuccess?.();
+    },
+    onError: () => {
+      showToast(t("error_removing_app"), "error");
+    },
+    async onSettled() {
+      await utils.viewer.calendars.connectedCalendars.invalidate();
+      await utils.viewer.apps.integrations.invalidate();
     },
   });
 
@@ -98,20 +112,16 @@ export default function CredentialActionsDropdown({
           {canDisconnect && hasCache && <hr className="my-1" />}
           {canDisconnect && (
             <DropdownMenuItem className="outline-none">
-              <DisconnectIntegration
-                credentialId={credentialId}
-                onSuccess={() => {
-                  onSuccess?.();
+              <DropdownItem
+                type="button"
+                color="destructive"
+                StartIcon="trash"
+                onClick={() => {
+                  setDisconnectModalOpen(true);
                   setDropdownOpen(false);
-                }}
-                buttonProps={{
-                  variant: "button",
-                  color: "destructive",
-                  className: "w-full justify-start p-2",
-                  StartIcon: "trash",
-                }}
-                label={t("remove_app")}
-              />
+                }}>
+                {t("remove_app")}
+              </DropdownItem>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -126,7 +136,20 @@ export default function CredentialActionsDropdown({
             deleteCacheMutation.mutate({ credentialId });
             setDeleteModalOpen(false);
           }}>
-          <p className="mt-5">{t("confirm_delete_cache")}</p>
+          {t("confirm_delete_cache")}
+        </ConfirmationDialogContent>
+      </Dialog>
+
+      <Dialog open={disconnectModalOpen} onOpenChange={setDisconnectModalOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("remove_app")}
+          confirmBtnText={t("yes_remove_app")}
+          onConfirm={() => {
+            disconnectMutation.mutate({ id: credentialId });
+            setDisconnectModalOpen(false);
+          }}>
+          {t("are_you_sure_you_want_to_remove_this_app")}
         </ConfirmationDialogContent>
       </Dialog>
     </>
