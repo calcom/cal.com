@@ -12,7 +12,7 @@ describe("BookerEvent type extensions", () => {
       restrictionScheduleId: 123,
       useBookerTimezone: true,
       title: "Test Event",
-      duration: 30,
+      length: 30,
     };
 
     expect(mockBookerEvent.restrictionScheduleId).toBe(123);
