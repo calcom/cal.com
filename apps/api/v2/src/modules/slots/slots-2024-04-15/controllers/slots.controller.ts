@@ -1,5 +1,5 @@
 import { TRPC_ERROR_CODE, TRPC_ERROR_MAP, TRPCErrorCode } from "@/filters/trpc-exception.filter";
-import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsWorkerService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-worker.service";

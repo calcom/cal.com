@@ -20,6 +20,7 @@ import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
 } from "@calcom/lib/delegationCredential/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getEventName } from "@calcom/lib/event";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -105,6 +106,10 @@ export const roundRobinReassignment = async ({
         schedule: null,
         createdAt: new Date(0), // use earliest possible date as fallback
       }));
+
+  if (eventType.hosts.length === 0) {
+    throw new Error(ErrorCode.EventTypeNoHosts);
+  }
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
