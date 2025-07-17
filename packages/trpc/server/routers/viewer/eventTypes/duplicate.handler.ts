@@ -50,7 +50,6 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             disableRecordingForOrganizer: true,
             disableRecordingForGuests: true,
             enableAutomaticTranscription: true,
-            enableAutomaticRecordingForOrganizer: true,
             redirectUrlOnExit: true,
             disableTranscriptionForGuests: true,
             disableTranscriptionForOrganizer: true,

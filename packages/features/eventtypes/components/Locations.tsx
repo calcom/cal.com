@@ -380,12 +380,12 @@ const Locations: React.FC<LocationsProps> = ({
 
                       {!isPlatform && (
                         <Controller
-                          name="calVideoSettings.enableAutomaticRecordingForOrganizer"
-                          defaultValue={!!eventType.calVideoSettings?.enableAutomaticRecordingForOrganizer}
+                          name="calVideoSettings.disableRecordingForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
                           render={({ field: { onChange, value } }) => {
                             return (
                               <SettingsToggle
-                                title={t("enable_automatic_recording")}
+                                title={t("disable_recording_for_organizer")}
                                 labelClassName="text-sm"
                                 checked={value}
                                 onCheckedChange={onChange}
