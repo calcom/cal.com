@@ -19,7 +19,7 @@ export function BookedByCell({
     <div className="flex min-w-[200px] flex-wrap gap-1">
       {attendees.map((attendee) => (
         <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
-          <Badge variant="gray" className="whitespace-nowrap" title={attendee.email}>
+          <Badge variant="gray" className="whitespace-nowrap" title={attendee.email || undefined}>
             {attendee.name}
           </Badge>
         </CellWithOverflowX>
