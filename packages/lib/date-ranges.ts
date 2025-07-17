@@ -307,25 +307,26 @@ export function subtract(
   sourceRanges: (DateRange & { [x: string]: unknown })[],
   excludedRanges: DateRange[]
 ) {
-  const result: DateRange[] = [];
+  const result = [];
+  const sortedExcludedRanges = [...excludedRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
 
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
 
-    const overlappingRanges = excludedRanges.filter(
-      ({ start, end }) => start.isBefore(sourceEnd) && end.isAfter(sourceStart)
-    );
+    for (const excludedRange of sortedExcludedRanges) {
+      if (excludedRange.start.valueOf() >= sourceEnd.valueOf()) break;
+      if (excludedRange.end.valueOf() <= currentStart.valueOf()) continue;
 
-    overlappingRanges.sort((a, b) => (a.start.isAfter(b.start) ? 1 : -1));
-
-    for (const { start: excludedStart, end: excludedEnd } of overlappingRanges) {
-      if (excludedStart.isAfter(currentStart)) {
-        result.push({ start: currentStart, end: excludedStart });
+      if (excludedRange.start.valueOf() > currentStart.valueOf()) {
+        result.push({ start: currentStart, end: excludedRange.start, ...passThrough });
       }
-      currentStart = excludedEnd.isAfter(currentStart) ? excludedEnd : currentStart;
+
+      if (excludedRange.end.valueOf() > currentStart.valueOf()) {
+        currentStart = excludedRange.end;
+      }
     }
 
-    if (sourceEnd.isAfter(currentStart)) {
+    if (sourceEnd.valueOf() > currentStart.valueOf()) {
       result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }
