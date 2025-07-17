@@ -75,10 +75,14 @@ export class EventTypesAtomService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
+    const effectiveUserId = isUserOrganizationAdmin
+      ? await this.getUserIdAssociatedWithEventType(eventTypeId)
+      : user.id;
+
     const eventType = await getEventTypeById({
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
-      userId: user.id,
+      userId: effectiveUserId,
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
       isTrpcCall: true,
@@ -89,9 +93,9 @@ export class EventTypesAtomService {
     }
 
     if (eventType?.team?.id) {
-      await this.checkTeamOwnsEventType(user.id, eventType.eventType.id, eventType.team.id);
+      await this.checkTeamOwnsEventType(effectiveUserId, eventType.eventType.id, eventType.team.id);
     } else {
-      this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
+      this.eventTypeService.checkUserOwnsEventType(effectiveUserId, eventType.eventType);
     }
 
     // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
@@ -438,5 +442,44 @@ export class EventTypesAtomService {
       }
       throw new NotFoundException(`Event type with slug ${eventSlug} not found`);
     }
+  }
+
+  async getUserIdAssociatedWithEventType(eventTypeId: number) {
+    const event = await this.dbRead.prisma.eventType.findUnique({
+      where: {
+        id: eventTypeId,
+      },
+    });
+    if (!event) {
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    }
+
+    if (event.userId) {
+      return event.userId;
+    }
+
+    if (event.teamId) {
+      const team = await this.dbRead.prisma.team.findUnique({
+        where: {
+          id: event.teamId,
+        },
+        select: {
+          members: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+      if (!team) {
+        throw new NotFoundException(`Team with id ${event.teamId} not found`);
+      }
+      if (!team.members.length) {
+        throw new NotFoundException(`Team with id ${event.teamId} has no members`);
+      }
+      return team.members[0].userId;
+    }
+
+    throw new NotFoundException(`Event type with id ${eventTypeId} has no user or team associated`);
   }
 }

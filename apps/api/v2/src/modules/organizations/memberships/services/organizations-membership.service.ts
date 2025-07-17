@@ -27,6 +27,19 @@ export class OrganizationsMembershipService {
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
+  async isOrgAdminOrOwner(organizationId: number, userId: number) {
+    const membership = await this.organizationsMembershipRepository.findOrgMembershipByUserId(
+      organizationId,
+      userId
+    );
+    if (!membership) {
+      throw new NotFoundException(
+        `Membership for user with id ${userId} within organization id ${organizationId} not found`
+      );
+    }
+    return membership.role === "ADMIN" || membership.role === "OWNER";
+  }
+
   async getOrgMembershipByUserId(organizationId: number, userId: number) {
     const membership = await this.organizationsMembershipRepository.findOrgMembershipByUserId(
       organizationId,
