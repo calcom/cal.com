@@ -26,7 +26,7 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  groupId?: string | null;
+  groupId: string | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -57,7 +57,7 @@ export const CheckedTeamSelect = ({
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
-  groupId?: string | null;
+  groupId: string | null;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);

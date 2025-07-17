@@ -73,7 +73,7 @@ const CheckedHostField = ({
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
-  groupId?: string | null;
+  groupId: string | null;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -188,7 +188,7 @@ export type AddMembersWithSwitchProps = {
   isRRWeightsEnabled?: boolean;
   teamId: number;
   isSegmentApplicable?: boolean;
-  groupId?: string | null;
+  groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
 };

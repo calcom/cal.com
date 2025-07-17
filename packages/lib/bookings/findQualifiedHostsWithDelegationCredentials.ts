@@ -17,7 +17,7 @@ type Host<T> = {
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
-  groupId?: string | null;
+  groupId: string | null;
 } & {
   user: T;
 };

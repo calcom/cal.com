@@ -35,7 +35,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
         },
         priority: undefined,
         weight: undefined,
-        groupId: undefined,
+        groupId: null,
       },
       {
         isFixed: false,
@@ -48,7 +48,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
         },
         priority: undefined,
         weight: undefined,
-        groupId: undefined,
+        groupId: null,
       },
       {
         isFixed: false,
@@ -61,7 +61,7 @@ describe("findQualifiedHostsWithDelegationCredentials", async () => {
         },
         priority: undefined,
         weight: undefined,
-        groupId: undefined,
+        groupId: null,
       },
     ];
 
