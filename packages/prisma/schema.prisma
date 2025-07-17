@@ -1315,6 +1315,7 @@ enum WorkflowActions {
   EMAIL_ADDRESS
   WHATSAPP_ATTENDEE
   WHATSAPP_NUMBER
+  CAL_AI_PHONE_CALL
 }
 
 model WorkflowStep {
