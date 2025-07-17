@@ -146,6 +146,18 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
     | any;
 }
 
+//Audit Logs for Teams
+export type AuditLogAction = "RENAME" | "DELETE" | "BOOK" | "CANCEL" | "CREATE";
+
+export interface AuditLogEvent {
+  timestamp: string;
+  userId: string;
+  orgId: string;
+  action: AuditLogAction;
+  resource: string;
+  details: Record<string, any>;
+}
+
 // EventType
 export type EventTypeResponse = BaseResponse & {
   event_type?: Partial<EventType | EventTypeExtended>;
