@@ -25,7 +25,7 @@ export const getAggregatedAvailability = (
   userAvailability: {
     dateRanges: DateRange[];
     oooExcludedDateRanges: DateRange[];
-    user?: { isFixed?: boolean; groupId?: string };
+    user?: { isFixed?: boolean; groupId?: string | null };
   }[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
