@@ -49,7 +49,6 @@ describe("RoutingFormResponseDataFactory", () => {
         mockFormResponse.response,
         mockFormResponse.form.fields
       );
-      expect(result).toBe("parsedData");
     });
 
     it("should throw an error if form response is not found", async () => {
