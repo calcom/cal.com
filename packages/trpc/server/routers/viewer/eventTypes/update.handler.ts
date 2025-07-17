@@ -26,6 +26,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import { setDestinationCalendarHandler } from "../../viewer/calendars/setDestinationCalendar.handler";
+import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
@@ -130,6 +131,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableRecordingForOrganizer: true,
           disableRecordingForGuests: true,
           enableAutomaticTranscription: true,
+          enableAutomaticRecordingForOrganizer: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
@@ -598,10 +600,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (calVideoSettings) {
-    await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
-      eventTypeId: id,
-      calVideoSettings,
+    const { hasTeamPlan } = await hasTeamPlanHandler({
+      ctx: { user: ctx.user },
     });
+
+    if (hasTeamPlan) {
+      await CalVideoSettingsRepository.createOrUpdateCalVideoSettings({
+        eventTypeId: id,
+        calVideoSettings,
+      });
+    }
   }
 
   const parsedEventTypeLocations = eventTypeLocations.safeParse(eventType.locations ?? []);
