@@ -63,7 +63,7 @@ export class RetellAIService {
     const importedPhoneNumber = await this.repository.importPhoneNumber(rest);
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     await PhoneNumberRepository.createPhoneNumber({
-      phoneNumber: importedPhoneNumber.phoneNumber,
+      phoneNumber: importedPhoneNumber.phone_number,
       userId,
       provider: "Custom telephony",
     });
