@@ -139,7 +139,8 @@ export default class ICSFeedCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    const startISOString = new Date(dateFrom).toISOString();
+    const rangeStart = dayjs(dateFrom);
+    const rangeEnd = dayjs(dateTo);
 
     const userCalendars = await this.fetchCalendars();
     const calendars = userCalendars.filter((calendar) => {
@@ -224,21 +225,29 @@ export default class ICSFeedCalendarService implements Calendar {
             return;
           }
 
-          const start = dayjs(dateFrom);
-          const end = dayjs(dateTo);
-          const startDate = ICAL.Time.fromDateTimeString(startISOString);
-          startDate.hour = event.startDate.hour;
-          startDate.minute = event.startDate.minute;
-          startDate.second = event.startDate.second;
-          const iterator = event.iterator(startDate);
-          let current: ICAL.Time;
+          // We process recurring events by iterating through occurrences
+          // starting from the start of the recurring event or the start
+          // of the availability range, whichever is later.
+          let iteratorStart;
+          if (event.startDate.toJSDate() < rangeStart.toDate()) {
+            iteratorStart = ICAL.Time.fromJSDate(rangeStart.toDate(), false);
+            iteratorStart.hour = event.startDate.hour;
+            iteratorStart.minute = event.startDate.minute;
+            iteratorStart.second = event.startDate.second;
+            iteratorStart.isDate = event.startDate.isDate;
+          } else {
+            iteratorStart = event.startDate.clone();
+          }
+          const iterator = event.iterator(iteratorStart);
+
+          let current;
           let currentEvent;
           let currentStart = null;
           let currentError;
 
           while (
             maxIterations > 0 &&
-            (currentStart === null || currentStart.isAfter(end) === false) &&
+            (currentStart === null || currentStart.isAfter(rangeEnd) === false) &&
             // this iterator was poorly implemented, normally done is expected to be
             // returned
             (current = iterator.next())
@@ -264,7 +273,7 @@ export default class ICSFeedCalendarService implements Calendar {
             }
             currentStart = dayjs(currentEvent.startDate.toJSDate());
 
-            if (currentStart.isBetween(start, end) === true) {
+            if (currentStart.isBetween(rangeStart, rangeEnd)) {
               events.push({
                 start: currentStart.toISOString(),
                 end: dayjs(currentEvent.endDate.toJSDate()).toISOString(),
