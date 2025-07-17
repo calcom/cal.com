@@ -114,6 +114,7 @@ describe("SlotsService_2024_09_04", () => {
         slots: {},
       },
       baseInputQuery: {
+        type: "byEventTypeId" as const,
         isTeamEvent: false,
         start: "2024-01-15T00:00:00.000Z",
         end: "2024-01-16T00:00:00.000Z",
@@ -136,7 +137,9 @@ describe("SlotsService_2024_09_04", () => {
     beforeEach(() => {
       // Setup shared mocks
       (eventTypesRepository.getEventTypeById as jest.Mock).mockResolvedValue(sharedTestData.mockEventType);
-      (availableSlotsService.getAvailableSlots as jest.Mock).mockResolvedValue(sharedTestData.mockSlotsResponse);
+      (availableSlotsService.getAvailableSlots as jest.Mock).mockResolvedValue(
+        sharedTestData.mockSlotsResponse
+      );
     });
 
     it("should call getAvailableSlots with correct routing parameters when withRouting is true", async () => {
@@ -145,17 +148,15 @@ describe("SlotsService_2024_09_04", () => {
         ...sharedTestData.routingParams,
       };
 
-      await service.getAvailableSlots({
+      await service.getAvailableSlotsWithRouting({
         ...inputQuery,
-        type: "byEventTypeId" as const,
-        withRouting: true as const,
       });
 
-      const { start: _1, end: _2, ...queryWithoutStartAndEndTime } = inputQuery;
+      const { start: _1, end: _2, type: _3, ...queryWithoutStartEndAndType } = inputQuery;
 
       expect(availableSlotsService.getAvailableSlots).toHaveBeenCalledWith({
         input: {
-          ...queryWithoutStartAndEndTime,
+          ...queryWithoutStartEndAndType,
           startTime: "2024-01-15T00:00:00.000Z",
           endTime: "2024-01-16T23:59:59.000Z",
         },
@@ -166,15 +167,18 @@ describe("SlotsService_2024_09_04", () => {
     it("should call getAvailableSlots without routing parameters when withRouting is false", async () => {
       const inputQuery = sharedTestData.baseInputQuery;
 
-      await service.getAvailableSlots({
+      await service.getAvailableSlotsWithRouting({
         ...inputQuery,
-        type: "byEventTypeId" as const,
       });
-      const { start: _1, end: _2, ...queryWithoutStartAndEndTime } = inputQuery;
+      const { start: _1, end: _2, type: _3, ...queryWithoutStartEndAndType } = inputQuery;
 
       expect(availableSlotsService.getAvailableSlots).toHaveBeenCalledWith({
         input: {
-          ...queryWithoutStartAndEndTime,
+          ...queryWithoutStartEndAndType,
+          routedTeamMemberIds: null,
+          skipContactOwner: false,
+          teamMemberEmail: null,
+          routingFormResponseId: undefined,
           startTime: "2024-01-15T00:00:00.000Z",
           endTime: "2024-01-16T23:59:59.000Z",
         },

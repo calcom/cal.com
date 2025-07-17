@@ -18,6 +18,7 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { SlotFormat } from "@calcom/platform-enums";
 import {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
@@ -45,11 +46,12 @@ export class SlotsService_2024_09_04 {
     private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
-  async getAvailableSlots<T extends GetSlotsInput_2024_09_04 | GetSlotsInputWithRouting_2024_09_04>(
-    query: T
-  ) {
+  async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     try {
-      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
+      const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(
+        query as GetSlotsInput_2024_09_04
+      );
+
       const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
         input: {
           ...queryTransformed,
@@ -62,6 +64,43 @@ export class SlotsService_2024_09_04 {
         queryTransformed.duration,
         query.format,
         queryTransformed.timeZone
+      );
+
+      return formatted;
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid time range given")) {
+          throw new BadRequestException(
+            "Invalid time range given - check the 'start' and 'end' query parameters."
+          );
+        }
+      }
+      throw error;
+    }
+  }
+
+  async getAvailableSlotsWithRouting(query: GetSlotsInputWithRouting_2024_09_04) {
+    const queryTransformed = await this.slotsInputService.transformRoutingGetSlotsQuery(query);
+    const { routedTeamMemberIds, skipContactOwner, teamMemberEmail, routingFormResponseId, ...baseQuery } =
+      queryTransformed;
+
+    try {
+      const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
+        input: {
+          ...baseQuery,
+          routedTeamMemberIds,
+          skipContactOwner,
+          teamMemberEmail,
+          routingFormResponseId,
+        },
+        ctx: {},
+      });
+      const formatted = await this.slotsOutputService.getAvailableSlots(
+        availableSlots,
+        baseQuery.eventTypeId,
+        baseQuery.duration,
+        query.format,
+        baseQuery.timeZone
       );
 
       return formatted;

@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsDateString,
@@ -9,7 +9,6 @@ import {
   IsArray,
   ArrayMinSize,
   IsEnum,
-  IsBoolean,
 } from "class-validator";
 
 import { SlotFormat } from "@calcom/platform-enums";
@@ -91,51 +90,12 @@ export class GetAvailableSlotsInput_2024_09_04 {
   bookingUidToReschedule?: string;
 }
 
-export class GetAvailableSlotsInputWithRouting_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
-  @IsString()
-  @ApiHideProperty()
-  withRouting = true as const;
-
-  @IsString()
-  @IsOptional()
-  @ApiHideProperty()
-  teamMemberEmail?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @ApiHideProperty()
-  routingFormResponseId?: number;
-
-  @IsArray()
-  @IsOptional()
-  @ApiHideProperty()
-  routedTeamMemberIds?: number[];
-
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
-  skipContactOwner?: boolean;
-}
-
 export const ById_2024_09_04_type = "byEventTypeId";
 export class ById_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
   @IsString()
   type: typeof ById_2024_09_04_type = ById_2024_09_04_type;
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @ApiProperty({
-    type: Number,
-    description: "The ID of the event type for which available slots should be checked.",
-    example: "100",
-  })
-  eventTypeId!: number;
-}
-
-export class ByIdWithRouting_2024_09_04 extends GetAvailableSlotsInputWithRouting_2024_09_04 {
-  @IsString()
-  type: typeof ById_2024_09_04_type = ById_2024_09_04_type;
-
   @IsNumber()
   @ApiProperty({
     type: Number,
