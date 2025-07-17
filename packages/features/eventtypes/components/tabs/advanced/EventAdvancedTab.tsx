@@ -40,6 +40,7 @@ import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -532,6 +533,22 @@ export const EventAdvancedTab = ({
     }
   );
 
+  console.log({ eventType });
+  const userTimeZone = extractHostTimezone({
+    userId: eventType.userId,
+    teamId: eventType.teamId,
+    hosts: eventType.hosts,
+    owner: eventType.owner,
+    team: eventType.team,
+  });
+  console.log(
+    { userTimeZone },
+    eventType.hosts,
+    eventType.owner,
+    eventType.team,
+    eventType.userId,
+    eventType.teamId
+  );
   let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
@@ -862,7 +879,7 @@ export const EventAdvancedTab = ({
                       team={team}
                       bookerUrl={eventType.bookerUrl}
                       setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
-                      userTimeZone={user?.timeZone}
+                      userTimeZone={userTimeZone}
                     />
                   </div>
                 )}

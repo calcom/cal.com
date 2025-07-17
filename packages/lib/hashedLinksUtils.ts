@@ -34,7 +34,7 @@ export type HashedLinkData = {
  * @param eventType - Event type data with potential timezone information
  * @returns Host timezone string or null if not found
  */
-export function extractHostTimezone(eventType: EventTypeForTimezone): string | null {
+export function extractHostTimezone(eventType: EventTypeForTimezone): string {
   if (eventType?.userId && eventType?.owner?.timeZone) {
     // Personal event type - use owner's timezone
     return eventType.owner.timeZone;
@@ -42,8 +42,12 @@ export function extractHostTimezone(eventType: EventTypeForTimezone): string | n
     // Team event type - try hosts first, then team members
     if (eventType.hosts && eventType.hosts.length > 0 && eventType.hosts[0]?.user?.timeZone) {
       return eventType.hosts[0].user.timeZone;
-    } else if (eventType.team?.members && eventType.team.members.length > 0) {
-      return eventType.team.members[0]?.user?.timeZone || null;
+    } else if (
+      eventType.team?.members &&
+      eventType.team.members.length > 0 &&
+      eventType.team.members[0]?.user?.timeZone
+    ) {
+      return eventType.team.members[0]?.user?.timeZone;
     }
   }
   return dayjs.tz.guess();

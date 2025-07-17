@@ -595,6 +595,7 @@ export class EventTypeRepository {
       owner: {
         select: {
           id: true,
+          timeZone: true,
         },
       },
       parent: {
@@ -670,6 +671,11 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
         },
       },
       userId: true,
