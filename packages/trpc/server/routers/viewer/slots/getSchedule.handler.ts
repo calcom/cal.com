@@ -28,7 +28,12 @@ export const getScheduleHandler = async ({
 
   const availableSlotsService = getAvailableSlotsService();
   const result = await availableSlotsService.getAvailableSlots({ ctx, input });
-  cache.set(key, { ts: now, data: result });
+
+  if (cache.size < 9000) {
+    cache.set(key, { ts: now, data: result });
+  } else {
+    console.log(`Cache grew too large (${cache.size}), skipping cache set.`);
+  }
 
   // Periodically sweep old cache entries
   if (now - lastCleanup > CLEANUP_INTERVAL) {
