@@ -8,8 +8,8 @@ vi.mock("@calcom/features/auth/lib/getServerSession", () => ({
   getServerSession: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/constants", async (importOriginal) => {
-  const actual = await importOriginal();
+vi.mock("@calcom/lib/constants", async () => {
+  const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
   return {
     ...actual,
     IS_PRODUCTION: true,
@@ -35,19 +35,19 @@ vi.mock("next/server", () => ({
   },
 }));
 
+const mockGetCustomerByEmail = vi.fn();
+const mockCreateThread = vi.fn();
+const mockUpsertPlainCustomer = vi.fn();
+
 vi.mock("@lib/plain/plain", () => ({
   plain: {
-    getCustomerByEmail: vi.fn(),
-    createThread: vi.fn(),
+    getCustomerByEmail: mockGetCustomerByEmail,
+    createThread: mockCreateThread,
   },
-  upsertPlainCustomer: vi.fn(),
+  upsertPlainCustomer: mockUpsertPlainCustomer,
 }));
 
 const mockGetServerSession = vi.mocked(getServerSession);
-
-const { plain: mockPlain, upsertPlainCustomer: mockUpsertPlainCustomer } = vi.mocked(
-  await import("@lib/plain/plain")
-);
 
 describe("/api/support", () => {
   beforeEach(() => {
@@ -124,15 +124,44 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockPlain.getCustomerByEmail.mockResolvedValue({
+    mockGetCustomerByEmail.mockResolvedValue({
       data: {
         id: "customer-123",
+        __typename: "Customer",
+        fullName: "Test User",
+        shortName: "Test",
+        externalId: "123",
+        email: { email: "test@example.com", isVerified: true },
+        status: "ACTIVE",
+        assignedToUser: null,
+        assignedAt: null,
+        updatedAt: { iso: "2025-01-01T00:00:00Z" },
+        createdAt: { iso: "2025-01-01T00:00:00Z" },
+        markedAsSpamAt: null,
       },
     });
 
-    mockPlain.createThread.mockResolvedValue({
+    mockCreateThread.mockResolvedValue({
       data: {
         id: "thread-123",
+        __typename: "Thread",
+        externalId: null,
+        title: "Test message",
+        description: null,
+        status: "TODO",
+        statusChangedAt: { iso: "2025-01-01T00:00:00Z" },
+        statusDetail: null,
+        customer: { id: "customer-123" },
+        assignedToUser: null,
+        assignedAt: null,
+        priority: 0,
+        firstInboundMessageInfo: null,
+        firstOutboundMessageInfo: null,
+        lastInboundMessageInfo: null,
+        lastOutboundMessageInfo: null,
+        previewText: "Test message",
+        updatedAt: { iso: "2025-01-01T00:00:00Z" },
+        createdAt: { iso: "2025-01-01T00:00:00Z" },
       },
     });
 
@@ -150,8 +179,8 @@ describe("/api/support", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    expect(mockPlain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
-    expect(mockPlain.createThread).toHaveBeenCalled();
+    expect(mockGetCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(mockCreateThread).toHaveBeenCalled();
   });
 
   it("should handle form submission with file attachments", async () => {
@@ -162,21 +191,51 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockPlain.getCustomerByEmail.mockResolvedValue({
+    mockGetCustomerByEmail.mockResolvedValue({
       data: null,
     });
 
     mockUpsertPlainCustomer.mockResolvedValue({
       data: {
+        result: "CREATED",
         customer: {
           id: "customer-456",
+          __typename: "Customer",
+          fullName: "Test User",
+          shortName: "Test",
+          externalId: "123",
+          email: { email: "test@example.com", isVerified: true },
+          status: "ACTIVE",
+          assignedToUser: null,
+          assignedAt: null,
+          updatedAt: { iso: "2025-01-01T00:00:00Z" },
+          createdAt: { iso: "2025-01-01T00:00:00Z" },
+          markedAsSpamAt: null,
         },
       },
     });
 
-    mockPlain.createThread.mockResolvedValue({
+    mockCreateThread.mockResolvedValue({
       data: {
         id: "thread-456",
+        __typename: "Thread",
+        externalId: null,
+        title: "Test message",
+        description: null,
+        status: "TODO",
+        statusChangedAt: { iso: "2025-01-01T00:00:00Z" },
+        statusDetail: null,
+        customer: { id: "customer-456" },
+        assignedToUser: null,
+        assignedAt: null,
+        priority: 0,
+        firstInboundMessageInfo: null,
+        firstOutboundMessageInfo: null,
+        lastInboundMessageInfo: null,
+        lastOutboundMessageInfo: null,
+        previewText: "Test message",
+        updatedAt: { iso: "2025-01-01T00:00:00Z" },
+        createdAt: { iso: "2025-01-01T00:00:00Z" },
       },
     });
 
@@ -194,9 +253,9 @@ describe("/api/support", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    expect(mockPlain.getCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
+    expect(mockGetCustomerByEmail).toHaveBeenCalledWith({ email: "test@example.com" });
     expect(mockUpsertPlainCustomer).toHaveBeenCalled();
-    expect(mockPlain.createThread).toHaveBeenCalled();
+    expect(mockCreateThread).toHaveBeenCalled();
   });
 
   it("should handle Plain customer creation error", async () => {
@@ -207,12 +266,13 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockPlain.getCustomerByEmail.mockResolvedValue({
+    mockGetCustomerByEmail.mockResolvedValue({
       data: null,
     });
 
     mockUpsertPlainCustomer.mockResolvedValue({
       error: {
+        type: "unknown",
         message: "Customer creation failed",
       },
     });
@@ -237,14 +297,26 @@ describe("/api/support", () => {
       user: { id: 123, email: "test@example.com" },
     });
 
-    mockPlain.getCustomerByEmail.mockResolvedValue({
+    mockGetCustomerByEmail.mockResolvedValue({
       data: {
         id: "customer-123",
+        __typename: "Customer",
+        fullName: "Test User",
+        shortName: "Test",
+        externalId: "123",
+        email: { email: "test@example.com", isVerified: true },
+        status: "ACTIVE",
+        assignedToUser: null,
+        assignedAt: null,
+        updatedAt: { iso: "2025-01-01T00:00:00Z" },
+        createdAt: { iso: "2025-01-01T00:00:00Z" },
+        markedAsSpamAt: null,
       },
     });
 
-    mockPlain.createThread.mockResolvedValue({
+    mockCreateThread.mockResolvedValue({
       error: {
+        type: "unknown",
         message: "Thread creation failed",
       },
     });
