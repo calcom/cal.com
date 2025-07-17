@@ -490,7 +490,7 @@ async function handler(
   if (
     originalRescheduledBooking &&
     originalRescheduledBooking.rescheduled &&
-    originalRescheduledBooking.status !== BookingStatus.CANCELLED
+    originalRescheduledBooking.status === BookingStatus.CANCELLED
   ) {
     throw new HttpError({
       statusCode: 400,
