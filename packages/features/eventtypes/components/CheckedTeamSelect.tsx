@@ -26,7 +26,7 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  groupId: string | null;
+  groupId?: string | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
