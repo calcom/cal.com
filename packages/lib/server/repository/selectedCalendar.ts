@@ -214,63 +214,72 @@ export class SelectedCalendarRepository {
    * e.g. when a user disables calendar cache for the organization
    */
   static async getNextBatchToUnwatch(limit = 100) {
-    const where: Prisma.SelectedCalendarWhereInput = {
+    const calendarCacheFeature = await prisma.feature.findUnique({
+      where: { slug: "calendar-cache" },
+    });
+    const globallyEnabled = calendarCacheFeature?.enabled;
+
+    // common retry‑and‑error guard
+    const retryGuard: Prisma.SelectedCalendarWhereInput = {
       OR: [
-        // Google Calendar conditions
+        { error: null },
         {
-          integration: "google_calendar",
-          googleChannelExpiration: { not: null },
-        },
-        // Office365 Calendar conditions
-        {
-          integration: "office365_calendar",
-          office365SubscriptionExpiration: { not: null },
-        },
-      ],
-      AND: [
-        {
-          OR: [
-            // Either is a calendar that has not errored during unwatch
-            { error: null },
-            // Or is a calendar that has errored during unwatch but has not reached max attempts
-            {
-              error: { not: null },
-              unwatchAttempts: {
-                lt: {
-                  // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
-                  // Removing ts-expect-error fails in another case that _ref isn't defined
-                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                  // @ts-ignore
-                  _ref: "maxAttempts",
-                  _container: "SelectedCalendar",
-                },
-              },
-            },
-          ],
-        },
-        {
-          user: {
-            teams: {
-              every: {
-                team: {
-                  features: {
-                    none: {
-                      featureId: "calendar-cache",
-                    },
-                  },
-                },
-              },
+          error: { not: null },
+          unwatchAttempts: {
+            lt: {
+              // Using ts-ignore instead of ts-expect-error because I am seeing conflicting errors in CI. In one case ts-expect-error fails with `Unused '@ts-expect-error' directive.`
+              // Removing ts-expect-error fails in another case that _ref isn't defined
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              _ref: "maxAttempts",
+              _container: "SelectedCalendar",
             },
           },
         },
       ],
     };
-    // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
-    const nextBatch = await prisma.selectedCalendar.findMany({
+
+    let where: Prisma.SelectedCalendarWhereInput;
+
+    if (!globallyEnabled) {
+      // unwatch any active subscription (google OR office365)
+      where = {
+        OR: [
+          {
+            integration: "google_calendar",
+            googleChannelExpiration: { not: null },
+          },
+          {
+            integration: "office365_calendar",
+            office365SubscriptionExpiration: { not: null },
+          },
+        ],
+        AND: [retryGuard],
+      };
+    } else {
+      // global flag is ON - only unwatch Google when team‐flag is OFF
+      where = {
+        integration: "google_calendar",
+        googleChannelExpiration: { not: null },
+        user: {
+          teams: {
+            every: {
+              team: {
+                features: {
+                  none: { featureId: "calendar-cache" },
+                },
+              },
+            },
+          },
+        },
+        AND: [retryGuard],
+      };
+    }
+
+    return prisma.selectedCalendar.findMany({
       take: limit,
       where,
     });
-    return nextBatch;
   }
 
   static async findMany({ where, select, orderBy }: FindManyArgs) {

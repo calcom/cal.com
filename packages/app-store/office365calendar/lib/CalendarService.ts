@@ -876,7 +876,14 @@ export default class Office365CalendarService implements Calendar {
 
       this.log.debug("Successfully deleted Office365 subscription", { subscriptionId, calendarId });
 
-      await prisma.calendarCache.deleteMany({ where: { credentialId: this.credential.id } });
+      await prisma.calendarCache.deleteMany({
+        where: {
+          credentialId: this.credential.id,
+          key: {
+            contains: calendarId,
+          },
+        },
+      });
 
       const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
         where: {
@@ -932,7 +939,7 @@ export default class Office365CalendarService implements Calendar {
       userId: this.credential.delegatedTo ? this.credential.userId : null,
     });
 
-    if (cachedAvailability && cachedAvailability.value) {
+    if (cachedAvailability?.value) {
       this.log.debug("[Cache Hit] Returning cached availability result");
       // Parse the cached value which is stored as JSON
       const parsedValue = cachedAvailability.value as unknown as BufferedBusyTime[];
