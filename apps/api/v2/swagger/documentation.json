@@ -8433,6 +8433,67 @@
         "tags": [
           "Cal Unified Calendars"
         ]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "google"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cal Unified Calendars"
+        ]
       }
     },
     "/v2/calendars/ics-feed/save": {
@@ -17627,7 +17688,7 @@
           },
           "bookingFields": {
             "type": "array",
-            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+            "description": "Complete set of booking form fields. This array replaces all existing booking fields. To modify existing fields, first fetch the current event type, then include all desired fields in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
             "items": {
               "oneOf": [
                 {
@@ -20335,7 +20396,7 @@
           },
           "bookingFields": {
             "type": "array",
-            "description": "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+            "description": "Complete set of booking form fields. This array replaces all existing booking fields. To modify existing fields, first fetch the current event type, then include all desired fields in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
             "items": {
               "oneOf": [
                 {
@@ -28343,6 +28404,67 @@
           "status",
           "data"
         ]
+      },
+      "UpdateUnifiedCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees with their response status",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          },
+          "hosts": {
+            "nullable": true,
+            "description": "Information about the event hosts (organizers)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventHost"
+            }
+          }
+        }
       },
       "CreateRoutingFormResponseOutputData": {
         "type": "object",

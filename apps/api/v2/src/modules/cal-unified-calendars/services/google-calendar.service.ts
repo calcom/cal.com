@@ -19,8 +19,7 @@ export class GoogleCalendarService {
   private logger = new Logger("GoogleCalendarService");
   constructor(
     private readonly bookingReferencesRepository: BookingReferencesRepository_2024_08_13,
-    private readonly gCalService: GCalService,
-    private readonly googleCalendarEventInputPipe: GoogleCalendarEventInputPipe
+    private readonly gCalService: GCalService
   ) {}
 
   async getEventDetails(eventUid: string): Promise<GoogleCalendarEventResponse> {
@@ -75,14 +74,13 @@ export class GoogleCalendarService {
       bookingReference.delegationCredential
     );
 
-    const updatePayload = this.googleCalendarEventInputPipe.transform(updateData);
+    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
 
     try {
       const event = await calendar.events.patch({
         calendarId: bookingReference?.externalCalendarId ?? "primary",
         eventId: bookingReference?.uid,
         requestBody: updatePayload,
-        conferenceDataVersion: updateData.locations ? 1 : undefined,
       });
 
       if (!event.data) {
