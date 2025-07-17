@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-import { RedisService } from "@calcom/features/redis/RedisService";
+import { VercelKVService } from "@calcom/features/redis/VercelKVService";
 import type { TGetScheduleInputSchema } from "@calcom/trpc/server/routers/viewer/slots/types";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 
@@ -33,8 +33,8 @@ export function createScheduleCacheKey(input: TGetScheduleInputSchema): string {
 
 export async function getCachedSchedule(cacheKey: string): Promise<IGetAvailableSlots | null> {
   try {
-    const redis = new RedisService();
-    return await redis.get<IGetAvailableSlots>(cacheKey);
+    const kv = new VercelKVService();
+    return await kv.get<IGetAvailableSlots>(cacheKey);
   } catch (error) {
     console.error("Error getting cached schedule:", error);
     return null;
@@ -43,9 +43,9 @@ export async function getCachedSchedule(cacheKey: string): Promise<IGetAvailable
 
 export async function setCachedSchedule(cacheKey: string, data: IGetAvailableSlots): Promise<void> {
   try {
-    const redis = new RedisService();
-    await redis.set(cacheKey, data);
-    await redis.expire(cacheKey, CACHE_TTL_SECONDS);
+    const kv = new VercelKVService();
+    await kv.set(cacheKey, data);
+    await kv.expire(cacheKey, CACHE_TTL_SECONDS);
   } catch (error) {
     console.error("Error setting cached schedule:", error);
   }
@@ -60,7 +60,7 @@ export interface InvalidateScheduleCacheParams {
 
 export async function invalidateScheduleCache(params: InvalidateScheduleCacheParams): Promise<void> {
   try {
-    const redis = new RedisService();
+    const kv = new VercelKVService();
 
     const pattern = `${CACHE_KEY_PREFIX}*`;
 
@@ -88,10 +88,10 @@ export async function setCachedScheduleWithTracking(
   input: TGetScheduleInputSchema
 ): Promise<void> {
   try {
-    const redis = new RedisService();
+    const kv = new VercelKVService();
 
-    await redis.set(cacheKey, data);
-    await redis.expire(cacheKey, CACHE_TTL_SECONDS);
+    await kv.set(cacheKey, data);
+    await kv.expire(cacheKey, CACHE_TTL_SECONDS);
 
     const trackingKeys: string[] = [];
 
@@ -100,8 +100,8 @@ export async function setCachedScheduleWithTracking(
     }
 
     for (const trackingKey of trackingKeys) {
-      await redis.lpush(trackingKey, cacheKey);
-      await redis.expire(trackingKey, CACHE_TTL_SECONDS);
+      await kv.lpush(trackingKey, cacheKey);
+      await kv.expire(trackingKey, CACHE_TTL_SECONDS);
     }
   } catch (error) {
     console.error("Error setting cached schedule with tracking:", error);
