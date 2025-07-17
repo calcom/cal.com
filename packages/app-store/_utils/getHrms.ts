@@ -24,12 +24,12 @@ export const getHrmsService = async ({
   }
 
   const hrmsServiceModule = await hrmsServiceImportFn;
-  const HrmsService = hrmsServiceModule.DeelHrmsService;
+  const { DeelHrmsService } = hrmsServiceModule;
 
-  if (!HrmsService) {
+  if (!DeelHrmsService) {
     log.warn(`hrms of type ${hrmsType} is not implemented`);
     return null;
   }
 
-  return new HrmsService(credential);
+  return new DeelHrmsService(credential);
 };
