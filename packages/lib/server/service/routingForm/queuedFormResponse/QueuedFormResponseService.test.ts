@@ -66,8 +66,8 @@ describe("QueuedFormResponseService", () => {
       await vi.runAllTimersAsync();
       const result = await resultPromise;
 
-      // Verify cutoff time calculation (1 hour is hardcoded)
-      const expectedCutoffTime = new Date(now - 1 * 60 * 60 * 1000);
+      // Verify cutoff time calculation (7 days is hardcoded)
+      const expectedCutoffTime = new Date(now - 7 * 24 * 60 * 60 * 1000);
       expect(mockRepo.findMany).toHaveBeenCalledWith({
         where: {
           actualResponseId: null,
@@ -96,7 +96,7 @@ describe("QueuedFormResponseService", () => {
 
       const result = await service.cleanupExpiredResponses();
 
-      // Verify default batch size and older than hours
+      // Verify default batch size and older than days
       expect(mockRepo.findMany).toHaveBeenCalledWith({
         where: {
           actualResponseId: null,
@@ -109,11 +109,11 @@ describe("QueuedFormResponseService", () => {
         },
       });
 
-      // Verify the cutoff time is 1 hour ago (default)
+      // Verify the cutoff time is 7 days ago (default)
       const callArgs = mockRepo.findMany.mock.calls[0][0];
       const now = Date.now();
-      const oneHourAgo = now - 60 * 60 * 1000;
-      expect(callArgs.where.createdAt.lt.getTime()).toBeCloseTo(oneHourAgo, -2); // within 100ms
+      const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+      expect(callArgs.where.createdAt.lt.getTime()).toBeCloseTo(sevenDaysAgo, -2); // within 100ms
 
       expect(result).toEqual({
         count: 0,

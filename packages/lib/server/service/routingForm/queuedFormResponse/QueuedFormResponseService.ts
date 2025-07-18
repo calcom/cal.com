@@ -1,6 +1,6 @@
 import type logger from "@calcom/lib/logger";
 
-import type { QueuedFormResponseRepositoryInterface } from "../../../repository/routingForm/queuedFormResponse/QueuedFormResponseRepository.interface";
+import type { QueuedFormResponseRepositoryInterface } from "../../repository/routingForm/queuedFormResponse/QueuedFormResponseRepository.interface";
 
 interface Dependencies {
   logger: typeof logger;
@@ -32,8 +32,8 @@ export class QueuedFormResponseService {
    * Calculate the cutoff time. All responses older than this time could be considered expired.
    */
   private getExpiryCutoffTime(): Date {
-    const olderThanHours = 1;
-    return new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
+    const olderThanDays = 7;
+    return new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
   }
 
   /**
