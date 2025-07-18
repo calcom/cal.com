@@ -276,8 +276,13 @@ export class UserRepository {
   }
 
   async findUsersByEmails({ emails }: { emails: string[] }) {
+    // Early return for empty array
+    if (!emails || emails.length === 0) {
+      return [];
+    }
+
     // Use proper database filtering in production for better performance
-    if (process.env.NODE_ENV !== 'test') {
+    if (process.env.NODE_ENV !== "test") {
       return await this.prismaClient.user.findMany({
         where: {
           email: {
@@ -298,14 +303,12 @@ export class UserRepository {
         email: true,
       },
     });
-    
+
     // Filter in memory to work around prismock WHERE issues
-    const matchingUsers = allUsers.filter(user => 
-      emails.some(email => 
-        user.email?.toLowerCase() === email.toLowerCase()
-      )
+    const matchingUsers = allUsers.filter((user) =>
+      emails.some((email) => user.email?.toLowerCase() === email.toLowerCase())
     );
-    
+
     return matchingUsers;
   }
 

@@ -667,6 +667,16 @@ export class AvailableSlotsService {
     "getUsersWithCredentials"
   );
 
+  /**
+   * Fetches busy times for guest attendees when rescheduling an event.
+   * Only considers Cal.com users' availability to avoid privacy issues.
+   *
+   * @param rescheduleUid - The unique identifier of the booking being rescheduled
+   * @param dateFrom - Start date for availability check
+   * @param dateTo - End date for availability check
+   * @param loggerWithEventDetails - Logger instance for debugging
+   * @returns Array of busy time slots for Cal.com user attendees
+   */
   private async getGuestBusyTimesForReschedule(
     rescheduleUid: string,
     dateFrom: string,
@@ -679,26 +689,30 @@ export class AvailableSlotsService {
         dateFrom,
         dateTo,
       });
-      
+
       // Get the original booking with attendees
       const bookingRepo = this.dependencies.bookingRepo;
       const originalBooking = await bookingRepo.findOriginalRescheduledBooking(rescheduleUid);
-      
+
       loggerWithEventDetails.debug("Original booking found", {
-        originalBooking: originalBooking ? {
-          id: originalBooking.id,
-          attendeesCount: originalBooking.attendees?.length || 0,
-          attendeeEmails: originalBooking.attendees?.map((a) => a.email) || [],
-        } : null,
+        originalBooking: originalBooking
+          ? {
+              id: originalBooking.id,
+              attendeesCount: originalBooking.attendees?.length || 0,
+              attendeeEmails: originalBooking.attendees?.map((a) => a.email) || [],
+            }
+          : null,
       });
-      
+
       if (!originalBooking || !originalBooking.attendees || originalBooking.attendees.length === 0) {
         return [];
       }
 
-      // Get attendee emails
-      const attendeeEmails = originalBooking.attendees.map((attendee) => attendee.email);
-      
+      // Get attendee emails and filter out any invalid ones
+      const attendeeEmails = originalBooking.attendees
+        .map((attendee) => attendee.email)
+        .filter((email) => email && email.trim().length > 0);
+
       // Check which attendees are Cal.com users
       const userRepo = this.dependencies.userRepo;
       const calcomUsers = await userRepo.findUsersByEmails({ emails: attendeeEmails });
@@ -710,6 +724,9 @@ export class AvailableSlotsService {
       });
 
       if (calcomUsers.length === 0) {
+        loggerWithEventDetails.debug(
+          "No Cal.com users found among attendees, skipping guest availability check"
+        );
         return [];
       }
 
@@ -720,11 +737,11 @@ export class AvailableSlotsService {
 
       // Get busy times for all Cal.com guest users
       const allGuestBusyTimes: EventBusyDate[] = [];
-      
+
       if (calcomUsers.length > 0) {
-        const userIds = calcomUsers.map(user => user.id);
-        const userEmails = calcomUsers.map(user => user.email);
-        
+        const userIds = calcomUsers.map((user) => user.id);
+        const userEmails = calcomUsers.map((user) => user.email);
+
         // Get bookings for all guest users at once
         const userBookings = await bookingRepo.findBookingsByUserIdsAndDateRange({
           userIds,
@@ -737,14 +754,14 @@ export class AvailableSlotsService {
           userBookingsCount: userBookings.length,
         });
 
-        // Convert bookings to busy times  
+        // Convert bookings to busy times
         const busyTimes = userBookings
           .filter((booking) => booking && booking.startTime && booking.endTime)
           .map((booking) => ({
             start: booking.startTime,
             end: booking.endTime,
             title: `Guest busy: ${booking.title || "Unavailable"}`,
-            source: `guest-${booking.userId || 'unknown'}`,
+            source: `guest-${booking.userId || "unknown"}`,
           }));
 
         loggerWithEventDetails.debug("Generated guest busy times", {
@@ -756,13 +773,16 @@ export class AvailableSlotsService {
 
       return allGuestBusyTimes;
     } catch (error) {
-      loggerWithEventDetails.error("Error getting guest busy times for reschedule", { 
-        error: error instanceof Error ? {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
-        } : error,
-        rescheduleUid 
+      loggerWithEventDetails.error("Error getting guest busy times for reschedule", {
+        error:
+          error instanceof Error
+            ? {
+                message: error.message,
+                stack: error.stack,
+                name: error.name,
+              }
+            : error,
+        rescheduleUid,
       });
       // Return empty array to continue with normal flow if there's an error
       return [];
@@ -914,14 +934,14 @@ export class AvailableSlotsService {
         rescheduleUid: input.rescheduleUid,
         schedulingType: eventType.schedulingType,
       });
-      
+
       guestBusyTimes = await this.getGuestBusyTimesForReschedule(
         input.rescheduleUid,
         startTime.format(),
         endTime.format(),
         loggerWithEventDetails
       );
-      
+
       loggerWithEventDetails.debug("Guest busy times retrieved", {
         guestBusyTimesCount: guestBusyTimes.length,
       });
@@ -950,11 +970,14 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
-        guestBusyTimes: guestBusyTimes, // Pass guest busy times to getUsersAvailability
+        guestBusyTimes: guestBusyTimes.map((busyTime) => ({
+          start: new Date(busyTime.start),
+          end: new Date(busyTime.end),
+        })), // Pass guest busy times to getUsersAvailability
       },
     });
     /* We get all users working hours and busy slots */
-    let allUsersAvailability = premappedUsersAvailability.map(
+    const allUsersAvailability = premappedUsersAvailability.map(
       (
         { busy, dateRanges, oooExcludedDateRanges, currentSeats: _currentSeats, timeZone, datesOutOfOffice },
         index
