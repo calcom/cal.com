@@ -932,7 +932,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("applecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("applecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "MOCKED_APPLE_CALENDAR_EVENT_ID",
