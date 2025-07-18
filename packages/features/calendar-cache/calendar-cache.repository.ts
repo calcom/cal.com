@@ -149,6 +149,21 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const key = parseKeyForCache(args);
+
+    let finalValue = value;
+
+    if (nextSyncToken) {
+      const existingCache = await this.getCachedAvailability({
+        credentialId,
+        userId,
+        args,
+      });
+
+      if (existingCache?.value) {
+        finalValue = this.mergeCacheValues(existingCache.value, value);
+      }
+    }
+
     await prisma.calendarCache.upsert({
       where: {
         credentialId_key: {
@@ -159,12 +174,12 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       update: {
         // Ensure that on update userId is also set(It handles the case where userId is not set for legacy records)
         userId,
-        value,
+        value: finalValue,
         nextSyncToken,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
       create: {
-        value,
+        value: finalValue,
         credentialId,
         userId,
         key,
@@ -172,5 +187,43 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
     });
+  }
+
+  private mergeCacheValues(
+    existingValue: Prisma.JsonValue,
+    newValue: Prisma.JsonNullValueInput | Prisma.InputJsonValue
+  ): Prisma.InputJsonValue {
+    try {
+      const existing = existingValue as any;
+      const incoming = newValue as any;
+
+      if (!existing?.calendars || !incoming?.calendars) {
+        return newValue as Prisma.InputJsonValue;
+      }
+
+      const result = { ...existing };
+
+      for (const calendarId of Object.keys(incoming.calendars)) {
+        const existingBusyTimes = result.calendars[calendarId]?.busy || [];
+        const incomingBusyTimes = incoming.calendars[calendarId]?.busy || [];
+
+        const allBusyTimes = [...existingBusyTimes, ...incomingBusyTimes];
+
+        const uniqueBusyTimes = allBusyTimes.filter((busyTime, index, array) => {
+          return array.findIndex((bt) => bt.start === busyTime.start && bt.end === busyTime.end) === index;
+        });
+
+        uniqueBusyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+        result.calendars[calendarId] = {
+          busy: uniqueBusyTimes,
+        };
+      }
+
+      return result;
+    } catch (error) {
+      log.warn("Error merging cache values, using new value", { error });
+      return newValue as Prisma.InputJsonValue;
+    }
   }
 }

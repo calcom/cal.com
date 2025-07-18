@@ -1107,6 +1107,33 @@ export default class GoogleCalendarService implements Calendar {
     });
   }
 
+  private mergeBusyTimesWithCache(
+    existingCache: { calendars: CalendarFreeBusyResponse } | null,
+    calendarIds: { id: string }[],
+    incrementalBusyTimes: EventBusyDate[]
+  ): CalendarFreeBusyResponse {
+    const result: CalendarFreeBusyResponse = {};
+
+    if (existingCache?.calendars) {
+      for (const [calendarId, calendarData] of Object.entries(existingCache.calendars)) {
+        result[calendarId] = {
+          busy: [...calendarData.busy],
+        };
+      }
+    }
+
+    for (const cal of calendarIds) {
+      result[cal.id] = {
+        busy: incrementalBusyTimes.map((bt) => ({
+          start: bt.start,
+          end: bt.end,
+        })),
+      };
+    }
+
+    return result;
+  }
+
   async setAvailabilityInCacheWithSyncToken(
     calendarIds: { id: string }[],
     busyTimes: EventBusyDate[],
@@ -1119,23 +1146,21 @@ export default class GoogleCalendarService implements Calendar {
       items: calendarIds,
     };
 
-    const freeBusyResponse = {
-      calendars: calendarIds.reduce<CalendarFreeBusyResponse>((acc, cal) => {
-        acc[cal.id] = {
-          busy: busyTimes.map((bt) => ({
-            start: bt.start,
-            end: bt.end,
-          })),
-        };
-        return acc;
-      }, {}),
-    };
+    const existingCache = await calendarCache.getCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args,
+    });
+
+    const existingCacheValue = existingCache?.value as { calendars: CalendarFreeBusyResponse } | null;
+
+    const mergedFreeBusyResponse = this.mergeBusyTimesWithCache(existingCacheValue, calendarIds, busyTimes);
 
     await calendarCache.upsertCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
       args,
-      value: freeBusyResponse,
+      value: { calendars: mergedFreeBusyResponse },
       nextSyncToken,
     });
   }
@@ -1190,7 +1215,7 @@ export default class GoogleCalendarService implements Calendar {
         });
 
         const existingSyncToken =
-          cached && "nextSyncToken" in cached ? cached.nextSyncToken || undefined : undefined;
+          cached && "nextSyncToken" in cached ? (cached.nextSyncToken as string) || undefined : undefined;
 
         const { events, nextSyncToken } = await this.fetchEventsIncremental(
           selectedCalendar.externalId,
@@ -1379,7 +1404,7 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       const existingSyncToken =
-        cached && "nextSyncToken" in cached ? cached.nextSyncToken || undefined : undefined;
+        cached && "nextSyncToken" in cached ? (cached.nextSyncToken as string) || undefined : undefined;
 
       const { events, nextSyncToken } = await this.fetchEventsIncremental(
         calendar.externalId,

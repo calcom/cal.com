@@ -452,6 +452,316 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
     });
   });
 
+  describe("Cache Merging Behavior - Critical Bug Tests", () => {
+    test("should merge cache when adding new events to existing ones", async () => {
+      const userEmail = `test-${testUniqueId}@example.com`;
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
+      };
+
+      // Setup: Store initial cache with 3 existing events
+      const initialCacheResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T09:30:00.000Z`,
+              },
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T11:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T11:30:00.000Z`,
+              },
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T14:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T14:30:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: initialCacheResponse,
+        nextSyncToken: "initial-sync-token",
+      });
+
+      const initialCached = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+      expect(initialCached).toBeTruthy();
+      const initialValue = initialCached!.value as MockGoogleCalendarResponse;
+      expect(initialValue.calendars[userEmail].busy).toHaveLength(3);
+
+      const incrementalResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T16:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T16:30:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: incrementalResponse,
+        nextSyncToken: "new-sync-token",
+      });
+
+      const finalCached = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+      expect(finalCached).toBeTruthy();
+      const finalValue = finalCached!.value as MockGoogleCalendarResponse;
+
+      expect(finalValue.calendars[userEmail].busy).toHaveLength(4); // This will fail!
+
+      const busyTimes = finalValue.calendars[userEmail].busy;
+      const startTimes = busyTimes.map((bt) => bt.start);
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`); // Lost
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T11:00:00.000Z`); // Lost
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T14:00:00.000Z`); // Lost
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T16:00:00.000Z`); // Only this remains
+    });
+
+    test("should handle event updates correctly", async () => {
+      const userEmail = `test-${testUniqueId}@example.com`;
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
+      };
+
+      // Setup: Store initial cache with 2 events
+      const initialCacheResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T10:30:00.000Z`,
+              },
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T15:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T15:30:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: initialCacheResponse,
+        nextSyncToken: "initial-sync-token",
+      });
+
+      const updatedEventResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T12:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T12:30:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: updatedEventResponse,
+        nextSyncToken: "updated-sync-token",
+      });
+
+      const finalCached = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+      expect(finalCached).toBeTruthy();
+      const finalValue = finalCached!.value as MockGoogleCalendarResponse;
+
+      expect(finalValue.calendars[userEmail].busy).toHaveLength(3);
+
+      const busyTimes = finalValue.calendars[userEmail].busy;
+      const startTimes = busyTimes.map((bt) => bt.start);
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T12:00:00.000Z`); // Updated event
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T15:00:00.000Z`); // Unchanged event (preserved!)
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`); // Original event (preserved!)
+    });
+
+    test("should handle event deletions correctly", async () => {
+      const userEmail = `test-${testUniqueId}@example.com`;
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
+      };
+
+      // Setup: Store initial cache with 3 events
+      const initialCacheResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T09:30:00.000Z`,
+              },
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T11:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T11:30:00.000Z`,
+              },
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T14:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T14:30:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: initialCacheResponse,
+        nextSyncToken: "initial-sync-token",
+      });
+
+      const deletionResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [], // No events returned for deletion-only sync
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: deletionResponse,
+        nextSyncToken: "deletion-sync-token",
+      });
+
+      const finalCached = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+      expect(finalCached).toBeTruthy();
+      const finalValue = finalCached!.value as MockGoogleCalendarResponse;
+
+      expect(finalValue.calendars[userEmail].busy).toHaveLength(3);
+
+      const busyTimes = finalValue.calendars[userEmail].busy;
+      const startTimes = busyTimes.map((bt) => bt.start);
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`); // Should remain (preserved!)
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T14:00:00.000Z`); // Should remain (preserved!)
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T11:00:00.000Z`); // Original event (preserved!)
+    });
+
+    test("demonstrates availability gap bug in real scenario", async () => {
+      const userEmail = `test-${testUniqueId}@example.com`;
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
+      };
+
+      const morningMeetings: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T10:00:00.000Z`,
+              },
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T10:30:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T11:30:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: morningMeetings,
+        nextSyncToken: "morning-sync-token",
+      });
+
+      const afternoonMeeting: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: `${TEST_DATE_ISO.slice(0, 10)}T15:00:00.000Z`,
+                end: `${TEST_DATE_ISO.slice(0, 10)}T16:00:00.000Z`,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: afternoonMeeting,
+        nextSyncToken: "afternoon-sync-token",
+      });
+
+      const finalCached = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+      expect(finalCached).toBeTruthy();
+      const finalValue = finalCached!.value as MockGoogleCalendarResponse;
+
+      expect(finalValue.calendars[userEmail].busy).toHaveLength(3); // Should have all 3 meetings
+
+      const busyTimes = finalValue.calendars[userEmail].busy;
+      const startTimes = busyTimes.map((bt) => bt.start);
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T09:00:00.000Z`); // Lost - user appears free!
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T10:30:00.000Z`); // Lost - user appears free!
+      expect(startTimes).toContain(`${TEST_DATE_ISO.slice(0, 10)}T15:00:00.000Z`); // Only this remains
+    });
+  });
+
   describe("Cache Performance and Scaling", () => {
     test("cache operations complete within performance thresholds", async () => {
       // Setup: Create test calendar with large dataset
@@ -497,7 +807,7 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
 
       // Verify: Performance and correctness
       expect(cachedResult).toBeTruthy();
-      expect(cachedResult?.nextSyncToken).toBe("performance-test-token");
+      expect((cachedResult as any)?.nextSyncToken).toBe("performance-test-token");
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
     });
 
