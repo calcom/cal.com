@@ -292,7 +292,7 @@ export async function cleanupOrphanedSelectedCalendars({
     );
 
     if (orphanedCalendars.length > 0) {
-      log.info(`Cleaning up orphaned Google Calendar records for user ${user.id}`);
+      log.info(`Cleaning up orphaned calendar records for user ${user.id}`);
 
       const orphanedCalendarsId = orphanedCalendars.map((cal) => cal.id);
 
