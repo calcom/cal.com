@@ -28,6 +28,11 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
+// Simple type definition for calendar cache values
+type CalendarCacheValue = {
+  calendars?: Record<string, { busy?: Array<{ start: string | Date; end: string | Date }> }>;
+};
+
 /**
  * It means that caller can only work with DB Credentials
  * In-memory delegation credentials aren't supported here. Delegation User Credentials, that are in DB and have credential.delegationCredential relation can be used though
@@ -194,14 +199,16 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     newValue: Prisma.JsonNullValueInput | Prisma.InputJsonValue
   ): Prisma.InputJsonValue {
     try {
-      const existing = existingValue as any;
-      const incoming = newValue as any;
+      const existing = existingValue as CalendarCacheValue;
+      const incoming = newValue as CalendarCacheValue;
 
       if (!existing?.calendars || !incoming?.calendars) {
         return newValue as Prisma.InputJsonValue;
       }
 
-      const result = { ...existing };
+      const result: CalendarCacheValue = {
+        calendars: { ...existing.calendars },
+      };
 
       for (const calendarId of Object.keys(incoming.calendars)) {
         const existingBusyTimes = result.calendars[calendarId]?.busy || [];
