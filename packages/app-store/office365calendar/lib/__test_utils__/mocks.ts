@@ -5,34 +5,23 @@ export const defaultFetcherMockImplementation = vi.fn(async (endpoint, init) => 
     return mockResponses.user();
   }
   if (endpoint.includes("/$batch")) {
-if (endpoint.includes("/$batch")) {
-  // Extract calendar IDs from the batch request
-  const { requests } = JSON.parse(init.body as string);
-  const calendarIds = requests.map((req: any) =>
-    // assume URL ends with the calendar ID
-    req.url.split("/").pop() || ""
-  );
-  const batchResponse = await mockResponses
-    .batchAvailability(calendarIds)
-    .json();
+    // Extract calendar IDs from the batch request
+    const { requests } = JSON.parse(init.body as string);
+    const calendarIds = requests.map(
+      (req: any) =>
+        // assume URL ends with the calendar ID
+        req.url.split("/").pop() || ""
+    );
+    const batchResponse = await mockResponses.batchAvailability(calendarIds).json();
 
-  return Promise.resolve({
-    status: 200,
-    headers: new Map([
-      ["Content-Type", "application/json"],
-      ["Retry-After", "0"],
-    ]),
-    // Return an object, not a JSON string
-    json: async () => ({ responses: batchResponse.responses }),
-  });
-}
     return Promise.resolve({
       status: 200,
       headers: new Map([
         ["Content-Type", "application/json"],
         ["Retry-After", "0"],
       ]),
-      json: async () => Promise.resolve({ responses: batchResponse.responses }),
+      // Return an object, not a JSON string
+      json: async () => ({ responses: batchResponse.responses }),
     });
   }
   if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
