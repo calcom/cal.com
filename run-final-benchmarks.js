@@ -63,6 +63,15 @@ async function runComprehensiveBenchmarks() {
       }
     }
     
+    if (results.summary['native-date'] && results.summary['native-date'].executionTime) {
+      const nativeDateRatio = baseline.executionTime / results.summary['native-date'].executionTime;
+      if (nativeDateRatio > 1) {
+        console.log('🚀 native-date shows significant performance improvements over dayjs');
+      } else {
+        console.log('⚠️  native-date is slower than dayjs but has zero dependencies');
+      }
+    }
+    
     console.log('\n💾 Detailed results saved to benchmark-results.json');
     console.log('🎉 Benchmark analysis complete!');
     

@@ -282,6 +282,20 @@ async function setupDateFns() {
   };
 }
 
+async function setupNativeDate() {
+  const nativeDateAdapter = require('./packages/lib/native-date-dayjs');
+  
+  const Module = require('module');
+  const originalRequire = Module.prototype.require;
+  
+  Module.prototype.require = function(id) {
+    if (id === 'dayjs' || id.includes('dayjs')) {
+      return nativeDateAdapter;
+    }
+    return originalRequire.apply(this, arguments);
+  };
+}
+
 async function main() {
   console.log('📊 Cal.com Date Library Benchmark Suite');
   console.log('========================================');
@@ -301,6 +315,9 @@ async function main() {
   
   const dateFnsResults = await runBenchmark('date-fns', setupDateFns);
   allResults.push(dateFnsResults);
+  
+  const nativeDateResults = await runBenchmark('native-date', setupNativeDate);
+  allResults.push(nativeDateResults);
   
   generateReport(allResults);
 }
