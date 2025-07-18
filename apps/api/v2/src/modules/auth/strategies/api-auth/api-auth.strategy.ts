@@ -8,9 +8,11 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensService } from "@/modules/tokens/tokens.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
@@ -29,13 +31,17 @@ export type ApiAuthGuardRequest = Request & {
 };
 export const NO_AUTH_PROVIDED_MESSAGE =
   "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
+
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
+  private readonly logger = new Logger("ApiAuthStrategy");
+
   constructor(
     private readonly deploymentsService: DeploymentsService,
     private readonly config: ConfigService,
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
+    private readonly tokensService: TokensService,
     private readonly userRepository: UsersRepository,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
@@ -54,22 +60,53 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
       const allowedMethods = request.allowedAuthMethods;
       const noSpecificAuthExpected = !allowedMethods || !allowedMethods.length;
+
       const oAuthAllowed = noSpecificAuthExpected || allowedMethods.includes("OAUTH_CLIENT_CREDENTIALS");
       const apiKeyAllowed = noSpecificAuthExpected || allowedMethods.includes("API_KEY");
       const accessTokenAllowed = noSpecificAuthExpected || allowedMethods.includes("ACCESS_TOKEN");
       const nextAuthAllowed = noSpecificAuthExpected || allowedMethods.includes("NEXT_AUTH");
+      const thirdPartyAccessTokenAllowed =
+        noSpecificAuthExpected || allowedMethods.includes("THIRD_PARTY_ACCESS_TOKEN");
 
       if (oAuthClientId && oAuthClientSecret && oAuthAllowed) {
         request.authMethod = AuthMethods["OAUTH_CLIENT"];
         return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret, request);
       }
 
-      if (bearerToken && (apiKeyAllowed || accessTokenAllowed)) {
-        const requestOrigin = request.get("Origin");
-        request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
-          ? AuthMethods["API_KEY"]
-          : AuthMethods["ACCESS_TOKEN"];
-        return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
+      if (bearerToken) {
+        if (!apiKeyAllowed && !accessTokenAllowed && thirdPartyAccessTokenAllowed) {
+          request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
+          const result = await this.validateThirdPartyAccessToken(bearerToken, request);
+          if (result.success) {
+            return this.success(this.getSuccessUser(result.data));
+          }
+        }
+
+        if (apiKeyAllowed || accessTokenAllowed) {
+          try {
+            const requestOrigin = request.get("Origin");
+            request.authMethod = isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+              ? AuthMethods["API_KEY"]
+              : AuthMethods["ACCESS_TOKEN"];
+            return await this.authenticateBearerToken(bearerToken, request, requestOrigin);
+          } catch (err) {
+            // failed to validate access token, try to validate third party token
+            if (thirdPartyAccessTokenAllowed && request.authMethod === AuthMethods["ACCESS_TOKEN"]) {
+              request.authMethod = AuthMethods["THIRD_PARTY_ACCESS_TOKEN"];
+              const result = await this.validateThirdPartyAccessToken(bearerToken, request);
+
+              if (result.success) {
+                return this.success(this.getSuccessUser(result.data));
+              }
+            }
+            // token was not third party token, rethrow error from authenticateBearerToken
+            if (err instanceof Error) {
+              return this.error(err);
+            }
+          }
+        }
+
+        throw new UnauthorizedException(`ApiAuthStrategy - Invalid Bearer token`);
       }
 
       const nextAuthSecret = this.config.get("next.authSecret", { infer: true });
@@ -83,8 +120,11 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       if (noAuthProvided) {
         throw new UnauthorizedException(`ApiAuthStrategy - ${NO_AUTH_PROVIDED_MESSAGE}`);
       }
+
       throw new UnauthorizedException(
-        `ApiAuthStrategy - Invalid authentication method. Please provide one of the allowed methods: ${allowedMethods}`
+        `ApiAuthStrategy - Invalid authentication method. Please provide one of the allowed methods: ${
+          allowedMethods && allowedMethods.length > 0 ? allowedMethods.join(", ") : "Any supported method"
+        }`
       );
     } catch (err) {
       if (err instanceof Error) {
@@ -164,21 +204,17 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         : await this.accessTokenStrategy(authString, request, requestOrigin);
 
       if (!user) {
-        return this.error(
-          new UnauthorizedException(
-            "ApiAuthStrategy - bearer token - No user associated with the provided token"
-          )
+        throw new UnauthorizedException(
+          "ApiAuthStrategy - bearer token - No user associated with the provided token"
         );
       }
 
       return this.success(this.getSuccessUser(user));
     } catch (err) {
       if (err instanceof Error) {
-        return this.error(err);
+        throw err;
       }
-      return this.error(
-        new InternalServerErrorException("An error occurred while authenticating the request")
-      );
+      throw new InternalServerErrorException("An error occurred while authenticating the request");
     }
   }
 
@@ -270,5 +306,44 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     request.organizationId = organizationId;
 
     return user;
+  }
+
+  async validateThirdPartyAccessToken(
+    token: string,
+    request: ApiAuthGuardRequest
+  ): Promise<{ success: true; data: UserWithProfile } | { success: false }> {
+    const decodedToken = this.tokensService.getDecodedThirdPartyAccessToken(token);
+    if (!decodedToken) {
+      return { success: false };
+    }
+
+    let user: UserWithProfile | null = null;
+    let organizationId: number | null = null;
+
+    if (decodedToken.userId) {
+      user = await this.userRepository.findByIdWithProfile(decodedToken.userId);
+      if (user) {
+        organizationId = this.usersService.getUserMainOrgId(user) as number;
+      }
+    } else if (decodedToken.teamId) {
+      const teamOwner = await this.userRepository.findOwnerByTeamIdWithProfile(decodedToken.teamId);
+      if (!teamOwner) {
+        throw new UnauthorizedException(
+          "ApiAuthStrategy - third-party token - No owner found for the associated team."
+        );
+      }
+      user = teamOwner;
+      organizationId =
+        teamOwner.profiles?.find((p) => p.organizationId === decodedToken.teamId)?.organizationId ?? null;
+    }
+
+    if (!user) {
+      throw new UnauthorizedException(
+        "ApiAuthStrategy - third-party token - No user or team owner associated with the token."
+      );
+    }
+
+    request.organizationId = organizationId;
+    return { success: true, data: user };
   }
 }

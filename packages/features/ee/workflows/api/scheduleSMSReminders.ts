@@ -35,7 +35,11 @@ export async function handler(req: NextRequest) {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
+        gte: new Date(),
         lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select: {
