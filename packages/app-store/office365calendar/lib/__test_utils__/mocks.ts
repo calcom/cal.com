@@ -12,7 +12,9 @@ export const defaultFetcherMockImplementation = vi.fn(async (endpoint, init) => 
         // assume URL ends with the calendar ID
         req.url.split("/").pop() || ""
     );
-    const batchResponse = await mockResponses.batchAvailability(calendarIds).json();
+    const batchResponse = await mockResponses
+      .batchAvailability(calendarIds.length !== 0 ? calendarIds : ["cal1"])
+      .json();
 
     return Promise.resolve({
       status: 200,
@@ -20,8 +22,7 @@ export const defaultFetcherMockImplementation = vi.fn(async (endpoint, init) => 
         ["Content-Type", "application/json"],
         ["Retry-After", "0"],
       ]),
-      // Return an object, not a JSON string
-      json: async () => ({ responses: batchResponse.responses }),
+      json: async () => JSON.stringify({ responses: batchResponse.responses }),
     });
   }
   if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
