@@ -13,6 +13,5 @@
   "description": "Attio is the AI-native CRM that builds, scales and grows your company to the next level.",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app",
   "isOAuth": true
 }
