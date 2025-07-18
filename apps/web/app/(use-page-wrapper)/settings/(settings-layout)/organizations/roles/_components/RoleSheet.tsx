@@ -123,7 +123,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
       showToast(t("role_created_successfully"), "success");
       form.reset();
       onOpenChange(false);
-      await revalidateTeamRoles();
+      await revalidateTeamRoles(teamId);
       router.refresh();
     },
     onError: (error) => {
@@ -135,7 +135,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
     onSuccess: async () => {
       showToast(t("role_updated_successfully"), "success");
       onOpenChange(false);
-      await revalidateTeamRoles();
+      await revalidateTeamRoles(teamId);
       router.refresh();
     },
     onError: (error) => {

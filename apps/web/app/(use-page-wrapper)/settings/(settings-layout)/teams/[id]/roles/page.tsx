@@ -19,45 +19,49 @@ import { CreateRoleCTA } from "../../../organizations/roles/_components/CreateRo
 import { RolesList } from "../../../organizations/roles/_components/RolesList";
 import { roleSearchParamsCache } from "../../../organizations/roles/_components/searchParams";
 
-const getCachedTeamRoles = unstable_cache(
-  async (teamId: number) => {
-    const roleService = new RoleService();
-    return roleService.getTeamRoles(teamId);
-  },
-  ["team-roles-for-team"],
-  { revalidate: 3600 }
-);
+const getCachedTeamRoles = (teamId: number) =>
+  unstable_cache(
+    async () => {
+      const roleService = new RoleService();
+      return roleService.getTeamRoles(teamId);
+    },
+    [`team-roles-for-team-${teamId}`],
+    { revalidate: 3600, tags: [`team-roles-${teamId}`] }
+  );
 
-const getCachedTeamFeature = unstable_cache(
-  async (teamId: number, feature: keyof AppFlags) => {
-    const featureRepo = new FeaturesRepository();
-    const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
-    return res;
-  },
-  ["team-feature-for-roles"],
-  { revalidate: 3600 }
-);
+const getCachedTeamFeature = (teamId: number, feature: keyof AppFlags) =>
+  unstable_cache(
+    async () => {
+      const featureRepo = new FeaturesRepository();
+      const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
+      return res;
+    },
+    [`team-feature-for-roles-${teamId}-${feature}`],
+    { revalidate: 3600, tags: [`team-features-${teamId}`] }
+  );
 
-const getCachedResourcePermissions = unstable_cache(
-  async (userId: number, teamId: number, resource: Resource) => {
-    const permissionService = new PermissionCheckService();
-    return permissionService.getResourcePermissions({ userId, teamId, resource });
-  },
-  ["resource-permissions-for-team-roles"],
-  { revalidate: 3600 }
-);
+const getCachedResourcePermissions = (userId: number, teamId: number, resource: Resource) =>
+  unstable_cache(
+    async () => {
+      const permissionService = new PermissionCheckService();
+      return permissionService.getResourcePermissions({ userId, teamId, resource });
+    },
+    [`resource-permissions-for-team-roles-${userId}-${teamId}-${resource}`],
+    { revalidate: 3600, tags: [`resource-permissions-${teamId}`] }
+  );
 
-const getCachedTeam = unstable_cache(
-  async (teamId: string, userId: number) => {
-    return getTeamWithMembers({
-      id: Number(teamId),
-      userId: userId,
-      isTeamView: true,
-    });
-  },
-  ["team-with-members-for-roles"],
-  { revalidate: 3600 }
-);
+const getCachedTeam = (teamId: string, userId: number) =>
+  unstable_cache(
+    async () => {
+      return getTeamWithMembers({
+        id: Number(teamId),
+        userId: userId,
+        isTeamView: true,
+      });
+    },
+    [`team-with-members-for-roles-${teamId}-${userId}`],
+    { revalidate: 3600, tags: [`team-members-${teamId}`] }
+  );
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -86,7 +90,7 @@ const Page = async ({
   }
 
   // Get team information including parent
-  const team = await getCachedTeam(teamId, session.user.id);
+  const team = await getCachedTeam(teamId, session.user.id)();
 
   if (!team) {
     return notFound();
@@ -98,7 +102,7 @@ const Page = async ({
   }
 
   // Check if parent team has PBAC feature enabled
-  const parentTeamHasPBACFeature = await getCachedTeamFeature(team.parent.id, "pbac");
+  const parentTeamHasPBACFeature = await getCachedTeamFeature(team.parent.id, "pbac")();
 
   if (!parentTeamHasPBACFeature) {
     return notFound();
@@ -107,8 +111,8 @@ const Page = async ({
   roleSearchParamsCache.parse(searchParams);
 
   const [roles, rolePermissions] = await Promise.all([
-    getCachedTeamRoles(team.id),
-    getCachedResourcePermissions(session.user.id, team.id, Resource.Role),
+    getCachedTeamRoles(team.id)(),
+    getCachedResourcePermissions(session.user.id, team.id, Resource.Role)(),
   ]);
 
   // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
