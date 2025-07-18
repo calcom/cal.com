@@ -3407,7 +3407,6 @@ __metadata:
   resolution: "@calcom/api-proxy@workspace:apps/api"
   dependencies:
     connect: ^3.7.0
-    http: ^0.0.1-security
     http-proxy-middleware: ^2.0.6
   languageName: unknown
   linkType: soft
@@ -31942,13 +31941,6 @@ __metadata:
     jsprim: ^1.2.2
     sshpk: ^1.7.0
   checksum: 3324598712266a9683585bb84a75dec4fd550567d5e0dd4a0fff6ff3f74348793404d3eeac4918fa0902c810eeee1a86419e4a2e92a164132dfe6b26743fb47c
-  languageName: node
-  linkType: hard
-
-"http@npm:^0.0.1-security":
-  version: 0.0.1-security
-  resolution: "http@npm:0.0.1-security"
-  checksum: c45a4e2771b5679b479b24150216e0b423d5bf2f94062c91b4b5e5347ed3f18b8c049e220df6e328c34ac5aab0d020600a05a9ea954bc7a7efc04d8dde7aada0
   languageName: node
   linkType: hard
 
