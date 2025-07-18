@@ -3,6 +3,7 @@ import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import appStore from "..";
+import { AppStoreFactory } from "../factory";
 
 interface CalendarApp {
   lib: {
@@ -26,6 +27,15 @@ const isCalendarService = (x: unknown): x is CalendarApp =>
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
+  if (credential) {
+    try {
+      const appStoreInstance = AppStoreFactory.getAppStore();
+      if (appStoreInstance.calendar) {
+        return appStoreInstance.calendar.getService(credential);
+      }
+    } catch {}
+  }
+
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
