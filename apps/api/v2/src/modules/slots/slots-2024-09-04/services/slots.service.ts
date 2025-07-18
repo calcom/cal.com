@@ -5,8 +5,8 @@ import { MembershipsService } from "@/modules/memberships/services/memberships.s
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import {
   SlotsInputService_2024_09_04,
-  TransformedGetSlotsQuery,
-  TransformedGetSlotsQueryWithRouting,
+  InternalGetSlotsQuery,
+  InternalGetSlotsQueryWithRouting,
 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
@@ -38,7 +38,7 @@ const eventTypeMetadataSchema = z
 
 const DEFAULT_RESERVATION_DURATION = 5;
 
-type TransformedSlotsQuery = TransformedGetSlotsQuery | TransformedGetSlotsQueryWithRouting;
+type InternalSlotsQuery = InternalGetSlotsQuery | InternalGetSlotsQueryWithRouting;
 @Injectable()
 export class SlotsService_2024_09_04 {
   constructor(
@@ -52,7 +52,7 @@ export class SlotsService_2024_09_04 {
     private readonly availableSlotsService: AvailableSlotsService
   ) {}
 
-  private async fetchAndFormatSlots(queryTransformed: TransformedSlotsQuery, format?: SlotFormat) {
+  private async fetchAndFormatSlots(queryTransformed: InternalSlotsQuery, format?: SlotFormat) {
     try {
       const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
         input: queryTransformed,
