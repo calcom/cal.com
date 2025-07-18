@@ -284,6 +284,44 @@ describe("Cal", () => {
         expect(iframe.getAttribute("title")).toBe("Custom booking title");
       });
 
+      it("should set allow='payment' even when no config is provided", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
+      it("should set allow='payment' when iframeAttrs is empty", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: { iframeAttrs: {} },
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
+      it("should apply all iframeAttrs not just id", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: {
+            iframeAttrs: {
+              id: "custom-id",
+              "data-custom": "value",
+              class: "custom-class",
+            },
+          },
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("id")).toBe("custom-id");
+        expect(iframe.getAttribute("data-custom")).toBe("value");
+        expect(iframe.getAttribute("class")).toBe("custom-class");
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
       it("should respect forwardQueryParams setting to disable sending page query params but still send the ones in the config", () => {
         mockSearchParams("?param1=value");
 
