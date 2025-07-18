@@ -162,7 +162,9 @@ export class SharedRoutingFormResponseService {
 
     if (!eventType?.id) {
       // This could only happen if the event-type earlier selected as route action was deleted
-      throw new InternalServerErrorException("Chosen event type not found.");
+      throw new InternalServerErrorException(
+        `Chosen event type identified by slug ${eventTypeSlug} not found.`
+      );
     }
 
     // Extract CRM parameters from URL
