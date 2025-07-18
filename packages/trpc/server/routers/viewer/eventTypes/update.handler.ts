@@ -116,6 +116,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: true,
           weight: true,
           isFixed: true,
+          isOrganizer: true,
         },
       },
       aiPhoneCallConfig: {
@@ -407,8 +408,25 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
+    // Validate organizer constraints
+    const organizers = hosts.filter((host) => host.isOrganizer);
+    if (organizers.length > 1) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only one host can be an organizer",
+      });
+    }
+
+    const organizer = organizers[0];
+    if (organizer && !organizer.isFixed) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Only fixed hosts can be organizers",
+      });
+    }
+
     const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(hosts.map((newHost) => newHost.userId));
 
     const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
     const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
@@ -425,6 +443,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         return {
           ...host,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          isOrganizer:
+            host.isOrganizer && (data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed),
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
         };
@@ -438,6 +458,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         data: {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          isOrganizer:
+            host.isOrganizer && (data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed),
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           scheduleId: host.scheduleId ?? null,
