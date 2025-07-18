@@ -654,21 +654,35 @@ describe("CreditService", () => {
       //
 
       vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
-        { teamId: 2 }, // Only regular team returned - unpublished platform org (teamId: 1) filtered out at repository level
+        { teamId: 1 }, // Unpublished platform org membership
+        { teamId: 2 }, // Regular team membership
       ]);
 
-      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
-        id: "2",
-        additionalCredits: 100,
-        limitReachedAt: null,
-        warningSentAt: null,
-      });
+      vi.mocked(CreditsRepository.findCreditBalance)
+        .mockResolvedValueOnce({
+          id: "1",
+          additionalCredits: 0,
+          limitReachedAt: new Date(), // Limit reached for unpublished platform org
+          warningSentAt: null,
+        })
+        .mockResolvedValueOnce({
+          id: "2",
+          additionalCredits: 100,
+          limitReachedAt: null,
+          warningSentAt: null,
+        });
 
-      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
-        totalMonthlyCredits: 500,
-        totalRemainingMonthlyCredits: 200,
-        additionalCredits: 100,
-      });
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam")
+        .mockResolvedValueOnce({
+          totalMonthlyCredits: 500,
+          totalRemainingMonthlyCredits: 0, // No monthly credits remaining for unpublished platform org
+          additionalCredits: 0, // No additional credits for unpublished platform org
+        })
+        .mockResolvedValueOnce({
+          totalMonthlyCredits: 500,
+          totalRemainingMonthlyCredits: 200, // Monthly credits available for regular team
+          additionalCredits: 100, // Additional credits available for regular team
+        });
 
       const result = await creditService.getTeamWithAvailableCredits(1);
 
@@ -680,8 +694,9 @@ describe("CreditService", () => {
 
       expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
 
-      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
-      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(2);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenNthCalledWith(1, { teamId: 1 }, MOCK_TX);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenNthCalledWith(2, { teamId: 2 }, MOCK_TX);
     });
   });
 });
