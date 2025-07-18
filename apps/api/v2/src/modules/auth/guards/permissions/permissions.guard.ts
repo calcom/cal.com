@@ -37,8 +37,7 @@ export class PermissionsGuard implements CanActivate {
     const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
     const oAuthClientId = request.params?.clientId || request.get(X_CAL_CLIENT_ID);
     const apiKey = bearerToken && isApiKey(bearerToken, this.config.get("api.apiKeyPrefix") ?? "cal_");
-    const isThirdPartyBearerToken =
-      bearerToken && this.tokensService.getDecodedThirdPartyAccessToken(bearerToken);
+    const isThirdPartyBearerToken = bearerToken && this.getDecodedThirdPartyAccessToken(bearerToken);
 
     // only check permissions for accessTokens attached to platform oAuth Client or platform oAuth credentials, not for next token or api key or third party oauth client
     if (nextAuthToken || apiKey || isThirdPartyBearerToken) {
@@ -90,5 +89,9 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException(`PermissionsGuard - no oAuth client found for client id=${id}`);
     }
     return oAuthClient;
+  }
+
+  getDecodedThirdPartyAccessToken(bearerToken: string) {
+    return this.tokensService.getDecodedThirdPartyAccessToken(bearerToken);
   }
 }

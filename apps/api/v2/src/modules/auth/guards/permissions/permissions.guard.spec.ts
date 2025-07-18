@@ -120,6 +120,7 @@ describe("PermissionsGuard", () => {
       jest
         .spyOn(guard, "getOAuthClientByAccessToken")
         .mockResolvedValue(getMockOAuthClient(oAuthClientPermissions));
+      jest.spyOn(guard, "getDecodedThirdPartyAccessToken").mockReturnValue(null);
 
       await expect(guard.canActivate(mockContext)).rejects.toThrow(
         "PermissionsGuard - oAuth client with id=100 does not have the required permissions=SCHEDULE_WRITE"
@@ -135,10 +136,21 @@ describe("PermissionsGuard", () => {
       jest
         .spyOn(guard, "getOAuthClientByAccessToken")
         .mockResolvedValue(getMockOAuthClient(oAuthClientPermissions));
+      jest.spyOn(guard, "getDecodedThirdPartyAccessToken").mockReturnValue(null);
 
       await expect(guard.canActivate(mockContext)).rejects.toThrow(
         "PermissionsGuard - oAuth client with id=100 does not have the required permissions=SCHEDULE_WRITE, SCHEDULE_READ"
       );
+    });
+
+    it("should return true for 3rd party access token", async () => {
+      const mockContext = createMockExecutionContext({ Authorization: "Bearer token" });
+      jest.spyOn(guard, "getDecodedThirdPartyAccessToken").mockReturnValue({
+        scope: ["scope"],
+        token_type: "Bearer",
+      });
+
+      await expect(guard.canActivate(mockContext)).resolves.toBe(true);
     });
   });
 
