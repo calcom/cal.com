@@ -888,7 +888,6 @@ model SelectedCalendar {
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
   @@unique([userId, integration, externalId, eventTypeId])
   @@unique([googleChannelId, eventTypeId])
-  @@unique([outlookSubscriptionId, eventTypeId])
   @@index([userId])
   @@index([externalId])
   @@index([eventTypeId])
