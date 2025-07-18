@@ -1,7 +1,16 @@
 "use client";
 
 import { Title } from "@tremor/react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Rectangle,
+} from "recharts";
 
 import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -39,21 +48,51 @@ const HourlyBookingsChartContent = ({ data }: { data: HourlyBookingsData[] }) =>
     <div className="mt-4 h-80">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-subtle" />
-          <XAxis dataKey="hour" className="text-default text-xs" tick={{ fontSize: 12 }} />
-          <YAxis className="text-default text-xs" tick={{ fontSize: 12 }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "var(--cal-bg-default)",
-              border: "1px solid var(--cal-border-default)",
-              borderRadius: "6px",
-              color: "var(--cal-text-default)",
-            }}
-            labelStyle={{ color: "var(--cal-text-default)" }}
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="hour" className="text-xs" axisLine={false} tickLine={false} />
+          <YAxis allowDecimals={false} className="text-xs opacity-50" axisLine={false} tickLine={false} />
+          <Tooltip cursor={false} content={<CustomTooltip />} />
+          <Bar
+            dataKey="bookings"
+            fill="var(--cal-bg-subtle)"
+            radius={[2, 2, 0, 0]}
+            activeBar={<Rectangle fill="var(--cal-bg-info)" />}
           />
-          <Bar dataKey="bookings" fill="var(--cal-brand-default)" radius={[2, 2, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
+    </div>
+  );
+};
+
+// Custom Tooltip component
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    dataKey: string;
+    name: string;
+    color: string;
+    payload: { hour: string; bookings: number };
+  }>;
+  label?: string;
+}) => {
+  const { t } = useLocale();
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div className="bg-default border-subtle rounded-lg border p-3 shadow-lg">
+      <p className="text-default font-medium">{payload[0].payload.hour}</p>
+      {payload.map((entry, index: number) => (
+        <p key={index}>
+          {t("bookings")}: {entry.value}
+        </p>
+      ))}
     </div>
   );
 };
@@ -65,7 +104,7 @@ export const HourlyBookingsChart = () => {
   const { timeZone } = useDataTable();
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.hourlyBookingStats.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.hourlyBookingsStats.useQuery(
     {
       scope,
       selectedTeamId,
