@@ -734,6 +734,42 @@ test.describe("GTM container", () => {
     await expect(injectedScript).not.toBeAttached();
   });
 
+  test("GTM should not be loaded on booking success page", async ({ page, users }) => {
+    const [user] = users.get();
+    await user.apiLogin();
+
+    const eventType = await user.getFirstEventAsOwner();
+    await page.goto(`/${user.username}/${eventType.slug}`);
+    await page.waitForLoadState("domcontentloaded");
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page, {
+      name: "Test-user-1",
+      email: "test-booker@example.com",
+    });
+
+    await page.waitForURL((url) => url.pathname.startsWith(`/booking/`));
+
+    // Check for GTM scripts - should not be present
+    const gtmScripts = page.locator('script[src*="googletagmanager"]');
+    await expect(gtmScripts).toHaveCount(0);
+
+    // Check for any scripts containing GTM code
+    const gtmContentScripts = page.locator('script:has-text("googletagmanager")');
+    await expect(gtmContentScripts).toHaveCount(0);
+
+    // Check that dataLayer is not initialized
+    const hasDataLayer = await page.evaluate(() => typeof window.dataLayer !== "undefined");
+    expect(hasDataLayer).toBe(false);
+
+    // Check that gtag function is not available
+    const hasGtag = await page.evaluate(() => typeof window.gtag !== "undefined");
+    expect(hasGtag).toBe(false);
+
+    // Check for GTM noscript iframe (fallback)
+    const gtmNoscript = page.locator('noscript iframe[src*="googletagmanager"]');
+    await expect(gtmNoscript).toHaveCount(0);
+  });
+
   test("global GTM should be loaded on non-booking pages", async ({ page, users }) => {
     test.skip(!process.env.NEXT_PUBLIC_BODY_SCRIPTS, "Skipping test as NEXT_PUBLIC_BODY_SCRIPTS is not set");
 
