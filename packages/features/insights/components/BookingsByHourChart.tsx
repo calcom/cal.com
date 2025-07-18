@@ -25,7 +25,7 @@ type HourlyBookingsData = {
   count: number;
 };
 
-export const HourlyBookingsChartContent = ({ data }: { data: HourlyBookingsData[] }) => {
+export const BookingsByHourChartContent = ({ data }: { data: HourlyBookingsData[] }) => {
   const { t } = useLocale();
 
   const chartData = data.map((item) => ({
@@ -97,7 +97,7 @@ const CustomTooltip = ({
   );
 };
 
-export const HourlyBookingsChart = () => {
+export const BookingsByHourChart = () => {
   const { t } = useLocale();
   const { timeZone } = useDataTable();
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
@@ -126,7 +126,7 @@ export const HourlyBookingsChart = () => {
 
   return (
     <ChartCard title={t("hourly_bookings")}>
-      <HourlyBookingsChartContent data={data} />
+      <BookingsByHourChartContent data={data} />
     </ChartCard>
   );
 };

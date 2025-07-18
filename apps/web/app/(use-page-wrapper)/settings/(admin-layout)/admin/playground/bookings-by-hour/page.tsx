@@ -1,7 +1,7 @@
 "use client";
 
+import { BookingsByHourChartContent } from "@calcom/features/insights/components/BookingsByHourChart";
 import { ChartCard } from "@calcom/features/insights/components/ChartCard";
-import { HourlyBookingsChartContent } from "@calcom/features/insights/components/HourlyBookingsChart";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 // Sample data for playground testing
@@ -32,20 +32,20 @@ const sampleHourlyBookingsData = [
   { hour: 23, count: 10 },
 ];
 
-export default function HourlyBookingsPlayground() {
+export default function BookingsByHourPlayground() {
   const { t } = useLocale();
   return (
     <div className="space-y-6 p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Hourly Bookings Playground</h1>
+        <h1 className="text-3xl font-bold">Bookings by Hour Playground</h1>
         <p className="mt-2 text-gray-600">
-          This page demonstrates the HourlyBookingChartContent component with sample data.
+          This page demonstrates the BookingsByHourChartContent component with sample data.
         </p>
       </div>
 
       <div className="max-w-4xl">
         <ChartCard title={t("hourly_bookings")}>
-          <HourlyBookingsChartContent data={sampleHourlyBookingsData} />
+          <BookingsByHourChartContent data={sampleHourlyBookingsData} />
         </ChartCard>
       </div>
 

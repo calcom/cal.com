@@ -6,8 +6,8 @@ const LINKS = [
     href: "/settings/admin/playground/routing-funnel",
   },
   {
-    title: "Hourly Bookings",
-    href: "/settings/admin/playground/hourly-bookings",
+    title: "Bookings by Hour",
+    href: "/settings/admin/playground/bookings-by-hour",
   },
 ];
 

@@ -256,6 +256,70 @@ export class InsightsBookingService {
     }));
   }
 
+  async getHourlyDailyBookingStats({
+    startDate,
+    endDate,
+    timeZone,
+    weekStart,
+  }: {
+    startDate: string;
+    endDate: string;
+    timeZone: string;
+    weekStart: number;
+  }) {
+    // Validate date formats
+    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
+      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const results = await this.prisma.$queryRaw<
+      Array<{
+        day_of_week: string;
+        hour: string;
+        count: bigint;
+      }>
+    >`
+      WITH hourly_daily_data AS (
+        SELECT
+          EXTRACT(DOW FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as day_of_week_extracted,
+          EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+          AND "startTime" >= ${startDate}::timestamp
+          AND "startTime" <= ${endDate}::timestamp
+          AND "status" = 'accepted'
+      )
+      SELECT
+        day_of_week_extracted as "day_of_week",
+        hour_extracted as "hour",
+        COUNT(*) as "count"
+      FROM hourly_daily_data
+      GROUP BY day_of_week_extracted, hour_extracted
+      ORDER BY "day_of_week", "hour"
+    `;
+
+    // Create a map of results by day and hour for easy lookup
+    const resultsMap = new Map<string, number>();
+    results.forEach((row) => {
+      const key = `${row.day_of_week}-${row.hour}`;
+      resultsMap.set(key, Number(row.count));
+    });
+
+    // Adjust day of week based on weekStart (0 = Sunday, 1 = Monday)
+    const adjustedDays = Array.from({ length: 7 }, (_, i) => (i + weekStart) % 7);
+
+    // Return all combinations of days (0-6) and hours (0-23), filling with 0 values for missing data
+    return adjustedDays.flatMap((day) =>
+      Array.from({ length: 24 }, (_, hour) => ({
+        dayOfWeek: day,
+        hour,
+        count: resultsMap.get(`${day}-${hour}`) || 0,
+      }))
+    );
+  }
+
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });

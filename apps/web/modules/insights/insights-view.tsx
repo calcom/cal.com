@@ -13,7 +13,7 @@ import {
   BookingStatusLineChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
-  HourlyBookingsChart,
+  BookingsByHourChart,
   LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
@@ -77,7 +77,8 @@ function InsightsPageContent() {
           <AverageEventDurationChart />
         </div>
 
-        <HourlyBookingsChart />
+        <BookingsByHourChart />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
