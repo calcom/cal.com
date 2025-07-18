@@ -25,7 +25,8 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
       if (result.success) {
         onAuthenticated();
       } else {
-        Alert.alert("Authentication Failed", "Invalid API key or connection error");
+        const errorMessage = result.details?.message || result.error || "Invalid API key or connection error";
+        Alert.alert("Authentication Failed", errorMessage);
         await ApiService.clearApiKey();
       }
     } catch (error) {

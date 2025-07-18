@@ -1,14 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:3002/api/v2";
+const API_BASE_URL = "http://localhost:5555/v2";
 
 class ApiService {
   private apiKey: string | null = null;
 
   async setApiKey(key: string) {
-    this.apiKey = key;
-    await AsyncStorage.setItem("cal_api_key", key);
+    const formattedKey = key.startsWith("cal_") ? key : `cal_${key}`;
+    this.apiKey = formattedKey;
+    await AsyncStorage.setItem("cal_api_key", formattedKey);
   }
 
   async getApiKey(): Promise<string | null> {
@@ -107,7 +108,12 @@ class ApiService {
       const response = await axios.get(`${API_BASE_URL}/event-types`, { headers });
       return { success: true, data: response.data };
     } catch (error: any) {
-      return { success: false, error: error.message };
+      console.error("API Connection Error:", error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message,
+        details: error.response?.data,
+      };
     }
   }
 }
