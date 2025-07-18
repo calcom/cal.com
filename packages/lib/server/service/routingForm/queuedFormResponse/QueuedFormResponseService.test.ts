@@ -95,25 +95,20 @@ describe("QueuedFormResponseService", () => {
       mockRepo.findMany.mockResolvedValueOnce([]);
 
       const result = await service.cleanupExpiredResponses();
+      const expectedCutoffTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
       // Verify default batch size and older than days
       expect(mockRepo.findMany).toHaveBeenCalledWith({
         where: {
           actualResponseId: null,
           createdAt: {
-            lt: expect.any(Date),
+            lt: expectedCutoffTime,
           },
         },
         params: {
           take: 1000, // default batch size
         },
       });
-
-      // Verify the cutoff time is 7 days ago (default)
-      const callArgs = mockRepo.findMany.mock.calls[0][0];
-      const now = Date.now();
-      const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-      expect(callArgs.where.createdAt.lt.getTime()).toBeCloseTo(sevenDaysAgo, -2); // within 100ms
 
       expect(result).toEqual({
         count: 0,
@@ -135,7 +130,7 @@ describe("QueuedFormResponseService", () => {
 
     it("should stop when batch is not full", async () => {
       // Return partial batch
-      mockRepo.findMany.mockResolvedValueOnce([{ id: "1" }, { id: "2" }, { id: "3" }] as any);
+      mockRepo.findMany.mockResolvedValueOnce([{ id: "1" }, { id: "2" }, { id: "3" }]);
       mockRepo.deleteByIds.mockResolvedValueOnce({ count: 3 });
 
       const result = await service.cleanupExpiredResponses({ batchSize: 5 });
@@ -154,6 +149,4 @@ describe("QueuedFormResponseService", () => {
       await expect(service.cleanupExpiredResponses()).rejects.toThrow("Database error");
     });
   });
-
 });
-

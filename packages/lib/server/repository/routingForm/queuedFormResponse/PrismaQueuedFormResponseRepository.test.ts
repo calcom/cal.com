@@ -52,6 +52,128 @@ describe("PrismaQueuedFormResponseRepository", () => {
 
       expect(result).toEqual(mockResponses);
     });
+
+    it("should find queued form responses without params", async () => {
+      const cutoffTime = new Date("2024-01-01T00:00:00Z");
+      const mockResponses = [{ id: "1" }, { id: "2" }];
+
+      prismaMock.app_RoutingForms_QueuedFormResponse.findMany.mockResolvedValue(mockResponses);
+
+      const result = await repository.findMany({
+        where: {
+          actualResponseId: null,
+          createdAt: {
+            lt: cutoffTime,
+          },
+        },
+      });
+
+      expect(prismaMock.app_RoutingForms_QueuedFormResponse.findMany).toHaveBeenCalledWith({
+        where: {
+          actualResponseId: null,
+          createdAt: {
+            lt: cutoffTime,
+          },
+        },
+        select: {
+          id: true,
+          formId: true,
+          response: true,
+          chosenRouteId: true,
+          createdAt: true,
+          updatedAt: true,
+          actualResponseId: true,
+        },
+      });
+
+      expect(result).toEqual(mockResponses);
+    });
+
+    it("should throw error when where clause is empty", async () => {
+      await expect(
+        repository.findMany({
+          where: {},
+        })
+      ).rejects.toThrow("where is empty");
+
+      expect(prismaMock.app_RoutingForms_QueuedFormResponse.findMany).not.toHaveBeenCalled();
+    });
+
+    it("should throw error when where clause has only undefined values", async () => {
+      await expect(
+        repository.findMany({
+          where: {
+            actualResponseId: undefined,
+            createdAt: undefined,
+          },
+        })
+      ).rejects.toThrow("where is empty");
+
+      expect(prismaMock.app_RoutingForms_QueuedFormResponse.findMany).not.toHaveBeenCalled();
+    });
+
+    it("should find queued form responses with only actualResponseId filter", async () => {
+      const mockResponses = [{ id: "1" }];
+
+      prismaMock.app_RoutingForms_QueuedFormResponse.findMany.mockResolvedValue(mockResponses);
+
+      const result = await repository.findMany({
+        where: {
+          actualResponseId: "response123",
+        },
+      });
+
+      expect(prismaMock.app_RoutingForms_QueuedFormResponse.findMany).toHaveBeenCalledWith({
+        where: {
+          actualResponseId: "response123",
+        },
+        select: {
+          id: true,
+          formId: true,
+          response: true,
+          chosenRouteId: true,
+          createdAt: true,
+          updatedAt: true,
+          actualResponseId: true,
+        },
+      });
+
+      expect(result).toEqual(mockResponses);
+    });
+
+    it("should find queued form responses with only createdAt filter", async () => {
+      const cutoffTime = new Date("2024-01-01T00:00:00Z");
+      const mockResponses = [{ id: "1" }];
+
+      prismaMock.app_RoutingForms_QueuedFormResponse.findMany.mockResolvedValue(mockResponses);
+
+      const result = await repository.findMany({
+        where: {
+          createdAt: {
+            lt: cutoffTime,
+          },
+        },
+      });
+
+      expect(prismaMock.app_RoutingForms_QueuedFormResponse.findMany).toHaveBeenCalledWith({
+        where: {
+          createdAt: {
+            lt: cutoffTime,
+          },
+        },
+        select: {
+          id: true,
+          formId: true,
+          response: true,
+          chosenRouteId: true,
+          createdAt: true,
+          updatedAt: true,
+          actualResponseId: true,
+        },
+      });
+
+      expect(result).toEqual(mockResponses);
+    });
   });
 
   describe("deleteByIds", () => {
@@ -92,5 +214,4 @@ describe("PrismaQueuedFormResponseRepository", () => {
       expect(result).toEqual(mockDeleteResult);
     });
   });
-
 });
