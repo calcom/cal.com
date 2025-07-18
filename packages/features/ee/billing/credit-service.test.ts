@@ -653,6 +653,7 @@ describe("CreditService", () => {
     it("should skip unpublished platform organizations and return regular team with credits", async () => {
       //
       //
+      //
 
       vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
         { teamId: 2 }, // Only regular team returned - unpublished platform org (teamId: 1) filtered out at repository level
