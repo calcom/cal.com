@@ -13,8 +13,18 @@ config.resolver.nodeModulesPaths = [
 ];
 
 config.resolver.platforms = ["native", "android", "ios", "web"];
+config.resolver.disableHierarchicalLookup = false;
+
 config.resolver.alias = {
   "react-native": path.resolve(projectRoot, "node_modules/react-native"),
+  "../Utilities/Platform": path.resolve(
+    projectRoot,
+    "node_modules/react-native/Libraries/Utilities/Platform"
+  ),
+  "../Utilities": path.resolve(projectRoot, "node_modules/react-native/Libraries/Utilities"),
 };
+
+config.resolver.resolverMainFields = ["react-native", "browser", "main"];
+config.resolver.sourceExts = ["js", "json", "ts", "tsx", "jsx"];
 
 module.exports = config;
