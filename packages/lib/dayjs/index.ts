@@ -171,7 +171,18 @@ export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefin
  * @returns Time Zone name
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezone"];
+export const getTimeZone = (date: Dayjs): string => {
+  if ((date as any)._dt && (date as any)._dt.zoneName) {
+    return (date as any)._dt.zoneName;
+  }
+  if ((date as any)._timezone) {
+    return (date as any)._timezone;
+  }
+  if ((date as any)["$x"] && (date as any)["$x"]["$timezone"]) {
+    return (date as any)["$x"]["$timezone"];
+  }
+  return "UTC";
+};
 
 /**
  * Verify if timeZone has Daylight Saving Time (DST).
