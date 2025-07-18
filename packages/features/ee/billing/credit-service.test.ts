@@ -148,7 +148,7 @@ describe("CreditService", () => {
 
     describe("getTeamWithAvailableCredits", () => {
       it("should return team with available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -174,7 +174,7 @@ describe("CreditService", () => {
       });
 
       it("should return first team if no team has available credits", async () => {
-        vi.mocked(MembershipRepository.).mockResolvedValue([
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -362,7 +362,9 @@ describe("CreditService", () => {
       });
 
       it("should return team with available credits when userId is provided", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([{ teamId: 1 }]);
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+          { teamId: 1 },
+        ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
