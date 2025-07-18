@@ -258,7 +258,7 @@ describe("Cal", () => {
         expect(iframe.src).toContain("email=test%40example.com");
       });
 
-      it("should set allow='payment' attribute by default for Apple Pay support", () => {
+      it("should set allow='payment' attribute by default to allow Payment Apps to acccept payments", () => {
         const iframe = calInstance.createIframe({
           calLink: "john-doe/meeting",
           config: {},
@@ -268,20 +268,25 @@ describe("Cal", () => {
         expect(iframe.getAttribute("allow")).toBe("payment");
       });
 
-      it("should allow overriding iframe attributes including allow attribute", () => {
+      it("should not allow overriding the allow attribute but should apply id", () => {
         const iframe = calInstance.createIframe({
           calLink: "john-doe/meeting",
           config: {
             iframeAttrs: {
               allow: "payment; microphone; camera",
               title: "Custom booking title",
+              id: "custom-iframe-id",
             },
           },
           calOrigin: null,
         });
 
-        expect(iframe.getAttribute("allow")).toBe("payment; microphone; camera");
-        expect(iframe.getAttribute("title")).toBe("Custom booking title");
+        // Allow attribute should always be "payment" and not be overridable
+        expect(iframe.getAttribute("allow")).toBe("payment");
+        // Only id should be applied from iframeAttrs
+        expect(iframe.getAttribute("id")).toBe("custom-iframe-id");
+        // Other attributes should not be applied
+        expect(iframe.getAttribute("title")).not.toBe("Custom booking title");
       });
 
       it("should set allow='payment' even when no config is provided", () => {
@@ -303,7 +308,7 @@ describe("Cal", () => {
         expect(iframe.getAttribute("allow")).toBe("payment");
       });
 
-      it("should apply all iframeAttrs not just id", () => {
+      it("should only apply id from iframeAttrs and ignore other attributes", () => {
         const iframe = calInstance.createIframe({
           calLink: "john-doe/meeting",
           config: {
@@ -317,8 +322,10 @@ describe("Cal", () => {
         });
 
         expect(iframe.getAttribute("id")).toBe("custom-id");
-        expect(iframe.getAttribute("data-custom")).toBe("value");
-        expect(iframe.getAttribute("class")).toBe("custom-class");
+        // Other attributes should not be applied
+        expect(iframe.getAttribute("data-custom")).toBeNull();
+        expect(iframe.getAttribute("class")).toBe("cal-embed");
+        // Allow attribute should always be set
         expect(iframe.getAttribute("allow")).toBe("payment");
       });
 

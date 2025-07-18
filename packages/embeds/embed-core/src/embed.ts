@@ -328,13 +328,11 @@ export class Cal {
     const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
 
-    iframe.setAttribute("allow", "payment");
-
-    if (iframeAttrs) {
-      Object.entries(iframeAttrs).forEach(([key, value]) => {
-        iframe.setAttribute(key, value);
-      });
+    if (iframeAttrs && iframeAttrs.id) {
+      iframe.setAttribute("id", iframeAttrs.id);
     }
+
+    iframe.setAttribute("allow", "payment");
 
     const searchParams = this.buildFilteredQueryParams(queryParamsFromConfig);
 
