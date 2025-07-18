@@ -1,5 +1,6 @@
 "use client";
 
+import type { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/badge";
 import { Button } from "@calcom/ui/button";
@@ -46,6 +47,7 @@ interface RolesListProps {
   initialSelectedRole?: Role;
   initialSheetOpen?: boolean;
   teamId: number;
+  scope?: Scope;
 }
 
 export function RolesList({
@@ -54,6 +56,7 @@ export function RolesList({
   initialSelectedRole,
   initialSheetOpen,
   teamId,
+  scope,
 }: RolesListProps) {
   const { t } = useLocale();
   const { isOpen, setIsOpen, selectedRoleId, setSelectedRoleId, handleSheetOpenChange } = useRoleStates(
@@ -109,6 +112,7 @@ export function RolesList({
         open={isOpen ?? false}
         onOpenChange={handleSheetOpenChange}
         teamId={teamId}
+        scope={scope}
       />
     </>
   );
