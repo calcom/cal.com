@@ -44,7 +44,7 @@ async function getAccessToken() {
         body: body.toString(),
       });
       if (!response.ok) {
-        throw Error;
+        throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
       return data;
