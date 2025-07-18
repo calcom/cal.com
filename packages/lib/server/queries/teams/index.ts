@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
@@ -37,7 +37,7 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  const userSelect = {
     username: true,
     email: true,
     name: true,
@@ -69,7 +69,7 @@ export async function getTeamWithMembers(args: {
         },
       },
     },
-  });
+  } satisfies Prisma.UserSelect;
   let lookupBy;
 
   if (id) {
@@ -183,10 +183,11 @@ export async function getTeamWithMembers(args: {
   if (!teamOrOrg) return null;
 
   const teamOrOrgMemberships = [];
+  const userRepo = new UserRepository(prisma);
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });
@@ -236,7 +237,7 @@ export async function getTeamWithMembers(args: {
     const usersWithUserProfile = [];
     for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
-        await UserRepository.enrichUserWithItsProfile({
+        await userRepo.enrichUserWithItsProfile({
           user,
         })
       );

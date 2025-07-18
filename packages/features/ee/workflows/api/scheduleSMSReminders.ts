@@ -35,7 +35,11 @@ export async function handler(req: NextRequest) {
       method: WorkflowMethods.SMS,
       scheduled: false,
       scheduledDate: {
+        gte: new Date(),
         lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select: {
@@ -157,6 +161,8 @@ export async function handler(req: NextRequest) {
       }
 
       if (message?.length && message?.length > 0 && sendTo) {
+        const smsMessageWithoutOptOut = message;
+
         if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
           message = await WorkflowOptOutService.addOptOutMessage(message, locale || "en");
         }
@@ -167,6 +173,7 @@ export async function handler(req: NextRequest) {
             body: message,
             scheduledDate: reminder.scheduledDate,
             sender: senderID,
+            bodyWithoutOptOut: smsMessageWithoutOptOut,
             bookingUid: reminder.booking.uid,
             userId,
             teamId,
