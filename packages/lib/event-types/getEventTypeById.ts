@@ -53,7 +53,12 @@ export const getEventTypeById = async ({
   } satisfies Prisma.UserSelect;
 
   const eventTypeRepo = new EventTypeRepository(prisma);
-  const rawEventType = await eventTypeRepo.findById({ id: eventTypeId, userId });
+  const rawEventType = await eventTypeRepo.findById({
+    id: eventTypeId,
+    userId,
+    isUserOrganizationAdmin,
+    currentOrganizationId,
+  });
 
   if (!rawEventType) {
     if (isTrpcCall) {
