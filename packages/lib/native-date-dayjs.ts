@@ -5,23 +5,45 @@ export type Dayjs = NativeDateDayjs;
 class NativeDateDayjs {
   private _date: Date;
   private _timezone: string | null;
+  public $x: { $timezone?: string } = {};
 
   constructor(input?: any, _formatStr?: string, _locale?: string, _strict?: boolean) {
     if (input instanceof NativeDateDayjs) {
       this._date = new Date(input._date);
       this._timezone = input._timezone;
+      this.$x = { $timezone: input._timezone || undefined };
     } else if (input instanceof Date) {
       this._date = new Date(input);
       this._timezone = null;
+      this.$x = {};
     } else if (input === undefined || input === null) {
       this._date = new Date();
       this._timezone = null;
+      this.$x = {};
     } else if (typeof input === "string") {
       this._date = new Date(input);
       this._timezone = null;
-    } else {
-      this._date = new Date();
+      this.$x = {};
+    } else if (typeof input === "number") {
+      this._date = new Date(input);
       this._timezone = null;
+      this.$x = {};
+    } else if (input && typeof input.toDate === "function") {
+      this._date = new Date(input.toDate());
+      this._timezone = null;
+      this.$x = {};
+    } else if (input && typeof input.valueOf === "function") {
+      this._date = new Date(input.valueOf());
+      this._timezone = null;
+      this.$x = {};
+    } else {
+      this._date = new Date(input);
+      this._timezone = null;
+      this.$x = {};
+    }
+
+    if (!(this._date instanceof Date) || isNaN(this._date.getTime())) {
+      this._date = new Date(NaN); // Create an invalid date
     }
   }
 
@@ -76,18 +98,42 @@ class NativeDateDayjs {
   }
 
   format(formatStr = "YYYY-MM-DD HH:mm:ss"): string {
-    const date =
-      this._timezone && this._timezone !== "UTC"
-        ? this._convertToTimezone(this._date, this._timezone)
-        : this._date;
+    if (this._timezone && this._timezone !== "UTC") {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: this._timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      };
+
+      const parts = new Intl.DateTimeFormat("en-US", options).formatToParts(this._date);
+      const year = parts.find((p) => p.type === "year")?.value || "0";
+      const month = parts.find((p) => p.type === "month")?.value || "0";
+      const day = parts.find((p) => p.type === "day")?.value || "0";
+      const hour = parts.find((p) => p.type === "hour")?.value || "0";
+      const minute = parts.find((p) => p.type === "minute")?.value || "0";
+      const second = parts.find((p) => p.type === "second")?.value || "0";
+
+      return formatStr
+        .replace(/YYYY/g, year)
+        .replace(/MM/g, month)
+        .replace(/DD/g, day)
+        .replace(/HH/g, hour)
+        .replace(/mm/g, minute)
+        .replace(/ss/g, second);
+    }
 
     let result = formatStr;
-    result = result.replace(/YYYY/g, date.getFullYear().toString());
-    result = result.replace(/MM/g, (date.getMonth() + 1).toString().padStart(2, "0"));
-    result = result.replace(/DD/g, date.getDate().toString().padStart(2, "0"));
-    result = result.replace(/HH/g, date.getHours().toString().padStart(2, "0"));
-    result = result.replace(/mm/g, date.getMinutes().toString().padStart(2, "0"));
-    result = result.replace(/ss/g, date.getSeconds().toString().padStart(2, "0"));
+    result = result.replace(/YYYY/g, this._date.getFullYear().toString());
+    result = result.replace(/MM/g, (this._date.getMonth() + 1).toString().padStart(2, "0"));
+    result = result.replace(/DD/g, this._date.getDate().toString().padStart(2, "0"));
+    result = result.replace(/HH/g, this._date.getHours().toString().padStart(2, "0"));
+    result = result.replace(/mm/g, this._date.getMinutes().toString().padStart(2, "0"));
+    result = result.replace(/ss/g, this._date.getSeconds().toString().padStart(2, "0"));
 
     return result;
   }
@@ -107,19 +153,41 @@ class NativeDateDayjs {
   utc(): any {
     const adapter = new NativeDateDayjs(this._date);
     adapter._timezone = "UTC";
+    adapter.$x = { $timezone: "UTC" };
     return adapter;
   }
 
-  tz(timezone?: string): any {
+  tz(timezone?: string, keepLocalTime?: boolean): any {
     if (!timezone) return this;
+
+    if (keepLocalTime) {
+      const year = this._date.getFullYear();
+      const month = this._date.getMonth();
+      const day = this._date.getDate();
+      const hours = this._date.getHours();
+      const minutes = this._date.getMinutes();
+      const seconds = this._date.getSeconds();
+      const ms = this._date.getMilliseconds();
+
+      const newDate = new Date(year, month, day, hours, minutes, seconds, ms);
+      const adapter = new NativeDateDayjs(newDate);
+      adapter._timezone = timezone;
+      adapter.$x = { $timezone: timezone };
+      return adapter;
+    }
+
     const adapter = new NativeDateDayjs(this._date);
     adapter._timezone = timezone;
+    adapter.$x = { $timezone: timezone };
     return adapter;
   }
 
   utcOffset(): any {
-    if (this._timezone && this._timezone !== "UTC") {
-      return -this._date.getTimezoneOffset();
+    if (this._timezone === "UTC") {
+      return 0;
+    }
+    if (this._timezone) {
+      return this._getTimezoneOffset(this._timezone);
     }
     return -this._date.getTimezoneOffset();
   }
@@ -155,6 +223,7 @@ class NativeDateDayjs {
 
     const adapter = new NativeDateDayjs(newDate);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
@@ -189,6 +258,7 @@ class NativeDateDayjs {
 
     const adapter = new NativeDateDayjs(newDate);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
@@ -219,39 +289,43 @@ class NativeDateDayjs {
 
     const adapter = new NativeDateDayjs(newDate);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
   hour(value?: number): any {
     if (value === undefined) {
-      return this._date.getHours();
+      return this._date.getUTCHours();
     }
     const newDate = new Date(this._date);
-    newDate.setHours(value);
+    newDate.setUTCHours(value);
     const adapter = new NativeDateDayjs(newDate);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
   minute(value?: number): any {
     if (value === undefined) {
-      return this._date.getMinutes();
+      return this._date.getUTCMinutes();
     }
     const newDate = new Date(this._date);
-    newDate.setMinutes(value);
+    newDate.setUTCMinutes(value);
     const adapter = new NativeDateDayjs(newDate);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
   second(value?: number): any {
     if (value === undefined) {
-      return this._date.getSeconds();
+      return this._date.getUTCSeconds();
     }
     const newDate = new Date(this._date);
-    newDate.setSeconds(value);
+    newDate.setUTCSeconds(value);
     const adapter = new NativeDateDayjs(newDate);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
@@ -314,7 +388,7 @@ class NativeDateDayjs {
   }
 
   isValid(): boolean {
-    return !isNaN(this._date.getTime());
+    return this._date instanceof Date && !isNaN(this._date.getTime()) && isFinite(this._date.getTime());
   }
 
   diff(other: NativeDateDayjs | Date | string | DayjsType, unit?: string): number {
@@ -358,11 +432,80 @@ class NativeDateDayjs {
   clone(): any {
     const adapter = new NativeDateDayjs(this._date);
     adapter._timezone = this._timezone;
+    adapter.$x = { $timezone: this._timezone || undefined };
     return adapter;
   }
 
   private _convertToTimezone(date: Date, timezone: string): Date {
-    return new Date(date.toLocaleString("en-US", { timeZone: timezone }));
+    if (timezone === "UTC") {
+      return new Date(date.getTime());
+    }
+
+    const utcTime = date.getTime();
+    const utcDate = new Date(utcTime);
+
+    const targetTimeString = utcDate.toLocaleString("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+
+    const [datePart, timePart] = targetTimeString.split(", ");
+    const [year, month, day] = datePart.split("-");
+    const [hour, minute, second] = timePart.split(":");
+
+    const targetDate = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hour),
+      parseInt(minute),
+      parseInt(second)
+    );
+
+    return targetDate;
+  }
+
+  private _getTimezoneOffset(timezone: string): number {
+    if (timezone === "UTC") return 0;
+
+    const testDate = this._date;
+    const utcTime = testDate.getTime();
+
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(testDate);
+    const partsObj: Record<string, string> = {};
+    parts.forEach((part) => {
+      if (part.type !== "literal") {
+        partsObj[part.type] = part.value;
+      }
+    });
+
+    const localTime = new Date(
+      parseInt(partsObj.year),
+      parseInt(partsObj.month) - 1,
+      parseInt(partsObj.day),
+      parseInt(partsObj.hour),
+      parseInt(partsObj.minute),
+      parseInt(partsObj.second)
+    ).getTime();
+
+    return (localTime - utcTime) / 60000;
   }
 }
 
