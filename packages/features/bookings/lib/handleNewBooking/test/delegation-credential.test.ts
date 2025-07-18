@@ -37,12 +37,112 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
+import { vi } from "vitest";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+vi.mock("@calcom/app-store/calendar.services.generated", () => {
+  class MockGoogleCalendarService {
+    credential: any;
+
+    constructor(credential: any) {
+      this.credential = credential;
+    }
+
+    getCredentialId() {
+      return this.credential.id;
+    }
+
+    async createEvent(calEvent: any, credentialId: any, externalCalendarId?: string) {
+      return {
+        type: "google_calendar",
+        additionalInfo: {
+          hangoutLink: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+        },
+        uid: "GOOGLE_CALENDAR_EVENT_ID",
+        id: "GOOGLE_CALENDAR_EVENT_ID",
+        iCalUID: calEvent.iCalUID || "GOOGLE_CALENDAR_EVENT_ID",
+        password: "MOCK_PASSWORD",
+        url: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+      };
+    }
+
+    async updateEvent() {
+      return {};
+    }
+
+    async deleteEvent() {
+      return {};
+    }
+
+    async getAvailability() {
+      return [];
+    }
+
+    async getAvailabilityWithTimeZones() {
+      return [];
+    }
+
+    async listCalendars() {
+      return [];
+    }
+  }
+
+  class MockOffice365CalendarService {
+    credential: any;
+
+    constructor(credential: any) {
+      this.credential = credential;
+    }
+
+    getCredentialId() {
+      return this.credential.id;
+    }
+
+    async createEvent(calEvent: any, credentialId: any, externalCalendarId?: string) {
+      return {
+        type: "office365_calendar",
+        additionalInfo: {},
+        uid: "OFFICE_365_CALENDAR_EVENT_ID",
+        id: "OFFICE_365_CALENDAR_EVENT_ID",
+        iCalUID: calEvent.iCalUID || "OFFICE_365_CALENDAR_EVENT_ID",
+        password: "MOCK_PASSWORD",
+        url: "https://UNUSED_URL",
+      };
+    }
+
+    async updateEvent() {
+      return {};
+    }
+
+    async deleteEvent() {
+      return {};
+    }
+
+    async getAvailability() {
+      return [];
+    }
+
+    async getAvailabilityWithTimeZones() {
+      return [];
+    }
+
+    async listCalendars() {
+      return [];
+    }
+  }
+
+  return {
+    CalendarServiceMap: {
+      googlecalendar: Promise.resolve({ default: MockGoogleCalendarService }),
+      office365calendar: Promise.resolve({ default: MockOffice365CalendarService }),
+    },
+  };
+});
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -136,7 +236,7 @@ describe("handleNewBooking", () => {
         );
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -314,7 +414,7 @@ describe("handleNewBooking", () => {
         );
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -501,7 +601,7 @@ describe("handleNewBooking", () => {
         });
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("office365calendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("office365calendar", {
           create: {
             id: "OFFICE_365_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -700,7 +800,7 @@ describe("handleNewBooking", () => {
         });
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",
@@ -856,7 +956,7 @@ describe("handleNewBooking", () => {
         );
 
         // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "GOOGLE_CALENDAR_EVENT_ID",
             uid: "MOCK_ID",

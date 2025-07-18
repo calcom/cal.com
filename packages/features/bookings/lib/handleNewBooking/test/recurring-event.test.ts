@@ -119,7 +119,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -338,7 +338,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -472,7 +472,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -691,7 +691,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
