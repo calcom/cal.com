@@ -85,8 +85,8 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
   }
 
   private transformAttendeesWithHostsHandling(
-    userAttendees?: UpdateCalendarEventAttendee[],
-    userHosts?: CalendarEventHost[],
+    inputAttendees?: UpdateCalendarEventAttendee[],
+    inputHosts?: CalendarEventHost[],
     existingEvent?: GoogleCalendarEventResponse | null
   ): Array<{
     email: string;
@@ -113,8 +113,8 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
       }));
     }
 
-    if (userAttendees) {
-      const attendeesToDelete = userAttendees
+    if (inputAttendees) {
+      const attendeesToDelete = inputAttendees
         .filter((attendee) => attendee.action === "delete")
         .map((attendee) => attendee.email.toLowerCase());
 
@@ -122,7 +122,7 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
         (attendee) => !attendeesToDelete.includes(attendee.email.toLowerCase())
       );
 
-      const attendeesToUpdate = userAttendees.filter((attendee) => attendee.action !== "delete");
+      const attendeesToUpdate = inputAttendees.filter((attendee) => attendee.action !== "delete");
 
       for (const userAttendee of attendeesToUpdate) {
         const existingIndex = finalAttendees.findIndex(
@@ -148,10 +148,10 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
       }
     }
 
-    if (userHosts && userHosts.length > 0) {
+    if (inputHosts && inputHosts.length > 0) {
       finalAttendees = finalAttendees.filter((attendee) => !attendee.organizer);
 
-      const transformedHosts = userHosts.map((host) => ({
+      const transformedHosts = inputHosts.map((host) => ({
         email: host.email,
         displayName: host.name,
         responseStatus: this.transformResponseStatus(host.responseStatus),
