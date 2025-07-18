@@ -28408,7 +28408,7 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
-        "description": "Host's response to the invitation",
+        "description": "Response status of the attendee",
         "enum": [
           "accepted",
           "pending",
@@ -28608,6 +28608,34 @@
           "data"
         ]
       },
+      "UpdateCalendarEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          },
+          "optional": {
+            "type": "boolean",
+            "description": "Whether the attendee is optional"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "delete"
+            ],
+            "description": "Action to perform on this attendee. Use 'delete' to remove the attendee from the event."
+          }
+        }
+      },
       "UpdateUnifiedCalendarEventInput": {
         "type": "object",
         "properties": {
@@ -28648,16 +28676,24 @@
           },
           "attendees": {
             "nullable": true,
-            "description": "List of attendees with their response status",
+            "description": "List of attendees with their response status. Attendees not included will be preserved from existing event. Use action: 'delete' to explicitly remove an attendee.",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CalendarEventAttendee"
+              "$ref": "#/components/schemas/UpdateCalendarEventAttendee"
             }
           },
           "status": {
             "nullable": true,
             "example": "accepted",
             "$ref": "#/components/schemas/CalendarEventStatus"
+          },
+          "hosts": {
+            "nullable": true,
+            "description": "Information about the event hosts (organizers). When provided, replaces existing organizers.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventHost"
+            }
           }
         }
       },
