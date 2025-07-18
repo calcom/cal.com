@@ -6,7 +6,51 @@ import {
   CalendarEventAttendee,
   CalendarEventHost,
   CalendarEventStatus,
+  CalendarEventResponseStatus,
 } from "../outputs/get-unified-calendar-event";
+
+export class UpdateCalendarEventAttendee {
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    description: "Email address of the attendee",
+  })
+  email!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    description: "Display name of the attendee",
+  })
+  name?: string;
+
+  @IsEnum(CalendarEventResponseStatus)
+  @IsOptional()
+  @ApiPropertyOptional({
+    enum: CalendarEventResponseStatus,
+    enumName: "CalendarEventResponseStatus",
+    nullable: true,
+    description: "Response status of the attendee",
+  })
+  responseStatus?: CalendarEventResponseStatus | null;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: "Whether the attendee is optional",
+  })
+  optional?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    enum: ["delete"],
+    description: "Action to perform on this attendee. Use 'delete' to remove the attendee from the event.",
+  })
+  action?: "delete";
+}
 
 export class UpdateDateTimeWithZone {
   @IsISO8601()
@@ -67,13 +111,14 @@ export class UpdateUnifiedCalendarEventInput {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CalendarEventAttendee)
+  @Type(() => UpdateCalendarEventAttendee)
   @ApiPropertyOptional({
-    type: [CalendarEventAttendee],
+    type: [UpdateCalendarEventAttendee],
     nullable: true,
-    description: "List of attendees with their response status",
+    description:
+      "List of attendees with their response status. Attendees not included will be preserved from existing event. Use action: 'delete' to explicitly remove an attendee.",
   })
-  attendees?: CalendarEventAttendee[];
+  attendees?: UpdateCalendarEventAttendee[];
 
   @IsEnum(CalendarEventStatus)
   @IsOptional()

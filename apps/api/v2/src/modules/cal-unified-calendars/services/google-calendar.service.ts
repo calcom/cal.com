@@ -75,7 +75,7 @@ export class GoogleCalendarService {
     );
 
     let existingEvent: GoogleCalendarEventResponse | null = null;
-    if (updateData.attendees !== undefined) {
+    if (updateData.attendees !== undefined || updateData.hosts !== undefined) {
       try {
         const existingEventResponse = await calendar.events.get({
           calendarId: bookingReference?.externalCalendarId ?? "primary",
@@ -83,7 +83,7 @@ export class GoogleCalendarService {
         });
         existingEvent = existingEventResponse.data as GoogleCalendarEventResponse;
       } catch (error) {
-        this.logger.warn("Failed to fetch existing event for organizer preservation", { eventUid, error });
+        this.logger.warn("Failed to fetch existing event for attendee preservation", { eventUid, error });
       }
     }
 
