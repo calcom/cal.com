@@ -421,6 +421,9 @@ model User {
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
 
+  // Audit Logs
+  auditLogs AuditLog[] @relation("UserAuditLogs")
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -545,6 +548,9 @@ model Team {
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
+
+  // Audit logs
+  auditLogs AuditLog[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -2410,4 +2416,27 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  // The organization/team this log belongs to.
+  teamId Int
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Who performed the action.
+  actorId Int
+  actor   User @relation("UserAuditLogs", fields: [actorId], references: [id], onDelete: Cascade)
+
+  // What happened.
+  action     String // e.g., "event_type.created", "booking.cancelled"
+  targetType String // e.g., "EventType", "Booking", "User"
+  targetId   String
+  metadata   Json // To store details like old/new values.
+
+  @@index([teamId])
+  @@index([actorId])
+  @@index([targetType, targetId])
 }
