@@ -343,17 +343,7 @@ export class MembershipRepository {
       },
     });
   }
-  static async findAllAcceptedMemberships(userId: number, tx?: PrismaTransaction) {
-    return (tx ?? prisma).membership.findMany({
-      where: {
-        userId,
-        accepted: true,
-      },
-      select: {
-        teamId: true,
-      },
-    });
-  }
+
   static async findAllAcceptedPublishedTeamMemberships(userId: number, tx?: PrismaTransaction) {
     return (tx ?? prisma).membership.findMany({
       where: {
