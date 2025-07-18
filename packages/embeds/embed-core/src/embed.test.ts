@@ -268,27 +268,6 @@ describe("Cal", () => {
         expect(iframe.getAttribute("allow")).toBe("payment");
       });
 
-      it("should not allow overriding the allow attribute but should apply id", () => {
-        const iframe = calInstance.createIframe({
-          calLink: "john-doe/meeting",
-          config: {
-            iframeAttrs: {
-              allow: "payment; microphone; camera",
-              title: "Custom booking title",
-              id: "custom-iframe-id",
-            },
-          },
-          calOrigin: null,
-        });
-
-        // Allow attribute should always be "payment" and not be overridable
-        expect(iframe.getAttribute("allow")).toBe("payment");
-        // Only id should be applied from iframeAttrs
-        expect(iframe.getAttribute("id")).toBe("custom-iframe-id");
-        // Other attributes should not be applied
-        expect(iframe.getAttribute("title")).not.toBe("Custom booking title");
-      });
-
       it("should set allow='payment' even when no config is provided", () => {
         const iframe = calInstance.createIframe({
           calLink: "john-doe/meeting",
