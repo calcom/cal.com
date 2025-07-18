@@ -5,7 +5,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
@@ -61,10 +60,8 @@ const HourlyBookingChartPresentation = ({ data }: { data: HourlyBookingData[] })
 
 export const HourlyBookingChart = () => {
   const { t } = useLocale();
-  const { timeZone: userTimeZone } = useDataTable();
+  const { timeZone } = useDataTable();
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
-
-  const timeZone = userTimeZone || CURRENT_TIMEZONE || "UTC";
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.hourlyBookingStats.useQuery(
     {

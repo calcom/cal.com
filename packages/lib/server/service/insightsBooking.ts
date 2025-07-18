@@ -70,11 +70,11 @@ export class InsightsBookingService {
     const filterConditions = await this.getFilterConditions();
 
     if (authConditions && filterConditions) {
-      return Prisma.sql`(${authConditions}) AND (${filterConditions})`;
+      return Prisma.sql`((${authConditions}) AND (${filterConditions}))`;
     } else if (authConditions) {
-      return authConditions;
+      return Prisma.sql`(${authConditions})`;
     } else if (filterConditions) {
-      return filterConditions;
+      return Prisma.sql`(${filterConditions})`;
     } else {
       return NOTHING_CONDITION;
     }
@@ -223,10 +223,6 @@ export class InsightsBookingService {
 
     const baseConditions = await this.getBaseConditions();
 
-    // Query to get booking counts by hour for ACCEPTED bookings only
-    // Convert timestamps to the specified timezone before extracting hour
-    // Note: Using 'accepted' (lowercase) as it's the actual database value due to @map("accepted") in Prisma schema
-    // Using CTE for better readability and maintainability
     const results = await this.prisma.$queryRaw<
       Array<{
         hour: number;
@@ -235,7 +231,7 @@ export class InsightsBookingService {
     >`
       WITH hourly_data AS (
         SELECT
-          EXTRACT(HOUR FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
+          EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
         FROM "BookingTimeStatusDenormalized"
         WHERE ${baseConditions}
           AND "startTime" >= ${startDate}::timestamp
@@ -249,8 +245,6 @@ export class InsightsBookingService {
       GROUP BY hour_extracted
       ORDER BY "hour"
     `;
-
-    console.log("💡 results", results);
 
     // Create a map of results by hour for easy lookup
     const resultsMap = new Map(results.map((row) => [row.hour, Number(row.bookingCount)]));
