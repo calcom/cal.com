@@ -91,7 +91,7 @@ describe("Office365CalendarWebhook - postHandler", () => {
       processed: 0,
       failed: 0,
       skipped: 1,
-      errors: ["Invalid clientState for subscription sub1"],
+      errors: ["Invalid or missing clientState for subscription sub1"],
     });
   });
 

@@ -47,13 +47,24 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     errors: [] as string[],
   };
 
+  const webhookToken = process.env.MICROSOFT_WEBHOOK_TOKEN;
+  if (!webhookToken) {
+    log.error("MICROSOFT_WEBHOOK_TOKEN is not defined");
+    return {
+      message: "ok",
+      processed: 0,
+      failed: 0,
+      skipped: payload.value.length,
+      errors: ["MICROSOFT_WEBHOOK_TOKEN is not defined"],
+    };
+  }
+
   // Validate clientState for each notification
   const seenSubscriptionIds = new Set<string>();
   const validNotifications = payload.value.filter((notification) => {
-    if (notification.clientState && notification.clientState !== process.env.MICROSOFT_WEBHOOK_TOKEN) {
-      log.warn("Invalid clientState", { subscriptionId: notification.subscriptionId });
+    if (!notification.clientState || notification.clientState !== webhookToken) {
       results.skipped++;
-      results.errors.push(`Invalid clientState for subscription ${notification.subscriptionId}`);
+      results.errors.push(`Invalid or missing clientState for subscription ${notification.subscriptionId}`);
       return false;
     }
     if (seenSubscriptionIds.has(notification.subscriptionId)) {
@@ -74,7 +85,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   // Fetch SelectedCalendars for all subscriptionIds
   // FindMany avoids pinging prisma (db) each time inside the below for loop
   const allSelectedCalendars = await SelectedCalendarRepository.findManyByOutlookSubscriptionIds(
-    validNotifications.map((n) => n.subscriptionId)
+    Array.from(seenSubscriptionIds)
   );
 
   // Process notifications in parallel
