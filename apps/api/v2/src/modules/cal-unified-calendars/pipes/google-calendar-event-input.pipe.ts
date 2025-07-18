@@ -3,7 +3,11 @@ import { PipeTransform, Injectable } from "@nestjs/common";
 
 import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { UpdateDateTimeWithZone } from "../inputs/update-unified-calendar-event.input";
-import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event";
+import {
+  CalendarEventResponseStatus,
+  CalendarEventStatus,
+  CalendarEventHost,
+} from "../outputs/get-unified-calendar-event";
 
 interface GoogleCalendarEventInputTransform {
   transform(
@@ -36,9 +40,10 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
       updatePayload.end = this.transformDateTimeWithZone(updateData.end);
     }
 
-    if (updateData.attendees !== undefined) {
-      updatePayload.attendees = this.transformAttendeesWithOrganizerPreservation(
+    if (updateData.attendees !== undefined || updateData.hosts !== undefined) {
+      updatePayload.attendees = this.transformAttendeesWithHostsHandling(
         updateData.attendees,
+        updateData.hosts,
         existingEvent
       );
     }
@@ -81,13 +86,14 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
     }));
   }
 
-  private transformAttendeesWithOrganizerPreservation(
-    userAttendees: Array<{
+  private transformAttendeesWithHostsHandling(
+    userAttendees?: Array<{
       email: string;
       name?: string;
       responseStatus?: CalendarEventResponseStatus | null;
       optional?: boolean;
     }>,
+    userHosts?: CalendarEventHost[],
     existingEvent?: GoogleCalendarEventResponse | null
   ): Array<{
     email: string;
@@ -96,34 +102,44 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
     optional?: boolean;
     organizer?: boolean;
   }> {
-    const transformedUserAttendees = this.transformAttendees(userAttendees);
+    const transformedUserAttendees = userAttendees ? this.transformAttendees(userAttendees) : [];
 
-    if (!existingEvent?.attendees) {
-      return transformedUserAttendees;
+    if (userHosts && userHosts.length > 0) {
+      const transformedHosts = userHosts.map((host) => ({
+        email: host.email,
+        displayName: host.name,
+        responseStatus: this.transformResponseStatus(host.responseStatus),
+        optional: false, // Hosts are typically not optional
+        organizer: true,
+      }));
+
+      return [...transformedUserAttendees, ...transformedHosts];
     }
 
-    const existingOrganizerAttendees = existingEvent.attendees.filter(
-      (attendee) => attendee.organizer === true
-    );
+    if (userAttendees && existingEvent?.attendees) {
+      const existingOrganizerAttendees = existingEvent.attendees.filter(
+        (attendee) => attendee.organizer === true
+      );
 
-    if (!existingOrganizerAttendees.length) {
-      return transformedUserAttendees;
+      if (existingOrganizerAttendees.length > 0) {
+        const userAttendeeEmails = new Set(userAttendees.map((attendee) => attendee.email.toLowerCase()));
+        const organizersToPreserve = existingOrganizerAttendees.filter(
+          (organizer) => !userAttendeeEmails.has(organizer.email.toLowerCase())
+        );
+
+        const preservedOrganizers = organizersToPreserve.map((organizer) => ({
+          email: organizer.email,
+          displayName: organizer.displayName,
+          responseStatus: organizer.responseStatus || "needsAction",
+          optional: organizer.optional,
+          organizer: true,
+        }));
+
+        return [...transformedUserAttendees, ...preservedOrganizers];
+      }
     }
 
-    const userAttendeeEmails = new Set(userAttendees.map((attendee) => attendee.email.toLowerCase()));
-    const organizersToPreserve = existingOrganizerAttendees.filter(
-      (organizer) => !userAttendeeEmails.has(organizer.email.toLowerCase())
-    );
-
-    const preservedOrganizers = organizersToPreserve.map((organizer) => ({
-      email: organizer.email,
-      displayName: organizer.displayName,
-      responseStatus: organizer.responseStatus || "needsAction",
-      optional: organizer.optional,
-      organizer: true,
-    }));
-
-    return [...transformedUserAttendees, ...preservedOrganizers];
+    return transformedUserAttendees;
   }
 
   private transformResponseStatus(responseStatus?: CalendarEventResponseStatus | null): string {
