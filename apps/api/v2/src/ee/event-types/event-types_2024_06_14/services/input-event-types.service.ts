@@ -178,17 +178,63 @@ export class InputEventTypesService_2024_06_14 {
       disableGuests,
       ...rest
     } = inputEventType;
-    const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
-    const metadataTransformed = !!eventTypeDb?.metadata
-      ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
+
+    const eventTypeData = await this.eventTypesRepository.getEventTypeWithMetaDataAndBookingFields(
+      eventTypeId
+    );
+    const metadataTransformed = eventTypeData?.metadata
+      ? EventTypeMetaDataSchema.parse(eventTypeData.metadata)
       : {};
+    const existingBookingFields = eventTypeData?.bookingFields as InputBookingField_2024_06_14[] | null;
 
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
 
-    const effectiveBookingFields =
-      disableGuests !== undefined
-        ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
-        : bookingFields;
+    let effectiveBookingFields = bookingFields;
+
+    if (bookingFields && existingBookingFields) {
+      const existingFieldsMap = new Map<string, InputBookingField_2024_06_14>();
+
+      existingBookingFields.forEach((field) => {
+        const key = "slug" in field ? field.slug : "name" in field ? field.name : undefined;
+        if (typeof key === "string" && key.length > 0) {
+          existingFieldsMap.set(key, field);
+        }
+      });
+
+      const mergedBookingFields: InputBookingField_2024_06_14[] = [];
+      const processedKeys = new Set<string>();
+
+      bookingFields.forEach((field) => {
+        const key = "slug" in field ? field.slug : "name" in field ? field.name : undefined;
+
+        if (typeof key === "string" && key.length > 0) {
+          if (processedKeys.has(key.toLowerCase())) {
+            return;
+          }
+          processedKeys.add(key.toLowerCase());
+
+          if (existingFieldsMap.has(key)) {
+            const existingField = existingFieldsMap.get(key);
+            mergedBookingFields.push({ ...existingField, ...field });
+            existingFieldsMap.delete(key);
+          } else {
+            mergedBookingFields.push(field);
+          }
+        } else {
+          mergedBookingFields.push(field);
+        }
+      });
+
+      existingFieldsMap.forEach((field) => {
+        mergedBookingFields.push(field);
+      });
+
+      effectiveBookingFields = mergedBookingFields;
+    } else if (disableGuests !== undefined && existingBookingFields) {
+      effectiveBookingFields = this.getBookingFieldsWithGuestsToggled(existingBookingFields, disableGuests);
+    } else if (disableGuests !== undefined) {
+      effectiveBookingFields = [{ slug: "guests", hidden: disableGuests }];
+    }
 
     const eventType = {
       ...rest,
