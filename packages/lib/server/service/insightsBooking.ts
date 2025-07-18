@@ -225,8 +225,8 @@ export class InsightsBookingService {
 
     const results = await this.prisma.$queryRaw<
       Array<{
-        hour: number;
-        bookingCount: bigint;
+        hour: string;
+        count: bigint;
       }>
     >`
       WITH hourly_data AS (
@@ -240,19 +240,19 @@ export class InsightsBookingService {
       )
       SELECT
         hour_extracted as "hour",
-        COUNT(*) as "bookingCount"
+        COUNT(*) as "count"
       FROM hourly_data
       GROUP BY hour_extracted
       ORDER BY "hour"
     `;
 
     // Create a map of results by hour for easy lookup
-    const resultsMap = new Map(results.map((row) => [row.hour, Number(row.bookingCount)]));
+    const resultsMap = new Map(results.map((row) => [Number(row.hour), Number(row.count)]));
 
     // Return all 24 hours (0-23), filling with 0 values for missing data
     return Array.from({ length: 24 }, (_, hour) => ({
       hour,
-      bookingCount: resultsMap.get(hour) || 0,
+      count: resultsMap.get(hour) || 0,
     }));
   }
 

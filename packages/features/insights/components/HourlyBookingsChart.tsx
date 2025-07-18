@@ -1,6 +1,5 @@
 "use client";
 
-import { Title } from "@tremor/react";
 import {
   BarChart,
   Bar,
@@ -14,26 +13,27 @@ import {
 
 import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
 
 type HourlyBookingsData = {
   hour: number;
-  bookingCount: number;
+  count: number;
 };
 
-const HourlyBookingsChartContent = ({ data }: { data: HourlyBookingsData[] }) => {
+export const HourlyBookingsChartContent = ({ data }: { data: HourlyBookingsData[] }) => {
   const { t } = useLocale();
 
   const chartData = data.map((item) => ({
     hour: `${item.hour.toString().padStart(2, "0")}:00`,
-    bookings: item.bookingCount,
+    count: item.count,
   }));
 
-  const maxBookings = Math.max(...data.map((item) => item.bookingCount));
+  const maxBookings = Math.max(...data.map((item) => item.count));
   const isEmpty = maxBookings === 0;
 
   if (isEmpty) {
@@ -47,13 +47,13 @@ const HourlyBookingsChartContent = ({ data }: { data: HourlyBookingsData[] }) =>
   return (
     <div className="mt-4 h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <BarChart data={chartData} margin={{ top: 20, right: 30, left: -10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="hour" className="text-xs" axisLine={false} tickLine={false} />
           <YAxis allowDecimals={false} className="text-xs opacity-50" axisLine={false} tickLine={false} />
           <Tooltip cursor={false} content={<CustomTooltip />} />
           <Bar
-            dataKey="bookings"
+            dataKey="count"
             fill="var(--cal-bg-subtle)"
             radius={[2, 2, 0, 0]}
             activeBar={<Rectangle fill="var(--cal-bg-info)" />}
@@ -97,8 +97,6 @@ const CustomTooltip = ({
   );
 };
 
-export { HourlyBookingsChartContent };
-
 export const HourlyBookingsChart = () => {
   const { t } = useLocale();
   const { timeZone } = useDataTable();
@@ -112,7 +110,7 @@ export const HourlyBookingsChart = () => {
       endDate,
       eventTypeId,
       memberUserId,
-      timeZone: timeZone || "UTC",
+      timeZone: timeZone || CURRENT_TIMEZONE,
     },
     {
       staleTime: 30000,
@@ -127,9 +125,8 @@ export const HourlyBookingsChart = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <CardInsights>
-      <Title className="text-emphasis">{t("hourly_bookings")}</Title>
+    <ChartCard title={t("hourly_bookings")}>
       <HourlyBookingsChartContent data={data} />
-    </CardInsights>
+    </ChartCard>
   );
 };
