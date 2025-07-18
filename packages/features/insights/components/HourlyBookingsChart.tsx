@@ -11,12 +11,12 @@ import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { CardInsights } from "./Card";
 import { LoadingInsight } from "./LoadingInsights";
 
-type HourlyBookingData = {
+type HourlyBookingsData = {
   hour: number;
   bookingCount: number;
 };
 
-const HourlyBookingChartPresentation = ({ data }: { data: HourlyBookingData[] }) => {
+const HourlyBookingsChartContent = ({ data }: { data: HourlyBookingsData[] }) => {
   const { t } = useLocale();
 
   const chartData = data.map((item) => ({
@@ -58,7 +58,9 @@ const HourlyBookingChartPresentation = ({ data }: { data: HourlyBookingData[] })
   );
 };
 
-export const HourlyBookingChart = () => {
+export { HourlyBookingsChartContent };
+
+export const HourlyBookingsChart = () => {
   const { t } = useLocale();
   const { timeZone } = useDataTable();
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
@@ -71,7 +73,7 @@ export const HourlyBookingChart = () => {
       endDate,
       eventTypeId,
       memberUserId,
-      timeZone,
+      timeZone: timeZone || "UTC",
     },
     {
       staleTime: 30000,
@@ -87,8 +89,8 @@ export const HourlyBookingChart = () => {
 
   return (
     <CardInsights>
-      <Title className="text-emphasis">{t("hourly_booking_distribution")}</Title>
-      <HourlyBookingChartPresentation data={data} />
+      <Title className="text-emphasis">{t("hourly_bookings")}</Title>
+      <HourlyBookingsChartContent data={data} />
     </CardInsights>
   );
 };

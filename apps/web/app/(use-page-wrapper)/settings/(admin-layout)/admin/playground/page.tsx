@@ -5,6 +5,10 @@ const LINKS = [
     title: "Routing Funnel",
     href: "/settings/admin/playground/routing-funnel",
   },
+  {
+    title: "Hourly Bookings",
+    href: "/settings/admin/playground/hourly-bookings",
+  },
 ];
 
 export default function Page() {
