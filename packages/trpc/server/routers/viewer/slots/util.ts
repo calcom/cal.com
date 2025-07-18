@@ -35,22 +35,23 @@ import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
+  BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import type { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
+import type { TeamRepository } from "@calcom/lib/server/repository/team";
+import type { UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -92,6 +93,12 @@ export type GetAvailableSlotsResponse = Awaited<
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
+  selectedSlotsRepo: SelectedSlotsRepository;
+  teamRepo: TeamRepository;
+  userRepo: UserRepository;
+  bookingRepo: BookingRepository;
+  eventTypeRepo: EventTypeRepository;
+  routingFormResponseRepo: RoutingFormResponseRepository;
 }
 
 export class AvailableSlotsService {
@@ -107,7 +114,7 @@ export class AvailableSlotsService {
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
-    const slotsRepo = new SelectedSlotsRepository(prisma);
+    const slotsRepo = this.dependencies.selectedSlotsRepo;
 
     const unexpiredSelectedSlots =
       (await slotsRepo.findManyUnexpiredSlots({
@@ -142,7 +149,8 @@ export class AvailableSlotsService {
     }
     const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
-    const usersForDynamicEventType = await new UserRepository(prisma).findManyUsersForDynamicEventType({
+    const userRepo = this.dependencies.userRepo;
+    const usersForDynamicEventType = await userRepo.findManyUsersForDynamicEventType({
       currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
@@ -211,7 +219,7 @@ export class AvailableSlotsService {
       return null;
     }
 
-    const eventTypeRepo = new EventTypeRepository(prisma);
+    const eventTypeRepo = this.dependencies.eventTypeRepo;
     return await eventTypeRepo.findForSlots({ id: eventTypeId });
   }
 
@@ -249,7 +257,8 @@ export class AvailableSlotsService {
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
     log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
-    const [user] = await new UserRepository(prisma).findUsersByUsername({
+    const userRepo = this.dependencies.userRepo;
+    const [user] = await userRepo.findUsersByUsername({
       usernameList: [username],
       orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     });
@@ -282,7 +291,7 @@ export class AvailableSlotsService {
         organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
       );
     }
-    const eventTypeRepo = new EventTypeRepository(prisma);
+    const eventTypeRepo = this.dependencies.eventTypeRepo;
     const eventType = await eventTypeRepo.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -295,7 +304,7 @@ export class AvailableSlotsService {
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-    const teamRepo = new TeamRepository(prisma);
+    const teamRepo = this.dependencies.teamRepo;
     const team = await teamRepo.findFirstBySlugAndParentSlug({
       slug,
       parentSlug: isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null,
@@ -508,7 +517,7 @@ export class AvailableSlotsService {
       bookingLimits
     );
 
-    const bookingRepo = new BookingRepository(prisma);
+    const bookingRepo = this.dependencies.bookingRepo;
     const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUsers({
       users,
       teamId,
@@ -711,7 +720,7 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
-    const bookingRepo = new BookingRepository(prisma);
+    const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
@@ -938,11 +947,13 @@ export class AvailableSlotsService {
 
     let routingFormResponse = null;
     if (routingFormResponseId) {
-      routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+      const formResponseRepo = this.dependencies.routingFormResponseRepo;
+      routingFormResponse = await formResponseRepo.findFormResponseIncludeForm({
         routingFormResponseId,
       });
     } else if (queuedFormResponseId) {
-      routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+      const formResponseRepo = this.dependencies.routingFormResponseRepo;
+      routingFormResponse = await formResponseRepo.findQueuedFormResponseIncludeForm({
         queuedFormResponseId,
       });
     }
@@ -1303,6 +1314,22 @@ export class AvailableSlotsService {
             periodLimits,
           });
 
+          let isOutOfBounds = false;
+          try {
+            isOutOfBounds = isTimeOutOfBounds({
+              time: slot.time,
+              minimumBookingNotice: eventType.minimumBookingNotice,
+            });
+          } catch (error) {
+            if (error instanceof BookingDateInPastError) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: error.message,
+              });
+            }
+            throw error;
+          }
+
           if (isFutureLimitViolationForTheSlot) {
             foundAFutureLimitViolation = true;
           }
@@ -1310,7 +1337,7 @@ export class AvailableSlotsService {
           return (
             !isFutureLimitViolationForTheSlot &&
             // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-            !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+            !isOutOfBounds
           );
         });
 
