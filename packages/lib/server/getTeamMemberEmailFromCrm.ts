@@ -164,7 +164,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   attributeRoutingConfig: AttributeRoutingConfig | null;
   crmAppSlug: string;
 }) {
-  const nullReturnValue = { email: null, skipContactOwner: false, recordType: "" };
+  const nullReturnValue = { email: null, skipContactOwner: false, recordType: "", recordId: "" };
 
   if (!attributeRoutingConfig) return nullReturnValue;
 
@@ -176,7 +176,11 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   const appHandler = appBookingFormHandler[crmAppSlug];
   if (!appHandler) return nullReturnValue;
 
-  const { email: userEmail, recordType } = await appHandler(bookerEmail, attributeRoutingConfig, eventTypeId);
+  const {
+    email: userEmail,
+    recordType,
+    recordId,
+  } = await appHandler(bookerEmail, attributeRoutingConfig, eventTypeId);
 
   if (!userEmail) return nullReturnValue;
 
@@ -185,7 +189,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
 
   if (!userQuery) return nullReturnValue;
 
-  return { ...nullReturnValue, email: userEmail, recordType };
+  return { ...nullReturnValue, email: userEmail, recordType, recordId };
 }
 
 async function getTeamMemberEmailForResponseOrContact({

@@ -45,9 +45,9 @@ function mockBookingFormHandler({
   vi.mocked(bookingFormHandlers.salesforce).mockImplementation(
     (_bookerEmail, _attributeRoutingConfig, _eventTypeId) => {
       if (_bookerEmail === bookerEmail) {
-        return Promise.resolve({ email: teamMemberEmail, recordType: null });
+        return Promise.resolve({ email: teamMemberEmail, recordType: null, recordId: null });
       }
-      return Promise.resolve({ email: null, recordType: null });
+      return Promise.resolve({ email: null, recordType: null, recordId: null });
     }
   );
 }
