@@ -4,36 +4,46 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
-
-/**
- * Loads English fallback translations for when requested locale translations fail
- * Implements caching to avoid redundant network requests
- * @returns {Promise<Record<string, string>>} English translations object or empty object on failure
- */
-async function loadFallbackTranslations() {
-  const cacheKey = "en-common";
-
-  if (translationCache.has(cacheKey)) {
-    return translationCache.get(cacheKey);
-  }
-
-  try {
-    const res = await fetch(`${WEBAPP_URL}/static/locales/en/common.json`, {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch fallback translations: ${res.status}`);
-    }
-
-    const translations = await res.json();
-    translationCache.set(cacheKey, translations);
-    return translations;
-  } catch (error) {
-    console.error("Could not fetch fallback translations:", error);
-    return {};
-  }
-}
+const SUPPORTED_NAMESPACES = ["common"];
+const SUPPORTED_LOCALES = [
+  "ar",
+  "az",
+  "bg",
+  "bn",
+  "ca",
+  "cs",
+  "da",
+  "de",
+  "el",
+  "en",
+  "es",
+  "es-419",
+  "eu",
+  "et",
+  "fi",
+  "fr",
+  "he",
+  "hu",
+  "it",
+  "ja",
+  "km",
+  "ko",
+  "nl",
+  "no",
+  "pl",
+  "pt-BR",
+  "pt",
+  "ro",
+  "ru",
+  "sk-SK",
+  "sr",
+  "sv",
+  "tr",
+  "uk",
+  "vi",
+  "zh-CN",
+  "zh-TW",
+];
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
@@ -41,32 +51,28 @@ async function loadFallbackTranslations() {
  * @param {string} ns - The namespace for the translations
  * @returns {Promise<Record<string, string>>} Translations object or fallback translations on failure
  */
-export async function loadTranslations(_locale: string, ns: string) {
-  const locale = _locale === "zh" ? "zh-CN" : _locale;
+export async function loadTranslations(_locale: string, _ns: string) {
+  let locale = _locale === "zh" ? "zh-CN" : _locale;
+  locale = SUPPORTED_LOCALES.includes(locale) ? locale : "en";
+  const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey);
   }
 
-  try {
-    const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-    const response = await fetch(url, {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    });
+  const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
+  const response = await fetch(url, {
+    cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+  });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch translations: ${response.status}`);
-    }
-
-    const translations = await response.json();
-    translationCache.set(cacheKey, translations);
-    return translations;
-  } catch (error) {
-    console.warn(`Failed to load translations for ${locale}/${ns}, falling back to English:`, error);
-    const fallbackTranslations = await loadFallbackTranslations();
-    return fallbackTranslations;
+  if (!response.ok) {
+    throw new Error(`Failed to fetch translations: ${response.status}`);
   }
+
+  const translations = await response.json();
+  translationCache.set(cacheKey, translations);
+  return translations;
 }
 
 /**
