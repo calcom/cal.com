@@ -1,19 +1,18 @@
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
+import dayjs from "@calcom/lib/luxon-dayjs";
 import type { Availability } from "@calcom/prisma/client";
 
 export type DateRange = {
-  start: Dayjs;
-  end: Dayjs;
+  start: any;
+  end: any;
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
-type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
+// type TravelSchedule = { startDate: any; endDate?: any; timeZone: string };
 
-function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: TravelSchedule[]) {
+function getAdjustedTimezone(date: any, timeZone: string, travelSchedules: any[]) {
   let adjustedTimezone = timeZone;
 
   for (const travelSchedule of travelSchedules) {
@@ -37,9 +36,9 @@ export function processWorkingHours({
 }: {
   item: WorkingHours;
   timeZone: string;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
-  travelSchedules: TravelSchedule[];
+  dateFrom: any;
+  dateTo: any;
+  travelSchedules: any[];
 }) {
   const utcDateTo = dateTo.utc();
   const results = [];
@@ -68,8 +67,8 @@ export function processWorkingHours({
     start = start.add(offsetDiff, "minute");
     end = end.add(offsetDiff, "minute");
 
-    const startResult = dayjs.max(start, dateFrom);
-    let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
+    const startResult = dayjs.max(start as any, dateFrom as any);
+    let endResult = dayjs.min(end as any, dateTo.tz(adjustedTimezone) as any);
 
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
@@ -97,13 +96,13 @@ export function processDateOverride({
   travelSchedules,
 }: {
   item: DateOverride;
-  itemDateAsUtc: Dayjs;
+  itemDateAsUtc: any;
   timeZone: string;
-  travelSchedules: TravelSchedule[];
+  travelSchedules: any[];
 }) {
   const overrideDate = dayjs(item.date);
 
-  const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
+  const adjustedTimezone = getAdjustedTimezone(overrideDate as any, timeZone, travelSchedules);
 
   const itemDateStartOfDay = itemDateAsUtc.startOf("day");
   const startDate = itemDateStartOfDay
@@ -133,7 +132,7 @@ export function processDateOverride({
 }
 
 // This function processes out-of-office dates and returns a date range for each OOO date.
-function processOOO(outOfOffice: Dayjs, timeZone: string) {
+function processOOO(outOfOffice: any, timeZone: string) {
   const OOOdate = outOfOffice.tz(timeZone, true);
   return {
     start: OOOdate,
@@ -151,9 +150,9 @@ export function buildDateRanges({
 }: {
   timeZone: string;
   availability: (DateOverride | WorkingHours)[];
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
-  travelSchedules: TravelSchedule[];
+  dateFrom: any;
+  dateTo: any;
+  travelSchedules: any[];
   outOfOffice?: IOutOfOfficeData;
 }): { dateRanges: DateRange[]; oooExcludedDateRanges: DateRange[] } {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
@@ -168,7 +167,7 @@ export function buildDateRanges({
     }, [])
   );
   const OOOdates = outOfOffice
-    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs.utc(outOfOffice), timeZone))
+    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs.utc(outOfOffice) as any, timeZone))
     : [];
 
   const groupedOOO = groupByDate(OOOdates);
@@ -186,11 +185,13 @@ export function buildDateRanges({
           itemDateAsUtc.isBetween(
             dateFrom.subtract(1, "day").startOf("day"),
             dateTo.add(1, "day").endOf("day"),
-            null,
+            undefined,
             "[]"
           )
         ) {
-          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone, travelSchedules }));
+          processed.push(
+            processDateOverride({ item, itemDateAsUtc: itemDateAsUtc as any, timeZone, travelSchedules })
+          );
         }
       }
       return processed;

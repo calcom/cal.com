@@ -3,7 +3,6 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
 import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
@@ -38,6 +37,7 @@ import {
   BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import dayjs from "@calcom/lib/luxon-dayjs";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -572,7 +572,7 @@ export class AvailableSlotsService {
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
-      const bookingLimitsParams = {
+      const _bookingLimitsParams = {
         bookings: userBusyTimes,
         bookingLimits,
         dateFrom,
@@ -669,9 +669,10 @@ export class AvailableSlotsService {
 
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
-    const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
+    const startTime =
+      timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone || undefined);
 
-    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
+    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone || undefined) : startTime;
   }
   private async calculateHostsAndAvailabilities({
     input,
@@ -768,8 +769,8 @@ export class AvailableSlotsService {
         usersForLimits,
         bookingLimits,
         durationLimits,
-        startTime,
-        endTime,
+        startTime as any,
+        endTime as any,
         typeof input.duration === "number" ? input.duration : undefined,
         eventType,
         usersWithCredentials[0]?.timeZone || "UTC",
@@ -789,8 +790,8 @@ export class AvailableSlotsService {
       teamBookingLimitsMap = await this.getBusyTimesFromTeamLimitsForUsers(
         usersForTeamLimits,
         teamBookingLimits,
-        startTime,
-        endTime,
+        startTime as any,
+        endTime as any,
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
         usersWithCredentials[0]?.timeZone || "UTC",
@@ -939,7 +940,11 @@ export class AvailableSlotsService {
       eventType.minimumBookingNotice
     );
     const endTime =
-      input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
+      input.timeZone === "Etc/GMT"
+        ? dayjs.utc(input.endTime)
+        : dayjs(input.endTime)
+            .utc()
+            .tz(input.timeZone || undefined);
 
     if (!startTime.isValid() || !endTime.isValid()) {
       throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
@@ -998,10 +1003,9 @@ export class AvailableSlotsService {
             ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
             : startTime,
         // adjust end time so we can check for available slots in the first two weeks
-        endTime:
-          hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
-            : endTime,
+        endTime: (hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
+          ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+          : endTime) as any,
         bypassBusyCalendarTimes,
         shouldServeCache,
       });
@@ -1015,7 +1019,7 @@ export class AvailableSlotsService {
         //check if first two week have availability
         diff =
           aggregatedAvailability.length > 0
-            ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day")
+            ? (aggregatedAvailability[0].start as any).diff(twoWeeksFromNow, "day")
             : 1; // no aggregatedAvailability so we diff to +1
       } else {
         // if start time is not within first two weeks, check if there are any available slots
@@ -1027,7 +1031,7 @@ export class AvailableSlotsService {
             hosts: [...qualifiedRRHosts, ...fixedHosts],
             loggerWithEventDetails,
             startTime: dayjs(),
-            endTime: twoWeeksFromNow,
+            endTime: twoWeeksFromNow as any,
             bypassBusyCalendarTimes,
             shouldServeCache,
           });
@@ -1060,8 +1064,8 @@ export class AvailableSlotsService {
             eventType,
             hosts: [...allFallbackRRHosts, ...fixedHosts],
             loggerWithEventDetails,
-            startTime,
-            endTime,
+            startTime: startTime as any,
+            endTime: endTime as any,
             bypassBusyCalendarTimes,
             shouldServeCache,
           }));
@@ -1075,7 +1079,7 @@ export class AvailableSlotsService {
       allUsersAvailability.length > 1;
 
     const timeSlots = getSlots({
-      inviteeDate: startTime,
+      inviteeDate: startTime as any,
       eventLength: input.duration || eventType.length,
       offsetStart: eventType.offsetStart,
       dateRanges: aggregatedAvailability,
@@ -1126,9 +1130,9 @@ export class AvailableSlotsService {
         const { dateRanges: restrictionRanges } = buildDateRanges({
           availability: restrictionAvailability,
           timeZone: restrictionTimezone || "UTC",
-          dateFrom: startTime,
-          dateTo: endTime,
-          travelSchedules,
+          dateFrom: startTime as any,
+          dateTo: endTime as any,
+          travelSchedules: travelSchedules as any,
         });
 
         availableTimeSlots = timeSlots.filter((slot) => {
@@ -1215,12 +1219,12 @@ export class AvailableSlotsService {
           (
             item:
               | {
-                  time: dayjs.Dayjs;
+                  time: any;
                   userIds?: number[] | undefined;
                 }
               | undefined
           ): item is {
-            time: dayjs.Dayjs;
+            time: any;
             userIds?: number[] | undefined;
           } => {
             return !!item;

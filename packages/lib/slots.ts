@@ -1,6 +1,6 @@
 import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
 import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
+import dayjs from "@calcom/lib/luxon-dayjs";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { DateRange } from "./date-ranges";
@@ -74,13 +74,15 @@ function buildSlotsWithDateRanges({
   orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+    let slotStartTime = (range.start as any).utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
 
     slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+      (slotStartTime as any).minute() % interval !== 0
+        ? (slotStartTime as any)
+            .startOf("hour")
+            .add(Math.ceil((slotStartTime as any).minute() / interval) * interval, "minute")
         : slotStartTime;
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
@@ -100,9 +102,9 @@ function buildSlotsWithDateRanges({
 
       if (prevBoundary) {
         const prevBoundaryEnd = dayjs(prevBoundary).add(frequency + (offsetStart ?? 0), "minutes");
-        if (prevBoundaryEnd.isAfter(slotStartTime)) {
+        if (prevBoundaryEnd.isAfter(slotStartTime as any)) {
           const dayjsPrevBoundary = dayjs(prevBoundary);
-          if (!dayjsPrevBoundary.isBefore(range.start)) {
+          if (!dayjsPrevBoundary.isBefore(range.start as any)) {
             slotStartTime = dayjsPrevBoundary;
           } else {
             slotStartTime = prevBoundaryEnd;
@@ -112,7 +114,13 @@ function buildSlotsWithDateRanges({
       }
     }
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
+    while (
+      !(slotStartTime as any)
+        .add(eventLength, "minutes")
+        .subtract(1, "second")
+        .utc()
+        .isAfter(range.end as any)
+    ) {
       const slotKey = slotStartTime.toISOString();
       if (slots.has(slotKey)) {
         slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
@@ -131,14 +139,14 @@ function buildSlotsWithDateRanges({
         reason?: string;
         emoji?: string;
       } = {
-        time: slotStartTime,
+        time: slotStartTime as any,
       };
 
       if (dateOutOfOfficeExists) {
         const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
 
         slotData = {
-          time: slotStartTime,
+          time: slotStartTime as any,
           away: true,
           ...(fromUser && { fromUser }),
           ...(toUser && { toUser }),

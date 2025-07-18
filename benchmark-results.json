@@ -1,0 +1,1071 @@
+{
+  "timestamp": "2025-07-18T20:16:46.796Z",
+  "configuration": {
+    "userCount": 88,
+    "iterations": 15,
+    "dateRangeWeeks": 3,
+    "timezones": [
+      "UTC",
+      "America/New_York",
+      "America/Los_Angeles",
+      "Europe/London",
+      "Europe/Paris",
+      "Asia/Tokyo"
+    ],
+    "eventTypes": ["individual", "team_collective", "team_round_robin"]
+  },
+  "results": [
+    {
+      "library": "dayjs (baseline)",
+      "iterations": [
+        {
+          "iteration": 1,
+          "executionTime": 131.684387,
+          "memoryBefore": {
+            "rss": 46.6328125,
+            "heapUsed": 4.391578674316406,
+            "heapTotal": 5.24609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 71.7109375,
+            "heapUsed": 6.150665283203125,
+            "heapTotal": 9.49609375,
+            "external": 1.4722785949707031
+          },
+          "memoryDelta": {
+            "rss": 25.078125,
+            "heapUsed": 1.7590866088867188,
+            "heapTotal": 4.25
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 2,
+          "executionTime": 79.72483799999998,
+          "memoryBefore": {
+            "rss": 69.3359375,
+            "heapUsed": 4.749610900878906,
+            "heapTotal": 9.49609375,
+            "external": 1.4722785949707031
+          },
+          "memoryAfter": {
+            "rss": 69.41796875,
+            "heapUsed": 5.6843109130859375,
+            "heapTotal": 9.99609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 0.08203125,
+            "heapUsed": 0.9347000122070312,
+            "heapTotal": 0.5
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 3,
+          "executionTime": 98.73736699999995,
+          "memoryBefore": {
+            "rss": 69.41796875,
+            "heapUsed": 4.7823028564453125,
+            "heapTotal": 9.99609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 74.09765625,
+            "heapUsed": 8.505409240722656,
+            "heapTotal": 14.74609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 4.6796875,
+            "heapUsed": 3.7231063842773438,
+            "heapTotal": 4.75
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 4,
+          "executionTime": 74.50226999999995,
+          "memoryBefore": {
+            "rss": 74.09765625,
+            "heapUsed": 4.7946014404296875,
+            "heapTotal": 14.74609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 75.90234375,
+            "heapUsed": 7.2296142578125,
+            "heapTotal": 14.74609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 1.8046875,
+            "heapUsed": 2.4350128173828125,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 5,
+          "executionTime": 73.932638,
+          "memoryBefore": {
+            "rss": 74.34375,
+            "heapUsed": 4.854667663574219,
+            "heapTotal": 14.24609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 77.875,
+            "heapUsed": 7.525703430175781,
+            "heapTotal": 14.24609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 3.53125,
+            "heapUsed": 2.6710357666015625,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 6,
+          "executionTime": 77.37136999999996,
+          "memoryBefore": {
+            "rss": 77.23828125,
+            "heapUsed": 4.927391052246094,
+            "heapTotal": 14.24609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 77.23828125,
+            "heapUsed": 7.610176086425781,
+            "heapTotal": 14.24609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 0,
+            "heapUsed": 2.6827850341796875,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 7,
+          "executionTime": 72.57083899999998,
+          "memoryBefore": {
+            "rss": 77.23828125,
+            "heapUsed": 4.932464599609375,
+            "heapTotal": 14.24609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 77.23828125,
+            "heapUsed": 7.5020904541015625,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 0,
+            "heapUsed": 2.5696258544921875,
+            "heapTotal": 8.25
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 8,
+          "executionTime": 96.16986999999995,
+          "memoryBefore": {
+            "rss": 77.23828125,
+            "heapUsed": 4.8523101806640625,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 85.3359375,
+            "heapUsed": 12.185592651367188,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 8.09765625,
+            "heapUsed": 7.333282470703125,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 9,
+          "executionTime": 78.44558299999994,
+          "memoryBefore": {
+            "rss": 84.8671875,
+            "heapUsed": 4.9274444580078125,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 84.85546875,
+            "heapUsed": 11.442253112792969,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": -0.01171875,
+            "heapUsed": 6.514808654785156,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 10,
+          "executionTime": 92.78566000000001,
+          "memoryBefore": {
+            "rss": 84.85546875,
+            "heapUsed": 4.939186096191406,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 86.41015625,
+            "heapUsed": 12.318771362304688,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 1.5546875,
+            "heapUsed": 7.379585266113281,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 11,
+          "executionTime": 78.74594300000012,
+          "memoryBefore": {
+            "rss": 85.91015625,
+            "heapUsed": 5.0017547607421875,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 85.734375,
+            "heapUsed": 11.636299133300781,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": -0.17578125,
+            "heapUsed": 6.634544372558594,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 12,
+          "executionTime": 75.75648900000033,
+          "memoryBefore": {
+            "rss": 83.1015625,
+            "heapUsed": 4.987525939941406,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 82.984375,
+            "heapUsed": 11.29254150390625,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": -0.1171875,
+            "heapUsed": 6.305015563964844,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 13,
+          "executionTime": 93.98044800000025,
+          "memoryBefore": {
+            "rss": 82.984375,
+            "heapUsed": 4.9334716796875,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 83.0859375,
+            "heapUsed": 12.284904479980469,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 0.1015625,
+            "heapUsed": 7.351432800292969,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 14,
+          "executionTime": 77.58651999999984,
+          "memoryBefore": {
+            "rss": 83.0859375,
+            "heapUsed": 4.957557678222656,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 83.109375,
+            "heapUsed": 11.5494384765625,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 0.0234375,
+            "heapUsed": 6.591880798339844,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 15,
+          "executionTime": 93.52931699999999,
+          "memoryBefore": {
+            "rss": 82.1328125,
+            "heapUsed": 4.949043273925781,
+            "heapTotal": 22.49609375,
+            "external": 1.4722404479980469
+          },
+          "memoryAfter": {
+            "rss": 86.71484375,
+            "heapUsed": 12.336227416992188,
+            "heapTotal": 22.74609375,
+            "external": 1.4722404479980469
+          },
+          "memoryDelta": {
+            "rss": 4.58203125,
+            "heapUsed": 7.387184143066406,
+            "heapTotal": 0.25
+          },
+          "slotsGenerated": 2160
+        }
+      ],
+      "averages": {
+        "executionTime": 86.36823593333335,
+        "memoryDelta": {
+          "rss": 3.28203125,
+          "heapUsed": 4.818205769856771
+        },
+        "slotsGenerated": 2160
+      },
+      "errors": []
+    },
+    {
+      "library": "Luxon",
+      "iterations": [
+        {
+          "iteration": 1,
+          "executionTime": 246.74512000000004,
+          "memoryBefore": {
+            "rss": 83.15234375,
+            "heapUsed": 6.148826599121094,
+            "heapTotal": 23.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 100.43359375,
+            "heapUsed": 15.368537902832031,
+            "heapTotal": 41,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 17.28125,
+            "heapUsed": 9.219711303710938,
+            "heapTotal": 17.75
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 2,
+          "executionTime": 180.080011,
+          "memoryBefore": {
+            "rss": 100.43359375,
+            "heapUsed": 6.8068695068359375,
+            "heapTotal": 40.5,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 101.69140625,
+            "heapUsed": 13.92767333984375,
+            "heapTotal": 41.25,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 1.2578125,
+            "heapUsed": 7.1208038330078125,
+            "heapTotal": 0.75
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 3,
+          "executionTime": 160.8772570000001,
+          "memoryBefore": {
+            "rss": 101.37890625,
+            "heapUsed": 7.0078887939453125,
+            "heapTotal": 41.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.625,
+            "heapUsed": 11.00531005859375,
+            "heapTotal": 41.25,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 1.24609375,
+            "heapUsed": 3.9974212646484375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 4,
+          "executionTime": 159.14096999999992,
+          "memoryBefore": {
+            "rss": 102.625,
+            "heapUsed": 7.041496276855469,
+            "heapTotal": 41.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.19921875,
+            "heapUsed": 11.506011962890625,
+            "heapTotal": 41.25,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.42578125,
+            "heapUsed": 4.464515686035156,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 5,
+          "executionTime": 169.12806100000034,
+          "memoryBefore": {
+            "rss": 102.19921875,
+            "heapUsed": 7.0540313720703125,
+            "heapTotal": 41.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 103.3125,
+            "heapUsed": 13.253471374511719,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 1.11328125,
+            "heapUsed": 6.199440002441406,
+            "heapTotal": 0.5
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 6,
+          "executionTime": 164.9196549999997,
+          "memoryBefore": {
+            "rss": 102.36328125,
+            "heapUsed": 7.086212158203125,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.6640625,
+            "heapUsed": 11.557838439941406,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.30078125,
+            "heapUsed": 4.471626281738281,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 7,
+          "executionTime": 155.18922199999997,
+          "memoryBefore": {
+            "rss": 102.6640625,
+            "heapUsed": 7.1318206787109375,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.171875,
+            "heapUsed": 9.937629699707031,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.4921875,
+            "heapUsed": 2.8058090209960938,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 8,
+          "executionTime": 154.9967829999996,
+          "memoryBefore": {
+            "rss": 102.171875,
+            "heapUsed": 7.1109619140625,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.828125,
+            "heapUsed": 11.280548095703125,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.65625,
+            "heapUsed": 4.169586181640625,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 9,
+          "executionTime": 166.89863400000013,
+          "memoryBefore": {
+            "rss": 102.828125,
+            "heapUsed": 7.151725769042969,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.734375,
+            "heapUsed": 13.232887268066406,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.09375,
+            "heapUsed": 6.0811614990234375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 10,
+          "executionTime": 159.75161899999966,
+          "memoryBefore": {
+            "rss": 102.734375,
+            "heapUsed": 7.0439605712890625,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 101.95703125,
+            "heapUsed": 11.274726867675781,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.77734375,
+            "heapUsed": 4.230766296386719,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 11,
+          "executionTime": 150.81570699999975,
+          "memoryBefore": {
+            "rss": 101.95703125,
+            "heapUsed": 7.14007568359375,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.9296875,
+            "heapUsed": 9.874969482421875,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.97265625,
+            "heapUsed": 2.734893798828125,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 12,
+          "executionTime": 154.67162700000063,
+          "memoryBefore": {
+            "rss": 102.9296875,
+            "heapUsed": 7.0991363525390625,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.48046875,
+            "heapUsed": 10.600738525390625,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.44921875,
+            "heapUsed": 3.5016021728515625,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 13,
+          "executionTime": 166.85379099999955,
+          "memoryBefore": {
+            "rss": 102.48046875,
+            "heapUsed": 7.1485748291015625,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 103.046875,
+            "heapUsed": 13.500076293945312,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.56640625,
+            "heapUsed": 6.35150146484375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 14,
+          "executionTime": 162.61526799999956,
+          "memoryBefore": {
+            "rss": 102.16015625,
+            "heapUsed": 7.07818603515625,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.7734375,
+            "heapUsed": 12.849395751953125,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.61328125,
+            "heapUsed": 5.771209716796875,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 15,
+          "executionTime": 149.6555240000007,
+          "memoryBefore": {
+            "rss": 102.7734375,
+            "heapUsed": 7.1603851318359375,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 102.6953125,
+            "heapUsed": 11.324272155761719,
+            "heapTotal": 41.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.078125,
+            "heapUsed": 4.163887023925781,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        }
+      ],
+      "averages": {
+        "executionTime": 166.82261659999998,
+        "memoryDelta": {
+          "rss": 1.44609375,
+          "heapUsed": 5.018929036458333
+        },
+        "slotsGenerated": 2160
+      },
+      "errors": []
+    },
+    {
+      "library": "date-fns",
+      "iterations": [
+        {
+          "iteration": 1,
+          "executionTime": 50.70330699999977,
+          "memoryBefore": {
+            "rss": 140.41796875,
+            "heapUsed": 46.09405517578125,
+            "heapTotal": 79.296875,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 143.6015625,
+            "heapUsed": 51.84941101074219,
+            "heapTotal": 79.296875,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 3.18359375,
+            "heapUsed": 5.7553558349609375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 2,
+          "executionTime": 39.547317000000476,
+          "memoryBefore": {
+            "rss": 105.1640625,
+            "heapUsed": 9.221351623535156,
+            "heapTotal": 43.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 105.38671875,
+            "heapUsed": 13.902511596679688,
+            "heapTotal": 43.25,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.22265625,
+            "heapUsed": 4.681159973144531,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 3,
+          "executionTime": 38.50643499999933,
+          "memoryBefore": {
+            "rss": 105.38671875,
+            "heapUsed": 9.222221374511719,
+            "heapTotal": 43.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 107.390625,
+            "heapUsed": 14.425300598144531,
+            "heapTotal": 43.25,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 2.00390625,
+            "heapUsed": 5.2030792236328125,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 4,
+          "executionTime": 35.93940900000052,
+          "memoryBefore": {
+            "rss": 105.8046875,
+            "heapUsed": 9.296180725097656,
+            "heapTotal": 43.5,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 105.91796875,
+            "heapUsed": 14.071022033691406,
+            "heapTotal": 43.5,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.11328125,
+            "heapUsed": 4.77484130859375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 5,
+          "executionTime": 34.893018999999185,
+          "memoryBefore": {
+            "rss": 105.91796875,
+            "heapUsed": 9.317428588867188,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 106.36328125,
+            "heapUsed": 14.004714965820312,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.4453125,
+            "heapUsed": 4.687286376953125,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 6,
+          "executionTime": 35.47586500000034,
+          "memoryBefore": {
+            "rss": 106.36328125,
+            "heapUsed": 9.321205139160156,
+            "heapTotal": 43.25,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 106.4765625,
+            "heapUsed": 14.07305908203125,
+            "heapTotal": 43.5,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.11328125,
+            "heapUsed": 4.751853942871094,
+            "heapTotal": 0.25
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 7,
+          "executionTime": 35.03174599999875,
+          "memoryBefore": {
+            "rss": 106.4765625,
+            "heapUsed": 9.341712951660156,
+            "heapTotal": 43.5,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 106.203125,
+            "heapUsed": 13.933662414550781,
+            "heapTotal": 43.5,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.2734375,
+            "heapUsed": 4.591949462890625,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 8,
+          "executionTime": 31.525830999999016,
+          "memoryBefore": {
+            "rss": 106.203125,
+            "heapUsed": 9.384727478027344,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 106.4609375,
+            "heapUsed": 13.926582336425781,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.2578125,
+            "heapUsed": 4.5418548583984375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 9,
+          "executionTime": 31.97764300000017,
+          "memoryBefore": {
+            "rss": 105.91015625,
+            "heapUsed": 9.410903930664062,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 105.70703125,
+            "heapUsed": 13.770759582519531,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.203125,
+            "heapUsed": 4.359855651855469,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 10,
+          "executionTime": 30.45901099999901,
+          "memoryBefore": {
+            "rss": 105.70703125,
+            "heapUsed": 9.414779663085938,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 105.70703125,
+            "heapUsed": 13.641441345214844,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0,
+            "heapUsed": 4.226661682128906,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 11,
+          "executionTime": 30.236405999999988,
+          "memoryBefore": {
+            "rss": 105.70703125,
+            "heapUsed": 9.416557312011719,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 105.70703125,
+            "heapUsed": 13.688232421875,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0,
+            "heapUsed": 4.271675109863281,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 12,
+          "executionTime": 32.65654799999902,
+          "memoryBefore": {
+            "rss": 105.70703125,
+            "heapUsed": 9.416732788085938,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 108.00390625,
+            "heapUsed": 14.044815063476562,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 2.296875,
+            "heapUsed": 4.628082275390625,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 13,
+          "executionTime": 29.516224000000875,
+          "memoryBefore": {
+            "rss": 106.41796875,
+            "heapUsed": 9.401008605957031,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 106.23828125,
+            "heapUsed": 13.705368041992188,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": -0.1796875,
+            "heapUsed": 4.304359436035156,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 14,
+          "executionTime": 29.99156000000039,
+          "memoryBefore": {
+            "rss": 106.23828125,
+            "heapUsed": 9.406944274902344,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 107.01171875,
+            "heapUsed": 14.008575439453125,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0.7734375,
+            "heapUsed": 4.601631164550781,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        },
+        {
+          "iteration": 15,
+          "executionTime": 30.0082910000001,
+          "memoryBefore": {
+            "rss": 106.4453125,
+            "heapUsed": 9.428352355957031,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryAfter": {
+            "rss": 106.4453125,
+            "heapUsed": 13.704826354980469,
+            "heapTotal": 43.75,
+            "external": 1.5719881057739258
+          },
+          "memoryDelta": {
+            "rss": 0,
+            "heapUsed": 4.2764739990234375,
+            "heapTotal": 0
+          },
+          "slotsGenerated": 2160
+        }
+      ],
+      "averages": {
+        "executionTime": 34.4312407999998,
+        "memoryDelta": {
+          "rss": 0.58359375,
+          "heapUsed": 4.643741353352865
+        },
+        "slotsGenerated": 2160
+      },
+      "errors": []
+    }
+  ],
+  "summary": {
+    "dayjs (baseline)": {
+      "executionTime": 86.36823593333335,
+      "memoryDelta": 4.818205769856771,
+      "slotsGenerated": 2160,
+      "successRate": 1
+    },
+    "Luxon": {
+      "executionTime": 166.82261659999998,
+      "memoryDelta": 5.018929036458333,
+      "slotsGenerated": 2160,
+      "successRate": 1
+    },
+    "date-fns": {
+      "executionTime": 34.4312407999998,
+      "memoryDelta": 4.643741353352865,
+      "slotsGenerated": 2160,
+      "successRate": 1
+    }
+  }
+}
