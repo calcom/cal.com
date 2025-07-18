@@ -72,15 +72,15 @@ model CalVideoSettings {
   eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 
-  disableRecordingForOrganizer     Boolean @default(false)
-  disableRecordingForGuests        Boolean @default(false)
-  enableAutomaticTranscription     Boolean @default(false)
-  redirectUrlOnExit                String?
-  disableTranscriptionForGuests    Boolean @default(false)
-  disableTranscriptionForOrganizer Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  disableRecordingForOrganizer         Boolean  @default(false)
+  disableRecordingForGuests            Boolean  @default(false)
+  enableAutomaticTranscription         Boolean  @default(false)
+  enableAutomaticRecordingForOrganizer Boolean  @default(false)
+  redirectUrlOnExit                    String?
+  disableTranscriptionForGuests        Boolean  @default(false)
+  disableTranscriptionForOrganizer     Boolean  @default(false)
+  createdAt                            DateTime @default(now())
+  updatedAt                            DateTime @updatedAt
 }
 
 model EventType {
@@ -270,6 +270,8 @@ model DestinationCalendar {
   eventTypeId                      Int?                  @unique
   credentialId                     Int?
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime?             @default(now())
+  updatedAt                        DateTime?             @updatedAt
   delegationCredential             DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId           String?
   domainWideDelegation             DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
@@ -854,6 +856,8 @@ model SelectedCalendar {
   externalId               String
   credential               Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId             Int?
+  createdAt                DateTime?   @default(now())
+  updatedAt                DateTime?   @updatedAt
   // Used to identify a watched calendar channel in Google Calendar
   googleChannelId          String?
   googleChannelKind        String?
@@ -1401,12 +1405,14 @@ model WorkflowsOnTeams {
 
 model Deployment {
   /// This is a single row table, so we use a fixed id
-  id              Int       @id @default(1)
-  logo            String?
+  id                      Int       @id @default(1)
+  logo                    String?
   /// @zod.custom(imports.DeploymentTheme)
-  theme           Json?
-  licenseKey      String?
-  agreedLicenseAt DateTime?
+  theme                   Json?
+  licenseKey              String?
+  // We encrypt the signature token in the deployment table with the current calendso encryption key
+  signatureTokenEncrypted String?
+  agreedLicenseAt         DateTime?
 }
 
 enum TimeUnit {
@@ -1922,6 +1928,13 @@ model Task {
   lastError           String?
   lastFailedAttemptAt DateTime?
   referenceUid        String?
+
+  // unique index on referenceUid,type to avoid duplicate tasks
+  @@unique([referenceUid, type])
+  // for finding succeeded tasks
+  @@index([succeededAt])
+  // for finding tasks that are scheduled to be executed
+  @@index([scheduledAt, succeededAt])
 }
 
 enum SMSLockState {
@@ -1997,9 +2010,8 @@ model Attribute {
 
   type AttributeType
 
-  name String
-  slug String @unique
-
+  name    String
+  slug    String
   enabled Boolean @default(true)
 
   usersCanEditRelation Boolean @default(false)
@@ -2010,6 +2022,7 @@ model Attribute {
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
 
+  @@unique([teamId, slug])
   @@index([teamId])
 }
 
@@ -2368,6 +2381,7 @@ enum RoleType {
 model Role {
   id          String           @id @default(cuid())
   name        String
+  color       String?
   description String?
   teamId      Int? // null for global roles
   team        Team?            @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -2382,7 +2396,7 @@ model Role {
 }
 
 model RolePermission {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   resource  String
