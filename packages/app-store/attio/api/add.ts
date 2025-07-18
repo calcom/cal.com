@@ -2,23 +2,25 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
-
-let client_id = "";
+import { appKeysSchema } from "../zod";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" });
 
-  const appKeys = await getAppKeysFromSlug("attio");
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
+  const { client_id } = await getParsedAppKeysFromSlug("attio", appKeysSchema);
   if (!client_id) return res.status(400).json({ message: "Attio client id missing." });
 
   const state = encodeOAuthState(req);
 
-  const url = `https://app.attio.com/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(
-    `${WEBAPP_URL_FOR_OAUTH}/api/integrations/attio/callback`
-  )}&response_type=code${state ? `&state=${state}` : ""}`;
+  const url = new URL("https://app.attio.com/authorize");
+  url.searchParams.append("client_id", client_id);
+  url.searchParams.append("redirect_uri", `${WEBAPP_URL_FOR_OAUTH}/api/integrations/attio/callback`);
+  url.searchParams.append("response_type", "code");
+  if (state) {
+    url.searchParams.append("state", state);
+  }
 
-  res.status(200).json({ url });
+  res.status(200).json({ url: url.toString() });
 }
