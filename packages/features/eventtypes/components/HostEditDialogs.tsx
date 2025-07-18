@@ -90,7 +90,25 @@ export const PriorityDialog = (
         };
       });
 
-      onChange(updatedOptions);
+      const otherGroupsHosts = rrHosts.filter(
+        (host) =>
+          (option.groupId && (!host.groupId || host.groupId !== option.groupId)) ||
+          (!option.groupId && host.groupId)
+      );
+      const otherGroupsOptions = otherGroupsHosts.map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+      const newFullValue = [...otherGroupsOptions, ...updatedOptions];
+      onChange(newFullValue);
     }
     setIsOpenDialog(false);
   };
@@ -194,7 +212,26 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
         };
       });
 
-      onChange(updatedOptions);
+      // Preserve hosts from other groups
+      const otherGroupsHosts = rrHosts.filter(
+        (host) =>
+          (option.groupId && (!host.groupId || host.groupId !== option.groupId)) ||
+          (!option.groupId && host.groupId)
+      );
+      const otherGroupsOptions = otherGroupsHosts.map((host) => {
+        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        return {
+          avatar: userOption?.avatar ?? "",
+          label: userOption?.label ?? host.userId.toString(),
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.weight,
+          isFixed: host.isFixed,
+          groupId: host.groupId,
+        };
+      });
+      const newFullValue = [...otherGroupsOptions, ...updatedOptions];
+      onChange(newFullValue);
     }
     setIsOpenDialog(false);
   };
