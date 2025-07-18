@@ -7,20 +7,20 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 
 // Mock the timezone detection hook
-vi.mock("./components/hooks/useTimezoneChangeDetection", () => ({
+vi.mock("./hooks/useTimezoneChangeDetection", () => ({
   useTimezoneChangeDetection: vi.fn(),
 }));
 
 // Mock other required dependencies
-vi.mock("./components/hooks/useBookerTime", () => ({
+vi.mock("./hooks/useBookerTime", () => ({
   useBookerTime: vi.fn(),
 }));
 
-vi.mock("./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled", () => ({
+vi.mock("./hooks/useIsQuickAvailabilityCheckFeatureEnabled", () => ({
   useIsQuickAvailabilityCheckFeatureEnabled: vi.fn(),
 }));
 
-vi.mock("./store", () => ({
+vi.mock("../store", () => ({
   useBookerStore: vi.fn(),
 }));
 
@@ -42,12 +42,12 @@ vi.mock("@calcom/trpc/react", () => ({
 }));
 
 // Import after mocks
-const { useTimezoneChangeDetection } = await import("./components/hooks/useTimezoneChangeDetection");
-const { useBookerTime } = await import("./components/hooks/useBookerTime");
+const { useTimezoneChangeDetection } = await import("./hooks/useTimezoneChangeDetection");
+const { useBookerTime } = await import("./hooks/useBookerTime");
 const { useIsQuickAvailabilityCheckFeatureEnabled } = await import(
-  "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled"
+  "./hooks/useIsQuickAvailabilityCheckFeatureEnabled"
 );
-const { useBookerStore } = await import("./store");
+const { useBookerStore } = await import("../store");
 const { trpc } = await import("@calcom/trpc/react");
 
 const mockUseTimezoneChangeDetection = vi.mocked(useTimezoneChangeDetection);
