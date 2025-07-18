@@ -34,7 +34,7 @@ import { oooRouter } from "./ooo/_router";
 import { viewerOrganizationsRouter } from "./organizations/_router";
 import { paymentsRouter } from "./payments/_router";
 import { permissionsRouter } from "./pbac/_router";
-import { phoneNumberRouter } from "./phoneNumber.router";
+import { phoneNumberRouter } from "./phoneNumber/_router";
 import { routingFormsRouter } from "./routing-forms/_router";
 import { slotsRouter } from "./slots/_router";
 import { ssoRouter } from "./sso/_router";
