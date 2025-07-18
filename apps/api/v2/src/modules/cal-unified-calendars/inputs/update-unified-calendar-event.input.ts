@@ -9,6 +9,25 @@ import {
   CalendarEventResponseStatus,
 } from "../outputs/get-unified-calendar-event";
 
+export class UpdateCalendarEventHost {
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    description: "Email address of the host (read-only, cannot be updated)",
+  })
+  email!: string;
+
+  @IsEnum(CalendarEventResponseStatus)
+  @IsOptional()
+  @ApiPropertyOptional({
+    enum: CalendarEventResponseStatus,
+    enumName: "CalendarEventResponseStatus",
+    nullable: true,
+    description: "Response status of the host (only field that can be updated)",
+  })
+  responseStatus?: CalendarEventResponseStatus | null;
+}
+
 export class UpdateCalendarEventAttendee {
   @IsString()
   @ApiPropertyOptional({
@@ -134,12 +153,12 @@ export class UpdateUnifiedCalendarEventInput {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CalendarEventHost)
+  @Type(() => UpdateCalendarEventHost)
   @ApiPropertyOptional({
-    type: [CalendarEventHost],
+    type: [UpdateCalendarEventHost],
     nullable: true,
     description:
-      "Information about the event hosts (organizers). When provided, replaces existing organizers.",
+      "Information about the event hosts (organizers). Only responseStatus can be updated. When provided, replaces existing organizers.",
   })
-  hosts?: CalendarEventHost[];
+  hosts?: UpdateCalendarEventHost[];
 }

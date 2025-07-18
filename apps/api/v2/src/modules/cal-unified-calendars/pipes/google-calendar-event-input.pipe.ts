@@ -4,6 +4,7 @@ import { PipeTransform, Injectable } from "@nestjs/common";
 import {
   UpdateUnifiedCalendarEventInput,
   UpdateCalendarEventAttendee,
+  UpdateCalendarEventHost,
 } from "../inputs/update-unified-calendar-event.input";
 import { UpdateDateTimeWithZone } from "../inputs/update-unified-calendar-event.input";
 import {
@@ -86,7 +87,7 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
 
   private transformAttendeesWithHostsHandling(
     inputAttendees?: UpdateCalendarEventAttendee[],
-    inputHosts?: CalendarEventHost[],
+    inputHosts?: UpdateCalendarEventHost[],
     existingEvent?: GoogleCalendarEventResponse | null
   ): Array<{
     email: string;
@@ -95,74 +96,141 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
     optional?: boolean;
     organizer?: boolean;
   }> {
-    let finalAttendees: Array<{
+    let finalAttendees = this.preserveExistingAttendees(existingEvent);
+
+    if (inputAttendees) {
+      finalAttendees = this.processAttendeeDeletions(finalAttendees, inputAttendees);
+      finalAttendees = this.processAttendeeUpdatesAndAdditions(finalAttendees, inputAttendees);
+    }
+
+    if (inputHosts && inputHosts.length > 0) {
+      finalAttendees = this.replaceHostsWithUpdatedOnes(finalAttendees, inputHosts, existingEvent);
+    }
+
+    return finalAttendees;
+  }
+
+  private preserveExistingAttendees(existingEvent?: GoogleCalendarEventResponse | null): Array<{
+    email: string;
+    displayName?: string;
+    responseStatus: string;
+    optional?: boolean;
+    organizer?: boolean;
+  }> {
+    if (!existingEvent?.attendees) {
+      return [];
+    }
+
+    return existingEvent.attendees.map((attendee) => ({
+      email: attendee.email,
+      displayName: attendee.displayName,
+      responseStatus: attendee.responseStatus || "needsAction",
+      optional: attendee.optional,
+      organizer: attendee.organizer,
+    }));
+  }
+
+  private processAttendeeDeletions(
+    attendees: Array<{
       email: string;
       displayName?: string;
       responseStatus: string;
       optional?: boolean;
       organizer?: boolean;
-    }> = [];
+    }>,
+    inputAttendees: UpdateCalendarEventAttendee[]
+  ): Array<{
+    email: string;
+    displayName?: string;
+    responseStatus: string;
+    optional?: boolean;
+    organizer?: boolean;
+  }> {
+    const attendeesToDelete = inputAttendees
+      .filter((attendee) => attendee.action === "delete")
+      .map((attendee) => attendee.email.toLowerCase());
 
-    if (existingEvent?.attendees) {
-      finalAttendees = existingEvent.attendees.map((attendee) => ({
-        email: attendee.email,
-        displayName: attendee.displayName,
-        responseStatus: attendee.responseStatus || "needsAction",
-        optional: attendee.optional,
-        organizer: attendee.organizer,
-      }));
-    }
+    return attendees.filter((attendee) => !attendeesToDelete.includes(attendee.email.toLowerCase()));
+  }
 
-    if (inputAttendees) {
-      const attendeesToDelete = inputAttendees
-        .filter((attendee) => attendee.action === "delete")
-        .map((attendee) => attendee.email.toLowerCase());
+  private processAttendeeUpdatesAndAdditions(
+    attendees: Array<{
+      email: string;
+      displayName?: string;
+      responseStatus: string;
+      optional?: boolean;
+      organizer?: boolean;
+    }>,
+    inputAttendees: UpdateCalendarEventAttendee[]
+  ): Array<{
+    email: string;
+    displayName?: string;
+    responseStatus: string;
+    optional?: boolean;
+    organizer?: boolean;
+  }> {
+    const attendeesToUpdate = inputAttendees.filter((attendee) => attendee.action !== "delete");
 
-      finalAttendees = finalAttendees.filter(
-        (attendee) => !attendeesToDelete.includes(attendee.email.toLowerCase())
+    for (const userAttendee of attendeesToUpdate) {
+      const existingIndex = attendees.findIndex(
+        (attendee) => attendee.email.toLowerCase() === userAttendee.email.toLowerCase()
       );
 
-      const attendeesToUpdate = inputAttendees.filter((attendee) => attendee.action !== "delete");
+      const transformedAttendee = {
+        email: userAttendee.email,
+        displayName: userAttendee.name,
+        responseStatus: this.transformResponseStatus(userAttendee.responseStatus),
+        optional: userAttendee.optional,
+        organizer: false,
+      };
 
-      for (const userAttendee of attendeesToUpdate) {
-        const existingIndex = finalAttendees.findIndex(
-          (attendee) => attendee.email.toLowerCase() === userAttendee.email.toLowerCase()
-        );
-
-        const transformedAttendee = {
-          email: userAttendee.email,
-          displayName: userAttendee.name,
-          responseStatus: this.transformResponseStatus(userAttendee.responseStatus),
-          optional: userAttendee.optional,
-          organizer: false,
+      if (existingIndex >= 0) {
+        attendees[existingIndex] = {
+          ...transformedAttendee,
+          organizer: attendees[existingIndex].organizer,
         };
-
-        if (existingIndex >= 0) {
-          finalAttendees[existingIndex] = {
-            ...transformedAttendee,
-            organizer: finalAttendees[existingIndex].organizer,
-          };
-        } else {
-          finalAttendees.push(transformedAttendee);
-        }
+      } else {
+        attendees.push(transformedAttendee);
       }
     }
 
-    if (inputHosts && inputHosts.length > 0) {
-      finalAttendees = finalAttendees.filter((attendee) => !attendee.organizer);
+    return attendees;
+  }
 
-      const transformedHosts = inputHosts.map((host) => ({
+  private replaceHostsWithUpdatedOnes(
+    attendees: Array<{
+      email: string;
+      displayName?: string;
+      responseStatus: string;
+      optional?: boolean;
+      organizer?: boolean;
+    }>,
+    inputHosts: UpdateCalendarEventHost[],
+    existingEvent?: GoogleCalendarEventResponse | null
+  ): Array<{
+    email: string;
+    displayName?: string;
+    responseStatus: string;
+    optional?: boolean;
+    organizer?: boolean;
+  }> {
+    const nonOrganizerAttendees = attendees.filter((attendee) => !attendee.organizer);
+
+    const transformedHosts = inputHosts.map((host) => {
+      const existingHost = existingEvent?.attendees?.find(
+        (attendee) => attendee.organizer && attendee.email.toLowerCase() === host.email.toLowerCase()
+      );
+
+      return {
         email: host.email,
-        displayName: host.name,
+        displayName: existingHost?.displayName || host.email,
         responseStatus: this.transformResponseStatus(host.responseStatus),
         optional: false,
         organizer: true,
-      }));
+      };
+    });
 
-      finalAttendees.push(...transformedHosts);
-    }
-
-    return finalAttendees;
+    return [...nonOrganizerAttendees, ...transformedHosts];
   }
 
   private transformResponseStatus(responseStatus?: CalendarEventResponseStatus | null): string {
