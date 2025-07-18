@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/queuedFormResponseCleanup",
-      "schedule": "0 2 * * 0"
+      "schedule": "0 */12 * * *"
     },
     {
       "path": "/api/tasks/cron",
