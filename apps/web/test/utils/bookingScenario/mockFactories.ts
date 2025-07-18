@@ -59,7 +59,7 @@ export const createMockRequestData = (
     responses: {
       email: "booker@example.com",
       name: "Booker",
-      location: { optionValue: "", value: "Cal Video" },
+      location: { optionValue: "" as const, value: "Cal Video" },
     },
     ...overrides,
   };
@@ -67,7 +67,7 @@ export const createMockRequestData = (
   if (scenario === "reschedule") {
     return {
       ...baseData,
-      rescheduleUid: overrides?.rescheduleUid || "existing-booking-uid",
+      rescheduleUid: (overrides?.rescheduleUid as string) || "existing-booking-uid",
     };
   }
 

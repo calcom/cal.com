@@ -54,7 +54,7 @@ export const createFreshBookingScenario = (overrides?: {
         id: 1,
         slotInterval: 30,
         length: 30,
-        users: overrides?.eventType?.users || [{ id: organizer.id }],
+        users: (overrides?.eventType?.users as { id: number }[]) || [{ id: organizer.id }],
         ...overrides?.eventType,
       },
     ],
@@ -82,7 +82,7 @@ export const createRescheduleScenario = (overrides?: {
   const defaultBooking = {
     uid: "existing-booking-uid",
     eventTypeId: 1,
-    status: "ACCEPTED",
+    status: "ACCEPTED" as const,
     startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
     ...overrides?.existingBooking,

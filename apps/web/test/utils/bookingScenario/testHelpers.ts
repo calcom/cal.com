@@ -14,8 +14,8 @@ import {
 } from "./scenarioTemplates";
 
 export const setupFreshBookingTest = async (overrides?: {
-  organizer?: Record<string, unknown>;
-  booker?: Record<string, unknown>;
+  organizer?: { name?: string; email?: string; id?: number; [key: string]: unknown };
+  booker?: { name?: string; email?: string; [key: string]: unknown };
   eventType?: Record<string, unknown>;
   withWebhooks?: boolean;
   withWorkflows?: boolean;
@@ -31,9 +31,9 @@ export const setupFreshBookingTest = async (overrides?: {
   const mockRequestData = getMockRequestDataForBooking({
     data: createMockRequestData("fresh", {
       responses: {
-        email: bookerData.email,
-        name: bookerData.name,
-        location: { optionValue: "", value: "Cal Video" },
+        email: bookerData.email as string,
+        name: bookerData.name as string,
+        location: { optionValue: "" as const, value: "Cal Video" },
       },
       ...overrides?.mockData,
     }),
@@ -43,14 +43,20 @@ export const setupFreshBookingTest = async (overrides?: {
     scenarioData,
     mocks,
     mockRequestData,
-    organizer: overrides?.organizer || { name: "Organizer", email: "organizer@example.com", id: 101 },
+    organizer: {
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      timeZone: "Asia/Kolkata",
+      ...overrides?.organizer,
+    },
     booker: bookerData,
   };
 };
 
 export const setupRescheduleTest = async (overrides?: {
-  organizer?: Record<string, unknown>;
-  booker?: Record<string, unknown>;
+  organizer?: { name?: string; email?: string; id?: number; [key: string]: unknown };
+  booker?: { name?: string; email?: string; [key: string]: unknown };
   existingBooking?: Record<string, unknown>;
   withWebhooks?: boolean;
   mockData?: Record<string, unknown>;
@@ -66,9 +72,9 @@ export const setupRescheduleTest = async (overrides?: {
     data: createMockRequestData("reschedule", {
       rescheduleUid: overrides?.existingBooking?.uid || "existing-booking-uid",
       responses: {
-        email: bookerData.email,
-        name: bookerData.name,
-        location: { optionValue: "", value: "Cal Video" },
+        email: bookerData.email as string,
+        name: bookerData.name as string,
+        location: { optionValue: "" as const, value: "Cal Video" },
       },
       ...overrides?.mockData,
     }),
@@ -78,7 +84,13 @@ export const setupRescheduleTest = async (overrides?: {
     scenarioData,
     mocks,
     mockRequestData,
-    organizer: overrides?.organizer || { name: "Organizer", email: "organizer@example.com", id: 101 },
+    organizer: {
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      timeZone: "Asia/Kolkata",
+      ...overrides?.organizer,
+    },
     booker: bookerData,
     existingBookingUid: overrides?.existingBooking?.uid || "existing-booking-uid",
   };
@@ -88,7 +100,7 @@ export const setupTeamBookingTest = async (overrides?: {
   schedulingType?: "COLLECTIVE" | "ROUND_ROBIN";
   teamMembers?: Record<string, unknown>[];
   withWebhooks?: boolean;
-  booker?: Record<string, unknown>;
+  booker?: { name?: string; email?: string; [key: string]: unknown };
   mockData?: Record<string, unknown>;
 }) => {
   const scenarioData = createTeamBookingScenario(overrides);
@@ -101,9 +113,9 @@ export const setupTeamBookingTest = async (overrides?: {
   const mockRequestData = getMockRequestDataForBooking({
     data: createMockRequestData("team", {
       responses: {
-        email: bookerData.email,
-        name: bookerData.name,
-        location: { optionValue: "", value: "Cal Video" },
+        email: bookerData.email as string,
+        name: bookerData.name as string,
+        location: { optionValue: "" as const, value: "Cal Video" },
       },
       ...overrides?.mockData,
     }),
@@ -113,7 +125,7 @@ export const setupTeamBookingTest = async (overrides?: {
     scenarioData,
     mocks,
     mockRequestData,
-    organizer: { name: "Team Lead", email: "lead@example.com", id: 101 },
+    organizer: { name: "Team Lead", email: "lead@example.com", id: 101, timeZone: "Asia/Kolkata" },
     booker: bookerData,
     teamMembers: overrides?.teamMembers || [],
   };
@@ -122,9 +134,17 @@ export const setupTeamBookingTest = async (overrides?: {
 export const expectStandardBookingSuccess = async (params: {
   createdBooking: Record<string, unknown>;
   mockRequestData: Record<string, unknown>;
-  organizer: Record<string, unknown>;
-  booker: Record<string, unknown>;
-  emails: Record<string, unknown>;
+  organizer: { email: string; name: string; timeZone: string };
+  booker: { email: string; name: string; timeZone?: string };
+  emails: {
+    get: () => Array<{
+      icalEvent?: { filename: string; content: string };
+      to: string;
+      from: string | { email: string; name: string };
+      subject: string;
+      html: string;
+    }>;
+  };
   withWebhook?: boolean;
   webhookUrl?: string;
 }) => {
@@ -147,8 +167,8 @@ export const expectStandardBookingSuccess = async (params: {
 
   if (params.withWebhook) {
     expectBookingCreatedWebhookToHaveBeenFired({
-      booker,
-      organizer,
+      booker: booker as { email: string; name: string; attendeePhoneNumber?: string },
+      organizer: organizer as { email: string; name: string },
       location: "Cal Video",
       subscriberUrl: params.webhookUrl || "http://my-webhook.example.com",
     });
