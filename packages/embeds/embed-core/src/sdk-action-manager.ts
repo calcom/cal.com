@@ -27,6 +27,8 @@ export type EventDataMap = {
     eventSlug: string | null | undefined;
     eventTitle: string | null | undefined;
   };
+  __connectInitiated: Record<string, never>;
+  __connectCompleted: Record<string, never>;
   bookingSuccessfulV2: {
     uid: string | undefined;
     title: string | undefined;

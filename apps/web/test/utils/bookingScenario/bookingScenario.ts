@@ -213,9 +213,6 @@ export type InputEventType = {
   userId?: number;
   minimumBookingNotice?: number;
   useEventLevelSelectedCalendars?: boolean;
-  /**
-   * These user ids are `ScenarioData["users"]["id"]`
-   */
   users?: { id: number }[];
   hosts?: InputHost[];
   schedulingType?: SchedulingType;
@@ -237,6 +234,25 @@ export type InputEventType = {
   owner?: number;
   metadata?: any;
   rescheduleWithSameRoundRobinHost?: boolean;
+  restrictionSchedule?: {
+    create: {
+      name: string;
+      timeZone: string;
+      availability: {
+        createMany: {
+          data: {
+            days: number[];
+            startTime: Date;
+            endTime: Date;
+            date: string | null;
+          }[];
+        };
+      };
+      user: { connect: { id: number } };
+    };
+  };
+  useBookerTimezone?: boolean;
+  restrictionScheduleId?: number;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -310,19 +326,31 @@ export async function addEventTypesToDb(
     "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     userId?: number;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     hosts?: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     destinationCalendar?: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
     metadata?: any;
     team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
+    restrictionSchedule?: {
+      create: {
+        name: string;
+        timeZone: string;
+        availability: {
+          createMany: {
+            data: {
+              days: number[];
+              startTime: Date;
+              endTime: Date;
+              date: string | null;
+            }[];
+          };
+        };
+        user: { connect: { id: number } };
+      };
+    };
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -338,11 +366,6 @@ export async function addEventTypesToDb(
     },
   });
 
-  /**
-   * This is a hack to get the relationship of schedule to be established with eventType. Looks like a prismock bug that creating eventType along with schedule.create doesn't establish the relationship.
-   * HACK STARTS
-   */
-  log.silly("Fixed possible prismock bug by creating schedule separately");
   for (let i = 0; i < eventTypes.length; i++) {
     const eventType = eventTypes[i];
     const createdEventType = allEventTypes[i];
@@ -350,8 +373,6 @@ export async function addEventTypesToDb(
     if (eventType.schedule) {
       log.silly("TestData: Creating Schedule for EventType", JSON.stringify(eventType));
       await prismock.schedule.create({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
         data: {
           ...eventType.schedule.create,
           eventType: {
@@ -360,6 +381,24 @@ export async function addEventTypesToDb(
             },
           },
         },
+      });
+    }
+
+    // Handle restrictionSchedule creation and connection
+    if (eventType.restrictionSchedule) {
+      const createdRestrictionSchedule = await prismock.schedule.create({
+        data: {
+          ...eventType.restrictionSchedule.create,
+          eventType: {
+            connect: {
+              id: createdEventType.id,
+            },
+          },
+        },
+      });
+      await prismock.eventType.update({
+        where: { id: createdEventType.id },
+        data: { restrictionScheduleId: createdRestrictionSchedule.id },
       });
     }
 
@@ -379,9 +418,6 @@ export async function addEventTypesToDb(
       });
     }
   }
-  /***
-   *  HACK ENDS
-   */
 
   log.silly(
     "TestData: All EventTypes in DB are",
@@ -454,6 +490,22 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
             },
           }
         : eventType.schedule,
+      restrictionScheduleId: eventType.restrictionScheduleId ?? undefined,
+      useBookerTimezone: eventType.useBookerTimezone ?? false,
+      restrictionSchedule: eventType.restrictionSchedule
+        ? {
+            create: {
+              name: eventType.restrictionSchedule.create.name,
+              timeZone: eventType.restrictionSchedule.create.timeZone,
+              availability: {
+                createMany: {
+                  data: eventType.restrictionSchedule.create.availability.createMany.data,
+                },
+              },
+              user: { connect: { id: eventType.userId || (eventType.users && eventType.users[0]?.id) || 1 } },
+            },
+          }
+        : undefined,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
       parent: eventType.parent ? { connect: { id: eventType.parent.id } } : undefined,
@@ -602,7 +654,7 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
   await Promise.all(
     workflows.map(async (workflow) => {
-      const team = await prismock.team.findFirst({
+      const team = await prismock.team.findUnique({
         where: {
           id: workflow.teamId ?? 0,
         },

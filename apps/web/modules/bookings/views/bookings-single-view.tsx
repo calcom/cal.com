@@ -315,17 +315,20 @@ export default function Success(props: PageProps) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       if (isAttendee) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
         host,
         attendee,
+        interpolation: { escapeValue: false },
       });
     }
     return t(`emailed_host_and_attendee${titleSuffix}`);
@@ -546,13 +549,21 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                          </>
+                        )}
+                        {isCancelled && bookingInfo?.cancelledBy && (
+                          <>
+                            <div className="font-medium">{t("cancelled_by")}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                            </div>
                           </>
                         )}
                         {previousBooking && (
@@ -610,7 +621,7 @@ export default function Success(props: PageProps) {
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default">
+                                    <p className="text-default" data-testid="booking-host-email">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
                                   )}

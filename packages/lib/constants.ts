@@ -61,6 +61,12 @@ export const EMBED_LIB_URL = process.env.NEXT_PUBLIC_EMBED_LIB_URL || `${WEBAPP_
 export const TRIAL_LIMIT_DAYS = 14;
 export const MAX_SEATS_PER_TIME_SLOT = 1000;
 
+/** Maximum duration allowed for an event in minutes (24 hours) */
+export const MAX_EVENT_DURATION_MINUTES = 1440;
+
+/** Minimum duration allowed for an event in minutes */
+export const MIN_EVENT_DURATION_MINUTES = 1;
+
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
 export const PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS =
@@ -221,3 +227,5 @@ export const CAL_VIDEO_MEETING_LINK_FOR_TESTING = process.env.CAL_VIDEO_MEETING_
 
 export const IS_SMS_CREDITS_ENABLED = !!process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID;
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
+
+export const NEXTJS_CACHE_TTL = 3600; // 1 hour
