@@ -390,8 +390,8 @@ export async function callWebhook(
             resource: `Users/${testUserEmail}/Events/${externalId}`,
             resourceData: {
               "@odata.type": "#Microsoft.Graph.Event",
-              "@odata.id": `Users/${testUserEmail}/Events/${externalId}",
-                  "@odata.etag": 'W/"DwAAABYAAACZjeWCC/mnRbEM5y7oYy4AAAABxutl"`,
+              "@odata.id": `Users/${testUserEmail}/Events/${externalId}`,
+              "@odata.etag": 'W/"DwAAABYAAACZjeWCC/mnRbEM5y7oYy4AAAABxutl"',
               id: externalId,
             },
             clientState: process.env.MICROSOFT_WEBHOOK_TOKEN,
