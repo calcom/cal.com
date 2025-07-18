@@ -1,5 +1,6 @@
 import { createInstance } from "i18next";
 
+import { i18n } from "@calcom/config/next-i18next.config";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { fetchWithTimeout } from "../fetchWithTimeout";
@@ -8,45 +9,6 @@ import logger from "../logger";
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
-const SUPPORTED_LOCALES = [
-  "ar",
-  "az",
-  "bg",
-  "bn",
-  "ca",
-  "cs",
-  "da",
-  "de",
-  "el",
-  "en",
-  "es",
-  "es-419",
-  "eu",
-  "et",
-  "fi",
-  "fr",
-  "he",
-  "hu",
-  "it",
-  "ja",
-  "km",
-  "ko",
-  "nl",
-  "no",
-  "pl",
-  "pt-BR",
-  "pt",
-  "ro",
-  "ru",
-  "sk-SK",
-  "sr",
-  "sv",
-  "tr",
-  "uk",
-  "vi",
-  "zh-CN",
-  "zh-TW",
-];
 
 /**
  * Loads translations for a specific locale and namespace with optimized caching
@@ -56,7 +18,7 @@ const SUPPORTED_LOCALES = [
  */
 export async function loadTranslations(_locale: string, _ns: string) {
   let locale = _locale === "zh" ? "zh-CN" : _locale;
-  locale = SUPPORTED_LOCALES.includes(locale) ? locale : "en";
+  locale = i18n.locales.includes(locale) ? locale : "en";
   const ns = SUPPORTED_NAMESPACES.includes(_ns) ? _ns : "common";
   const cacheKey = `${locale}-${ns}`;
 
