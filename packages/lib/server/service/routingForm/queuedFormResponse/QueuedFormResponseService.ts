@@ -1,6 +1,6 @@
 import type logger from "@calcom/lib/logger";
 
-import type { QueuedFormResponseRepositoryInterface } from "../../repository/QueuedFormResponseRepository.interface";
+import type { QueuedFormResponseRepositoryInterface } from "../../repository/routingForm/queuedFormResponse/QueuedFormResponseRepository.interface";
 
 interface Dependencies {
   logger: typeof logger;
@@ -8,18 +8,31 @@ interface Dependencies {
 }
 
 interface CleanupConfig {
-  olderThanHours?: number;
   batchSize?: number;
 }
 
 export class QueuedFormResponseService {
   constructor(private readonly deps: Dependencies) {}
 
+  private getExpiredResponses({ batchSize }: { batchSize: number }) {
+    const cutoffTime = this.getExpiryCutoffTime();
+    return this.deps.queuedFormResponseRepo.findMany({
+      where: {
+        actualResponseId: null,
+        createdAt: {
+          lt: cutoffTime,
+        },
+      },
+      params: {
+        take: batchSize,
+      },
+    });
+  }
   /**
-   * Calculate the cutoff time for expired responses
-   * This is business logic that determines when a response is considered expired
+   * Calculate the cutoff time. All responses older than this time could be considered expired.
    */
-  private calculateExpiryTime(olderThanHours: number): Date {
+  private getExpiryCutoffTime(): Date {
+    const olderThanHours = 1;
     return new Date(Date.now() - olderThanHours * 60 * 60 * 1000);
   }
 
@@ -30,35 +43,27 @@ export class QueuedFormResponseService {
     count: number;
     batches: number;
   }> {
-    const { olderThanHours = 1, batchSize = 1000 } = config;
+    const { batchSize = 1000 } = config;
 
     const log = this.deps.logger.getSubLogger({
       prefix: ["[QueuedFormResponseService]", "cleanupExpiredResponses"],
     });
 
-    const cutoffTime = this.calculateExpiryTime(olderThanHours);
-    log.debug(`Starting cleanup for responses older than ${cutoffTime.toISOString()}`);
-
     let totalDeleted = 0;
+    let batchCount = 0;
     let hasMore = true;
 
     while (hasMore) {
       try {
-        // Find expired responses in this batch
-        const expiredResponses = await this.deps.queuedFormResponseRepo.findExpiredResponses({
-          cutoffTime,
-          take: batchSize,
-        });
+        const expiredResponses = await this.getExpiredResponses({ batchSize });
 
         if (expiredResponses.length === 0) {
           hasMore = false;
           break;
         }
 
-        // Extract IDs for deletion
-        const idsToDelete = expiredResponses.map((r) => r.id);
+        const idsToDelete = expiredResponses.map((r: { id: string }) => r.id);
 
-        // Delete this batch
         const deleteResult = await this.deps.queuedFormResponseRepo.deleteByIds(idsToDelete);
 
         totalDeleted += deleteResult.count;
@@ -88,32 +93,4 @@ export class QueuedFormResponseService {
       batches: batchCount,
     };
   }
-
-  /**
-   * Find a queued form response by ID
-   */
-  async findById(id: string) {
-    return await this.deps.queuedFormResponseRepo.findById(id);
-  }
-
-  /**
-   * Create a new queued form response
-   */
-  async create(data: { formId: string; response: unknown; chosenRouteId: string | null }) {
-    const log = this.deps.logger.getSubLogger({
-      prefix: ["[QueuedFormResponseService]", "create"],
-    });
-
-    log.info(`Creating queued form response for form ${data.formId}`);
-
-    return await this.deps.queuedFormResponseRepo.create(data);
-  }
-
-  /**
-   * Find a queued form response by ID including the form data
-   */
-  async findByIdIncludeForm(id: string) {
-    return await this.deps.queuedFormResponseRepo.findByIdIncludeForm(id);
-  }
 }
-

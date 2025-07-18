@@ -2,8 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import logger from "@calcom/lib/logger";
-import { PrismaQueuedFormResponseRepository } from "@calcom/lib/server/repository/PrismaQueuedFormResponseRepository";
-import { QueuedFormResponseService } from "@calcom/lib/server/service/queuedFormResponse/QueuedFormResponseService";
+import { PrismaQueuedFormResponseRepository } from "@calcom/lib/server/repository/routingForm/queuedFormResponse/PrismaQueuedFormResponseRepository";
+import { QueuedFormResponseService } from "@calcom/lib/server/service/routingForm/queuedFormResponse/QueuedFormResponseService";
 import prisma from "@calcom/prisma";
 
 function validateRequest(request: NextRequest) {
@@ -23,7 +23,6 @@ export async function handleQueuedFormResponseCleanup(request: NextRequest) {
   }
 
   try {
-    // Use service with repository pattern
     const queuedFormResponseRepo = new PrismaQueuedFormResponseRepository(prisma);
     const queuedFormResponseService = new QueuedFormResponseService({
       logger,
@@ -31,7 +30,6 @@ export async function handleQueuedFormResponseCleanup(request: NextRequest) {
     });
 
     const result = await queuedFormResponseService.cleanupExpiredResponses({
-      olderThanHours: 1,
       batchSize: 1000,
     });
 
