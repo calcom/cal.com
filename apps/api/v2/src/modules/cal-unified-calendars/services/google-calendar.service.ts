@@ -74,7 +74,20 @@ export class GoogleCalendarService {
       bookingReference.delegationCredential
     );
 
-    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
+    let existingEvent: GoogleCalendarEventResponse | null = null;
+    if (updateData.attendees !== undefined) {
+      try {
+        const existingEventResponse = await calendar.events.get({
+          calendarId: bookingReference?.externalCalendarId ?? "primary",
+          eventId: bookingReference?.uid,
+        });
+        existingEvent = existingEventResponse.data as GoogleCalendarEventResponse;
+      } catch (error) {
+        this.logger.warn("Failed to fetch existing event for organizer preservation", { eventUid, error });
+      }
+    }
+
+    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData, existingEvent);
 
     try {
       const event = await calendar.events.patch({
