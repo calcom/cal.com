@@ -914,8 +914,23 @@ async function handler(
         throw new Error(ErrorCode.FixedHostsUnavailableForBooking);
       }
 
+      const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
+
+      const hostGroups = groupHostsByGroupId({
+        hosts: roundRobinHosts,
+        hostGroups: eventType.hostGroups,
+      });
+
+      // Filter out host groups that have no hosts in them
+      const nonEmptyHostGroups = Object.fromEntries(
+        Object.entries(hostGroups).filter(([groupId, hosts]) => hosts.length > 0)
+      );
+
       // If there are RR hosts, we need to find a lucky user
-      if ([...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 && luckyUsers.length === 0) {
+      if (
+        [...qualifiedRRUsers, ...additionalFallbackRRUsers].length > 0 &&
+        luckyUsers.length !== Object.keys(nonEmptyHostGroups).length
+      ) {
         throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
       }
 
