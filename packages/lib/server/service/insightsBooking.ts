@@ -207,6 +207,61 @@ export class InsightsBookingService {
     });
   }
 
+  async getHourlyBookingStats({
+    startDate,
+    endDate,
+    timeZone,
+  }: {
+    startDate: string;
+    endDate: string;
+    timeZone: string;
+  }) {
+    // Validate date formats
+    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
+      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    // Query to get booking counts by hour for ACCEPTED bookings only
+    // Convert timestamps to the specified timezone before extracting hour
+    // Note: Using 'accepted' (lowercase) as it's the actual database value due to @map("accepted") in Prisma schema
+    // Using CTE for better readability and maintainability
+    const results = await this.prisma.$queryRaw<
+      Array<{
+        hour: number;
+        bookingCount: bigint;
+      }>
+    >`
+      WITH hourly_data AS (
+        SELECT
+          EXTRACT(HOUR FROM ("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+          AND "startTime" >= ${startDate}::timestamp
+          AND "startTime" <= ${endDate}::timestamp
+          AND "status" = 'accepted'
+      )
+      SELECT
+        hour_extracted as "hour",
+        COUNT(*) as "bookingCount"
+      FROM hourly_data
+      GROUP BY hour_extracted
+      ORDER BY "hour"
+    `;
+
+    console.log("💡 results", results);
+
+    // Create a map of results by hour for easy lookup
+    const resultsMap = new Map(results.map((row) => [row.hour, Number(row.bookingCount)]));
+
+    // Return all 24 hours (0-23), filling with 0 values for missing data
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      bookingCount: resultsMap.get(hour) || 0,
+    }));
+  }
+
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });

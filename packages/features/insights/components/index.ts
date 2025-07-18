@@ -1,5 +1,6 @@
 export { AverageEventDurationChart } from "./AverageEventDurationChart";
 export { BookingKPICards } from "./BookingKPICards";
+export { HourlyBookingChart } from "./HourlyBookingChart";
 export { BookingStatusLineChart } from "./BookingStatusLineChart";
 export { FailedBookingsByField } from "./FailedBookingsByField";
 export { HighestNoShowHostTable } from "./HighestNoShowHostTable";
