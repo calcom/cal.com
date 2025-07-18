@@ -174,7 +174,7 @@ describe("CreditService", () => {
       });
 
       it("should return first team if no team has available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(MembershipRepository.).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -649,7 +649,7 @@ describe("CreditService", () => {
     });
 
     it("should skip unpublished platform organizations and return regular team with credits", async () => {
-      vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
         { teamId: 1 },
         { teamId: 2 },
       ]);
