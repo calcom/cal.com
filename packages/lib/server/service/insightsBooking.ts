@@ -65,6 +65,55 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
+  async getHourlyBookingStats({
+    startDate,
+    endDate,
+    timeZone,
+  }: {
+    startDate: string;
+    endDate: string;
+    timeZone: string;
+  }) {
+    // Validate date formats
+    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
+      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const results = await this.prisma.$queryRaw<
+      Array<{
+        hour: string;
+        count: bigint;
+      }>
+    >`
+      WITH hourly_data AS (
+        SELECT
+          EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+          AND "startTime" >= ${startDate}::timestamp
+          AND "startTime" <= ${endDate}::timestamp
+          AND "status" = 'accepted'
+      )
+      SELECT
+        hour_extracted as "hour",
+        COUNT(*) as "count"
+      FROM hourly_data
+      GROUP BY hour_extracted
+      ORDER BY "hour"
+    `;
+
+    // Create a map of results by hour for easy lookup
+    const resultsMap = new Map(results.map((row) => [Number(row.hour), Number(row.count)]));
+
+    // Return all 24 hours (0-23), filling with 0 values for missing data
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      count: resultsMap.get(hour) || 0,
+    }));
+  }
+
   async getBaseConditions(): Promise<Prisma.Sql> {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
@@ -205,119 +254,6 @@ export class InsightsBookingService {
       if (index === 0) return condition;
       return Prisma.sql`(${acc}) OR (${condition})`;
     });
-  }
-
-  async getHourlyBookingStats({
-    startDate,
-    endDate,
-    timeZone,
-  }: {
-    startDate: string;
-    endDate: string;
-    timeZone: string;
-  }) {
-    // Validate date formats
-    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
-      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
-    }
-
-    const baseConditions = await this.getBaseConditions();
-
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        hour: string;
-        count: bigint;
-      }>
-    >`
-      WITH hourly_data AS (
-        SELECT
-          EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
-        FROM "BookingTimeStatusDenormalized"
-        WHERE ${baseConditions}
-          AND "startTime" >= ${startDate}::timestamp
-          AND "startTime" <= ${endDate}::timestamp
-          AND "status" = 'accepted'
-      )
-      SELECT
-        hour_extracted as "hour",
-        COUNT(*) as "count"
-      FROM hourly_data
-      GROUP BY hour_extracted
-      ORDER BY "hour"
-    `;
-
-    // Create a map of results by hour for easy lookup
-    const resultsMap = new Map(results.map((row) => [Number(row.hour), Number(row.count)]));
-
-    // Return all 24 hours (0-23), filling with 0 values for missing data
-    return Array.from({ length: 24 }, (_, hour) => ({
-      hour,
-      count: resultsMap.get(hour) || 0,
-    }));
-  }
-
-  async getHourlyDailyBookingStats({
-    startDate,
-    endDate,
-    timeZone,
-    weekStart,
-  }: {
-    startDate: string;
-    endDate: string;
-    timeZone: string;
-    weekStart: number;
-  }) {
-    // Validate date formats
-    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
-      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
-    }
-
-    const baseConditions = await this.getBaseConditions();
-
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        day_of_week: string;
-        hour: string;
-        count: bigint;
-      }>
-    >`
-      WITH hourly_daily_data AS (
-        SELECT
-          EXTRACT(DOW FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as day_of_week_extracted,
-          EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
-        FROM "BookingTimeStatusDenormalized"
-        WHERE ${baseConditions}
-          AND "startTime" >= ${startDate}::timestamp
-          AND "startTime" <= ${endDate}::timestamp
-          AND "status" = 'accepted'
-      )
-      SELECT
-        day_of_week_extracted as "day_of_week",
-        hour_extracted as "hour",
-        COUNT(*) as "count"
-      FROM hourly_daily_data
-      GROUP BY day_of_week_extracted, hour_extracted
-      ORDER BY "day_of_week", "hour"
-    `;
-
-    // Create a map of results by day and hour for easy lookup
-    const resultsMap = new Map<string, number>();
-    results.forEach((row) => {
-      const key = `${row.day_of_week}-${row.hour}`;
-      resultsMap.set(key, Number(row.count));
-    });
-
-    // Adjust day of week based on weekStart (0 = Sunday, 1 = Monday)
-    const adjustedDays = Array.from({ length: 7 }, (_, i) => (i + weekStart) % 7);
-
-    // Return all combinations of days (0-6) and hours (0-23), filling with 0 values for missing data
-    return adjustedDays.flatMap((day) =>
-      Array.from({ length: 24 }, (_, hour) => ({
-        dayOfWeek: day,
-        hour,
-        count: resultsMap.get(`${day}-${hour}`) || 0,
-      }))
-    );
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {

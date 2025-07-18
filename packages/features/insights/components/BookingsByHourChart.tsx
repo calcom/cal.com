@@ -125,7 +125,7 @@ export const BookingsByHourChart = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("hourly_bookings")}>
+    <ChartCard title={t("bookings_by_hour")}>
       <BookingsByHourChartContent data={data} />
     </ChartCard>
   );

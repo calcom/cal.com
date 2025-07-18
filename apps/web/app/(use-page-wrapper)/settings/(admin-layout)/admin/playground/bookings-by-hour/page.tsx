@@ -44,7 +44,7 @@ export default function BookingsByHourPlayground() {
       </div>
 
       <div className="max-w-4xl">
-        <ChartCard title={t("hourly_bookings")}>
+        <ChartCard title={t("bookings_by_hour")}>
           <BookingsByHourChartContent data={sampleHourlyBookingsData} />
         </ChartCard>
       </div>
