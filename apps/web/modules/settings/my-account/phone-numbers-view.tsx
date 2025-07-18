@@ -1,8 +1,11 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import z from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -36,11 +39,19 @@ const SkeletonLoader = () => {
   );
 };
 
+const formSchema = z.object({
+  phoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
+  terminationUri: z.string().min(1, "Termination URI is required"),
+  sipTrunkAuthUsername: z.string().optional(),
+  sipTrunkAuthPassword: z.string().optional(),
+  nickname: z.string().optional(),
+});
+
 function PhoneNumbersView({
   numbers = [],
   revalidatePage,
 }: {
-  numbers?: RouterOutputs["viewer"]["loggedInViewerRouter"]["list"];
+  numbers?: RouterOutputs["viewer"]["phoneNumber"]["list"];
   revalidatePage: () => Promise<void>;
 }) {
   const { t } = useLocale();
@@ -51,7 +62,8 @@ function PhoneNumbersView({
   const utils = trpc.useUtils();
   const searchParams = useSearchParams();
 
-  const formMethods = useForm({
+  const formMethods = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       phoneNumber: "",
       terminationUri: "",
@@ -103,8 +115,8 @@ function PhoneNumbersView({
   });
 
   const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
-    onSuccess: async (data: { message?: string }) => {
-      showToast(data.message || "Phone number imported successfully", "success");
+    onSuccess: async () => {
+      showToast("Phone number imported successfully", "success");
       await utils.viewer.phoneNumber.list.invalidate();
       await utils.viewer.me.get.invalidate();
       await formMethods.reset();
@@ -197,7 +209,7 @@ function PhoneNumbersView({
         <div>
           {numbers.length > 0 ? (
             <div className="border-subtle rounded-b-lg border border-t-0">
-              {numbers.map((number, index) => (
+              {numbers.map((number, index: number) => (
                 <div
                   key={number.id}
                   className={`flex items-center justify-between p-6 ${
@@ -283,11 +295,7 @@ function PhoneNumbersView({
                       <span className="flex items-center gap-1">
                         {t("phone_number")}
                         <Tooltip content={t("phone_number_info_tooltip")}>
-                          <Icon
-                            name="info"
-                            className="h-4 w-4 cursor-pointer text-gray-400"
-                            title={t("phone_number_info_tooltip")}
-                          />
+                          <Icon name="info" className="h-4 w-4 cursor-pointer text-gray-400" />
                         </Tooltip>
                       </span>
                     }
@@ -312,11 +320,7 @@ function PhoneNumbersView({
                       <span className="flex items-center gap-1">
                         {t("termination_uri")}
                         <Tooltip content={t("termination_uri_info_tooltip")}>
-                          <Icon
-                            name="info"
-                            className="h-4 w-4 cursor-pointer text-gray-400"
-                            title={t("termination_uri_info_tooltip")}
-                          />
+                          <Icon name="info" className="h-4 w-4 cursor-pointer text-gray-400" />
                         </Tooltip>
                       </span>
                     }
@@ -370,11 +374,7 @@ function PhoneNumbersView({
                       <span className="flex items-center gap-1">
                         {t("sip_trunk_password")} ({t("optional")})
                         <Tooltip content={t("sip_trunk_password_info_tooltip")}>
-                          <Icon
-                            name="info"
-                            className="h-4 w-4 cursor-pointer text-gray-400"
-                            title={t("sip_trunk_password_info_tooltip")}
-                          />
+                          <Icon name="info" className="h-4 w-4 cursor-pointer text-gray-400" />
                         </Tooltip>
                       </span>
                     }
@@ -399,11 +399,7 @@ function PhoneNumbersView({
                       <span className="flex items-center gap-1">
                         {t("nickname")} ({t("optional")})
                         <Tooltip content={t("nickname_info_tooltip")}>
-                          <Icon
-                            name="info"
-                            className="h-4 w-4 cursor-pointer text-gray-400"
-                            title={t("nickname_info_tooltip")}
-                          />
+                          <Icon name="info" className="h-4 w-4 cursor-pointer text-gray-400" />
                         </Tooltip>
                       </span>
                     }
@@ -459,10 +455,9 @@ export default function PhoneNumbersQueryView({
   cachedNumbers,
   revalidatePage,
 }: {
-  cachedNumbers: RouterOutputs["viewer"]["loggedInViewerRouter"]["list"];
+  cachedNumbers: RouterOutputs["viewer"]["phoneNumber"]["list"];
   revalidatePage: () => Promise<void>;
 }) {
-  const { t } = useLocale();
   const { data: numbers, isPending } = trpc.viewer.phoneNumber.list.useQuery(undefined, {
     suspense: false,
   });
