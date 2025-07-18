@@ -12,7 +12,7 @@ export const defaultFetcherMockImplementation = vi.fn(async (endpoint, init) => 
         ["Content-Type", "application/json"],
         ["Retry-After", "0"],
       ]),
-      json: async () => Promise.resolve(JSON.stringify({ responses: batchResponse.responses })),
+      json: async () => Promise.resolve({ responses: batchResponse.responses }),
     });
   }
   if (endpoint === "/subscriptions") return mockResponses.subscriptionCreate();
