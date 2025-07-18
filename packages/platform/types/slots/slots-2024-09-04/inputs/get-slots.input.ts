@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsDateString,
@@ -9,7 +9,6 @@ import {
   IsArray,
   ArrayMinSize,
   IsEnum,
-  IsBoolean,
 } from "class-validator";
 
 import { SlotFormat } from "@calcom/platform-enums";
@@ -89,26 +88,6 @@ export class GetAvailableSlotsInput_2024_09_04 {
     example: "abc123def456",
   })
   bookingUidToReschedule?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiHideProperty()
-  teamMemberEmail?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @ApiHideProperty()
-  routingFormResponseId?: number;
-
-  @IsArray()
-  @IsOptional()
-  @ApiHideProperty()
-  routedTeamMemberIds?: number[];
-
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
-  skipContactOwner?: boolean;
 }
 
 export const ById_2024_09_04_type = "byEventTypeId";
