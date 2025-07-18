@@ -1,18 +1,19 @@
+import dayjs from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
-import dayjs from "@calcom/lib/luxon-dayjs";
 import type { Availability } from "@calcom/prisma/client";
 
 export type DateRange = {
-  start: any;
-  end: any;
+  start: Dayjs;
+  end: Dayjs;
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
-// type TravelSchedule = { startDate: any; endDate?: any; timeZone: string };
+type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
 
-function getAdjustedTimezone(date: any, timeZone: string, travelSchedules: any[]) {
+function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: TravelSchedule[]) {
   let adjustedTimezone = timeZone;
 
   for (const travelSchedule of travelSchedules) {
