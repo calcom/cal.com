@@ -1,6 +1,6 @@
 import type { Logger } from "tslog";
 
-import dayjs from "@calcom/dayjs";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
@@ -20,7 +20,7 @@ const _validateEventLength = ({
   eventTypeLength,
   logger,
 }: Props) => {
-  const reqEventLength = dayjs(reqBodyEnd).diff(dayjs(reqBodyStart), "minutes");
+  const reqEventLength = diffInMinutes(new Date(reqBodyEnd), new Date(reqBodyStart));
   const validEventLengths = eventTypeMultipleDuration?.length ? eventTypeMultipleDuration : [eventTypeLength];
   if (!validEventLengths.includes(reqEventLength)) {
     logger.warn({ message: "NewBooking: Invalid event length" });

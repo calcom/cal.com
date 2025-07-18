@@ -12,6 +12,7 @@ import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/booking
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { addDays, diffInMinutes, formatYYYYMMDD } from "@calcom/lib/date-utils-native";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
@@ -113,7 +114,7 @@ export class AvailableSlotsService {
     usersWithCredentials: GetAvailabilityUser[];
     eventTypeId: number;
   }) {
-    const currentTimeInUtc = dayjs.utc().format();
+    const currentTimeInUtc = new Date().toISOString();
     const slotsRepo = this.dependencies.selectedSlotsRepo;
 
     const unexpiredSelectedSlots =
@@ -188,7 +189,7 @@ export class AvailableSlotsService {
     occupiedSeatsMap.forEach((count, date) => {
       currentSeats.push({
         uid: uuid(),
-        startTime: dayjs(date).toDate(),
+        startTime: new Date(date),
         _count: { attendees: count },
       });
     });
@@ -231,17 +232,18 @@ export class AvailableSlotsService {
 
   private _getAllDatesWithBookabilityStatus(availableDates: string[]) {
     const availableDatesSet = new Set(availableDates);
-    const firstDate = dayjs(availableDates[0]);
-    const lastDate = dayjs(availableDates[availableDates.length - 1]);
+    const firstDate = new Date(availableDates[0]);
+    const lastDate = new Date(availableDates[availableDates.length - 1]);
     const allDates: Record<string, { isBookable: boolean }> = {};
 
-    let currentDate = firstDate;
+    let currentDate = new Date(firstDate);
     while (currentDate <= lastDate) {
-      allDates[currentDate.format("YYYY-MM-DD")] = {
-        isBookable: availableDatesSet.has(currentDate.format("YYYY-MM-DD")),
+      const dateStr = formatYYYYMMDD(currentDate);
+      allDates[dateStr] = {
+        isBookable: availableDatesSet.has(dateStr),
       };
 
-      currentDate = currentDate.add(1, "day");
+      currentDate = addDays(currentDate, 1);
     }
     return allDates;
   }
@@ -480,7 +482,7 @@ export class AvailableSlotsService {
               if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
                 continue;
               }
-              totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+              totalDuration += diffInMinutes(new Date(booking.end), new Date(booking.start));
               if (totalDuration > limit) {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 break;

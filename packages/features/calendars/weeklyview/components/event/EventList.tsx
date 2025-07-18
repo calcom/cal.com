@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { addMinutes, diffInMinutes } from "@calcom/lib/date-utils-native";
 
 import { useCalendarStore } from "../../state/store";
 import { Event } from "./Event";
@@ -43,7 +44,7 @@ export function EventList({ day }: Props) {
           const eventStart = dayjs(event.start);
           const eventEnd = dayjs(event.end);
 
-          const eventDuration = eventEnd.diff(eventStart, "minutes");
+          const eventDuration = diffInMinutes(eventEnd.toDate(), eventStart.toDate());
 
           const eventStartHour = eventStart.hour();
           const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
@@ -82,7 +83,12 @@ export function EventList({ day }: Props) {
 
                 // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
                 // close start times
-              } else if (nextStart.isBetween(eventStart.add(-5, "minutes"), eventStart.add(5, "minutes"))) {
+              } else if (
+                nextStart.isBetween(
+                  dayjs(addMinutes(eventStart.toDate(), -5)),
+                  dayjs(addMinutes(eventStart.toDate(), 5))
+                )
+              ) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 4;
@@ -99,7 +105,12 @@ export function EventList({ day }: Props) {
                 right = 4;
                 // If not - we check to see if the next starts within 5 mins of this event - allowing us to do side by side events whenwe have
                 // close start times (Inverse of above )
-              } else if (eventStart.isBetween(prevStart.add(5, "minutes"), prevStart.add(-5, "minutes"))) {
+              } else if (
+                eventStart.isBetween(
+                  dayjs(addMinutes(prevStart.toDate(), 5)),
+                  dayjs(addMinutes(prevStart.toDate(), -5))
+                )
+              ) {
                 zIndex = 65;
                 right = 4;
                 width = width / 2;

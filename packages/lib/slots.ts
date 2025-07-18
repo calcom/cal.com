@@ -4,6 +4,7 @@ import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAv
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { DateRange } from "./date-ranges";
+import { addMinutes } from "./date-utils-native";
 import { getTimeZone } from "./dayjs";
 
 export type GetSlots = {
@@ -67,7 +68,7 @@ function buildSlotsWithDateRanges({
     }
   }
 
-  const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+  const startTimeWithMinNotice = addMinutes(new Date(), minimumBookingNotice);
 
   const slotBoundaries = new Map<number, true>();
 
@@ -76,7 +77,7 @@ function buildSlotsWithDateRanges({
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
-      : startTimeWithMinNotice;
+      : dayjs(startTimeWithMinNotice);
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0

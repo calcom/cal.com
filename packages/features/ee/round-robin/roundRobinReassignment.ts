@@ -16,6 +16,7 @@ import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBo
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -230,7 +231,7 @@ export const roundRobinReassignment = async ({
       host: organizer.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
-      eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
+      eventDuration: diffInMinutes(new Date(booking.endTime), new Date(booking.startTime)),
       t: organizerT,
     };
 

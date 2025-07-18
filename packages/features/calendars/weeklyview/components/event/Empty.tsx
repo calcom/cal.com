@@ -3,6 +3,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
@@ -76,7 +77,7 @@ export function AvailableCellsForDay({ availableSlots, day, startHour }: Availab
     if (areAllSlotsAway && firstSlotIndex !== -1) {
       const firstSlot = slotsForToday[firstSlotIndex];
       const lastSlot = slotsForToday[lastSlotIndex];
-      startEndTimeDuration = dayjs(lastSlot.end).diff(dayjs(firstSlot.start), "minutes");
+      startEndTimeDuration = diffInMinutes(new Date(lastSlot.end), new Date(firstSlot.start));
 
       if (firstSlot.toUser == null) {
         return null;

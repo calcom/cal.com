@@ -17,6 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
 import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
 import type {
@@ -95,7 +96,7 @@ const convertDate = (date: string): DateArray =>
     .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray;
 
 const getDuration = (start: string, end: string): DurationObject => ({
-  minutes: dayjs(end).diff(dayjs(start), "minute"),
+  minutes: diffInMinutes(new Date(end), new Date(start)),
 });
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>

@@ -2,8 +2,8 @@ import type { TFunction } from "i18next";
 import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
@@ -462,7 +462,7 @@ export const sendCancelledEmailsAndSMS = async (
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
   const calEventLength = calendarEvent.length;
-  const eventDuration = dayjs(calEvent.endTime).diff(calEvent.startTime, "minutes");
+  const eventDuration = diffInMinutes(new Date(calEvent.endTime), new Date(calEvent.startTime));
 
   if (typeof calEventLength !== "number") {
     logger.error(

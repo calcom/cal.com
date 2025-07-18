@@ -1,5 +1,6 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
 import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
@@ -203,7 +204,7 @@ const _getBusyTimesFromDurationLimits = async (
         if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
-        totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+        totalDuration += diffInMinutes(new Date(booking.end), new Date(booking.start));
         if (totalDuration > limit) {
           limitManager.addBusyTime(periodStart, unit);
           break;

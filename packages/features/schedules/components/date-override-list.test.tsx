@@ -5,8 +5,8 @@ import { noop } from "lodash";
 import { useFieldArray, useForm, FormProvider } from "react-hook-form";
 import { vi } from "vitest";
 
-import dayjs from "@calcom/dayjs";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
+import { addMinutes, startOfDay } from "@calcom/lib/date-utils-native";
 import type { TimeRange } from "@calcom/types/schedule";
 
 vi.mock("next/navigation", async (importOriginal) => {
@@ -34,8 +34,8 @@ describe("DateOverrideList", () => {
             {
               ranges: [
                 {
-                  start: dayjs.utc().startOf("day").add(540, "minute").toDate(),
-                  end: dayjs.utc().startOf("day").add(1020, "minute").toDate(),
+                  start: addMinutes(startOfDay(new Date()), 540),
+                  end: addMinutes(startOfDay(new Date()), 1020),
                 },
               ],
             },
@@ -81,8 +81,8 @@ describe("DateOverrideList", () => {
             {
               ranges: [
                 {
-                  start: dayjs.utc().startOf("day").add(540, "minute").toDate(),
-                  end: dayjs.utc().startOf("day").add(1020, "minute").toDate(),
+                  start: addMinutes(startOfDay(new Date()), 540),
+                  end: addMinutes(startOfDay(new Date()), 1020),
                 },
               ],
             },

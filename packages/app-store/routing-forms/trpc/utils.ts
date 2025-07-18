@@ -1,9 +1,9 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
-import dayjs from "@calcom/dayjs";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import { addMinutes } from "@calcom/lib/date-utils-native";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -164,7 +164,7 @@ export async function _onFormSubmission(
     try {
       const tasker: Tasker = await (await import("@calcom/features/tasker")).default;
       const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-        const scheduledAt = dayjs().add(15, "minute").toDate();
+        const scheduledAt = addMinutes(new Date(), 15);
 
         return tasker.create(
           "triggerFormSubmittedNoEventWebhook",

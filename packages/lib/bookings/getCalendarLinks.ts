@@ -6,6 +6,7 @@ import type { z } from "zod";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
@@ -33,7 +34,7 @@ const buildICalLink = ({
   description: string | null;
   location: string | null;
 }) => {
-  const durationInMinutes = endTime.diff(startTime, "minutes");
+  const durationInMinutes = diffInMinutes(endTime.toDate(), startTime.toDate());
 
   const iCalEvent = createEvent({
     start: [
@@ -178,7 +179,7 @@ export const getCalendarLinks = ({
     host: eventType.team?.name || eventType.users[0]?.name || "Nameless",
     location: booking.location,
     bookingFields: booking.responses,
-    eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
+    eventDuration: diffInMinutes(new Date(booking.endTime), new Date(booking.startTime)),
     t,
   };
 

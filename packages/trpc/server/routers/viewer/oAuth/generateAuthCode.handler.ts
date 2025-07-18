@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
-import dayjs from "@calcom/dayjs";
+import { addMinutes } from "@calcom/lib/date-utils-native";
 import { prisma } from "@calcom/prisma";
 import type { AccessScope } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -60,7 +60,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       clientId,
       userId: !teamSlug ? ctx.user.id : undefined,
       teamId: team ? team.id : undefined,
-      expiresAt: dayjs().add(10, "minutes").toDate(),
+      expiresAt: addMinutes(new Date(), 10),
       scopes: scopes as [AccessScope],
     },
   });

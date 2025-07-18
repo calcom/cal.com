@@ -46,6 +46,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
@@ -1061,7 +1062,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
-    eventDuration: dayjs(reqBody.end).diff(reqBody.start, "minutes"),
+    eventDuration: diffInMinutes(new Date(reqBody.end), new Date(reqBody.start)),
     bookingFields: { ...responses },
     t: tOrganizer,
   };
@@ -1184,7 +1185,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes"),
+    length: diffInMinutes(new Date(reqBody.end), new Date(reqBody.start)),
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });

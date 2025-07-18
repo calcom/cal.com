@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { addMinutes, startOfDay } from "@calcom/lib/date-utils-native";
 import { yyyymmdd } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
@@ -65,8 +66,8 @@ const DateOverrideForm = ({
   const defaultRanges = (workingHours || []).reduce((dayRanges: TimeRange[], workingHour) => {
     if (selectedDates[0] && workingHour.days.includes(selectedDates[0].day())) {
       dayRanges.push({
-        start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
-        end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
+        start: addMinutes(startOfDay(new Date()), workingHour.startTime),
+        end: addMinutes(startOfDay(new Date()), workingHour.endTime),
       });
     }
     return dayRanges;
@@ -74,8 +75,8 @@ const DateOverrideForm = ({
   // DayRanges does not support empty state, add 9-5 as a default
   if (!defaultRanges.length) {
     defaultRanges.push({
-      start: dayjs.utc().startOf("day").add(540, "minute").toDate(),
-      end: dayjs.utc().startOf("day").add(1020, "minute").toDate(),
+      start: addMinutes(startOfDay(new Date()), 540),
+      end: addMinutes(startOfDay(new Date()), 1020),
     });
   }
 

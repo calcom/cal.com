@@ -5,6 +5,7 @@ import { useStore } from "zustand";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/lib/date-ranges";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import classNames from "@calcom/ui/classNames";
 
 import { DAY_CELL_WIDTH } from "../constants";
@@ -55,7 +56,7 @@ function isCurrentHourInRange({
     // this is a weird way of doing this
     const newDate = dayjs(time.start).set("hour", currentHour);
 
-    const diffStart = newDate.diff(startHour, "minutes");
+    const diffStart = diffInMinutes(newDate.toDate(), startHour.toDate());
     if (Math.abs(diffStart) < 60 && diffStart != 0) {
       rangeOverlap =
         diffStart < 0
@@ -63,7 +64,7 @@ function isCurrentHourInRange({
           : Math.floor(startHour.minute() / 15) * 25;
     }
 
-    const diffEnd = newDate.diff(endHour, "minutes");
+    const diffEnd = diffInMinutes(newDate.toDate(), endHour.toDate());
     if (Math.abs(diffEnd) < 60 && diffEnd != 0) {
       rangeOverlap =
         diffEnd < 0 ? -(Math.floor(endHour.minute() / 15) * 25) : Math.floor(endHour.minute() / 15) * 25;

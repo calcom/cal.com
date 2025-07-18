@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
@@ -29,7 +30,7 @@ const getDateTimeInUtc = (timeInput: string, timeZone?: string) => {
 
 const getOriginalBookingDuration = (originalBooking?: BookingType) => {
   return originalBooking
-    ? dayjs(originalBooking.endTime).diff(dayjs(originalBooking.startTime), "minutes")
+    ? diffInMinutes(new Date(originalBooking.endTime), new Date(originalBooking.startTime))
     : undefined;
 };
 
@@ -67,7 +68,7 @@ const _ensureAvailableUsers = async (
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
   const endDateTimeUtc = getDateTimeInUtc(input.dateTo, input.timeZone);
 
-  const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
+  const duration = diffInMinutes(new Date(input.dateTo), new Date(input.dateFrom));
   const originalBookingDuration = getOriginalBookingDuration(input.originalRescheduledBooking);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);

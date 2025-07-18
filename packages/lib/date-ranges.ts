@@ -3,6 +3,8 @@ import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import type { Availability } from "@calcom/prisma/client";
 
+import { addDays, startOfDay } from "./date-utils-native";
+
 export type DateRange = {
   start: Dayjs;
   end: Dayjs;
@@ -43,16 +45,21 @@ export function processWorkingHours({
 }) {
   const utcDateTo = dateTo.utc();
   const results = [];
-  for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
+  let currentDate = startOfDay(dateFrom.toDate());
+  const endDateNative = utcDateTo.toDate();
+
+  while (currentDate < endDateNative) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
+    const dayjsCurrentDate = dayjs(currentDate);
 
-    const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
+    const adjustedTimezone = getAdjustedTimezone(dayjsCurrentDate, timeZone, travelSchedules);
 
-    const offset = date.tz(adjustedTimezone).utcOffset();
+    const offset = dayjsCurrentDate.tz(adjustedTimezone).utcOffset();
 
     // it always has to be start of the day (midnight) even when DST changes
-    const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
+    const dateInTz = dayjsCurrentDate.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
     if (!item.days.includes(dateInTz.day())) {
+      currentDate = addDays(currentDate, 1);
       continue;
     }
 
@@ -86,6 +93,8 @@ export function processWorkingHours({
       start: startResult,
       end: endResult,
     });
+
+    currentDate = addDays(currentDate, 1);
   }
   return results;
 }
@@ -225,7 +234,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = dayjs(currentValue.start).format("YYYY-MM-DD");
+      const dateString = currentValue.start.format("YYYY-MM-DD");
 
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
@@ -337,7 +346,7 @@ export function subtract(
 export function mergeOverlappingRanges(ranges: { start: Date; end: Date }[]): { start: Date; end: Date }[] {
   if (ranges.length === 0) return [];
 
-  const sortedRanges = ranges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const sortedRanges = ranges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
   const mergedRanges: { start: Date; end: Date }[] = [sortedRanges[0]];
 

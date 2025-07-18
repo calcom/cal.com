@@ -21,6 +21,7 @@ import {
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { diffInMinutes } from "@calcom/lib/date-utils-native";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -170,7 +171,7 @@ export const roundRobinManualReassignment = async ({
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
-      eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
+      eventDuration: diffInMinutes(new Date(booking.endTime), new Date(booking.startTime)),
       t: newUserT,
     });
 

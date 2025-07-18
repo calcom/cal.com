@@ -5,6 +5,7 @@ import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookin
 import { describe, expect, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { addMinutes } from "@calcom/lib/date-utils-native";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { handleWebhookScheduledTriggers } from "../handleWebhookScheduledTriggers";
@@ -52,7 +53,7 @@ describe("Cron job handler", () => {
         {
           id: 1,
           subscriberUrl: "https://example.com",
-          startAfter: now.add(5, "minute").toDate(),
+          startAfter: addMinutes(now.toDate(), 5),
           payload,
         },
         {
