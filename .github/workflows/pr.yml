@@ -254,5 +254,5 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure'))
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (needs.lint.result == 'failure' || needs.type-check.result == 'failure' || needs.unit-test.result == 'failure' || needs.integration-test.result == 'failure')
         run: exit 1
