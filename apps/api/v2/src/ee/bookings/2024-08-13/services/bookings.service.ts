@@ -25,10 +25,6 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import {
-  BookingRescheduleState,
-  canRescheduleBooking,
-} from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
-import {
   handleNewRecurringBooking,
   getTranslation,
   getAllUserBookings,
@@ -41,6 +37,7 @@ import {
   getCalendarLinks,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
+import { BookingRescheduleState, canRescheduleBooking } from "@calcom/platform-libraries/bookings";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
