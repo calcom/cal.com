@@ -92,7 +92,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           ? [
               {
                 name: "members",
-                href: `${WEBAPP_URL}/settings/organizations/i/members`,
+                href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
                 isExternalLink: true,
               },
             ]
