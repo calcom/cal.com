@@ -1428,8 +1428,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             // @ts-ignore
             const data: BookingOutput_2024_08_13 = responseBody.data;
             expect(data.status).toEqual("cancelled");
-
-            createdBooking = data;
+            expect(data.rescheduledToUid).toEqual(rescheduledBooking.uid);
           });
       });
 
@@ -1585,17 +1584,55 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     describe("cancel bookings", () => {
+      afterEach(async () => {
+        await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      });
+
       it("should cancel booking", async () => {
+        const createBody: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+          eventTypeId,
+          attendee: {
+            name: "Mr Proper Cancel",
+            email: "mr_proper_cancel@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+        };
+
+        const createResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(createBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(201);
+
+        const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+        expect(responseDataIsBooking(createResponseBody.data)).toBe(true);
+
+        if (!responseDataIsBooking(createResponseBody.data)) {
+          throw new Error("Failed to create booking for test");
+        }
+
+        const testBooking: BookingOutput_2024_08_13 = createResponseBody.data;
+
+        const booking = await bookingsRepositoryFixture.getByUid(testBooking.uid);
+        expect(booking).toBeDefined();
+        expect(booking?.status).toEqual("ACCEPTED");
+
         const body: CancelBookingInput_2024_08_13 = {
           cancellationReason: "Going on a vacation",
         };
 
-        const booking = await bookingsRepositoryFixture.getByUid(rescheduledBooking.uid);
-        expect(booking).toBeDefined();
-        expect(booking?.status).toEqual("ACCEPTED");
-
         return request(app.getHttpServer())
-          .post(`/v2/bookings/${rescheduledBooking.uid}/cancel`)
+          .post(`/v2/bookings/${testBooking.uid}/cancel`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set(X_CAL_CLIENT_ID, oAuthClient.id)
@@ -1614,27 +1651,61 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual("cancelled");
             expect(data.cancellationReason).toEqual(body.cancellationReason);
-            expect(data.start).toEqual(rescheduledBooking.start);
-            expect(data.end).toEqual(rescheduledBooking.end);
-            expect(data.duration).toEqual(rescheduledBooking.duration);
-            expect(data.eventTypeId).toEqual(rescheduledBooking.eventTypeId);
-            expect(data.attendees[0]).toEqual(rescheduledBooking.attendees[0]);
-            expect(data.location).toEqual(rescheduledBooking.location);
-            expect(data.absentHost).toEqual(rescheduledBooking.absentHost);
+            expect(data.start).toEqual(testBooking.start);
+            expect(data.end).toEqual(testBooking.end);
+            expect(data.duration).toEqual(testBooking.duration);
+            expect(data.eventTypeId).toEqual(testBooking.eventTypeId);
+            expect(data.attendees[0]).toEqual(testBooking.attendees[0]);
+            expect(data.location).toEqual(testBooking.location);
+            expect(data.absentHost).toEqual(testBooking.absentHost);
 
-            const cancelledBooking = await bookingsRepositoryFixture.getByUid(rescheduledBooking.uid);
+            const cancelledBooking = await bookingsRepositoryFixture.getByUid(testBooking.uid);
             expect(cancelledBooking).toBeDefined();
             expect(cancelledBooking?.status).toEqual("CANCELLED");
           });
       });
 
       it("should cancel recurring booking", async () => {
+        const createBody: CreateRecurringBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+          eventTypeId: recurringEventTypeId,
+          attendee: {
+            name: "Mr Proper Recurring Cancel",
+            email: "mr_proper_recurring_cancel@gmail.com",
+            timeZone: "Europe/Rome",
+            language: "it",
+          },
+          location: "https://meet.google.com/abc-def-ghi",
+          bookingFieldsResponses: {
+            customField: "customValue",
+          },
+          metadata: {
+            userId: "100",
+          },
+        };
+
+        const createResponse = await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(createBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(201);
+
+        const createResponseBody: CreateBookingOutput_2024_08_13 = createResponse.body;
+        expect(responseDataIsRecurringBooking(createResponseBody.data)).toBe(true);
+
+        if (!responseDataIsRecurringBooking(createResponseBody.data)) {
+          throw new Error("Failed to create recurring booking for test");
+        }
+
+        const testRecurringBooking: RecurringBookingOutput_2024_08_13[] = createResponseBody.data;
+
         const body: CancelBookingInput_2024_08_13 = {
           cancellationReason: "Going on a vacation",
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/bookings/${createdRecurringBooking[1].recurringBookingUid}/cancel`)
+          .post(`/v2/bookings/${testRecurringBooking[1].recurringBookingUid}/cancel`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set(X_CAL_CLIENT_ID, oAuthClient.id)
@@ -1647,7 +1718,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
             if (responseDataIsRecurringBooking(responseBody.data)) {
               const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
-              expect(data.length).toEqual(4);
+              expect(data.length).toEqual(3);
 
               const firstBooking = data[0];
               expect(firstBooking.status).toEqual("cancelled");
@@ -1657,9 +1728,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
               const thirdBooking = data[2];
               expect(thirdBooking.status).toEqual("cancelled");
-
-              const fourthBooking = data[3];
-              expect(fourthBooking.status).toEqual("cancelled");
             } else {
               throw new Error(
                 "Invalid response data - expected recurring booking but received non array response"
@@ -2591,6 +2659,59 @@ describe("Bookings Endpoints 2024-08-13", () => {
         );
         await bookingsRepositoryFixture.deleteById(rescheduledBooking.id);
         await bookingsRepositoryFixture.deleteById(newBooking.id);
+      });
+    });
+
+    describe("cant't cancel already cancelled booking", () => {
+      it("should not be able to cancel alraedy cancelled booking", async () => {
+        const cancelledBooking = await bookingsRepositoryFixture.create({
+          status: "CANCELLED",
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          startTime: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2050, 0, 8, 14, 0, 0)),
+          title: "peer coding lets goo",
+          uid: `cancelled-booking-${randomString()}`,
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+          responses: {
+            name: "Oldie",
+            email: "oldie@gmail.com",
+          },
+          attendees: {
+            create: {
+              email: "oldie@gmail.com",
+              name: "Oldie",
+              locale: "lv",
+              timeZone: "Europe/Rome",
+            },
+          },
+        });
+
+        const body: CancelBookingInput_2024_08_13 = {
+          cancellationReason: "Going on a vacation",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings/${cancelledBooking.uid}/cancel`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
+          .expect(400);
+
+        expect(response.body.error.message).toEqual(
+          `Can't cancel booking with uid=${cancelledBooking.uid} because it has been cancelled already. Please provide uid of a booking that is not cancelled.`
+        );
+        await bookingsRepositoryFixture.deleteById(cancelledBooking.id);
       });
     });
 

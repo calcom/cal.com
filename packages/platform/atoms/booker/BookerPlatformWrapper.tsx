@@ -56,6 +56,7 @@ export const BookerPlatformWrapper = (
     confirmButtonDisabled,
     isBookingDryRun,
     handleSlotReservation,
+    onTimeslotsLoaded,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -276,6 +277,12 @@ export const BookerPlatformWrapper = (
     ...routingParams,
   });
 
+  useEffect(() => {
+    if (schedule.data && !schedule.isPending && !schedule.error && onTimeslotsLoaded) {
+      onTimeslotsLoaded(schedule.data.slots);
+    }
+  }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
+
   const bookerForm = useBookingForm({
     event: event?.data,
     sessionEmail:
@@ -346,7 +353,7 @@ export const BookerPlatformWrapper = (
     onReserveSlotError: props.onReserveSlotError,
     onDeleteSlotSuccess: props.onDeleteSlotSuccess,
     onDeleteSlotError: props.onDeleteSlotError,
-    isBookingDryRun: routingParams?.isBookingDryRun,
+    isBookingDryRun: props.isBookingDryRun ? props.isBookingDryRun : routingParams?.isBookingDryRun,
     handleSlotReservation,
   });
 
@@ -386,6 +393,7 @@ export const BookerPlatformWrapper = (
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
     routingFormSearchParams,
+    isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
   });
 
   const onOverlaySwitchStateChange = useCallback(

@@ -191,6 +191,7 @@ describe("CreditService", () => {
           teamId: 1,
           availableCredits: 0,
           creditType: CreditType.ADDITIONAL,
+          limitReached: true,
         });
       });
     });
@@ -387,10 +388,13 @@ describe("CreditService", () => {
 
     describe("getMonthlyCredits", () => {
       it("should return 0 if subscription is not active", async () => {
-        vi.mocked(TeamRepository.findTeamWithMembers).mockResolvedValue({
-          id: 1,
-          members: [{ accepted: true }],
-        } as any);
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            members: [{ accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("trialing"),
@@ -404,10 +408,13 @@ describe("CreditService", () => {
       });
 
       it("should calculate credits based on active members and price", async () => {
-        vi.mocked(TeamRepository.findTeamWithMembers).mockResolvedValue({
-          id: 1,
-          members: [{ accepted: true }, { accepted: true }, { accepted: true }],
-        } as any);
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            members: [{ accepted: true }, { accepted: true }, { accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),

@@ -19,7 +19,7 @@ import type { BookingLanguageType } from "../inputs/language";
 import { BookingLanguage } from "../inputs/language";
 import { ValidateBookingLocation_2024_08_13 } from "../inputs/location.input";
 
-class Attendee {
+class BookingAttendee {
   @ApiProperty({ type: String, example: "John Doe" })
   @IsString()
   @Expose()
@@ -53,7 +53,7 @@ class Attendee {
   phoneNumber?: string;
 }
 
-export class SeatedAttendee extends Attendee {
+export class SeatedAttendee extends BookingAttendee {
   @ApiProperty({ type: String, example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1" })
   @IsString()
   @Expose()
@@ -175,11 +175,25 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   rescheduledByEmail?: string;
 
-  @ApiPropertyOptional({ type: String, example: "previous_uid_123" })
+  @ApiPropertyOptional({
+    type: String,
+    example: "previous_uid_123",
+    description: "UID of the previous booking from which this booking was rescheduled.",
+  })
   @IsString()
   @IsOptional()
   @Expose()
   rescheduledFromUid?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: "new_uid_456",
+    description: "UID of the new booking to which this booking was rescheduled.",
+  })
+  @IsString()
+  @IsOptional()
+  @Expose()
+  rescheduledToUid?: string;
 
   @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
   @IsDateString()
@@ -272,11 +286,11 @@ class BaseBookingOutput_2024_08_13 {
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {
-  @ApiProperty({ type: [Attendee] })
+  @ApiProperty({ type: [BookingAttendee] })
   @ValidateNested({ each: true })
-  @Type(() => Attendee)
+  @Type(() => BookingAttendee)
   @Expose()
-  attendees!: Attendee[];
+  attendees!: BookingAttendee[];
 
   @ApiPropertyOptional({
     type: [String],

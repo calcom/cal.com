@@ -34,7 +34,7 @@ export class OrganizationsUsersBookingsController {
   @Get("/")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @ApiOperation({ summary: "Get all bookings of an organization user" })
+  @ApiOperation({ summary: "Get all bookings for an organization user" })
   async getOrganizationUserBookings(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
