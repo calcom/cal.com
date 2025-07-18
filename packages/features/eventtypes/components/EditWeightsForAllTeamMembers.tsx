@@ -144,18 +144,23 @@ export const EditWeightsForAllTeamMembers = ({
   const handleSave = () => {
     // Create a map of existing hosts for easy lookup
     const existingHostsMap = new Map(value.map((host) => [host.userId.toString(), host]));
+    console.log("--- value: ", value);
+    console.log("---- existingHostsMap: ", existingHostsMap);
 
     // Create the updated value by processing all team members
-    const updatedValue = teamMembers.map((member) => {
-      const existingHost = existingHostsMap.get(member.value);
-      return {
-        ...existingHost,
-        userId: parseInt(member.value, 10),
-        isFixed: existingHost?.isFixed ?? false,
-        priority: existingHost?.priority ?? 0,
-        weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
-      };
-    });
+    const updatedValue = teamMembers
+      .map((member) => {
+        const existingHost = existingHostsMap.get(member.value);
+        if (!existingHost) return null;
+        return {
+          ...existingHost,
+          userId: parseInt(member.value, 10),
+          isFixed: existingHost?.isFixed ?? false,
+          priority: existingHost?.priority ?? 0,
+          weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+        };
+      })
+      .filter(Boolean) as Host[];
 
     onChange(updatedValue);
     setIsOpen(false);
