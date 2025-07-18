@@ -78,8 +78,10 @@ export function RolesList({
                 role={role}
                 key={role.id}
                 onClick={() => {
-                  // Cant edit system roles
+                  // For system roles, open in view-only mode
                   if (role.type === "SYSTEM") {
+                    setSelectedRoleId(role.id);
+                    setIsOpen(true);
                     return;
                   }
 
@@ -132,7 +134,9 @@ function RoleItem({
     <div
       className={classNames(
         "border-subtle flex p-3",
-        canUpdate && role.type !== "SYSTEM" && "hover:bg-subtle cursor-pointer"
+        (canUpdate && role.type !== "SYSTEM") || role.type === "SYSTEM"
+          ? "hover:bg-subtle cursor-pointer"
+          : ""
       )}
       onClick={onClick}>
       <div className="flex w-full items-center gap-3 truncate">

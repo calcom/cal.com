@@ -57,6 +57,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
   const { t } = useLocale();
   const router = useRouter();
   const isEditing = Boolean(role);
+  const isSystemRole = role?.type === "SYSTEM";
   const [searchQuery, setSearchQuery] = useState("");
 
   const defaultValues = useMemo(
@@ -166,7 +167,9 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>{isEditing ? t("edit_role") : t("create_role")}</SheetTitle>
+          <SheetTitle>
+            {isSystemRole ? t("view_role") : isEditing ? t("edit_role") : t("create_role")}
+          </SheetTitle>
         </SheetHeader>
         <Form form={form} handleSubmit={onSubmit}>
           <div className="space-y-4 py-5">
@@ -176,11 +179,13 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                   label={t("role_name")}
                   {...form.register("name")}
                   placeholder={t("role_name_placeholder")}
+                  disabled={isSystemRole}
                 />
               </div>
               <RoleColorPicker
                 value={color}
                 onChange={(value) => form.setValue("color", value, { shouldDirty: true })}
+                disabled={isSystemRole}
               />
             </div>
 
@@ -203,6 +208,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                       placeholder={t("search_permissions")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      disabled={isSystemRole}
                     />
                   </div>
 
@@ -212,6 +218,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                       resource={resource as Resource}
                       selectedPermissions={permissions}
                       onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
+                      disabled={isSystemRole}
                     />
                   ))}
                 </div>
@@ -234,6 +241,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                         resource={resource}
                         permissions={permissions}
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
+                        disabled={isSystemRole}
                       />
                     ))}
                   </div>
@@ -242,18 +250,27 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
             </div>
           </div>
 
-          <SheetFooter>
-            <Button
-              type="button"
-              color="secondary"
-              onClick={() => onOpenChange(false)}
-              disabled={createMutation.isPending || updateMutation.isPending}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
-              {isEditing ? t("save") : t("create")}
-            </Button>
-          </SheetFooter>
+          {!isSystemRole && (
+            <SheetFooter>
+              <Button
+                type="button"
+                color="secondary"
+                onClick={() => onOpenChange(false)}
+                disabled={createMutation.isPending || updateMutation.isPending}>
+                {t("cancel")}
+              </Button>
+              <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
+                {isEditing ? t("save") : t("create")}
+              </Button>
+            </SheetFooter>
+          )}
+          {isSystemRole && (
+            <SheetFooter>
+              <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+                {t("close")}
+              </Button>
+            </SheetFooter>
+          )}
         </Form>
       </SheetContent>
     </Sheet>
