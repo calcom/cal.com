@@ -53,6 +53,7 @@ export interface IUseBookings {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
   teamMemberEmail?: string | null;
+  isBookingDryRun?: boolean;
 }
 
 const getBookingSuccessfulEventPayload = (booking: {
@@ -107,7 +108,14 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
+export const useBookings = ({
+  event,
+  hashedLink,
+  bookingForm,
+  metadata,
+  teamMemberEmail,
+  isBookingDryRun,
+}: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const eventTypeId = useBookerStore((state) => state.eventId);
@@ -409,6 +417,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
+    isBookingDryRun,
   });
 
   const errors = {

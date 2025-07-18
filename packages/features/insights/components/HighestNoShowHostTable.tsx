@@ -1,10 +1,8 @@
-import { Title } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
 import { TotalUserFeedbackTable } from "./TotalUserFeedbackTable";
 
@@ -33,10 +31,9 @@ export const HighestNoShowHostTable = () => {
   if (!isSuccess || !data) return null;
 
   return data && data.length > 0 ? (
-    <CardInsights className="shadow-none">
-      <Title className="text-emphasis">{t("most_no_show_host")}</Title>
+    <ChartCard title={t("most_no_show_host")}>
       <TotalUserFeedbackTable data={data} />
-    </CardInsights>
+    </ChartCard>
   ) : (
     <></>
   );
