@@ -5,4 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE "CalendarCache" ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL;
+-- Add the column with a default value to safely handle existing rows
+ALTER TABLE "CalendarCache" ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
