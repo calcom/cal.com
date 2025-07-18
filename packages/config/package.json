@@ -26,7 +26,7 @@
     "@trivago/prettier-plugin-sort-imports": "4.1.1",
     "@typescript-eslint/eslint-plugin": "^5.52.0",
     "@typescript-eslint/parser": "^5.52.0",
-    "eslint": "^8.34.0",
+    "eslint": "^8.40.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "eslint-plugin-you-dont-need-lodash-underscore": "^6.12.0",
     "prettier": "^2.8.6",

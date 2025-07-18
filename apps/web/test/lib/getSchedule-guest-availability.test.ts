@@ -1,27 +1,11 @@
-import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
+import { createBookingScenario, Timezones, TestData } from "../utils/bookingScenario/bookingScenario";
 
-import {
-  getDate,
-  getGoogleCalendarCredential,
-  createBookingScenario,
-  createOrganization,
-  getOrganizer,
-  getScenarioData,
-  Timezones,
-  TestData,
-  createCredentials,
-  mockCrmApp,
-} from "../utils/bookingScenario/bookingScenario";
+import { describe, vi, test } from "vitest";
 
-import { describe, vi, test, beforeEach } from "vitest";
-
-import dayjs from "@calcom/dayjs";
 import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
-import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
 
-import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
+import { expect } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
-import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
@@ -34,7 +18,6 @@ describe("getSchedule - Guest Availability Feature", () => {
   const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
 
-  // eslint-disable-next-line playwright/expect-expect
   test("Reschedule: should exclude timeslots when guest Cal.com user is busy", async () => {
     vi.setSystemTime("2024-05-21T00:00:13Z");
 
@@ -118,7 +101,7 @@ describe("getSchedule - Guest Availability Feature", () => {
       },
     });
 
-    // The slot at 10:30 AM IST (05:00:00.000Z) should be excluded 
+    // The slot at 10:30 AM IST (05:00:00.000Z) should be excluded
     // because the guest user is busy at that time
     expect(schedule).toHaveTimeSlots(
       [
@@ -134,7 +117,6 @@ describe("getSchedule - Guest Availability Feature", () => {
     );
   });
 
-  // eslint-disable-next-line playwright/expect-expect
   test("Reschedule: should include all timeslots when guest is not a Cal.com user", async () => {
     vi.setSystemTime("2024-05-21T00:00:13Z");
 
@@ -215,7 +197,6 @@ describe("getSchedule - Guest Availability Feature", () => {
     );
   });
 
-  // eslint-disable-next-line playwright/expect-expect
   test("Reschedule: should handle multiple Cal.com guest users correctly", async () => {
     vi.setSystemTime("2024-05-21T00:00:13Z");
 
@@ -326,7 +307,7 @@ describe("getSchedule - Guest Availability Feature", () => {
     // Both 10:30 AM IST and 12:30 PM IST should be excluded
     // because guest1 and guest2 are busy at those times respectively
     // Guest1 busy: 10:30-11:30 AM IST (05:00-06:00 GMT) - excludes 05:00:00.000Z
-    // Guest2 busy: 12:30-1:30 PM IST (07:00-08:00 GMT) - excludes 07:00:00.000Z  
+    // Guest2 busy: 12:30-1:30 PM IST (07:00-08:00 GMT) - excludes 07:00:00.000Z
     expect(schedule).toHaveTimeSlots(
       [
         // `05:00:00.000Z`, // 10:30 AM IST - Should be excluded (guest1 busy)
@@ -340,7 +321,6 @@ describe("getSchedule - Guest Availability Feature", () => {
     );
   });
 
-  // eslint-disable-next-line playwright/expect-expect
   test("Reschedule: should not check guest availability for collective events", async () => {
     vi.setSystemTime("2024-05-21T00:00:13Z");
 
