@@ -5,6 +5,7 @@ import type {
   NewCalendarEventType,
   IntegrationCalendar,
   CalendarServiceEvent,
+  CalEventResponses,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, Contact, ContactCreateInput, CrmEvent } from "@calcom/types/CrmService";
@@ -132,7 +133,7 @@ class TestCrm implements CRM {
   async createContacts(
     contactsToCreate: ContactCreateInput[],
     organizerEmail?: string,
-    calEventResponses?: any
+    calEventResponses?: CalEventResponses | null
   ): Promise<Contact[]> {
     return contactsToCreate.map((contact, index) => ({
       id: `MOCK_CONTACT_${index}`,
