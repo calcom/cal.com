@@ -2,6 +2,9 @@ import { createInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
+import { fetchWithTimeout } from "../fetchWithTimeout";
+import logger from "../logger";
+
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
@@ -62,12 +65,17 @@ export async function loadTranslations(_locale: string, _ns: string) {
   }
 
   const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-  const response = await fetch(url, {
-    cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-  });
+  const response = await fetchWithTimeout(
+    url,
+    {
+      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+    },
+    30000
+  );
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch translations: ${response.status}`);
+    logger.error(`Failed to fetch translations: ${response.status}`);
+    return {};
   }
 
   const translations = await response.json();
