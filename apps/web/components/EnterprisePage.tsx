@@ -54,7 +54,7 @@ export default function EnterprisePage() {
           buttons={
             <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
               <ButtonGroup>
-                <Button color="primary" href="https://go.cal.com/enterprise" target="_blank">
+                <Button color="primary" href="https://go.cal.com/quote" target="_blank">
                   {t("contact_sales")}
                 </Button>
                 <Button color="minimal" href="https://cal.com/enterprise" target="_blank">
