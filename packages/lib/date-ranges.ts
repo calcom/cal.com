@@ -1,4 +1,4 @@
-import { addHours, addMinutes, isBefore, isAfter, getDay } from "date-fns";
+import { addHours, addMinutes, isBefore, isAfter } from "date-fns";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -57,7 +57,7 @@ export function processWorkingHours({
     // it always has to be start of the day (midnight) even when DST changes
     const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
 
-    const dayOfWeek = getDay(dateInTz.toDate());
+    const dayOfWeek = dateInTz.day();
     if (!item.days.includes(dayOfWeek)) {
       continue;
     }
@@ -114,10 +114,7 @@ export function processDateOverride({
   timeZone: string;
   travelSchedules: TravelSchedule[];
 }) {
-  const overrideDate = item.date ? dayjs(item.date) : null;
-  if (!overrideDate) {
-    throw new Error("Date override item must have a valid date");
-  }
+  const overrideDate = dayjs(item.date);
 
   const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
 
