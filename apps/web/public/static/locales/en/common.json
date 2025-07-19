@@ -3378,5 +3378,6 @@
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "failed_bookings_by_field": "Failed Bookings By Field",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "booking_already_rescheduled_error": "Booking has already been rescheduled",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
