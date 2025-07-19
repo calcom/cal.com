@@ -5,15 +5,17 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
 
-const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
+const handleSeats = async (
+  newSeatedBookingObject: NewSeatedBookingObject & { traceContext?: TraceContext }
+) => {
   const {
     eventType,
     reqBodyUser,
@@ -34,10 +36,37 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     rescheduledBy,
     rescheduleReason,
     isDryRun = false,
+    traceContext,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
-  const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
+
+  const seatsMeta = {
+    eventTypeId: eventType.id,
+    userInfo: reqBodyUser,
+    eventTypeSlug: eventType.slug,
+    bookingUid: reqBookingUid,
+    rescheduleUid,
+  };
+
+  const spanContext = traceContext
+    ? DistributedTracing.createSpan(traceContext, "handle_seats", seatsMeta)
+    : DistributedTracing.createTrace("handle_seats_fallback", {
+        meta: seatsMeta,
+      });
+
+  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+
+  tracingLogger.info("Processing seated booking", {
+    eventTypeId,
+    eventTypeSlug: eventType.slug,
+    rescheduleUid,
+    reqBookingUid,
+    bookerEmail,
+    hasOriginalRescheduledBooking: !!originalRescheduledBooking,
+    isReschedule: !!rescheduleUid,
+    originalTraceId: traceContext?.traceId,
+  });
 
   let resultBooking: HandleSeatsResultBooking = null;
 
@@ -95,7 +124,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       { ...newSeatedBookingObject, rescheduleUid },
       seatedBooking,
       resultBooking,
-      loggerWithEventDetails
+      spanContext
     );
   } else {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
@@ -129,9 +158,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
         isDryRun,
+        traceContext: spanContext,
       });
     } catch (error) {
-      loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+      tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
     const webhookData: EventPayloadType = {
@@ -154,7 +184,13 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduledBy,
     };
 
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
+    await handleWebhookTrigger({
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+      traceContext: spanContext,
+    });
   }
 
   return resultBooking;

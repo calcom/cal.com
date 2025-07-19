@@ -6,10 +6,27 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { DistributedTracing } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { CreationSource } from "@calcom/prisma/enums";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number; traceContext?: TraceContext }) {
   const userIp = getIP(req);
+
+  const traceContext = DistributedTracing.createTrace("api_book_event", {
+    ...(req.traceContext || {}),
+    meta: {
+      ...(req.traceContext?.meta || {}),
+      userIp,
+      eventTypeId: req.body?.eventTypeId,
+    },
+  });
+  const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+
+  tracingLogger.info("API book event request started", {
+    userIp,
+    eventTypeId: req.body?.eventTypeId,
+  });
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
     await checkCfTurnstileToken({
@@ -35,7 +52,13 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     userId: session?.user?.id || -1,
     hostname: req.headers.host || "",
     forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    traceContext,
   });
+
+  tracingLogger.info("API book event request completed successfully", {
+    bookingUid: booking?.uid,
+  });
+
   return booking;
 }
 

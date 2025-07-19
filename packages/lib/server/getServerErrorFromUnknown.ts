@@ -11,6 +11,7 @@ import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
+import { TracedError } from "../tracing/error";
 
 function hasName(cause: unknown): cause is { name: string } {
   return !!cause && typeof cause === "object" && "name" in cause;
@@ -37,6 +38,20 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  if (cause instanceof TracedError) {
+    const innerError = cause.originalError;
+    const statusCode = innerError instanceof Error ? getStatusCode(innerError) : 500;
+    return new HttpError({
+      statusCode,
+      message: cause.message,
+      data: {
+        ...cause.data,
+        traceId: cause.traceId,
+      },
+      cause,
+    });
+  }
+
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
     return new HttpError({ statusCode, message: cause.message });

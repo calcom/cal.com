@@ -69,6 +69,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -104,7 +105,6 @@ import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
@@ -383,6 +383,7 @@ export type BookingHandlerInput = {
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
+  traceContext?: TraceContext;
 } & PlatformParams;
 
 async function handler(
@@ -400,7 +401,31 @@ async function handler(
     hostname,
     forcedSlug,
     areCalendarEventsEnabled = true,
+    traceContext: passedTraceContext,
   } = input;
+
+  const traceContext = passedTraceContext
+    ? {
+        ...passedTraceContext,
+        eventTypeId: rawBookingData.eventTypeId,
+        userId: userId,
+        eventTypeSlug: rawBookingData.eventTypeSlug,
+        userInfo: rawBookingData.user,
+      }
+    : DistributedTracing.createTrace("booking_creation", {
+        eventTypeId: rawBookingData.eventTypeId,
+        userId: userId,
+        eventTypeSlug: rawBookingData.eventTypeSlug,
+        userInfo: rawBookingData.user,
+      });
+  const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+
+  tracingLogger.info("Booking creation started", {
+    eventTypeId: rawBookingData.eventTypeId,
+    userId: userId,
+    rescheduleUid: rawBookingData.rescheduleUid,
+    isPlatformBooking: !!platformClientId,
+  });
 
   const isPlatformBooking = !!platformClientId;
 
@@ -449,8 +474,6 @@ async function handler(
     eventType,
   });
 
-  const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
-
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   if (!rawBookingData.rescheduleUid) {
@@ -471,12 +494,18 @@ async function handler(
   const tGuests = await getTranslation("en", "common");
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
-  if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+  if (!eventType)
+    throw new HttpError({
+      statusCode: 404,
+      message: "event_type_not_found",
+      data: { traceId: traceContext.traceId },
+    });
 
   if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
     throw new HttpError({
       statusCode: 400,
       message: "recurring_event_seats_error",
+      data: { traceId: traceContext.traceId },
     });
   }
 
@@ -542,7 +571,7 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  loggerWithEventDetails.info(
+  tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
       reqBody: {
@@ -577,7 +606,7 @@ async function handler(
     reqBody.timeZone,
     eventType,
     eventTimeZone,
-    loggerWithEventDetails
+    traceContext
   );
 
   validateEventLength({
@@ -585,7 +614,7 @@ async function handler(
     reqBodyEnd: reqBody.end,
     eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
     eventTypeLength: eventType.length,
-    logger: loggerWithEventDetails,
+    traceContext,
   });
 
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
@@ -603,7 +632,11 @@ async function handler(
   if (routedTeamMemberIds) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
-      throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
+      throw new HttpError({
+        statusCode: 400,
+        message: "Missing routingFormResponseId",
+        data: { traceId: traceContext.traceId },
+      });
     }
     routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
       where: {
@@ -629,7 +662,7 @@ async function handler(
     eventType,
     eventTypeId,
     dynamicUserList,
-    logger: loggerWithEventDetails,
+    logger: tracingLogger,
     routedTeamMemberIds: routedTeamMemberIds ?? null,
     contactOwnerEmail,
     rescheduleUid: reqBody.rescheduleUid || null,
@@ -732,7 +765,7 @@ async function handler(
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking: originalRescheduledBooking ?? null,
               },
-              loggerWithEventDetails,
+              traceContext,
               shouldServeCache
             );
           }
@@ -746,7 +779,7 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails,
+            traceContext,
             shouldServeCache
           );
         }
@@ -764,12 +797,12 @@ async function handler(
             timeZone: reqBody.timeZone,
             originalRescheduledBooking,
           },
-          loggerWithEventDetails,
+          traceContext,
           shouldServeCache
         );
       } catch {
         if (additionalFallbackRRUsers.length) {
-          loggerWithEventDetails.debug(
+          tracingLogger.debug(
             "Qualified users not available, check for fallback users",
             safeStringify({
               qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
@@ -789,11 +822,11 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails,
+            traceContext,
             shouldServeCache
           );
         } else {
-          loggerWithEventDetails.debug(
+          tracingLogger.debug(
             "Qualified users not available, no fallback users",
             safeStringify({
               qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
@@ -812,7 +845,7 @@ async function handler(
 
       const notAvailableLuckyUsers: typeof users = [];
 
-      loggerWithEventDetails.debug(
+      tracingLogger.debug(
         "Computed available users",
         safeStringify({
           availableUsers: availableUsers.map((user) => user.id),
@@ -877,7 +910,7 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking,
                 },
-                loggerWithEventDetails,
+                traceContext,
                 shouldServeCache
               );
             }
@@ -885,7 +918,7 @@ async function handler(
             luckyUsers.push(newLuckyUser);
           } catch {
             notAvailableLuckyUsers.push(newLuckyUser);
-            loggerWithEventDetails.info(
+            tracingLogger.info(
               `Round robin host ${newLuckyUser.name} not available for first two slots. Trying to find another host.`
             );
           }
@@ -932,7 +965,7 @@ async function handler(
   }
 
   if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    loggerWithEventDetails.error(`No available users found for round robin event.`);
+    tracingLogger.error(`No available users found for round robin event.`);
     throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
   }
 
@@ -1338,7 +1371,7 @@ async function handler(
 
   let booking: CreatedBooking | null = null;
 
-  loggerWithEventDetails.debug(
+  tracingLogger.debug(
     "Going to create booking in DB now",
     safeStringify({
       organizerUser: organizerUser.id,
@@ -1471,13 +1504,13 @@ async function handler(
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    loggerWithEventDetails.error(
-      `Booking ${eventTypeId} failed`,
-      "Error when saving booking to db",
-      err.message
-    );
+    tracingLogger.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
     if (err.code === "P2002") {
-      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingConflict });
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorCode.BookingConflict,
+        data: { traceId: traceContext.traceId },
+      });
     }
     throw err;
   }
@@ -1486,7 +1519,7 @@ async function handler(
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = !isDryRun
-    ? new EventManager({ ...organizerUser, credentials }, apps)
+    ? new EventManager({ ...organizerUser, credentials }, apps, traceContext)
     : buildDryRunEventManager();
 
   let videoCallUrl;
@@ -1549,7 +1582,7 @@ async function handler(
         message: "Booking Rescheduling failed",
       };
 
-      loggerWithEventDetails.error(
+      tracingLogger.error(
         `EventManager.reschedule failure in some of the integrations ${organizerUser.username}`,
         safeStringify({ error, results })
       );
@@ -1572,7 +1605,7 @@ async function handler(
           const googleCalResult = results[googleCalIndex];
 
           if (!googleCalResult) {
-            loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+            tracingLogger.warn("Google Calendar not installed but using Google Meet as location");
             results.push({
               ...googleMeetResult,
               success: false,
@@ -1643,7 +1676,7 @@ async function handler(
         cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
       };
       const cancelledRRHostEvt = cloneDeep(copyEventAdditionalInfo);
-      loggerWithEventDetails.debug("Emails: Sending rescheduled emails for booking confirmation");
+      tracingLogger.debug("Emails: Sending rescheduled emails for booking confirmation");
 
       /*
         handle emails for round robin
@@ -1768,7 +1801,7 @@ async function handler(
         message: "Booking failed",
       };
 
-      loggerWithEventDetails.error(
+      tracingLogger.error(
         `EventManager.create failure in some of the integrations ${organizerUser.username}`,
         safeStringify({ error, results })
       );
@@ -1793,7 +1826,7 @@ async function handler(
           const googleCalResult = results[googleCalIndex];
 
           if (!googleCalResult) {
-            loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
+            tracingLogger.warn("Google Calendar not installed but using Google Meet as location");
             results.push({
               ...googleMeetResult,
               success: false,
@@ -1866,7 +1899,7 @@ async function handler(
           isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
         }
 
-        loggerWithEventDetails.debug(
+        tracingLogger.debug(
           "Emails: Sending scheduled emails for booking confirmation",
           safeStringify({
             calEvent: getPiiFreeCalendarEvent(evt),
@@ -1891,7 +1924,7 @@ async function handler(
     }
   } else {
     // If isConfirmedByDefault is false, then booking can't be considered ACCEPTED and thus EventManager has no role to play. Booking is created as PENDING
-    loggerWithEventDetails.debug(
+    tracingLogger.debug(
       `EventManager doesn't need to create or reschedule event for booking ${organizerUser.username}`,
       safeStringify({
         calEvent: getPiiFreeCalendarEvent(evt),
@@ -1908,7 +1941,7 @@ async function handler(
     !!booking;
 
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
-    loggerWithEventDetails.debug(
+    tracingLogger.debug(
       `Emails: Booking ${organizerUser.username} requires confirmation, sending request emails`,
       safeStringify({
         calEvent: getPiiFreeCalendarEvent(evt),
@@ -1951,7 +1984,7 @@ async function handler(
   };
 
   if (bookingRequiresPayment) {
-    loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
+    tracingLogger.debug(`Booking ${organizerUser.username} requires payment`);
     // Load credentials.app.categories
     const credentialPaymentAppCategories = await prisma.credential.findMany({
       where: {
@@ -1978,7 +2011,11 @@ async function handler(
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+      throw new HttpError({
+        statusCode: 400,
+        message: "Missing payment credentials",
+        data: { traceId: traceContext.traceId },
+      });
     }
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
@@ -2009,6 +2046,7 @@ async function handler(
         paymentId: payment?.id,
       },
       isDryRun,
+      traceContext,
     });
 
     // TODO: Refactor better so this booking object is not passed
@@ -2036,7 +2074,7 @@ async function handler(
     };
   }
 
-  loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
+  tracingLogger.debug(`Booking ${organizerUser.username} completed`);
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
@@ -2067,6 +2105,7 @@ async function handler(
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
             isDryRun,
+            traceContext,
           })
         );
       }
@@ -2079,16 +2118,14 @@ async function handler(
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
             isDryRun,
+            traceContext,
           })
         );
       }
     }
 
     await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
-      loggerWithEventDetails.error(
-        "Error while scheduling or canceling webhook triggers",
-        JSON.stringify({ error })
-      );
+      tracingLogger.error("Error while scheduling or canceling webhook triggers", JSON.stringify({ error }));
     });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
@@ -2097,6 +2134,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2108,6 +2146,7 @@ async function handler(
       eventTrigger,
       webhookData,
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2120,10 +2159,15 @@ async function handler(
       });
     }
   } catch (error) {
-    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
+    tracingLogger.error("Error while updating hashed link", JSON.stringify({ error }));
   }
 
-  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+  if (!booking)
+    throw new HttpError({
+      statusCode: 400,
+      message: "Booking failed",
+      data: { traceId: traceContext.traceId },
+    });
 
   try {
     if (!isDryRun) {
@@ -2143,7 +2187,7 @@ async function handler(
       });
     }
   } catch (error) {
-    loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
+    tracingLogger.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
   const evtWithMetadata = {
@@ -2163,6 +2207,7 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
       isPlatformNoEmail: noEmail && Boolean(platformClientId),
       isDryRun,
+      traceContext,
     });
   }
 
@@ -2179,9 +2224,10 @@ async function handler(
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
       isDryRun,
+      traceContext,
     });
   } catch (error) {
-    loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+    tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }
 
   try {
@@ -2197,7 +2243,7 @@ async function handler(
       });
     }
   } catch (error) {
-    loggerWithEventDetails.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+    tracingLogger.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
   if (!isDryRun) {
