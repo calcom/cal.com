@@ -1,5 +1,5 @@
 import { createInstance } from "i18next";
-import { expect, test, describe } from "vitest";
+import { vi, expect, test, describe } from "vitest";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { TimeFormat } from "@calcom/lib/timeFormat";
@@ -9,6 +9,12 @@ import en from "@calcom/web/public/static/locales/en/common.json";
 import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import plainTextReminderTemplates from "../reminders/templates/plainTextTemplates";
+
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: (key: string) => key,
+  };
+});
 
 const translation = async () => {
   const _i18n = createInstance();
