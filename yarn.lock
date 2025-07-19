@@ -4089,6 +4089,7 @@ __metadata:
     "@upstash/redis": ^1.21.0
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
+    "@vercel/kv": ^3.0.0
     "@vercel/og": ^0.6.3
     accept-language-parser: ^1.5.0
     async: ^3.2.4
@@ -18900,6 +18901,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@upstash/redis@npm:^1.34.0":
+  version: 1.35.1
+  resolution: "@upstash/redis@npm:1.35.1"
+  dependencies:
+    uncrypto: ^0.1.3
+  checksum: 1a889a0f004325f72ca7d070b41cfdbd27613934fed702b7ba2516c27c0c5aa7e9ec6ceecdcc49533146b3c50f5311c634045236d659ab393d2a60ba825d4f7d
+  languageName: node
+  linkType: hard
+
 "@urql/core@npm:^5.1.1":
   version: 5.1.1
   resolution: "@urql/core@npm:5.1.1"
@@ -18940,6 +18950,15 @@ __metadata:
     "@aws-sdk/credential-provider-web-identity":
       optional: true
   checksum: 0b21baa5b7408b0d476c4b723a34b1d8c068d482d8423c125acb4d043afa74c101947142aaecb59cc28c26748b2cc33b1790f40ea0c5cdcd8d0d43f6420ec1e9
+  languageName: node
+  linkType: hard
+
+"@vercel/kv@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@vercel/kv@npm:3.0.0"
+  dependencies:
+    "@upstash/redis": ^1.34.0
+  checksum: 5bebab15c770e32409c03054dbd58e3e5a4d77d1a813c91e6613a9382a96b391878b67a1e2fbe8f7e197899a2dc589212ee6f6b11ab272798954e63816c6eba1
   languageName: node
   linkType: hard
 
@@ -45852,6 +45871,13 @@ __metadata:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: a05fa2006bf4606051c10fc7968f08ce7b28fa646befafa282813aeb1ac1a56f65cb1b577ca7851af2726198d59475bb49b11776036257b843eaacee2860a4ec
+  languageName: node
+  linkType: hard
+
+"uncrypto@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "uncrypto@npm:0.1.3"
+  checksum: 07160e08806dd6cea16bb96c3fd54cd70fc801e02fc3c6f86980144d15c9ebbd1c55587f7280a207b3af6cd34901c0d0b77ada5a02c2f7081a033a05acf409e2
   languageName: node
   linkType: hard
 

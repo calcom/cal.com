@@ -46,6 +46,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { invalidateScheduleCache } from "@calcom/lib/cache";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
@@ -1381,6 +1382,12 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
+      });
+
+      await invalidateScheduleCache({
+        userId: eventType.userId,
+        eventTypeId: eventType.id,
+        teamId: eventType.team?.id,
       });
 
       if (booking?.userId) {
