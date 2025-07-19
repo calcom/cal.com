@@ -45,14 +45,14 @@ describe("processWorkingHours", () => {
 
     const timeZone = "Europe/London";
 
-    const dateFrom = dayjs().month(9).date(24); // starts before DST change
-    const dateTo = dayjs().startOf("day").month(10).date(1); // first day of November
+    const dateFrom = dayjs().month(9).date(24).toDate(); // starts before DST change
+    const dateTo = dayjs().startOf("day").month(10).date(1).toDate(); // first day of November
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     const lastAvailableSlot = results[results.length - 1];
 
-    expect(lastAvailableSlot.start.date()).toBe(31);
+    expect(lastAvailableSlot.start.getDate()).toBe(31);
   });
 
   it("It has the correct working hours on date of DST change (- tz)", () => {
@@ -66,87 +66,87 @@ describe("processWorkingHours", () => {
 
     const timeZone = "America/New_York";
 
-    const dateFrom = dayjs();
-    const dateTo = dayjs().endOf("month");
+    const dateFrom = dayjs().toDate();
+    const dateTo = dayjs().endOf("month").toDate();
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     expect(results).toStrictEqual([
       {
-        start: dayjs("2023-11-06T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-06T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-06T14:00:00.000Z"),
+        end: new Date("2023-11-06T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-07T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-07T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-07T14:00:00.000Z"),
+        end: new Date("2023-11-07T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-08T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-08T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-08T14:00:00.000Z"),
+        end: new Date("2023-11-08T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-09T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-09T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-09T14:00:00.000Z"),
+        end: new Date("2023-11-09T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-10T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-10T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-10T14:00:00.000Z"),
+        end: new Date("2023-11-10T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-13T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-13T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-13T14:00:00.000Z"),
+        end: new Date("2023-11-13T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-14T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-14T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-14T14:00:00.000Z"),
+        end: new Date("2023-11-14T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-15T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-15T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-15T14:00:00.000Z"),
+        end: new Date("2023-11-15T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-16T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-16T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-16T14:00:00.000Z"),
+        end: new Date("2023-11-16T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-17T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-17T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-17T14:00:00.000Z"),
+        end: new Date("2023-11-17T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-20T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-20T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-20T14:00:00.000Z"),
+        end: new Date("2023-11-20T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-21T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-21T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-21T14:00:00.000Z"),
+        end: new Date("2023-11-21T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-22T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-22T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-22T14:00:00.000Z"),
+        end: new Date("2023-11-22T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-23T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-23T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-23T14:00:00.000Z"),
+        end: new Date("2023-11-23T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-24T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-24T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-24T14:00:00.000Z"),
+        end: new Date("2023-11-24T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-27T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-27T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-27T14:00:00.000Z"),
+        end: new Date("2023-11-27T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-28T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-28T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-28T14:00:00.000Z"),
+        end: new Date("2023-11-28T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-29T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-29T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-29T14:00:00.000Z"),
+        end: new Date("2023-11-29T22:00:00.000Z"),
       },
       {
-        start: dayjs("2023-11-30T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-30T22:00:00.000Z").tz(timeZone),
+        start: new Date("2023-11-30T14:00:00.000Z"),
+        end: new Date("2023-11-30T22:00:00.000Z"),
       },
     ]);
 
@@ -194,8 +194,8 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
-    const dateTo = dayjs("2023-11-08T00:00:00Z").tz(timeZone); // 2023-11-08T00:00:00 (America/New_York)
+    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone).toDate(); // 2023-11-07T00:00:00 (America/New_York)
+    const dateTo = dayjs("2023-11-08T00:00:00Z").tz(timeZone).toDate(); // 2023-11-08T00:00:00 (America/New_York)
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
@@ -210,8 +210,8 @@ describe("processWorkingHours", () => {
     };
 
     const timeZone = "America/New_York";
-    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
-    const dateTo = dayjs("2023-11-07T23:59:59Z").tz(timeZone); // 2023-11-07T23:59:59 (America/New_York)
+    const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone).toDate(); // 2023-11-07T00:00:00 (America/New_York)
+    const dateTo = dayjs("2023-11-07T23:59:59Z").tz(timeZone).toDate(); // 2023-11-07T23:59:59 (America/New_York)
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
@@ -229,17 +229,17 @@ describe("processWorkingHours", () => {
 
     const timeZone = "Europe/Berlin";
 
-    const dateFrom = dayjs().startOf("day");
-    const dateTo = dayjs().add(1, "week").startOf("day");
+    const dateFrom = dayjs().startOf("day").toDate();
+    const dateTo = dayjs().add(1, "week").startOf("day").toDate();
 
     const travelSchedules = [
       {
-        startDate: dayjs().add(2, "day").startOf("day"),
-        endDate: dayjs().add(3, "day").endOf("day"),
+        startDate: dayjs().add(2, "day").startOf("day").toDate(),
+        endDate: dayjs().add(3, "day").endOf("day").toDate(),
         timeZone: "America/New_York",
       },
       {
-        startDate: dayjs().add(5, "day").startOf("day"),
+        startDate: dayjs().add(5, "day").startOf("day").toDate(),
         timeZone: "Asia/Kolkata",
       },
     ];
@@ -254,40 +254,40 @@ describe("processWorkingHours", () => {
 
     const resultWithOriginalTz = resultsWithTravelSchedule.filter((result) => {
       return (
-        result.start.isBefore(travelSchedules[0].startDate) ||
-        (result.start.isAfter(travelSchedules[0].endDate) &&
-          result.start.isBefore(travelSchedules[1].startDate))
+        result.start.getTime() < travelSchedules[0].startDate.getTime() ||
+        (result.start.getTime() > travelSchedules[0].endDate.getTime() &&
+          result.start.getTime() < travelSchedules[1].startDate.getTime())
       );
     });
 
     const resultsWithNewYorkTz = resultsWithTravelSchedule.filter(
       (result) =>
-        !result.start.isBefore(travelSchedules[0].startDate) &&
-        !result.start.isAfter(travelSchedules[0].endDate)
+        result.start.getTime() >= travelSchedules[0].startDate.getTime() &&
+        result.start.getTime() <= travelSchedules[0].endDate.getTime()
     );
     const resultsWithKolkataTz = resultsWithTravelSchedule.filter(
-      (result) => !result.start.isBefore(travelSchedules[1].startDate)
+      (result) => result.start.getTime() >= travelSchedules[1].startDate.getTime()
     );
 
     // 8AM in Europe/Berlin is 7AM in UTC, 5PM in Europe/Berlin is 4PM in UTC
     expect(
       resultWithOriginalTz.every(
-        (result) => result.start.utc().hour() === 7 && result.end.utc().hour() === 16
+        (result) => result.start.getUTCHours() === 7 && result.end.getUTCHours() === 16
       )
     ).toBeTruthy();
 
     // 8AM in America/New_York is 1PM in UTC, 5PM in America/New_York is 10PM in UTC
     expect(
       resultsWithNewYorkTz.every((result) => {
-        return result.start.utc().hour() === 13 && result.end.utc().hour() === 22;
+        return result.start.getUTCHours() === 13 && result.end.getUTCHours() === 22;
       })
     ).toBeTruthy();
 
     // 8AM in Asia/Kolkata is 2:30AM in UTC, 5PM in Asia/Kolkata is 11:30AM in UTC
     expect(
       resultsWithKolkataTz.every((result) => {
-        const correctStartTime = result.start.utc().hour() === 2 && result.start.utc().minute() === 30;
-        const correctEndTime = result.end.utc().hour() === 11 && result.end.utc().minute() === 30;
+        const correctStartTime = result.start.getUTCHours() === 2 && result.start.getUTCMinutes() === 30;
+        const correctEndTime = result.end.getUTCHours() === 11 && result.end.getUTCMinutes() === 30;
         return correctStartTime && correctEndTime;
       })
     ).toBeTruthy();
@@ -307,13 +307,13 @@ describe("processDateOverrides", () => {
 
     const result = processDateOverride({
       item,
-      itemDateAsUtc: dayjs.utc(item.date),
+      itemDateAsUtc: dayjs.utc(item.date).toDate(),
       timeZone,
       travelSchedules: [],
     });
 
-    expect(result.start.format()).toEqual(dayjs("2023-06-12T12:00:00Z").tz(timeZone).format());
-    expect(result.end.format()).toEqual(dayjs("2023-06-12T21:00:00Z").tz(timeZone).format());
+    expect(result.start.toISOString()).toEqual(new Date("2023-06-12T12:00:00Z").toISOString());
+    expect(result.end.toISOString()).toEqual(new Date("2023-06-12T21:00:00Z").toISOString());
   });
   it("should show date overrides in correct timezone with existing travel schedules", () => {
     const item = {
@@ -329,21 +329,25 @@ describe("processDateOverrides", () => {
 
     const travelSchedules = [
       {
-        startDate: dayjs(new Date(Date.UTC(2023, 5, 11, 8, 0))).startOf("day"),
-        endDate: dayjs(new Date(Date.UTC(2023, 5, 15, 8, 0))).endOf("day"),
+        startDate: dayjs(new Date(Date.UTC(2023, 5, 11, 8, 0)))
+          .startOf("day")
+          .toDate(),
+        endDate: dayjs(new Date(Date.UTC(2023, 5, 15, 8, 0)))
+          .endOf("day")
+          .toDate(),
         timeZone: travelScheduleTz,
       },
     ];
 
     const result = processDateOverride({
       item,
-      itemDateAsUtc: dayjs.utc(item.date),
+      itemDateAsUtc: dayjs.utc(item.date).toDate(),
       timeZone,
       travelSchedules: travelSchedules,
     });
 
-    expect(result.start.format()).toEqual(dayjs("2023-06-12T06:00:00Z").tz(travelScheduleTz).format());
-    expect(result.end.format()).toEqual(dayjs("2023-06-12T15:00:00Z").tz(travelScheduleTz).format());
+    expect(result.start.toISOString()).toEqual(new Date("2023-06-12T06:00:00Z").toISOString());
+    expect(result.end.toISOString()).toEqual(new Date("2023-06-12T15:00:00Z").toISOString());
   });
 });
 
@@ -362,8 +366,8 @@ describe("buildDateRanges", () => {
       },
     ];
 
-    const dateFrom = dayjs("2023-06-13T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
-    const dateTo = dayjs("2023-06-15T00:00:00Z");
+    const dateFrom = dayjs("2023-06-13T00:00:00Z").toDate(); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-15T00:00:00Z").toDate();
 
     const timeZone = "America/New_York";
 
@@ -382,13 +386,13 @@ describe("buildDateRanges", () => {
     expect(results.length).toBe(2);
 
     expect(results[0]).toEqual({
-      start: dayjs("2023-06-13T14:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-13T19:00:00Z").tz(timeZone),
+      start: new Date("2023-06-13T14:00:00Z"),
+      end: new Date("2023-06-13T19:00:00Z"),
     });
 
     expect(results[1]).toEqual({
-      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+      start: new Date("2023-06-14T12:00:00Z"),
+      end: new Date("2023-06-14T21:00:00Z"),
     });
   });
   it("should handle day shifts correctly", () => {
@@ -407,8 +411,8 @@ describe("buildDateRanges", () => {
 
     const timeZone = "Pacific/Honolulu";
 
-    const dateFrom = dayjs.tz("2023-08-15", "Europe/Brussels").startOf("day");
-    const dateTo = dayjs.tz("2023-08-15", "Europe/Brussels").endOf("day");
+    const dateFrom = dayjs.tz("2023-08-15", "Europe/Brussels").startOf("day").toDate();
+    const dateTo = dayjs.tz("2023-08-15", "Europe/Brussels").endOf("day").toDate();
     //add tarvelScheduels
 
     const { dateRanges: result } = buildDateRanges({
@@ -419,7 +423,7 @@ describe("buildDateRanges", () => {
       travelSchedules: [],
     });
     // this happened only on Europe/Brussels, Europe/Amsterdam was 2023-08-15T17:00:00-10:00 (as it should be)
-    expect(result[0].end.format()).not.toBe("2023-08-14T17:00:00-10:00");
+    expect(result[0].end.toISOString()).not.toBe("2023-08-14T17:00:00-10:00");
   });
   it("should return correct date ranges with full day unavailable date override", () => {
     const items = [
@@ -436,8 +440,8 @@ describe("buildDateRanges", () => {
     ];
     const timeZone = "Europe/London";
 
-    const dateFrom = dayjs("2023-06-13T00:00:00Z");
-    const dateTo = dayjs("2023-06-15T00:00:00Z");
+    const dateFrom = dayjs("2023-06-13T00:00:00Z").toDate();
+    const dateTo = dayjs("2023-06-15T00:00:00Z").toDate();
     //add tarvelScheduels
 
     const { dateRanges: results } = buildDateRanges({
@@ -449,8 +453,8 @@ describe("buildDateRanges", () => {
     });
 
     expect(results[0]).toEqual({
-      start: dayjs("2023-06-14T07:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
+      start: new Date("2023-06-14T07:00:00Z"),
+      end: new Date("2023-06-14T16:00:00Z"),
     });
   });
   it("should return correct date ranges for specific time slot in date override", () => {
@@ -463,8 +467,8 @@ describe("buildDateRanges", () => {
     ];
     const timeZone = "Europe/London";
 
-    const dateFrom = dayjs("2023-06-13T10:00:00Z");
-    const dateTo = dayjs("2023-06-13T10:30:00Z");
+    const dateFrom = dayjs("2023-06-13T10:00:00Z").toDate();
+    const dateTo = dayjs("2023-06-13T10:30:00Z").toDate();
     //add tarvelScheduels
 
     const { dateRanges: results } = buildDateRanges({
@@ -476,8 +480,8 @@ describe("buildDateRanges", () => {
     });
 
     expect(results[0]).toEqual({
-      start: dayjs("2023-06-13T08:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-13T13:00:00Z").tz(timeZone),
+      start: new Date("2023-06-13T08:00:00Z"),
+      end: new Date("2023-06-13T13:00:00Z"),
     });
   });
   it("should return correct date ranges if date override would already already be the next day in utc timezone", () => {
@@ -495,8 +499,8 @@ describe("buildDateRanges", () => {
     ];
     const timeZone = "America/New_York";
 
-    const dateFrom = dayjs("2023-06-13T00:00:00Z");
-    const dateTo = dayjs("2023-06-15T00:00:00Z");
+    const dateFrom = dayjs("2023-06-13T00:00:00Z").toDate();
+    const dateTo = dayjs("2023-06-15T00:00:00Z").toDate();
     //add tarvelScheduels
 
     const { dateRanges: results } = buildDateRanges({
@@ -508,12 +512,12 @@ describe("buildDateRanges", () => {
     });
 
     expect(results[0]).toEqual({
-      start: dayjs("2023-06-14T02:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-14T03:00:00Z").tz(timeZone),
+      start: new Date("2023-06-14T02:00:00Z"),
+      end: new Date("2023-06-14T03:00:00Z"),
     });
     expect(results[1]).toEqual({
-      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+      start: new Date("2023-06-14T12:00:00Z"),
+      end: new Date("2023-06-14T21:00:00Z"),
     });
   });
   it("should handle OOO correctly", () => {
@@ -536,8 +540,8 @@ describe("buildDateRanges", () => {
       },
     };
 
-    const dateFrom = dayjs("2023-06-13T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
-    const dateTo = dayjs("2023-06-15T00:00:00Z");
+    const dateFrom = dayjs("2023-06-13T00:00:00Z").toDate(); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-15T00:00:00Z").toDate();
 
     const timeZone = "America/New_York";
 
@@ -551,18 +555,18 @@ describe("buildDateRanges", () => {
     });
 
     expect(dateRanges[0]).toEqual({
-      start: dayjs.utc("2023-06-13T14:00:00Z").tz(timeZone),
-      end: dayjs.utc("2023-06-13T19:00:00Z").tz(timeZone),
+      start: new Date("2023-06-13T14:00:00Z"),
+      end: new Date("2023-06-13T19:00:00Z"),
     });
 
     expect(dateRanges[1]).toEqual({
-      start: dayjs.utc("2023-06-14T12:00:00Z").tz(timeZone),
-      end: dayjs.utc("2023-06-14T21:00:00Z").tz(timeZone),
+      start: new Date("2023-06-14T12:00:00Z"),
+      end: new Date("2023-06-14T21:00:00Z"),
     });
     expect(oooExcludedDateRanges.length).toBe(1);
     expect(oooExcludedDateRanges[0]).toEqual({
-      start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
-      end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+      start: new Date("2023-06-14T12:00:00Z"),
+      end: new Date("2023-06-14T21:00:00Z"),
     });
   });
 });
@@ -571,41 +575,41 @@ describe("subtract", () => {
   it("subtracts appropriately when excluded ranges are given in order", () => {
     const data = {
       sourceRanges: [
-        { start: dayjs.utc("2023-07-05T04:00:00.000Z"), end: dayjs.utc("2023-07-05T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-06T04:00:00.000Z"), end: dayjs.utc("2023-07-06T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-07T04:00:00.000Z"), end: dayjs.utc("2023-07-07T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-10T04:00:00.000Z"), end: dayjs.utc("2023-07-10T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-11T04:00:00.000Z"), end: dayjs.utc("2023-07-11T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-12T04:00:00.000Z"), end: dayjs.utc("2023-07-12T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-13T04:00:00.000Z"), end: dayjs.utc("2023-07-13T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-14T04:00:00.000Z"), end: dayjs.utc("2023-07-14T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-17T04:00:00.000Z"), end: dayjs.utc("2023-07-17T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-18T04:00:00.000Z"), end: dayjs.utc("2023-07-18T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-19T04:00:00.000Z"), end: dayjs.utc("2023-07-19T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-20T04:00:00.000Z"), end: dayjs.utc("2023-07-20T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-21T04:00:00.000Z"), end: dayjs.utc("2023-07-21T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-24T04:00:00.000Z"), end: dayjs.utc("2023-07-24T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-25T04:00:00.000Z"), end: dayjs.utc("2023-07-25T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-26T04:00:00.000Z"), end: dayjs.utc("2023-07-26T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-27T04:00:00.000Z"), end: dayjs.utc("2023-07-27T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-28T04:00:00.000Z"), end: dayjs.utc("2023-07-28T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-31T04:00:00.000Z"), end: dayjs.utc("2023-07-31T12:00:00.000Z") },
+        { start: new Date("2023-07-05T04:00:00.000Z"), end: new Date("2023-07-05T12:00:00.000Z") },
+        { start: new Date("2023-07-06T04:00:00.000Z"), end: new Date("2023-07-06T12:00:00.000Z") },
+        { start: new Date("2023-07-07T04:00:00.000Z"), end: new Date("2023-07-07T12:00:00.000Z") },
+        { start: new Date("2023-07-10T04:00:00.000Z"), end: new Date("2023-07-10T12:00:00.000Z") },
+        { start: new Date("2023-07-11T04:00:00.000Z"), end: new Date("2023-07-11T12:00:00.000Z") },
+        { start: new Date("2023-07-12T04:00:00.000Z"), end: new Date("2023-07-12T12:00:00.000Z") },
+        { start: new Date("2023-07-13T04:00:00.000Z"), end: new Date("2023-07-13T12:00:00.000Z") },
+        { start: new Date("2023-07-14T04:00:00.000Z"), end: new Date("2023-07-14T12:00:00.000Z") },
+        { start: new Date("2023-07-17T04:00:00.000Z"), end: new Date("2023-07-17T12:00:00.000Z") },
+        { start: new Date("2023-07-18T04:00:00.000Z"), end: new Date("2023-07-18T12:00:00.000Z") },
+        { start: new Date("2023-07-19T04:00:00.000Z"), end: new Date("2023-07-19T12:00:00.000Z") },
+        { start: new Date("2023-07-20T04:00:00.000Z"), end: new Date("2023-07-20T12:00:00.000Z") },
+        { start: new Date("2023-07-21T04:00:00.000Z"), end: new Date("2023-07-21T12:00:00.000Z") },
+        { start: new Date("2023-07-24T04:00:00.000Z"), end: new Date("2023-07-24T12:00:00.000Z") },
+        { start: new Date("2023-07-25T04:00:00.000Z"), end: new Date("2023-07-25T12:00:00.000Z") },
+        { start: new Date("2023-07-26T04:00:00.000Z"), end: new Date("2023-07-26T12:00:00.000Z") },
+        { start: new Date("2023-07-27T04:00:00.000Z"), end: new Date("2023-07-27T12:00:00.000Z") },
+        { start: new Date("2023-07-28T04:00:00.000Z"), end: new Date("2023-07-28T12:00:00.000Z") },
+        { start: new Date("2023-07-31T04:00:00.000Z"), end: new Date("2023-07-31T12:00:00.000Z") },
       ],
       excludedRanges: [
-        { start: dayjs.utc("2023-07-05T04:00:00.000Z"), end: dayjs.utc("2023-07-05T04:15:00.000Z") },
-        { start: dayjs.utc("2023-07-05T04:45:00.000Z"), end: dayjs.utc("2023-07-05T05:00:00.000Z") },
+        { start: new Date("2023-07-05T04:00:00.000Z"), end: new Date("2023-07-05T04:15:00.000Z") },
+        { start: new Date("2023-07-05T04:45:00.000Z"), end: new Date("2023-07-05T05:00:00.000Z") },
       ],
     };
 
     const result = subtract(data["sourceRanges"], data["excludedRanges"]).map((range) => ({
-      start: range.start.format(),
-      end: range.end.format(),
+      start: range.start.toISOString(),
+      end: range.end.toISOString(),
     }));
 
     expect(result).toEqual(
       expect.arrayContaining([
-        { start: "2023-07-05T04:15:00Z", end: "2023-07-05T04:45:00Z" },
-        { start: "2023-07-05T05:00:00Z", end: "2023-07-05T12:00:00Z" },
+        { start: "2023-07-05T04:15:00.000Z", end: "2023-07-05T04:45:00.000Z" },
+        { start: "2023-07-05T05:00:00.000Z", end: "2023-07-05T12:00:00.000Z" },
       ])
     );
   });
@@ -613,41 +617,41 @@ describe("subtract", () => {
   it("subtracts appropriately when excluded ranges are not given in order", () => {
     const data = {
       sourceRanges: [
-        { start: dayjs.utc("2023-07-05T04:00:00.000Z"), end: dayjs.utc("2023-07-05T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-06T04:00:00.000Z"), end: dayjs.utc("2023-07-06T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-07T04:00:00.000Z"), end: dayjs.utc("2023-07-07T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-10T04:00:00.000Z"), end: dayjs.utc("2023-07-10T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-11T04:00:00.000Z"), end: dayjs.utc("2023-07-11T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-12T04:00:00.000Z"), end: dayjs.utc("2023-07-12T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-13T04:00:00.000Z"), end: dayjs.utc("2023-07-13T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-14T04:00:00.000Z"), end: dayjs.utc("2023-07-14T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-17T04:00:00.000Z"), end: dayjs.utc("2023-07-17T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-18T04:00:00.000Z"), end: dayjs.utc("2023-07-18T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-19T04:00:00.000Z"), end: dayjs.utc("2023-07-19T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-20T04:00:00.000Z"), end: dayjs.utc("2023-07-20T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-21T04:00:00.000Z"), end: dayjs.utc("2023-07-21T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-24T04:00:00.000Z"), end: dayjs.utc("2023-07-24T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-25T04:00:00.000Z"), end: dayjs.utc("2023-07-25T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-26T04:00:00.000Z"), end: dayjs.utc("2023-07-26T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-27T04:00:00.000Z"), end: dayjs.utc("2023-07-27T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-28T04:00:00.000Z"), end: dayjs.utc("2023-07-28T12:00:00.000Z") },
-        { start: dayjs.utc("2023-07-31T04:00:00.000Z"), end: dayjs.utc("2023-07-31T12:00:00.000Z") },
+        { start: new Date("2023-07-05T04:00:00.000Z"), end: new Date("2023-07-05T12:00:00.000Z") },
+        { start: new Date("2023-07-06T04:00:00.000Z"), end: new Date("2023-07-06T12:00:00.000Z") },
+        { start: new Date("2023-07-07T04:00:00.000Z"), end: new Date("2023-07-07T12:00:00.000Z") },
+        { start: new Date("2023-07-10T04:00:00.000Z"), end: new Date("2023-07-10T12:00:00.000Z") },
+        { start: new Date("2023-07-11T04:00:00.000Z"), end: new Date("2023-07-11T12:00:00.000Z") },
+        { start: new Date("2023-07-12T04:00:00.000Z"), end: new Date("2023-07-12T12:00:00.000Z") },
+        { start: new Date("2023-07-13T04:00:00.000Z"), end: new Date("2023-07-13T12:00:00.000Z") },
+        { start: new Date("2023-07-14T04:00:00.000Z"), end: new Date("2023-07-14T12:00:00.000Z") },
+        { start: new Date("2023-07-17T04:00:00.000Z"), end: new Date("2023-07-17T12:00:00.000Z") },
+        { start: new Date("2023-07-18T04:00:00.000Z"), end: new Date("2023-07-18T12:00:00.000Z") },
+        { start: new Date("2023-07-19T04:00:00.000Z"), end: new Date("2023-07-19T12:00:00.000Z") },
+        { start: new Date("2023-07-20T04:00:00.000Z"), end: new Date("2023-07-20T12:00:00.000Z") },
+        { start: new Date("2023-07-21T04:00:00.000Z"), end: new Date("2023-07-21T12:00:00.000Z") },
+        { start: new Date("2023-07-24T04:00:00.000Z"), end: new Date("2023-07-24T12:00:00.000Z") },
+        { start: new Date("2023-07-25T04:00:00.000Z"), end: new Date("2023-07-25T12:00:00.000Z") },
+        { start: new Date("2023-07-26T04:00:00.000Z"), end: new Date("2023-07-26T12:00:00.000Z") },
+        { start: new Date("2023-07-27T04:00:00.000Z"), end: new Date("2023-07-27T12:00:00.000Z") },
+        { start: new Date("2023-07-28T04:00:00.000Z"), end: new Date("2023-07-28T12:00:00.000Z") },
+        { start: new Date("2023-07-31T04:00:00.000Z"), end: new Date("2023-07-31T12:00:00.000Z") },
       ],
       excludedRanges: [
-        { start: dayjs.utc("2023-07-05T04:45:00.000Z"), end: dayjs.utc("2023-07-05T05:00:00.000Z") },
-        { start: dayjs.utc("2023-07-05T04:00:00.000Z"), end: dayjs.utc("2023-07-05T04:15:00.000Z") },
+        { start: new Date("2023-07-05T04:45:00.000Z"), end: new Date("2023-07-05T05:00:00.000Z") },
+        { start: new Date("2023-07-05T04:00:00.000Z"), end: new Date("2023-07-05T04:15:00.000Z") },
       ],
     };
 
     const result = subtract(data["sourceRanges"], data["excludedRanges"]).map((range) => ({
-      start: range.start.format(),
-      end: range.end.format(),
+      start: range.start.toISOString(),
+      end: range.end.toISOString(),
     }));
 
     expect(result).toEqual(
       expect.arrayContaining([
-        { start: "2023-07-05T04:15:00Z", end: "2023-07-05T04:45:00Z" },
-        { start: "2023-07-05T05:00:00Z", end: "2023-07-05T12:00:00Z" },
+        { start: "2023-07-05T04:15:00.000Z", end: "2023-07-05T04:45:00.000Z" },
+        { start: "2023-07-05T05:00:00.000Z", end: "2023-07-05T12:00:00.000Z" },
       ])
     );
   });
@@ -666,7 +670,7 @@ describe("intersect function comprehensive tests", () => {
     });
 
     it("should handle mixed empty and non-empty arrays", () => {
-      const ranges = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
+      const ranges = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") }];
       expect(intersect([ranges, []])).toEqual([]);
       expect(intersect([[], ranges])).toEqual([]);
       expect(intersect([ranges, [], ranges])).toEqual([]);
@@ -675,14 +679,16 @@ describe("intersect function comprehensive tests", () => {
 
   describe("single array inputs", () => {
     it("should return the same ranges when only one array is provided", () => {
-      const singleRange = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
+      const singleRange = [
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") },
+      ];
       expect(intersect([singleRange])).toEqual(singleRange);
     });
 
     it("should handle single array with multiple ranges", () => {
       const multipleRanges = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") },
-        { start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") },
+        { start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
       ];
       expect(intersect([multipleRanges])).toEqual(multipleRanges);
     });
@@ -690,246 +696,246 @@ describe("intersect function comprehensive tests", () => {
 
   describe("non-overlapping ranges", () => {
     it("should return empty array for completely separate ranges", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
       expect(intersect([ranges1, ranges2])).toEqual([]);
     });
 
     it("should return empty array for three non-overlapping ranges", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
-      const ranges3 = [{ start: dayjs("2023-06-01T13:00:00Z"), end: dayjs("2023-06-01T14:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
+      const ranges3 = [{ start: new Date("2023-06-01T13:00:00Z"), end: new Date("2023-06-01T14:00:00Z") }];
       expect(intersect([ranges1, ranges2, ranges3])).toEqual([]);
     });
 
     it("should handle ranges on different days", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T17:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-02T09:00:00Z"), end: dayjs("2023-06-02T17:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T17:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-02T09:00:00Z"), end: new Date("2023-06-02T17:00:00Z") }];
       expect(intersect([ranges1, ranges2])).toEqual([]);
     });
   });
 
   describe("touching ranges (no overlap)", () => {
     it("should return empty array for ranges that touch at endpoints", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
       expect(intersect([ranges1, ranges2])).toEqual([]);
     });
 
     it("should handle multiple touching ranges", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
-      const ranges3 = [{ start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
+      const ranges3 = [{ start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
       expect(intersect([ranges1, ranges2, ranges3])).toEqual([]);
     });
   });
 
   describe("simple overlapping ranges", () => {
     it("should find intersection of two overlapping ranges", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
     });
 
     it("should handle partial overlap at the beginning", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T08:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T08:00:00Z"), end: new Date("2023-06-01T10:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
     });
 
     it("should handle partial overlap at the end", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
     });
   });
 
   describe("containment scenarios", () => {
     it("should handle complete containment", () => {
-      const outer = [{ start: dayjs("2023-06-01T08:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
-      const inner = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+      const outer = [{ start: new Date("2023-06-01T08:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
+      const inner = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
       const result = intersect([outer, inner]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
     });
 
     it("should handle reverse containment", () => {
-      const inner = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
-      const outer = [{ start: dayjs("2023-06-01T08:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
+      const inner = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
+      const outer = [{ start: new Date("2023-06-01T08:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
       const result = intersect([inner, outer]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
     });
   });
 
   describe("identical ranges", () => {
     it("should handle identical single ranges", () => {
-      const range1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
-      const range2 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") }];
+      const range1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
+      const range2 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") }];
       const result = intersect([range1, range2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
     });
 
     it("should handle identical multiple ranges", () => {
       const ranges1 = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") },
-        { start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") },
+        { start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
       ];
       const ranges2 = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") },
-        { start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") },
+        { start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
       ];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(2);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
-      expect(result[1].start.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
-      expect(result[1].end.valueOf()).toBe(dayjs("2023-06-01T12:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
+      expect(result[1].start.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
+      expect(result[1].end.getTime()).toBe(new Date("2023-06-01T12:00:00Z").getTime());
     });
   });
 
   describe("multiple ranges per array", () => {
     it("should handle multiple ranges in each array", () => {
       const ranges1 = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") },
-        { start: dayjs("2023-06-01T13:00:00Z"), end: dayjs("2023-06-01T15:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") },
+        { start: new Date("2023-06-01T13:00:00Z"), end: new Date("2023-06-01T15:00:00Z") },
       ];
       const ranges2 = [
-        { start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
-        { start: dayjs("2023-06-01T14:00:00Z"), end: dayjs("2023-06-01T16:00:00Z") },
+        { start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T14:00:00Z"), end: new Date("2023-06-01T16:00:00Z") },
       ];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(2);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
-      expect(result[1].start.valueOf()).toBe(dayjs("2023-06-01T14:00:00Z").valueOf());
-      expect(result[1].end.valueOf()).toBe(dayjs("2023-06-01T15:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
+      expect(result[1].start.getTime()).toBe(new Date("2023-06-01T14:00:00Z").getTime());
+      expect(result[1].end.getTime()).toBe(new Date("2023-06-01T15:00:00Z").getTime());
     });
 
     it("should handle complex multiple range intersections", () => {
       const ranges1 = [
-        { start: dayjs("2023-06-01T08:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
-        { start: dayjs("2023-06-01T14:00:00Z"), end: dayjs("2023-06-01T18:00:00Z") },
+        { start: new Date("2023-06-01T08:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T14:00:00Z"), end: new Date("2023-06-01T18:00:00Z") },
       ];
       const ranges2 = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T10:00:00Z") },
-        { start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T13:00:00Z") },
-        { start: dayjs("2023-06-01T15:00:00Z"), end: dayjs("2023-06-01T17:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T10:00:00Z") },
+        { start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T13:00:00Z") },
+        { start: new Date("2023-06-01T15:00:00Z"), end: new Date("2023-06-01T17:00:00Z") },
       ];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(3);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
-      expect(result[1].start.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
-      expect(result[1].end.valueOf()).toBe(dayjs("2023-06-01T12:00:00Z").valueOf());
-      expect(result[2].start.valueOf()).toBe(dayjs("2023-06-01T15:00:00Z").valueOf());
-      expect(result[2].end.valueOf()).toBe(dayjs("2023-06-01T17:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
+      expect(result[1].start.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
+      expect(result[1].end.getTime()).toBe(new Date("2023-06-01T12:00:00Z").getTime());
+      expect(result[2].start.getTime()).toBe(new Date("2023-06-01T15:00:00Z").getTime());
+      expect(result[2].end.getTime()).toBe(new Date("2023-06-01T17:00:00Z").getTime());
     });
   });
 
   describe("unsorted input handling", () => {
     it("should handle unsorted ranges correctly", () => {
       const ranges1 = [
-        { start: dayjs("2023-06-01T13:00:00Z"), end: dayjs("2023-06-01T15:00:00Z") },
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T11:00:00Z") },
+        { start: new Date("2023-06-01T13:00:00Z"), end: new Date("2023-06-01T15:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T11:00:00Z") },
       ];
       const ranges2 = [
-        { start: dayjs("2023-06-01T14:00:00Z"), end: dayjs("2023-06-01T16:00:00Z") },
-        { start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T14:00:00Z"), end: new Date("2023-06-01T16:00:00Z") },
+        { start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
       ];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(2);
-      const sortedResult = result.sort((a, b) => a.start.valueOf() - b.start.valueOf());
-      expect(sortedResult[0].start.valueOf()).toBe(dayjs("2023-06-01T10:00:00Z").valueOf());
-      expect(sortedResult[0].end.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
-      expect(sortedResult[1].start.valueOf()).toBe(dayjs("2023-06-01T14:00:00Z").valueOf());
-      expect(sortedResult[1].end.valueOf()).toBe(dayjs("2023-06-01T15:00:00Z").valueOf());
+      const sortedResult = result.sort((a, b) => a.start.getTime() - b.start.getTime());
+      expect(sortedResult[0].start.getTime()).toBe(new Date("2023-06-01T10:00:00Z").getTime());
+      expect(sortedResult[0].end.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
+      expect(sortedResult[1].start.getTime()).toBe(new Date("2023-06-01T14:00:00Z").getTime());
+      expect(sortedResult[1].end.getTime()).toBe(new Date("2023-06-01T15:00:00Z").getTime());
     });
   });
 
   describe("cross-day scenarios", () => {
     it("should handle ranges spanning multiple days", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T22:00:00Z"), end: dayjs("2023-06-02T02:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-02T01:00:00Z"), end: dayjs("2023-06-02T05:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T22:00:00Z"), end: new Date("2023-06-02T02:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-02T01:00:00Z"), end: new Date("2023-06-02T05:00:00Z") }];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-02T01:00:00Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-02T02:00:00Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-02T01:00:00Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-02T02:00:00Z").getTime());
     });
   });
 
   describe("team scheduling scenarios", () => {
     it("should handle team scheduling scenario", () => {
       const user1Availability = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
-        { start: dayjs("2023-06-01T14:00:00Z"), end: dayjs("2023-06-01T17:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T14:00:00Z"), end: new Date("2023-06-01T17:00:00Z") },
       ];
       const user2Availability = [
-        { start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T13:00:00Z") },
-        { start: dayjs("2023-06-01T15:00:00Z"), end: dayjs("2023-06-01T18:00:00Z") },
+        { start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T13:00:00Z") },
+        { start: new Date("2023-06-01T15:00:00Z"), end: new Date("2023-06-01T18:00:00Z") },
       ];
       const user3Availability = [
-        { start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T12:30:00Z") },
-        { start: dayjs("2023-06-01T15:30:00Z"), end: dayjs("2023-06-01T16:30:00Z") },
+        { start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T12:30:00Z") },
+        { start: new Date("2023-06-01T15:30:00Z"), end: new Date("2023-06-01T16:30:00Z") },
       ];
 
       const result = intersect([user1Availability, user2Availability, user3Availability]);
       expect(result).toHaveLength(2);
 
-      const sortedResult = result.sort((a, b) => a.start.valueOf() - b.start.valueOf());
-      expect(sortedResult[0].start.valueOf()).toBe(dayjs("2023-06-01T11:00:00Z").valueOf());
-      expect(sortedResult[0].end.valueOf()).toBe(dayjs("2023-06-01T12:00:00Z").valueOf());
-      expect(sortedResult[1].start.valueOf()).toBe(dayjs("2023-06-01T15:30:00Z").valueOf());
-      expect(sortedResult[1].end.valueOf()).toBe(dayjs("2023-06-01T16:30:00Z").valueOf());
+      const sortedResult = result.sort((a, b) => a.start.getTime() - b.start.getTime());
+      expect(sortedResult[0].start.getTime()).toBe(new Date("2023-06-01T11:00:00Z").getTime());
+      expect(sortedResult[0].end.getTime()).toBe(new Date("2023-06-01T12:00:00Z").getTime());
+      expect(sortedResult[1].start.getTime()).toBe(new Date("2023-06-01T15:30:00Z").getTime());
+      expect(sortedResult[1].end.getTime()).toBe(new Date("2023-06-01T16:30:00Z").getTime());
     });
 
     it("should handle complex team scheduling with 4 users", () => {
       const user1Availability = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T17:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T17:00:00Z") },
       ];
       const user2Availability = [
-        { start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T16:00:00Z") },
+        { start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T16:00:00Z") },
       ];
       const user3Availability = [
-        { start: dayjs("2023-06-01T11:00:00Z"), end: dayjs("2023-06-01T15:00:00Z") },
+        { start: new Date("2023-06-01T11:00:00Z"), end: new Date("2023-06-01T15:00:00Z") },
       ];
       const user4Availability = [
-        { start: dayjs("2023-06-01T11:15:00Z"), end: dayjs("2023-06-01T11:30:00Z") },
-        { start: dayjs("2023-06-01T13:00:00Z"), end: dayjs("2023-06-01T14:00:00Z") },
+        { start: new Date("2023-06-01T11:15:00Z"), end: new Date("2023-06-01T11:30:00Z") },
+        { start: new Date("2023-06-01T13:00:00Z"), end: new Date("2023-06-01T14:00:00Z") },
       ];
 
       const result = intersect([user1Availability, user2Availability, user3Availability, user4Availability]);
       expect(result).toHaveLength(2);
 
-      const sortedResult = result.sort((a, b) => a.start.valueOf() - b.start.valueOf());
-      expect(sortedResult[0].start.valueOf()).toBe(dayjs("2023-06-01T11:15:00Z").valueOf());
-      expect(sortedResult[0].end.valueOf()).toBe(dayjs("2023-06-01T11:30:00Z").valueOf());
-      expect(sortedResult[1].start.valueOf()).toBe(dayjs("2023-06-01T13:00:00Z").valueOf());
-      expect(sortedResult[1].end.valueOf()).toBe(dayjs("2023-06-01T14:00:00Z").valueOf());
+      const sortedResult = result.sort((a, b) => a.start.getTime() - b.start.getTime());
+      expect(sortedResult[0].start.getTime()).toBe(new Date("2023-06-01T11:15:00Z").getTime());
+      expect(sortedResult[0].end.getTime()).toBe(new Date("2023-06-01T11:30:00Z").getTime());
+      expect(sortedResult[1].start.getTime()).toBe(new Date("2023-06-01T13:00:00Z").getTime());
+      expect(sortedResult[1].end.getTime()).toBe(new Date("2023-06-01T14:00:00Z").getTime());
     });
   });
 
@@ -937,11 +943,11 @@ describe("intersect function comprehensive tests", () => {
     it("should handle large datasets efficiently", () => {
       const createDateRanges = (count: number, startDate: string, userOffset: number) => {
         const ranges = [];
-        const baseDate = dayjs(startDate);
+        const baseDate = new Date(startDate);
 
         for (let i = 0; i < count; i++) {
-          const start = baseDate.add(i * 2 + userOffset, "hour");
-          const end = start.add(1, "hour");
+          const start = new Date(baseDate.getTime() + (i * 2 + userOffset) * 60 * 60 * 1000);
+          const end = new Date(start.getTime() + 60 * 60 * 1000);
           ranges.push({ start, end });
         }
         return ranges;
@@ -963,30 +969,34 @@ describe("intersect function comprehensive tests", () => {
       result.forEach((intersection) => {
         expect(intersection.start).toBeDefined();
         expect(intersection.end).toBeDefined();
-        expect(intersection.start.isBefore(intersection.end)).toBe(true);
+        expect(intersection.start.getTime() < intersection.end.getTime()).toBe(true);
       });
     });
 
     it("should handle time precision correctly", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00.000Z"), end: dayjs("2023-06-01T10:00:00.500Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T09:30:00.250Z"), end: dayjs("2023-06-01T11:00:00.750Z") }];
+      const ranges1 = [
+        { start: new Date("2023-06-01T09:00:00.000Z"), end: new Date("2023-06-01T10:00:00.500Z") },
+      ];
+      const ranges2 = [
+        { start: new Date("2023-06-01T09:30:00.250Z"), end: new Date("2023-06-01T11:00:00.750Z") },
+      ];
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].start.valueOf()).toBe(dayjs("2023-06-01T09:30:00.250Z").valueOf());
-      expect(result[0].end.valueOf()).toBe(dayjs("2023-06-01T10:00:00.500Z").valueOf());
+      expect(result[0].start.getTime()).toBe(new Date("2023-06-01T09:30:00.250Z").getTime());
+      expect(result[0].end.getTime()).toBe(new Date("2023-06-01T10:00:00.500Z").getTime());
     });
   });
 
   describe("result validation", () => {
     it("should ensure all results have valid start and end times", () => {
       const ranges1 = [
-        { start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") },
-        { start: dayjs("2023-06-01T14:00:00Z"), end: dayjs("2023-06-01T17:00:00Z") },
+        { start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T12:00:00Z") },
+        { start: new Date("2023-06-01T14:00:00Z"), end: new Date("2023-06-01T17:00:00Z") },
       ];
       const ranges2 = [
-        { start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T13:00:00Z") },
-        { start: dayjs("2023-06-01T15:00:00Z"), end: dayjs("2023-06-01T18:00:00Z") },
+        { start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T13:00:00Z") },
+        { start: new Date("2023-06-01T15:00:00Z"), end: new Date("2023-06-01T18:00:00Z") },
       ];
 
       const result = intersect([ranges1, ranges2]);
@@ -994,36 +1004,36 @@ describe("intersect function comprehensive tests", () => {
       result.forEach((intersection) => {
         expect(intersection.start).toBeDefined();
         expect(intersection.end).toBeDefined();
-        expect(intersection.start.isBefore(intersection.end)).toBe(true);
-        expect(intersection.start.isValid()).toBe(true);
-        expect(intersection.end.isValid()).toBe(true);
+        expect(intersection.start.getTime() < intersection.end.getTime()).toBe(true);
+        expect(!isNaN(intersection.start.getTime())).toBe(true);
+        expect(!isNaN(intersection.end.getTime())).toBe(true);
       });
     });
 
     it("should ensure results are properly bounded by input ranges", () => {
-      const ranges1 = [{ start: dayjs("2023-06-01T09:00:00Z"), end: dayjs("2023-06-01T12:00:00Z") }];
-      const ranges2 = [{ start: dayjs("2023-06-01T10:00:00Z"), end: dayjs("2023-06-01T13:00:00Z") }];
+      const ranges1 = [{ start: new Date("2023-06-01T09:00:00Z"), end: new Date("2023-06-01T12:00:00Z") }];
+      const ranges2 = [{ start: new Date("2023-06-01T10:00:00Z"), end: new Date("2023-06-01T13:00:00Z") }];
 
       const result = intersect([ranges1, ranges2]);
 
       expect(result).toHaveLength(1);
       const intersection = result[0];
 
-      expect(intersection.start.valueOf() >= ranges1[0].start.valueOf()).toBe(true);
-      expect(intersection.start.valueOf() >= ranges2[0].start.valueOf()).toBe(true);
-      expect(intersection.end.valueOf() <= ranges1[0].end.valueOf()).toBe(true);
-      expect(intersection.end.valueOf() <= ranges2[0].end.valueOf()).toBe(true);
+      expect(intersection.start.getTime() >= ranges1[0].start.getTime()).toBe(true);
+      expect(intersection.start.getTime() >= ranges2[0].start.getTime()).toBe(true);
+      expect(intersection.end.getTime() <= ranges1[0].end.getTime()).toBe(true);
+      expect(intersection.end.getTime() <= ranges2[0].end.getTime()).toBe(true);
     });
   });
 
   describe("gap scenarios", () => {
     it("should return an empty array when one user's availability is in the gap of another's", () => {
       const userA_Availability = [
-        { start: dayjs("2023-07-01T09:00:00Z"), end: dayjs("2023-07-01T12:00:00Z") },
-        { start: dayjs("2023-07-01T14:00:00Z"), end: dayjs("2023-07-01T17:00:00Z") },
+        { start: new Date("2023-07-01T09:00:00Z"), end: new Date("2023-07-01T12:00:00Z") },
+        { start: new Date("2023-07-01T14:00:00Z"), end: new Date("2023-07-01T17:00:00Z") },
       ];
       const userB_Availability = [
-        { start: dayjs("2023-07-01T12:00:00Z"), end: dayjs("2023-07-01T14:00:00Z") },
+        { start: new Date("2023-07-01T12:00:00Z"), end: new Date("2023-07-01T14:00:00Z") },
       ];
 
       const result = intersect([userA_Availability, userB_Availability]);
@@ -1036,18 +1046,18 @@ describe("intersect function comprehensive tests", () => {
       const TIMEZONE = "Asia/Kolkata"; // IST timezone (+05:30)
 
       const sourceRanges = [
-        { start: dayjs.utc("2024-05-31T12:30:00.000Z"), end: dayjs.utc("2024-05-31T13:30:00.000Z") },
-        { start: dayjs.utc("2024-05-31T13:30:00.000Z"), end: dayjs.utc("2024-05-31T14:30:00.000Z") },
-        { start: dayjs.utc("2024-05-31T14:30:00.000Z"), end: dayjs.utc("2024-05-31T15:30:00.000Z") },
-        { start: dayjs.utc("2024-05-31T15:30:00.000Z"), end: dayjs.utc("2024-05-31T16:30:00.000Z") },
-        { start: dayjs.utc("2024-05-31T16:30:00.000Z"), end: dayjs.utc("2024-05-31T17:30:00.000Z") },
-        { start: dayjs.utc("2024-05-31T17:30:00.000Z"), end: dayjs.utc("2024-05-31T18:30:00.000Z") },
+        { start: new Date("2024-05-31T12:30:00.000Z"), end: new Date("2024-05-31T13:30:00.000Z") },
+        { start: new Date("2024-05-31T13:30:00.000Z"), end: new Date("2024-05-31T14:30:00.000Z") },
+        { start: new Date("2024-05-31T14:30:00.000Z"), end: new Date("2024-05-31T15:30:00.000Z") },
+        { start: new Date("2024-05-31T15:30:00.000Z"), end: new Date("2024-05-31T16:30:00.000Z") },
+        { start: new Date("2024-05-31T16:30:00.000Z"), end: new Date("2024-05-31T17:30:00.000Z") },
+        { start: new Date("2024-05-31T17:30:00.000Z"), end: new Date("2024-05-31T18:30:00.000Z") },
       ];
 
       const excludedRanges = [
         {
-          start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
-          end: dayjs("2024-05-31T23:59:59.999Z").tz(TIMEZONE),
+          start: new Date("2024-05-31T12:30:00.000Z"),
+          end: new Date("2024-05-31T23:59:59.999Z"),
         },
       ];
 
@@ -1060,13 +1070,13 @@ describe("intersect function comprehensive tests", () => {
       const TIMEZONE = "Asia/Kolkata";
 
       const sourceRange = {
-        start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
-        end: dayjs("2024-05-31T13:30:00.000Z").tz(TIMEZONE),
+        start: new Date("2024-05-31T12:30:00.000Z"),
+        end: new Date("2024-05-31T13:30:00.000Z"),
       };
 
       const excludedRange = {
-        start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
-        end: dayjs("2024-05-31T18:00:00.000Z").tz(TIMEZONE),
+        start: new Date("2024-05-31T12:30:00.000Z"),
+        end: new Date("2024-05-31T18:00:00.000Z"),
       };
 
       const result = subtract([sourceRange], [excludedRange]);
@@ -1076,28 +1086,28 @@ describe("intersect function comprehensive tests", () => {
 
     it("should not extend ranges instead of excluding busy times", () => {
       const dateRanges = [
-        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
-        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
-        { start: dayjs("2024-06-02T04:00:00.000Z"), end: dayjs("2024-06-02T12:30:00.000Z") },
-        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
-        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
-        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+        { start: new Date("2024-05-31T04:00:00.000Z"), end: new Date("2024-05-31T12:30:00.000Z") },
+        { start: new Date("2024-06-01T04:00:00.000Z"), end: new Date("2024-06-01T12:30:00.000Z") },
+        { start: new Date("2024-06-02T04:00:00.000Z"), end: new Date("2024-06-02T12:30:00.000Z") },
+        { start: new Date("2024-06-03T04:00:00.000Z"), end: new Date("2024-06-03T12:30:00.000Z") },
+        { start: new Date("2024-06-04T04:00:00.000Z"), end: new Date("2024-06-04T12:30:00.000Z") },
+        { start: new Date("2024-06-05T04:00:00.000Z"), end: new Date("2024-06-05T12:30:00.000Z") },
       ];
 
       // formattedBusyTimes from failing ROLLING_WINDOW test - this is the booking that should NOT affect dateRanges
       const formattedBusyTimes = [
-        { start: dayjs("2024-06-01T18:30:00.000Z"), end: dayjs("2024-06-02T18:30:00.000Z") },
+        { start: new Date("2024-06-01T18:30:00.000Z"), end: new Date("2024-06-02T18:30:00.000Z") },
       ];
 
       const result = subtract(dateRanges, formattedBusyTimes);
 
       // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
       const expectedCorrectedOutput = [
-        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
-        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
-        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
-        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
-        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+        { start: new Date("2024-05-31T04:00:00.000Z"), end: new Date("2024-05-31T12:30:00.000Z") },
+        { start: new Date("2024-06-01T04:00:00.000Z"), end: new Date("2024-06-01T12:30:00.000Z") },
+        { start: new Date("2024-06-03T04:00:00.000Z"), end: new Date("2024-06-03T12:30:00.000Z") },
+        { start: new Date("2024-06-04T04:00:00.000Z"), end: new Date("2024-06-04T12:30:00.000Z") },
+        { start: new Date("2024-06-05T04:00:00.000Z"), end: new Date("2024-06-05T12:30:00.000Z") },
       ];
 
       expect(result).toHaveLength(5); // Correct: June 2 range is properly excluded

@@ -1015,7 +1015,7 @@ export class AvailableSlotsService {
         //check if first two week have availability
         diff =
           aggregatedAvailability.length > 0
-            ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day")
+            ? dayjs(aggregatedAvailability[0].start).diff(twoWeeksFromNow, "day")
             : 1; // no aggregatedAvailability so we diff to +1
       } else {
         // if start time is not within first two weeks, check if there are any available slots
@@ -1126,20 +1126,29 @@ export class AvailableSlotsService {
         const { dateRanges: restrictionRanges } = buildDateRanges({
           availability: restrictionAvailability,
           timeZone: restrictionTimezone || "UTC",
-          dateFrom: startTime,
-          dateTo: endTime,
-          travelSchedules,
+          dateFrom: startTime.toDate(),
+          dateTo: endTime.toDate(),
+          travelSchedules: travelSchedules.map((schedule) => ({
+            startDate: schedule.startDate.toDate(),
+            endDate: schedule.endDate ? schedule.endDate.toDate() : undefined,
+            timeZone: schedule.timeZone,
+          })),
         });
 
         availableTimeSlots = timeSlots.filter((slot) => {
           const slotStart = slot.time;
           const slotEnd = slot.time.add(eventLength, "minute");
+          const slotStartTime = slotStart.toDate().getTime();
+          const slotEndTime = slotEnd.toDate().getTime();
 
-          return restrictionRanges.some(
-            (range) =>
-              (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
-              (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
-          );
+          return restrictionRanges.some((range) => {
+            const rangeStartTime = range.start.getTime();
+            const rangeEndTime = range.end.getTime();
+            return (
+              (slotStartTime > rangeStartTime || slotStartTime === rangeStartTime) &&
+              (slotEndTime < rangeEndTime || slotEndTime === rangeEndTime)
+            );
+          });
         });
       } else {
         availableTimeSlots = timeSlots;

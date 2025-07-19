@@ -109,14 +109,14 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
   const timeZone = schedule?.timeZone || member.user.timeZone;
 
   const { dateRanges } = buildDateRanges({
-    dateFrom,
-    dateTo,
+    dateFrom: dateFrom.toDate(),
+    dateTo: dateTo.toDate(),
     timeZone,
     availability: schedule?.availability ?? [],
     travelSchedules: member.user.travelSchedules.map((schedule) => {
       return {
-        startDate: dayjs(schedule.startDate),
-        endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+        startDate: new Date(schedule.startDate),
+        endDate: schedule.endDate ? new Date(schedule.endDate) : undefined,
         timeZone: schedule.timeZone,
       };
     }),
