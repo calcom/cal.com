@@ -44,7 +44,7 @@ async function getEnrichedSerializableForm<
       id: number;
       username: string | null;
       movedToProfileId: number | null;
-    };
+    } | null;
     team: {
       parent: {
         slug: string | null;
@@ -55,7 +55,7 @@ async function getEnrichedSerializableForm<
 >(form: TForm) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
+    user: form.user ? await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }) : null,
   };
 
   const serializableForm = await getSerializableForm({
@@ -225,7 +225,13 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 
   const eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
     eventTypeRedirectUrl: eventTypeRedirectPath,
-    form: serializableForm,
+    form: {
+      ...serializableForm,
+      nonOrgUsername: serializableForm.nonOrgUsername ?? null,
+      nonOrgTeamslug: serializableForm.nonOrgTeamslug ?? null,
+      userOrigin: serializableForm.userOrigin || "",
+      teamOrigin: serializableForm.teamOrigin || "",
+    },
     allURLSearchParams: urlSearchParamsToForward,
   });
 
