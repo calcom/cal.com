@@ -155,6 +155,9 @@ export default class ICSFeedCalendarService implements Calendar {
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
       vevents.forEach((vevent) => {
+        // Ignore events that are exceptions to recurring events (have recurrence-id)
+        // to avoid duplicates, as they are processed in the recurring event logic.
+        if (vevent.getFirstPropertyValue("recurrence-id")) return;
         const event = new ICAL.Event(vevent);
         // if event status is free or transparent, DON'T return (unlike usual getAvailability)
         //
