@@ -82,7 +82,6 @@ describe("GoogleCalendarEventInputPipe", () => {
             email: "attendee@example.com",
             name: "John Doe",
             responseStatus: CalendarEventResponseStatus.ACCEPTED,
-            optional: false,
           },
         ],
       };
@@ -93,8 +92,6 @@ describe("GoogleCalendarEventInputPipe", () => {
             email: "attendee@example.com",
             displayName: "John Doe",
             responseStatus: "accepted",
-            optional: false,
-            organizer: false,
           },
         ],
       };
@@ -119,7 +116,6 @@ describe("GoogleCalendarEventInputPipe", () => {
             email: "host@example.com",
             displayName: "host@example.com",
             responseStatus: "accepted",
-            optional: false,
             organizer: true,
           },
         ],
@@ -265,15 +261,11 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "attendee1@example.com",
           displayName: "Attendee 1",
           responseStatus: "accepted",
-          optional: false,
-          organizer: false,
         },
         {
           email: "organizer@example.com",
           displayName: "Organizer",
           responseStatus: "accepted",
-          optional: false,
-          organizer: true,
         },
       ]);
     });
@@ -385,7 +377,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "update@example.com",
           name: "New Name",
           responseStatus: CalendarEventResponseStatus.ACCEPTED,
-          optional: true,
         },
       ];
 
@@ -396,7 +387,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "update@example.com",
           displayName: "New Name",
           responseStatus: "accepted",
-          optional: true,
           organizer: false,
         },
       ]);
@@ -418,7 +408,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "new@example.com",
           name: "New Attendee",
           responseStatus: CalendarEventResponseStatus.PENDING,
-          optional: false,
         },
       ];
 
@@ -436,8 +425,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "new@example.com",
           displayName: "New Attendee",
           responseStatus: "tentative",
-          optional: false,
-          organizer: false,
         },
       ]);
     });
@@ -468,7 +455,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "organizer@example.com",
           displayName: "Updated Organizer",
           responseStatus: "accepted",
-          optional: undefined,
           organizer: true,
         },
       ]);
@@ -515,7 +501,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "newhost@example.com",
           displayName: "newhost@example.com",
           responseStatus: "accepted",
-          optional: false,
           organizer: true,
         },
       ]);
@@ -578,7 +563,6 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "host@example.com",
           displayName: "Existing Host Name",
           responseStatus: "accepted",
-          optional: false,
           organizer: true,
         },
       ]);
@@ -650,21 +634,21 @@ describe("GoogleCalendarEventInputPipe", () => {
           email: "keep@example.com",
           displayName: "Keep Me",
           responseStatus: "accepted",
-          optional: undefined,
-          organizer: false,
+        },
+        {
+          email: "oldhost@example.com",
+          displayName: "Old Host",
+          responseStatus: "accepted",
         },
         {
           email: "new@example.com",
           displayName: "New Attendee",
           responseStatus: "tentative",
-          optional: undefined,
-          organizer: false,
         },
         {
           email: "newhost@example.com",
           displayName: "newhost@example.com",
           responseStatus: "accepted",
-          optional: false,
           organizer: true,
         },
       ]);
