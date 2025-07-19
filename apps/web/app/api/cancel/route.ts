@@ -5,6 +5,7 @@ import type { NextRequest } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import { checkRateLimitWithIPAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { bookingCancelInput } from "@calcom/prisma/zod-utils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
