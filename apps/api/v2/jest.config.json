@@ -11,7 +11,8 @@
     "@calcom/platform-libraries/app-store": "<rootDir>/../../../packages/platform/libraries/app-store.ts",
     "@calcom/platform-libraries/workflows": "<rootDir>/../../../packages/platform/libraries/workflows.ts",
     "@calcom/platform-libraries/conferencing": "<rootDir>/../../../packages/platform/libraries/conferencing.ts",
-    "@calcom/platform-libraries/repositories": "<rootDir>/../../../packages/platform/libraries/repositories.ts"
+    "@calcom/platform-libraries/repositories": "<rootDir>/../../../packages/platform/libraries/repositories.ts",
+    "@calcom/dayjs": "<rootDir>/../../../packages/dayjs/index.ts"
   },
   "testEnvironment": "node",
   "testRegex": ".*\\.spec\\.ts$",
