@@ -1,4 +1,5 @@
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -61,6 +62,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (!user.defaultScheduleId) {
+    // Only block if user has locked team membership AND is not an admin/owner of any team
+    await checkLockedDefaultAvailabilityRestriction(
+      user.id,
+      prisma,
+      "Cannot edit default availability when team has locked default availability setting enabled"
+    );
+
     await prisma.user.update({
       where: {
         id: user.id,

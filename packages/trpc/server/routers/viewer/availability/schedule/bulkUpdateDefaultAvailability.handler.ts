@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 
 import { TRPCError } from "@trpc/server";
 
@@ -25,6 +25,15 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
       message: "Default schedule not set",
     });
   }
+
+  const user = ctx.user;
+
+  // Only block if user has locked team membership AND is not an admin/owner of any team
+  await checkLockedDefaultAvailabilityRestriction(
+    user.id,
+    prisma,
+    "Cannot edit default availability when team has locked default availability setting enabled"
+  );
 
   return await prisma.eventType.updateMany({
     where: {
