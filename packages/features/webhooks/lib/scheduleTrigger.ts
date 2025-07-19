@@ -271,22 +271,31 @@ export async function scheduleTrigger({
   subscriber,
   triggerEvent,
   isDryRun = false,
+  delayMinutes,
 }: {
   booking: { id: number; endTime: Date; startTime: Date };
   subscriberUrl: string;
   subscriber: { id: string; appId: string | null };
   triggerEvent: WebhookTriggerEvents;
   isDryRun?: boolean;
+  delayMinutes?: number;
 }) {
   if (isDryRun) return;
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
 
+    const startAfter =
+      triggerEvent === WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
+        ? new Date(Date.now() + (delayMinutes ?? 10) * 60 * 1000)
+        : triggerEvent === WebhookTriggerEvents.MEETING_ENDED
+        ? booking.endTime
+        : booking.startTime;
+
     await prisma.webhookScheduledTriggers.create({
       data: {
         payload,
         appId: subscriber.appId,
-        startAfter: triggerEvent === WebhookTriggerEvents.MEETING_ENDED ? booking.endTime : booking.startTime,
+        startAfter,
         subscriberUrl,
         webhook: {
           connect: {
