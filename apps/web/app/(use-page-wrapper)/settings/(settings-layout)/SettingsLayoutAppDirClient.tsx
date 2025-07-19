@@ -293,7 +293,36 @@ interface SettingsSidebarContainerProps {
   teamFeatures?: Record<number, TeamFeatures>;
 }
 
-const TeamListCollapsible = () => {
+const TeamRolesNavItem = ({
+  team,
+  teamFeatures,
+}: {
+  team: { id: number; parentId?: number | null };
+  teamFeatures?: Record<number, TeamFeatures>;
+}) => {
+  const { t } = useLocale();
+
+  // Always call the hook first (Rules of Hooks)
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: team.parentId || 0, // Use 0 as fallback when no parentId
+    feature: "pbac",
+  });
+
+  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
+  if (!team.parentId || !isPbacEnabled) return null;
+
+  return (
+    <VerticalTabItem
+      name={t("roles_and_permissions")}
+      href={`/settings/teams/${team.id}/roles`}
+      textClassNames="px-3 text-emphasis font-medium text-sm"
+      disableChevron
+    />
+  );
+};
+
+const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
@@ -402,6 +431,8 @@ const TeamListCollapsible = () => {
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
+                  {/* Show roles only for sub-teams with PBAC-enabled parent */}
+                  <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
@@ -588,7 +619,7 @@ const SettingsSidebarContainer = ({
                         </Skeleton>
                       </div>
                     </Link>
-                    <TeamListCollapsible />
+                    <TeamListCollapsible teamFeatures={teamFeatures} />
                     {(!orgBranding?.id || isOrgAdminOrOwner) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
