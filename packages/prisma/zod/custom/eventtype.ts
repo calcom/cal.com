@@ -30,6 +30,7 @@ export const createEventTypeInput = z.object({
   beforeEventBuffer: z.number().int().min(0).optional(),
   afterEventBuffer: z.number().int().min(0).optional(),
   scheduleId: z.number().int().optional(),
+  allowManagedEventReassignment: z.boolean().optional(),
   calVideoSettings: calVideoSettingsSchema
 })
   .partial({ hidden: true, locations: true })

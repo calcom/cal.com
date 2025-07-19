@@ -10,6 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -154,6 +155,15 @@ export const TeamEventTypeForm = ({
             )}
           </RadioArea.Group>
         </div>
+        {isManagedEventType && (
+          <div className="mb-4">
+            <CheckboxField
+              {...register("allowManagedEventReassignment")}
+              label={t("allow_managed_event_reassignment")}
+              description={t("allow_managed_event_reassignment_description")}
+            />
+          </div>
+        )}
       </div>
       {SubmitButton(isPending)}
     </Form>
