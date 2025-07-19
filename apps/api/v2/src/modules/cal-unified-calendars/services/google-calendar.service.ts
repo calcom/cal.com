@@ -10,7 +10,9 @@ import { JWT } from "googleapis-common";
 
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
+import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
+import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input.pipe";
 
 @Injectable()
 export class GoogleCalendarService {
@@ -50,6 +52,56 @@ export class GoogleCalendarService {
       return event.data as GoogleCalendarEventResponse;
     } catch (error) {
       throw new NotFoundException("Failed to retrieve meeting details");
+    }
+  }
+
+  async updateEventDetails(
+    eventUid: string,
+    updateData: UpdateUnifiedCalendarEventInput
+  ): Promise<GoogleCalendarEventResponse> {
+    const bookingReference =
+      await this.bookingReferencesRepository.getBookingReferencesIncludeSensitiveCredentials(eventUid);
+
+    if (!bookingReference) {
+      throw new NotFoundException("Booking reference not found");
+    }
+
+    const ownerUserEmail = bookingReference?.booking?.user?.email;
+
+    const calendar = await this.getAuthorizedCalendarInstance(
+      ownerUserEmail,
+      bookingReference.credential?.key,
+      bookingReference.delegationCredential
+    );
+
+    let existingEvent: GoogleCalendarEventResponse | null = null;
+    if (updateData.attendees !== undefined || updateData.hosts !== undefined) {
+      try {
+        const existingEventResponse = await calendar.events.get({
+          calendarId: bookingReference?.externalCalendarId ?? "primary",
+          eventId: bookingReference?.uid,
+        });
+        existingEvent = existingEventResponse.data as GoogleCalendarEventResponse;
+      } catch (error) {
+        this.logger.warn("Failed to fetch existing event for attendee preservation", { eventUid, error });
+      }
+    }
+
+    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData, existingEvent);
+
+    try {
+      const event = await calendar.events.patch({
+        calendarId: bookingReference?.externalCalendarId ?? "primary",
+        eventId: bookingReference?.uid,
+        requestBody: updatePayload,
+      });
+
+      if (!event.data) {
+        throw new NotFoundException("Failed to update meeting");
+      }
+      return event.data as GoogleCalendarEventResponse;
+    } catch (error) {
+      throw new NotFoundException("Failed to update meeting details");
     }
   }
 

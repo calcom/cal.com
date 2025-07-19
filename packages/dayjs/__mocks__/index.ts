@@ -1,15 +1,53 @@
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
+const mockDayjsInstance = {
+  format: jest.fn(() => "2024-01-01T00:00:00Z"),
+  toISOString: jest.fn(() => "2024-01-01T00:00:00Z"),
+  valueOf: jest.fn(() => 1704067200000),
+  toString: jest.fn(() => "2024-01-01T00:00:00Z"),
+  utc: jest.fn(function () {
+    return this;
+  }),
+  tz: jest.fn(function () {
+    return this;
+  }),
+  add: jest.fn(function () {
+    return this;
+  }),
+  subtract: jest.fn(function () {
+    return this;
+  }),
+  startOf: jest.fn(function () {
+    return this;
+  }),
+  endOf: jest.fn(function () {
+    return this;
+  }),
+  isBefore: jest.fn(() => false),
+  isAfter: jest.fn(() => false),
+  isSame: jest.fn(() => false),
+  isBetween: jest.fn(() => false),
+  isToday: jest.fn(() => false),
+  diff: jest.fn(() => 0),
+  clone: jest.fn(function () {
+    return this;
+  }),
+};
 
-import dayjs from "@calcom/dayjs";
+const mockDayjs: any = Object.assign(
+  jest.fn(() => mockDayjsInstance),
+  {
+    utc: jest.fn(() => mockDayjsInstance),
+    tz: Object.assign(
+      jest.fn(() => mockDayjsInstance),
+      {
+        setDefault: jest.fn(),
+      }
+    ),
+    extend: jest.fn(),
+    locale: jest.fn(),
+    isDayjs: jest.fn(() => true),
+  }
+);
 
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const mockDayjs = vi.fn((date) => dayjs(date));
-
-mockDayjs.utc = vi.fn((date) => dayjs.utc(date));
-mockDayjs.tz = vi.fn();
-mockDayjs.extend = vi.fn();
-
+export type Dayjs = any;
+export type ConfigType = any;
 export default mockDayjs;
