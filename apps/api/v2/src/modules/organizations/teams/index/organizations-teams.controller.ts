@@ -14,6 +14,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
 import {
@@ -56,7 +57,10 @@ import { Team } from "@calcom/prisma/client";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsController {
-  constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
+  constructor(
+    private organizationsTeamsService: OrganizationsTeamsService,
+    private membershipsRepository: MembershipsRepository
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "Get all teams" })
@@ -84,16 +88,33 @@ export class OrganizationsTeamsController {
     @GetUser() user: UserWithProfile
   ): Promise<OrgMeTeamsOutputResponseDto> {
     const { skip, take } = queryParams;
-    const teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
-      orgId,
-      user.id,
-      skip ?? 0,
-      take ?? 250
-    );
+
+    const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, orgId);
+
+    let teams;
+    if (isOrgAdmin) {
+      teams = await this.organizationsTeamsService.getPaginatedOrgTeams(orgId, skip ?? 0, take ?? 250);
+      teams = teams.map((team) => ({ ...team, role: "ADMIN", accepted: true, members: [] }));
+    } else {
+      teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
+        orgId,
+        user.id,
+        skip ?? 0,
+        take ?? 250
+      );
+    }
+
     return {
       status: SUCCESS_STATUS,
       data: teams.map((team) => {
-        const me = team.members.find((member) => member.userId === user.id);
+        if (isOrgAdmin && !team.members) {
+          return plainToClass(
+            OrgMeTeamOutputDto,
+            { ...team, role: "ADMIN", accepted: true },
+            { strategy: "excludeAll" }
+          );
+        }
+        const me = team.members?.find((member) => member.userId === user.id);
         return plainToClass(
           OrgMeTeamOutputDto,
           me ? { ...team, role: me.role, accepted: me.accepted } : team,

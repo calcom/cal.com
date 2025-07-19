@@ -500,7 +500,7 @@ async function getEventTypesToAddNewMembers(teamId: number) {
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
-    select: { createdByOAuthClientId: true },
+    select: { createdByOAuthClientId: true, parentId: true },
   });
   const isPlatformTeam = !!team?.createdByOAuthClientId;
 
@@ -510,7 +510,18 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
       select: { isPlatformManaged: true },
     });
 
-    if (!user?.isPlatformManaged) {
+    const isOrgAdmin = team.parentId
+      ? await prisma.membership.findFirst({
+          where: {
+            userId,
+            teamId: team.parentId,
+            accepted: true,
+            OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+          },
+        })
+      : null;
+
+    if (!user?.isPlatformManaged && !isOrgAdmin) {
       return;
     }
   }
@@ -544,15 +555,30 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
 
   const team = await prisma.team.findUnique({
     where: { id: teamId },
-    select: { createdByOAuthClientId: true },
+    select: { createdByOAuthClientId: true, parentId: true },
   });
   const isPlatformTeam = !!team?.createdByOAuthClientId;
 
   let filteredUserIds = userIds;
   if (isPlatformTeam) {
+    const orgAdminUserIds = team.parentId
+      ? await prisma.membership
+          .findMany({
+            where: {
+              teamId: team.parentId,
+              accepted: true,
+              OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+            },
+            select: { userId: true },
+          })
+          .then((memberships) => memberships.map((m) => m.userId))
+      : [];
+
+    filteredUserIds = userIds.filter((id) => !orgAdminUserIds.includes(id));
+
     const managedUsers = await prisma.user.findMany({
       where: {
-        id: { in: userIds },
+        id: { in: filteredUserIds },
         isPlatformManaged: true,
       },
       select: { id: true },
