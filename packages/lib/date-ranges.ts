@@ -232,7 +232,26 @@ export function buildDateRanges({
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
-        const itemDateAsUtc = new Date(item.date.toISOString());
+        let itemDateAsUtc: Date;
+        if (typeof item.date === "string") {
+          itemDateAsUtc = new Date(item.date);
+        } else if (item.date instanceof Date) {
+          itemDateAsUtc = new Date(item.date.toISOString());
+        } else if (
+          typeof item.date === "object" &&
+          "toISOString" in item.date &&
+          typeof item.date.toISOString === "function"
+        ) {
+          itemDateAsUtc = new Date(item.date.toISOString());
+        } else if (
+          typeof item.date === "object" &&
+          "toDate" in item.date &&
+          typeof item.date.toDate === "function"
+        ) {
+          itemDateAsUtc = new Date(item.date.toDate());
+        } else {
+          itemDateAsUtc = new Date(item.date as any);
+        }
         // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
         // refactor this to actually work with correct dates.
         // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
