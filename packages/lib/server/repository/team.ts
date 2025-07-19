@@ -7,6 +7,14 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import type { TeamSelect, TeamFilter } from "../data/team";
+import {
+  teamBasicSelect,
+  teamWithMembersSelect,
+  teamWithOrganizationSettingsSelect,
+  teamForUserMembershipSelect,
+} from "../data/team";
+import { mapToPrismaSelect, mapToPrismaWhere } from "./prisma-mapper";
 import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -154,27 +162,15 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
-const teamSelect = {
-  id: true,
-  name: true,
-  slug: true,
-  logoUrl: true,
-  parentId: true,
-  metadata: true,
-  isOrganization: true,
-  organizationSettings: true,
-  isPlatform: true,
-} satisfies Prisma.TeamSelect;
-
 export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findById({ id }: { id: number }) {
+  async findById({ id, select = teamBasicSelect }: { id: number; select?: TeamSelect }) {
     const team = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
-      select: teamSelect,
+      select: mapToPrismaSelect(select),
     });
     if (!team) {
       return null;
@@ -182,54 +178,53 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  async findAllByParentId({
-    parentId,
-    select = teamSelect,
-  }: {
-    parentId: number;
-    select?: Prisma.TeamSelect;
-  }) {
+  async findAllByParentId({ parentId, select = teamBasicSelect }: { parentId: number; select?: TeamSelect }) {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
       },
-      select,
+      select: mapToPrismaSelect(select),
     });
   }
 
   async findByIdAndParentId({
     id,
     parentId,
-    select = teamSelect,
+    select = teamBasicSelect,
   }: {
     id: number;
     parentId: number;
-    select?: Prisma.TeamSelect;
+    select?: TeamSelect;
   }) {
     return await this.prismaClient.team.findFirst({
       where: {
         id,
         parentId,
       },
-      select,
+      select: mapToPrismaSelect(select),
     });
   }
 
   async findFirstBySlugAndParentSlug({
     slug,
     parentSlug,
-    select = teamSelect,
+    select = teamBasicSelect,
   }: {
     slug: string;
     parentSlug: string | null;
-    select?: Prisma.TeamSelect;
+    select?: TeamSelect;
   }) {
+    const filter: TeamFilter = { slug, parentSlug };
     return await this.prismaClient.team.findFirst({
-      where: {
-        slug,
-        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
-      },
-      select,
+      where: mapToPrismaWhere(filter),
+      select: mapToPrismaSelect(select),
+    });
+  }
+
+  async findTeam(filter: TeamFilter, select: TeamSelect) {
+    return await this.prismaClient.team.findFirst({
+      where: mapToPrismaWhere(filter),
+      select: mapToPrismaSelect(select),
     });
   }
 
@@ -261,24 +256,22 @@ export class TeamRepository {
     return deletedTeam;
   }
 
-  async findTeamWithMembers(teamId: number) {
+  async findTeamWithMembers(teamId: number, select: TeamSelect = teamWithMembersSelect) {
     return await this.prismaClient.team.findUnique({
       where: { id: teamId },
-      select: {
-        members: {
-          select: {
-            accepted: true,
-          },
-        },
-        id: true,
-        metadata: true,
-        parentId: true,
-        isOrganization: true,
-      },
+      select: mapToPrismaSelect(select),
     });
   }
 
-  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+  async findTeamsByUserId({
+    userId,
+    includeOrgs,
+    select = teamForUserMembershipSelect,
+  }: {
+    userId: number;
+    includeOrgs?: boolean;
+    select?: TeamSelect;
+  }) {
     const memberships = await this.prismaClient.membership.findMany({
       where: {
         // Show all the teams this user belongs to regardless of the team being part of the user's org or not
@@ -289,17 +282,7 @@ export class TeamRepository {
       },
       include: {
         team: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            logoUrl: true,
-            isOrganization: true,
-            metadata: true,
-            inviteTokens: true,
-            parent: true,
-            parentId: true,
-          },
+          select: mapToPrismaSelect(select),
         },
       },
       orderBy: { role: "desc" },
@@ -316,21 +299,17 @@ export class TeamRepository {
         ...team,
         metadata: teamMetadataSchema.parse(team.metadata),
         /** To prevent breaking we only return non-email attached token here, if we have one */
-        inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
+        inviteToken: inviteTokens?.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
       }));
   }
 
-  async findTeamWithOrganizationSettings(teamId: number) {
+  async findTeamWithOrganizationSettings(
+    teamId: number,
+    select: TeamSelect = teamWithOrganizationSettingsSelect
+  ) {
     return await this.prismaClient.team.findUnique({
       where: { id: teamId },
-      select: {
-        parent: {
-          select: {
-            isOrganization: true,
-            organizationSettings: true,
-          },
-        },
-      },
+      select: mapToPrismaSelect(select),
     });
   }
 }
