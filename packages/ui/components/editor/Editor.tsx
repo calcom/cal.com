@@ -19,6 +19,7 @@ import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
 import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
+import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 import type { TextEditorProps } from "./types";
@@ -104,6 +105,7 @@ export const Editor = (props: TextEditorProps) => {
                   : TRANSFORMERS
               }
             />
+            <PlainTextPlugin setText={props.setText} plainText={plainText} />
           </div>
         </div>
       </LexicalComposer>
