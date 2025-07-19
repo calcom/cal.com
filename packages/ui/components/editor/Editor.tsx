@@ -19,10 +19,7 @@ import ExampleTheme from "./ExampleTheme";
 import { VariableNode } from "./nodes/VariableNode";
 import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
-import EditablePlugin from "./plugins/EditablePlugin";
-import PlainTextPlugin from "./plugins/PlainTextPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
-import CustomEnterKeyPlugin from "./plugins/customEnterKeyPlugin";
 import "./stylesEditor.css";
 import type { TextEditorProps } from "./types";
 
@@ -96,7 +93,6 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
-            <CustomEnterKeyPlugin />
             {props?.variables ? <AddVariablesPlugin variables={props.variables} /> : null}
             <HistoryPlugin />
             <MarkdownShortcutPlugin
@@ -110,8 +106,6 @@ export const Editor = (props: TextEditorProps) => {
             />
           </div>
         </div>
-        <EditablePlugin editable={editable} />
-        <PlainTextPlugin setText={props.setText} plainText={plainText} />
       </LexicalComposer>
     </div>
   );

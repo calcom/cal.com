@@ -364,39 +364,39 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   }, [props.updateTemplate]);
 
   useEffect(() => {
-    if (props.setFirstRender) {
-      props.setFirstRender(false);
-      editor.update(() => {
-        const parser = new DOMParser();
-        const dom = parser.parseFromString(props.getText(), "text/html");
+    if (!props.setFirstRender) return;
 
-        const nodes = $generateNodesFromDOM(editor, dom);
+    props.setFirstRender(false);
+    editor.update(() => {
+      const parser = new DOMParser();
+      const dom = parser.parseFromString(props.getText(), "text/html");
 
-        $getRoot().select();
-        try {
-          $insertNodes(nodes);
-        } catch (e: unknown) {
-          // resolves: "topLevelElement is root node at RangeSelection.insertNodes"
-          // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
-          const paragraphNode = $createParagraphNode();
-          nodes.forEach((n) => paragraphNode.append(n));
-          $getRoot().append(paragraphNode);
-        }
+      const nodes = $generateNodesFromDOM(editor, dom);
 
-        editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-          editorState.read(() => {
-            const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-            props.setText(
-              textInHtml.replace(
-                /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
-                "<p class='editor-paragraph'></p>"
-              )
-            );
-          });
-          if (!prevEditorState._selection) editor.blur();
+      const root = $getRoot();
+      const currentNodes = root.getChildren();
+
+      for (const node of currentNodes) {
+        node.remove();
+      }
+
+      root.append(...nodes);
+
+      nodes[nodes.length - 1]?.select();
+
+      editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+        editorState.read(() => {
+          const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+          props.setText(
+            textInHtml.replace(
+              /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
+              "<p class='editor-paragraph'></p>"
+            )
+          );
         });
+        if (!prevEditorState._selection) editor.blur();
       });
-    }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
