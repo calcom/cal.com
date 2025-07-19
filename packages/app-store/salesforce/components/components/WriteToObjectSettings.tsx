@@ -71,10 +71,15 @@ const WriteToObjectSettings = ({
     checkboxFieldValueOptions[0]
   );
   const [whenToWriteSelectedOption, setWhenToWriteSelectedOption] = useState(whenToWriteToRecordOptions[0]);
-  const [editingRows, setEditingRows] = useState<Record<string, boolean>>({});
-  const [editingData, setEditingData] = useState<Record<string, z.infer<typeof writeToRecordEntrySchema>>>(
-    {}
-  );
+  const [editingState, setEditingState] = useState<
+    Record<
+      string,
+      {
+        isEditing: boolean;
+        data?: z.infer<typeof writeToRecordEntrySchema>;
+      }
+    >
+  >({});
   const [newOnWriteToRecordEntry, setNewOnWriteToRecordEntry] = useState<
     z.infer<typeof writeToRecordEntrySchema>
   >({
@@ -85,34 +90,37 @@ const WriteToObjectSettings = ({
   });
 
   const startEditing = (key: string) => {
-    Object.keys(editingRows).forEach((rowKey) => {
-      if (editingRows[rowKey] && rowKey !== key) {
-        cancelEditing(rowKey);
+    const newEditingState = Object.keys(editingState).reduce((acc, rowKey) => {
+      if (editingState[rowKey].isEditing && rowKey !== key) {
+        acc[rowKey] = { isEditing: false };
+      } else if (rowKey !== key) {
+        acc[rowKey] = editingState[rowKey];
       }
-    });
-    setEditingRows((prev) => ({ ...prev, [key]: true }));
-    setEditingData((prev) => ({
-      ...prev,
-      [key]: {
+      return acc;
+    }, {} as typeof editingState);
+
+    newEditingState[key] = {
+      isEditing: true,
+      data: {
         field: key,
         fieldType: writeToObjectData[key].fieldType,
         value: writeToObjectData[key].value,
         whenToWrite: writeToObjectData[key].whenToWrite,
       },
-    }));
+    };
+
+    setEditingState(newEditingState);
   };
 
   const cancelEditing = (key: string) => {
-    setEditingRows((prev) => ({ ...prev, [key]: false }));
-    setEditingData((prev) => {
-      const newData = { ...prev };
-      delete newData[key];
-      return newData;
-    });
+    setEditingState((prev) => ({
+      ...prev,
+      [key]: { isEditing: false },
+    }));
   };
 
   const saveEditing = (key: string) => {
-    const editData = editingData[key];
+    const editData = editingState[key]?.data;
     if (!editData) return;
 
     if (!editData.field.trim()) {
@@ -163,164 +171,171 @@ const WriteToObjectSettings = ({
           </div>
           <Section.SubSectionNested>
             {Object.keys(writeToObjectData).map((key) => {
-              const isEditing = editingRows[key];
-              const editData = editingData[key];
+              const isEditing = editingState[key]?.isEditing;
+              const editData = editingState[key]?.data;
 
               return (
                 <div className="flex items-center gap-2" key={key}>
                   <div className="flex-1">
-                    {isEditing ? (
+                    <InputField
+                      value={isEditing ? editData?.field || key : key}
+                      readOnly={!isEditing}
+                      onChange={
+                        isEditing && editData
+                          ? (e) =>
+                              setEditingState((prev) => ({
+                                ...prev,
+                                [key]: {
+                                  isEditing: true,
+                                  data: { ...editData, field: e.target.value },
+                                },
+                              }))
+                          : undefined
+                      }
+                      size="sm"
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Select
+                      size="sm"
+                      className="w-full"
+                      options={fieldTypeOptions}
+                      value={fieldTypeOptions.find(
+                        (option) =>
+                          option.value ===
+                          (isEditing ? editData?.fieldType : writeToObjectData[key].fieldType)
+                      )}
+                      isDisabled={!isEditing}
+                      onChange={
+                        isEditing && editData
+                          ? (e) => {
+                              if (e) {
+                                setEditingState((prev) => ({
+                                  ...prev,
+                                  [key]: {
+                                    isEditing: true,
+                                    data: {
+                                      ...editData,
+                                      fieldType: e.value,
+                                      ...(e.value === SalesforceFieldType.DATE && {
+                                        value: dateFieldValueOptions[0].value,
+                                      }),
+                                      ...(e.value === SalesforceFieldType.CHECKBOX && {
+                                        value: checkboxFieldValueOptions[0].value,
+                                      }),
+                                    },
+                                  },
+                                }));
+                              }
+                            }
+                          : undefined
+                      }
+                    />
+                  </div>
+                  <div className="flex-1">
+                    {(isEditing ? editData?.fieldType : writeToObjectData[key].fieldType) ===
+                    SalesforceFieldType.DATE ? (
+                      <Select
+                        size="sm"
+                        className="w-full"
+                        options={dateFieldValueOptions}
+                        value={dateFieldValueOptions.find(
+                          (option) =>
+                            option.value === (isEditing ? editData?.value : writeToObjectData[key].value)
+                        )}
+                        isDisabled={!isEditing}
+                        onChange={
+                          isEditing && editData
+                            ? (e) => {
+                                if (e) {
+                                  setEditingState((prev) => ({
+                                    ...prev,
+                                    [key]: {
+                                      isEditing: true,
+                                      data: { ...editData, value: e.value },
+                                    },
+                                  }));
+                                }
+                              }
+                            : undefined
+                        }
+                      />
+                    ) : (isEditing ? editData?.fieldType : writeToObjectData[key].fieldType) ===
+                      SalesforceFieldType.CHECKBOX ? (
+                      <Select
+                        size="sm"
+                        className="w-full"
+                        options={checkboxFieldValueOptions}
+                        value={checkboxFieldValueOptions.find(
+                          (option) =>
+                            option.value === (isEditing ? editData?.value : writeToObjectData[key].value)
+                        )}
+                        isDisabled={!isEditing}
+                        onChange={
+                          isEditing && editData
+                            ? (e) => {
+                                if (e) {
+                                  setEditingState((prev) => ({
+                                    ...prev,
+                                    [key]: {
+                                      isEditing: true,
+                                      data: { ...editData, value: e.value },
+                                    },
+                                  }));
+                                }
+                              }
+                            : undefined
+                        }
+                      />
+                    ) : (
                       <InputField
-                        value={editData?.field || key}
-                        onChange={(e) =>
-                          setEditingData((prev) => ({
-                            ...prev,
-                            [key]: { ...editData, field: e.target.value },
-                          }))
+                        value={(isEditing ? editData?.value : writeToObjectData[key].value) as string}
+                        readOnly={!isEditing}
+                        onChange={
+                          isEditing && editData
+                            ? (e) =>
+                                setEditingState((prev) => ({
+                                  ...prev,
+                                  [key]: {
+                                    isEditing: true,
+                                    data: { ...editData, value: e.target.value },
+                                  },
+                                }))
+                            : undefined
                         }
                         size="sm"
                         className="w-full"
                       />
-                    ) : (
-                      <InputField value={key} readOnly size="sm" className="w-full" />
                     )}
                   </div>
                   <div className="flex-1">
-                    {isEditing ? (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        options={fieldTypeOptions}
-                        value={fieldTypeOptions.find((option) => option.value === editData?.fieldType)}
-                        onChange={(e) => {
-                          if (e) {
-                            setEditingData((prev) => ({
-                              ...prev,
-                              [key]: {
-                                ...editData,
-                                fieldType: e.value,
-                                ...(e.value === SalesforceFieldType.DATE && {
-                                  value: dateFieldValueOptions[0].value,
-                                }),
-                                ...(e.value === SalesforceFieldType.CHECKBOX && {
-                                  value: checkboxFieldValueOptions[0].value,
-                                }),
-                              },
-                            }));
-                          }
-                        }}
-                      />
-                    ) : (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        value={fieldTypeOptions.find(
-                          (option) => option.value === writeToObjectData[key].fieldType
-                        )}
-                        isDisabled={true}
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    {isEditing ? (
-                      editData?.fieldType === SalesforceFieldType.DATE ? (
-                        <Select
-                          size="sm"
-                          className="w-full"
-                          options={dateFieldValueOptions}
-                          value={dateFieldValueOptions.find((option) => option.value === editData.value)}
-                          onChange={(e) => {
-                            if (e) {
-                              setEditingData((prev) => ({
-                                ...prev,
-                                [key]: { ...editData, value: e.value },
-                              }));
+                    <Select
+                      size="sm"
+                      className="w-full"
+                      options={whenToWriteToRecordOptions}
+                      value={whenToWriteToRecordOptions.find(
+                        (option) =>
+                          option.value ===
+                          (isEditing ? editData?.whenToWrite : writeToObjectData[key].whenToWrite)
+                      )}
+                      isDisabled={!isEditing}
+                      onChange={
+                        isEditing && editData
+                          ? (e) => {
+                              if (e) {
+                                setEditingState((prev) => ({
+                                  ...prev,
+                                  [key]: {
+                                    isEditing: true,
+                                    data: { ...editData, whenToWrite: e.value },
+                                  },
+                                }));
+                              }
                             }
-                          }}
-                        />
-                      ) : editData?.fieldType === SalesforceFieldType.CHECKBOX ? (
-                        <Select
-                          size="sm"
-                          className="w-full"
-                          options={checkboxFieldValueOptions}
-                          value={checkboxFieldValueOptions.find((option) => option.value === editData.value)}
-                          onChange={(e) => {
-                            if (e) {
-                              setEditingData((prev) => ({
-                                ...prev,
-                                [key]: { ...editData, value: e.value },
-                              }));
-                            }
-                          }}
-                        />
-                      ) : (
-                        <InputField
-                          value={(editData?.value as string) || ""}
-                          onChange={(e) =>
-                            setEditingData((prev) => ({
-                              ...prev,
-                              [key]: { ...editData, value: e.target.value },
-                            }))
-                          }
-                          size="sm"
-                          className="w-full"
-                        />
-                      )
-                    ) : writeToObjectData[key].fieldType === SalesforceFieldType.DATE ? (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        value={dateFieldValueOptions.find(
-                          (option) => option.value === writeToObjectData[key].value
-                        )}
-                        isDisabled={true}
-                      />
-                    ) : writeToObjectData[key].fieldType === SalesforceFieldType.CHECKBOX ? (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        value={checkboxFieldValueOptions.find(
-                          (option) => option.value === writeToObjectData[key].value
-                        )}
-                        isDisabled={true}
-                      />
-                    ) : (
-                      <InputField
-                        value={writeToObjectData[key].value as string}
-                        readOnly
-                        size="sm"
-                        className="w-full"
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    {isEditing ? (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        options={whenToWriteToRecordOptions}
-                        value={whenToWriteToRecordOptions.find(
-                          (option) => option.value === editData?.whenToWrite
-                        )}
-                        onChange={(e) => {
-                          if (e) {
-                            setEditingData((prev) => ({
-                              ...prev,
-                              [key]: { ...editData, whenToWrite: e.value },
-                            }));
-                          }
-                        }}
-                      />
-                    ) : (
-                      <Select
-                        size="sm"
-                        className="w-full"
-                        value={whenToWriteToRecordOptions.find(
-                          (option) => option.value === writeToObjectData[key].whenToWrite
-                        )}
-                        isDisabled={true}
-                      />
-                    )}
+                          : undefined
+                      }
+                    />
                   </div>
                   <div className="flex w-20 justify-center gap-1">
                     {isEditing ? (
