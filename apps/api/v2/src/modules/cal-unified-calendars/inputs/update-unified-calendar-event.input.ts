@@ -57,13 +57,6 @@ export class UpdateCalendarEventAttendee {
     description: "Action to perform on this attendee. Use 'delete' to remove the attendee from the event.",
   })
   action?: "delete";
-
-  @IsOptional()
-  @ApiPropertyOptional({
-    type: Boolean,
-    description: "Whether the attendee is an organizer",
-  })
-  organizer?: boolean;
 }
 
 export class UpdateDateTimeWithZone {

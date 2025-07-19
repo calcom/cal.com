@@ -8521,6 +8521,112 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Cal Unified Calendars"
+        ]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
               "enum": [
                 "google"
               ],
@@ -8546,53 +8652,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Cal Unified Calendars"]
-      },
-      "patch": {
-        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
-        "summary": "Update meeting details in calendar",
-        "description": "Updates event information in the specified calendar provider",
-        "parameters": [
-          {
-            "name": "calendar",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "enum": ["google"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "eventUid",
-            "required": true,
-            "in": "path",
-            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -8615,64 +8674,9 @@
             }
           }
         },
-        "tags": ["Cal Unified Calendars"]
-      },
-      "patch": {
-        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
-        "summary": "Update meeting details in calendar",
-        "description": "Updates event information in the specified calendar provider",
-        "parameters": [
-          {
-            "name": "calendar",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "enum": ["google"],
-              "type": "string"
-            }
-          },
-          {
-            "name": "eventUid",
-            "required": true,
-            "in": "path",
-            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Cal Unified Calendars"]
+        "tags": [
+          "Cal Unified Calendars"
+        ]
       }
     },
     "/v2/calendars/ics-feed/save": {
@@ -28464,7 +28468,12 @@
       "CalendarEventResponseStatus": {
         "type": "string",
         "description": "Response status of the host (only field that can be updated)",
-        "enum": ["accepted", "pending", "declined", "needsAction"]
+        "enum": [
+          "accepted",
+          "pending",
+          "declined",
+          "needsAction"
+        ]
       },
       "CalendarEventAttendee": {
         "type": "object",
@@ -28644,10 +28653,7 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
+            "enum": ["success", "error"]
           },
           "data": {
             "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
@@ -28837,7 +28843,10 @@
             "$ref": "#/components/schemas/CreateRoutingFormResponseOutputData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateCalendarEventAttendee": {
         "type": "object",
@@ -28856,12 +28865,10 @@
           },
           "action": {
             "type": "string",
-            "enum": ["delete"],
+            "enum": [
+              "delete"
+            ],
             "description": "Action to perform on this attendee. Use 'delete' to remove the attendee from the event."
-          },
-          "organizer": {
-            "type": "boolean",
-            "description": "Whether the attendee is an organizer"
           }
         }
       },
