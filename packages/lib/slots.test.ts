@@ -94,13 +94,13 @@ describe("Tests the slot logic", () => {
     const dateRanges = [
       // 11:00-11:20,11:20-11:40,11:40-12:00
       {
-        start: nextDay.hour(11),
-        end: nextDay.hour(12),
+        start: nextDay.hour(11).toDate(),
+        end: nextDay.hour(12).toDate(),
       },
       // 14:00-14:20,14:20-14:40,14:40-15:00
       {
-        start: nextDay.hour(14),
-        end: nextDay.hour(15),
+        start: nextDay.hour(14).toDate(),
+        end: nextDay.hour(15).toDate(),
       },
     ];
     const result = getSlots({
@@ -120,13 +120,13 @@ describe("Tests the slot logic", () => {
     const dateRanges = [
       // 11:00-11:20,11:20-11:40,11:40-12:00
       {
-        start: nextDay.hour(11),
-        end: nextDay.hour(12),
+        start: nextDay.hour(11).toDate(),
+        end: nextDay.hour(12).toDate(),
       },
       // 12:00-12:20,12:20-12:40
       {
-        start: nextDay.hour(11).minute(20),
-        end: nextDay.hour(12).minute(40),
+        start: nextDay.hour(11).minute(20).toDate(),
+        end: nextDay.hour(12).minute(40).toDate(),
       },
     ];
     const result = getSlots({
@@ -148,13 +148,13 @@ describe("Tests the slot logic", () => {
     const dateRanges = [
       // 11:00-13:00
       {
-        start: nextDay.hour(11),
-        end: nextDay.hour(13),
+        start: nextDay.hour(11).toDate(),
+        end: nextDay.hour(13).toDate(),
       },
       // 11:15-13:00
       {
-        start: nextDay.hour(11).minute(15),
-        end: nextDay.hour(13),
+        start: nextDay.hour(11).minute(15).toDate(),
+        end: nextDay.hour(13).toDate(),
       },
     ];
     const result = getSlots({
@@ -174,13 +174,13 @@ describe("Tests the slot logic", () => {
     const dateRangesInverseOrder = [
       // 11:15-13:00
       {
-        start: nextDay.hour(11).minute(15),
-        end: nextDay.hour(13),
+        start: nextDay.hour(11).minute(15).toDate(),
+        end: nextDay.hour(13).toDate(),
       },
       // 11:00-13:00
       {
-        start: nextDay.hour(11),
-        end: nextDay.hour(13),
+        start: nextDay.hour(11).toDate(),
+        end: nextDay.hour(13).toDate(),
       },
     ];
 
@@ -202,23 +202,23 @@ describe("Tests the slot logic", () => {
     const dateRanges = [
       // 11:30-14:00
       {
-        start: inviteeDate.hour(11).minute(30),
-        end: inviteeDate.hour(14),
+        start: inviteeDate.hour(11).minute(30).toDate(),
+        end: inviteeDate.hour(14).toDate(),
       },
       // 9:15-13:00
       {
-        start: inviteeDate.hour(9).minute(15),
-        end: inviteeDate.hour(11),
+        start: inviteeDate.hour(9).minute(15).toDate(),
+        end: inviteeDate.hour(11).toDate(),
       },
       // 11:30-14:00
       {
-        start: inviteeDate.add(1, "day").hour(11).minute(30),
-        end: inviteeDate.add(1, "day").hour(14),
+        start: inviteeDate.add(1, "day").hour(11).minute(30).toDate(),
+        end: inviteeDate.add(1, "day").hour(14).toDate(),
       },
       // 11:15-13:00
       {
-        start: inviteeDate.add(1, "day").hour(9).minute(15),
-        end: inviteeDate.add(1, "day").hour(11),
+        start: inviteeDate.add(1, "day").hour(9).minute(15).toDate(),
+        end: inviteeDate.add(1, "day").hour(11).toDate(),
       },
     ];
 
@@ -242,7 +242,12 @@ describe("Tests the slot logic", () => {
       inviteeDate: dayjs().add(1, "day"),
       frequency: 20,
       minimumBookingNotice: 0,
-      dateRanges: [{ start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") }],
+      dateRanges: [
+        {
+          start: dayjs("2021-06-21T00:00:00.000Z").toDate(),
+          end: dayjs("2021-06-21T23:45:00.000Z").toDate(),
+        },
+      ],
       eventLength: 20,
       offsetStart: 0,
     });
@@ -257,8 +262,14 @@ describe("Tests the slot logic", () => {
       eventLength: 15,
       offsetStart: 0,
       dateRanges: [
-        { start: dayjs("2023-07-13T07:00:00.000Z"), end: dayjs("2023-07-13T15:00:00.000Z") },
-        { start: dayjs("2023-07-13T18:30:00.000Z"), end: dayjs("2023-07-13T20:59:59.000Z") },
+        {
+          start: dayjs("2023-07-13T07:00:00.000Z").toDate(),
+          end: dayjs("2023-07-13T15:00:00.000Z").toDate(),
+        },
+        {
+          start: dayjs("2023-07-13T18:30:00.000Z").toDate(),
+          end: dayjs("2023-07-13T20:59:59.000Z").toDate(),
+        },
       ],
       minimumBookingNotice: 120,
       frequency: 15,
@@ -275,8 +286,8 @@ describe("Tests the slot logic", () => {
       eventLength: 60,
       dateRanges: [
         {
-          start: dayjs.tz("2023-07-13T07:30:00.000", "Asia/Kolkata"),
-          end: dayjs.tz("2023-07-13T09:30:00.000", "Asia/Kolkata"),
+          start: dayjs.tz("2023-07-13T07:30:00.000", "Asia/Kolkata").toDate(),
+          end: dayjs.tz("2023-07-13T09:30:00.000", "Asia/Kolkata").toDate(),
         },
       ],
     });
@@ -294,13 +305,13 @@ describe("Tests the slot logic", () => {
       dateRanges: [
         // fits 1 slot
         {
-          start: dayjs.tz("2023-07-13T07:00:00.000", "Europe/London"),
-          end: dayjs.tz("2023-07-13T07:05:00.000", "Europe/London"),
+          start: dayjs.tz("2023-07-13T07:00:00.000", "Europe/London").toDate(),
+          end: dayjs.tz("2023-07-13T07:05:00.000", "Europe/London").toDate(),
         },
         // fits 4 slots
         {
-          start: dayjs.tz("2023-07-13T07:10:00.000", "Europe/London"),
-          end: dayjs.tz("2023-07-13T07:30:00.000", "Europe/London"),
+          start: dayjs.tz("2023-07-13T07:10:00.000", "Europe/London").toDate(),
+          end: dayjs.tz("2023-07-13T07:30:00.000", "Europe/London").toDate(),
         },
       ],
     });
@@ -316,8 +327,8 @@ describe("Tests the slot logic", () => {
       eventLength: 8,
       dateRanges: [
         {
-          start: dayjs.utc("2023-07-13T07:22:00.000"),
-          end: dayjs.utc("2023-07-13T08:00:00.000"),
+          start: dayjs.utc("2023-07-13T07:22:00.000").toDate(),
+          end: dayjs.utc("2023-07-13T08:00:00.000").toDate(),
         },
       ],
     });
@@ -345,7 +356,12 @@ describe("Tests the slot logic with custom env variable", () => {
         minimumBookingNotice: 0,
         eventLength: 10,
         offsetStart: 0,
-        dateRanges: [{ start: dayjs("2023-07-13T00:10:00.000Z"), end: dayjs("2023-07-13T02:00:00.000Z") }],
+        dateRanges: [
+          {
+            start: dayjs("2023-07-13T00:10:00.000Z").toDate(),
+            end: dayjs("2023-07-13T02:00:00.000Z").toDate(),
+          },
+        ],
       })
     ).toHaveLength(11);
   });
@@ -366,11 +382,12 @@ describe("Tests the slots function performance", () => {
           if (dateRanges.length >= 2000) break;
 
           dateRanges.push({
-            start: currentDay.hour(hour).minute(minute),
+            start: currentDay.hour(hour).minute(minute).toDate(),
             end: currentDay
               .hour(hour)
               .minute(minute + 4)
-              .second(59),
+              .second(59)
+              .toDate(),
           });
         }
         if (dateRanges.length >= 2000) break;

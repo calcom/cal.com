@@ -10,23 +10,23 @@ import { IntervalTree, ContainmentSearchAlgorithm, createIntervalNodes } from "@
 export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] {
   if (dateRanges.length <= 1) return dateRanges;
 
-  const sortedRanges = [...dateRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const sortedRanges = [...dateRanges].sort((a, b) => a.start.getTime() - b.start.getTime());
   const intervalNodes = createIntervalNodes(
     sortedRanges,
-    (range) => range.start.valueOf(),
-    (range) => range.end.valueOf()
+    (range) => range.start.getTime(),
+    (range) => range.end.getTime()
   );
   const intervalTree = new IntervalTree(intervalNodes);
   const searchAlgorithm = new ContainmentSearchAlgorithm(intervalTree);
 
   return sortedRanges.filter((range, index) => {
-    if (range.end.valueOf() < range.start.valueOf()) {
+    if (range.end.getTime() < range.start.getTime()) {
       return true;
     }
 
     const containingIntervals = searchAlgorithm.findContainingIntervals(
-      range.start.valueOf(),
-      range.end.valueOf(),
+      range.start.getTime(),
+      range.end.getTime(),
       index
     );
 
@@ -35,8 +35,8 @@ export function filterRedundantDateRanges(dateRanges: DateRange[]): DateRange[] 
       const otherIndex = containingNode.index;
 
       if (
-        otherRange.start.valueOf() === range.start.valueOf() &&
-        otherRange.end.valueOf() === range.end.valueOf()
+        otherRange.start.getTime() === range.start.getTime() &&
+        otherRange.end.getTime() === range.end.getTime()
       ) {
         return otherIndex > index; // Keep current range only if other range has higher index
       }
