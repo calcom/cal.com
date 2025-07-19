@@ -10,6 +10,59 @@ import { GoogleCalendarEventInputPipe } from "./google-calendar-event-input.pipe
 
 describe("GoogleCalendarEventInputPipe", () => {
   let pipe: GoogleCalendarEventInputPipe;
+  let sharedGoogleEvent: GoogleCalendarEventResponse;
+
+  beforeAll(() => {
+    sharedGoogleEvent = {
+      kind: "calendar#event",
+      etag: "test-etag",
+      id: "test-event-id",
+      status: "confirmed",
+      htmlLink: "https://calendar.google.com/event",
+      created: "2024-01-01T00:00:00Z",
+      updated: "2024-01-01T00:00:00Z",
+      summary: "Test Meeting",
+      description: "Test description",
+      start: {
+        dateTime: "2024-01-15T10:00:00Z",
+        timeZone: "America/New_York",
+      },
+      end: {
+        dateTime: "2024-01-15T11:00:00Z",
+        timeZone: "America/New_York",
+      },
+      iCalUID: "test-ical-uid",
+      sequence: 0,
+      attendees: [
+        {
+          email: "attendee1@example.com",
+          displayName: "Attendee One",
+          responseStatus: "accepted",
+          organizer: false,
+        },
+        {
+          email: "attendee2@example.com",
+          displayName: "Attendee Two",
+          responseStatus: "needsAction",
+          organizer: false,
+        },
+        {
+          email: "organizer@example.com",
+          displayName: "Organizer",
+          responseStatus: "accepted",
+          organizer: true,
+        },
+      ],
+      creator: {
+        email: "organizer@example.com",
+        displayName: "Organizer",
+      },
+      organizer: {
+        email: "organizer@example.com",
+        displayName: "Organizer",
+      },
+    };
+  });
 
   beforeEach(() => {
     pipe = new GoogleCalendarEventInputPipe();
@@ -221,46 +274,18 @@ describe("GoogleCalendarEventInputPipe", () => {
 
   describe("preserveExistingAttendees", () => {
     it("should preserve existing attendees", () => {
-      const existingEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        attendees: [
-          {
-            email: "attendee1@example.com",
-            displayName: "Attendee 1",
-            responseStatus: "accepted",
-            optional: false,
-            organizer: false,
-          },
-          {
-            email: "organizer@example.com",
-            displayName: "Organizer",
-            responseStatus: "accepted",
-            optional: false,
-            organizer: true,
-          },
-        ],
-      };
-
-      const result = pipe["preserveExistingAttendees"](existingEvent);
+      const result = pipe["preserveExistingAttendees"](sharedGoogleEvent);
 
       expect(result).toEqual([
         {
           email: "attendee1@example.com",
-          displayName: "Attendee 1",
+          displayName: "Attendee One",
           responseStatus: "accepted",
+        },
+        {
+          email: "attendee2@example.com",
+          displayName: "Attendee Two",
+          responseStatus: "needsAction",
         },
         {
           email: "organizer@example.com",
@@ -276,24 +301,9 @@ describe("GoogleCalendarEventInputPipe", () => {
     });
 
     it("should return empty array when no attendees", () => {
-      const existingEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-      };
+      const eventWithoutAttendees = { ...sharedGoogleEvent, attendees: undefined };
 
-      const result = pipe["preserveExistingAttendees"](existingEvent);
+      const result = pipe["preserveExistingAttendees"](eventWithoutAttendees);
       expect(result).toEqual([]);
     });
   });
