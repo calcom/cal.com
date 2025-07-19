@@ -468,7 +468,17 @@ export class EventTypeRepository {
     });
   }
 
-  async findById({ id, userId }: { id: number; userId: number }) {
+  async findById({
+    id,
+    userId,
+    isUserOrganizationAdmin = false,
+    currentOrganizationId,
+  }: {
+    id: number;
+    userId: number;
+    isUserOrganizationAdmin?: boolean;
+    currentOrganizationId?: number | null;
+  }) {
     const userSelect = {
       name: true,
       avatarUrl: true,
@@ -720,25 +730,57 @@ export class EventTypeRepository {
     // This is more efficient than using a complex join with team.members in the query
     const userTeamIds = await MembershipRepository.findUserTeamIds({ userId });
 
+    const eventTypeOwnerAccessConditions = [
+      {
+        users: {
+          some: {
+            id: userId,
+          },
+        },
+      },
+      {
+        AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }],
+      },
+      {
+        userId: userId,
+      },
+    ];
+
+    const orgAdminConditions = [];
+    if (isUserOrganizationAdmin && currentOrganizationId) {
+      const organizationUsersEventTypesQuery = {
+        AND: [
+          { userId: { not: null } },
+          {
+            owner: {
+              profiles: {
+                some: {
+                  organizationId: currentOrganizationId,
+                },
+              },
+            },
+          },
+        ],
+      };
+      const organizationTeamsEventTypesQuery = {
+        AND: [
+          { teamId: { not: null } },
+          {
+            team: {
+              parentId: currentOrganizationId,
+            },
+          },
+        ],
+      };
+      orgAdminConditions.push(organizationUsersEventTypesQuery);
+      orgAdminConditions.push(organizationTeamsEventTypesQuery);
+    }
+
     return await this.prismaClient.eventType.findFirst({
       where: {
         AND: [
           {
-            OR: [
-              {
-                users: {
-                  some: {
-                    id: userId,
-                  },
-                },
-              },
-              {
-                AND: [{ teamId: { not: null } }, { teamId: { in: userTeamIds } }],
-              },
-              {
-                userId: userId,
-              },
-            ],
+            OR: [...eventTypeOwnerAccessConditions, ...orgAdminConditions],
           },
           {
             id,

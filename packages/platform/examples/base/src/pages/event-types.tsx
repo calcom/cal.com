@@ -728,6 +728,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               onSuccess={(eventType) => {
                 setEventTypeId(null);
                 refetch();
+                refetchTeamEvents();
               }}
               onError={(eventType, error) => {
                 console.log(eventType);
