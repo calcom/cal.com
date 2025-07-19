@@ -13,9 +13,7 @@ import { CreditService as OriginalCreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
 
-const MOCK_TX = {
-  ...prisma,
-};
+const MOCK_TX = prisma;
 
 vi.mock("@calcom/prisma", () => {
   return {
