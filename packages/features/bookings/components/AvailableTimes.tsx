@@ -71,8 +71,6 @@ type SlotItemProps = {
   isVerificationCodeSending?: boolean;
   renderConfirmNotVerifyEmailButtonCond?: boolean;
   skipConfirmStep?: boolean;
-  shouldRenderCaptcha?: boolean;
-  watchedCfToken?: string;
   unavailableTimeSlots?: string[];
   confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
@@ -90,8 +88,6 @@ const SlotItem = ({
   renderConfirmNotVerifyEmailButtonCond,
   isVerificationCodeSending,
   skipConfirmStep,
-  shouldRenderCaptcha,
-  watchedCfToken,
   handleSlotClick,
   onTentativeTimeSelect,
   unavailableTimeSlots = [],
@@ -161,7 +157,6 @@ const SlotItem = ({
             loadingStates?.creatingRecurringBooking ||
             isVerificationCodeSending ||
             loadingStates?.creatingInstantBooking ||
-            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken) ||
             isTimeslotUnavailable
           }
           data-testid="time"
@@ -216,7 +211,6 @@ const SlotItem = ({
                   data-testid="skip-confirm-book-button"
                   disabled={
                     isTimeslotUnavailable ||
-                    (!!shouldRenderCaptcha && !watchedCfToken) ||
                     loadingStates?.creatingBooking ||
                     loadingStates?.creatingRecurringBooking ||
                     isVerificationCodeSending ||

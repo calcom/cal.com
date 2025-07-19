@@ -42,8 +42,6 @@ type AvailableTimeSlotsProps = {
   renderConfirmNotVerifyEmailButtonCond: boolean;
   onSubmit: (timeSlot?: string) => void;
   skipConfirmStep: boolean;
-  shouldRenderCaptcha?: boolean;
-  watchedCfToken?: string;
   /**
    * This is the list of time slots that are unavailable to book
    */
