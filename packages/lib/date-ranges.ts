@@ -44,6 +44,13 @@ function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: Tra
       break;
     }
   }
+
+  try {
+    getTimezoneOffset(adjustedTimezone, date.toDate());
+  } catch (error) {
+    adjustedTimezone = timeZone;
+  }
+
   return adjustedTimezone;
 }
 
