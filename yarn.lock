@@ -5,7 +5,7 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@0no-co/graphql.web@npm:^1.0.5":
+"@0no-co/graphql.web@npm:^1.0.13":
   version: 1.1.2
   resolution: "@0no-co/graphql.web@npm:1.1.2"
   peerDependencies:
@@ -3723,6 +3723,7 @@ __metadata:
     "@urql/core": ^5.1.1
     graphql-config: ^5.1.3
     graphql-introspection-json-to-sdl: ^1.0.3
+    graphql-request: ^7.2.0
   languageName: unknown
   linkType: soft
 
@@ -18901,12 +18902,12 @@ __metadata:
   linkType: hard
 
 "@urql/core@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "@urql/core@npm:5.1.1"
+  version: 5.2.0
+  resolution: "@urql/core@npm:5.2.0"
   dependencies:
-    "@0no-co/graphql.web": ^1.0.5
+    "@0no-co/graphql.web": ^1.0.13
     wonka: ^6.3.2
-  checksum: c28736706abe5d0a0172bcde1c80807aba44606041347beba8e73d5237598034301cccad0169c4f63ba08f5bffe7b3a3ad95ee4a53a0d719ad5525f44b84dbcc
+  checksum: 89c1959abd9230ba06ed5dc4cc5ea6585101c4b0c12894ddbdd1ec36d76b70799b819b999cbcaf154b6f9903eb6c2ba8eef6dff447bc5c9c1870878748868e85
   languageName: node
   linkType: hard
 
@@ -29010,6 +29011,17 @@ __metadata:
   peerDependencies:
     graphql: 14 - 16
   checksum: 6d62630a0169574442320651c1f7626c0c602025c3c46b19e09417c9579bb209306ee63de9793a03be2e1701bb7f13971f8545d99bc6573e340f823af0ad35b2
+  languageName: node
+  linkType: hard
+
+"graphql-request@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "graphql-request@npm:7.2.0"
+  dependencies:
+    "@graphql-typed-document-node/core": ^3.2.0
+  peerDependencies:
+    graphql: 14 - 16
+  checksum: 039a42f4be7bf71e1b4ae97c2994c5b80f5eb431ea3d5c2119e770fc3d0238be40b6c853e78e2ddc8c73c2e95144940dda095f93ba7dc27590c53fa995bba511
   languageName: node
   linkType: hard
 
