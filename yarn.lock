@@ -21728,6 +21728,7 @@ __metadata:
     city-timezones: ^1.2.1
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
+    eslint-plugin-playwright: ^2.2.0
     husky: ^8.0.0
     i18n-unused: ^0.13.0
     jest-diff: ^29.5.0
@@ -26356,6 +26357,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-playwright@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "eslint-plugin-playwright@npm:2.2.0"
+  dependencies:
+    globals: ^13.23.0
+  peerDependencies:
+    eslint: ">=8.40.0"
+  checksum: 07314461deff11bb22dd66b3de8bb8531520cbfb693df0925a9483b24625f44057b86635d7abd8a1c9c66f96d7f7aef3b0cbd80e8cd2b1b34f160d25b876cb02
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-prettier@npm:^4.2.1":
   version: 4.2.1
   resolution: "eslint-plugin-prettier@npm:4.2.1"
@@ -28727,6 +28739,15 @@ __metadata:
   dependencies:
     type-fest: ^0.20.2
   checksum: ad1ecf914bd051325faad281d02ea2c0b1df5d01bd94d368dcc5513340eac41d14b3c61af325768e3c7f8d44576e72780ec0b6f2d366121f8eec6e03c3a3b97a
+  languageName: node
+  linkType: hard
+
+"globals@npm:^13.23.0":
+  version: 13.24.0
+  resolution: "globals@npm:13.24.0"
+  dependencies:
+    type-fest: ^0.20.2
+  checksum: 56066ef058f6867c04ff203b8a44c15b038346a62efbc3060052a1016be9f56f4cf0b2cd45b74b22b81e521a889fc7786c73691b0549c2f3a6e825b3d394f43c
   languageName: node
   linkType: hard
 

@@ -37,13 +37,14 @@ const buildICalLink = ({
 
   const iCalEvent = createEvent({
     start: [
-      startTime.toDate().getUTCFullYear(),
-      (startTime.toDate().getUTCMonth() as number) + 1,
-      startTime.toDate().getUTCDate(),
-      startTime.toDate().getUTCHours(),
-      startTime.toDate().getUTCMinutes(),
+      startTime.toDate().getFullYear(),
+      (startTime.toDate().getMonth() as number) + 1,
+      startTime.toDate().getDate(),
+      startTime.toDate().getHours(),
+      startTime.toDate().getMinutes(),
     ],
-    startInputType: "utc",
+    startInputType: "local",
+    startOutputType: "utc",
     title,
     duration: {
       minutes: durationInMinutes,

@@ -37,11 +37,11 @@ export type ICSCalendarEvent = Pick<
 const toICalDateArray = (date: string): DateArray => {
   const d = new Date(date);
   return [
-    d.getUTCFullYear(),
-    d.getUTCMonth() + 1, // Convert 0-based month to 1-based
-    d.getUTCDate(),
-    d.getUTCHours(),
-    d.getUTCMinutes(),
+    d.getFullYear(),
+    d.getMonth() + 1, // Convert 0-based month to 1-based
+    d.getDate(),
+    d.getHours(),
+    d.getMinutes(),
   ] satisfies DateArray;
 };
 
@@ -75,7 +75,10 @@ const generateIcsString = ({
     sequence: event.iCalSequence || 0,
     start: toICalDateArray(event.startTime),
     end: toICalDateArray(event.endTime),
-    startInputType: "utc",
+    startInputType: "local",
+    startOutputType: "utc",
+    endInputType: "local",
+    endOutputType: "utc",
     productId: "calcom/ics",
     title: event.title,
     description: getRichDescription(event, t),
