@@ -36,6 +36,7 @@ type StoreInitializeType = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
 };
@@ -163,6 +164,7 @@ export type BookerStore = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
 };
@@ -306,6 +308,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
     isPlatform = false,
     allowUpdatingUrlParams = true,
   }: StoreInitializeType) => {
@@ -324,7 +327,8 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
       get().rescheduledBy === rescheduledBy &&
       get().teamMemberEmail === teamMemberEmail &&
       get().crmOwnerRecordType === crmOwnerRecordType &&
-      get().crmAppSlug
+      get().crmAppSlug === crmAppSlug &&
+      get().crmRecordId === crmRecordId
     )
       return;
     set({
@@ -347,6 +351,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      crmRecordId,
       isPlatform,
       allowUpdatingUrlParams,
     });
@@ -456,6 +461,7 @@ export const useInitializeBookerStore = ({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  crmRecordId,
   isPlatform = false,
   allowUpdatingUrlParams = true,
 }: StoreInitializeType) => {
@@ -479,6 +485,7 @@ export const useInitializeBookerStore = ({
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      crmRecordId,
       isPlatform,
       allowUpdatingUrlParams,
     });
@@ -501,6 +508,7 @@ export const useInitializeBookerStore = ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
     isPlatform,
     allowUpdatingUrlParams,
   ]);

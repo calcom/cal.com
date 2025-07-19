@@ -122,12 +122,14 @@ export async function getCRMData(
   const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
+  const crmRecordIdParam = query["cal.crmRecordId"];
 
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
   let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
     ? crmContactOwnerRecordType[0]
     : crmContactOwnerRecordType;
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+  let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
@@ -137,6 +139,7 @@ export async function getCRMData(
       email,
       recordType,
       crmAppSlug: crmAppSlugQuery,
+      recordId: crmRecordIdQuery,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query,
       eventData,
@@ -145,11 +148,13 @@ export async function getCRMData(
     teamMemberEmail = email ?? undefined;
     crmOwnerRecordType = recordType ?? undefined;
     crmAppSlug = crmAppSlugQuery ?? undefined;
+    crmRecordId = crmRecordIdQuery ?? undefined;
   }
 
   return {
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
   };
 }
