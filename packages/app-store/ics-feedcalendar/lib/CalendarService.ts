@@ -173,7 +173,7 @@ export default class ICSFeedCalendarService implements Calendar {
 
         // Ignore cancelled events
         const status = vevent.getFirstPropertyValue("status");
-        if (status && status.toUpperCase() === "CANCELLED") return;
+        if (typeof status === "string" && status.toLowerCase() === "cancelled") return;
 				
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
