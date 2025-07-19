@@ -799,7 +799,6 @@
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
   "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "multiple_duration_timeUnit_short": "{{count}}$t({{unit}}_short)",
-  "minutes": "Minutes",
   "use_cal_ai_to_make_call_description": "Use Cal.ai to get an AI powered phone number or make calls to guests.",
   "round_robin": "Round Robin",
   "round_robin_description": "Cycle meetings between multiple team members.",
@@ -3378,5 +3377,10 @@
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "failed_bookings_by_field": "Failed Bookings By Field",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "enable_flappy_bird_game": "Enable Flappy Bird Game",
+  "enable_flappy_bird_game_description": "Add a fun Flappy Bird game to keep users entertained while waiting for others to join",
+  "flappy_bird_game": "Flappy Bird Game",
+  "game_load_error": "Failed to load the game",
+  "play_while_you_wait": "Play while you wait",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

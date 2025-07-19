@@ -660,6 +660,18 @@ export class EventTypeRepository {
           eventTypeId: true,
         },
       },
+      calVideoSettings: {
+        select: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          enableAutomaticRecordingForOrganizer: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          redirectUrlOnExit: true,
+          enableFlappyBirdGame: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
@@ -704,17 +716,6 @@ export class EventTypeRepository {
       maxLeadThreshold: true,
       includeNoShowInRRCalculation: true,
       useEventLevelSelectedCalendars: true,
-      calVideoSettings: {
-        select: {
-          disableRecordingForGuests: true,
-          disableRecordingForOrganizer: true,
-          enableAutomaticTranscription: true,
-          enableAutomaticRecordingForOrganizer: true,
-          disableTranscriptionForGuests: true,
-          disableTranscriptionForOrganizer: true,
-          redirectUrlOnExit: true,
-        },
-      },
     } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query

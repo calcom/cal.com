@@ -4,6 +4,9 @@ export class CalVideoSettingsRepository {
   static async deleteCalVideoSettings(eventTypeId: number) {
     return await prisma.calVideoSettings.delete({
       where: { eventTypeId },
+      select: {
+        eventTypeId: true,
+      },
     });
   }
 
@@ -49,6 +52,7 @@ export class CalVideoSettingsRepository {
       enableAutomaticTranscription?: boolean | null;
       enableAutomaticRecordingForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
+      enableFlappyBirdGame?: boolean | null;
     };
   }) {
     return await prisma.calVideoSettings.upsert({
@@ -61,6 +65,7 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        enableFlappyBirdGame: calVideoSettings.enableFlappyBirdGame ?? false,
         updatedAt: new Date(),
       },
       create: {
@@ -71,7 +76,20 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        enableFlappyBirdGame: calVideoSettings.enableFlappyBirdGame ?? false,
         eventTypeId,
+      },
+      select: {
+        eventTypeId: true,
+        disableRecordingForGuests: true,
+        disableRecordingForOrganizer: true,
+        enableAutomaticTranscription: true,
+        enableAutomaticRecordingForOrganizer: true,
+        disableTranscriptionForGuests: true,
+        disableTranscriptionForOrganizer: true,
+        redirectUrlOnExit: true,
+        enableFlappyBirdGame: true,
+        updatedAt: true,
       },
     });
   }

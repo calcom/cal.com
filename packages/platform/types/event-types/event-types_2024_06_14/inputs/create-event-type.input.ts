@@ -145,6 +145,34 @@ export class CalVideoSettings {
     description: "URL to which participants are redirected when they exit the call",
   })
   redirectUrlOnExit?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the Flappy Bird game in the waiting room",
+  })
+  enableFlappyBirdGame?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic transcription for the event",
+  })
+  enableAutomaticTranscription?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic recording for the event when organizer joins the call",
+  })
+  enableAutomaticRecordingForOrganizer?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, disables the transcription for the event when guests join the call",
+  })
+  disableTranscriptionForGuests?: boolean;
 }
 
 class BaseCreateEventTypeInput {

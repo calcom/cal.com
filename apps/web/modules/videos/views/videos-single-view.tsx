@@ -2,11 +2,13 @@
 
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
+import type { DailyMeetingState } from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
 import { useDailyEvent } from "@daily-co/daily-react";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { FlappyBirdGame } from "@calcom/features/games/FlappyBirdGame";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
@@ -42,6 +44,8 @@ export default function JoinCall(props: PageProps) {
     rediectAttendeeToOnExit,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
+  const [showFlappyBird, setShowFlappyBird] = useState(false);
+  const [meetingState, setMeetingState] = useState<DailyMeetingState>("new");
 
   useEffect(() => {
     let callFrame: DailyCall | undefined;
@@ -99,18 +103,47 @@ export default function JoinCall(props: PageProps) {
       if (overrideName) {
         callFrame.setUserName(overrideName);
       }
-    } catch (err) {
-      callFrame = DailyIframe.getCallInstance();
-    } finally {
-      setDaily(callFrame ?? null);
-      callFrame?.join();
-    }
 
-    return () => {
-      callFrame?.destroy();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      setDaily(callFrame);
+
+      // Track meeting state changes
+      callFrame.on("joined-meeting", () => {
+        setMeetingState("joined-meeting");
+        if (booking?.eventType?.calVideoSettings?.enableFlappyBirdGame) {
+          setShowFlappyBird(true);
+        }
+      });
+
+      callFrame.on("left-meeting", () => {
+        setMeetingState("left-meeting");
+        setShowFlappyBird(false);
+      });
+
+      // Hide Flappy Bird game when other participants join
+      callFrame.on("participant-joined", () => {
+        setShowFlappyBird(false);
+      });
+
+      callFrame.join();
+
+      return () => {
+        if (callFrame) {
+          callFrame.destroy();
+        }
+      };
+    } catch (e) {
+      console.error(e);
+    }
+  }, [
+    meetingUrl,
+    meetingPassword,
+    overrideName,
+    loggedInUserName,
+    hasTeamPlan,
+    showRecordingButton,
+    showTranscriptionButton,
+    booking?.eventType?.calVideoSettings?.enableFlappyBirdGame,
+  ]);
 
   return (
     <DailyProvider callObject={daily}>
@@ -124,6 +157,9 @@ export default function JoinCall(props: PageProps) {
           showTranscriptionButton={showTranscriptionButton}
         />
       </div>
+      {meetingState === "joined-meeting" && showFlappyBird && (
+        <FlappyBirdGame onClose={() => setShowFlappyBird(false)} />
+      )}
       <div style={{ zIndex: 2, position: "relative" }}>
         {calVideoLogo ? (
           <img
