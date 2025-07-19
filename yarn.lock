@@ -21726,6 +21726,8 @@ __metadata:
     c8: ^7.13.0
     checkly: latest
     city-timezones: ^1.2.1
+    date-fns: ^4.1.0
+    date-fns-tz: ^3.2.0
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
     husky: ^8.0.0
@@ -23903,6 +23905,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-fns-tz@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "date-fns-tz@npm:3.2.0"
+  peerDependencies:
+    date-fns: ^3.0.0 || ^4.0.0
+  checksum: c49289a3944fc1eacaa08649c2c1adc1652456d405841f2093fdd365596dac46553a303629b5d528c3f5e4c49919fc3d3ff98da93ad32a1a193243aa04cc0987
+  languageName: node
+  linkType: hard
+
 "date-fns@npm:^2.28.0":
   version: 2.30.0
   resolution: "date-fns@npm:2.30.0"
@@ -23916,6 +23927,13 @@ __metadata:
   version: 3.6.0
   resolution: "date-fns@npm:3.6.0"
   checksum: 0daa1e9a436cf99f9f2ae9232b55e11f3dd46132bee10987164f3eebd29f245b2e066d7d7db40782627411ecf18551d8f4c9fcdf2226e48bb66545407d448ab7
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: fb681b242cccabed45494468f64282a7d375ea970e0adbcc5dcc92dcb7aba49b2081c2c9739d41bf71ce89ed68dd73bebfe06ca35129490704775d091895710b
   languageName: node
   linkType: hard
 

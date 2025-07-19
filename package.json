@@ -95,6 +95,8 @@
     "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
