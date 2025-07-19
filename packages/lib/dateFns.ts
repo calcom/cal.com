@@ -501,15 +501,33 @@ export const month = (date: Date): number => {
   return getMonth(date);
 };
 
-export const valueOf = (date: Date): number => {
-  return date.getTime();
+export const valueOf = (date: Date | any): number => {
+  if (date && typeof date.valueOf === "function") {
+    return date.valueOf();
+  }
+  if (date && typeof date.getTime === "function") {
+    return date.getTime();
+  }
+  if (date instanceof Date) {
+    return date.getTime();
+  }
+  return new Date(date).getTime();
 };
 
 export const toISOString = (date: Date): string => {
   return date.toISOString();
 };
 
-export const toDate = (date: Date): Date => {
+export const toDate = (date: Date | any): Date => {
+  if (date instanceof Date) {
+    return new Date(date);
+  }
+  if (date && typeof date.toDate === "function") {
+    return date.toDate();
+  }
+  if (date && typeof date.valueOf === "function") {
+    return new Date(date.valueOf());
+  }
   return new Date(date);
 };
 

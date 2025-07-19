@@ -89,13 +89,18 @@ export function processWorkingHours({
     const startTimeMinutes = item.startTime.getUTCHours() * 60 + item.startTime.getUTCMinutes();
     const endTimeMinutes = item.endTime.getUTCHours() * 60 + item.endTime.getUTCMinutes();
 
-    const dateInTimezone = tz(date, adjustedTimezone);
+    const dateString = format(date, "yyyy-MM-dd");
 
-    const startTimeInTimezone = new Date(dateInTimezone);
-    startTimeInTimezone.setHours(Math.floor(startTimeMinutes / 60), startTimeMinutes % 60, 0, 0);
-
-    const endTimeInTimezone = new Date(dateInTimezone);
-    endTimeInTimezone.setHours(Math.floor(endTimeMinutes / 60), endTimeMinutes % 60, 0, 0);
+    const startTimeInTimezone = new Date(
+      `${dateString}T${Math.floor(startTimeMinutes / 60)
+        .toString()
+        .padStart(2, "0")}:${(startTimeMinutes % 60).toString().padStart(2, "0")}:00`
+    );
+    const endTimeInTimezone = new Date(
+      `${dateString}T${Math.floor(endTimeMinutes / 60)
+        .toString()
+        .padStart(2, "0")}:${(endTimeMinutes % 60).toString().padStart(2, "0")}:00`
+    );
 
     const startTimeUTC = fromZonedTime(startTimeInTimezone, adjustedTimezone);
     const endTimeUTC = fromZonedTime(endTimeInTimezone, adjustedTimezone);
