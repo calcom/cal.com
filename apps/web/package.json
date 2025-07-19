@@ -70,7 +70,7 @@
     "@radix-ui/react-slider": "^1.0.0",
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
-    "@radix-ui/react-tooltip": "^1.0.0",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@sentry/nextjs": "^9.15.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
