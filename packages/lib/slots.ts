@@ -41,7 +41,7 @@ function buildSlotsWithDateRanges({
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
 
-  const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const orderedDateRanges = dateRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
   // there can only ever be one slot at a given start time, and based on duration also only a single length.
   const slots = new Map<
@@ -72,10 +72,10 @@ function buildSlotsWithDateRanges({
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+    const dateYYYYMMDD = dayjs(range.start).format("YYYY-MM-DD");
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
-      ? range.start
+    let slotStartTime = dayjs(range.start).utc().isAfter(startTimeWithMinNotice)
+      ? dayjs(range.start)
       : startTimeWithMinNotice;
 
     slotStartTime =
@@ -112,7 +112,7 @@ function buildSlotsWithDateRanges({
       }
     }
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(dayjs(range.end))) {
       const slotKey = slotStartTime.toISOString();
       if (slots.has(slotKey)) {
         slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");

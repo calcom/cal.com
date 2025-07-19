@@ -1,7 +1,7 @@
 import type { DateRange } from "@calcom/lib/date-ranges";
 
 export function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
-  dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  dateRanges.sort((a, b) => a.start.getTime() - b.start.getTime());
 
   const mergedDateRanges: DateRange[] = [];
 
@@ -16,7 +16,7 @@ export function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
     if (isCurrentRangeOverlappingNext(currentRange, nextRange)) {
       currentRange = {
         start: currentRange.start,
-        end: currentRange.end.valueOf() > nextRange.end.valueOf() ? currentRange.end : nextRange.end,
+        end: currentRange.end.getTime() > nextRange.end.getTime() ? currentRange.end : nextRange.end,
       };
     } else {
       mergedDateRanges.push(currentRange);
@@ -30,7 +30,7 @@ export function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
 
 function isCurrentRangeOverlappingNext(currentRange: DateRange, nextRange: DateRange): boolean {
   return (
-    currentRange.start.valueOf() <= nextRange.start.valueOf() &&
-    currentRange.end.valueOf() > nextRange.start.valueOf()
+    currentRange.start.getTime() <= nextRange.start.getTime() &&
+    currentRange.end.getTime() > nextRange.start.getTime()
   );
 }
