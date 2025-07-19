@@ -25071,7 +25071,7 @@
             "example": 123
           },
           "routing": {
-            "description": "The routing information.",
+            "description": "The routing information that could be passed as is to the booking API.",
             "example": {
               "eventTypeId": 123,
               "routing": {
