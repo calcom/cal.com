@@ -1,4 +1,4 @@
-import type { KnownConfig, PrefillAndIframeAttrsConfig } from "./types";
+import type { KnownConfig, PrefillAndIframeAttrsConfig } from "../types";
 
 export const getErrorString = ({
   errorCode,

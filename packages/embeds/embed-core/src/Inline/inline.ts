@@ -1,6 +1,6 @@
 import { EmbedElement } from "../EmbedElement";
+import { getErrorString } from "../lib/utils";
 import loaderCss from "../loader.css?inline";
-import { getErrorString } from "../utils";
 import inlineHtml, { getSkeletonData } from "./inlineHtml";
 
 export class Inline extends EmbedElement {

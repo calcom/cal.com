@@ -7,12 +7,12 @@ export default createRule({
   name: "no-scroll-into-view-embed",
   meta: {
     docs: {
-      description: "Disallow usage of scrollIntoView in embed mode",
+      description: "Disallow usage of scrollIntoView and scrollIntoViewSmooth in embed mode",
       recommended: "error",
     },
     messages: {
       noScrollIntoViewForEmbed:
-        "Make sure to call scrollIntoView conditionally if it is called without user action. Use useIsEmbed() to detect if embed mode and then don't call it for embed case.",
+        "Make sure to call scrollIntoView/scrollIntoViewSmooth conditionally if it is called without user action. Use useIsEmbed() to detect if embed mode and then don't call it for embed case.",
     },
     type: "problem",
     schema: [],
@@ -24,13 +24,19 @@ export default createRule({
         const { callee } = node;
 
         if (callee.type === "MemberExpression") {
-          if (callee.property.type === "Identifier" && callee.property.name === "scrollIntoView") {
+          if (
+            callee.property.type === "Identifier" &&
+            (callee.property.name === "scrollIntoView" || callee.property.name === "scrollIntoViewSmooth")
+          ) {
             context.report({
               node,
               messageId: "noScrollIntoViewForEmbed",
             });
           }
-        } else if (callee.type === "Identifier" && callee.name === "scrollIntoView") {
+        } else if (
+          callee.type === "Identifier" &&
+          (callee.name === "scrollIntoView" || callee.name === "scrollIntoViewSmooth")
+        ) {
           context.report({
             node,
             messageId: "noScrollIntoViewForEmbed",
