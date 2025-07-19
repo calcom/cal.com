@@ -238,4 +238,8 @@ export default class PipedriveCrmService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+
+  async createCustomEventObject() {
+    console.log("Not implemented");
+  }
 }

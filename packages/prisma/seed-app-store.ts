@@ -392,6 +392,13 @@ export default async function main() {
     });
   }
 
+  if (process.env.ATTIO_CLIENT_ID && process.env.ATTIO_CLIENT_SECRET) {
+    await createApp("attio", "attio", ["crm"], "attio_crm", {
+      client_id: process.env.ATTIO_CLIENT_ID,
+      client_secret: process.env.ATTIO_CLIENT_SECRET,
+    });
+  }
+
   for (const [, app] of Object.entries(appStoreMetadata)) {
     if (app.isTemplate && process.argv[2] !== "seed-templates") {
       continue;
