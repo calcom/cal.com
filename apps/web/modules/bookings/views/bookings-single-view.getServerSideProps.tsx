@@ -6,6 +6,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -174,6 +175,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
+  const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
+    userId,
+    eventType.team?.id,
+    eventType.team?.parentId
+  );
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
@@ -250,6 +256,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      hasTeamOrOrgPermissions,
       internalNotePresets: internalNotes,
     },
   };
