@@ -21,6 +21,7 @@ type ConferencingAppsViewWebWrapperProps = {
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
+  credentialId?: number;
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };

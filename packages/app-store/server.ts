@@ -61,6 +61,14 @@ export async function getLocationGroupedOptions(
         id: userOrTeamId.userId,
       },
     });
+
+    if (user?.organizationId) {
+      idToSearchObject = {
+        teamId: {
+          in: [user.organizationId],
+        },
+      };
+    }
   }
 
   const nonDelegationCredentials = await prisma.credential.findMany({
