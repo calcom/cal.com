@@ -17,6 +17,12 @@ vi.mock("@calcom/features/ee/workflows/lib/reminders/providers/emailProvider", (
   sendOrScheduleWorkflowEmails: vi.fn(),
 }));
 
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: (key: string) => key,
+  };
+});
+
 describe("reminderScheduler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
