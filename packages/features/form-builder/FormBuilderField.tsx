@@ -396,25 +396,6 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig.propsType === "radio") {
-    if (!field.options) {
-      throw new Error("Field options is not defined");
-    }
-
-    return (
-      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
-        <componentConfig.factory
-          readOnly={readOnly}
-          value={value as string}
-          name={field.name}
-          placeholder={field.placeholder}
-          setValue={setValue as (arg: typeof value) => void}
-          options={field.options}
-        />
-      </WithLabel>
-    );
-  }
-
   assertUnreachable(componentConfig);
   return null;
 };
