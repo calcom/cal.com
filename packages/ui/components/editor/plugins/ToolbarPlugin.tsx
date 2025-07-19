@@ -367,7 +367,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     if (!props.setFirstRender) return;
 
     props.setFirstRender(false);
-    editor.update(() => {
+    return editor.update(() => {
       const parser = new DOMParser();
       const dom = parser.parseFromString(props.getText(), "text/html");
 
@@ -384,7 +384,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
       nodes[nodes.length - 1]?.select();
 
-      editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+      const unregister = editor.registerUpdateListener(({ editorState, prevEditorState }) => {
         editorState.read(() => {
           const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
           props.setText(
@@ -396,6 +396,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         });
         if (!prevEditorState._selection) editor.blur();
       });
+      return () => unregister();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
