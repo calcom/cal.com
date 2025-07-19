@@ -1,4 +1,5 @@
 import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 

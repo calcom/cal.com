@@ -25,7 +25,9 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
     },
   });
 
-  const lockedDefaultAvailability = await hasLockedDefaultAvailabilityRestriction(input.userId, ctx.prisma);
+  const lockedDefaultAvailability = input.userId
+    ? await hasLockedDefaultAvailabilityRestriction(input.userId, ctx.prisma)
+    : false;
 
   try {
     // This looks kinda weird that we throw straight in the catch - its so that we can return a default schedule if the user has not completed onboarding @shiraz will loveme for this
