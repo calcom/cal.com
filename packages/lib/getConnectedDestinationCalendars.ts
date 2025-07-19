@@ -18,8 +18,14 @@ type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCal
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
 export type UserWithCalendars = Pick<User, "id" | "email"> & {
-  allSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
-  userLevelSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
+  allSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  userLevelSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
   destinationCalendar: DestinationCalendar | null;
 };
 
