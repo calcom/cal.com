@@ -124,6 +124,13 @@ const baseFieldSchema = z.object({
   excludeEmails: excludeOrRequireEmailSchema.optional(),
   // Emails that need to be required
   requireEmails: excludeOrRequireEmailSchema.optional(),
+
+  visibleIf: z
+    .object({
+      parent: z.string().min(1),
+      values: z.array(z.string()).min(1),
+    })
+    .optional(),
 });
 
 export const variantsConfigSchema = z.object({
