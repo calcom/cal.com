@@ -28408,7 +28408,7 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
-        "description": "Response status of the attendee",
+        "description": "Response status of the host (only field that can be updated)",
         "enum": [
           "accepted",
           "pending",
@@ -28623,16 +28623,29 @@
             "nullable": true,
             "$ref": "#/components/schemas/CalendarEventResponseStatus"
           },
-          "optional": {
-            "type": "boolean",
-            "description": "Whether the attendee is optional"
-          },
           "action": {
             "type": "string",
             "enum": [
               "delete"
             ],
             "description": "Action to perform on this attendee. Use 'delete' to remove the attendee from the event."
+          },
+          "organizer": {
+            "type": "boolean",
+            "description": "Whether the attendee is an organizer"
+          }
+        }
+      },
+      "UpdateCalendarEventHost": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the host (read-only, cannot be updated)"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
           }
         }
       },
@@ -28689,10 +28702,10 @@
           },
           "hosts": {
             "nullable": true,
-            "description": "Information about the event hosts (organizers). When provided, replaces existing organizers.",
+            "description": "Information about the event hosts (organizers). Only responseStatus can be updated. When provided, replaces existing organizers.",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CalendarEventHost"
+              "$ref": "#/components/schemas/UpdateCalendarEventHost"
             }
           }
         }
