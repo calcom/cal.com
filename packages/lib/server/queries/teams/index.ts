@@ -498,6 +498,34 @@ async function getEventTypesToAddNewMembers(teamId: number) {
 }
 
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: { createdByOAuthClientId: true, parentId: true },
+  });
+  const isPlatformTeam = !!team?.createdByOAuthClientId;
+
+  if (isPlatformTeam) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isPlatformManaged: true },
+    });
+
+    const isOrgAdmin = team.parentId
+      ? await prisma.membership.findFirst({
+          where: {
+            userId,
+            teamId: team.parentId,
+            accepted: true,
+            OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+          },
+        })
+      : null;
+
+    if (!user?.isPlatformManaged && !isOrgAdmin) {
+      return;
+    }
+  }
+
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
   eventTypesToAdd.length > 0 &&
@@ -525,6 +553,39 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
     prefix: ["addNewMembersToEventTypes"],
   });
 
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: { createdByOAuthClientId: true, parentId: true },
+  });
+  const isPlatformTeam = !!team?.createdByOAuthClientId;
+
+  let filteredUserIds = userIds;
+  if (isPlatformTeam) {
+    const orgAdminUserIds = team.parentId
+      ? await prisma.membership
+          .findMany({
+            where: {
+              teamId: team.parentId,
+              accepted: true,
+              OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+            },
+            select: { userId: true },
+          })
+          .then((memberships) => memberships.map((m) => m.userId))
+      : [];
+
+    filteredUserIds = userIds.filter((id) => !orgAdminUserIds.includes(id));
+
+    const managedUsers = await prisma.user.findMany({
+      where: {
+        id: { in: filteredUserIds },
+        isPlatformManaged: true,
+      },
+      select: { id: true },
+    });
+    filteredUserIds = managedUsers.map((user) => user.id);
+  }
+
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
   const managedEventTypes = eventTypesToAdd.filter((eventType) => eventType.schedulingType === "MANAGED");
@@ -535,7 +596,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       .createMany({
         data: managedEventTypes
           .map((eventType) =>
-            userIds.map((userId) =>
+            filteredUserIds.map((userId) =>
               generateNewChildEventTypeDataForDB({
                 eventType,
                 userId,
@@ -560,7 +621,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       .createMany({
         data: teamEventTypes
           .map((eventType) => {
-            return userIds.map((userId) => {
+            return filteredUserIds.map((userId) => {
               return {
                 userId,
                 eventTypeId: eventType.id,
@@ -586,7 +647,7 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
   const createdChildrenEventTypes = await prisma.eventType.findMany({
     where: {
       userId: {
-        in: userIds,
+        in: filteredUserIds,
       },
       parent: {
         id: {
