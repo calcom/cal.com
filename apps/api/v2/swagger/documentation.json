@@ -28629,10 +28629,6 @@
               "delete"
             ],
             "description": "Action to perform on this attendee. Use 'delete' to remove the attendee from the event."
-          },
-          "organizer": {
-            "type": "boolean",
-            "description": "Whether the attendee is an organizer"
           }
         }
       },
