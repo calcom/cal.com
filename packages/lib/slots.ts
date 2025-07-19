@@ -1,13 +1,24 @@
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import {
+  addTime,
+  subtractTime,
+  startOf,
+  isBefore,
+  isAfter,
+  format,
+  toISOString,
+  utc,
+  tz,
+  valueOf,
+  minute,
+} from "@calcom/lib/dateFns";
 import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { DateRange } from "./date-ranges";
-import { getTimeZone } from "./dayjs";
 
 export type GetSlots = {
-  inviteeDate: Dayjs;
+  inviteeDate: DateFnsDate;
   frequency: number;
   dateRanges: DateRange[];
   minimumBookingNotice: number;
@@ -41,13 +52,13 @@ function buildSlotsWithDateRanges({
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
 
-  const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const orderedDateRanges = dateRanges.sort((a, b) => valueOf(a.start) - valueOf(b.start));
 
   // there can only ever be one slot at a given start time, and based on duration also only a single length.
   const slots = new Map<
     string,
     {
-      time: Dayjs;
+      time: DateFnsDate;
       userIds?: number[];
       away?: boolean;
       fromUser?: IFromUser;
@@ -67,23 +78,27 @@ function buildSlotsWithDateRanges({
     }
   }
 
-  const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+  const startTimeWithMinNotice = addTime(utc(), minimumBookingNotice, "minutes");
 
   const slotBoundaries = new Map<number, true>();
 
   orderedDateRanges.forEach((range) => {
-    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+    const dateYYYYMMDD = format(range.start, "yyyy-MM-dd");
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+    let slotStartTime = isAfter(utc(range.start), startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
 
     slotStartTime =
-      slotStartTime.minute() % interval !== 0
-        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+      minute(slotStartTime) % interval !== 0
+        ? addTime(
+            startOf(slotStartTime, "hour"),
+            Math.ceil(minute(slotStartTime) / interval) * interval,
+            "minutes"
+          )
         : slotStartTime;
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+    slotStartTime = tz(addTime(slotStartTime, offsetStart ?? 0, "minutes"), timeZone);
 
     // Find the nearest appropriate slot boundary if this time falls within an existing slot
     const slotBoundariesValueArray = Array.from(slotBoundaries.keys());
@@ -92,38 +107,40 @@ function buildSlotsWithDateRanges({
 
       let prevBoundary = null;
       for (let i = slotBoundariesValueArray.length - 1; i >= 0; i--) {
-        if (slotBoundariesValueArray[i] < slotStartTime.valueOf()) {
+        if (slotBoundariesValueArray[i] < valueOf(slotStartTime)) {
           prevBoundary = slotBoundariesValueArray[i];
           break;
         }
       }
 
       if (prevBoundary) {
-        const prevBoundaryEnd = dayjs(prevBoundary).add(frequency + (offsetStart ?? 0), "minutes");
-        if (prevBoundaryEnd.isAfter(slotStartTime)) {
-          const dayjsPrevBoundary = dayjs(prevBoundary);
-          if (!dayjsPrevBoundary.isBefore(range.start)) {
-            slotStartTime = dayjsPrevBoundary;
+        const prevBoundaryEnd = addTime(new Date(prevBoundary), frequency + (offsetStart ?? 0), "minutes");
+        if (isAfter(prevBoundaryEnd, slotStartTime)) {
+          const datePrevBoundary = new Date(prevBoundary);
+          if (!isBefore(datePrevBoundary, range.start)) {
+            slotStartTime = datePrevBoundary;
           } else {
             slotStartTime = prevBoundaryEnd;
           }
-          slotStartTime = slotStartTime.tz(timeZone);
+          slotStartTime = tz(slotStartTime, timeZone);
         }
       }
     }
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
-      const slotKey = slotStartTime.toISOString();
+    while (
+      !isAfter(utc(subtractTime(addTime(slotStartTime, eventLength, "minutes"), 1, "seconds")), range.end)
+    ) {
+      const slotKey = toISOString(slotStartTime);
       if (slots.has(slotKey)) {
-        slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+        slotStartTime = addTime(slotStartTime, frequency + (offsetStart ?? 0), "minutes");
         continue;
       }
 
-      slotBoundaries.set(slotStartTime.valueOf(), true);
+      slotBoundaries.set(valueOf(slotStartTime), true);
 
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
-        time: Dayjs;
+        time: DateFnsDate;
         userIds?: number[];
         away?: boolean;
         fromUser?: IFromUser;
@@ -148,7 +165,7 @@ function buildSlotsWithDateRanges({
       }
 
       slots.set(slotKey, slotData);
-      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+      slotStartTime = addTime(slotStartTime, frequency + (offsetStart ?? 0), "minutes");
     }
   });
 
@@ -164,7 +181,7 @@ const getSlots = ({
   offsetStart = 0,
   datesOutOfOffice,
 }: GetSlots): {
-  time: Dayjs;
+  time: DateFnsDate;
   userIds?: number[];
   away?: boolean;
   fromUser?: IFromUser;
@@ -176,7 +193,7 @@ const getSlots = ({
     dateRanges,
     frequency,
     eventLength,
-    timeZone: getTimeZone(inviteeDate),
+    timeZone: "UTC",
     minimumBookingNotice,
     offsetStart,
     datesOutOfOffice,

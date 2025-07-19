@@ -1,18 +1,34 @@
 import { z } from "zod";
 
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import {
+  format,
+  yyyymmdd as dateFnsYyyymmdd,
+  daysInMonth as dateFnsDaysInMonth,
+  formatTime as dateFnsFormatTime,
+  isSupportedTimeZone,
+  formatLocalizedDateTime as dateFnsFormatLocalizedDateTime,
+  formatToLocalizedDate,
+  formatToLocalizedTime,
+  formatToLocalizedTimezone as dateFnsFormatToLocalizedTimezone,
+  sortByTimezone as dateFnsSortByTimezone,
+  isPreviousDayInTimezone as dateFnsIsPreviousDayInTimezone,
+  isNextDayInTimezone as dateFnsIsNextDayInTimezone,
+  weekdayToWeekIndex as dateFnsWeekdayToWeekIndex,
+  timeZoneWithDST as dateFnsTimeZoneWithDST,
+  getDSTDifference as dateFnsGetDSTDifference,
+  getUTCOffsetInDST as dateFnsGetUTCOffsetInDST,
+  isInDST as dateFnsIsInDST,
+  getUTCOffsetByTimezone as dateFnsGetUTCOffsetByTimezone,
+  stringToDate,
+} from "@calcom/lib/dateFns";
 
-// converts a date to 2022-04-25 for example.
-export const yyyymmdd = (date: Date | Dayjs) =>
-  date instanceof Date ? dayjs(date).format("YYYY-MM-DD") : date.format("YYYY-MM-DD");
+export const yyyymmdd = (date?: string | Date | DateFnsDate) => {
+  return dateFnsYyyymmdd(new Date(date || new Date()));
+};
 
-// @see: https://github.com/iamkun/dayjs/issues/1272 - for the reason we're not using dayjs to do this.
-export const daysInMonth = (date: Date | Dayjs) => {
-  const [year, month] =
-    date instanceof Date ? [date.getFullYear(), date.getMonth()] : [date.year(), date.month()];
-  // strange JS quirk: new Date(2022, 12, 0).getMonth() = 11
-  return new Date(year, month + 1, 0).getDate();
+export const daysInMonth = (date?: string | Date | DateFnsDate) => {
+  return dateFnsDaysInMonth(new Date(date || new Date()));
 };
 
 /**
@@ -20,16 +36,11 @@ export const daysInMonth = (date: Date | Dayjs) => {
  * is passed in, we always default back to 24 hour notation.
  */
 export const formatTime = (
-  date: string | Date | Dayjs,
+  date: string | Date | DateFnsDate,
   timeFormat?: number | null,
   timeZone?: string | null
 ) => {
-  // console.log(timeZone, date);
-  return timeZone
-    ? dayjs(date)
-        .tz(timeZone)
-        .format(timeFormat === 12 ? "h:mma" : "HH:mm")
-    : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  return dateFnsFormatTime(date, timeFormat, timeZone);
 };
 
 /**
@@ -39,14 +50,7 @@ export const formatTime = (
  * @returns {boolean} - Returns 'true' if the provided timezone string is recognized as a valid timezone by dayjs. Otherwise, returns 'false'.
  *
  */
-export const isSupportedTimeZone = (timeZone: string) => {
-  try {
-    dayjs().tz(timeZone);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
+export { isSupportedTimeZone };
 
 /**
  * Returns a localized and translated date or time, based on the native
@@ -54,12 +58,11 @@ export const isSupportedTimeZone = (timeZone: string) => {
  * locale will be used.
  */
 export const formatLocalizedDateTime = (
-  date: Date | Dayjs,
+  date: Date | DateFnsDate,
   options: Intl.DateTimeFormatOptions = {},
   locale: string | undefined = undefined
 ) => {
-  const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
-  return Intl.DateTimeFormat(locale, options).format(theDate);
+  return dateFnsFormatLocalizedDateTime(date, options, locale);
 };
 
 /**
@@ -67,25 +70,14 @@ export const formatLocalizedDateTime = (
  * given Date object and locale. Undefined values mean the defaults
  * associated with the browser's current locale will be used.
  */
-export const formatToLocalizedDate = (
-  date: Date | Dayjs,
-  locale: string | undefined = undefined,
-  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "long",
-  timeZone?: string
-) => formatLocalizedDateTime(date, { dateStyle, timeZone }, locale);
+export { formatToLocalizedDate };
 
 /**
  * Returns a localized and translated time of day based on the
  * given Date object and locale. Undefined values mean the defaults
  * associated with the browser's current locale will be used.
  */
-export const formatToLocalizedTime = (
-  date: Date | Dayjs,
-  locale: string | undefined = undefined,
-  timeStyle: Intl.DateTimeFormatOptions["timeStyle"] = "short",
-  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined,
-  timeZone?: string
-) => formatLocalizedDateTime(date, { timeStyle, hour12, timeZone }, locale);
+export { formatToLocalizedTime };
 
 /**
  * Returns a translated timezone based on the given Date object and
@@ -93,59 +85,33 @@ export const formatToLocalizedTime = (
  * will be used.
  */
 export const formatToLocalizedTimezone = (
-  date: Date | Dayjs,
+  date: Date | DateFnsDate,
   locale: string | undefined = undefined,
   timeZone: Intl.DateTimeFormatOptions["timeZone"],
   timeZoneName: Intl.DateTimeFormatOptions["timeZoneName"] = "long"
 ) => {
-  // Intl.DateTimeFormat doesn't format into a timezone only, so we must
-  //  formatToParts() and return the piece we want
-  const theDate = date instanceof dayjs ? (date as Dayjs).toDate() : (date as Date);
-  return Intl.DateTimeFormat(locale, { timeZoneName, timeZone })
-    .formatToParts(theDate)
-    .find((d) => d.type == "timeZoneName")?.value;
+  return dateFnsFormatToLocalizedTimezone(date, locale, timeZone, timeZoneName);
 };
 
 /**
  * Sorts two timezones by their offset from GMT.
  */
 export const sortByTimezone = (timezoneA: string, timezoneB: string) => {
-  const timezoneAGmtOffset = dayjs.utc().tz(timezoneA).utcOffset();
-  const timezoneBGmtOffset = dayjs.utc().tz(timezoneB).utcOffset();
-
-  if (timezoneAGmtOffset === timezoneBGmtOffset) return 0;
-
-  return timezoneAGmtOffset < timezoneBGmtOffset ? -1 : 1;
+  return dateFnsSortByTimezone(timezoneA, timezoneB);
 };
 
 /**
  * Verifies given time is a day before in timezoneB.
  */
 export const isPreviousDayInTimezone = (time: string, timezoneA: string, timezoneB: string) => {
-  const timeInTimezoneA = formatTime(time, 24, timezoneA);
-  const timeInTimezoneB = formatTime(time, 24, timezoneB);
-  if (time === timeInTimezoneB) return false;
-
-  // Eg timeInTimezoneA = 12:00 and timeInTimezoneB = 23:00
-  const hoursTimezoneBIsLater = timeInTimezoneB.localeCompare(timeInTimezoneA) === 1;
-  // If it is 23:00, does timezoneA come before or after timezoneB in GMT?
-  const timezoneBIsEarlierTimezone = sortByTimezone(timezoneA, timezoneB) === 1;
-  return hoursTimezoneBIsLater && timezoneBIsEarlierTimezone;
+  return dateFnsIsPreviousDayInTimezone(time, timezoneA, timezoneB);
 };
 
 /**
  * Verifies given time is a day after in timezoneB.
  */
 export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: string) => {
-  const timeInTimezoneA = formatTime(time, 24, timezoneA);
-  const timeInTimezoneB = formatTime(time, 24, timezoneB);
-  if (time === timeInTimezoneB) return false;
-
-  // Eg timeInTimezoneA = 12:00 and timeInTimezoneB = 09:00
-  const hoursTimezoneBIsEarlier = timeInTimezoneB.localeCompare(timeInTimezoneA) === -1;
-  // If it is 09:00, does timezoneA come before or after timezoneB in GMT?
-  const timezoneBIsLaterTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
-  return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
+  return dateFnsIsNextDayInTimezone(time, timezoneA, timezoneB);
 };
 
 const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
@@ -158,9 +124,7 @@ type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
  * undefined as a parameter; returns 0 in that case.
  */
 export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefined) => {
-  if (typeof weekday === "undefined") return 0;
-  if (typeof weekday === "number") return weekday >= 0 && weekday >= 6 ? (weekday as WeekDayIndex) : 0;
-  return (weekDays.indexOf(weekday as WeekDays) as WeekDayIndex) || 0;
+  return dateFnsWeekdayToWeekIndex(weekday);
 };
 
 /**
@@ -171,7 +135,14 @@ export const weekdayToWeekIndex = (weekday: WeekDays | string | number | undefin
  * @returns Time Zone name
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezone"];
+export const getTimeZone = (date?: string | Date | DateFnsDate) => {
+  const dateObj = new Date(date || new Date());
+  const offset = -dateObj.getTimezoneOffset();
+  const hours = Math.floor(Math.abs(offset) / 60);
+  const minutes = Math.abs(offset) % 60;
+  const sign = offset >= 0 ? "+" : "-";
+  return `${sign}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
 
 /**
  * Verify if timeZone has Daylight Saving Time (DST).
@@ -186,9 +157,7 @@ export const getTimeZone = (date: Dayjs): string => (date as any)["$x"]["$timezo
  * @returns boolean
  */
 export const timeZoneWithDST = (timeZone: string): boolean => {
-  const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
-  const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
-  return jan.utcOffset() !== jul.utcOffset();
+  return dateFnsTimeZoneWithDST(timeZone);
 };
 
 /**
@@ -200,9 +169,7 @@ export const timeZoneWithDST = (timeZone: string): boolean => {
  * @returns minutes
  */
 export const getDSTDifference = (timeZone: string): number => {
-  const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
-  const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
-  return jul.utcOffset() - jan.utcOffset();
+  return dateFnsGetDSTDifference(timeZone);
 };
 
 /**
@@ -211,22 +178,15 @@ export const getDSTDifference = (timeZone: string): number => {
  * @returns minutes
  */
 export const getUTCOffsetInDST = (timeZone: string) => {
-  if (timeZoneWithDST(timeZone)) {
-    const jan = dayjs.tz(`${new Date().getFullYear()}-01-01T00:00:00`, timeZone);
-    const jul = dayjs.tz(`${new Date().getFullYear()}-07-01T00:00:00`, timeZone);
-    return jan.utcOffset() < jul.utcOffset() ? jul.utcOffset() : jan.utcOffset();
-  }
-  return 0;
+  return dateFnsGetUTCOffsetInDST(timeZone);
 };
 /**
  * Verifies if given time zone is in DST
  * @param date
  * @returns
  */
-export const isInDST = (date: Dayjs) => {
-  const timeZone = getTimeZone(date);
-
-  return timeZoneWithDST(timeZone) && date.utcOffset() === getUTCOffsetInDST(timeZone);
+export const isInDST = (date: Date | DateFnsDate, timeZone: string) => {
+  return dateFnsIsInDST(date, timeZone);
 };
 
 /**
@@ -235,19 +195,72 @@ export const isInDST = (date: Dayjs) => {
  * @param date
  * @returns
  */
-export function getUTCOffsetByTimezone(timeZone: string, date?: string | Date | Dayjs) {
-  if (!timeZone) return null;
-
-  return dayjs(date).tz(timeZone).utcOffset();
+export function getUTCOffsetByTimezone(timeZone: string, date?: string | Date | DateFnsDate) {
+  return dateFnsGetUTCOffsetByTimezone(timeZone, date);
 }
 
 /**
- * Converts a string into a dayjs object with the timezone set.
+ * Converts a string into a dayjs-compatible object with the timezone set.
  */
 export const stringToDayjs = (val: string) => {
-  const matches = val.match(/([+-]\d{2}:\d{2})$/);
-  const timezone = matches ? matches[1] : "+00:00";
-  return dayjs(val).utcOffset(timezone);
+  const date = stringToDate(val);
+
+  const timezoneMatch = val.match(/([+-]\d{2}:\d{2}|Z)$/);
+  const hasTimezone = timezoneMatch !== null;
+
+  let localYear: number,
+    localMonth: number,
+    localDate: number,
+    localHour: number,
+    localMinute: number,
+    localSecond: number,
+    offsetMinutes: number;
+
+  if (hasTimezone) {
+    const dateTimeMatch = val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+    if (dateTimeMatch) {
+      localYear = parseInt(dateTimeMatch[1], 10);
+      localMonth = parseInt(dateTimeMatch[2], 10) - 1; // 0-indexed
+      localDate = parseInt(dateTimeMatch[3], 10);
+      localHour = parseInt(dateTimeMatch[4], 10);
+      localMinute = parseInt(dateTimeMatch[5], 10);
+      localSecond = parseInt(dateTimeMatch[6], 10);
+    }
+
+    const offsetMatch = timezoneMatch[1];
+    if (offsetMatch === "Z") {
+      offsetMinutes = 0; // UTC
+    } else {
+      const sign = offsetMatch[0] === "+" ? 1 : -1;
+      const hours = parseInt(offsetMatch.slice(1, 3), 10);
+      const minutes = parseInt(offsetMatch.slice(4, 6), 10);
+      offsetMinutes = sign * (hours * 60 + minutes);
+    }
+  } else {
+    localYear = date.getUTCFullYear();
+    localMonth = date.getUTCMonth();
+    localDate = date.getUTCDate();
+    localHour = date.getUTCHours();
+    localMinute = date.getUTCMinutes();
+    localSecond = date.getUTCSeconds();
+    offsetMinutes = 0;
+  }
+
+  return {
+    toISOString: () => date.toISOString(),
+    year: () => localYear,
+    month: () => localMonth, // 0-indexed like Dayjs
+    date: () => localDate,
+    hour: () => localHour,
+    minute: () => localMinute,
+    second: () => localSecond,
+    utcOffset: () => offsetMinutes, // Dayjs returns offset in minutes
+    toDate: () => new Date(date),
+    format: (formatStr?: string) => format(date, formatStr),
+    isValid: () => !isNaN(date.getTime()),
+    valueOf: () => date.getTime(),
+    _date: date, // Internal access to the Date object
+  };
 };
 
 export const stringToDayjsZod = z.string().transform(stringToDayjs);

@@ -1,15 +1,16 @@
-import type { Dayjs } from "@calcom/dayjs";
 import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import { format } from "@calcom/lib/dateFns";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 
 type EventDetails = {
   username: string;
   eventSlug: string;
-  startTime: Dayjs;
-  endTime: Dayjs;
+  startTime: DateFnsDate;
+  endTime: DateFnsDate;
   visitorTimezone?: string;
   visitorUid?: string;
 };
@@ -30,7 +31,7 @@ const constructRedisKey = (eventDetails: EventDetails, orgSlug?: string, teamId?
 
 const constructDataHash = (eventDetails: EventDetails) => {
   const obj = {
-    st: eventDetails.startTime.format("YYYY-MM-DD"),
+    st: format(eventDetails.startTime, "yyyy-MM-dd"),
     vTz: eventDetails?.visitorTimezone,
     vUuid: eventDetails?.visitorUid,
   };
@@ -130,8 +131,8 @@ export const handleNotificationWhenNoSlots = async ({
         },
         user: eventDetails.username,
         slug: eventDetails.eventSlug,
-        startTime: eventDetails.startTime.format("YYYY-MM-DD"),
-        endTime: eventDetails.endTime.format("YYYY-MM-DD"),
+        startTime: format(eventDetails.startTime, "yyyy-MM-dd"),
+        endTime: format(eventDetails.endTime, "yyyy-MM-dd"),
         // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availability
         editLink: `${WEBAPP_URL}/availability?type=team`,
         teamSlug: teamSlug?.slug ?? "",

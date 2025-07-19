@@ -9,12 +9,24 @@ import type {
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
-import { stringToDayjsZod } from "@calcom/lib/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import {
+  addTime,
+  startOf,
+  endOf,
+  isBefore,
+  format,
+  toISOString,
+  utc,
+  tz,
+  isValid,
+  isBetween,
+  day,
+} from "@calcom/lib/dateFns";
+import { stringToDateZod } from "@calcom/lib/dateFns";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -40,8 +52,8 @@ import { withReporting } from "./sentryWrapper";
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
   .object({
-    dateFrom: stringToDayjsZod,
-    dateTo: stringToDayjsZod,
+    dateFrom: stringToDateZod,
+    dateTo: stringToDateZod,
     eventTypeId: z.number().optional(),
     username: z.string().optional(),
     userId: z.number().optional(),
@@ -217,8 +229,8 @@ const _getCurrentSeats = async (
       };
     }[];
   },
-  dateFrom: Dayjs,
-  dateTo: Dayjs
+  dateFrom: DateFnsDate,
+  dateTo: DateFnsDate
 ) => {
   const { schedulingType, hosts, id } = eventType;
   const hostEmails = hosts?.map((host) => host.user.email);
@@ -231,8 +243,8 @@ const _getCurrentSeats = async (
     where: {
       eventTypeId: id,
       startTime: {
-        gte: dateFrom.format(),
-        lte: dateTo.format(),
+        gte: toISOString(dateFrom),
+        lte: toISOString(dateTo),
       },
       status: BookingStatus.ACCEPTED,
     },
@@ -293,7 +305,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })}`
   );
 
-  if (!dateFrom.isValid() || !dateTo.isValid()) {
+  if (!isValid(dateFrom) || !isValid(dateTo)) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
   }
 
@@ -368,8 +380,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     busyTimesFromLimits = await getBusyTimesFromLimits(
       bookingLimits,
       durationLimits,
-      dateFrom.tz(timeZone),
-      dateTo.tz(timeZone),
+      dateFrom as any,
+      dateTo as any,
       duration,
       eventType,
       initialData?.busyTimesFromLimitsBookings ?? [],
@@ -394,8 +406,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
       user,
       teamBookingLimits,
-      dateFrom.tz(timeZone),
-      dateTo.tz(timeZone),
+      dateFrom as any,
+      dateTo as any,
       teamForBookingLimits.id,
       teamForBookingLimits.includeManagedEventsInLimits,
       timeZone,
@@ -433,8 +445,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const detailedBusyTimes: EventBusyDetails[] = [
     ...busyTimes.map((a) => ({
       ...a,
-      start: dayjs(a.start).toISOString(),
-      end: dayjs(a.end).toISOString(),
+      start: toISOString(new Date(a.start)),
+      end: toISOString(new Date(a.end)),
       title: a.title,
       source: query.withSource ? a.source : undefined,
     })),
@@ -478,17 +490,21 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
     for (let i = 0; i < availabilityWithDates.length; i++) {
       const override = availabilityWithDates[i];
-      const startTime = dayjs.utc(override.startTime);
-      const endTime = dayjs.utc(override.endTime);
-      const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
-      const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
+      const startTime = utc(override.startTime);
+      const endTime = utc(override.endTime);
+      const overrideDate = override.date ? utc(override.date) : utc();
+      const overrideStartDate = new Date(overrideDate.getTime());
+      overrideStartDate.setHours(startTime.getHours(), startTime.getMinutes(), 0, 0);
+      const overrideEndDate = new Date(overrideDate.getTime());
+      overrideEndDate.setHours(endTime.getHours(), endTime.getMinutes(), 0, 0);
+
       if (
-        overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
-        overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
+        isBetween(overrideStartDate, dateFrom, dateTo, "[]") ||
+        isBetween(overrideEndDate, dateFrom, dateTo, "[]")
       ) {
         dateOverrides.push({
-          start: overrideStartDate.toDate(),
-          end: overrideEndDate.toDate(),
+          start: overrideStartDate,
+          end: overrideEndDate,
         });
       }
     }
@@ -506,32 +522,32 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
           // (start <= 'dateTo' AND end >= 'dateFrom')
           {
             start: {
-              lte: dateTo.toISOString(),
+              lte: toISOString(dateTo),
             },
             end: {
-              gte: dateFrom.toISOString(),
+              gte: toISOString(dateFrom),
             },
           },
           // start is between dateFrom and dateTo but end is outside of range
           // (start <= 'dateTo' AND end >= 'dateTo')
           {
             start: {
-              lte: dateTo.toISOString(),
+              lte: toISOString(dateTo),
             },
 
             end: {
-              gte: dateTo.toISOString(),
+              gte: toISOString(dateTo),
             },
           },
           // end is between dateFrom and dateTo but start is outside of range
           // (start <= 'dateFrom' OR end <= 'dateTo')
           {
             start: {
-              lte: dateFrom.toISOString(),
+              lte: toISOString(dateFrom),
             },
 
             end: {
-              lte: dateTo.toISOString(),
+              lte: toISOString(dateTo),
             },
           },
         ],
@@ -566,15 +582,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
-    dateFrom,
-    dateTo,
+    dateFrom: new Date(dateFrom),
+    dateTo: new Date(dateTo),
     availability,
     timeZone,
     travelSchedules: isDefaultSchedule
       ? user.travelSchedules.map((schedule) => {
           return {
-            startDate: dayjs(schedule.startDate),
-            endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+            startDate: new Date(schedule.startDate),
+            endDate: schedule.endDate ? new Date(schedule.endDate) : undefined,
             timeZone: schedule.timeZone,
           };
         })
@@ -583,8 +599,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
+    start: new Date(busy.start),
+    end: new Date(busy.end),
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
@@ -611,18 +627,20 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
 
 const _getPeriodStartDatesBetween = (
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  dateFrom: DateFnsDate,
+  dateTo: DateFnsDate,
   period: IntervalLimitUnit,
   timeZone?: string
-): Dayjs[] => {
+): DateFnsDate[] => {
   const dates = [];
-  let startDate = timeZone ? dayjs(dateFrom).tz(timeZone).startOf(period) : dayjs(dateFrom).startOf(period);
-  const endDate = timeZone ? dayjs(dateTo).tz(timeZone).endOf(period) : dayjs(dateTo).endOf(period);
+  let startDate = timeZone
+    ? startOf(tz(dateFrom, timeZone), period as any)
+    : startOf(dateFrom, period as any);
+  const endDate = timeZone ? endOf(tz(dateTo, timeZone), period as any) : endOf(dateTo, period as any);
 
-  while (startDate.isBefore(endDate)) {
+  while (isBefore(startDate, endDate)) {
     dates.push(startDate);
-    startDate = startDate.add(1, period);
+    startDate = addTime(startDate, 1, period as any);
   }
   return dates;
 };
@@ -667,25 +685,25 @@ const calculateOutOfOfficeRanges = (
   return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
     // here we should use startDate or today if start is before today
     // consider timezone in start and end date range
-    const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
-      ? dayjs().utc().startOf("day")
-      : dayjs(start).utc().startOf("day");
+    const startDateRange = isBefore(utc(start), startOf(utc(), "day"))
+      ? startOf(utc(), "day")
+      : startOf(utc(start), "day");
 
     // get number of day in the week and see if it's on the availability
     const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
       (a, b) => a - b
     );
 
-    const endDateRange = dayjs(end).utc().endOf("day");
+    const endDateRange = endOf(utc(end), "day");
 
-    for (let date = startDateRange; date.isBefore(endDateRange); date = date.add(1, "day")) {
-      const dayNumberOnWeek = date.day();
+    for (let date = startDateRange; isBefore(date, endDateRange); date = addTime(date, 1, "day")) {
+      const dayNumberOnWeek = day(date);
 
       if (!flattenDays?.includes(dayNumberOnWeek)) {
         continue; // Skip to the next iteration if day not found in flattenDays
       }
 
-      acc[date.format("YYYY-MM-DD")] = {
+      acc[format(date, "yyyy-MM-dd")] = {
         // @TODO:  would be good having start and end availability time here, but for now should be good
         // you can obtain that from user availability defined outside of here
         fromUser: { id: user.id, displayName: user.name },

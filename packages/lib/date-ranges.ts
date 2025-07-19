@@ -1,26 +1,56 @@
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
+import { fromZonedTime } from "date-fns-tz";
+
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import {
+  addTime,
+  subtractTime,
+  startOf,
+  endOf,
+  isBefore,
+  isAfter,
+  isBetween,
+  min,
+  max,
+  format,
+  tz,
+  valueOf,
+} from "@calcom/lib/dateFns";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import type { Availability } from "@calcom/prisma/client";
 
 export type DateRange = {
-  start: Dayjs;
-  end: Dayjs;
+  start: DateFnsDate;
+  end: DateFnsDate;
 };
 
 export type DateOverride = Pick<Availability, "date" | "startTime" | "endTime">;
 export type WorkingHours = Pick<Availability, "days" | "startTime" | "endTime">;
 
-type TravelSchedule = { startDate: Dayjs; endDate?: Dayjs; timeZone: string };
+type TravelSchedule = {
+  startDate: DateFnsDate | { toDate?: () => Date };
+  endDate?: DateFnsDate | { toDate?: () => Date };
+  timeZone: string;
+};
 
-function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: TravelSchedule[]) {
+function getAdjustedTimezone(date: DateFnsDate, timeZone: string, travelSchedules: TravelSchedule[]) {
   let adjustedTimezone = timeZone;
 
   for (const travelSchedule of travelSchedules) {
-    if (
-      !date.isBefore(travelSchedule.startDate) &&
-      (!travelSchedule.endDate || !date.isAfter(travelSchedule.endDate))
-    ) {
+    const normalizedStartDate =
+      typeof travelSchedule.startDate === "object" &&
+      "toDate" in travelSchedule.startDate &&
+      typeof travelSchedule.startDate.toDate === "function"
+        ? travelSchedule.startDate.toDate()
+        : (travelSchedule.startDate as DateFnsDate);
+    const normalizedEndDate = travelSchedule.endDate
+      ? typeof travelSchedule.endDate === "object" &&
+        "toDate" in travelSchedule.endDate &&
+        typeof travelSchedule.endDate.toDate === "function"
+        ? travelSchedule.endDate.toDate()
+        : (travelSchedule.endDate as DateFnsDate)
+      : undefined;
+
+    if (!isBefore(date, normalizedStartDate) && (!normalizedEndDate || !isAfter(date, normalizedEndDate))) {
       adjustedTimezone = travelSchedule.timeZone;
       break;
     }
@@ -37,56 +67,98 @@ export function processWorkingHours({
 }: {
   item: WorkingHours;
   timeZone: string;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
+  dateFrom: DateFnsDate;
+  dateTo: DateFnsDate;
   travelSchedules: TravelSchedule[];
 }) {
-  const utcDateTo = dateTo.utc();
   const results = [];
-  for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.startOf("day").utcOffset();
 
+  console.log("DEBUG processWorkingHours called with:", {
+    timeZone,
+    dateFrom: dateFrom.toISOString(),
+    dateTo: dateTo.toISOString(),
+    itemDays: item.days,
+    itemStartTime: item.startTime.toISOString(),
+    itemEndTime: item.endTime.toISOString(),
+  });
+
+  for (
+    let date = startOf(dateFrom, "day");
+    isBefore(date, dateTo) || date.getTime() === startOf(dateTo, "day").getTime();
+    date = addTime(date, 1, "day")
+  ) {
     const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
 
-    const offset = date.tz(adjustedTimezone).utcOffset();
+    const dateInTz = tz(date, adjustedTimezone);
+    console.log("DEBUG processWorkingHours date loop:", {
+      date: date.toISOString(),
+      adjustedTimezone,
+      dateInTz: dateInTz.toISOString(),
+      dayOfWeek: dateInTz.getDay(),
+      itemDaysIncludes: item.days.includes(dateInTz.getDay()),
+    });
 
-    // it always has to be start of the day (midnight) even when DST changes
-    const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
-    if (!item.days.includes(dateInTz.day())) {
+    if (!item.days.includes(dateInTz.getDay())) {
+      console.log("DEBUG processWorkingHours skipping day:", dateInTz.getDay());
       continue;
     }
 
-    let start = dateInTz
-      .add(item.startTime.getUTCHours(), "hours")
-      .add(item.startTime.getUTCMinutes(), "minutes");
+    const startTimeMinutes = item.startTime.getUTCHours() * 60 + item.startTime.getUTCMinutes();
+    const endTimeMinutes = item.endTime.getUTCHours() * 60 + item.endTime.getUTCMinutes();
 
-    let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
+    const dateInTimezone = tz(date, adjustedTimezone);
 
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
+    const startTimeInTimezone = new Date(dateInTimezone);
+    startTimeInTimezone.setHours(Math.floor(startTimeMinutes / 60), startTimeMinutes % 60, 0, 0);
 
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
+    const endTimeInTimezone = new Date(dateInTimezone);
+    endTimeInTimezone.setHours(Math.floor(endTimeMinutes / 60), endTimeMinutes % 60, 0, 0);
 
-    const startResult = dayjs.max(start, dateFrom);
-    let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
+    const startTimeUTC = fromZonedTime(startTimeInTimezone, adjustedTimezone);
+    const endTimeUTC = fromZonedTime(endTimeInTimezone, adjustedTimezone);
+
+    console.log("DEBUG processWorkingHours time conversion:", {
+      startTimeMinutes,
+      endTimeMinutes,
+      startTimeInTimezone: startTimeInTimezone.toISOString(),
+      endTimeInTimezone: endTimeInTimezone.toISOString(),
+      startTimeUTC: startTimeUTC.toISOString(),
+      endTimeUTC: endTimeUTC.toISOString(),
+    });
+
+    const startResult = max([startTimeUTC, dateFrom]);
+    let endResult = min([endTimeUTC, dateTo]);
+
+    console.log("DEBUG processWorkingHours result calculation:", {
+      startResult: startResult.toISOString(),
+      endResult: endResult.toISOString(),
+      isEndBeforeStart: isBefore(endResult, startResult),
+    });
 
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
-    if (endResult.hour() === 23 && endResult.minute() === 59) {
-      endResult = endResult.add(1, "minute");
+    if (endResult.getHours() === 23 && endResult.getMinutes() === 59) {
+      endResult = addTime(endResult, 1, "minutes");
     }
 
-    if (endResult.isBefore(startResult)) {
+    if (isBefore(endResult, startResult)) {
       // if an event ends before start, it's not a result.
+      console.log("DEBUG processWorkingHours skipping - end before start");
       continue;
     }
+
+    console.log("DEBUG processWorkingHours adding result:", {
+      start: startResult.toISOString(),
+      end: endResult.toISOString(),
+    });
 
     results.push({
       start: startResult,
       end: endResult,
     });
   }
+
+  console.log("DEBUG processWorkingHours final results:", results.length);
   return results;
 }
 
@@ -97,33 +169,41 @@ export function processDateOverride({
   travelSchedules,
 }: {
   item: DateOverride;
-  itemDateAsUtc: Dayjs;
+  itemDateAsUtc: DateFnsDate;
   timeZone: string;
   travelSchedules: TravelSchedule[];
 }) {
-  const overrideDate = dayjs(item.date);
+  const overrideDate = new Date(item.date!);
 
   const adjustedTimezone = getAdjustedTimezone(overrideDate, timeZone, travelSchedules);
 
-  const itemDateStartOfDay = itemDateAsUtc.startOf("day");
-  const startDate = itemDateStartOfDay
-    .add(item.startTime.getUTCHours(), "hours")
-    .add(item.startTime.getUTCMinutes(), "minutes")
-    .second(0)
-    .tz(adjustedTimezone, true);
+  const itemDateStartOfDay = startOf(itemDateAsUtc, "day");
+  const startDate = tz(
+    new Date(
+      addTime(
+        addTime(itemDateStartOfDay, item.startTime.getUTCHours(), "hours"),
+        item.startTime.getUTCMinutes(),
+        "minutes"
+      ).getTime()
+    ),
+    adjustedTimezone
+  );
+  startDate.setSeconds(0);
 
   let endDate = itemDateStartOfDay;
   const endTimeHours = item.endTime.getUTCHours();
   const endTimeMinutes = item.endTime.getUTCMinutes();
 
   if (endTimeHours === 23 && endTimeMinutes === 59) {
-    endDate = endDate.add(1, "day").tz(timeZone, true);
+    endDate = tz(addTime(endDate, 1, "days"), timeZone);
   } else {
-    endDate = itemDateStartOfDay
-      .add(endTimeHours, "hours")
-      .add(endTimeMinutes, "minutes")
-      .second(0)
-      .tz(adjustedTimezone, true);
+    endDate = tz(
+      new Date(
+        addTime(addTime(itemDateStartOfDay, endTimeHours, "hours"), endTimeMinutes, "minutes").getTime()
+      ),
+      adjustedTimezone
+    );
+    endDate.setSeconds(0);
   }
 
   return {
@@ -133,8 +213,8 @@ export function processDateOverride({
 }
 
 // This function processes out-of-office dates and returns a date range for each OOO date.
-function processOOO(outOfOffice: Dayjs, timeZone: string) {
-  const OOOdate = outOfOffice.tz(timeZone, true);
+function processOOO(outOfOffice: DateFnsDate, timeZone: string) {
+  const OOOdate = tz(outOfOffice, timeZone);
   return {
     start: OOOdate,
     end: OOOdate,
@@ -151,24 +231,42 @@ export function buildDateRanges({
 }: {
   timeZone: string;
   availability: (DateOverride | WorkingHours)[];
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
+  dateFrom: DateFnsDate | { toDate?: () => Date };
+  dateTo: DateFnsDate | { toDate?: () => Date };
   travelSchedules: TravelSchedule[];
   outOfOffice?: IOutOfOfficeData;
 }): { dateRanges: DateRange[]; oooExcludedDateRanges: DateRange[] } {
-  const dateFromOrganizerTZ = dateFrom.tz(timeZone);
+  const normalizedDateFrom =
+    typeof dateFrom === "object" && "toDate" in dateFrom && typeof dateFrom.toDate === "function"
+      ? dateFrom.toDate()
+      : (dateFrom as DateFnsDate);
+  const normalizedDateTo =
+    typeof dateTo === "object" && "toDate" in dateTo && typeof dateTo.toDate === "function"
+      ? dateTo.toDate()
+      : (dateTo as DateFnsDate);
+
+  const dateFromOrganizerTZ = tz(normalizedDateFrom, timeZone);
+  const dateToOrganizerTZ = tz(normalizedDateTo, timeZone);
+
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
-        processed = processed.concat(
-          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
-        );
+        const result = processWorkingHours({
+          item,
+          timeZone,
+          dateFrom: dateFromOrganizerTZ,
+          dateTo: dateToOrganizerTZ,
+          travelSchedules,
+        });
+        processed = processed.concat(result);
       }
       return processed;
     }, [])
   );
   const OOOdates = outOfOffice
-    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs.utc(outOfOffice), timeZone))
+    ? Object.keys(outOfOffice).map((outOfOffice) =>
+        processOOO(new Date(`${outOfOffice}T00:00:00.000Z`), timeZone)
+      )
     : [];
 
   const groupedOOO = groupByDate(OOOdates);
@@ -176,17 +274,17 @@ export function buildDateRanges({
   const groupedDateOverrides = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("date" in item && !!item.date) {
-        const itemDateAsUtc = dayjs.utc(item.date);
+        const itemDateAsUtc = new Date(item.date.toISOString());
         // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
         // refactor this to actually work with correct dates.
         // As of 2024-02-20, there are mismatches between local and UTC dates for overrides
         // and the dateFrom and dateTo fields, resulting in this if not returning true, which
         // results in "no available users found" errors.
         if (
-          itemDateAsUtc.isBetween(
-            dateFrom.subtract(1, "day").startOf("day"),
-            dateTo.add(1, "day").endOf("day"),
-            null,
+          isBetween(
+            itemDateAsUtc,
+            startOf(subtractTime(normalizedDateFrom, 1, "days"), "day"),
+            endOf(addTime(normalizedDateTo, 1, "days"), "day"),
             "[]"
           )
         ) {
@@ -202,7 +300,7 @@ export function buildDateRanges({
     ...groupedDateOverrides,
   }).map(
     // remove 0-length overrides that were kept to cancel out working dates until now.
-    (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
+    (ranges) => ranges.filter((range) => valueOf(range.start) !== valueOf(range.end))
   );
 
   const oooExcludedDateRanges = Object.values({
@@ -211,7 +309,7 @@ export function buildDateRanges({
     ...groupedOOO,
   }).map(
     // remove 0-length overrides && OOO dates that were kept to cancel out working dates until now.
-    (ranges) => ranges.filter((range) => range.start.valueOf() !== range.end.valueOf())
+    (ranges) => ranges.filter((range) => valueOf(range.start) !== valueOf(range.end))
   );
 
   return { dateRanges: dateRanges.flat(), oooExcludedDateRanges: oooExcludedDateRanges.flat() };
@@ -225,7 +323,7 @@ export function groupByDate(ranges: DateRange[]): { [x: string]: DateRange[] } {
       },
       currentValue
     ) => {
-      const dateString = dayjs(currentValue.start).format("YYYY-MM-DD");
+      const dateString = format(currentValue.start, "yyyy-MM-dd");
 
       previousValue[dateString] =
         typeof previousValue[dateString] === "undefined"
@@ -251,8 +349,8 @@ export function intersect(ranges: DateRange[][]): DateRange[] {
     userRanges
       .map((r) => ({
         ...r,
-        startValue: r.start.valueOf(),
-        endValue: r.end.valueOf(),
+        startValue: valueOf(r.start),
+        endValue: valueOf(r.end),
       }))
       .sort((a, b) => a.startValue - b.startValue)
   );
@@ -308,25 +406,25 @@ export function subtract(
   excludedRanges: DateRange[]
 ) {
   const result = [];
-  const sortedExcludedRanges = [...excludedRanges].sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  const sortedExcludedRanges = [...excludedRanges].sort((a, b) => valueOf(a.start) - valueOf(b.start));
 
   for (const { start: sourceStart, end: sourceEnd, ...passThrough } of sourceRanges) {
     let currentStart = sourceStart;
 
     for (const excludedRange of sortedExcludedRanges) {
-      if (excludedRange.start.valueOf() >= sourceEnd.valueOf()) break;
-      if (excludedRange.end.valueOf() <= currentStart.valueOf()) continue;
+      if (valueOf(excludedRange.start) >= valueOf(sourceEnd)) break;
+      if (valueOf(excludedRange.end) <= valueOf(currentStart)) continue;
 
-      if (excludedRange.start.valueOf() > currentStart.valueOf()) {
+      if (valueOf(excludedRange.start) > valueOf(currentStart)) {
         result.push({ start: currentStart, end: excludedRange.start, ...passThrough });
       }
 
-      if (excludedRange.end.valueOf() > currentStart.valueOf()) {
+      if (valueOf(excludedRange.end) > valueOf(currentStart)) {
         currentStart = excludedRange.end;
       }
     }
 
-    if (sourceEnd.valueOf() > currentStart.valueOf()) {
+    if (valueOf(sourceEnd) > valueOf(currentStart)) {
       result.push({ start: currentStart, end: sourceEnd, ...passThrough });
     }
   }

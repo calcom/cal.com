@@ -1,6 +1,5 @@
-import type { Dayjs } from "dayjs";
-
-import dayjs from "@calcom/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import { utc } from "@calcom/lib/dateFns";
 import type { CurrentSeats } from "@calcom/lib/getUserAvailability";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 
@@ -14,7 +13,7 @@ export function checkForConflicts({
   currentSeats,
 }: {
   busy: BufferedBusyTimes;
-  time: Dayjs;
+  time: DateFnsDate;
   eventLength: number;
   currentSeats?: CurrentSeats;
 }) {
@@ -31,8 +30,8 @@ export function checkForConflicts({
 
   const sortedBusyTimes = busy
     .map((busyTime) => ({
-      start: dayjs.utc(busyTime.start).valueOf(),
-      end: dayjs.utc(busyTime.end).valueOf(),
+      start: utc(busyTime.start).valueOf(),
+      end: utc(busyTime.end).valueOf(),
     }))
     .sort((a, b) => a.start - b.start);
 

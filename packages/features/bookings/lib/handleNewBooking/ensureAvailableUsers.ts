@@ -1,9 +1,8 @@
 import type { Logger } from "tslog";
 
-import dayjs from "@calcom/dayjs";
-import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { buildDateRanges, type DateRange } from "@calcom/lib/date-ranges";
+import { isBefore, isAfter, toISOString, utc, tz, diff } from "@calcom/lib/dateFns";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
 import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
@@ -18,32 +17,27 @@ import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
 import type { IsFixedAwareUser } from "./types";
 
-type DateRange = {
-  start: Dayjs;
-  end: Dayjs;
-};
-
 const getDateTimeInUtc = (timeInput: string, timeZone?: string) => {
-  return timeZone === "Etc/GMT" ? dayjs.utc(timeInput) : dayjs(timeInput).tz(timeZone).utc();
+  if (timeInput.includes("+") || timeInput.includes("Z")) {
+    return utc(timeInput);
+  }
+  return timeZone === "Etc/GMT" ? utc(timeInput) : utc(tz(new Date(timeInput), timeZone || "UTC"));
 };
 
 const getOriginalBookingDuration = (originalBooking?: BookingType) => {
   return originalBooking
-    ? dayjs(originalBooking.endTime).diff(dayjs(originalBooking.startTime), "minutes")
+    ? diff(new Date(originalBooking.endTime), new Date(originalBooking.startTime), "minute")
     : undefined;
 };
 
-const hasDateRangeForBooking = (
-  dateRanges: DateRange[],
-  startDateTimeUtc: dayjs.Dayjs,
-  endDateTimeUtc: dayjs.Dayjs
-) => {
+const hasDateRangeForBooking = (dateRanges: DateRange[], startDateTimeUtc: Date, endDateTimeUtc: Date) => {
   let dateRangeForBooking = false;
 
   for (const dateRange of dateRanges) {
     if (
-      (startDateTimeUtc.isAfter(dateRange.start) || startDateTimeUtc.isSame(dateRange.start)) &&
-      (endDateTimeUtc.isBefore(dateRange.end) || endDateTimeUtc.isSame(dateRange.end))
+      (isAfter(startDateTimeUtc, dateRange.start) ||
+        startDateTimeUtc.getTime() === dateRange.start.getTime()) &&
+      (isBefore(endDateTimeUtc, dateRange.end) || endDateTimeUtc.getTime() === dateRange.end.getTime())
     ) {
       dateRangeForBooking = true;
       break;
@@ -67,7 +61,7 @@ const _ensureAvailableUsers = async (
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
   const endDateTimeUtc = getDateTimeInUtc(input.dateTo, input.timeZone);
 
-  const duration = dayjs(input.dateTo).diff(input.dateFrom, "minute");
+  const duration = diff(new Date(input.dateTo), new Date(input.dateFrom), "minute");
   const originalBookingDuration = getOriginalBookingDuration(input.originalRescheduledBooking);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
@@ -78,8 +72,8 @@ const _ensureAvailableUsers = async (
       ? await getBusyTimesForLimitChecks({
           userIds: eventType.users.map((u) => u.id),
           eventTypeId: eventType.id,
-          startDate: startDateTimeUtc.format(),
-          endDate: endDateTimeUtc.format(),
+          startDate: toISOString(startDateTimeUtc),
+          endDate: toISOString(endDateTimeUtc),
           rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
           bookingLimits,
           durationLimits,
@@ -93,8 +87,8 @@ const _ensureAvailableUsers = async (
       eventTypeId: eventType.id,
       duration: originalBookingDuration,
       returnDateOverrides: false,
-      dateFrom: startDateTimeUtc.format(),
-      dateTo: endDateTimeUtc.format(),
+      dateFrom: toISOString(startDateTimeUtc),
+      dateTo: toISOString(endDateTimeUtc),
       beforeEventBuffer: eventType.beforeEventBuffer,
       afterEventBuffer: eventType.afterEventBuffer,
       bypassBusyCalendarTimes: false,
@@ -183,8 +177,8 @@ const _ensureAvailableUsers = async (
       const travelSchedules =
         isDefaultSchedule && !eventType.useBookerTimezone
           ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-              startDate: dayjs(schedule.startDate),
-              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              startDate: new Date(schedule.startDate),
+              endDate: schedule.endDate ? new Date(schedule.endDate) : undefined,
               timeZone: schedule.timeZone,
             }))
           : [];
@@ -197,7 +191,7 @@ const _ensureAvailableUsers = async (
         travelSchedules,
       });
 
-      if (!hasDateRangeForBooking(restrictionRanges, startDateTimeUtc, endDateTimeUtc)) {
+      if (!hasDateRangeForBooking(restrictionRanges, new Date(startDateTimeUtc), new Date(endDateTimeUtc))) {
         loggerWithEventDetails.error(
           `Booking outside restriction schedule availability.`,
           piiFreeInputDataForLogging
@@ -227,7 +221,7 @@ const _ensureAvailableUsers = async (
     }
 
     //check if event time is within the date range
-    if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
+    if (!hasDateRangeForBooking(dateRanges, new Date(startDateTimeUtc), new Date(endDateTimeUtc))) {
       loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
       return;
     }
@@ -235,7 +229,7 @@ const _ensureAvailableUsers = async (
     try {
       const foundConflict = checkForConflicts({
         busy: bufferedBusyTimes,
-        time: startDateTimeUtc,
+        time: new Date(startDateTimeUtc),
         eventLength: duration,
       });
       if (!foundConflict) {
