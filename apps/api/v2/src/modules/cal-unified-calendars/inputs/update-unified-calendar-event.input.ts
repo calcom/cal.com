@@ -2,12 +2,7 @@ import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from "class-validator";
 
-import {
-  CalendarEventAttendee,
-  CalendarEventHost,
-  CalendarEventStatus,
-  CalendarEventResponseStatus,
-} from "../outputs/get-unified-calendar-event";
+import { CalendarEventStatus, CalendarEventResponseStatus } from "../outputs/get-unified-calendar-event";
 
 export class UpdateCalendarEventHost {
   @IsString()
@@ -53,13 +48,6 @@ export class UpdateCalendarEventAttendee {
     description: "Response status of the attendee",
   })
   responseStatus?: CalendarEventResponseStatus | null;
-
-  @IsOptional()
-  @ApiPropertyOptional({
-    type: Boolean,
-    description: "Whether the attendee is optional",
-  })
-  optional?: boolean;
 
   @IsString()
   @IsOptional()
