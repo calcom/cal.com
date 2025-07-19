@@ -24,4 +24,5 @@ export enum ErrorCode {
   BookingNotAllowedByRestrictionSchedule = "booking_not_allowed_by_restriction_schedule_error",
   RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
   EventTypeNoHosts = "event_type_no_hosts",
+  RequestBodyInvalid = "request_body_invalid_error",
 }
