@@ -12,8 +12,8 @@ import type { ICalendarCacheRepository } from "./calendar-cache.repository.inter
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-const CACHING_TIME = ONE_MONTH_IN_MS;
+const THREE_MONTHS_IN_MS = 90 * MS_PER_DAY;
+const CACHING_TIME = THREE_MONTHS_IN_MS;
 
 function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
@@ -27,6 +27,11 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 }
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
+
+// Simple type definition for calendar cache values
+type CalendarCacheValue = {
+  calendars?: Record<string, { busy?: Array<{ start: string | Date; end: string | Date }> }>;
+};
 
 /**
  * It means that caller can only work with DB Credentials
@@ -139,14 +144,31 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     userId,
     args,
     value,
+    nextSyncToken,
   }: {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
+    nextSyncToken?: string | null;
   }) {
     assertCalendarHasDbCredential(this.calendar);
     const key = parseKeyForCache(args);
+
+    let finalValue = value;
+
+    if (nextSyncToken) {
+      const existingCache = await this.getCachedAvailability({
+        credentialId,
+        userId,
+        args,
+      });
+
+      if (existingCache?.value) {
+        finalValue = this.mergeCacheValues(existingCache.value, value);
+      }
+    }
+
     await prisma.calendarCache.upsert({
       where: {
         credentialId_key: {
@@ -157,16 +179,58 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       update: {
         // Ensure that on update userId is also set(It handles the case where userId is not set for legacy records)
         userId,
-        value,
+        value: finalValue,
+        nextSyncToken,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
       create: {
-        value,
+        value: finalValue,
         credentialId,
         userId,
         key,
+        nextSyncToken,
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
     });
+  }
+
+  private mergeCacheValues(
+    existingValue: Prisma.JsonValue,
+    newValue: Prisma.JsonNullValueInput | Prisma.InputJsonValue
+  ): Prisma.InputJsonValue {
+    try {
+      const existing = existingValue as CalendarCacheValue;
+      const incoming = newValue as CalendarCacheValue;
+
+      if (!existing?.calendars || !incoming?.calendars) {
+        return newValue as Prisma.InputJsonValue;
+      }
+
+      const result: CalendarCacheValue = {
+        calendars: { ...existing.calendars },
+      };
+
+      for (const calendarId of Object.keys(incoming.calendars)) {
+        const existingBusyTimes = result.calendars[calendarId]?.busy || [];
+        const incomingBusyTimes = incoming.calendars[calendarId]?.busy || [];
+
+        const allBusyTimes = [...existingBusyTimes, ...incomingBusyTimes];
+
+        const uniqueBusyTimes = allBusyTimes.filter((busyTime, index, array) => {
+          return array.findIndex((bt) => bt.start === busyTime.start && bt.end === busyTime.end) === index;
+        });
+
+        uniqueBusyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+        result.calendars[calendarId] = {
+          busy: uniqueBusyTimes,
+        };
+      }
+
+      return result;
+    } catch (error) {
+      log.warn("Error merging cache values, using new value", { error });
+      return newValue as Prisma.InputJsonValue;
+    }
   }
 }

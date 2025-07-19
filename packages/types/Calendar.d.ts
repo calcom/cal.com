@@ -294,6 +294,8 @@ export interface Calendar {
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
+  fetchAvailabilityAndSetCacheIncremental?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
+
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
   testDelegationCredentialSetup?(): Promise<boolean>;
