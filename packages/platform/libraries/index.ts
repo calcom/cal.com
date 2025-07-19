@@ -22,6 +22,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+import { queuedResponseHandler } from "../../../apps/web/app/api/routing-forms/queued-response/route";
+
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
 
@@ -119,3 +121,4 @@ export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
+export { queuedResponseHandler };
