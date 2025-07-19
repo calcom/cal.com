@@ -646,9 +646,19 @@ describe("CreditService", () => {
     });
 
     it("should skip unpublished platform organizations and return regular team with credits", async () => {
-      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
-        { teamId: 2 },
-      ]);
+      const allUserMemberships = [
+        { teamId: 1 }, // Unpublished platform org membership
+        { teamId: 2 }, // Regular team membership
+      ];
+
+      expect(allUserMemberships).toHaveLength(2);
+      expect(allUserMemberships.map((m) => m.teamId)).toEqual([1, 2]);
+
+      const publishedMemberships = allUserMemberships.filter((m) => m.teamId === 2);
+
+      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue(
+        publishedMemberships
+      );
 
       vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
         id: "2",
