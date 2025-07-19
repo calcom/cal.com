@@ -276,8 +276,14 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+          // Determine if the phone field needs validation
+          const needsValidation = isRequired || (value && value.trim() !== "");
+
+          // Validate phone number if the field is not hidden and requires validation
+          if (!bookingField.hidden && needsValidation) {
+            if (!(await phoneSchema.safeParseAsync(value)).success) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+            }
           }
           continue;
         }
