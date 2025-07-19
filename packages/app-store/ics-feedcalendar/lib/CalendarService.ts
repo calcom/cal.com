@@ -168,7 +168,7 @@ export default class ICSFeedCalendarService implements Calendar {
 
         // Ignore cancelled events
         const status = vevent.getFirstPropertyValue("status");
-        if (status && status.toUpperCase() === "CANCELLED") return;
+        if (typeof status === "string" && status.toLowerCase() === "cancelled") return;
         const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
         const timezone = dtstart ? dtstart["timezone"] : undefined;
         // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
