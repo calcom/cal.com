@@ -967,6 +967,164 @@ describe("intersect function comprehensive tests", () => {
       });
     });
 
+    it("should perform well with varied weekly availability across 2 years", () => {
+      const timeZone = "America/New_York";
+      const dateFrom = dayjs.utc("2023-01-01T00:00:00Z");
+      const dateTo = dayjs.utc("2025-01-01T00:00:00Z");
+
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+      }[] = [];
+
+      const workingHourTemplates = [
+        [9, 17],
+        [10, 16],
+        [8, 14],
+        [13, 18],
+        [11, 19],
+      ];
+
+      const totalWeeks = 104;
+
+      for (let week = 0; week < totalWeeks; week++) {
+        const template = workingHourTemplates[week % workingHourTemplates.length];
+        const [startHour, endHour] = template;
+
+        availability.push({
+          days: [1, 2, 3],
+          startTime: new Date(Date.UTC(0, 0, 0, startHour, 0)),
+          endTime: new Date(Date.UTC(0, 0, 0, endHour, 0)),
+        });
+
+        if (week % 2 === 0) {
+          availability.push({
+            days: [5],
+            startTime: new Date(Date.UTC(0, 0, 0, startHour + 1, 0)),
+            endTime: new Date(Date.UTC(0, 0, 0, endHour - 1, 0)),
+          });
+        }
+      }
+
+      const travelSchedules = [
+        {
+          startDate: dayjs.utc("2023-02-10T00:00:00Z"),
+          endDate: dayjs.utc("2023-02-24T23:59:59Z"),
+          timeZone: "Pacific/Auckland",
+        },
+        {
+          startDate: dayjs.utc("2023-05-15T00:00:00Z"),
+          endDate: dayjs.utc("2023-06-05T23:59:59Z"),
+          timeZone: "Europe/London",
+        },
+        {
+          startDate: dayjs.utc("2023-08-01T00:00:00Z"),
+          endDate: dayjs.utc("2023-08-21T23:59:59Z"),
+          timeZone: "Asia/Tokyo",
+        },
+        {
+          startDate: dayjs.utc("2023-11-05T00:00:00Z"),
+          endDate: dayjs.utc("2023-11-26T23:59:59Z"),
+          timeZone: "Asia/Kolkata",
+        },
+        {
+          startDate: dayjs.utc("2024-01-15T00:00:00Z"),
+          endDate: dayjs.utc("2024-02-05T23:59:59Z"),
+          timeZone: "Australia/Sydney",
+        },
+        {
+          startDate: dayjs.utc("2024-04-10T00:00:00Z"),
+          endDate: dayjs.utc("2024-04-24T23:59:59Z"),
+          timeZone: "Europe/Berlin",
+        },
+        {
+          startDate: dayjs.utc("2024-07-01T00:00:00Z"),
+          endDate: dayjs.utc("2024-07-28T23:59:59Z"),
+          timeZone: "America/Los_Angeles",
+        },
+        {
+          startDate: dayjs.utc("2024-10-15T00:00:00Z"),
+          endDate: dayjs.utc("2024-11-10T23:59:59Z"),
+          timeZone: "Asia/Singapore",
+        },
+      ];
+
+      const dateOverrides = [];
+      for (let i = 0; i < 75; i++) {
+        const randomDate = dateFrom.add(Math.floor(Math.random() * 730), "day");
+        if (i % 3 === 0) {
+          dateOverrides.push({
+            date: randomDate.toDate(),
+            startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+            endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+          });
+        } else if (i % 3 === 1) {
+          dateOverrides.push({
+            date: randomDate.toDate(),
+            startTime: new Date(Date.UTC(0, 0, 0, 6, 0)),
+            endTime: new Date(Date.UTC(0, 0, 0, 22, 0)),
+          });
+        } else {
+          dateOverrides.push({
+            date: randomDate.toDate(),
+            startTime: new Date(Date.UTC(0, 0, 0, 12, 0)),
+            endTime: new Date(Date.UTC(0, 0, 0, 14, 0)),
+          });
+        }
+      }
+
+      const outOfOffice: { [key: string]: { fromUser: { id: number; displayName: string } } } = {};
+      for (let i = 0; i < 25; i++) {
+        const randomDate = dateFrom.add(Math.floor(Math.random() * 730), "day");
+        const dateKey = randomDate.format("YYYY-MM-DD");
+        outOfOffice[dateKey] = {
+          fromUser: { id: 1, displayName: "Test User" },
+        };
+      }
+
+      const memoryBefore = process.memoryUsage();
+      const start = performance.now();
+
+      const { dateRanges: results, oooExcludedDateRanges } = buildDateRanges({
+        availability: [...availability, ...dateOverrides],
+        timeZone,
+        dateFrom,
+        dateTo,
+        travelSchedules,
+        outOfOffice,
+      });
+
+      const duration = performance.now() - start;
+      const memoryAfter = process.memoryUsage();
+      const memoryUsed = memoryAfter.heapUsed - memoryBefore.heapUsed;
+
+      console.log(`Generated ${results.length} date ranges in ${duration.toFixed(2)}ms`);
+      console.log(`Memory used: ${(memoryUsed / 1024 / 1024).toFixed(2)}MB`);
+      console.log(`OOO excluded ranges: ${oooExcludedDateRanges.length}`);
+
+      expect(results.length).toBeGreaterThan(500);
+      expect(duration).toBeLessThan(25000);
+      expect(memoryUsed).toBeLessThan(50 * 1024 * 1024);
+
+      results.forEach((range) => {
+        expect(range.start).toBeDefined();
+        expect(range.end).toBeDefined();
+        expect(range.start.isBefore(range.end)).toBe(true);
+        expect(range.start.isValid()).toBe(true);
+        expect(range.end.isValid()).toBe(true);
+        expect(range.start.valueOf()).toBeGreaterThanOrEqual(dateFrom.valueOf());
+        expect(range.end.valueOf()).toBeLessThanOrEqual(dateTo.valueOf());
+      });
+
+      oooExcludedDateRanges.forEach((range) => {
+        expect(range.start).toBeDefined();
+        expect(range.end).toBeDefined();
+        expect(range.start.isValid()).toBe(true);
+        expect(range.end.isValid()).toBe(true);
+      });
+    });
+
     it("should handle time precision correctly", () => {
       const ranges1 = [{ start: dayjs("2023-06-01T09:00:00.000Z"), end: dayjs("2023-06-01T10:00:00.500Z") }];
       const ranges2 = [{ start: dayjs("2023-06-01T09:30:00.250Z"), end: dayjs("2023-06-01T11:00:00.750Z") }];
