@@ -402,8 +402,10 @@ export default class EventManager {
     }
 
     // Update the calendar event with the proper video call data
-    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
-    if (calendarReference) {
+    const bookingCalendarReference = booking.references.find((reference) =>
+      reference.type.includes("_calendar")
+    );
+    if (bookingCalendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
     }
 
@@ -643,10 +645,23 @@ export default class EventManager {
           const bookingCalendarReference = booking.references.find((reference) =>
             reference.type.includes("_calendar")
           );
-          // There was a case that booking didn't had any reference and we don't want to throw error on function
-          if (bookingCalendarReference) {
-            // Update all calendar events.
+          if (bookingCalendarReference?.uid) {
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          } else {
+            log.debug("No valid calendar reference found, creating new calendar event");
+            const createdCalendarEvent = await this.createAllCalendarEvents(evt);
+            results.push(...createdCalendarEvent);
+            updatedBookingReferences.push(
+              ...createdCalendarEvent
+                .filter((result) => result.type.includes("_calendar"))
+                .map((result) => ({
+                  type: result.type,
+                  uid: result.uid,
+                  meetingId: result.createdEvent?.id,
+                  externalCalendarId: result.createdEvent?.iCalUID,
+                  credentialId: result.credentialId,
+                }))
+            );
           }
         }
 

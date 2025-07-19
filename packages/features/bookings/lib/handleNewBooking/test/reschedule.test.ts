@@ -687,6 +687,164 @@ describe("handleNewBooking", () => {
         timeout
       );
 
+      test(
+        `should handle rescheduling when original booking has no calendar event UID (e.g. due to failed calendar sync)
+          1. Should cancel the existing booking
+          2. Should create a new calendar event
+          3. Should create a new booking with valid calendar references
+          4. Should send appropriate notifications
+        `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+          await createBookingScenario(
+            getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  // Note: No calendar references to simulate failed calendar sync
+                  references: [],
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          // Mock successful calendar event creation
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "NEW_CALENDAR_EVENT_UID",
+              iCalUID: "NEW_ICAL_UID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          // Verify that the previous booking is cancelled
+          await expectBookingToBeInDatabase({
+            uid: uidOfBookingToBeRescheduled,
+            status: BookingStatus.CANCELLED,
+          });
+
+          // Verify new booking times
+          expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
+          expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
+
+          // Verify that a new calendar event was created
+          expect(calendarMock.create).toHaveBeenCalled();
+
+          // Verify the new booking has proper calendar references
+          await expectBookingInDBToBeRescheduledFromTo({
+            from: {
+              uid: uidOfBookingToBeRescheduled,
+            },
+            to: {
+              description: "",
+              uid: createdBooking.uid!,
+              eventTypeId: mockBookingData.eventTypeId,
+              status: BookingStatus.ACCEPTED,
+              location: BookingLocations.CalVideo,
+              responses: expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              }),
+              references: [
+                {
+                  type: appStoreMetadata.googlecalendar.type,
+                  uid: "NEW_CALENDAR_EVENT_UID",
+                  externalCalendarId: expect.any(String),
+                },
+              ],
+            },
+          });
+
+          // Verify that appropriate notifications were sent
+          expectSuccessfulBookingRescheduledEmails({
+            booker,
+            organizer,
+            emails,
+            iCalUID: "NEW_ICAL_UID",
+          });
+
+          expectBookingRescheduledWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.CalVideo,
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+          });
+        },
+        timeout
+      );
+
       describe("Event Type that requires confirmation", () => {
         test(
           `should reschedule a booking that requires confirmation in PENDING state - When a booker(who is not the organizer himself) is doing the reschedule
