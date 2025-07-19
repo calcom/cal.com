@@ -764,6 +764,7 @@ model Booking {
   dynamicGroupSlugRef          String?
   rescheduled                  Boolean?
   fromReschedule               String?
+  rescheduledToUid             String?
   recurringEventId             String?
   smsReminderNumber            String?
   workflowReminders            WorkflowReminder[]
