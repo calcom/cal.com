@@ -338,3 +338,96 @@ export const buildUser = <T extends Partial<UserPayload>>(
     ...user,
   };
 };
+
+export const buildBookingScenario = (
+  scenario?: Partial<{
+    organizer: ReturnType<typeof buildUser>;
+    booker: { email: string; name: string; timeZone?: string };
+    eventType: Partial<EventType>;
+    webhooks: Array<{ eventTriggers: string[]; subscriberUrl: string }>;
+    workflows: Array<{ trigger: string; action: string; template: string }>;
+    apps: string[];
+    bookings: Array<Partial<Booking>>;
+  }>
+) => {
+  const defaultOrganizer = buildUser({
+    id: 101,
+    name: "Test Organizer",
+    email: "organizer@example.com",
+  });
+
+  const defaultBooker = {
+    email: "booker@example.com",
+    name: "Test Booker",
+    timeZone: "Asia/Kolkata",
+  };
+
+  const defaultEventType = buildEventType({
+    id: 1,
+    slotInterval: 30,
+    length: 30,
+  });
+
+  return {
+    organizer: scenario?.organizer || defaultOrganizer,
+    booker: scenario?.booker || defaultBooker,
+    eventType: scenario?.eventType || defaultEventType,
+    webhooks: scenario?.webhooks || [],
+    workflows: scenario?.workflows || [],
+    apps: scenario?.apps || ["google-calendar", "daily-video"],
+    bookings: scenario?.bookings || [],
+  };
+};
+
+export const buildTestUser = (
+  user?: Partial<{
+    id: number;
+    name: string;
+    email: string;
+    schedules: Record<string, unknown>[];
+    credentials: Record<string, unknown>[];
+    selectedCalendars: Record<string, unknown>[];
+    destinationCalendar: Record<string, unknown>;
+  }>
+) => {
+  return {
+    id: user?.id || 101,
+    name: user?.name || "Test User",
+    email: user?.email || "test@example.com",
+    schedules: user?.schedules || [],
+    credentials: user?.credentials || [],
+    selectedCalendars: user?.selectedCalendars || [],
+    destinationCalendar: user?.destinationCalendar || null,
+    ...user,
+  };
+};
+
+export const buildMockRequestData = (
+  data?: Partial<{
+    eventTypeId: number;
+    rescheduleUid?: string;
+    responses: { email: string; name: string; location?: Record<string, unknown> };
+    start?: string;
+    end?: string;
+  }>
+) => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const startTime = data?.start || `${tomorrow.toISOString().split("T")[0]}T04:00:00.000Z`;
+  const endTime = data?.end || `${tomorrow.toISOString().split("T")[0]}T04:30:00.000Z`;
+
+  return {
+    eventTypeId: data?.eventTypeId || 1,
+    start: startTime,
+    end: endTime,
+    timeZone: "Asia/Kolkata",
+    language: "en",
+    responses: data?.responses || {
+      email: "booker@example.com",
+      name: "Booker",
+      location: { optionValue: "", value: "Cal Video" },
+    },
+    rescheduleUid: data?.rescheduleUid,
+    ...data,
+  };
+};
