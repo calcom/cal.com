@@ -179,6 +179,7 @@ const nextConfig = {
     "superagent-proxy", // Dependencies of @tryvital/vital-node
     "superagent", // Dependencies of akismet
     "formidable", // Dependencies of akismet
+    "sharp", // Exclude Sharp from server bundle to avoid Vercel build issues
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
@@ -229,6 +230,7 @@ const nextConfig = {
       );
 
       config.externals.push("formidable");
+      config.externals.push("sharp");
     }
 
     config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
