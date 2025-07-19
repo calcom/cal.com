@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/bigbluebutton",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*",
+    "fast-xml-parser": "^5.2.5"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "BigBlueButton is a web-based video conferencing platform for hosting and joining video meetings, with features for online classes and collaboration"
+}
