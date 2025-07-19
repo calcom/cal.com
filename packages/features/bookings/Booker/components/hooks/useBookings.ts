@@ -169,6 +169,7 @@ export const useBookings = ({
       refetchIntervalInBackground: true,
     }
   );
+
   useEffect(
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
@@ -188,7 +189,7 @@ export const useBookings = ({
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
-    [_instantBooking.data]
+    [_instantBooking.data, t]
   );
 
   const createBookingMutation = useMutation({
