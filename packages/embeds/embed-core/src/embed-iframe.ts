@@ -279,6 +279,9 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
+  if (typeof document === "undefined") {
+    return;
+  }
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
@@ -299,6 +302,9 @@ function showPageAsNonEmbed() {
   makeBodyVisible();
   resetTransparentBackground();
   function resetTransparentBackground() {
+    if (typeof document === "undefined") {
+      return;
+    }
     if (document.body.style.background === "transparent") {
       document.body.style.background = "";
     }
@@ -674,7 +680,7 @@ function runAllUiSetters(uiConfig: UiConfig) {
 }
 
 function actOnColorScheme(colorScheme: string | null | undefined) {
-  if (!colorScheme) {
+  if (!colorScheme || typeof document === "undefined") {
     return;
   }
   document.documentElement.style.colorScheme = colorScheme;
@@ -731,6 +737,9 @@ async function connectPreloadedEmbed({
 }
 
 const isPrerendering = () => {
+  if (typeof document === "undefined") {
+    return false;
+  }
   return new URL(document.URL).searchParams.get("prerender") === "true";
 };
 
