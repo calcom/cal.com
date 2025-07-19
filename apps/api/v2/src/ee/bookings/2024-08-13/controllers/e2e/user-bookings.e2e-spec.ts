@@ -4,6 +4,7 @@ import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-booking-location.output";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -27,6 +28,7 @@ import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.rep
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
+import { createBooking } from "@calcom/features/bookings/lib/handleNewBooking/createBooking";
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
@@ -52,6 +54,7 @@ import {
   MarkAbsentBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
+import { UpdateBookingLocationInput_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/update-booking-location.input";
 import { Booking, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
@@ -2304,6 +2307,44 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .send(bookingBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(400);
+      });
+
+      it("should update booking location via PATCH", async () => {
+        const mockBooking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${eventTypeId}`,
+          title: "booking title",
+          startTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+          endTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          location: "integrations:daily",
+          customInputs: {},
+          metadata: {},
+        });
+
+        const body: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "attendeePhone",
+            phone: "+12345678901",
+          },
+        };
+
+        return request(app.getHttpServer())
+          .patch(`/v2/bookings/${mockBooking.uid}`)
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: UpdateBookingLocationOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.bookingUid).toEqual(mockBooking.uid);
+            expect(responseBody.data.location).toEqual("+12345678901");
+            await bookingsRepositoryFixture.deleteById(mockBooking.id);
+          });
       });
     });
 
