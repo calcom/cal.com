@@ -18,6 +18,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
+import { Input } from "@calcom/ui/form";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
@@ -95,7 +96,6 @@ export default function JoinCall(props: PageProps) {
           },
         }),
       });
-
       if (overrideName) {
         callFrame.setUserName(overrideName);
       }
@@ -147,8 +147,11 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />}
-
+      {displayLogInOverlay && (
+        <div>
+          <LogInOverlay isLoggedIn={!!loggedInUserName} bookingUid={booking.uid} />
+        </div>
+      )}
       <VideoMeetingInfo booking={booking} rediectAttendeeToOnExit={rediectAttendeeToOnExit} />
     </DailyProvider>
   );
@@ -231,42 +234,62 @@ interface LogInOverlayProps {
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
+
   const { isLoggedIn, bookingUid } = props;
   const [open, setOpen] = useState(!isLoggedIn);
+  const [userName, setUserName] = useState("");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_join_call")}
-        className="bg-black text-white sm:max-w-[480px]">
-        <div className="pb-8">
-          <div className="space-y-8">
-            <Button color="primary" className="mt-4 w-full justify-center " onClick={() => setOpen(false)}>
-              {t("continue_as_guest")}
-            </Button>
-
-            {/* Divider */}
-            <div className="relative py-2">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-600" />
+        className="h-[380px] bg-black text-white sm:max-w-[540px]">
+        <div className="">
+          <div className="mt-3 flex flex-col justify-between">
+            <div className="flex flex-col">
+              <div className="leading-relaxed">
+                <h4 className="text-md font-semibold text-white">{t("join_as_guest")}</h4>
+                <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
               </div>
-              <div className="relative flex justify-center">
-                <span className="bg-black px-4 text-sm text-gray-400">{t("or")}</span>
+              <div className="mt-4 flex gap-4">
+                <Input
+                  type="text"
+                  placeholder="name"
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={(e) => {
+                    setUserName(e.target.value);
+                  }}
+                />
+                <Button
+                  color="primary"
+                  onClick={() => {
+                    setOpen(false);
+                  }}>
+                  {t("continue")}
+                </Button>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
-              <p className="text-sm text-gray-300">{t("track_your_meetings")}</p>
+            <div className="relative py-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-600" />
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <div className="leading-relaxed">
+                <h4 className="text-md  font-semibold text-white">{t("signin_to_calcom")}</h4>
+                <p className="text-subtle text-sm">{t("track_your_meetings")}</p>
+              </div>
               <Button
                 color="primary"
-                className="mt-4 w-full justify-center"
+                className="mt-6 w-full justify-center"
                 onClick={() =>
                   (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
                 }>
-                <Icon name="external-link" className="mr-2 h-4 w-4" />
-                {t("log_in_to_cal_com")}
+                {t("sign_in")}
               </Button>
             </div>
           </div>
