@@ -8,8 +8,6 @@ import {
   formatTime as dateFnsFormatTime,
   isSupportedTimeZone,
   formatLocalizedDateTime as dateFnsFormatLocalizedDateTime,
-  formatToLocalizedDate,
-  formatToLocalizedTime,
   formatToLocalizedTimezone as dateFnsFormatToLocalizedTimezone,
   sortByTimezone as dateFnsSortByTimezone,
   isPreviousDayInTimezone as dateFnsIsPreviousDayInTimezone,
@@ -23,12 +21,20 @@ import {
   stringToDate,
 } from "@calcom/lib/dateFns";
 
-export const yyyymmdd = (date?: string | Date | DateFnsDate) => {
-  return dateFnsYyyymmdd(new Date(date || new Date()));
+export const yyyymmdd = (
+  date?:
+    | string
+    | Date
+    | DateFnsDate
+    | { toDate?: () => Date; toISOString?: () => string; format?: (format: string) => string }
+) => {
+  return dateFnsYyyymmdd(date || new Date());
 };
 
-export const daysInMonth = (date?: string | Date | DateFnsDate) => {
-  return dateFnsDaysInMonth(new Date(date || new Date()));
+export const daysInMonth = (
+  date?: string | Date | DateFnsDate | { year?: () => number; month?: () => number; toDate?: () => Date }
+) => {
+  return dateFnsDaysInMonth(date || new Date());
 };
 
 /**
@@ -58,11 +64,15 @@ export { isSupportedTimeZone };
  * locale will be used.
  */
 export const formatLocalizedDateTime = (
-  date: Date | DateFnsDate,
+  date: Date | DateFnsDate | { toDate?: () => Date },
   options: Intl.DateTimeFormatOptions = {},
   locale: string | undefined = undefined
 ) => {
-  return dateFnsFormatLocalizedDateTime(date, options, locale);
+  const dateObj =
+    typeof date === "object" && "toDate" in date && typeof date.toDate === "function"
+      ? date.toDate()
+      : (date as Date);
+  return dateFnsFormatLocalizedDateTime(dateObj, options, locale);
 };
 
 /**
@@ -70,14 +80,37 @@ export const formatLocalizedDateTime = (
  * given Date object and locale. Undefined values mean the defaults
  * associated with the browser's current locale will be used.
  */
-export { formatToLocalizedDate };
+export const formatToLocalizedDate = (
+  date: Date | DateFnsDate | { toDate?: () => Date },
+  locale: string | undefined = undefined,
+  dateStyle: Intl.DateTimeFormatOptions["dateStyle"] = "long",
+  timeZone?: string
+) => {
+  const dateObj =
+    typeof date === "object" && "toDate" in date && typeof date.toDate === "function"
+      ? date.toDate()
+      : (date as Date);
+  return formatLocalizedDateTime(dateObj, { dateStyle, timeZone }, locale);
+};
 
 /**
  * Returns a localized and translated time of day based on the
  * given Date object and locale. Undefined values mean the defaults
  * associated with the browser's current locale will be used.
  */
-export { formatToLocalizedTime };
+export const formatToLocalizedTime = (
+  date: Date | DateFnsDate | { toDate?: () => Date },
+  locale: string | undefined = undefined,
+  timeStyle: Intl.DateTimeFormatOptions["timeStyle"] = "short",
+  hour12: Intl.DateTimeFormatOptions["hour12"] = undefined,
+  timeZone?: string
+) => {
+  const dateObj =
+    typeof date === "object" && "toDate" in date && typeof date.toDate === "function"
+      ? date.toDate()
+      : (date as Date);
+  return formatLocalizedDateTime(dateObj, { timeStyle, hour12, timeZone }, locale);
+};
 
 /**
  * Returns a translated timezone based on the given Date object and
@@ -85,12 +118,16 @@ export { formatToLocalizedTime };
  * will be used.
  */
 export const formatToLocalizedTimezone = (
-  date: Date | DateFnsDate,
+  date: Date | DateFnsDate | { toDate?: () => Date },
   locale: string | undefined = undefined,
   timeZone: Intl.DateTimeFormatOptions["timeZone"],
   timeZoneName: Intl.DateTimeFormatOptions["timeZoneName"] = "long"
 ) => {
-  return dateFnsFormatToLocalizedTimezone(date, locale, timeZone, timeZoneName);
+  const dateObj =
+    typeof date === "object" && "toDate" in date && typeof date.toDate === "function"
+      ? date.toDate()
+      : (date as Date);
+  return dateFnsFormatToLocalizedTimezone(dateObj, locale, timeZone, timeZoneName);
 };
 
 /**
