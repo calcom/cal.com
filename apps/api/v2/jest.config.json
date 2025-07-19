@@ -4,20 +4,14 @@
   "moduleNameMapper": {
     "@/(.*)": "<rootDir>/src/$1",
     "test/(.*)": "<rootDir>/test/$1",
-    "@calcom/platform-libraries/event-types": "<rootDir>/../../../packages/platform/libraries/event-types.ts",
-    "@calcom/platform-libraries/slots": "<rootDir>/../../../packages/platform/libraries/slots.ts",
-    "@calcom/platform-libraries/emails": "<rootDir>/../../../packages/platform/libraries/emails.ts",
-    "@calcom/platform-libraries/schedules": "<rootDir>/../../../packages/platform/libraries/schedules.ts",
-    "@calcom/platform-libraries/app-store": "<rootDir>/../../../packages/platform/libraries/app-store.ts",
-    "@calcom/platform-libraries/workflows": "<rootDir>/../../../packages/platform/libraries/workflows.ts",
-    "@calcom/platform-libraries/conferencing": "<rootDir>/../../../packages/platform/libraries/conferencing.ts",
     "@calcom/platform-libraries/repositories": "<rootDir>/../../../packages/platform/libraries/repositories.ts",
-    "@calcom/dayjs": "<rootDir>/../../../packages/dayjs/index.ts"
+    "@calcom/prisma/client": "@prisma/client"
   },
   "testEnvironment": "node",
   "testRegex": ".*\\.spec\\.ts$",
   "transform": {
     "^.+\\.ts$": "ts-jest"
   },
-  "setupFiles": ["<rootDir>/test/setEnvVars.ts"]
+  "setupFiles": ["<rootDir>/test/setEnvVars.ts"],
+  "setupFilesAfterEnv": ["<rootDir>/test/jest-setup.ts"]
 }
