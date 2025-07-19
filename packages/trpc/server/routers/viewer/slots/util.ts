@@ -9,6 +9,7 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
+import { groupHostsByGroupId } from "@calcom/lib/bookings/groupHostsByGroupId";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
@@ -656,10 +657,11 @@ export class AvailableSlotsService {
   }: {
     hosts: {
       isFixed?: boolean;
+      groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
   }) {
-    return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    return hosts.map(({ isFixed, groupId, user }) => ({ isFixed, groupId, ...user }));
   }
 
   private getUsersWithCredentials = withReporting(
@@ -690,6 +692,7 @@ export class AvailableSlotsService {
     >;
     hosts: {
       isFixed?: boolean;
+      groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
     loggerWithEventDetails: Logger<unknown>;
@@ -979,6 +982,11 @@ export class AvailableSlotsService {
         contactOwnerEmail,
         routingFormResponse,
       });
+
+    const rrHostGroups = groupHostsByGroupId({
+      hosts: qualifiedRRHosts,
+      hostGroups: eventType.hostGroups,
+    });
 
     const allHosts = [...qualifiedRRHosts, ...fixedHosts];
 

@@ -91,6 +91,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     restrictionScheduleId,
     calVideoSettings,
+    hostGroups,
     ...rest
   } = input;
 
@@ -144,6 +145,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       workflows: {
         select: {
           workflowId: true,
+        },
+      },
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
         },
       },
       team: {
@@ -207,6 +214,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
   }
 
+  const isLoadBalancingDisabled = !!(
+    (eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
+    (hostGroups && hostGroups.length > 1) ||
+    (!hostGroups && eventType.hostGroups && eventType.hostGroups.length > 1)
+  );
+
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     // autoTranslate feature is allowed for org users only
@@ -221,10 +234,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
     disableGuests: guestsField?.hidden ?? false,
     seatsPerTimeSlot,
-    maxLeadThreshold:
-      eventType.team?.rrTimestampBasis && eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-        ? null
-        : rest.maxLeadThreshold,
+    maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
   };
   data.locations = locations ?? undefined;
 
@@ -390,6 +400,61 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
+  // Handle hostGroups updates first, so we can map temporary IDs to real IDs
+  let idMapping: Record<string, string> = {};
+  if (hostGroups !== undefined) {
+    // Delete all existing host groups for this event type
+    await ctx.prisma.hostGroup.deleteMany({
+      where: {
+        eventTypeId: id,
+      },
+    });
+
+    // Create new host groups if any are provided
+    if (hostGroups.length > 0) {
+      // Create groups and get their generated IDs
+      const createdGroups = await Promise.all(
+        hostGroups.map(async (group) => {
+          // Check if this is a temporary ID (starts with 'temp_') or a real UUID
+          const isTempId = group.id.startsWith("temp_");
+
+          if (isTempId) {
+            // Create new group and let database generate UUID
+            const createdGroup = await ctx.prisma.hostGroup.create({
+              data: {
+                name: group.name,
+                eventTypeId: id,
+              },
+            });
+            return {
+              tempId: group.id,
+              realId: createdGroup.id,
+            };
+          } else {
+            // This is an existing group with a real UUID, recreate it with the same ID
+            const createdGroup = await ctx.prisma.hostGroup.create({
+              data: {
+                id: group.id, // Use the existing UUID
+                name: group.name,
+                eventTypeId: id,
+              },
+            });
+            return {
+              tempId: group.id,
+              realId: group.id, // Same ID for existing groups
+            };
+          }
+        })
+      );
+
+      // Create a mapping from temporary IDs to real IDs
+      idMapping = createdGroups.reduce((acc, { tempId, realId }) => {
+        acc[tempId] = realId;
+        return acc;
+      }, {} as Record<string, string>);
+    }
+  }
+
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
@@ -426,6 +491,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
+          // Map temporary group ID to real group ID if it exists
+          groupId: host.groupId && idMapping[host.groupId] ? idMapping[host.groupId] : host.groupId,
         };
       }),
       update: existingHosts.map((host) => ({
@@ -440,6 +507,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           scheduleId: host.scheduleId ?? null,
+          // Map temporary group ID to real group ID if it exists
+          groupId: host.groupId && idMapping[host.groupId] ? idMapping[host.groupId] : host.groupId,
         },
       })),
     };

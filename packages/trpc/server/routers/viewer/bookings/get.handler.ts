@@ -510,6 +510,12 @@ export async function getBookings({
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("HostGroup")
+                    .select(["HostGroup.id", "HostGroup.name"])
+                    .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
+                ).as("hostGroups"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),

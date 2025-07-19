@@ -45,6 +45,12 @@ const hostSchema = z.object({
   priority: z.number().min(0).max(4).optional().nullable(),
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
+  groupId: z.string().optional().nullable(),
+});
+
+const hostGroupSchema = z.object({
+  id: z.string(),
+  name: z.string(),
 });
 
 const childSchema = z.object({
@@ -87,6 +93,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
     useEventLevelSelectedCalendars: z.boolean().optional(),
     seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
+    hostGroups: z.array(hostGroupSchema).optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);

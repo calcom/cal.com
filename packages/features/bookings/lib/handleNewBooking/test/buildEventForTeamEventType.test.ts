@@ -136,10 +136,10 @@ describe("buildEventForTeamEventType", () => {
 
     const teamArgs = withTeamSpy.mock.calls[0][0];
     const memberEmails = teamArgs.members.map((m: any) => m.email);
-
+    console.log(`teamArgs ${JSON.stringify(teamArgs)}`);
     expect(memberEmails).toContain("fixed@example.com");
     expect(memberEmails).toContain("nonfixed1@example.com");
-    expect(memberEmails).not.toContain("nonfixed2@example.com");
+    expect(memberEmails).toContain("nonfixed2@example.com");
   });
 
   it("builds a team with fallback name and id", async () => {

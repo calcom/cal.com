@@ -25,9 +25,11 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -204,8 +206,9 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
+                      // if host was already added, retain scheduleId and groupId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      groupId: host?.groupId || null,
                     };
                   }),
                   { shouldDirty: true }
@@ -259,8 +262,9 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
-                      // if host was already added, retain scheduleId
+                      // if host was already added, retain scheduleId and groupId
                       scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                      groupId: host?.groupId || null,
                     };
                   }),
                   { shouldDirty: true }
@@ -315,6 +319,50 @@ const RoundRobinHosts = ({
     control,
     name: "rrSegmentQueryValue",
   });
+  const hostGroups = useWatch({
+    control,
+    name: "hostGroups",
+  });
+
+  const createAddMembersWithSwitch = (groupId: string | null, containerClassName?: string) => {
+    return (
+      <AddMembersWithSwitch
+        placeholder={t("add_a_member")}
+        teamId={teamId}
+        teamMembers={teamMembers}
+        value={value}
+        onChange={onChange}
+        assignAllTeamMembers={assignAllTeamMembers}
+        setAssignAllTeamMembers={setAssignAllTeamMembers}
+        isSegmentApplicable={isSegmentApplicable}
+        automaticAddAllEnabled={true}
+        isRRWeightsEnabled={isRRWeightsEnabled}
+        isFixed={false}
+        groupId={groupId}
+        containerClassName={containerClassName || (assignAllTeamMembers ? "-mt-4" : "")}
+        onActive={() => {
+          const currentHosts = getValues("hosts");
+          setValue(
+            "hosts",
+            teamMembers.map((teamMember) => {
+              const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+              return {
+                isFixed: false,
+                userId: parseInt(teamMember.value, 10),
+                priority: host?.priority ?? 2,
+                weight: host?.weight ?? 100,
+                // if host was already added, retain scheduleId and groupId
+                scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                groupId: host?.groupId || groupId,
+              };
+            }),
+            { shouldDirty: true }
+          );
+        }}
+        customClassNames={customClassNames?.addMembers}
+      />
+    );
+  };
 
   return (
     <div className={classNames("rounded-lg")}>
@@ -323,16 +371,67 @@ const RoundRobinHosts = ({
           "border-subtle mt-5 rounded-t-md border p-6 pb-5",
           customClassNames?.container
         )}>
-        <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
-          {t("round_robin_hosts")}
-        </Label>
-        <p
-          className={classNames(
-            "text-subtle max-w-full break-words text-sm leading-tight",
-            customClassNames?.description
-          )}>
-          {t("round_robin_helper")}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className={classNames("mb-1 text-sm font-semibold", customClassNames?.label)}>
+              {t("round_robin_hosts")}
+            </Label>
+            <p
+              className={classNames(
+                "text-subtle max-w-full break-words text-sm leading-tight",
+                customClassNames?.description
+              )}>
+              {t("round_robin_groups_helper")}
+            </p>
+          </div>
+          <Button
+            color="secondary"
+            size="sm"
+            StartIcon="plus"
+            onClick={() => {
+              const allHosts = getValues("hosts");
+              const currentHosts = allHosts.filter((host) => !host.isFixed);
+              const fixedHosts = allHosts.filter((host) => host.isFixed);
+
+              // If no groups exist yet, create two groups
+              if (hostGroups?.length === 0 && currentHosts.length > 0) {
+                const firstGroup = {
+                  id: `temp_${Date.now()}_1`,
+                  name: "",
+                };
+                const secondGroup = {
+                  id: `temp_${Date.now()}_2`,
+                  name: "",
+                };
+                const updatedHostGroups = [firstGroup, secondGroup];
+                setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+
+                const updatedRRHosts = currentHosts.map((host) => {
+                  if (!host.groupId && !host.isFixed) {
+                    return { ...host, groupId: firstGroup.id };
+                  }
+                  return host;
+                });
+                // Preserve fixed hosts when updating
+                setValue("hosts", [...fixedHosts, ...updatedRRHosts], { shouldDirty: true });
+              } else {
+                // If groups already exist, just add one more group
+                const newGroup = {
+                  id: `temp_${Date.now()}_${hostGroups.length + 1}`,
+                  name: ``,
+                };
+                const updatedHostGroups = [...hostGroups, newGroup];
+                setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+              }
+              // Disable 'Add all team members' switch if enabled
+              if (assignAllTeamMembers) {
+                setValue("assignAllTeamMembers", false, { shouldDirty: true });
+                setAssignAllTeamMembers(false);
+              }
+            }}>
+            {t("add_group")}
+          </Button>
+        </div>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
         <>
@@ -348,16 +447,22 @@ const RoundRobinHosts = ({
                 descriptionClassName={customClassNames?.enableWeights?.description}
                 onCheckedChange={(active) => {
                   onChange(active);
-                  const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+                  const allHosts = getValues("hosts");
+                  const fixedHosts = allHosts.filter((host) => host.isFixed);
+                  const rrHosts = allHosts.filter((host) => !host.isFixed);
                   const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-                  setValue("hosts", sortedRRHosts);
+                  // Preserve fixed hosts when updating
+                  setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
                 }}>
                 <EditWeightsForAllTeamMembers
                   teamMembers={teamMembers}
                   value={value}
                   onChange={(hosts) => {
+                    const allHosts = getValues("hosts");
+                    const fixedHosts = allHosts.filter((host) => host.isFixed);
                     const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
-                    setValue("hosts", sortedRRHosts, { shouldDirty: true });
+                    // Preserve fixed hosts when updating
+                    setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
                   }}
                   assignAllTeamMembers={assignAllTeamMembers}
                   assignRRMembersUsingSegment={assignRRMembersUsingSegment}
@@ -368,39 +473,74 @@ const RoundRobinHosts = ({
             )}
           />
         </>
-        <AddMembersWithSwitch
-          placeholder={t("add_a_member")}
-          teamId={teamId}
-          teamMembers={teamMembers}
-          value={value}
-          onChange={onChange}
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          isSegmentApplicable={isSegmentApplicable}
-          automaticAddAllEnabled={true}
-          isRRWeightsEnabled={isRRWeightsEnabled}
-          isFixed={false}
-          containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
-          onActive={() => {
-            const currentHosts = getValues("hosts");
-            setValue(
-              "hosts",
-              teamMembers.map((teamMember) => {
-                const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
-                return {
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: host?.priority ?? 2,
-                  weight: host?.weight ?? 100,
-                  // if host was already added, retain scheduleId
-                  scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
-                };
-              }),
-              { shouldDirty: true }
-            );
-          }}
-          customClassNames={customClassNames?.addMembers}
-        />
+        {!hostGroups.length ? (
+          createAddMembersWithSwitch(hostGroups[0]?.id ?? null)
+        ) : (
+          <>
+            {/* Show unassigned hosts first */}
+            {(() => {
+              const unassignedHosts = value.filter((host) => !host.isFixed && !host.groupId);
+              if (unassignedHosts.length > 0) {
+                return (
+                  <div className="border-subtle my-4 rounded-md border p-4 pb-0">
+                    <div className="-mb-1 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-default text-sm font-medium">{`Group ${
+                          hostGroups.length + 1
+                        }`}</span>
+                      </div>
+                    </div>
+                    {createAddMembersWithSwitch(null)}
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            {/* Show all defined groups */}
+            {hostGroups.map((group, index) => {
+              const groupNumber = index + 1;
+
+              return (
+                <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
+                  <div className="-mb-1 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={group.name ?? ""}
+                        onChange={(e) => {
+                          const updatedHostGroups =
+                            hostGroups?.map((g) =>
+                              g.id === group.id ? { ...g, name: e.target.value } : g
+                            ) || [];
+                          setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+                        }}
+                        className="border-none bg-transparent p-0 text-sm font-medium focus:outline-none focus:ring-0"
+                        placeholder={`Group ${groupNumber}`}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Remove the group from hostGroups
+                        const updatedHostGroups = hostGroups?.filter((g) => g.id !== group.id) || [];
+                        setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+
+                        // Remove all hosts that belong to this group
+                        const updatedHosts = value.filter((host) => host.groupId !== group.id);
+                        onChange(updatedHosts);
+                        setValue("hosts", updatedHosts, { shouldDirty: true });
+                      }}
+                      className="text-subtle hover:text-default rounded p-1">
+                      <Icon name="x" className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {createAddMembersWithSwitch(group.id)}
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
     </div>
   );
@@ -507,16 +647,18 @@ const Hosts = ({
     );
   }, [schedulingType, setValue, getValues, submitCount]);
 
-  // To ensure existing host do not loose its scheduleId property, whenever a new host of same type is added.
+  // To ensure existing host do not loose its scheduleId and groupId properties, whenever a new host of same type is added.
   // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
     const existingHosts = getValues("hosts");
     return changedHosts.map((newValue) => {
       const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+
       return existingHost
         ? {
             ...newValue,
             scheduleId: existingHost.scheduleId,
+            groupId: existingHost.groupId,
           }
         : newValue;
     });
@@ -560,7 +702,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  const hosts = [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)];
+                  const hosts = [...value.filter((host: Host) => host.isFixed), ...changeValue];
                   onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
@@ -636,6 +778,11 @@ export const EventTeamAssignmentTab = ({
   const schedulingType = useWatch({
     control,
     name: "schedulingType",
+  });
+
+  const hostGroups = useWatch({
+    control,
+    name: "hostGroups",
   });
 
   return (
@@ -719,8 +866,16 @@ export const EventTeamAssignmentTab = ({
                       {!!(
                         eventType.team?.rrTimestampBasis &&
                         eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                      ) ? (
-                        <Tooltip content={t("rr_load_balancing_disabled")}>
+                      ) || hostGroups?.length > 1 ? (
+                        <Tooltip
+                          content={
+                            !!(
+                              eventType.team?.rrTimestampBasis &&
+                              eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                            )
+                              ? t("rr_load_balancing_disabled")
+                              : t("rr_load_balancing_disabled_with_groups")
+                          }>
                           <div className="w-full">
                             <RadioArea.Item
                               value="loadBalancing"
