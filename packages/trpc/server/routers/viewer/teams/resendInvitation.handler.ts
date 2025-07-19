@@ -1,7 +1,10 @@
+import { randomBytes } from "crypto";
+
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
@@ -26,14 +29,47 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
 
   let verificationToken;
 
-  try {
-    verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({
-      email: input.email,
-      teamId: input.teamId,
-      expiresInDays: 7,
-    });
-  } catch (error) {
-    console.error("[resendInvitationHandler] Error updating verification token: ", error);
+  if (input.isOrg) {
+    try {
+      verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({
+        email: input.email,
+        teamId: input.teamId,
+        expiresInDays: 7,
+      });
+    } catch (error) {
+      console.error(
+        "[resendInvitationHandler] Token not found, creating new one for org invitation: ",
+        error
+      );
+      try {
+        const token = randomBytes(32).toString("hex");
+        await prisma.verificationToken.create({
+          data: {
+            identifier: input.email,
+            token,
+            expires: new Date(new Date().setHours(168)),
+            team: {
+              connect: {
+                id: input.teamId,
+              },
+            },
+          },
+        });
+        verificationToken = { token };
+      } catch (createError) {
+        console.error("[resendInvitationHandler] Error creating verification token: ", createError);
+      }
+    }
+  } else {
+    try {
+      verificationToken = await VerificationTokenRepository.updateTeamInviteTokenExpirationDate({
+        email: input.email,
+        teamId: input.teamId,
+        expiresInDays: 7,
+      });
+    } catch (error) {
+      console.error("[resendInvitationHandler] Error updating verification token: ", error);
+    }
   }
 
   const inviteTeamOptions = {
