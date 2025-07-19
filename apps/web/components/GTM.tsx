@@ -1,5 +1,7 @@
 import { GoogleTagManager } from "@next/third-parties/google";
 import { useQuery } from "@tanstack/react-query";
+// 1. Add usePathname to the imports
+import { usePathname } from "next/navigation";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
@@ -45,8 +47,9 @@ export function useGeolocation() {
 
 export function GoogleTagManagerComponent() {
   const { isUS, loading } = useGeolocation();
-
-  if (!isUS || !GTM_ID || loading) {
+  const pathname = usePathname();
+  const isBookingSuccessPage = pathname?.endsWith("/book/success");
+  if (!isUS || !GTM_ID || loading || isBookingSuccessPage) {
     return null;
   }
 
