@@ -138,8 +138,10 @@ export const roundRobinReassignment = async ({
   }, [] as IsFixedAwareUser[]);
 
   const traceContext = DistributedTracing.createTrace("round_robin_reassignment", {
-    bookingUid: booking.uid,
-    eventTypeId: eventType.id,
+    meta: {
+      bookingUid: booking.uid,
+      eventTypeId: eventType.id,
+    },
   });
 
   const availableUsers = await ensureAvailableUsers(

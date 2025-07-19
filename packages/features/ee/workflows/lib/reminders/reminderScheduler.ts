@@ -11,7 +11,6 @@ import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -48,7 +47,6 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
   isDryRun?: boolean;
-  traceContext?: TraceContext;
 }
 
 const processWorkflowStep = async (

@@ -7,67 +7,59 @@ import getIP from "@calcom/lib/getIP";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { DistributedTracing } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { CreationSource } from "@calcom/prisma/enums";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number; traceContext?: TraceContext }) {
   const userIp = getIP(req);
 
   const traceContext = DistributedTracing.createTrace("api_book_event", {
-      userIp: "<redacted>",
-    eventTypeId: req.body?.eventTypeId,
+    ...(req.traceContext || {}),
+    meta: {
+      ...(req.traceContext?.meta || {}),
+      userIp,
+      eventTypeId: req.body?.eventTypeId,
+    },
   });
   const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
 
-  try {
-    tracingLogger.info("API book event request started", {
-      userIp,
-      eventTypeId: req.body?.eventTypeId,
+  tracingLogger.info("API book event request started", {
+    userIp,
+    eventTypeId: req.body?.eventTypeId,
+  });
+
+  if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
+    await checkCfTurnstileToken({
+      token: req.body["cfToken"] as string,
+      remoteIp: userIp,
     });
-
-    if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
-      await checkCfTurnstileToken({
-        token: req.body["cfToken"] as string,
-        remoteIp: userIp,
-      });
-    }
-
-    await checkRateLimitAndThrowError({
-      rateLimitingType: "core",
-      identifier: userIp,
-    });
-
-    const session = await getServerSession({ req });
-    /* To mimic API behavior and comply with types */
-    req.body = {
-      ...req.body,
-      creationSource: CreationSource.WEBAPP,
-    };
-
-    const booking = await handleNewBooking({
-      bookingData: req.body,
-      userId: session?.user?.id || -1,
-      hostname: req.headers.host || "",
-      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-      traceContext,
-    });
-
-    tracingLogger.info("API book event request completed successfully", {
-      bookingUid: booking?.uid,
-    });
-
-    return booking;
-  } catch (error) {
-    tracingLogger.error("API book event request failed", { error });
-
-    if (error && typeof error === "object") {
-      (error as any).data = {
-        ...(error as any).data,
-        traceId: traceContext.traceId,
-      };
-    }
-
-    throw error;
   }
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: userIp,
+  });
+
+  const session = await getServerSession({ req });
+  /* To mimic API behavior and comply with types */
+  req.body = {
+    ...req.body,
+    creationSource: CreationSource.WEBAPP,
+  };
+
+  const booking = await handleNewBooking({
+    bookingData: req.body,
+    userId: session?.user?.id || -1,
+    hostname: req.headers.host || "",
+    forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    traceContext,
+  });
+
+  tracingLogger.info("API book event request completed successfully", {
+    bookingUid: booking?.uid,
+  });
+
+  return booking;
 }
 
 export default defaultResponder(handler, "/api/book/event");

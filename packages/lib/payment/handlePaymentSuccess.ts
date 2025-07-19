@@ -22,9 +22,16 @@ export async function handlePaymentSuccess(
   bookingId: number,
   traceContext?: TraceContext
 ) {
+  const paymentMeta = {
+    paymentId,
+    bookingId,
+  };
+
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "payment_success_processing")
-    : DistributedTracing.createTrace("payment_success_processing", { bookingUid: bookingId.toString() });
+    ? DistributedTracing.createSpan(traceContext, "payment_success_processing", paymentMeta)
+    : DistributedTracing.createTrace("payment_success_processing_fallback", {
+        meta: paymentMeta,
+      });
   const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Processing payment success", {
@@ -97,6 +104,13 @@ export async function handlePaymentSuccess(
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
+
+  tracingLogger.info("Payment and booking updated successfully", {
+    paymentId,
+    bookingId: booking.id,
+    isConfirmed,
+    requiresConfirmation,
+  });
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
@@ -107,11 +121,13 @@ export async function handlePaymentSuccess(
         booking,
         paid: true,
         platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+        traceContext: spanContext,
       });
     } else {
       await handleBookingRequested({
         evt,
         booking,
+        traceContext: spanContext,
       });
       tracingLogger.debug(`handling booking request for eventId ${eventType.id}`);
     }

@@ -1,4 +1,5 @@
 import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import { TracedError } from "@calcom/lib/tracing/error";
 
 export const createLoggerWithEventDetails = (
   eventTypeId: number,
@@ -6,17 +7,25 @@ export const createLoggerWithEventDetails = (
   eventTypeSlug: string | undefined,
   existingTraceContext?: TraceContext
 ) => {
+  const eventMeta = {
+    eventTypeId,
+    userInfo: reqBodyUser,
+    eventTypeSlug,
+  };
+
   const traceContext = existingTraceContext
-    ? {
-        ...existingTraceContext,
-        eventTypeId,
-        userInfo: reqBodyUser,
-        eventTypeSlug,
-      }
+    ? DistributedTracing.createSpan(existingTraceContext, "booking_event", eventMeta)
     : DistributedTracing.createTrace("booking_event", {
-        eventTypeId,
-        userInfo: reqBodyUser,
-        eventTypeSlug,
+        meta: eventMeta,
       });
-  return DistributedTracing.getTracingLogger(traceContext);
+
+  const logger = DistributedTracing.getTracingLogger(traceContext);
+
+  return {
+    logger,
+    traceContext,
+    createTracedError: (error: unknown, additionalData?: Record<string, unknown>) => {
+      return TracedError.createFromError(error, traceContext, additionalData);
+    },
+  };
 };

@@ -41,14 +41,18 @@ const handleSeats = async (
   // TODO: We could allow doing more things to support good dry run for seats
   if (isDryRun) return;
 
+  const seatsMeta = {
+    eventTypeId: eventType.id,
+    userInfo: reqBodyUser,
+    eventTypeSlug: eventType.slug,
+    bookingUid: reqBookingUid,
+    rescheduleUid,
+  };
+
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "handle_seats")
+    ? DistributedTracing.createSpan(traceContext, "handle_seats", seatsMeta)
     : DistributedTracing.createTrace("handle_seats_fallback", {
-        eventTypeId: eventType.id,
-        userInfo: reqBodyUser,
-        eventTypeSlug: eventType.slug,
-        bookingUid: reqBookingUid,
-        rescheduleUid,
+        meta: seatsMeta,
       });
 
   const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
