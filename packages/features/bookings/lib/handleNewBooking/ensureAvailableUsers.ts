@@ -221,7 +221,8 @@ const _ensureAvailableUsers = async (
     }
 
     //check if event time is within the date range
-    if (!hasDateRangeForBooking(dateRanges, new Date(startDateTimeUtc), new Date(endDateTimeUtc))) {
+    const hasRange = hasDateRangeForBooking(dateRanges, new Date(startDateTimeUtc), new Date(endDateTimeUtc));
+    if (!hasRange) {
       loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
       return;
     }

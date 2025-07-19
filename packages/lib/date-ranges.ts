@@ -73,15 +73,6 @@ export function processWorkingHours({
 }) {
   const results = [];
 
-  console.log("DEBUG processWorkingHours called with:", {
-    timeZone,
-    dateFrom: dateFrom.toISOString(),
-    dateTo: dateTo.toISOString(),
-    itemDays: item.days,
-    itemStartTime: item.startTime.toISOString(),
-    itemEndTime: item.endTime.toISOString(),
-  });
-
   for (
     let date = startOf(dateFrom, "day");
     isBefore(date, dateTo) || date.getTime() === startOf(dateTo, "day").getTime();
@@ -90,16 +81,8 @@ export function processWorkingHours({
     const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
 
     const dateInTz = tz(date, adjustedTimezone);
-    console.log("DEBUG processWorkingHours date loop:", {
-      date: date.toISOString(),
-      adjustedTimezone,
-      dateInTz: dateInTz.toISOString(),
-      dayOfWeek: dateInTz.getDay(),
-      itemDaysIncludes: item.days.includes(dateInTz.getDay()),
-    });
 
     if (!item.days.includes(dateInTz.getDay())) {
-      console.log("DEBUG processWorkingHours skipping day:", dateInTz.getDay());
       continue;
     }
 
@@ -117,23 +100,8 @@ export function processWorkingHours({
     const startTimeUTC = fromZonedTime(startTimeInTimezone, adjustedTimezone);
     const endTimeUTC = fromZonedTime(endTimeInTimezone, adjustedTimezone);
 
-    console.log("DEBUG processWorkingHours time conversion:", {
-      startTimeMinutes,
-      endTimeMinutes,
-      startTimeInTimezone: startTimeInTimezone.toISOString(),
-      endTimeInTimezone: endTimeInTimezone.toISOString(),
-      startTimeUTC: startTimeUTC.toISOString(),
-      endTimeUTC: endTimeUTC.toISOString(),
-    });
-
     const startResult = max([startTimeUTC, dateFrom]);
     let endResult = min([endTimeUTC, dateTo]);
-
-    console.log("DEBUG processWorkingHours result calculation:", {
-      startResult: startResult.toISOString(),
-      endResult: endResult.toISOString(),
-      isEndBeforeStart: isBefore(endResult, startResult),
-    });
 
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
@@ -143,14 +111,8 @@ export function processWorkingHours({
 
     if (isBefore(endResult, startResult)) {
       // if an event ends before start, it's not a result.
-      console.log("DEBUG processWorkingHours skipping - end before start");
       continue;
     }
-
-    console.log("DEBUG processWorkingHours adding result:", {
-      start: startResult.toISOString(),
-      end: endResult.toISOString(),
-    });
 
     results.push({
       start: startResult,
@@ -158,7 +120,6 @@ export function processWorkingHours({
     });
   }
 
-  console.log("DEBUG processWorkingHours final results:", results.length);
   return results;
 }
 
@@ -245,17 +206,14 @@ export function buildDateRanges({
       ? dateTo.toDate()
       : (dateTo as DateFnsDate);
 
-  const dateFromOrganizerTZ = tz(normalizedDateFrom, timeZone);
-  const dateToOrganizerTZ = tz(normalizedDateTo, timeZone);
-
   const groupedWorkingHours = groupByDate(
     availability.reduce((processed: DateRange[], item) => {
       if ("days" in item) {
         const result = processWorkingHours({
           item,
           timeZone,
-          dateFrom: dateFromOrganizerTZ,
-          dateTo: dateToOrganizerTZ,
+          dateFrom: normalizedDateFrom,
+          dateTo: normalizedDateTo,
           travelSchedules,
         });
         processed = processed.concat(result);
