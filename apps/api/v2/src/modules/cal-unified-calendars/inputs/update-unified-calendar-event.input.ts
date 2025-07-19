@@ -10,20 +10,14 @@ import {
 } from "../outputs/get-unified-calendar-event";
 
 export class UpdateCalendarEventHost {
-  @IsString()
-  @ApiPropertyOptional({
-    type: String,
-    description: "Email address of the host (read-only, cannot be updated)",
-  })
-  email!: string;
-
   @IsEnum(CalendarEventResponseStatus)
   @IsOptional()
   @ApiPropertyOptional({
     enum: CalendarEventResponseStatus,
     enumName: "CalendarEventResponseStatus",
     nullable: true,
-    description: "Response status of the host (only field that can be updated)",
+    description:
+      "Response status of the host (only field that can be updated). Email and name are preserved from existing Google Calendar data.",
   })
   responseStatus?: CalendarEventResponseStatus | null;
 }
@@ -158,7 +152,7 @@ export class UpdateUnifiedCalendarEventInput {
     type: [UpdateCalendarEventHost],
     nullable: true,
     description:
-      "Information about the event hosts (organizers). Only responseStatus can be updated. When provided, replaces existing organizers.",
+      "Information about the event hosts (organizers). Only responseStatus can be updated. Email and name are preserved from existing Google Calendar data. Updates all existing organizers with the provided responseStatus.",
   })
   hosts?: UpdateCalendarEventHost[];
 }
