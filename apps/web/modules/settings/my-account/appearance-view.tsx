@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
@@ -100,7 +100,7 @@ const AppearanceView = ({
 
   const userAppThemeFormMethods = useForm({
     defaultValues: {
-      appTheme: user.appTheme,
+      appTheme: user.appTheme || "system",
     },
   });
 
@@ -109,9 +109,13 @@ const AppearanceView = ({
     reset: resetUserAppThemeReset,
   } = userAppThemeFormMethods;
 
+  useEffect(() => {
+    resetUserAppThemeReset({ appTheme: user.appTheme || "system" });
+  }, [user.appTheme, resetUserAppThemeReset]);
+
   const userThemeFormMethods = useForm({
     defaultValues: {
-      theme: user.theme,
+      theme: user.theme || "system",
     },
   });
 
@@ -119,6 +123,10 @@ const AppearanceView = ({
     formState: { isSubmitting: isUserThemeSubmitting, isDirty: isUserThemeDirty },
     reset: resetUserThemeReset,
   } = userThemeFormMethods;
+
+  useEffect(() => {
+    resetUserThemeReset({ theme: user.theme || "system" });
+  }, [user.theme, resetUserThemeReset]);
 
   const bookerLayoutFormMethods = useForm({
     defaultValues: {
