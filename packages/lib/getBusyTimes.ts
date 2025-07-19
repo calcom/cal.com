@@ -1,10 +1,10 @@
 import type { Booking, EventType } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 
-import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
-import { stringToDayjs } from "@calcom/lib/dayjs";
+import { subtractTime, addTime, startOf, endOf, min, max, toISOString, utc } from "@calcom/lib/dateFns";
+import { stringToDate } from "@calcom/lib/dateFns";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
@@ -91,15 +91,15 @@ const _getBusyTimes = async (params: {
   performance.mark("prismaBookingGetStart");
 
   const startTimeDate =
-    rescheduleUid && duration ? dayjs(startTime).subtract(duration, "minute").toDate() : new Date(startTime);
+    rescheduleUid && duration ? subtractTime(new Date(startTime), duration, "minute") : new Date(startTime);
   const endTimeDate =
-    rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
+    rescheduleUid && duration ? addTime(new Date(endTime), duration, "minute") : new Date(endTime);
 
   // to also get bookings that are outside of start and end time, but the buffer falls within the start and end time
   const definedBufferTimes = getDefinedBufferTimes();
   const maxBuffer = definedBufferTimes[definedBufferTimes.length - 1];
-  const startTimeAdjustedWithMaxBuffer = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
-  const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
+  const startTimeAdjustedWithMaxBuffer = subtractTime(startTimeDate, maxBuffer, "minute");
+  const endTimeAdjustedWithMaxBuffer = addTime(endTimeDate, maxBuffer, "minute");
 
   // INFO: Refactored to allow this method to take in a list of current bookings for the user.
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
@@ -126,7 +126,7 @@ const _getBusyTimes = async (params: {
     const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
     if (rest._count?.seatsReferences) {
-      const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
+      const bookedAt = `${toISOString(utc(startTime))}<>${toISOString(utc(endTime))}`;
       bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
       bookingSeatCountMap[bookedAt]++;
       // Seat references on the current event are non-blocking until the event is fully booked.
@@ -139,14 +139,14 @@ const _getBusyTimes = async (params: {
         // then we ONLY add the before/after buffer times as busy times.
         if (minutesToBlockBeforeEvent) {
           aggregate.push({
-            start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-            end: dayjs(startTime).toDate(), // The event starts after the buffer
+            start: subtractTime(new Date(startTime), minutesToBlockBeforeEvent, "minute"),
+            end: new Date(startTime), // The event starts after the buffer
           });
         }
         if (minutesToBlockAfterEvent) {
           aggregate.push({
-            start: dayjs(endTime).toDate(), // The event ends before the buffer
-            end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+            start: new Date(endTime), // The event ends before the buffer
+            end: addTime(new Date(endTime), minutesToBlockAfterEvent, "minute"),
           });
         }
         return aggregate;
@@ -160,8 +160,8 @@ const _getBusyTimes = async (params: {
       return aggregate;
     }
     aggregate.push({
-      start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
-      end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
+      start: subtractTime(new Date(startTime), minutesToBlockBeforeEvent, "minute"),
+      end: addTime(new Date(endTime), minutesToBlockAfterEvent, "minute"),
       title,
       source: `eventType-${eventType?.id}-booking-${id}`,
     });
@@ -202,8 +202,8 @@ const _getBusyTimes = async (params: {
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
       return {
-        start: dayjs(start),
-        end: dayjs(end),
+        start: new Date(start),
+        end: new Date(end),
       };
     });
 
@@ -212,8 +212,8 @@ const _getBusyTimes = async (params: {
       // calendar busy time from original rescheduled booking should not be blocked
       if (originalRescheduleBooking) {
         openSeatsDateRanges.push({
-          start: dayjs(originalRescheduleBooking.startTime),
-          end: dayjs(originalRescheduleBooking.endTime),
+          start: new Date(originalRescheduleBooking.startTime),
+          end: new Date(originalRescheduleBooking.endTime),
         });
       }
     }
@@ -221,8 +221,8 @@ const _getBusyTimes = async (params: {
     const result = subtract(
       calendarBusyTimes.map((value) => ({
         ...value,
-        end: dayjs(value.end),
-        start: dayjs(value.start),
+        end: new Date(value.end),
+        start: new Date(value.start),
       })),
       openSeatsDateRanges
     );
@@ -230,8 +230,8 @@ const _getBusyTimes = async (params: {
     busyTimes.push(
       ...result.map((busyTime) => ({
         ...busyTime,
-        start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
-        end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
+        start: subtractTime(busyTime.start, afterEventBuffer || 0, "minute"),
+        end: addTime(busyTime.end, beforeEventBuffer || 0, "minute"),
       }))
     );
 
@@ -259,19 +259,19 @@ export function getStartEndDateforLimitCheck(
   bookingLimits?: IntervalLimit | null,
   durationLimits?: IntervalLimit | null
 ) {
-  const startTimeAsDayJs = stringToDayjs(startDate);
-  const endTimeAsDayJs = stringToDayjs(endDate);
+  const startTimeAsDate = stringToDate(startDate);
+  const endTimeAsDate = stringToDate(endDate);
 
-  let limitDateFrom = stringToDayjs(startDate);
-  let limitDateTo = stringToDayjs(endDate);
+  let limitDateFrom = stringToDate(startDate);
+  let limitDateTo = stringToDate(endDate);
 
   // expand date ranges by absolute minimum required to apply limits
   // (yearly limits are handled separately for performance)
   for (const key of ["PER_MONTH", "PER_WEEK", "PER_DAY"] as Exclude<keyof IntervalLimit, "PER_YEAR">[]) {
     if (bookingLimits?.[key] || durationLimits?.[key]) {
       const unit = intervalLimitKeyToUnit(key);
-      limitDateFrom = dayjs.min(limitDateFrom, startTimeAsDayJs.startOf(unit));
-      limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
+      limitDateFrom = min([limitDateFrom, startOf(startTimeAsDate, unit as any)]);
+      limitDateTo = max([limitDateTo, endOf(endTimeAsDate, unit as any)]);
     }
   }
 
@@ -319,10 +319,10 @@ export async function getBusyTimesForLimitChecks(params: {
     status: BookingStatus.ACCEPTED,
     // FIXME: bookings that overlap on one side will never be counted
     startTime: {
-      gte: limitDateFrom.toDate(),
+      gte: limitDateFrom,
     },
     endTime: {
-      lte: limitDateTo.toDate(),
+      lte: limitDateTo,
     },
   };
 
@@ -349,8 +349,8 @@ export async function getBusyTimesForLimitChecks(params: {
   });
 
   busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId }) => ({
-    start: dayjs(startTime).toDate(),
-    end: dayjs(endTime).toDate(),
+    start: new Date(startTime),
+    end: new Date(endTime),
     title,
     source: `eventType-${eventType?.id}-booking-${id}`,
     userId,

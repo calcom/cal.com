@@ -3,9 +3,9 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
 
 import { vi, describe, it, beforeAll, afterAll, expect, beforeEach, afterEach } from "vitest";
 
-import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails";
 import { RedisService } from "@calcom/features/redis/RedisService";
+import { addTime } from "@calcom/lib/dateFns";
 
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
@@ -75,8 +75,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(), // Mocking Dayjs format function
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(), // Using native Date
+      endTime: addTime(new Date(), 1, "hour"),
     };
     const orgDetails = {
       currentOrgDomain: "org1",
@@ -105,8 +105,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(), // Mocking Dayjs format function
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(), // Using native Date
+      endTime: addTime(new Date(), 1, "hour"),
     };
     const orgDetails = {
       currentOrgDomain: "org1",
@@ -140,8 +140,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {
@@ -194,8 +194,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {
@@ -222,8 +222,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {
@@ -254,8 +254,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {
@@ -307,8 +307,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {
@@ -364,8 +364,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     const eventDetails = {
       username: "user1",
       eventSlug: "event1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {
@@ -425,8 +425,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
 
     const baseEventDetails = {
       username: "user1",
-      startTime: dayjs(),
-      endTime: dayjs().add(1, "hour"),
+      startTime: new Date(),
+      endTime: addTime(new Date(), 1, "hour"),
     };
 
     const orgDetails = {

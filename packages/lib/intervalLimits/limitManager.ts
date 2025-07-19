@@ -1,9 +1,10 @@
-import type { Dayjs } from "@calcom/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import { startOf, endOf, tz, toISOString } from "@calcom/lib/dateFns";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import type { IntervalLimitUnit } from "./intervalLimitSchema";
 
-type BusyMapKey = `${IntervalLimitUnit}-${ReturnType<Dayjs["toISOString"]>}`;
+type BusyMapKey = `${IntervalLimitUnit}-${string}`;
 
 /**
  * Helps create, check, and return busy times from limits (with parallel support)
@@ -14,15 +15,15 @@ export default class LimitManager {
   /**
    * Creates a busy map key
    */
-  private static createKey(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string): BusyMapKey {
-    const tzStart = timeZone ? start.tz(timeZone) : start;
-    return `${unit}-${tzStart.startOf(unit).toISOString()}`;
+  private static createKey(start: DateFnsDate, unit: IntervalLimitUnit, timeZone?: string): BusyMapKey {
+    const tzStart = timeZone ? tz(start, timeZone) : start;
+    return `${unit}-${toISOString(startOf(tzStart, unit as any))}`;
   }
 
   /**
    * Checks if already marked busy by ancestors or siblings
    */
-  isAlreadyBusy(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string) {
+  isAlreadyBusy(start: DateFnsDate, unit: IntervalLimitUnit, timeZone?: string) {
     if (this.busyMap.has(LimitManager.createKey(start, "year", timeZone))) return true;
 
     if (unit === "month" && this.busyMap.has(LimitManager.createKey(start, "month", timeZone))) {
@@ -31,7 +32,7 @@ export default class LimitManager {
       unit === "week" &&
       // weeks can be part of two months
       ((this.busyMap.has(LimitManager.createKey(start, "month", timeZone)) &&
-        this.busyMap.has(LimitManager.createKey(start.endOf("week"), "month", timeZone))) ||
+        this.busyMap.has(LimitManager.createKey(endOf(start, "week"), "month", timeZone))) ||
         this.busyMap.has(LimitManager.createKey(start, "week", timeZone)))
     ) {
       return true;
@@ -50,11 +51,11 @@ export default class LimitManager {
   /**
    * Adds a new busy time
    */
-  addBusyTime(start: Dayjs, unit: IntervalLimitUnit, timeZone?: string) {
-    const tzStart = timeZone ? start.tz(timeZone) : start;
-    this.busyMap.set(`${unit}-${tzStart.toISOString()}`, {
-      start: tzStart.toISOString(),
-      end: tzStart.endOf(unit).toISOString(),
+  addBusyTime(start: DateFnsDate, unit: IntervalLimitUnit, timeZone?: string) {
+    const tzStart = timeZone ? tz(start, timeZone) : start;
+    this.busyMap.set(`${unit}-${toISOString(tzStart)}`, {
+      start: toISOString(tzStart),
+      end: toISOString(endOf(tzStart, unit as any)),
     });
   }
 

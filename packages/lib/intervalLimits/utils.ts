@@ -1,5 +1,5 @@
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import { tz, format, diff } from "@calcom/lib/dateFns";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import type { IntervalLimitUnit } from "./intervalLimitSchema";
@@ -14,14 +14,14 @@ import type { IntervalLimitUnit } from "./intervalLimitSchema";
  */
 export function extractDateParameters(
   booking: EventBusyDetails,
-  periodStart: Dayjs,
-  periodEnd: Dayjs,
+  periodStart: DateFnsDate,
+  periodEnd: DateFnsDate,
   timeZone: string
 ) {
-  const bookingStart = dayjs(booking.start).tz(timeZone);
-  const bookingDay = bookingStart.format("YYYY-MM-DD");
-  const periodStartDay = periodStart.format("YYYY-MM-DD");
-  const periodEndDay = periodEnd.format("YYYY-MM-DD");
+  const bookingStart = tz(new Date(booking.start), timeZone);
+  const bookingDay = format(bookingStart, "yyyy-MM-dd");
+  const periodStartDay = format(periodStart, "yyyy-MM-dd");
+  const periodEndDay = format(periodEnd, "yyyy-MM-dd");
 
   return {
     bookingStart,
@@ -41,8 +41,8 @@ export function extractDateParameters(
  */
 export function isBookingWithinPeriod(
   booking: EventBusyDetails,
-  periodStart: Dayjs,
-  periodEnd: Dayjs,
+  periodStart: DateFnsDate,
+  periodEnd: DateFnsDate,
   timeZone: string
 ) {
   const { bookingDay, periodStartDay, periodEndDay } = extractDateParameters(
@@ -61,12 +61,12 @@ export function isBookingWithinPeriod(
  * @param end The end date
  * @returns The appropriate interval limit unit
  */
-export function getUnitFromBusyTime(start: Dayjs, end: Dayjs): IntervalLimitUnit {
-  if (end.diff(start, "year") >= 1) {
+export function getUnitFromBusyTime(start: DateFnsDate, end: DateFnsDate): IntervalLimitUnit {
+  if (diff(end, start, "year") >= 1) {
     return "year";
-  } else if (end.diff(start, "month") >= 1) {
+  } else if (diff(end, start, "month") >= 1) {
     return "month";
-  } else if (end.diff(start, "week") >= 1) {
+  } else if (diff(end, start, "week") >= 1) {
     return "week";
   } else {
     return "day";

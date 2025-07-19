@@ -2,7 +2,6 @@ import { serialize } from "cookie";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuid } from "uuid";
 
-import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
@@ -26,7 +25,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   const uid = req?.cookies?.uid || uuid();
 
   const { slotUtcStartDate, slotUtcEndDate, eventTypeId, _isDryRun } = input;
-  const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
+  const releaseAt = new Date(Date.now() + parseInt(MINUTES_TO_BOOK) * 60 * 1000).toISOString();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
     select: { users: { select: { id: true } }, seatsPerTimeSlot: true },

@@ -1,5 +1,5 @@
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
+import type { DateFnsDate } from "@calcom/lib/dateFns";
+import { endOf, diff, toISOString } from "@calcom/lib/dateFns";
 import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
 import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
@@ -19,8 +19,8 @@ import { checkBookingLimit } from "./checkBookingLimits";
 const _getBusyTimesFromLimits = async (
   bookingLimits: IntervalLimit | null,
   durationLimits: IntervalLimit | null,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  dateFrom: DateFnsDate,
+  dateTo: DateFnsDate,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
@@ -76,8 +76,8 @@ const _getBusyTimesFromLimits = async (
 const _getBusyTimesFromBookingLimits = async (params: {
   bookings: EventBusyDetails[];
   bookingLimits: IntervalLimit;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
+  dateFrom: DateFnsDate;
+  dateTo: DateFnsDate;
   limitManager: LimitManager;
   rescheduleUid?: string;
   eventTypeId?: number;
@@ -114,7 +114,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
       if (unit === "year") {
         try {
           await checkBookingLimit({
-            eventStartDate: periodStart.toDate(),
+            eventStartDate: periodStart,
             limitingNumber: limit,
             eventId: eventTypeId,
             key,
@@ -133,7 +133,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
         continue;
       }
 
-      const periodEnd = periodStart.endOf(unit);
+      const periodEnd = endOf(periodStart, unit as any);
       let totalBookings = 0;
 
       for (const booking of bookings) {
@@ -153,8 +153,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
 const _getBusyTimesFromDurationLimits = async (
   bookings: EventBusyDetails[],
   durationLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  dateFrom: DateFnsDate,
+  dateTo: DateFnsDate,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   limitManager: LimitManager,
@@ -182,8 +182,8 @@ const _getBusyTimesFromDurationLimits = async (
       if (unit === "year") {
         const totalYearlyDuration = await getTotalBookingDuration({
           eventId: eventType.id,
-          startDate: periodStart.toDate(),
-          endDate: periodStart.endOf(unit).toDate(),
+          startDate: periodStart,
+          endDate: endOf(periodStart, unit as any),
           rescheduleUid,
         });
         if (totalYearlyDuration + selectedDuration > limit) {
@@ -195,7 +195,7 @@ const _getBusyTimesFromDurationLimits = async (
         continue;
       }
 
-      const periodEnd = periodStart.endOf(unit);
+      const periodEnd = endOf(periodStart, unit as any);
       let totalDuration = selectedDuration;
 
       for (const booking of bookings) {
@@ -203,7 +203,7 @@ const _getBusyTimesFromDurationLimits = async (
         if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone || "UTC")) {
           continue;
         }
-        totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+        totalDuration += diff(new Date(booking.end), new Date(booking.start), "minute");
         if (totalDuration > limit) {
           limitManager.addBusyTime(periodStart, unit);
           break;
@@ -221,16 +221,16 @@ const getBusyTimesFromDurationLimits = withReporting(
 const _getBusyTimesFromTeamLimits = async (
   user: { id: number; email: string },
   bookingLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  dateFrom: DateFnsDate,
+  dateTo: DateFnsDate,
   teamId: number,
   includeManagedEvents: boolean,
   timeZone: string,
   rescheduleUid?: string
 ) => {
   const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
-    dateFrom.toISOString(),
-    dateTo.toISOString(),
+    toISOString(dateFrom),
+    toISOString(dateTo),
     bookingLimits
   );
 
@@ -238,15 +238,15 @@ const _getBusyTimesFromTeamLimits = async (
   const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUser({
     user,
     teamId,
-    startDate: limitDateFrom.toDate(),
-    endDate: limitDateTo.toDate(),
+    startDate: limitDateFrom,
+    endDate: limitDateTo,
     excludedUid: rescheduleUid,
     includeManagedEvents,
   });
 
   const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
-    start: dayjs(startTime).toDate(),
-    end: dayjs(endTime).toDate(),
+    start: new Date(startTime),
+    end: new Date(endTime),
     title,
     source: `eventType-${eventTypeId}-booking-${id}`,
     userId,

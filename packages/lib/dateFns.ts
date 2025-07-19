@@ -43,7 +43,7 @@ import {
   getYear,
   getMonth,
 } from "date-fns";
-import { getTimezoneOffset } from "date-fns-tz";
+import { getTimezoneOffset, toZonedTime } from "date-fns-tz";
 import { z } from "zod";
 
 export type DateFnsDate = Date;
@@ -391,7 +391,7 @@ export const utc = (input?: string | Date): Date => {
 };
 
 export const tz = (date: Date, timeZone: string): Date => {
-  return utcToZonedTime(date, timeZone);
+  return toZonedTime(date, timeZone);
 };
 
 export const format = (date: Date, formatStr?: string): string => {
