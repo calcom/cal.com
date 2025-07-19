@@ -19,7 +19,7 @@ type GetOptions = {
     kysely: Kysely<DB>;
   };
   bookingListingByStatus: InputByStatus[];
-  take: number;
+  take: number | null;
   skip: number;
   filters: {
     status?: InputByStatus;
