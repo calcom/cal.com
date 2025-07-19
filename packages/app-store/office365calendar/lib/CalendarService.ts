@@ -1,7 +1,7 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
-import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
+import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   CalendarAppDelegationCredentialInvalidGrantError,
@@ -38,7 +38,7 @@ interface ISettledResponse {
     "Retry-After": string;
     "Content-Type": string;
   };
-  body: Record<string, DefaultBodyType>;
+  body: Record<string, any>;
 }
 
 interface IBatchResponse {
@@ -49,6 +49,14 @@ interface BodyValue {
   end: { dateTime: string };
   evt: { showAs: string };
   start: { dateTime: string };
+}
+
+// Helper to get the canonical cache window
+function getNormalizedCacheWindow() {
+  return {
+    timeMin: dayjs().startOf("day").toISOString(),
+    timeMax: dayjs().add(2, "month").endOf("day").toISOString(),
+  };
 }
 
 export default class Office365CalendarService implements Calendar {
@@ -298,14 +306,14 @@ export default class Office365CalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    forceRefresh = false
   ): Promise<EventBusyDate[]> {
-    const dateFromParsed = new Date(dateFrom);
-    const dateToParsed = new Date(dateTo);
-
+    // Use normalized window for cache key
+    const { timeMin, timeMax } = getNormalizedCacheWindow();
     const filter = `?startDateTime=${encodeURIComponent(
-      dateFromParsed.toISOString()
-    )}&endDateTime=${encodeURIComponent(dateToParsed.toISOString())}`;
+      new Date(timeMin).toISOString()
+    )}&endDateTime=${encodeURIComponent(new Date(timeMax).toISOString())}`;
 
     const calendarSelectParams = "$select=showAs,start,end";
 
@@ -321,6 +329,29 @@ export default class Office365CalendarService implements Calendar {
         // Only calendars of other integrations selected
         return Promise.resolve([]);
       }
+
+      // ---- CACHING LOGIC START ----
+      const cacheArgs = {
+        timeMin,
+        timeMax,
+        items: selectedCalendarIds.map((id) => ({ id })),
+      };
+      const calendarCache = new CalendarCacheRepository(this);
+      if (!forceRefresh) {
+        const cached = await calendarCache.getCachedAvailability({
+          credentialId: this.credential.id,
+          userId: this.credential.userId,
+          args: cacheArgs,
+        });
+        if (cached) {
+          this.log.debug("[Cache Hit] Returning cached Office365 availability", { cacheArgs });
+          return cached.value as EventBusyDate[];
+        }
+      }
+      this.log.debug("[Cache Miss or Forced Refresh] Fetching Office365 availability from API", {
+        cacheArgs,
+      });
+      // ---- CACHING LOGIC END ----
 
       const ids = await (selectedCalendarIds.length === 0
         ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
@@ -350,10 +381,27 @@ export default class Office365CalendarService implements Calendar {
       // Recursively fetch nextLink responses
       alreadySuccessResponse = await this.fetchResponsesWithNextLink(responseBatchApi.responses);
 
-      return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+      const busyTimes = alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
+
+      // ---- STORE IN CACHE ----
+      await calendarCache.upsertCachedAvailability({
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+        args: cacheArgs,
+        value: busyTimes,
+      });
+      // ---- END STORE IN CACHE ----
+
+      return busyTimes;
     } catch (err) {
       return Promise.reject([]);
     }
+  }
+
+  async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    // Use normalized window for cache
+    const { timeMin, timeMax } = getNormalizedCacheWindow();
+    await this.getAvailability(timeMin, timeMax, selectedCalendars, true); // forceRefresh = true
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
@@ -625,4 +673,49 @@ export default class Office365CalendarService implements Calendar {
 
     return response.json();
   };
+
+  /**
+   * Creates a Microsoft Graph webhook subscription for a calendar.
+   * @param calendarId The Office365 calendar ID to subscribe to
+   * @param notificationUrl The public URL to receive webhook notifications
+   * @returns The subscription response from Microsoft Graph
+   */
+  async subscribeToCalendar({
+    calendarId,
+    notificationUrl,
+  }: {
+    calendarId: string;
+    notificationUrl: string;
+  }) {
+    const tokenObject = getTokenObjectFromCredential(this.credential);
+    const accessToken = tokenObject?.access_token;
+    if (!accessToken) {
+      this.log.error("No access token available for subscription");
+      throw new Error("No access token available");
+    }
+    const resource = `/me/calendars/${calendarId}/events`;
+    const expirationDateTime = new Date(Date.now() + 60 * 60 * 1000 * 2).toISOString(); // 2 hours from now (max 4230 mins)
+    const body = {
+      changeType: "created,updated,deleted",
+      notificationUrl,
+      resource,
+      expirationDateTime,
+      clientState: Math.random().toString(36).substring(2, 15),
+    };
+    const response = await fetch("https://graph.microsoft.com/v1.0/subscriptions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      this.log.error("Failed to create Office365 subscription", result);
+      throw new Error(result.error?.message || "Failed to create subscription");
+    }
+    this.log.info("Created Office365 subscription", result);
+    return result;
+  }
 }
