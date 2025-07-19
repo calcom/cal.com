@@ -12,9 +12,15 @@ interface SimplePermissionItemProps {
   resource: string;
   permissions: string[];
   onChange: (permissions: string[]) => void;
+  disabled?: boolean;
 }
 
-export function SimplePermissionItem({ resource, permissions, onChange }: SimplePermissionItemProps) {
+export function SimplePermissionItem({
+  resource,
+  permissions,
+  onChange,
+  disabled,
+}: SimplePermissionItemProps) {
   const { t } = useLocale();
   const { getResourcePermissionLevel, toggleResourcePermissionLevel } = usePermissions();
 
@@ -37,10 +43,12 @@ export function SimplePermissionItem({ resource, permissions, onChange }: Simple
       </span>
       <ToggleGroup
         onValueChange={(val) => {
-          if (val) onChange(toggleResourcePermissionLevel(resource, val as PermissionLevel, permissions));
+          if (val && !disabled)
+            onChange(toggleResourcePermissionLevel(resource, val as PermissionLevel, permissions));
         }}
         value={getResourcePermissionLevel(resource, permissions)}
         options={options}
+        disabled={disabled}
       />
     </div>
   );

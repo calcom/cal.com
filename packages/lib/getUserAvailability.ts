@@ -345,8 +345,19 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     fallbackSchedule;
   const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
 
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  const bookingLimits =
+    eventType?.bookingLimits &&
+    typeof eventType.bookingLimits === "object" &&
+    Object.keys(eventType.bookingLimits).length > 0
+      ? parseBookingLimit(eventType.bookingLimits)
+      : null;
+
+  const durationLimits =
+    eventType?.durationLimits &&
+    typeof eventType.durationLimits === "object" &&
+    Object.keys(eventType.durationLimits).length > 0
+      ? parseDurationLimit(eventType.durationLimits)
+      : null;
 
   let busyTimesFromLimits: EventBusyDetails[] = [];
 

@@ -683,6 +683,7 @@
   "send_invite_email": "Send an invite email",
   "role": "Role",
   "edit_role": "Edit Role",
+  "view_role": "View Role",
   "edit_team": "Edit team",
   "editing_user": "Editing user",
   "editing_org": "Editing organization",
