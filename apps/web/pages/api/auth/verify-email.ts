@@ -172,7 +172,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await moveUserToMatchingOrg({ email: user.email });
 
-  return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
+  return res.redirect(`${WEBAPP_URL}${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }
 
 export async function cleanUpVerificationTokens(id: number) {

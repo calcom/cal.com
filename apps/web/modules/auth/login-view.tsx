@@ -19,6 +19,7 @@ import { LastUsed, useLastUsed } from "@calcom/lib/hooks/useLastUsed";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { safeCallbackUrl } from "@calcom/lib/WebAppURL";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -88,16 +89,12 @@ PageProps & WithNonceProps<{}>) {
 
   let callbackUrl = searchParams?.get("callbackUrl") || "";
 
-  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
+  // Use the utility function to safely construct the callback URL
+  callbackUrl = safeCallbackUrl(callbackUrl);
 
-  // If not absolute URL, make it absolute
-  if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
-  }
+  const safeCallbackUrlResult = getSafeRedirectUrl(callbackUrl);
 
-  const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
-
-  callbackUrl = safeCallbackUrl || "";
+  callbackUrl = safeCallbackUrlResult || "";
 
   const LoginFooter = (
     <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
