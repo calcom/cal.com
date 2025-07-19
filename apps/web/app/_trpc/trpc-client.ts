@@ -57,6 +57,11 @@ export const trpcClient = trpc.createClient({
             endpoint,
             httpLink({
               url: `${url}/${endpoint}`,
+              headers() {
+                return {
+                  "x-csrf-token": getCsrfToken(),
+                };
+              },
             })(runtime),
           ])
         );
@@ -69,6 +74,11 @@ export const trpcClient = trpc.createClient({
             endpoint,
             httpBatchLink({
               url: `${url}/${endpoint}`,
+              headers() {
+                return {
+                  "x-csrf-token": getCsrfToken(),
+                };
+              },
             })(runtime),
           ])
         );
@@ -78,3 +88,8 @@ export const trpcClient = trpc.createClient({
   ],
   transformer: superjson,
 });
+
+function getCsrfToken(): string | undefined {
+  if (typeof document === "undefined") return;
+  return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ?? undefined;
+}
