@@ -216,21 +216,21 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
   }> {
     const nonOrganizerAttendees = attendees.filter((attendee) => !attendee.organizer);
 
-    const existingOrganizers = existingEvent?.attendees?.filter((attendee) => attendee.organizer) || [];
+    const transformedHosts = inputHosts.map((host) => {
+      const existingHost = existingEvent?.attendees?.find(
+        (attendee) => attendee.organizer && attendee.email.toLowerCase() === host.email.toLowerCase()
+      );
 
-    if (!inputHosts || inputHosts.length === 0) {
-      return attendees;
-    }
+      return {
+        email: host.email,
+        displayName: existingHost?.displayName || host.email,
+        responseStatus: this.transformResponseStatus(host.responseStatus),
+        optional: false,
+        organizer: true,
+      };
+    });
 
-    const updatedOrganizers = existingOrganizers.map((existingOrganizer) => ({
-      email: existingOrganizer.email,
-      displayName: existingOrganizer.displayName,
-      responseStatus: this.transformResponseStatus(inputHosts[0]?.responseStatus),
-      optional: existingOrganizer.optional || false,
-      organizer: true,
-    }));
-
-    return [...nonOrganizerAttendees, ...updatedOrganizers];
+    return [...nonOrganizerAttendees, ...transformedHosts];
   }
 
   private transformResponseStatus(responseStatus?: CalendarEventResponseStatus | null): string {
