@@ -1,0 +1,18 @@
+{
+  "functions": {
+    "apps/web/pages/api/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "build": {
+    "env": {
+      "NEXTAUTH_SECRET": "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=",
+      "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=",
+      "NEXT_PUBLIC_WEBAPP_URL": "@vercel-url"
+    }
+  },
+  "env": {
+    "NEXTAUTH_SECRET": "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=",
+    "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c="
+  }
+}

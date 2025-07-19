@@ -181,6 +181,7 @@ const nextConfig = {
     "formidable", // Dependencies of akismet
     "sharp", // Exclude Sharp from server bundle to avoid Vercel build issues
   ],
+  serverComponentsExternalPackages: ["sharp"],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
