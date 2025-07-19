@@ -15,9 +15,6 @@ import { InternalTeamBilling } from "./teams/internal-team-billing";
 
 const MOCK_TX = {
   ...prisma,
-  team: {
-    findUnique: vi.fn(),
-  },
 };
 
 vi.mock("@calcom/prisma", () => {
@@ -650,7 +647,7 @@ describe("CreditService", () => {
       });
     });
 
- it("should skip unpublished platform organizations and return regular team with credits", async () => {
+    it("should skip unpublished platform organizations and return regular team with credits", async () => {
       vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
         { teamId: 2 },
       ]);
@@ -676,5 +673,6 @@ describe("CreditService", () => {
       expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
+    });
   });
 });
