@@ -7,6 +7,7 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import prisma from "@calcom/prisma";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import { TRPCError } from "@trpc/server";
@@ -161,15 +162,16 @@ const _handleResponse = async ({
     }
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
+      const formResponseRepo = new RoutingFormResponseRepository(prisma);
       if (queueFormResponse) {
-        queuedFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
+        queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
         });
         dbFormResponse = null;
       } else {
-        dbFormResponse = await RoutingFormResponseRepository.recordFormResponse({
+        dbFormResponse = await formResponseRepo.recordFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
