@@ -12,6 +12,19 @@ export type AttioTaskResponse = {
   };
 };
 
+export type AttioObjectResponse = {
+  data: {
+    id: {
+      workspace_id: string;
+      object_id: string;
+    };
+    api_slug: string | null;
+    singular_noun: string | null;
+    plural_noun: string | null;
+    created_at: string;
+  };
+};
+
 export type AttioEmailValue = {
   active_until: string | null;
   email_address: string;
@@ -46,6 +59,74 @@ export type AttioContactResponse = {
 
 export type AttioUserResponse = {
   authorized_by_workspace_member_id: string;
+};
+
+export enum AttioAttributeType {
+  TEXT = "text",
+  NUMBER = "number",
+  CHECKBOX = "checkbox",
+  CURRENCY = "currency",
+  DATE = "date",
+  TIMESTAMP = "timestamp",
+  RATING = "rating",
+  STATUS = "status",
+  SELECT = "select",
+  LOCATION = "location",
+  DOMAIN = "domain",
+  RECORD_REFERENCE = "record-reference",
+  ACTOR_REFERENCE = "actorReference",
+  EMAIL_ADDRESS = "email-address",
+  PHONE_NUMBER = "phone-number",
+}
+
+export type CreateAttributeResponse = {
+  id: {
+    workspace_id: string;
+    object_id: string;
+    attribute_id: string;
+  };
+  title: string;
+  description: string;
+  api_slug: string;
+  type: AttioAttributeType;
+  is_system_attribute: boolean;
+  is_writable: boolean;
+  is_required: boolean;
+  is_unique: boolean;
+  is_multiselect: boolean;
+  is_default_value_enabled: boolean;
+  is_archived: boolean;
+  default_value: object | null;
+  relationship: object | null;
+  created_at: string;
+  config: {
+    currency: AttioCurrencyConfig;
+    record_reference: {
+      allowed_object_ids: string[] | null;
+    };
+  };
+};
+
+export type AttioCurrencyConfig = {
+  default_currency_code: string;
+  display_type: "code" | "name" | "narrowSymbol" | "symbol";
+};
+
+export enum AttioAttributeTarget {
+  OBJECTS = "objects",
+  LISTS = "lists",
+}
+
+export type AttioAttribute = {
+  title: string;
+  description: string | null;
+  api_slug: string;
+  type: AttioAttributeType;
+  is_required: boolean;
+  is_unique: boolean;
+  is_multiselect: boolean;
+  config: object;
+  default_value: object | null;
 };
 
 /**
@@ -123,6 +204,37 @@ export default class Attio {
 
   private _delete = async ({ urlPath }: { urlPath: string }): Promise<void> => {
     return this._request({ urlPath, method: "DELETE" });
+  };
+
+  public object = {
+    create: async (data: {
+      api_slug: string;
+      singular_noun: string;
+      plural_noun: string;
+    }): Promise<AttioObjectResponse> => {
+      return this._post<AttioObjectResponse>({ urlPath: "/objects", data: { data } });
+    },
+  };
+
+  public attribute = {
+    /**
+     * @param target Whether the attribute is to be created on an object or a list.
+     * @param identifier A UUID or slug to identify the object or list the attribute belongs to.
+     */
+    create: async ({
+      data,
+      target,
+      identifier,
+    }: {
+      data: AttioAttribute;
+      target: AttioAttributeTarget;
+      identifier: string;
+    }): Promise<CreateAttributeResponse> => {
+      return this._post({
+        urlPath: `/${target}/${identifier}/attributes`,
+        data: { data },
+      });
+    },
   };
 
   public task = {

@@ -1,6 +1,7 @@
 import z from "zod";
 
-import Attio from "@calcom/lib/Attio";
+import type { AttioAttribute } from "@calcom/lib/Attio";
+import Attio, { AttioAttributeTarget, AttioAttributeType } from "@calcom/lib/Attio";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -19,6 +20,7 @@ export default class AttioCRMService implements CRM {
   private log: typeof logger;
   private attio: Attio;
   private appOptions: any;
+  private customEventSlug = "cal_events";
 
   constructor(credential: CredentialPayload, appOptions: any) {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
@@ -185,5 +187,81 @@ export default class AttioCRMService implements CRM {
 
   async handleAttendeeNoShow() {
     console.log("Not implemented");
+  }
+
+  async createCustomEventObject(
+    singularSlug: string,
+    pluralSlug: string,
+    identifierSlug: string = this.customEventSlug
+  ) {
+    try {
+      const eventObject = await this.attio.object.create({
+        api_slug: identifierSlug,
+        plural_noun: pluralSlug,
+        singular_noun: singularSlug,
+      });
+
+      const baseAttributeData = {
+        config: {},
+        default_value: null,
+        is_required: true,
+        is_multiselect: false,
+        is_unique: false,
+      };
+
+      const eventAttributes: Omit<
+        AttioAttribute,
+        "config" | "default_value" | "is_required" | "is_multiselect" | "is_unique"
+      >[] = [
+        {
+          type: AttioAttributeType.TEXT,
+          title: "Title",
+          api_slug: "event_title",
+          description: "Name of the event",
+        },
+        {
+          type: AttioAttributeType.TEXT,
+          title: "Description",
+          api_slug: "event_description",
+          description: "Description of event",
+        },
+        {
+          type: AttioAttributeType.TIMESTAMP,
+          title: "Start Time",
+          api_slug: "event_start_time",
+          description: "Start time of the event",
+        },
+        {
+          type: AttioAttributeType.TIMESTAMP,
+          title: "End Time",
+          api_slug: "event_end_time",
+          description: "End time of the event",
+        },
+        {
+          type: AttioAttributeType.TEXT,
+          title: "Location",
+          api_slug: "event_location",
+          description: "Location of the event",
+        },
+      ];
+
+      const createAttributePromises = eventAttributes.map((attribute) => {
+        return this.attio.attribute.create({
+          target: AttioAttributeTarget.OBJECTS,
+          identifier: eventObject.data.id.object_id,
+          data: {
+            ...baseAttributeData,
+            ...attribute,
+          },
+        });
+      });
+
+      const data = await Promise.all(createAttributePromises);
+      console.log("data: ", data);
+      return;
+    } catch (err) {
+      this.log.error("Error creating custom event object: ", err);
+      throw err;
+    }
   }
 }

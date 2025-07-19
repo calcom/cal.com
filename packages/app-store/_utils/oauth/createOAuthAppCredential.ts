@@ -18,7 +18,8 @@ import { throwIfNotHaveAdminAccessToTeam } from "../throwIfNotHaveAdminAccessToT
 const createOAuthAppCredential = async (
   appData: { type: string; appId: string },
   key: unknown,
-  req: NextApiRequest
+  req: NextApiRequest,
+  includeUser?: boolean
 ) => {
   const userId = req.session?.user.id;
   if (!userId) {
@@ -38,6 +39,9 @@ const createOAuthAppCredential = async (
         teamId: state.teamId,
         appId: appData.appId,
       },
+      include: {
+        user: includeUser,
+      },
     });
   }
 
@@ -47,6 +51,9 @@ const createOAuthAppCredential = async (
       key: key || {},
       userId,
       appId: appData.appId,
+    },
+    include: {
+      user: includeUser,
     },
   });
 };

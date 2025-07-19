@@ -836,6 +836,10 @@ export default class SalesforceCRMService implements CRM {
       });
   }
 
+  async createCustomEventObject() {
+    console.log("Not implemented");
+  }
+
   private async generateCreateRecordBody({
     attendee,
     recordType,

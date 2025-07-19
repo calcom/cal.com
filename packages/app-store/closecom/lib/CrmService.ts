@@ -209,4 +209,8 @@ export default class CloseComCRMService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+
+  async createCustomEventObject() {
+    console.log("Not implemented");
+  }
 }
