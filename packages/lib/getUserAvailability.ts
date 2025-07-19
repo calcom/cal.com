@@ -188,6 +188,7 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  guestBusyTimes?: { start: Date; end: Date }[];
 };
 
 export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
@@ -430,6 +431,20 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     shouldServeCache,
   });
 
+  // Add guest busy times for reschedule scenarios
+  const guestBusyTimesFormatted: EventBusyDetails[] = initialData?.guestBusyTimes?.map((guestBusyTime) => ({
+    start: dayjs(guestBusyTime.start).toISOString(),
+    end: dayjs(guestBusyTime.end).toISOString(),
+    title: "Guest busy time",
+    source: query.withSource ? "guest-availability" : undefined,
+  })) || [];
+
+  if (guestBusyTimesFormatted.length > 0) {
+    log.debug(
+      `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Adding guest busy times: ${guestBusyTimesFormatted.length}`
+    );
+  }
+
   const detailedBusyTimes: EventBusyDetails[] = [
     ...busyTimes.map((a) => ({
       ...a,
@@ -440,6 +455,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })),
     ...busyTimesFromLimits,
     ...busyTimesFromTeamLimits,
+    ...guestBusyTimesFormatted,
   ];
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
@@ -717,7 +733,7 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
     );
   }
   return await Promise.all(
-    users.map((user) =>
+    users.map((user, index) =>
       _getUserAvailability(
         {
           ...query,
@@ -730,6 +746,8 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
               user,
               currentBookings: user.currentBookings,
               outOfOfficeDays: user.outOfOfficeDays,
+              // Only pass guest busy times to the first user (host)
+              guestBusyTimes: index === 0 ? initialData.guestBusyTimes : undefined,
             }
           : undefined
       )
