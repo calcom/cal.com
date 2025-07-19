@@ -116,12 +116,12 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getEventTypesByUsername(username: string, orgSlug?: string, orgId?: number) {
+  async getEventTypesByUsernamePublic(username: string, orgSlug?: string, orgId?: number) {
     const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
     if (!user) {
       return [];
     }
-    return await this.getUserEventTypes(user.id);
+    return await this.getUserEventTypesPublic(user.id);
   }
 
   async getUserToCreateEvent(user: UserWithProfile) {
@@ -164,6 +164,14 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
+  async getUserEventTypesPublic(userId: number) {
+    const eventTypes = await this.eventTypesRepository.getUserEventTypesPublic(userId);
+
+    return eventTypes.map((eventType) => {
+      return { ownerId: userId, ...eventType };
+    });
+  }
+
   async getUserEventTypes(userId: number) {
     const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
 
@@ -181,20 +189,20 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
+  async getEventTypesPublic(queryParams: GetEventTypesQuery_2024_06_14) {
     const { username, eventSlug, usernames, orgSlug, orgId } = queryParams;
     if (username && eventSlug) {
       const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug, orgSlug, orgId);
-      return eventType ? [eventType] : [];
+      return eventType && !eventType.hidden ? [eventType] : [];
     }
 
     if (username) {
-      return await this.getEventTypesByUsername(username, orgSlug, orgId);
+      return await this.getEventTypesByUsernamePublic(username, orgSlug, orgId);
     }
 
     if (usernames) {
       const dynamicEventType = await this.getDynamicEventType(usernames, orgSlug, orgId);
-      return [dynamicEventType];
+      return dynamicEventType && !dynamicEventType.hidden ? [dynamicEventType] : [];
     }
 
     return [];
