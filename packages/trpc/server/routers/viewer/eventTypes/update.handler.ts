@@ -12,6 +12,7 @@ import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isPlatformTeam } from "@calcom/lib/server/queries/teams/platform-team-utils";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
@@ -393,13 +394,37 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
-    // guard against missing IDs, this may mean a member has just been removed
-    // or this request was forged.
-    // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
+
+    const isTeamPlatform = await isPlatformTeam({ teamId, prisma: ctx.prisma });
+
+    if (isTeamPlatform) {
+      const managedUsers = await ctx.prisma.membership.findMany({
+        where: {
+          teamId,
+          accepted: true,
+          user: {
+            isPlatformManaged: true,
+          },
+        },
+        select: { userId: true },
       });
+      const managedUserIds = managedUsers.map((membership) => membership.userId);
+
+      if (!hosts.every((host) => managedUserIds.includes(host.userId))) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Platform teams can only assign managed users as hosts",
+        });
+      }
+    } else {
+      // guard against missing IDs, this may mean a member has just been removed
+      // or this request was forged.
+      // we let this pass through on organization sub-teams
+      if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+        });
+      }
     }
 
     // weights were already enabled or are enabled now
