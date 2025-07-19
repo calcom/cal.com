@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "license": "AGPLv3 (see LICENSE file)",
+  "name": "@calcom/lawpay",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "LawPay payment integration for Cal.com - secure payment processing designed specifically for legal professionals",
+  "dependencies": {
+    "@calcom/app-store": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/types": "*",
+    "@calcom/ui": "*",
+    "zod": "^3.21.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}
