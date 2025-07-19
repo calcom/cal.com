@@ -7,6 +7,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 
+import PlainContactForm from "./PlainContactForm";
+
 declare global {
   interface Window {
     Plain?: {
@@ -87,7 +89,8 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
 
       const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
       const userEmail = session?.user?.email;
-      const isPaidUser = session?.user.belongsToActiveTeam || !!session?.user.org;
+      // const isPaidUser = session?.user.belongsToActiveTeam || !!session?.user.org;
+      const isPaidUser = false;
 
       const isAppDomain = useMemo(() => {
         const restrictedPathsSet = new Set(
@@ -231,16 +234,14 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
             },
           };
 
-          if (isPaidUser) {
-            plainChatConfig.chatButtons.push({
-              icon: "chat",
-              text: "Ask a question",
-              threadDetails: {
-                labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                tierIdentifier: { externalId: data.userTier },
-              },
-            });
-          }
+          plainChatConfig.chatButtons.push({
+            icon: "chat",
+            text: "Ask a question",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+              tierIdentifier: { externalId: data.userTier },
+            },
+          });
 
           if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
             window.__PLAIN_CONFIG__ = plainChatConfig;
@@ -286,10 +287,17 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
         }
       `;
 
-      if (!isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
+      if (!isAppDomain || isSmallScreen || typeof window === "undefined") return null;
+
+      // if (!isPaidUser) {
+      return <PlainContactForm />;
+      // }
+
+      if (!config) return null;
 
       return (
         <>
+          {/* <PlainContactForm />; */}
           <Script
             id="plain-chat"
             src="https://chat.cdn-plain.com/index.js"
