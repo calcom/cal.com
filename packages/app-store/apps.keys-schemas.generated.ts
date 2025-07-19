@@ -21,6 +21,7 @@ import { appKeysSchema as intercom_zod_ts } from "./intercom/zod";
 import { appKeysSchema as jelly_zod_ts } from "./jelly/zod";
 import { appKeysSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
 import { appKeysSchema as larkcalendar_zod_ts } from "./larkcalendar/zod";
+import { appKeysSchema as lawpay_zod_ts } from "./lawpay/zod";
 import { appKeysSchema as make_zod_ts } from "./make/zod";
 import { appKeysSchema as matomo_zod_ts } from "./matomo/zod";
 import { appKeysSchema as metapixel_zod_ts } from "./metapixel/zod";
@@ -71,6 +72,7 @@ export const appKeysSchemas = {
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
   larkcalendar: larkcalendar_zod_ts,
+  lawpay: lawpay_zod_ts,
   make: make_zod_ts,
   matomo: matomo_zod_ts,
   metapixel: metapixel_zod_ts,
