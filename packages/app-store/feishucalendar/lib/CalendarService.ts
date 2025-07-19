@@ -401,26 +401,46 @@ export default class FeishuCalendarService implements Calendar {
 
   private translateAttendees = (event: CalendarEvent): FeishuEventAttendee[] => {
     const attendeeArray: FeishuEventAttendee[] = [];
+    const mandatoryEmails = new Set<string>();
+    const optionalEmails = new Set<string>();
+
+    // Add main attendees (mandatory)
     event.attendees
       .filter((att) => att.email)
       .forEach((att) => {
-        const attendee: FeishuEventAttendee = {
+        mandatoryEmails.add(att.email);
+        attendeeArray.push({
           type: "third_party",
           is_optional: false,
           third_party_email: att.email,
-        };
-        attendeeArray.push(attendee);
+        });
       });
+
+    // Add team members (mandatory, skip duplicates and self)
     event.team?.members.forEach((member) => {
-      if (member.email !== this.credential.user?.email) {
-        const attendee: FeishuEventAttendee = {
+      if (member.email !== this.credential.user?.email && !mandatoryEmails.has(member.email)) {
+        mandatoryEmails.add(member.email);
+        attendeeArray.push({
           type: "third_party",
           is_optional: false,
           third_party_email: member.email,
-        };
-        attendeeArray.push(attendee);
+        });
       }
     });
+
+    // Add optional guest team members, but only if not already added as mandatory
+    if (event.optionalGuestTeamMembers) {
+      event.optionalGuestTeamMembers.forEach((member: { email: string }) => {
+        if (!mandatoryEmails.has(member.email) && !optionalEmails.has(member.email)) {
+          optionalEmails.add(member.email);
+          attendeeArray.push({
+            type: "third_party",
+            is_optional: true,
+            third_party_email: member.email,
+          });
+        }
+      });
+    }
 
     return attendeeArray;
   };
