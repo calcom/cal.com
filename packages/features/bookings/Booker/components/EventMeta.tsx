@@ -58,6 +58,7 @@ export const EventMeta = ({
   event?: Pick<
     BookerEvent,
     | "lockTimeZoneToggleOnBookingPage"
+    | "lockedTimeZone"
     | "schedule"
     | "seatsPerTimeSlot"
     | "subsetOfUsers"
@@ -112,9 +113,12 @@ export const EventMeta = ({
   );
 
   useEffect(() => {
-    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
-    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
-      setTimezone(event.schedule?.timeZone);
+    //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone
+    if (event?.lockTimeZoneToggleOnBookingPage) {
+      const timezone = event.lockedTimeZone || event.schedule?.timeZone;
+      if (timezone) {
+        setTimezone(timezone);
+      }
     }
   }, [event, setTimezone]);
 
@@ -230,7 +234,11 @@ export const EventMeta = ({
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
-                    value={event.lockTimeZoneToggleOnBookingPage ? CURRENT_TIMEZONE : timezone}
+                    value={
+                      event.lockTimeZoneToggleOnBookingPage
+                        ? event.lockedTimeZone || CURRENT_TIMEZONE
+                        : timezone
+                    }
                     onChange={({ value }) => {
                       setTimezone(value);
                       setBookerStoreTimezone(value);

@@ -81,6 +81,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   lockTimeZoneToggleOnBookingPage: boolean;
+  lockedTimeZone: string | null;
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot: boolean;
   requiresConfirmationForFreeEmail: boolean;
