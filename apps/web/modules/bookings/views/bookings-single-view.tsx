@@ -26,7 +26,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
+import { CalendarLinkType, getCalendarLinks } from "@calcom/lib/bookings/getCalendarLinks";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
@@ -620,28 +620,37 @@ export default function Success(props: PageProps) {
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
-                                  {!bookingInfo.eventType?.hideOrganizerEmail && (
+                                  {!(
+                                    eventType.hideOrganizerEmail &&
+                                    (eventType.schedulingType === "COLLECTIVE" ||
+                                      eventType.schedulingType === "ROUND_ROBIN")
+                                  ) && (
                                     <p className="text-default" data-testid="booking-host-email">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
                                   )}
                                 </div>
                               )}
-                              {bookingInfo?.attendees.map((attendee) => (
-                                <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
-                                  {attendee.name && (
-                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
-                                  )}
-                                  {attendee.phoneNumber && (
-                                    <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {attendee.phoneNumber}
-                                    </p>
-                                  )}
-                                  {!isSmsCalEmail(attendee.email) && (
-                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
-                                  )}
-                                </div>
-                              ))}
+                              {bookingInfo?.attendees.map((attendee) => {
+                                const isMainAttendee = !email || attendee.email === email;
+                                const shouldHideEmail = eventType.hideOrganizerEmail && !isMainAttendee;
+
+                                return (
+                                  <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
+                                    {attendee.name && (
+                                      <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                    )}
+                                    {attendee.phoneNumber && (
+                                      <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
+                                        {attendee.phoneNumber}
+                                      </p>
+                                    )}
+                                    {!isSmsCalEmail(attendee.email) && !shouldHideEmail && (
+                                      <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </>
                         )}
