@@ -244,6 +244,7 @@ model Credential {
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  oooReasons             OutOfOfficeReason[]
 
   @@index([appId])
   @@index([subscriptionId])
@@ -1111,6 +1112,7 @@ enum AppCategories {
   // Wherever video is in use, conferencing should also be used for legacy apps can have it.
   conferencing
   crm
+  hrms
 }
 
 model App {
@@ -1764,17 +1766,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int                @id @default(autoincrement())
-  uuid     String             @unique
-  start    DateTime
-  end      DateTime
-  notes    String?
-  userId   Int
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId Int?
-  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId Int?
-  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id         Int                @id @default(autoincrement())
+  uuid       String             @unique
+  start      DateTime
+  end        DateTime
+  notes      String?
+  externalId String?
+  userId     Int
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId   Int?
+  toUser     User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId   Int?
+  reason     OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1786,14 +1789,20 @@ model OutOfOfficeEntry {
 }
 
 model OutOfOfficeReason {
-  id      Int     @id @default(autoincrement())
-  emoji   String
-  reason  String  @unique
-  enabled Boolean @default(true)
-  userId  Int?
-  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         Int     @id @default(autoincrement())
+  emoji      String?
+  reason     String
+  enabled    Boolean @default(true)
+  userId     Int?
+  externalId String? @unique
+  user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  credentialId Int?
+  credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   entries OutOfOfficeEntry[]
+
+  @@unique([credentialId, externalId])
 }
 
 // Platform
