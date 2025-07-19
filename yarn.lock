@@ -3377,12 +3377,14 @@ __metadata:
     "@formbricks/api": ^1.7.0
     "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
+    "@types/memory-cache": ^0.2.5
     "@vercel/og": ^0.6.3
     city-timezones: ^1.2.1
     i18next: ^23.2.3
     ical.js: ^1.4.0
     ics: ^2.37.0
     jimp: ^0.16.1
+    memory-cache: ^0.2.0
     next-collect: ^0.2.1
     next-i18next: ^15.4.2
     rrule: ^2.7.1
@@ -17837,6 +17839,13 @@ __metadata:
   version: 0.2.2
   resolution: "@types/memory-cache@npm:0.2.2"
   checksum: f2c9182432057f0034f6acb69d0c6f1df58adaeb970749444b86834325018a24cb7dedfbdc4086d859497167fc82a06538f80354cfccdc6a3f011af80bc75697
+  languageName: node
+  linkType: hard
+
+"@types/memory-cache@npm:^0.2.5":
+  version: 0.2.6
+  resolution: "@types/memory-cache@npm:0.2.6"
+  checksum: 3cedea5e3a28a4d658cfbd66b8acf2deb9fa71844c60a276e766ea41ee2c5e14d63d4e8804ca96c65469bf8c2e5835d711c46e7085ca9d69b6a9c89fe169d288
   languageName: node
   linkType: hard
 
