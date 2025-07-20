@@ -189,13 +189,12 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: false,
         overrides: [
-          { method: "popup", minutes: 10 }, // Change 10 if needed
+          { method: "popup", minutes: 10 },
         ],
       },
       guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
-
     if (calEvent.hideCalendarEventDetails) {
       payload.visibility = "private";
     }
