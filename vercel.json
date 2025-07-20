@@ -1,4 +1,5 @@
 {
+  "buildCommand": "npm run db-deploy && npm run build",
   "functions": {
     "apps/web/pages/api/**/*.js": {
       "maxDuration": 30
