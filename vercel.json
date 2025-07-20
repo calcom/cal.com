@@ -1,9 +1,9 @@
 {
   "functions": {
-    "app/api/**/route.js": {
+    "app/api/**/route.{js,ts}": {
       "maxDuration": 30
     },
-    "pages/api/**/*.js": {
+    "pages/api/**/*.{js,ts}": {
       "maxDuration": 30
     }
   }
