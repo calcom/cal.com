@@ -368,19 +368,20 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
     props.setFirstRender(false);
     return editor.update(() => {
-      const parser = new DOMParser();
-      const dom = parser.parseFromString(props.getText(), "text/html");
-
-      const nodes = $generateNodesFromDOM(editor, dom);
-
       const root = $getRoot();
-      const currentNodes = root.getChildren();
 
+      // removes current nodes to avoid duplicate content
+      const currentNodes = root.getChildren();
       for (const node of currentNodes) {
         node.remove();
       }
 
-      root.append(...nodes);
+      // convert input text to DOM and insert nodes
+      const parser = new DOMParser();
+      const dom = parser.parseFromString(props.getText(), "text/html");
+
+      const nodes = $generateNodesFromDOM(editor, dom);
+      $insertNodes(nodes);
 
       nodes[nodes.length - 1]?.select();
 
