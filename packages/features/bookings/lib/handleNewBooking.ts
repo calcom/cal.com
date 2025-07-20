@@ -1127,7 +1127,7 @@ async function handler(
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
-      disableRescheduling: eventType.disableRescheduling,
+      disableRescheduling: eventType.disableRescheduling || false, // default false
       disableCancelling: eventType.disableCancelling,
     })
     .withOrganizer({
