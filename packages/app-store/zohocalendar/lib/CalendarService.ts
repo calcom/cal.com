@@ -467,7 +467,7 @@ export default class ZohoCalendarService implements Calendar {
         end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),
         timezone: event.organizer.timeZone,
       },
-      attendees: event.attendees.map((attendee) => ({ email: attendee.email })),
+      attendees: this.getAttendees(event),
       isprivate: event.seatsShowAttendees,
       reminders: [
         {
@@ -479,5 +479,39 @@ export default class ZohoCalendarService implements Calendar {
     };
 
     return zohoEvent;
+  };
+
+  private getAttendees = (event: CalendarEvent) => {
+    // 1. Create a set of optional guest emails for easy lookup.
+    const optionalGuestEmails = new Set(
+      event.optionalGuestTeamMembers?.map((guest) => guest.email?.toLowerCase()).filter(Boolean) ?? []
+    );
+
+    // 2. Start with the main booker as a required attendee.
+    const attendees = event.attendees.map((attendee) => ({
+      email: attendee.email,
+    }));
+
+    // 3. Add the REQUIRED team members, filtering out any who are optional.
+    if (event.team?.members) {
+      const requiredTeamMembers = event.team.members
+        .filter((member) => member.email && !optionalGuestEmails.has(member.email?.toLowerCase()))
+        .map((member) => ({
+          email: member.email,
+        }));
+      attendees.push(...requiredTeamMembers);
+    }
+
+    // 4. Add the OPTIONAL team members with the correct attendance code.
+    if (event.optionalGuestTeamMembers) {
+      const optionalGuests = event.optionalGuestTeamMembers.map((member) => ({
+        email: member.email,
+        // 2 signifies an optional guest in the Zoho API
+        attendance: 2,
+      }));
+      attendees.push(...optionalGuests);
+    }
+
+    return attendees;
   };
 }
