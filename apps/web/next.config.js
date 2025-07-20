@@ -20,6 +20,15 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) {
   console.warn("CALENDSO_ENCRYPTION_KEY not set, using default for demo purposes");
   process.env.CALENDSO_ENCRYPTION_KEY = "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=";
 }
+if (!process.env.DATABASE_URL) {
+  console.warn("DATABASE_URL not set, using Prisma Postgres URL");
+  process.env.DATABASE_URL =
+    "postgres://e6a33b67836dfbb5fbfd29032e4bbd91f722ce0d525ee1e7f20b996f65c81fcc:sk_ixBzdZCrvXbG17KSkKe2U@db.prisma.io:5432/?sslmode=require";
+}
+if (!process.env.DATABASE_DIRECT_URL) {
+  console.warn("DATABASE_DIRECT_URL not set, using same as DATABASE_URL");
+  process.env.DATABASE_DIRECT_URL = process.env.DATABASE_URL;
+}
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 // To be able to use the version in the app without having to import package.json
