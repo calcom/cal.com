@@ -187,11 +187,15 @@ export default class GoogleCalendarService implements Calendar {
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
       reminders: {
-        useDefault: true,
+        useDefault: false,
+        overrides: [
+          { method: "popup", minutes: 10 }, // Change 10 if needed
+        ],
       },
       guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
+
     if (calEvent.hideCalendarEventDetails) {
       payload.visibility = "private";
     }
