@@ -34,7 +34,8 @@ export class TeamService {
     }
 
     // Step 3: Delete the team from the database. This is the core "commit" point.
-    const deletedTeam = await TeamRepository.deleteById({ id });
+    const teamRepo = new TeamRepository(prisma);
+    const deletedTeam = await teamRepo.deleteById({ id });
 
     // Step 4: Clean up any final, non-critical external state.
     if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
