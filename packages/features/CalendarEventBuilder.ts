@@ -53,8 +53,8 @@ export class CalendarEventBuilder {
     seatsShowAttendees?: boolean | null;
     seatsShowAvailabilityCount?: boolean | null;
     customReplyToEmail?: string | null;
-    disableRescheduling?: boolean;
-    disableCancelling?: boolean;
+    disableRescheduling?: boolean | null;
+    disableCancelling?: boolean | null;
   }) {
     this.event = {
       ...this.event,
