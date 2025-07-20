@@ -8,11 +8,16 @@
     "env": {
       "NEXTAUTH_SECRET": "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=",
       "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=",
-      "NEXT_PUBLIC_WEBAPP_URL": "@vercel-url"
+      "DATABASE_URL": "postgresql://demo_user:demo_password@localhost:5432/demo_db",
+      "EMAIL_FROM": "noreply@cal.com",
+      "NEXT_PUBLIC_WEBAPP_URL": "https://your-app.vercel.app",
+      "NEXTAUTH_URL": "https://your-app.vercel.app/api/auth"
     }
   },
   "env": {
     "NEXTAUTH_SECRET": "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=",
-    "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c="
+    "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=",
+    "DATABASE_URL": "postgresql://demo_user:demo_password@localhost:5432/demo_db",
+    "EMAIL_FROM": "noreply@cal.com"
   }
 }

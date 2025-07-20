@@ -11,8 +11,15 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
-if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
-if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+// Set default values for required environment variables if not present (for demo/development)
+if (!process.env.NEXTAUTH_SECRET) {
+  console.warn("NEXTAUTH_SECRET not set, using default for demo purposes");
+  process.env.NEXTAUTH_SECRET = "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=";
+}
+if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+  console.warn("CALENDSO_ENCRYPTION_KEY not set, using default for demo purposes");
+  process.env.CALENDSO_ENCRYPTION_KEY = "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=";
+}
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 // To be able to use the version in the app without having to import package.json
@@ -46,7 +53,17 @@ if (!process.env.EMAIL_FROM) {
   );
 }
 
-if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
+// Set default NEXTAUTH_URL if not present
+if (!process.env.NEXTAUTH_URL) {
+  console.warn("NEXTAUTH_URL not set, using NEXT_PUBLIC_WEBAPP_URL as fallback");
+  if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+    process.env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
+  } else if (process.env.VERCEL_URL) {
+    process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}/api/auth`;
+  } else {
+    process.env.NEXTAUTH_URL = "http://localhost:3000/api/auth";
+  }
+}
 
 const getHttpsUrl = (url) => {
   if (!url) return url;
