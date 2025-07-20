@@ -203,9 +203,10 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
-  useBookerTimezone     Boolean   @default(false)
-  restrictionScheduleId Int?
-  restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  useBookerTimezone        Boolean   @default(false)
+  restrictionScheduleId    Int?
+  restrictionSchedule      Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  optionalGuestTeamMembers User[]    @relation("optional_guest_team_members")
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -420,6 +421,7 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  optionalGuestForEventTypes     EventType[]                   @relation("optional_guest_team_members")
 
   @@unique([email])
   @@unique([email, username])

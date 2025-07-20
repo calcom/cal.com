@@ -262,6 +262,19 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withOptionalGuestTeamMembers(
+    optionalGuestTeamMembers?: {
+      email: string;
+      name: string | null;
+    }[]
+  ) {
+    this.event = {
+      ...this.event,
+      optionalGuestTeamMembers: optionalGuestTeamMembers || [],
+    };
+    return this;
+  }
+
   build(): CalendarEvent {
     // Validate required fields
     if (
