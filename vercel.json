@@ -4,25 +4,5 @@
     "apps/web/pages/api/**/*.js": {
       "maxDuration": 30
     }
-  },
-  "build": {
-    "env": {
-      "NEXTAUTH_SECRET": "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=",
-      "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=",
-      "DATABASE_URL": "postgres://e6a33b67836dfbb5fbfd29032e4bbd91f722ce0d525ee1e7f20b996f65c81fcc:sk_ixBzdZCrvXbG17KSkKe2U@db.prisma.io:5432/?sslmode=require",
-      "DATABASE_DIRECT_URL": "postgres://e6a33b67836dfbb5fbfd29032e4bbd91f722ce0d525ee1e7f20b996f65c81fcc:sk_ixBzdZCrvXbG17KSkKe2U@db.prisma.io:5432/?sslmode=require",
-      "PRISMA_DATABASE_URL": "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19peEJ6ZFpDcnZYYkcxN0tTa0tlMlUiLCJhcGlfa2V5IjoiMDFLMEpLMk1DOUdWRFhBWlY2RjAzRjY1QlgiLCJ0ZW5hbnRfaWQiOiJlNmEzM2I2NzgzNmRmYmI1ZmJmZDI5MDMyZTRiYmQ5MWY3MjJjZTBkNTI1ZWUxZTdmMjBiOTk2ZjY1YzgxZmNjIiwiaW50ZXJuYWxfc2VjcmV0IjoiZGJjNTIxOTYtYWVlNi00YjkzLTg2NzktMjlmZTY3MmMxODBlIn0.CTMJ08TEb5Thdjhs1jmXoAEI6QJzK0qqEHPk22OkZxU",
-      "EMAIL_FROM": "noreply@cal.com",
-      "NEXT_PUBLIC_WEBAPP_URL": "https://your-app.vercel.app",
-      "NEXTAUTH_URL": "https://your-app.vercel.app/api/auth"
-    }
-  },
-  "env": {
-    "NEXTAUTH_SECRET": "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=",
-    "CALENDSO_ENCRYPTION_KEY": "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=",
-    "DATABASE_URL": "postgres://e6a33b67836dfbb5fbfd29032e4bbd91f722ce0d525ee1e7f20b996f65c81fcc:sk_ixBzdZCrvXbG17KSkKe2U@db.prisma.io:5432/?sslmode=require",
-    "DATABASE_DIRECT_URL": "postgres://e6a33b67836dfbb5fbfd29032e4bbd91f722ce0d525ee1e7f20b996f65c81fcc:sk_ixBzdZCrvXbG17KSkKe2U@db.prisma.io:5432/?sslmode=require",
-    "PRISMA_DATABASE_URL": "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19peEJ6ZFpDcnZYYkcxN0tTa0tlMlUiLCJhcGlfa2V5IjoiMDFLMEpLMk1DOUdWRFhBWlY2RjAzRjY1QlgiLCJ0ZW5hbnRfaWQiOiJlNmEzM2I2NzgzNmRmYmI1ZmJmZDI5MDMyZTRiYmQ5MWY3MjJjZTBkNTI1ZWUxZTdmMjBiOTk2ZjY1YzgxZmNjIiwiaW50ZXJuYWxfc2VjcmV0IjoiZGJjNTIxOTYtYWVlNi00YjkzLTg2NzktMjlmZTY3MmMxODBlIn0.CTMJ08TEb5Thdjhs1jmXoAEI6QJzK0qqEHPk22OkZxU",
-    "EMAIL_FROM": "noreply@cal.com"
   }
 }
