@@ -562,6 +562,11 @@ export class EventTypeRepository {
           field: true,
         },
       },
+      optionalGuestTeamMembers: {
+        select: {
+          id: true,
+        },
+      },
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,

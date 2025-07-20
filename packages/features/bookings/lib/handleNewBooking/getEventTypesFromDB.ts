@@ -184,6 +184,13 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
             name: true,
           },
         },
+        optionalGuestTeamMembers: {
+          select: {
+            name: true,
+            email: true,
+            id: true,
+          },
+        },
       },
     });
 
