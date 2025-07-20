@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/**/route.{js,ts}": {
+    "api/**/route.{js,ts}": {
       "maxDuration": 30
     },
     "pages/api/**/*.{js,ts}": {
