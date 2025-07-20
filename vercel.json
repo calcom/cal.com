@@ -1,5 +1,8 @@
 {
   "functions": {
+    "app/api/**/route.js": {
+      "maxDuration": 30
+    },
     "pages/api/**/*.js": {
       "maxDuration": 30
     }
