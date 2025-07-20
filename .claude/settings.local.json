@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn install)",
+      "Bash(yarn build)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git stash:*)",
+      "Bash(git restore:*)",
+      "Bash(git push:*)",
+      "Bash(yarn build:*)",
+      "Bash(NODE_OPTIONS=\"--max-old-space-size=4096\" yarn build)",
+      "Bash(find:*)",
+      "Bash(openssl rand:*)",
+      "Bash(yarn dx:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(grep:*)",
+      "Bash(yarn list:*)",
+      "Bash(yarn info:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(npx next build:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:github.com)"
+    ],
+    "deny": []
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/**/route.{js,ts}": {
+      "maxDuration": 30
+    },
+    "pages/api/**/*.{js,ts}": {
+      "maxDuration": 30
+    }
+  }
+}

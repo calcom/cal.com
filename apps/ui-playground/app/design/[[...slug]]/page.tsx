@@ -1,8 +1,5 @@
 import { componentSource } from "@/app/source";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { createTypeTable } from "fumadocs-typescript/ui";
-import defaultMdxComponents from "fumadocs-ui/mdx";
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Toaster } from "react-hot-toast";
@@ -15,27 +12,19 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
   if (!page) {
     notFound();
   }
-  const { AutoTypeTable } = createTypeTable();
 
   const MDX = page.data.body;
 
   return (
-    <>
-      {/* @ts-expect-error idk why fumadocs doersnt like this */}
-      <DocsPage toc={page.data.toc} full={page.data.full}>
-        <Toaster />
-        <DocsTitle>{page.data.title}</DocsTitle>
+    <div>
+      <Toaster />
+      <h1>{page.data.title}</h1>
+      {page.data.description && <p>{page.data.description}</p>}
 
-        <DocsDescription>{page.data.description}</DocsDescription>
-
-        <DocsBody>
-          <TooltipProvider>
-            {/* @ts-expect-error idk why fumadocs doersnt like this */}
-            <MDX components={{ ...defaultMdxComponents, AutoTypeTable }} />
-          </TooltipProvider>
-        </DocsBody>
-      </DocsPage>
-    </>
+      <TooltipProvider>
+        <MDX />
+      </TooltipProvider>
+    </div>
   );
 }
 

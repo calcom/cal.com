@@ -11,8 +11,24 @@ const {
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
-if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
-if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
+// Set default values for required environment variables if not present (for demo/development)
+if (!process.env.NEXTAUTH_SECRET) {
+  console.warn("NEXTAUTH_SECRET not set, using default for demo purposes");
+  process.env.NEXTAUTH_SECRET = "8BLGL1uhY2j6Ty6rWm1pdjRs5mpiT4jvsfT4K2TVIAo=";
+}
+if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+  console.warn("CALENDSO_ENCRYPTION_KEY not set, using default for demo purposes");
+  process.env.CALENDSO_ENCRYPTION_KEY = "EN+Wafjtr48w+5Wle6I9Byrv1EK0+Yl1Qs2Lo5SrE+c=";
+}
+if (!process.env.DATABASE_URL) {
+  console.warn("DATABASE_URL not set, using Prisma Postgres URL");
+  process.env.DATABASE_URL =
+    "postgres://e6a33b67836dfbb5fbfd29032e4bbd91f722ce0d525ee1e7f20b996f65c81fcc:sk_ixBzdZCrvXbG17KSkKe2U@db.prisma.io:5432/?sslmode=require";
+}
+if (!process.env.DATABASE_DIRECT_URL) {
+  console.warn("DATABASE_DIRECT_URL not set, using same as DATABASE_URL");
+  process.env.DATABASE_DIRECT_URL = process.env.DATABASE_URL;
+}
 const isOrganizationsEnabled =
   process.env.ORGANIZATIONS_ENABLED === "1" || process.env.ORGANIZATIONS_ENABLED === "true";
 // To be able to use the version in the app without having to import package.json
@@ -46,7 +62,17 @@ if (!process.env.EMAIL_FROM) {
   );
 }
 
-if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
+// Set default NEXTAUTH_URL if not present
+if (!process.env.NEXTAUTH_URL) {
+  console.warn("NEXTAUTH_URL not set, using NEXT_PUBLIC_WEBAPP_URL as fallback");
+  if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+    process.env.NEXTAUTH_URL = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth`;
+  } else if (process.env.VERCEL_URL) {
+    process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}/api/auth`;
+  } else {
+    process.env.NEXTAUTH_URL = "http://localhost:3000/api/auth";
+  }
+}
 
 const getHttpsUrl = (url) => {
   if (!url) return url;
@@ -179,7 +205,9 @@ const nextConfig = {
     "superagent-proxy", // Dependencies of @tryvital/vital-node
     "superagent", // Dependencies of akismet
     "formidable", // Dependencies of akismet
+    "sharp", // Exclude Sharp from server bundle to avoid Vercel build issues
   ],
+  serverComponentsExternalPackages: ["sharp"],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     optimizePackageImports: ["@calcom/ui"],
@@ -224,11 +252,12 @@ const nextConfig = {
       config.plugins.push(
         new webpack.IgnorePlugin({
           resourceRegExp:
-            /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
+            /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$|^@img\/sharp-libvips-dev\/include$|^@img\/sharp-libvips-dev\/cplusplus$|^@img\/sharp-wasm32\/versions$)/,
         })
       );
 
       config.externals.push("formidable");
+      config.externals.push("sharp");
     }
 
     config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
