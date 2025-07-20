@@ -1,15 +1,14 @@
 {
-  "buildCommand": "npm run db-deploy && npm run build",
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/web/package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "functions": {
     "apps/web/pages/api/**/*.js": {
       "maxDuration": 30
     }
-  },
-  "framework": "nextjs",
-  "installCommand": "yarn install",
-  "buildSettings": {
-    "installCommand": "yarn install",
-    "buildCommand": "yarn workspace @calcom/web build",
-    "outputDirectory": "apps/web/.next"
   }
 }
