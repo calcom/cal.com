@@ -443,33 +443,40 @@ export default class Office365CalendarService implements Calendar {
     };
 
     try {
-      const calsIds = await getCalIds();
-      const originalStartDate = dayjs(dateFrom);
-      const originalEndDate = dayjs(dateTo);
-      const diff = originalEndDate.diff(originalStartDate, "days");
+      const calendarIds = await getCalIds();
+      const fromDate = new Date(dateFrom);
+      const toDate = new Date(dateTo);
+      const oneDayMs = 1000 * 60 * 60 * 24;
+      const diff = Math.floor((fromDate.getTime() - toDate.getTime()) / oneDayMs);
 
       if (diff <= 90) {
-        return await this.getCacheOrFetchAvailability(dateFrom, dateTo, calsIds, shouldServeCache);
+        return await this.getCacheOrFetchAvailability(dateFrom, dateTo, calendarIds, shouldServeCache);
       } else {
-        const busyData = [];
-        let startDate = originalStartDate;
-        let endDate = originalStartDate.add(90, "days");
-
+        const busyData: EventBusyDate[] = [];
         const loopsNumber = Math.ceil(diff / 90);
+        let currentStartTime = fromDate.getTime();
+        const originalEndTime = toDate.getTime();
+        const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+        const oneMinuteMs = 60 * 1000;
+
         for (let i = 0; i < loopsNumber; i++) {
-          if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+          let currentEndTime = currentStartTime + ninetyDaysMs;
+
+          // Don't go beyond the original end date
+          if (currentEndTime > originalEndTime) {
+            currentEndTime = originalEndTime;
+          }
 
           busyData.push(
             ...(await this.getCacheOrFetchAvailability(
-              startDate.format(),
-              endDate.format(),
-              calsIds,
+              new Date(currentStartTime).toISOString(),
+              new Date(currentEndTime).toISOString(),
+              calendarIds,
               shouldServeCache
             ))
           );
 
-          startDate = endDate.add(1, "minutes");
-          endDate = startDate.add(90, "days");
+          currentStartTime = currentEndTime + oneMinuteMs;
         }
         return busyData;
       }
