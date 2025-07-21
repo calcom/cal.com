@@ -17,7 +17,7 @@ import { expect } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 // Mock the FeaturesRepository to enable restriction-schedule feature
-vi.mock("@calcom/features/flags/features.repository", () => ({
+vi.mock("@calcom/features/flags/featuresRepository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfTeamHasFeature: vi.fn().mockResolvedValue(true),
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),

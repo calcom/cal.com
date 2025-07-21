@@ -9,12 +9,12 @@ import { CredentialsRepository } from "@/modules/credentials/credentialsReposito
 import { PrismaReadService } from "@/modules/prisma/prismaReadService";
 import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selectedCalendarsRepository";
-import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersRepository } from "@/modules/users/usersRepository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [],
+  imports: [TokensModule],
   providers: [
     GCalService,
     GoogleCalendarService,
@@ -22,7 +22,6 @@ import { Module } from "@nestjs/common";
     BookingReferencesRepository_2024_08_13,
     CredentialsRepository,
     CalendarsService,
-    TokensRepository,
     SelectedCalendarsRepository,
     PrismaReadService,
     PrismaWriteService,

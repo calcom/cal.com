@@ -6,4 +6,4 @@ const featuresRepositoryModuleMock = {
   })),
 };
 
-vi.mock("@calcom/features/flags/features.repository", () => featuresRepositoryModuleMock);
+vi.mock("@calcom/features/flags/featuresRepository", () => featuresRepositoryModuleMock);

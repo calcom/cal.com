@@ -12,7 +12,7 @@ import { RoleManagementFactory } from "../roleManagementFactory";
 import { RoleService } from "../roleService";
 
 // Mock dependencies
-vi.mock("@calcom/features/flags/features.repository");
+vi.mock("@calcom/features/flags/featuresRepository");
 vi.mock("../role.service");
 vi.mock("../permission-check.service");
 vi.mock("@calcom/prisma", () => ({

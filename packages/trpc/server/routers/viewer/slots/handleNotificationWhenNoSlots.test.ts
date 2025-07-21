@@ -19,7 +19,7 @@ vi.mock("@calcom/features/redis/RedisService", () => {
   };
 });
 
-vi.mock("@calcom/features/flags/features.repository", () => ({
+vi.mock("@calcom/features/flags/featuresRepository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
   })),

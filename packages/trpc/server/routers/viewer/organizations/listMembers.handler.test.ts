@@ -24,7 +24,7 @@ vi.spyOn(prisma.attributeOption, "findMany").mockImplementation(prismaMock.attri
 
 // Mock FeaturesRepository
 const mockCheckIfTeamHasFeature = vi.fn();
-vi.mock("@calcom/features/flags/features.repository", () => ({
+vi.mock("@calcom/features/flags/featuresRepository", () => ({
   FeaturesRepository: vi.fn().mockImplementation(() => ({
     checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
   })),

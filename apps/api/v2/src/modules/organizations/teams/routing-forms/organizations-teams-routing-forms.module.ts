@@ -1,7 +1,9 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { MembershipsRepository } from "@/modules/memberships/membershipsRepository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizationsRepository";
 import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizationsRoutingFormsRepository";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizationsRoutingFormsResponsesService";
+import { SharedRoutingFormResponseService } from "@/modules/organizations/routing-forms/services/sharedRoutingFormResponseService";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizationsTeamsRepository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -31,6 +33,7 @@ import { OrganizationsTeamsRoutingFormsService } from "./services/organizationsT
   providers: [
     OrganizationsTeamsRoutingFormsService,
     OrganizationsTeamsRoutingFormsResponsesService,
+    SharedRoutingFormResponseService,
     OrganizationsTeamsRoutingFormsResponsesOutputService,
     OrganizationsTeamsRoutingFormsResponsesRepository,
     OrganizationsTeamsRoutingFormsRepository,
@@ -39,6 +42,7 @@ import { OrganizationsTeamsRoutingFormsService } from "./services/organizationsT
     MembershipsRepository,
     OrganizationsRoutingFormsResponsesService,
     OrganizationsRoutingFormsRepository,
+    EventTypesRepository_2024_06_14,
   ],
   controllers: [OrganizationsTeamsRoutingFormsResponsesController, OrganizationsTeamsRoutingFormsController],
 })

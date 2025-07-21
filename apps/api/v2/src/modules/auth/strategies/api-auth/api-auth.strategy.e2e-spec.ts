@@ -9,7 +9,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauthFlowServ
 import { PrismaReadService } from "@/modules/prisma/prismaReadService";
 import { PrismaWriteService } from "@/modules/prisma/prismaWriteService";
 import { ProfilesModule } from "@/modules/profiles/profiles.module";
-import { TokensRepository } from "@/modules/tokens/tokensRepository";
+import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/usersService";
 import { UsersRepository } from "@/modules/users/usersRepository";
 import { ExecutionContext, HttpException } from "@nestjs/common";
@@ -64,6 +64,7 @@ describe("ApiAuthStrategy", () => {
           load: [appConfig],
         }),
         ProfilesModule,
+        TokensModule,
       ],
       providers: [
         MockedRedisService,
@@ -77,7 +78,6 @@ describe("ApiAuthStrategy", () => {
         OAuthClientRepository,
         PrismaReadService,
         PrismaWriteService,
-        TokensRepository,
         JwtService,
         DeploymentsRepository,
         NestJwtService,
