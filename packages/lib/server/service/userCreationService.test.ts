@@ -21,7 +21,7 @@ vi.mock("@calcom/features/auth/lib/hashPassword", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password"),
 }));
 
-vi.mock("../repository/user.repository", () => {
+vi.mock("../repository/userRepository", () => {
   return {
     UserRepository: vi.fn().mockImplementation(() => ({
       create: vi.fn(),

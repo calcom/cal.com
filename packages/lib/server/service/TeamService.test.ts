@@ -13,8 +13,8 @@ import { TRPCError } from "@trpc/server";
 import { TeamService } from "./teamService";
 
 vi.mock("@calcom/features/ee/billing/teams");
-vi.mock("@calcom/lib/server/repository/team.repository");
-vi.mock("@calcom/lib/server/service/workflows.service");
+vi.mock("@calcom/lib/server/repository/teamRepository");
+vi.mock("@calcom/lib/server/service/workflowsService");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 

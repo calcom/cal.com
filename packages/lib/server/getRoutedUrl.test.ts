@@ -22,8 +22,8 @@ import { getRoutedUrl } from "./getRoutedUrl";
 // Mock dependencies
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
-vi.mock("@calcom/lib/server/repository/routingForm");
-vi.mock("@calcom/lib/server/repository/user", () => {
+vi.mock("@calcom/lib/server/repository/routingFormRepository");
+vi.mock("@calcom/lib/server/repository/userRepository", () => {
   return {
     UserRepository: vi.fn().mockImplementation(() => ({
       enrichUserWithItsProfile: vi.fn(),
