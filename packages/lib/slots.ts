@@ -42,22 +42,7 @@ function buildSlotsWithDateRanges({
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
 
   const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
-
-  // there can only ever be one slot at a given start time, and based on duration also only a single length.
-  const slots = new Map<
-    string,
-    {
-      time: Dayjs;
-      userIds?: number[];
-      away?: boolean;
-      fromUser?: IFromUser;
-      toUser?: IToUser;
-      reason?: string;
-      emoji?: string;
-    }
-  >();
-
-  const newSlots: {
+  const slots: {
     time: Dayjs;
     userIds?: number[];
     away?: boolean;
@@ -150,11 +135,11 @@ function buildSlotsWithDateRanges({
           ...(emoji && { emoji }),
         };
       }
-      newSlots.push(slotData);
+      slots.push(slotData);
     }
   });
 
-  return newSlots;
+  return slots;
 }
 
 const getSlots = ({
