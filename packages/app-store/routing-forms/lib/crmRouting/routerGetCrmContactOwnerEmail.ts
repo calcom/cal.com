@@ -40,10 +40,16 @@ export default async function routerGetCrmContactOwnerEmail({
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
 
-  let contactOwner: { email: string | null; recordType: string | null; crmAppSlug: string | null } = {
+  let contactOwner: {
+    email: string | null;
+    recordType: string | null;
+    crmAppSlug: string | null;
+    recordId: string | null;
+  } = {
     email: null,
     recordType: null,
     crmAppSlug: null,
+    recordId: null,
   };
   //   Determine if there is a CRM option enabled in the chosen route
   for (const appSlug of enabledAppSlugs) {
