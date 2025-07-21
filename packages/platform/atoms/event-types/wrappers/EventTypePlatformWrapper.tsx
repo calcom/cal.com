@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useRef, useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
@@ -155,7 +155,7 @@ const EventType = forwardRef<
     teamId: team?.id,
   });
 
-  const { form, handleSubmit, validateForm, handleFormSubmit } = useEventTypeForm({
+  const { form, handleSubmit } = useEventTypeForm({
     eventType,
     onSubmit: (data) => {
       if (!isDryRun) {
@@ -166,6 +166,18 @@ const EventType = forwardRef<
     },
     onFormStateChange: onFormStateChange,
   });
+
+  const handleFormSubmit = useCallback(() => {
+    handleSubmit(form.getValues());
+  }, [handleSubmit, form]);
+
+  const validateForm = useCallback(async () => {
+    const isValid = await form.trigger();
+    return {
+      isValid,
+      errors: form.formState.errors,
+    };
+  }, [form]);
 
   useImperativeHandle(
     ref,

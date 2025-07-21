@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -411,18 +411,6 @@ export const useEventTypeForm = ({
     }
   };
 
-  const validateForm = useCallback(async () => {
-    const isValid = await form.trigger();
-    return {
-      isValid,
-      errors: form.formState.errors,
-    };
-  }, [form]);
-
-  const handleFormSubmitCallback = useCallback(() => {
-    handleSubmit(form.getValues());
-  }, [form]);
-
   useEffect(() => {
     if (onFormStateChange) {
       onFormStateChange({
@@ -433,5 +421,5 @@ export const useEventTypeForm = ({
     }
   }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
 
-  return { form, handleSubmit, validateForm, handleFormSubmit: handleFormSubmitCallback };
+  return { form, handleSubmit };
 };
