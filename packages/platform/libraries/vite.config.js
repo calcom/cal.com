@@ -26,6 +26,7 @@ export default defineConfig({
         slots: resolve(__dirname, "./slots.ts"),
         conferencing: resolve(__dirname, "./conferencing.ts"),
         repositories: resolve(__dirname, "./repositories.ts"),
+        bookings: resolve(__dirname, "./bookings.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

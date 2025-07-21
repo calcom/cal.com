@@ -23,7 +23,6 @@ type CalVideoSettings = {
   disableRecordingForGuests: boolean;
   disableRecordingForOrganizer: boolean;
   enableAutomaticTranscription: boolean;
-  enableAutomaticRecordingForOrganizer: boolean;
   disableTranscriptionForGuests: boolean;
   disableTranscriptionForOrganizer: boolean;
 };
@@ -72,7 +71,7 @@ const shouldEnableAutomaticRecording = ({
   if (!hasTeamPlan || !isOrganizer) return false;
   if (!calVideoSettings) return false;
 
-  return !!calVideoSettings.enableAutomaticRecordingForOrganizer;
+  return !calVideoSettings.disableRecordingForOrganizer;
 };
 
 const shouldEnableTranscriptionButton = ({
