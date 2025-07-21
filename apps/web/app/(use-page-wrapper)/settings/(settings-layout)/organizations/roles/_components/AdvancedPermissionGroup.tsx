@@ -86,7 +86,7 @@ export function AdvancedPermissionGroup({
         <div className="flex items-center gap-2">
           <Checkbox
             checked={isAllSelected}
-            onCheckedChange={() => handleToggleAll}
+            onCheckedChange={handleToggleAll}
             onClick={handleToggleAll}
             disabled={disabled}
           />

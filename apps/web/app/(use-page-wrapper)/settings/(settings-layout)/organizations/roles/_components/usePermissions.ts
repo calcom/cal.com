@@ -80,6 +80,9 @@ export function usePermissions(): UsePermissionsReturn {
 
       if (!resourceConfig) return currentPermissions;
 
+      // Declare variable before switch to avoid scope issues
+      let allResourcePerms: string[];
+
       switch (level) {
         case "none":
           // No permissions to add, just keep other permissions
@@ -90,7 +93,7 @@ export function usePermissions(): UsePermissionsReturn {
           break;
         case "all":
           // Add all permissions for this resource (excluding internal keys)
-          const allResourcePerms = Object.keys(resourceConfig)
+          allResourcePerms = Object.keys(resourceConfig)
             .filter((action) => !action.startsWith("_"))
             .map((action) => `${resource}.${action}`);
           newPermissions.push(...allResourcePerms);
