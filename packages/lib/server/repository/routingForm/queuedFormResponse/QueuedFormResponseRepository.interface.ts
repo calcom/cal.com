@@ -1,5 +1,5 @@
 export type QueuedFormResponseRepositoryFindManyWhere = {
-  actualResponseId?: string | null;
+  actualResponseId?: number | null;
   createdAt?: {
     lt: Date;
   };
@@ -18,8 +18,8 @@ export type QueuedFormResponseRepositoryFindManyResult = {
   response: unknown;
   chosenRouteId: string | null;
   createdAt: Date;
-  updatedAt: Date;
-  actualResponseId: string | null;
+  updatedAt: Date | null;
+  actualResponseId: number | null;
 };
 
 export interface QueuedFormResponseRepositoryInterface {
