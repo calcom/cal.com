@@ -38,5 +38,6 @@ export const filterHostsBySameRoundRobinHost = async <
     },
   });
 
+  // FIXME: this doesn't work with fixed hosts or round robin groups
   return hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
 };
