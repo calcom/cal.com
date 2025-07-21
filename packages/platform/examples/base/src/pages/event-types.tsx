@@ -2,8 +2,9 @@ import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 
+import type { EventSettingsFromRef } from "@calcom/atoms";
 import {
   useEventTypes,
   useTeamEventTypes,
@@ -18,6 +19,21 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const [eventTypeId, setEventTypeId] = useState<number | null>(null);
   const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
+  const eventTypeRef = useRef<EventSettingsFromRef>(null);
+
+  const handleFormStateChange = useCallback((formState: unknown) => {
+    console.log(formState, "formStateeeeee");
+  }, []);
+
+  const handleValidate = async () => {
+    const result = await eventTypeRef.current?.validateForm();
+    console.log("Validation result:", result);
+  };
+
+  const handleSubmit = () => {
+    console.log("handleSubmit: ", eventTypeRef.current);
+    eventTypeRef.current?.handleFormSubmit();
+  };
   const { isLoading: isLoadingEvents, data: eventTypes, refetch } = useEventTypes(props.calUsername);
   const { data: teams } = useTeams();
   const {
@@ -739,7 +755,22 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 setEventTypeId(null);
               }}
               onDeleteError={console.error}
+              onFormStateChange={handleFormStateChange}
+              ref={eventTypeRef}
             />
+
+            <div className="mt-4 flex justify-center gap-4">
+              <button
+                onClick={handleValidate}
+                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600">
+                Validate Form
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600">
+                Submit Form
+              </button>
+            </div>
           </div>
         )}
 
