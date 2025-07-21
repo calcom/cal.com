@@ -21,6 +21,7 @@ const initialConstants = {
   BOOKER_NUMBER_OF_DAYS_TO_LOAD: 14,
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
   SINGLE_ORG_SLUG: "",
+  DEFAULT_GROUP_ID: "default_group_id",
 } as typeof constants;
 
 export const mockedConstants = { ...initialConstants };
