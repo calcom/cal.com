@@ -20,7 +20,12 @@ export class RoleRepository {
 
   async findByTeamId(teamId: number): Promise<Role[]> {
     const roles = await this.client.role.findMany({
-      where: { teamId },
+      where: {
+        OR: [
+          { teamId }, // Team-specific custom roles
+          { teamId: null, type: "SYSTEM" }, // Default/system roles available to all teams
+        ],
+      },
       include: { permissions: true },
     });
     return RoleOutputMapper.toDomainList(roles);
