@@ -42,6 +42,10 @@ function buildSlotsWithDateRanges({
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
 
   const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  console.log(
+    "orderedDateRanges",
+    orderedDateRanges.map((r) => ({ start: r.start.utc().format(), end: r.end.utc().format() }))
+  );
   const slots: {
     time: Dayjs;
     userIds?: number[];
@@ -76,15 +80,41 @@ function buildSlotsWithDateRanges({
   const slotCountSkipBefore = Math.ceil(
     (startTimeWithMinNotice.valueOf() - startDateTime.valueOf()) / (frequency * 60_000)
   );
-  // Amount of slots required to skip because of event length.
+
+  const utcOffsetInterval = (startDateTime.utcOffset() % interval) * 60_000;
+  // Amount of slots required to skip because of event length + amount of slots required to skip because of interval offset.
   const slotCountSkipAfter = Math.ceil(eventLength / frequency) - 1;
   // using date ranges, we build a slot map.
   const slotMap = orderedDateRanges.reduce<Map<number, number>>((acc, range) => {
-    const startSlotIndex = Math.floor(
+    // every new day we
+
+    const startSlotIndex = Math.ceil(
       (range.start.valueOf() - startDateTime.valueOf()) / ((frequency + offsetStart) * 60_000)
     );
+    // account for end-of-hour edge case, where the end of the range is X:59:59.000, we need to add 1 second to it.
+    const rangeEnd =
+      range.end.valueOf() % 3_600_000 === 3_599_000 ? range.end.valueOf() + 1000 : range.end.valueOf();
+
+    const remainder =
+      ((range.start.valueOf() - startDateTime.valueOf()) / 60_000) % (frequency + offsetStart);
+    console.log(remainder);
+    const invertedRemainder = (frequency + offsetStart - remainder) % (frequency + offsetStart);
+
+    const result =
+      remainder > 0
+        ? (rangeEnd - range.start.valueOf()) / 60_000 - invertedRemainder - frequency + offsetStart
+        : 0;
+    console.log(result);
+
     const slotCount = Math.floor(
-      (range.end.valueOf() + 1000 - range.start.valueOf()) / ((frequency + offsetStart) * 60_000)
+      (rangeEnd - range.start.valueOf() - utcOffsetInterval - result * 60_000) /
+        ((frequency + offsetStart) * 60_000)
+    );
+
+    console.log(
+      result,
+      (rangeEnd - range.start.valueOf() - utcOffsetInterval - result * 60_000) /
+        ((frequency + offsetStart) * 60_000)
     );
     acc.set(
       Math.max(startSlotIndex, slotCountSkipBefore),
@@ -95,6 +125,7 @@ function buildSlotsWithDateRanges({
   }, new Map());
 
   let nextStartSlotIndex = 0;
+  console.log({ slotMap });
 
   slotMap.forEach((slotCount, startSlotIndex) => {
     let jumpOver = 0;
@@ -138,6 +169,8 @@ function buildSlotsWithDateRanges({
       slots.push(slotData);
     }
   });
+
+  console.log({ slots: slots.map((s) => ({ time: s.time.utc().format() })) });
 
   return slots;
 }

@@ -12,12 +12,12 @@ let dateRangesMockDay: DateRange[];
 beforeAll(() => {
   vi.setSystemTime(dayjs.utc("2021-06-20T11:59:59Z").toDate());
 
-  dateRangesMockDay = [{ start: dayjs.utc().startOf("day"), end: dayjs.utc().endOf("day") }];
+  dateRangesMockDay = [{ start: dayjs.utc().startOf("day"), end: dayjs.utc().endOf("day").millisecond(0) }];
 
   dateRangesNextDay = [
     {
       start: dayjs.utc().add(1, "day").startOf("day"),
-      end: dayjs.utc().add(1, "day").endOf("day"),
+      end: dayjs.utc().add(1, "day").endOf("day").millisecond(0),
     },
   ];
 });
@@ -234,7 +234,7 @@ describe("Tests the slot logic", () => {
       offsetStart: 0,
     });
 
-    expect(result).toHaveLength(5);
+    expect(result).toHaveLength(6);
   });
 
   it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour", async () => {
@@ -303,7 +303,7 @@ describe("Tests the slot logic", () => {
     expect(slots[1].time.format()).toBe("2023-07-13T09:35:00+02:00");
   });
 
-  it("tests slots for half hour timezones", async () => {
+  it("correctly starts half hour timezones on the full hour", async () => {
     const slots = getSlots({
       inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Asia/Kolkata"),
       frequency: 60,
@@ -319,6 +319,35 @@ describe("Tests the slot logic", () => {
 
     expect(slots).toHaveLength(1);
     expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
+  });
+
+  it("half hour timezones repeats correctly day-to-day", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Asia/Kolkata"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges: [
+        {
+          start: dayjs.utc("2023-07-13T07:00:00Z").tz("Asia/Kolkata"),
+          end: dayjs.utc("2023-07-13T12:30:00Z").tz("Asia/Kolkata"),
+        },
+        {
+          start: dayjs.utc("2023-07-14T07:00:00Z").tz("Asia/Kolkata"),
+          end: dayjs.utc("2023-07-14T12:30:00Z").tz("Asia/Kolkata"),
+        },
+        {
+          start: dayjs.utc("2023-07-15T07:00:00Z").tz("Asia/Kolkata"),
+          end: dayjs.utc("2023-07-15T13:00:00Z").tz("Asia/Kolkata"),
+        },
+      ],
+    });
+
+    // 07:30, 08:30, 09:30, 10:30, 11:30 (5 legal slots per day)
+    expect(slots[0].time.utc().format()).toBe("2023-07-13T07:30:00Z");
+    expect(slots[5].time.utc().format()).toBe("2023-07-14T07:30:00Z");
+    expect(slots[10].time.utc().format()).toBe("2023-07-15T07:30:00Z");
+    expect(slots).toHaveLength(15);
   });
 
   it("tests slots for 5 minute events", async () => {
