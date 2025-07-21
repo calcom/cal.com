@@ -1772,7 +1772,7 @@ export const insightsRouter = router({
         options: {
           scope,
           userId: ctx.user.id,
-          orgId: ctx.user.organizationId || 0,
+          orgId: ctx.user.organizationId ?? 0,
           ...(selectedTeamId && { teamId: selectedTeamId }),
         },
         filters: {

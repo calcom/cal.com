@@ -76,7 +76,7 @@ const CustomTooltip = ({
     dataKey: string;
     name: string;
     color: string;
-    payload: { hour: string; bookings: number };
+    payload: { hour: string; count: number };
   }>;
   label?: string;
 }) => {
@@ -87,7 +87,7 @@ const CustomTooltip = ({
 
   return (
     <div className="bg-default border-subtle rounded-lg border p-3 shadow-lg">
-      <p className="text-default font-medium">{payload[0].payload.hour}</p>
+      <p className="text-default font-medium">{label}</p>
       {payload.map((entry, index: number) => (
         <p key={index}>
           {t("bookings")}: {entry.value}
