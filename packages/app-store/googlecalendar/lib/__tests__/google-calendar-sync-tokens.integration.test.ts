@@ -837,4 +837,282 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
       await expect(Promise.all(cachePromises)).resolves.not.toThrow();
     });
   });
+
+  describe("Month Boundary Cache Key Issue - CRITICAL BUG", () => {
+    test("proves cache keys change across month boundaries causing future events to be lost", async () => {
+      const userEmail = `month-boundary-${testUniqueId}@example.com`;
+
+      // Setup: Mock system time to Jan 31st, 2025
+      vi.setSystemTime(new Date("2025-01-31T23:00:00.000Z"));
+
+      const jan31Query = "2025-01-31T10:00:00.000Z";
+      const jan31Args = {
+        timeMin: getTimeMin(jan31Query), // Will be 2025-01-01T00:00:00.000Z
+        timeMax: getTimeMax(jan31Query), // Will be based on current date (Jan 31)
+        items: [{ id: userEmail }],
+      };
+
+      const jan31CacheResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-01-31T14:00:00.000Z",
+                end: "2025-01-31T15:00:00.000Z",
+              },
+              {
+                start: "2025-02-03T10:00:00.000Z",
+                end: "2025-02-03T11:00:00.000Z",
+              },
+              {
+                start: "2025-02-15T16:00:00.000Z",
+                end: "2025-02-15T17:00:00.000Z",
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: jan31Args,
+        value: jan31CacheResponse,
+        nextSyncToken: "jan31-sync-token-with-future-events",
+      });
+
+      const jan31Cache = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: jan31Args,
+      });
+      expect(jan31Cache).toBeTruthy();
+      expect(jan31Cache?.nextSyncToken).toBe("jan31-sync-token-with-future-events");
+      const jan31Value = jan31Cache!.value as MockGoogleCalendarResponse;
+      expect(jan31Value.calendars[userEmail].busy).toHaveLength(3);
+
+      vi.setSystemTime(new Date("2025-02-01T09:00:00.000Z"));
+
+      const feb1Query = "2025-02-01T10:00:00.000Z";
+      const feb1Args = {
+        timeMin: getTimeMin(feb1Query), // Will be 2025-02-01T00:00:00.000Z (DIFFERENT!)
+        timeMax: getTimeMax(feb1Query), // Will be based on current date (Feb 1)
+        items: [{ id: userEmail }],
+      };
+
+      const feb1Cache = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: feb1Args,
+      });
+
+      expect(feb1Cache).toBeNull(); // CACHE MISS!
+
+      const jan31Key = JSON.stringify(jan31Args);
+      const feb1Key = JSON.stringify(feb1Args);
+      expect(jan31Key).not.toBe(feb1Key); // Different keys for same logical query
+
+      const feb1IncrementalResponse: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-02-01T12:00:00.000Z",
+                end: "2025-02-01T13:00:00.000Z",
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: feb1Args,
+        value: feb1IncrementalResponse,
+        nextSyncToken: "feb1-new-sync-token", // Lost connection to previous token
+      });
+
+      const feb1FinalCache = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: feb1Args,
+      });
+
+      expect(feb1FinalCache).toBeTruthy();
+      const feb1FinalValue = feb1FinalCache!.value as MockGoogleCalendarResponse;
+      const feb1BusyTimes = feb1FinalValue.calendars[userEmail].busy;
+
+      expect(feb1BusyTimes).toHaveLength(1); // Should be 3 if cache continuity worked
+
+      const feb1StartTimes = feb1BusyTimes.map((bt) => bt.start);
+      expect(feb1StartTimes).toContain("2025-02-01T12:00:00.000Z"); // Only new event
+      expect(feb1StartTimes).not.toContain("2025-02-03T10:00:00.000Z"); // LOST!
+      expect(feb1StartTimes).not.toContain("2025-02-15T16:00:00.000Z"); // LOST!
+
+      vi.useRealTimers();
+    });
+
+    test("proves sync token continuity is broken across month boundaries", async () => {
+      const userEmail = `sync-token-${testUniqueId}@example.com`;
+
+      // Setup: Mock system time to Jan 31st
+      vi.setSystemTime(new Date("2025-01-31T20:00:00.000Z"));
+
+      const jan31Args = {
+        timeMin: getTimeMin("2025-01-31T10:00:00.000Z"),
+        timeMax: getTimeMax("2025-01-31T10:00:00.000Z"),
+        items: [{ id: userEmail }],
+      };
+
+      // Store cache with sync token on Jan 31st
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: jan31Args,
+        value: mockGoogleCalendarAPI(),
+        nextSyncToken: "jan31-sync-token-abc123",
+      });
+
+      const jan31Cache = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: jan31Args,
+      });
+      expect(jan31Cache?.nextSyncToken).toBe("jan31-sync-token-abc123");
+
+      vi.setSystemTime(new Date("2025-02-01T08:00:00.000Z"));
+
+      const feb1Args = {
+        timeMin: getTimeMin("2025-02-01T10:00:00.000Z"), // Different timeMin!
+        timeMax: getTimeMax("2025-02-01T10:00:00.000Z"),
+        items: [{ id: userEmail }],
+      };
+
+      const feb1Cache = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: feb1Args,
+      });
+
+      expect(feb1Cache).toBeNull(); // No cache found = no sync token available
+
+      vi.useRealTimers();
+    });
+
+    test("proves cache fragmentation occurs at month boundaries", async () => {
+      const userEmail = `fragmentation-${testUniqueId}@example.com`;
+
+      // Setup: Create caches across month boundary
+      vi.setSystemTime(new Date("2025-01-31T12:00:00.000Z"));
+
+      const jan31Args = {
+        timeMin: getTimeMin("2025-01-31T10:00:00.000Z"),
+        timeMax: getTimeMax("2025-01-31T10:00:00.000Z"),
+        items: [{ id: userEmail }],
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: jan31Args,
+        value: mockGoogleCalendarAPI(),
+        nextSyncToken: "jan31-token",
+      });
+
+      vi.setSystemTime(new Date("2025-02-01T12:00:00.000Z"));
+
+      const feb1Args = {
+        timeMin: getTimeMin("2025-02-01T10:00:00.000Z"),
+        timeMax: getTimeMax("2025-02-01T10:00:00.000Z"),
+        items: [{ id: userEmail }],
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: feb1Args,
+        value: mockGoogleCalendarAPI(),
+        nextSyncToken: "feb1-token",
+      });
+
+      const allCaches = await prisma.calendarCache.findMany({
+        where: {
+          credentialId: testCredentialId,
+          userId: testUserId,
+        },
+      });
+
+      expect(allCaches.length).toBeGreaterThanOrEqual(2);
+
+      const cacheKeys = allCaches.map((cache) => cache.key);
+      const uniqueKeys = new Set(cacheKeys);
+      expect(uniqueKeys.size).toBe(allCaches.length); // All keys are different
+
+      cacheKeys.forEach((key) => {
+        const parsedKey = JSON.parse(key);
+        expect(parsedKey.items).toEqual([{ id: userEmail }]);
+      });
+
+      vi.useRealTimers();
+    });
+
+    test("demonstrates real-world impact: user appears available when they have meetings", async () => {
+      const userEmail = `availability-bug-${testUniqueId}@example.com`;
+
+      vi.setSystemTime(new Date("2025-01-27T10:00:00.000Z")); // Monday Jan 27
+
+      const mondayArgs = {
+        timeMin: getTimeMin("2025-01-27T10:00:00.000Z"),
+        timeMax: getTimeMax("2025-01-27T10:00:00.000Z"),
+        items: [{ id: userEmail }],
+      };
+
+      const mondayMeeting: MockGoogleCalendarResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-01-27T14:00:00.000Z", // 2 PM Monday
+                end: "2025-01-27T15:00:00.000Z",
+              },
+              {
+                start: "2025-02-03T14:00:00.000Z", // 2 PM next Monday
+                end: "2025-02-03T15:00:00.000Z",
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: mondayArgs,
+        value: mondayMeeting,
+        nextSyncToken: "monday-recurring-meetings",
+      });
+
+      vi.setSystemTime(new Date("2025-02-03T13:00:00.000Z")); // Monday Feb 3, 1 PM
+
+      const feb3Args = {
+        timeMin: getTimeMin("2025-02-03T13:00:00.000Z"),
+        timeMax: getTimeMax("2025-02-03T13:00:00.000Z"),
+        items: [{ id: userEmail }],
+      };
+
+      const feb3Cache = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: feb3Args,
+      });
+
+      expect(feb3Cache).toBeNull(); // No cache = user appears free
+
+      vi.useRealTimers();
+    });
+  });
 });

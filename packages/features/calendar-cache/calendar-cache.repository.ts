@@ -180,7 +180,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         // Ensure that on update userId is also set(It handles the case where userId is not set for legacy records)
         userId,
         value: finalValue,
-        nextSyncToken,
+        ...(nextSyncToken !== undefined && { nextSyncToken }),
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
       create: {
@@ -188,7 +188,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         credentialId,
         userId,
         key,
-        nextSyncToken,
+        ...(nextSyncToken !== undefined && { nextSyncToken }),
         expiresAt: new Date(Date.now() + CACHING_TIME),
       },
     });
@@ -211,6 +211,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       };
 
       for (const calendarId of Object.keys(incoming.calendars)) {
+        if (!result.calendars) {
+          result.calendars = {};
+        }
+
         const existingBusyTimes = result.calendars[calendarId]?.busy || [];
         const incomingBusyTimes = incoming.calendars[calendarId]?.busy || [];
 
