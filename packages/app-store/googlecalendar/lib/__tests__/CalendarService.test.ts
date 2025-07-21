@@ -2703,8 +2703,6 @@ describe("Google Calendar Sync Tokens", () => {
     await prismock.calendarCache.create({
       data: {
         key: JSON.stringify({
-          timeMin: dateRange.timeMin,
-          timeMax: dateRange.timeMax,
           items: [{ id: "cal3@example.com" }],
         }),
         value: JSON.stringify({
@@ -2712,6 +2710,10 @@ describe("Google Calendar Sync Tokens", () => {
             "cal3@example.com": {
               busy: [{ start: "2024-01-15T16:00:00Z", end: "2024-01-15T17:00:00Z" }],
             },
+          },
+          dateRange: {
+            timeMin: dateRange.timeMin,
+            timeMax: dateRange.timeMax,
           },
         }),
         expiresAt: new Date(Date.now() + 1000000), // Not expired
@@ -2812,8 +2814,6 @@ describe("Google Calendar Sync Tokens", () => {
     await prismock.calendarCache.create({
       data: {
         key: JSON.stringify({
-          timeMin: dateRange.timeMin,
-          timeMax: dateRange.timeMax,
           items: [{ id: "cal2@example.com" }],
         }),
         value: JSON.stringify({
@@ -2821,6 +2821,10 @@ describe("Google Calendar Sync Tokens", () => {
             "cal2@example.com": {
               busy: [{ start: "2024-01-15T14:00:00Z", end: "2024-01-15T15:00:00Z" }],
             },
+          },
+          dateRange: {
+            timeMin: dateRange.timeMin,
+            timeMax: dateRange.timeMax,
           },
         }),
         expiresAt: new Date(Date.now() + 1000000),
