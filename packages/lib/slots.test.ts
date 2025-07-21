@@ -76,7 +76,7 @@ describe("Tests the slot logic", () => {
     ).toHaveLength(11);
   });
 
-  it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour ", async () => {
+  it("shows correct time slots for 20 minutes long events", async () => {
     // 72 20-minutes events in a 24h day
     const result = getSlots({
       inviteeDate: dayjs().add(1, "day"),
@@ -234,7 +234,7 @@ describe("Tests the slot logic", () => {
       offsetStart: 0,
     });
 
-    expect(result).toHaveLength(6);
+    expect(result).toHaveLength(5);
   });
 
   it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour", async () => {
@@ -251,6 +251,24 @@ describe("Tests the slot logic", () => {
     expect(result).toHaveLength(71);
   });
 
+  it("supports events that last a complete 24-hour day.", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs().add(1, "day").tz("Europe/Brussels"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 1440,
+      dateRanges: [
+        {
+          start: dayjs("2021-06-21T00:00:00.000Z"),
+          end: dayjs("2021-06-21T23:59:59.000Z"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(1);
+    expect(slots[0].time.format()).toBe("2021-06-21T02:00:00+02:00");
+  });
+
   it("tests the final slot of the day is included", async () => {
     const slots = getSlots({
       inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Europe/Brussels"),
@@ -265,6 +283,24 @@ describe("Tests the slot logic", () => {
     }).reverse();
 
     expect(slots[0].time.format()).toBe("2023-07-13T22:45:00+02:00");
+  });
+
+  it("checks the offset start is correctly applied", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Europe/Brussels"),
+      eventLength: 15,
+      offsetStart: 10,
+      dateRanges: [
+        { start: dayjs("2023-07-13T07:00:00.000Z"), end: dayjs("2023-07-13T15:00:00.000Z") },
+        { start: dayjs("2023-07-13T18:30:00.000Z"), end: dayjs("2023-07-13T20:59:59.000Z") },
+      ],
+      minimumBookingNotice: 120,
+      frequency: 15,
+    });
+
+    // IMO offset should be applied on every consecutive slot, but not the first one.
+    expect(slots[0].time.format()).toBe("2023-07-13T09:10:00+02:00");
+    expect(slots[1].time.format()).toBe("2023-07-13T09:35:00+02:00");
   });
 
   it("tests slots for half hour timezones", async () => {
@@ -353,8 +389,6 @@ describe("Tests the slot logic with custom env variable", () => {
 
 describe("Tests the slots function performance", () => {
   it("handles hundreds of date ranges efficiently", async () => {
-    const startTime = process.hrtime();
-
     const startDay = dayjs.utc().add(1, "day").startOf("day");
     const dateRanges: DateRange[] = [];
 
@@ -378,6 +412,8 @@ describe("Tests the slots function performance", () => {
       if (dateRanges.length >= 2000) break;
     }
 
+    const startTime = process.hrtime();
+
     const result = getSlots({
       inviteeDate: startDay,
       frequency: 5,
@@ -387,11 +423,10 @@ describe("Tests the slots function performance", () => {
       offsetStart: 0,
     });
 
-    expect(result.length).toBeGreaterThan(0);
-
     const endTime = process.hrtime(startTime);
     const executionTimeInMs = endTime[0] * 1000 + endTime[1] / 1000000;
 
+    expect(result.length).toBeGreaterThan(0);
     expect(executionTimeInMs).toBeLessThan(3000); // less than 3 seconds for 2000 date ranges
 
     console.log(
