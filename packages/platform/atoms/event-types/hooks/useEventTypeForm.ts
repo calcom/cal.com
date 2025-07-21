@@ -180,6 +180,7 @@ export const useEventTypeForm = ({
               enableAutomaticRecordingForOrganizer: z.boolean().nullable(),
               disableTranscriptionForGuests: z.boolean().nullable(),
               disableTranscriptionForOrganizer: z.boolean().nullable(),
+              enableFlappyBirdGame: z.boolean().nullable(),
             })
             .optional()
             .nullable(),

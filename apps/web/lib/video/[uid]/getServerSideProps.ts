@@ -26,6 +26,8 @@ type CalVideoSettings = {
   enableAutomaticRecordingForOrganizer: boolean;
   disableTranscriptionForGuests: boolean;
   disableTranscriptionForOrganizer: boolean;
+  redirectUrlOnExit: string | null;
+  enableFlappyBirdGame: boolean;
 };
 
 const shouldEnableRecordButton = ({

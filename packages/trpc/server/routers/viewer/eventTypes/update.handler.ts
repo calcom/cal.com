@@ -134,6 +134,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          enableFlappyBirdGame: true,
         },
       },
       children: {
