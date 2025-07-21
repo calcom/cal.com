@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
-import type { Props } from "react-select";
+import type { Options, Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -53,6 +53,7 @@ export const CheckedTeamSelect = ({
   groupId,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
+  options?: Options<CheckedSelectOption>;
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
