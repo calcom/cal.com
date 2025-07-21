@@ -1,24 +1,8 @@
-import * as cache from "memory-cache";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
+import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
-const CACHE_KEY = "app:install-counts";
-const CACHE_TTL_MS = 5 * 60 * 1000;
-
-const getInstallCountPerApp = async (): Promise<Record<string, number>> => {
-  const cached = cache.get(CACHE_KEY) as Record<string, number> | null;
-
-  if (cached) {
-    return cached;
-  }
-
-  const installCounts = await computeInstallCountsFromDB();
-
-  cache.put(CACHE_KEY, installCounts, CACHE_TTL_MS);
-
-  return installCounts;
-};
 
 const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => {
   const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
@@ -40,6 +24,13 @@ const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => 
     acc[appId] = installCount;
     return acc;
   }, {} as Record<string, number>);
+};
+
+const getInstallCountPerApp = async (): Promise<Record<string, number>> => {
+  return unstable_cache(async () => computeInstallCountsFromDB(), ["app-install-counts"], {
+    revalidate: NEXTJS_CACHE_TTL,
+    tags: ["app-install-counts"],
+  })();
 };
 
 export default getInstallCountPerApp;
