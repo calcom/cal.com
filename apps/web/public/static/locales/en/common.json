@@ -349,6 +349,7 @@
   "available_apps_desc": "View popular apps below and explore more in our <0>App Store</0>",
   "fixed_host_helper": "Add anyone who needs to attend the event. <0>Learn more</0>",
   "round_robin_groups_helper": "People in a group take turns, one person of each group will show up for the event.",
+  "round_robin_helper": "People in the group take turns and only one person will show up for the event.",
   "check_email_reset_password": "Check your email. We sent you a link to reset your password.",
   "finish": "Finish",
   "organization_general_description": "Manage settings for your team language and timezone",

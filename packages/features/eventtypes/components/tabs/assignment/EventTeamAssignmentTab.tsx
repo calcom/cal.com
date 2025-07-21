@@ -383,7 +383,7 @@ const RoundRobinHosts = ({
                 "text-subtle max-w-full break-words text-sm leading-tight",
                 customClassNames?.description
               )}>
-              {t("round_robin_groups_helper")}
+              {hostGroups?.length > 0 ? t("round_robin_groups_helper") : t("round_robin_helper")}
             </p>
           </div>
           <Button
