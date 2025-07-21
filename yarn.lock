@@ -2527,6 +2527,7 @@ __metadata:
     mailparser: ^3.6.5
     next: ^13.5.4
     openai: ^4.0.0
+    postmark: ^4.0.5
     supports-color: 8.1.1
     zod: ^3.22.4
   languageName: unknown
@@ -39288,6 +39289,15 @@ __metadata:
     axios: ^1.7.4
     rusha: ^0.8.14
   checksum: f6871399069f329cd4d4c156e82a59c7ab222229d6f49fb62159738f0161a170d723b6707c229af2ca91ba3674f3bb243759d1a615333c23bec188b8122d35ab
+  languageName: node
+  linkType: hard
+
+"postmark@npm:^4.0.5":
+  version: 4.0.5
+  resolution: "postmark@npm:4.0.5"
+  dependencies:
+    axios: ^1.7.4
+  checksum: ec5508860fd2932401c1bf5c7909987e0e29e1d45a4483d2ddd9f3dfba1dd58724fb047648f770c5df99886acea90a8f618154bda0f01b1facca18f4823c89a9
   languageName: node
   linkType: hard
 
