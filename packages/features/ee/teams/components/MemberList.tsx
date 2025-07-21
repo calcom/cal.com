@@ -364,7 +364,8 @@ function MemberListContent(props: Props) {
         header: "Role",
         size: 100,
         cell: ({ row, table }) => {
-          const { role, accepted } = row.original;
+          const { role, accepted, customRole } = row.original;
+          const roleName = customRole?.name || role;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {!accepted && (
@@ -384,7 +385,7 @@ function MemberListContent(props: Props) {
                 onClick={() => {
                   table.getColumn("role")?.setFilterValue([role]);
                 }}>
-                {role}
+                {roleName}
               </Badge>
             </div>
           );
