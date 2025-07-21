@@ -13,7 +13,6 @@ import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { slugify } from "@calcom/platform-libraries";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -41,14 +40,16 @@ export class ManagedOrganizationsService {
 
     const { apiKeyDaysValid, apiKeyNeverExpires, ...organizationData } = organizationInput;
 
+    const effectiveSlug = organizationData.slug || slugify(organizationData.name);
+
     if (!organizationData.slug) {
-      organizationData.slug = slugify(organizationData.name);
+      organizationData.slug = effectiveSlug;
     }
 
     const existingManagedOrganization =
       await this.managedOrganizationsRepository.getManagedOrganizationBySlug(
         managerOrganizationId,
-        organizationData.slug
+        effectiveSlug
       );
 
     if (existingManagedOrganization) {

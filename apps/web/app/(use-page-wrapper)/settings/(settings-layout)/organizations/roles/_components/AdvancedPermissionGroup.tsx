@@ -16,6 +16,7 @@ interface AdvancedPermissionGroupProps {
   resource: Resource;
   selectedPermissions: string[];
   onChange: (permissions: string[]) => void;
+  disabled?: boolean;
 }
 
 const INTERNAL_DATAACCESS_KEY = "_resource";
@@ -24,6 +25,7 @@ export function AdvancedPermissionGroup({
   resource,
   selectedPermissions,
   onChange,
+  disabled,
 }: AdvancedPermissionGroupProps) {
   const { t } = useLocale();
   const { toggleSinglePermission, toggleResourcePermissionLevel } = usePermissions();
@@ -47,7 +49,9 @@ export function AdvancedPermissionGroup({
 
   const handleToggleAll = (e: React.MouseEvent) => {
     e.stopPropagation(); // Stop event from triggering parent click
-    onChange(toggleResourcePermissionLevel(resource, isAllSelected ? "none" : "all", selectedPermissions));
+    if (!disabled) {
+      onChange(toggleResourcePermissionLevel(resource, isAllSelected ? "none" : "all", selectedPermissions));
+    }
   };
 
   // Helper function to check if read permission is auto-enabled
@@ -77,6 +81,7 @@ export function AdvancedPermissionGroup({
             checked={isAllSelected}
             onCheckedChange={() => handleToggleAll}
             onClick={handleToggleAll}
+            disabled={disabled}
           />
           <span className="text-default text-sm font-medium leading-none">
             {t(resourceConfig._resource?.i18nKey || "")}
@@ -107,9 +112,12 @@ export function AdvancedPermissionGroup({
                   checked={isChecked}
                   className="mr-2"
                   onCheckedChange={(checked) => {
-                    onChange(toggleSinglePermission(permission, !!checked, selectedPermissions));
+                    if (!disabled) {
+                      onChange(toggleSinglePermission(permission, !!checked, selectedPermissions));
+                    }
                   }}
                   onClick={(e) => e.stopPropagation()} // Stop checkbox clicks from affecting parent
+                  disabled={disabled}
                 />
                 <div
                   className="flex items-center gap-2"
