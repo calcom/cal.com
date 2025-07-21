@@ -16,11 +16,8 @@ const THREE_MONTHS_IN_MS = 90 * MS_PER_DAY;
 const CACHING_TIME = THREE_MONTHS_IN_MS;
 
 function parseKeyForCache(args: FreeBusyArgs): string {
-  // Ensure that calendarIds are unique
   const uniqueItems = uniqueBy(args.items, ["id"]);
   const key = JSON.stringify({
-    timeMin: args.timeMin,
-    timeMax: args.timeMax,
     items: uniqueItems,
   });
   return key;
@@ -28,9 +25,12 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
-// Simple type definition for calendar cache values
 type CalendarCacheValue = {
   calendars?: Record<string, { busy?: Array<{ start: string | Date; end: string | Date }> }>;
+  dateRange?: {
+    timeMin: string;
+    timeMax: string;
+  };
 };
 
 /**
@@ -103,11 +103,8 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         log.warn("userId is not available when querying cache for in-memory delegation credential");
         return null;
       }
-      // We don't have credentialId available when querying the cache, as we use in-memory delegation credentials for this which don't have valid credentialId
-      // Also, we would prefer to reuse the existing calendar-cache(connected to regular credentials) when enabling delegation credentials, for which we can't use credentialId in querying as that is not in DB
-      // Security/Privacy wise, it is fine to query solely based on userId as userId and key(which has external email Ids in there) together can be used to uniquely identify the cache
-      // A user could have multiple third party calendars connected, but they key would still be different for each case in calendar-cache because of the presence of emails in there.
-      // Sample key: {"timeMin":"2025-04-01T00:00:00.000Z","timeMax":"2025-08-01T00:00:00.000Z","items":[{"id":"owner@example.com"}]} <- Notice it has emailId in there for which busytimes are fetched, we could assume that these emailIds would be unique across different calendars like Google/Outlook
+      // Calendar-based cache lookup for in-memory delegation credentials
+      // Sample key: {"items":[{"id":"owner@example.com"}]} <- Now only contains calendar IDs
       cached = await prisma.calendarCache.findFirst({
         // We have index on userId and key, so this should be fast
         // TODO: Should we consider index on all three - userId, key and expiresAt?
@@ -133,9 +130,46 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         },
       });
     }
+
+    if (cached && cached.value) {
+      const cacheValue = cached.value as CalendarCacheValue;
+      if (cacheValue.dateRange) {
+        const cachedTimeMin = new Date(cacheValue.dateRange.timeMin);
+        const cachedTimeMax = new Date(cacheValue.dateRange.timeMax);
+        const requestedTimeMin = new Date(args.timeMin);
+        const requestedTimeMax = new Date(args.timeMax);
+
+        if (requestedTimeMin >= cachedTimeMin && requestedTimeMax <= cachedTimeMax) {
+          log.info(
+            "Cache hit with range coverage",
+            safeStringify({
+              key,
+              cached: !!cached,
+              credentialId,
+              usedInMemoryDelegationCredential,
+              cachedRange: cacheValue.dateRange,
+              requestedRange: { timeMin: args.timeMin, timeMax: args.timeMax },
+            })
+          );
+          return cached;
+        } else {
+          log.info(
+            "Cache found but date range not covered, extending cache",
+            safeStringify({
+              key,
+              credentialId,
+              cachedRange: cacheValue.dateRange,
+              requestedRange: { timeMin: args.timeMin, timeMax: args.timeMax },
+            })
+          );
+          return cached;
+        }
+      }
+    }
+
     log.info(
       "Got cached availability",
-      safeStringify({ key, cached, credentialId, usedInMemoryDelegationCredential })
+      safeStringify({ key, cached: !!cached, credentialId, usedInMemoryDelegationCredential })
     );
     return cached;
   }
@@ -155,7 +189,15 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     assertCalendarHasDbCredential(this.calendar);
     const key = parseKeyForCache(args);
 
-    let finalValue = value;
+    const enhancedValue = value as CalendarCacheValue;
+    if (enhancedValue && typeof enhancedValue === "object") {
+      enhancedValue.dateRange = {
+        timeMin: args.timeMin,
+        timeMax: args.timeMax,
+      };
+    }
+
+    let finalValue: Prisma.JsonNullValueInput | Prisma.InputJsonValue = enhancedValue;
 
     if (nextSyncToken) {
       const existingCache = await this.getCachedAvailability({
@@ -165,7 +207,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       });
 
       if (existingCache?.value) {
-        finalValue = this.mergeCacheValues(existingCache.value, value);
+        finalValue = this.mergeCacheValues(existingCache.value, enhancedValue, args);
       }
     }
 
@@ -196,7 +238,8 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
 
   private mergeCacheValues(
     existingValue: Prisma.JsonValue,
-    newValue: Prisma.JsonNullValueInput | Prisma.InputJsonValue
+    newValue: Prisma.JsonNullValueInput | Prisma.InputJsonValue,
+    args?: FreeBusyArgs
   ): Prisma.InputJsonValue {
     try {
       const existing = existingValue as CalendarCacheValue;
@@ -209,6 +252,27 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       const result: CalendarCacheValue = {
         calendars: { ...existing.calendars },
       };
+
+      if (existing.dateRange && incoming.dateRange) {
+        const existingTimeMin = new Date(existing.dateRange.timeMin);
+        const existingTimeMax = new Date(existing.dateRange.timeMax);
+        const incomingTimeMin = new Date(incoming.dateRange.timeMin);
+        const incomingTimeMax = new Date(incoming.dateRange.timeMax);
+
+        result.dateRange = {
+          timeMin: new Date(Math.min(existingTimeMin.getTime(), incomingTimeMin.getTime())).toISOString(),
+          timeMax: new Date(Math.max(existingTimeMax.getTime(), incomingTimeMax.getTime())).toISOString(),
+        };
+      } else if (incoming.dateRange) {
+        result.dateRange = incoming.dateRange;
+      } else if (existing.dateRange) {
+        result.dateRange = existing.dateRange;
+      } else if (args) {
+        result.dateRange = {
+          timeMin: args.timeMin,
+          timeMax: args.timeMax,
+        };
+      }
 
       for (const calendarId of Object.keys(incoming.calendars)) {
         if (!result.calendars) {
