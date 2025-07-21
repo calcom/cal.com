@@ -331,8 +331,12 @@ export function AddMembersWithSwitch({
               onChange={onChange}
               isFixed={isFixed}
               className="mb-2"
-              options={teamMembers.sort(sortByLabel)}
-              placeholder={placeholder ?? t("add_attendees")}
+              options={teamMembers
+                .map((member) => ({
+                  ...member,
+                  groupId: groupId,
+                }))
+                .sort(sortByLabel)}
               isRRWeightsEnabled={isRRWeightsEnabled}
               groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}

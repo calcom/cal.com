@@ -154,6 +154,7 @@ export const EditWeightsForAllTeamMembers = ({
         isFixed: existingHost?.isFixed ?? false,
         priority: existingHost?.priority ?? 0,
         weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+        groupId: existingHost?.groupId ?? null,
       };
     });
 
