@@ -13,6 +13,7 @@ import {
   BookingStatusLineChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
+  BookingsByHourChart,
   LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
@@ -71,23 +72,35 @@ function InsightsPageContent() {
 
         <BookingStatusLineChart />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <PopularEventsTable />
-          <AverageEventDurationChart />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <BookingsByHourChart />
+          </div>
+          <div className="sm:col-span-2">
+            <AverageEventDurationChart />
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
+          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
-        </div>
-        <RecentFeedbackTable />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <HighestNoShowHostTable />
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
         </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <RecentFeedbackTable />
+          </div>
+        </div>
+
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
           <a
