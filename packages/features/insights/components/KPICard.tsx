@@ -4,7 +4,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { calculateDeltaType, colors, valueFormatter } from "../lib";
-import { CardInsights } from "./Card";
 
 export const KPICard = ({
   title,
@@ -21,7 +20,7 @@ export const KPICard = ({
 }) => {
   const { t } = useLocale();
   return (
-    <CardInsights key={title}>
+    <div>
       <Text className="text-default">{title}</Text>
       <Flex className="items-baseline justify-start space-x-3 truncate">
         <Metric className="text-emphasis">{valueFormatter(previousMetricData.count)}</Metric>
@@ -47,6 +46,6 @@ export const KPICard = ({
           </Tooltip>
         </Flex>
       </Flex>
-    </CardInsights>
+    </div>
   );
 };

@@ -65,16 +65,60 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
+  async getBookingsByHourStats({
+    startDate,
+    endDate,
+    timeZone,
+  }: {
+    startDate: string;
+    endDate: string;
+    timeZone: string;
+  }) {
+    // Validate date formats
+    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
+      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const results = await this.prisma.$queryRaw<
+      Array<{
+        hour: string;
+        count: number;
+      }>
+    >`
+      SELECT
+        EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}))::int as "hour",
+        COUNT(*)::int as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+        AND "startTime" >= ${startDate}::timestamp
+        AND "startTime" <= ${endDate}::timestamp
+        AND "status" = 'accepted'
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    // Create a map of results by hour for easy lookup
+    const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
+
+    // Return all 24 hours (0-23), filling with 0 values for missing data
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      count: resultsMap.get(hour) || 0,
+    }));
+  }
+
   async getBaseConditions(): Promise<Prisma.Sql> {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
     if (authConditions && filterConditions) {
-      return Prisma.sql`(${authConditions}) AND (${filterConditions})`;
+      return Prisma.sql`((${authConditions}) AND (${filterConditions}))`;
     } else if (authConditions) {
-      return authConditions;
+      return Prisma.sql`(${authConditions})`;
     } else if (filterConditions) {
-      return filterConditions;
+      return Prisma.sql`(${filterConditions})`;
     } else {
       return NOTHING_CONDITION;
     }

@@ -149,18 +149,25 @@ export default class AssignmentReasonRecorder {
     teamMemberEmail,
     recordType,
     routingFormResponseId,
+    recordId,
   }: {
     bookingId: number;
     crmAppSlug: string;
     teamMemberEmail: string;
     recordType: string;
     routingFormResponseId: number;
+    recordId?: string;
   }) {
     const appAssignmentReasonHandler = (await import("./appAssignmentReasonHandler")).default;
     const appHandler = appAssignmentReasonHandler[crmAppSlug];
     if (!appHandler) return;
 
-    const crmRoutingReason = await appHandler({ recordType, teamMemberEmail, routingFormResponseId });
+    const crmRoutingReason = await appHandler({
+      recordType,
+      teamMemberEmail,
+      routingFormResponseId,
+      recordId,
+    });
 
     if (!crmRoutingReason || !crmRoutingReason.assignmentReason) return;
 

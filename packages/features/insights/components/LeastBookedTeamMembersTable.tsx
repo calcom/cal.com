@@ -1,10 +1,8 @@
-import { Title } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
 import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 
@@ -33,9 +31,8 @@ export const LeastBookedTeamMembersTable = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <CardInsights>
-      <Title className="text-emphasis">{t("least_booked_members")}</Title>
+    <ChartCard title={t("least_booked_members")}>
       <TotalBookingUsersTable data={data} />
-    </CardInsights>
+    </ChartCard>
   );
 };

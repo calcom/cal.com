@@ -267,6 +267,7 @@ describe("handleResponse", () => {
       email: "owner@example.com",
       recordType: "contact",
       crmAppSlug: "hubspot",
+      recordId: "123",
     });
     vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
       teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],

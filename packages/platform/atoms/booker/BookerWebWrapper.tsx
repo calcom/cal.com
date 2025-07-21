@@ -64,7 +64,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
-
   useInitializeBookerStore({
     ...props,
     eventId: props.entity.eventTypeId ?? event?.data?.id,
