@@ -2,6 +2,7 @@
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS,
@@ -208,16 +209,17 @@ export const roundRobinReassignment = async ({
 
     if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
       const organizerMetadataSafeParse = userMetadataSchema.safeParse(reassignedRRHost.metadata);
-
-      const defaultLocationUrl = organizerMetadataSafeParse.success
-        ? organizerMetadataSafeParse?.data?.defaultConferencingApp?.appLink
+      const organizerMetadata = organizerMetadataSafeParse.success
+        ? organizerMetadataSafeParse.data
         : undefined;
 
-      const currentBookingLocation = booking.location || "integrations:daily";
-
-      bookingLocation =
-        defaultLocationUrl ||
-        getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
+      if (organizerMetadata?.defaultConferencingApp?.appSlug) {
+        const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
+        bookingLocation = app?.appData?.location?.type || bookingLocation;
+      } else {
+        const currentBookingLocation = booking.location || "integrations:daily";
+        bookingLocation = getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
+      }
     }
 
     const eventNameObject = {
