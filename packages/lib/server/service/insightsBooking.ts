@@ -84,28 +84,23 @@ export class InsightsBookingService {
     const results = await this.prisma.$queryRaw<
       Array<{
         hour: string;
-        count: bigint;
+        count: number;
       }>
     >`
-      WITH hourly_data AS (
-        SELECT
-          EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone})) as hour_extracted
-        FROM "BookingTimeStatusDenormalized"
-        WHERE ${baseConditions}
-          AND "startTime" >= ${startDate}::timestamp
-          AND "startTime" <= ${endDate}::timestamp
-          AND "status" = 'accepted'
-      )
       SELECT
-        hour_extracted as "hour",
-        COUNT(*) as "count"
-      FROM hourly_data
-      GROUP BY hour_extracted
-      ORDER BY "hour"
+        EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}))::int as "hour",
+        COUNT(*)::int as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+        AND "startTime" >= ${startDate}::timestamp
+        AND "startTime" <= ${endDate}::timestamp
+        AND "status" = 'accepted'
+      GROUP BY 1
+      ORDER BY 1
     `;
 
     // Create a map of results by hour for easy lookup
-    const resultsMap = new Map(results.map((row) => [Number(row.hour), Number(row.count)]));
+    const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
 
     // Return all 24 hours (0-23), filling with 0 values for missing data
     return Array.from({ length: 24 }, (_, hour) => ({

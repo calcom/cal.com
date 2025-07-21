@@ -47,7 +47,7 @@ export const BookingsByHourChartContent = ({ data }: { data: BookingsByHourData[
   return (
     <div className="mt-4 h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 20, right: 30, left: -10, bottom: 5 }}>
+        <BarChart data={chartData} margin={{ top: 20, right: 0, left: -10, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="hour" className="text-xs" axisLine={false} tickLine={false} />
           <YAxis allowDecimals={false} className="text-xs opacity-50" axisLine={false} tickLine={false} />
