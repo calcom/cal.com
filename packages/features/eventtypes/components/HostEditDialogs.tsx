@@ -11,6 +11,7 @@ import type {
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/groupHostsByGroupId";
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -21,12 +22,6 @@ import { TextField } from "@calcom/ui/components/form";
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 import WeightDescription from "./WeightDescription";
-
-// Add local type that extends Host with display data
-type HostWithUserOptionData = Host & {
-  avatar: string;
-  label: string;
-};
 
 interface IDialog {
   isOpenDialog: boolean;
@@ -68,8 +63,11 @@ export const PriorityDialog = (
       const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
 
       // Sort hosts within the group
-      let sortedHostGroup: HostWithUserOptionData[] = [];
-      const hostGroupToSort = groupedHosts[option.groupId ?? "default_group_id"];
+      let sortedHostGroup: (Host & {
+        avatar: string;
+        label: string;
+      })[] = [];
+      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
@@ -202,8 +200,12 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
       };
 
       // Sort hosts within the group
-      let sortedHostGroup: HostWithUserOptionData[] = [];
-      const hostGroupToSort = groupedHosts[option.groupId ?? "default_group_id"];
+      let sortedHostGroup: (Host & {
+        avatar: string;
+        label: string;
+      })[] = [];
+
+      const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort

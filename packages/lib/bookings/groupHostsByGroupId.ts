@@ -1,3 +1,5 @@
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
+
 export function groupHostsByGroupId<T extends { groupId?: string | null }>({
   hosts,
   hostGroups,
@@ -6,7 +8,6 @@ export function groupHostsByGroupId<T extends { groupId?: string | null }>({
   hostGroups?: { id: string }[];
 }) {
   const groups: Record<string, T[]> = {};
-  const defaultGroupId = "default_group_id";
 
   const hasGroups = hostGroups && hostGroups.length > 0;
 
@@ -15,11 +16,11 @@ export function groupHostsByGroupId<T extends { groupId?: string | null }>({
       groups[group.id] = [];
     });
   } else {
-    groups[defaultGroupId] = [];
+    groups[DEFAULT_GROUP_ID] = [];
   }
 
   hosts.forEach((host) => {
-    const groupId = hasGroups && host.groupId ? host.groupId : defaultGroupId;
+    const groupId = hasGroups && host.groupId ? host.groupId : DEFAULT_GROUP_ID;
     if (groups[groupId]) {
       groups[groupId].push(host);
     }

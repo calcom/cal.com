@@ -1,3 +1,4 @@
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -48,7 +49,7 @@ export const getAggregatedAvailability = (
     const hostsByGroup: Record<string, typeof roundRobinHosts> = {};
 
     roundRobinHosts.forEach((host) => {
-      const groupId = host.user?.groupId || "default_group_id";
+      const groupId = host.user?.groupId || DEFAULT_GROUP_ID;
       if (!hostsByGroup[groupId]) {
         hostsByGroup[groupId] = [];
       }
