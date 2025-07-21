@@ -5,7 +5,7 @@ import { ChartCard } from "@calcom/features/insights/components/ChartCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 // Sample data for playground testing
-const sampleHourlyBookingsData = [
+const sampleBookingsByHourStats = [
   { hour: 0, count: 4 },
   { hour: 1, count: 10 },
   { hour: 2, count: 3 },
@@ -45,14 +45,14 @@ export default function BookingsByHourPlayground() {
 
       <div className="max-w-4xl">
         <ChartCard title={t("bookings_by_hour")}>
-          <BookingsByHourChartContent data={sampleHourlyBookingsData} />
+          <BookingsByHourChartContent data={sampleBookingsByHourStats} />
         </ChartCard>
       </div>
 
       <div className="mt-8 rounded-lg bg-gray-50 p-4">
         <h2 className="mb-2 text-lg font-semibold">Sample Data Used:</h2>
         <pre className="overflow-auto text-sm text-gray-700">
-          {JSON.stringify(sampleHourlyBookingsData, null, 2)}
+          {JSON.stringify(sampleBookingsByHourStats, null, 2)}
         </pre>
       </div>
     </div>

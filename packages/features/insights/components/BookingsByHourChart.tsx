@@ -20,12 +20,12 @@ import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
 
-type HourlyBookingsData = {
+type BookingsByHourData = {
   hour: number;
   count: number;
 };
 
-export const BookingsByHourChartContent = ({ data }: { data: HourlyBookingsData[] }) => {
+export const BookingsByHourChartContent = ({ data }: { data: BookingsByHourData[] }) => {
   const { t } = useLocale();
 
   const chartData = data.map((item) => ({
@@ -102,7 +102,7 @@ export const BookingsByHourChart = () => {
   const { timeZone } = useDataTable();
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.hourlyBookingsStats.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingsByHourStats.useQuery(
     {
       scope,
       selectedTeamId,

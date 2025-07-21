@@ -1762,7 +1762,7 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  hourlyBookingsStats: userBelongsToTeamProcedure
+  bookingsByHourStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
@@ -1782,7 +1782,7 @@ export const insightsRouter = router({
       });
 
       try {
-        return await insightsBookingService.getHourlyBookingStats({
+        return await insightsBookingService.getBookingsByHourStats({
           startDate,
           endDate,
           timeZone,

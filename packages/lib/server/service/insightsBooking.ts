@@ -65,7 +65,7 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
-  async getHourlyBookingStats({
+  async getBookingsByHourStats({
     startDate,
     endDate,
     timeZone,
