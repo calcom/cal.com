@@ -1,3 +1,4 @@
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -15,10 +16,44 @@ type ChangeMemberRoleOptions = {
 };
 
 export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOptions) => {
-  if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  // Only owners can award owner role.
-  if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  // Get team info to check if it's part of an organization
+  const team = await prisma.team.findUnique({
+    where: { id: input.teamId },
+    select: { parentId: true },
+  });
+
+  if (!team) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+  }
+
+  // Get the organization ID (either the team's parent or the team itself if it's an org)
+  const organizationId = team.parentId || input.teamId;
+
+  // Create role manager for this organization/team
+  const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
+
+  // Check permission to change roles
+  try {
+    await roleManager.checkPermissionToChangeRole(ctx.user.id, organizationId);
+  } catch (error) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: error instanceof Error ? error.message : "Unauthorized",
+    });
+  }
+
+  // For traditional role checks, fall back to existing logic
+  if (
+    typeof input.role === "string" &&
+    Object.values(MembershipRole).includes(input.role as MembershipRole)
+  ) {
+    // Traditional role assignment logic
+    if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+    // Only owners can award owner role.
+    if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
   const memberships = await prisma.membership.findMany({
     where: {
       teamId: input.teamId,
@@ -29,6 +64,10 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   const myMembership = memberships.find((m) => m.userId === ctx.user.id);
   const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
   const teamHasMoreThanOneOwner = teamOwners.length > 1;
+
+  if (!targetMembership) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Target membership not found" });
+  }
 
   if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
     throw new TRPCError({
@@ -47,6 +86,8 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
   if (
     myMembership?.role === MembershipRole.ADMIN &&
     input.memberId === ctx.user.id &&
+    typeof input.role === "string" &&
+    Object.values(MembershipRole).includes(input.role as MembershipRole) &&
     input.role !== MembershipRole.MEMBER
   ) {
     throw new TRPCError({
@@ -55,18 +96,28 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  const membership = await prisma.membership.update({
+  // Use role manager to assign the role
+  try {
+    await roleManager.assignRole(input.memberId, input.teamId, input.role, targetMembership.id);
+  } catch (error) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: error instanceof Error ? error.message : "Failed to assign role",
+    });
+  }
+
+  // Return updated membership
+  const updatedMembership = await prisma.membership.findUnique({
     where: {
       userId_teamId: { userId: input.memberId, teamId: input.teamId },
-    },
-    data: {
-      role: input.role,
     },
     include: {
       team: true,
       user: true,
     },
   });
+
+  return updatedMembership;
 };
 
 export default changeMemberRoleHandler;
