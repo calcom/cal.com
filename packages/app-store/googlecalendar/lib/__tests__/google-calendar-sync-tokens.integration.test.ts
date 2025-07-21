@@ -838,8 +838,8 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
     });
   });
 
-  describe("Month Boundary Cache Key Issue - CRITICAL BUG", () => {
-    test("proves cache keys change across month boundaries causing future events to be lost", async () => {
+  describe("Month Boundary Cache Key Issue - FIXED", () => {
+    test("verifies cache keys remain consistent across month boundaries preserving future events", async () => {
       const userEmail = `month-boundary-${testUniqueId}@example.com`;
 
       // Setup: Mock system time to Jan 31st, 2025
@@ -907,11 +907,11 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
         args: feb1Args,
       });
 
-      expect(feb1Cache).toBeNull(); // CACHE MISS!
+      expect(feb1Cache).toBeTruthy(); // CACHE HIT! - Fix working
 
-      const jan31Key = JSON.stringify(jan31Args);
-      const feb1Key = JSON.stringify(feb1Args);
-      expect(jan31Key).not.toBe(feb1Key); // Different keys for same logical query
+      const feb1Value = feb1Cache!.value as MockGoogleCalendarResponse;
+      const feb1BusyTimes = feb1Value.calendars[userEmail].busy;
+      expect(feb1BusyTimes).toHaveLength(3); // All events preserved across month boundary
 
       const feb1IncrementalResponse: MockGoogleCalendarResponse = {
         kind: "calendar#freeBusy",
@@ -943,19 +943,18 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
 
       expect(feb1FinalCache).toBeTruthy();
       const feb1FinalValue = feb1FinalCache!.value as MockGoogleCalendarResponse;
-      const feb1BusyTimes = feb1FinalValue.calendars[userEmail].busy;
+      const feb1FinalBusyTimes = feb1FinalValue.calendars[userEmail].busy;
 
-      expect(feb1BusyTimes).toHaveLength(1); // Should be 3 if cache continuity worked
-
-      const feb1StartTimes = feb1BusyTimes.map((bt) => bt.start);
-      expect(feb1StartTimes).toContain("2025-02-01T12:00:00.000Z"); // Only new event
-      expect(feb1StartTimes).not.toContain("2025-02-03T10:00:00.000Z"); // LOST!
-      expect(feb1StartTimes).not.toContain("2025-02-15T16:00:00.000Z"); // LOST!
+      // Verify all future events are preserved across month boundary
+      const feb1StartTimes = feb1FinalBusyTimes.map((bt) => bt.start);
+      expect(feb1StartTimes).toContain("2025-01-31T14:00:00.000Z"); // Original event preserved
+      expect(feb1StartTimes).toContain("2025-02-03T10:00:00.000Z"); // Future event preserved!
+      expect(feb1StartTimes).toContain("2025-02-15T16:00:00.000Z"); // Future event preserved!
 
       vi.useRealTimers();
     });
 
-    test("proves sync token continuity is broken across month boundaries", async () => {
+    test("verifies sync token continuity is maintained across month boundaries", async () => {
       const userEmail = `sync-token-${testUniqueId}@example.com`;
 
       // Setup: Mock system time to Jan 31st
@@ -997,12 +996,13 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
         args: feb1Args,
       });
 
-      expect(feb1Cache).toBeNull(); // No cache found = no sync token available
+      expect(feb1Cache).toBeTruthy(); // Cache found = sync token preserved!
+      expect(feb1Cache?.nextSyncToken).toBe("jan31-sync-token-abc123"); // Sync token continuity maintained
 
       vi.useRealTimers();
     });
 
-    test("proves cache fragmentation occurs at month boundaries", async () => {
+    test("verifies cache consolidation prevents fragmentation at month boundaries", async () => {
       const userEmail = `fragmentation-${testUniqueId}@example.com`;
 
       // Setup: Create caches across month boundary
@@ -1045,21 +1045,19 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
         },
       });
 
-      expect(allCaches.length).toBeGreaterThanOrEqual(2);
+      expect(allCaches.length).toBe(1);
 
-      const cacheKeys = allCaches.map((cache) => cache.key);
-      const uniqueKeys = new Set(cacheKeys);
-      expect(uniqueKeys.size).toBe(allCaches.length); // All keys are different
+      const cacheKey = allCaches[0].key;
+      const parsedKey = JSON.parse(cacheKey);
 
-      cacheKeys.forEach((key) => {
-        const parsedKey = JSON.parse(key);
-        expect(parsedKey.items).toEqual([{ id: userEmail }]);
-      });
+      expect(parsedKey.items).toEqual([{ id: userEmail }]);
+      expect(parsedKey.timeMin).toBeUndefined(); // No date ranges in key
+      expect(parsedKey.timeMax).toBeUndefined(); // No date ranges in key
 
       vi.useRealTimers();
     });
 
-    test("demonstrates real-world impact: user appears available when they have meetings", async () => {
+    test("verifies real-world fix: user correctly shows as busy when they have meetings", async () => {
       const userEmail = `availability-bug-${testUniqueId}@example.com`;
 
       vi.setSystemTime(new Date("2025-01-27T10:00:00.000Z")); // Monday Jan 27
@@ -1110,7 +1108,12 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
         args: feb3Args,
       });
 
-      expect(feb3Cache).toBeNull(); // No cache = user appears free
+      expect(feb3Cache).toBeTruthy(); // Cache hit = user correctly shows as busy!
+
+      const feb3Value = feb3Cache!.value as MockGoogleCalendarResponse;
+      const feb3BusyTimes = feb3Value.calendars[userEmail].busy;
+      const feb3StartTimes = feb3BusyTimes.map((bt) => bt.start);
+      expect(feb3StartTimes).toContain("2025-02-03T14:00:00.000Z"); // Meeting found!
 
       vi.useRealTimers();
     });
