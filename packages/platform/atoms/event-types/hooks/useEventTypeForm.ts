@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -35,8 +35,6 @@ export const useEventTypeForm = ({
     isDirty: boolean;
     dirtyFields: Partial<FormValues>;
     values: FormValues;
-    validateForm?: () => Promise<{ isValid: boolean; errors: any }>;
-    handleFormSubmit?: () => void;
   }) => void;
 }) => {
   const { t } = useLocale();
@@ -413,13 +411,17 @@ export const useEventTypeForm = ({
     }
   };
 
-  const validateForm = async () => {
+  const validateForm = useCallback(async () => {
     const isValid = await form.trigger();
     return {
       isValid,
       errors: form.formState.errors,
     };
-  };
+  }, [form]);
+
+  const handleFormSubmitCallback = useCallback(() => {
+    handleSubmit(form.getValues());
+  }, [form]);
 
   useEffect(() => {
     if (onFormStateChange) {
@@ -427,17 +429,9 @@ export const useEventTypeForm = ({
         isDirty: isFormDirty,
         dirtyFields: dirtyFields as Partial<FormValues>,
         values: watchedValues,
-        validateForm: async () => {
-          const isValid = await form.trigger();
-          return {
-            isValid,
-            errors: form.formState.errors,
-          };
-        },
-        handleFormSubmit: () => handleSubmit(watchedValues),
       });
     }
-  }, [isFormDirty, watchedValues, onFormStateChange, form]);
+  }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
 
-  return { form, handleSubmit, validateForm };
+  return { form, handleSubmit, validateForm, handleFormSubmit: handleFormSubmitCallback };
 };

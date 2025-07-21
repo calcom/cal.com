@@ -223,5 +223,10 @@ export type SelectClassNames = {
 
 export type FormValidationResult = {
   isValid: boolean;
-  errors: Record<string, any>;
+  errors: Record<string, unknown>;
 };
+
+export interface EventTypePlatformWrapperRef {
+  validateForm: () => Promise<FormValidationResult>;
+  handleFormSubmit: () => void;
+}
