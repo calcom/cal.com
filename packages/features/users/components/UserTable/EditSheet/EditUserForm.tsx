@@ -228,9 +228,6 @@ export function EditForm({
                 value={membershipOptions.find((option) => option.value === form.watch("role"))}
                 options={membershipOptions}
                 onChange={(option) => {
-                  console.log({
-                    option,
-                  });
                   if (option) {
                     form.setValue("role", option.value);
                   }
