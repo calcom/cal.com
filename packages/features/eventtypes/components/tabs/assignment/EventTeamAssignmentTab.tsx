@@ -187,6 +187,7 @@ const FixedHosts = ({
           <div className="border-subtle rounded-b-md border border-t-0 px-6">
             <AddMembersWithSwitch
               teamId={teamId}
+              groupId={null}
               teamMembers={teamMembers}
               value={value}
               onChange={onChange}
@@ -241,6 +242,7 @@ const FixedHosts = ({
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
               data-testid="fixed-hosts-select"
+              groupId={null}
               placeholder={t("add_a_member")}
               teamId={teamId}
               teamMembers={teamMembers}

@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
@@ -25,7 +26,7 @@ interface IDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   option: CheckedSelectOption;
-  options: readonly CheckedSelectOption[];
+  options: Options<CheckedSelectOption>;
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }
 

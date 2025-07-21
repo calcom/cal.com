@@ -337,6 +337,7 @@ export function AddMembersWithSwitch({
                   groupId: groupId,
                 }))
                 .sort(sortByLabel)}
+              placeholder={placeholder ?? t("add_attendees")}
               isRRWeightsEnabled={isRRWeightsEnabled}
               groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
