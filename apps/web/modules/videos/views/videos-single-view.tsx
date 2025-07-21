@@ -176,8 +176,9 @@ export default function JoinCall(props: PageProps) {
         <div
           className="mx-auto hidden sm:block"
           style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-          <CalAiTranscribe
+          <CalVideoPremiumFeatures
             showRecordingButton={showRecordingButton}
+            enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
             enableAutomaticTranscription={enableAutomaticTranscription}
             showTranscriptionButton={showTranscriptionButton}
           />
@@ -334,6 +335,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userName, onJoinAsGuest, onUserNameConfirmed]);
 
   const handleSignIn = useCallback(() => {
