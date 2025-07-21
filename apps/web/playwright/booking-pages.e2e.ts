@@ -755,3 +755,30 @@ test.describe("GTM container", () => {
     expect(scriptContent).toContain("googletagmanager");
   });
 });
+
+test.describe("Past booking cancellation", () => {
+  test("Cancel button should be hidden for past bookings", async ({ page, users, bookings }) => {
+    const user = await users.create({
+      name: "Test User",
+    });
+
+    await user.apiLogin();
+
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 1);
+    const endDate = new Date(pastDate.getTime() + 30 * 60 * 1000);
+
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id, {
+      title: "Past Meeting",
+      startTime: pastDate,
+      endTime: endDate,
+      status: "ACCEPTED",
+    });
+
+    await page.goto(`/booking/${booking.uid}`);
+
+    await expect(page.locator('[data-testid="cancel"]')).toBeHidden();
+
+    await expect(page.locator("text=Need to make a change?")).toBeHidden();
+  });
+});
