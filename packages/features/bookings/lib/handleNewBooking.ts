@@ -832,7 +832,8 @@ async function handler(
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
       let index = 0;
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
-        while (luckyUserPool.length > 0 && luckyUsers.length < index + 1) {
+        let luckUserFound = false;
+        while (luckyUserPool.length > 0 && !luckUserFound) {
           const freeUsers = luckyUserPool.filter(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           );
@@ -892,6 +893,7 @@ async function handler(
               }
               // if no error, then lucky user is available for the next slots
               luckyUsers.push(newLuckyUser);
+              luckUserFound = true;
             } catch {
               notAvailableLuckyUsers.push(newLuckyUser);
               loggerWithEventDetails.info(
@@ -900,6 +902,7 @@ async function handler(
             }
           } else {
             luckyUsers.push(newLuckyUser);
+            luckUserFound = true;
           }
         }
         index++;

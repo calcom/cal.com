@@ -304,7 +304,7 @@ describe("Round Robin handleNewBooking", () => {
           // Add existing bookings to make only group-2 hosts busy
           bookings: [
             {
-              userId: teamMembers[2].id, // Team Member 3 (group-2)
+              userId: teamMembers[0].id, // Team Member 1 (group-1)
               eventTypeId: 1,
               startTime: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
               endTime: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
@@ -316,7 +316,7 @@ describe("Round Robin handleNewBooking", () => {
               ],
             },
             {
-              userId: teamMembers[3].id, // Team Member 4 (group-2)
+              userId: teamMembers[1].id, // Team Member 2 (group-1)
               eventTypeId: 1,
               startTime: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
               endTime: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
