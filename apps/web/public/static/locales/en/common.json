@@ -2032,6 +2032,7 @@
   "attendee_no_longer_attending_subject": "An attendee is no longer attending {{title}} at {{date}}",
   "attendee_no_longer_attending": "An attendee is no longer attending your event",
   "attendee_no_longer_attending_subtitle": "{{name}} has canceled. This means a seat has opened up for this time slot",
+  "attendee_removed_subtitle": "{{name}} was removed. This means a seat has opened up for this time slot",
   "create_event_on": "Create event on",
   "create_routing_form_on": "Create routing form on",
   "default_app_link_title": "Set a default app link",

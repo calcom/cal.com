@@ -11,11 +11,11 @@ export const OrganizerScheduledEmail = (
     attendeeCancelled?: boolean;
     teamMember?: Person;
     reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+    isCancelledByHost?: boolean;
   } & Partial<React.ComponentProps<typeof BaseScheduledEmail>>
 ) => {
   let subject;
   let title;
-
   if (props.newSeat) {
     subject = "new_seat_subject";
   } else {
@@ -39,6 +39,12 @@ export const OrganizerScheduledEmail = (
     props.calEvent.schedulingType === SchedulingType.COLLECTIVE;
   const attendee = isTeamEvent && props.teamMember ? props.teamMember : props.attendee;
 
+  const subtitle = props.attendeeCancelled
+    ? t("attendee_no_longer_attending_subtitle", { name: props.attendee.name })
+    : props.isCancelledByHost
+    ? t("attendee_removed_subtitle", { name: props.attendee.name })
+    : "";
+
   return (
     <BaseScheduledEmail
       locale={locale}
@@ -49,17 +55,7 @@ export const OrganizerScheduledEmail = (
       includeAppsStatus
       timeFormat={timeFormat}
       isOrganizer
-      subtitle={
-        props.subtitle ? (
-          props.subtitle
-        ) : (
-          <>
-            {props.attendeeCancelled
-              ? t("attendee_no_longer_attending_subtitle", { name: props.attendee.name })
-              : ""}
-          </>
-        )
-      }
+      subtitle={props.subtitle ? props.subtitle : <>{subtitle}</>}
       reassigned={props.reassigned}
       {...props}
       attendee={attendee}

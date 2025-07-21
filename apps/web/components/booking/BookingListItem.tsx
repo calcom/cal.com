@@ -60,15 +60,24 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+type LoggedInUser = {
+  userId: number | undefined;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
+  userEmail: string | undefined;
+  userIsOrgAdminOrOwner: boolean | undefined;
+  teamsWhereUserIsAdminOrOwner:
+    | {
+        id: number;
+        teamId: number;
+      }[]
+    | undefined;
+};
+
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
+  loggedInUser: LoggedInUser;
   isToday: boolean;
 };
 
@@ -178,6 +187,33 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
+
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      booking.user?.id === userId ||
+      booking.eventType.hosts?.some(
+        (host) => host.id === userId && booking.attendees.some((attendee) => attendee.email === host.email)
+      )
+    );
+  };
+
+  const checkIfUserIsAuthorizedToCancelSeats = (
+    { user, eventType }: Pick<BookingItemProps, "user" | "eventType">,
+    {
+      userId,
+      userIsOrgAdminOrOwner,
+      teamsWhereUserIsAdminOrOwner,
+    }: Pick<LoggedInUser, "userId" | "userIsOrgAdminOrOwner" | "teamsWhereUserIsAdminOrOwner">
+  ) => {
+    const isUserOwner = user?.id === userId;
+    const isUserTeamEventHost = checkIfUserIsHost(userId);
+    const isUserTeamAdminOrOwner = teamsWhereUserIsAdminOrOwner?.some(
+      (team) => team.teamId === eventType?.team?.id || team.teamId === eventType?.parent?.teamId
+    );
+    return isUserOwner || isUserTeamEventHost || userIsOrgAdminOrOwner || isUserTeamAdminOrOwner;
+  };
 
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
@@ -299,7 +335,14 @@ function BookingListItem(booking: BookingItemProps) {
         ]),
     ...(booking.seatsReferences.length > 0 &&
     !isBookingInPast &&
-    booking.user?.id === booking.loggedInUser.userId
+    checkIfUserIsAuthorizedToCancelSeats(
+      { user: booking.user, eventType: booking.eventType },
+      {
+        userId: booking.loggedInUser.userId,
+        userIsOrgAdminOrOwner: booking.loggedInUser.userIsOrgAdminOrOwner,
+        teamsWhereUserIsAdminOrOwner: booking.loggedInUser.teamsWhereUserIsAdminOrOwner,
+      }
+    )
       ? [
           {
             id: "remove_seats",
@@ -537,7 +580,14 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
-      {booking.user?.id === booking.loggedInUser.userId && (
+      {checkIfUserIsAuthorizedToCancelSeats(
+        { user: booking.user, eventType: booking.eventType },
+        {
+          userId: booking.loggedInUser.userId,
+          userIsOrgAdminOrOwner: booking.loggedInUser.userIsOrgAdminOrOwner,
+          teamsWhereUserIsAdminOrOwner: booking.loggedInUser.teamsWhereUserIsAdminOrOwner,
+        }
+      ) && (
         <RemoveBookingSeatsDialog
           isOpenDialog={isOpenRemoveSeatsDialog}
           setIsOpenDialog={setIsOpenRemoveSeatsDialog}

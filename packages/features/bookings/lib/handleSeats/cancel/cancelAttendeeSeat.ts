@@ -148,7 +148,8 @@ async function cancelAttendeeSeat(
           ...attendee,
           language: { translate: tAttendees, locale: attendee.locale ?? "en" },
         },
-        eventTypeMetadata
+        eventTypeMetadata,
+        true
       );
     }
 
