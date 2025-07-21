@@ -76,10 +76,10 @@ export function AdvancedPermissionGroup({
         }}>
         <div className="flex items-center gap-1.5" onClick={() => setIsExpanded(!isExpanded)}>
           <Icon
-            name={isAllResources ? "chevron-right" : "chevron-down"}
+            name="chevron-right"
             className={classNames(
               "h-4 w-4 transition-transform",
-              isExpanded && !isAllResources ? "rotate-180" : ""
+              isExpanded && !isAllResources ? "rotate-90" : ""
             )}
           />
         </div>
