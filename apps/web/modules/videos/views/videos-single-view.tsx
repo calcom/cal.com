@@ -46,7 +46,7 @@ export default function JoinCall(props: PageProps) {
   const [userNameForCall, setUserNameForCall] = useState<string | undefined>(
     overrideName ?? loggedInUserName ?? undefined
   );
-  const [isUserNameConfirmed, setIsUserNameConfirmed] = useState<boolean>(!displayLogInOverlay);
+  const [isUserNameConfirmed, setIsUserNameConfirmed] = useState<boolean>(!true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
   const createCallFrame = useCallback(
@@ -54,7 +54,7 @@ export default function JoinCall(props: PageProps) {
       let callFrame: DailyCall | undefined;
 
       try {
-        const shouldShowUserNameChangeUI = !displayLogInOverlay;
+        const shouldShowUserNameChangeUI = !true;
 
         callFrame = DailyIframe.createFrame({
           theme: {
@@ -116,6 +116,7 @@ export default function JoinCall(props: PageProps) {
         return DailyIframe.getCallInstance();
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       meetingUrl,
       meetingPassword,
@@ -127,7 +128,7 @@ export default function JoinCall(props: PageProps) {
   );
 
   useEffect(() => {
-    if (displayLogInOverlay && !isUserNameConfirmed) {
+    if (true && !isUserNameConfirmed) {
       return;
     }
 
@@ -207,7 +208,7 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && !isUserNameConfirmed && (
+      {true && !isUserNameConfirmed && (
         <LogInOverlay
           isLoggedIn={!!loggedInUserName}
           bookingUid={booking.uid}
@@ -367,7 +368,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
-        className="bg-black text-white sm:max-w-[480px]">
+        className="bg-white text-black dark:bg-black dark:text-white sm:max-w-[480px]">
         <div className="pb-8">
           <div className="space-y-4">
             <div>
@@ -411,8 +412,10 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
           <div className="mt-5 space-y-4">
             <div>
-              <h4 className="text-lg font-semibold text-white">{t("sign_in_to_cal_com")}</h4>
-              <p className="text-sm text-gray-300">{t("track_meetings_and_manage_schedule")}</p>
+              <h4 className="text-lg font-semibold text-black dark:text-white">{t("sign_in_to_cal_com")}</h4>
+              <p className="text-sm text-[#6B7280] dark:text-gray-300">
+                {t("track_meetings_and_manage_schedule")}
+              </p>
             </div>
 
             <Button
