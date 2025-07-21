@@ -666,19 +666,11 @@ function MemberListContent(props: Props) {
         switch (columnId) {
           case "role":
             // Include both traditional roles and PBAC custom roles
-            const allRoles = [
-              // Traditional roles (MEMBER, ADMIN, OWNER)
-              { label: "Member", value: "MEMBER" },
-              { label: "Admin", value: "ADMIN" },
-              { label: "Owner", value: "OWNER" },
-              // PBAC custom roles
-              ...facetedTeamValues.roles.map((role) => ({
-                label: role.name,
-                value: role.id,
-              })),
-              // Pending status
-              { label: "Pending", value: "PENDING" },
-            ];
+            const allRoles = facetedTeamValues.roles.map((role) => ({
+              label: role.name,
+              value: role.id,
+            }));
+
             return convertFacetedValuesToMap(allRoles);
           default:
             return new Map();
