@@ -62,43 +62,25 @@ export const PriorityDialog = (
 
       const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
 
-      // Sort hosts within the group
-      let sortedHostGroup: (Host & {
-        avatar: string;
-        label: string;
-      })[] = [];
+      let sortedHostGroup: CheckedSelectOption[] = [];
+
       const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
           .map((host) => {
-            const userOption = options.find((opt) => opt.value === host.userId.toString());
-            if (host.userId === parseInt(option.value, 10)) {
-              return {
-                ...host,
-                priority: newPriority.value,
-                avatar: userOption?.avatar ?? "",
-                label: userOption?.label ?? host.userId.toString(),
-              };
-            }
             return {
-              ...host,
-              avatar: userOption?.avatar ?? "",
-              label: userOption?.label ?? host.userId.toString(),
+              ...option,
+              value: host.userId.toString(),
+              priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+              isFixed: false,
+              weight: host.weight,
+              groupId: host.groupId,
+              userId: host.userId,
             };
           })
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
       }
-
-      const updatedOptions = sortedHostGroup.map((host) => ({
-        avatar: host.avatar,
-        label: host.label,
-        value: host.userId.toString(),
-        priority: host.priority,
-        weight: host.weight,
-        isFixed: host.isFixed,
-        groupId: host.groupId,
-      }));
 
       const otherGroupsHosts = rrHosts.filter(
         (host) =>
@@ -106,18 +88,17 @@ export const PriorityDialog = (
           (!option.groupId && host.groupId)
       );
       const otherGroupsOptions = otherGroupsHosts.map((host) => {
-        const userOption = options.find((opt) => opt.value === host.userId.toString());
         return {
-          avatar: userOption?.avatar ?? "",
-          label: userOption?.label ?? host.userId.toString(),
+          ...option,
           value: host.userId.toString(),
           priority: host.priority,
           weight: host.weight,
           isFixed: host.isFixed,
           groupId: host.groupId,
+          userId: host.userId,
         };
       });
-      const updatedHosts = [...otherGroupsOptions, ...updatedOptions];
+      const updatedHosts = [...otherGroupsOptions, ...sortedHostGroup];
       onChange(updatedHosts);
     }
     setIsOpenDialog(false);

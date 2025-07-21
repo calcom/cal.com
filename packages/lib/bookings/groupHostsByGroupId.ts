@@ -6,7 +6,7 @@ export function groupHostsByGroupId<T extends { groupId?: string | null }>({
 }: {
   hosts: T[];
   hostGroups?: { id: string }[];
-}) {
+}): Record<string, T[]> {
   const groups: Record<string, T[]> = {};
 
   const hasGroups = hostGroups && hostGroups.length > 0;
