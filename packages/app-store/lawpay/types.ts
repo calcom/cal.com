@@ -1,4 +1,4 @@
-import { z } from "zod";
+import z from "zod";
 
 // LawPay credential schema
 export const lawPayCredentialSchema = z.object({
@@ -19,6 +19,7 @@ export const lawPayTokenSchema = z.object({
   expires_in: z.number(),
   refresh_token: z.string().optional(),
   scope: z.string().optional(),
+  expires_at: z.number().optional(),
 });
 
 export type LawPayToken = z.infer<typeof lawPayTokenSchema>;

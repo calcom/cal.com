@@ -33,10 +33,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: "Missing webhook signature" });
     }
 
+    const merchantId = req.body?.data?.object?.account_id as string;
+
+    if (!merchantId) {
+      log.error("Missing merchant ID in webhook payload");
+      return res.status(400).json({ message: "Missing merchant ID" });
+    }
+
     // Find the credential to get webhook secret
     const credential = await prisma.credential.findFirst({
       where: {
         type: "lawpay_payment",
+        key: {
+          path: ["merchant_id"],
+          equals: merchantId,
+        },
       },
       select: {
         key: true,
@@ -86,12 +97,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handleChargeSucceeded(event: { data: { object: Record<string, unknown> } }) {
   const charge = event.data.object;
+  if (typeof charge.id !== "string") {
+    log.error("Invalid charge ID in webhook payload");
+    return;
+  }
   log.info("Charge succeeded", { chargeId: charge.id, amount: charge.amount });
 
   // Update payment status in database
   await prisma.payment.updateMany({
     where: {
-      externalId: charge.id as string,
+      externalId: charge.id,
     },
     data: {
       success: true,
@@ -102,12 +117,16 @@ async function handleChargeSucceeded(event: { data: { object: Record<string, unk
 
 async function handleChargeFailed(event: { data: { object: Record<string, unknown> } }) {
   const charge = event.data.object;
+  if (typeof charge.id !== "string") {
+    log.error("Invalid charge ID in webhook payload");
+    return;
+  }
   log.info("Charge failed", { chargeId: charge.id, amount: charge.amount });
 
   // Update payment status in database
   await prisma.payment.updateMany({
     where: {
-      externalId: charge.id as string,
+      externalId: charge.id,
     },
     data: {
       success: false,
@@ -118,12 +137,16 @@ async function handleChargeFailed(event: { data: { object: Record<string, unknow
 
 async function handleChargeRefunded(event: { data: { object: Record<string, unknown> } }) {
   const charge = event.data.object;
+  if (typeof charge.id !== "string") {
+    log.error("Invalid charge ID in webhook payload");
+    return;
+  }
   log.info("Charge refunded", { chargeId: charge.id, amount: charge.amount });
 
   // Update payment status in database
   await prisma.payment.updateMany({
     where: {
-      externalId: charge.id as string,
+      externalId: charge.id,
     },
     data: {
       refunded: true,

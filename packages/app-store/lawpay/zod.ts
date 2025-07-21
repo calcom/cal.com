@@ -1,4 +1,6 @@
-import { z } from "zod";
+import z from "zod";
+
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 
 // App keys schema for LawPay credentials
 export const appKeysSchema = z.object({
@@ -11,14 +13,19 @@ export const appKeysSchema = z.object({
 });
 
 // App data schema for LawPay settings
-export const appDataSchema = z.object({
-  client_id: z.string().optional(),
-  client_secret: z.string().optional(),
-  public_key: z.string().optional(),
-  secret_key: z.string().optional(),
-  merchant_id: z.string().optional(),
-  environment: z.enum(["sandbox", "production"]).default("sandbox"),
-  webhook_secret: z.string().optional(),
-});
+export const appDataSchema = eventTypeAppCardZod.merge(
+  z.object({
+    price: z.number(),
+    currency: z.string(),
+    paymentOption: z.string().optional(),
+    client_id: z.string().optional(),
+    client_secret: z.string().optional(),
+    public_key: z.string().optional(),
+    secret_key: z.string().optional(),
+    merchant_id: z.string().optional(),
+    environment: z.enum(["sandbox", "production"]).default("sandbox"),
+    webhook_secret: z.string().optional(),
+  })
+);
 
 export type AppKeysSchema = z.infer<typeof appKeysSchema>;

@@ -36,15 +36,14 @@ Test actual API connectivity (requires valid credentials):
 
 ```bash
 # Set environment variables
-export LAWPAY_API_KEY="your-api-key"
-export LAWPAY_MERCHANT_ID="your-merchant-id"
-export LAWPAY_ENVIRONMENT="sandbox"
+export LAWPAY_CLIENT_ID="your-client-id"
+export LAWPAY_CLIENT_SECRET="your-client-secret"
+export LAWPAY_PUBLIC_KEY="your-public-key"
+export LAWPAY_SECRET_KEY="your-secret-key"
 
 # Run integration tests
-node test-integration.js
+npm run test:integration
 
-# Or run all tests
-./run-tests.sh
 ```
 
 ### Test Coverage

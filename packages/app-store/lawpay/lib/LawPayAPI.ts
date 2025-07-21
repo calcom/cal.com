@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 import type { LawPayCredential, LawPayToken, LawPayCharge } from "../types";
 
@@ -41,13 +41,22 @@ export class LawPayAPI {
       throw new Error(`Authentication failed: ${response.status} ${response.statusText}`);
     }
 
-    const token = await response.json();
-    this.token = token;
-    return token;
+    const tokenData = await response.json();
+
+    if (!tokenData.access_token || !tokenData.expires_in) {
+      throw new Error("Malformed token response");
+    }
+
+    this.token = {
+      ...tokenData,
+      expires_at: Date.now() + tokenData.expires_in * 1000,
+    } as LawPayToken;
+
+    return this.token;
   }
 
   async ensureAuthenticated(): Promise<void> {
-    if (!this.token) {
+    if (!this.token || (this.token.expires_at && Date.now() >= this.token.expires_at)) {
       await this.authenticate();
     }
   }
@@ -115,10 +124,19 @@ export class LawPayAPI {
   }
 
   verifyWebhookSignature(payload: string, signature: string): boolean {
-    const webhookSecret = this.credential.secret_key;
-    const expectedSignature = crypto.createHmac("sha256", webhookSecret).update(payload).digest("hex");
+    try {
+      const webhookSecret = this.credential.secret_key;
+      const expectedSignature = crypto.createHmac("sha256", webhookSecret).update(payload).digest("hex");
 
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+      // Ensure both signatures have the same length for timingSafeEqual
+      if (signature.length !== expectedSignature.length) {
+        return false;
+      }
+
+      return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+    } catch (error) {
+      return false;
+    }
   }
 
   async createPaymentIntent(

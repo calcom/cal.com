@@ -81,6 +81,10 @@ export default function LawPaySetup() {
                 <Button
                   color="secondary"
                   onClick={() => {
+                    if (!newApiKey || !newMerchantId) {
+                      showToast(t("all_fields_are_required"), "error");
+                      return;
+                    }
                     saveKeysMutation.mutate({
                       credentialId,
                       key: {

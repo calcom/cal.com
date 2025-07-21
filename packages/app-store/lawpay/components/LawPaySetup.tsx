@@ -13,16 +13,9 @@ import {
 
 type Option = { value: string; label: string };
 
-const currencyOptions = [
-  { label: "United States Dollar (USD)", value: "usd" },
-  { label: "Canadian Dollar (CAD)", value: "cad" },
-];
+const currencyOptions = [{ label: "United States Dollar (USD)", value: "usd" }];
 
-const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
-  getAppData,
-  setAppData,
-  disabled,
-}) => {
+const LawPaySetup: EventTypeAppSettingsComponent = ({ getAppData, setAppData, disabled }) => {
   const price = getAppData("price");
   const currency = getAppData("currency") || currencyOptions[0].value;
   const [selectedCurrency, setSelectedCurrency] = useState(
@@ -34,16 +27,11 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const requirePayment = getAppData("enabled");
   const { t } = useLocale();
 
-  const getCurrencySymbol = (locale: string, currency: string) =>
-    (0)
-      .toLocaleString(locale, {
-        style: "currency",
-        currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })
-      .replace(/\d/g, "")
-      .trim();
+  const getCurrencySymbol = (locale: string, currency: string) => {
+    const parts = new Intl.NumberFormat(locale, { style: "currency", currency }).formatToParts(0);
+    const symbolPart = parts.find((part) => part.type === "currency");
+    return symbolPart ? symbolPart.value : "";
+  };
 
   useEffect(() => {
     if (requirePayment) {
@@ -83,7 +71,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                   />
                 }
                 step="0.01"
-                min="0.5"
                 type="number"
                 required
                 className="block w-full rounded-md border-gray-300 pl-16 pr-12 text-sm"
@@ -113,4 +100,4 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   );
 };
 
-export default EventTypeAppSettingsInterface;
+export default LawPaySetup;

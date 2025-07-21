@@ -160,6 +160,10 @@ async function saveBooking(
   }
 
   if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
+    if (!paymentAppData.appId) {
+      throw new Error("Payment app is enabled but appId is missing");
+    }
+
     await prisma.credential.findFirstOrThrow({
       where: {
         appId: paymentAppData.appId,

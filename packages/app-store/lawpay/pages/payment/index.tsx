@@ -107,7 +107,7 @@ export default function LawPayPaymentPage() {
               {status === "cancelled" ? "Go Back" : "Try Again"}
             </Button>
             <Button
-              onClick={() => router.push("/support")}
+              onClick={() => router.push("/lawpay/support")}
               className="flex w-full justify-center px-4 py-2"
               color="secondary">
               Contact Support

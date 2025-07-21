@@ -1,24 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSession } from "next-auth/react";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { lawPayCredentialSchema } from "../types";
 
 const log = logger.getSubLogger({ prefix: ["lawpay", "add"] });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { method } = req;
-
-  if (method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
-
+async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const session = await getSession({ req });
-    if (!session?.user?.id) {
+    if (!req.session?.user?.id) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -28,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Check if user already has LawPay credentials
     const existingCredential = await prisma.credential.findFirst({
       where: {
-        userId: session.user.id,
+        userId: req.session.user.id,
         type: "lawpay_payment",
       },
     });
@@ -36,7 +30,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (existingCredential) {
       // Update existing credential
       await prisma.credential.update({
-        where: { id: existingCredential.id },
+        where: {
+          id: existingCredential.id,
+        },
         data: {
           key: credentialData,
         },
@@ -45,18 +41,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create new credential
       await prisma.credential.create({
         data: {
-          userId: session.user.id,
           type: "lawpay_payment",
           key: credentialData,
+          userId: req.session.user.id,
           appId: "lawpay",
         },
       });
     }
 
-    log.info("LawPay credentials added successfully", { userId: session.user.id });
-    res.status(200).json({ message: "LawPay credentials added successfully" });
+    log.info("LawPay credentials added successfully", { userId: req.session.user.id });
+
+    return res.status(200).json({
+      url: "/apps/lawpay/setup?success=true",
+    });
   } catch (error) {
     log.error("Error adding LawPay credentials", getErrorFromUnknown(error));
-    res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Failed to add LawPay credentials" });
   }
 }
+
+export default defaultHandler({
+  POST: Promise.resolve({ default: defaultResponder(postHandler) }),
+});
