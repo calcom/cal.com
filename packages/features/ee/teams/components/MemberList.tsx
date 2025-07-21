@@ -378,6 +378,7 @@ function MemberListContent(props: Props) {
         cell: ({ row, table }) => {
           const { role, accepted, customRole } = row.original;
           const roleName = customRole?.name || role;
+          const roleIdentifier = customRole?.id || role;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {!accepted && (
@@ -395,7 +396,7 @@ function MemberListContent(props: Props) {
                 data-testid="member-role"
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
-                  table.getColumn("role")?.setFilterValue([role]);
+                  table.getColumn("role")?.setFilterValue([roleIdentifier]);
                 }}>
                 {roleName}
               </Badge>
@@ -404,13 +405,16 @@ function MemberListContent(props: Props) {
         },
         filterFn: (rows, id, filterValue) => {
           const { data } = filterValue;
+          const { role, accepted, customRole } = rows.original;
+          const roleIdentifier = customRole?.id || role;
+
           if (data.includes("PENDING")) {
-            if (data.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || data.includes(rows.getValue(id));
+            if (data.length === 1) return !accepted;
+            else return !accepted || data.includes(roleIdentifier);
           }
 
-          // Show only the selected roles
-          return data.includes(rows.getValue(id));
+          // Show only the selected roles (check both traditional role and custom role ID)
+          return data.includes(roleIdentifier);
         },
       },
       {
@@ -661,12 +665,21 @@ function MemberListContent(props: Props) {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
-            return convertFacetedValuesToMap(
-              facetedTeamValues.roles.map((role) => ({
+            // Include both traditional roles and PBAC custom roles
+            const allRoles = [
+              // Traditional roles (MEMBER, ADMIN, OWNER)
+              { label: "Member", value: "MEMBER" },
+              { label: "Admin", value: "ADMIN" },
+              { label: "Owner", value: "OWNER" },
+              // PBAC custom roles
+              ...facetedTeamValues.roles.map((role) => ({
                 label: role.name,
                 value: role.id,
-              }))
-            );
+              })),
+              // Pending status
+              { label: "Pending", value: "PENDING" },
+            ];
+            return convertFacetedValuesToMap(allRoles);
           default:
             return new Map();
         }
