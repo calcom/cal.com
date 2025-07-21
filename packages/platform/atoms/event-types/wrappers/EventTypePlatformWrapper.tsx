@@ -61,6 +61,8 @@ export type EventTypePlatformWrapperProps = {
     isDirty: boolean;
     dirtyFields: Partial<FormValues>;
     values: FormValues;
+    validateForm?: () => Promise<{ isValid: boolean; errors: any }>;
+    handleFormSubmit?: () => void;
   }) => void;
 };
 
@@ -147,7 +149,7 @@ const EventType = ({
     teamId: team?.id,
   });
 
-  const { form, handleSubmit } = useEventTypeForm({
+  const { form, handleSubmit, validateForm } = useEventTypeForm({
     eventType,
     onSubmit: (data) => {
       if (!isDryRun) {

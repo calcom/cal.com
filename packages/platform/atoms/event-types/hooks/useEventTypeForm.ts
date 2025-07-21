@@ -35,6 +35,8 @@ export const useEventTypeForm = ({
     isDirty: boolean;
     dirtyFields: Partial<FormValues>;
     values: FormValues;
+    validateForm?: () => Promise<{ isValid: boolean; errors: any }>;
+    handleFormSubmit?: () => void;
   }) => void;
 }) => {
   const { t } = useLocale();
@@ -195,16 +197,6 @@ export const useEventTypeForm = ({
 
   // Watch all form values to trigger onFormStateChange on any change
   const watchedValues = form.watch();
-
-  useEffect(() => {
-    if (onFormStateChange) {
-      onFormStateChange({
-        isDirty: isFormDirty,
-        dirtyFields: dirtyFields as Partial<FormValues>,
-        values: watchedValues,
-      });
-    }
-  }, [isFormDirty, watchedValues, onFormStateChange]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -421,5 +413,31 @@ export const useEventTypeForm = ({
     }
   };
 
-  return { form, handleSubmit };
+  const validateForm = async () => {
+    const isValid = await form.trigger();
+    return {
+      isValid,
+      errors: form.formState.errors,
+    };
+  };
+
+  useEffect(() => {
+    if (onFormStateChange) {
+      onFormStateChange({
+        isDirty: isFormDirty,
+        dirtyFields: dirtyFields as Partial<FormValues>,
+        values: watchedValues,
+        validateForm: async () => {
+          const isValid = await form.trigger();
+          return {
+            isValid,
+            errors: form.formState.errors,
+          };
+        },
+        handleFormSubmit: () => handleSubmit(watchedValues),
+      });
+    }
+  }, [isFormDirty, watchedValues, onFormStateChange, form]);
+
+  return { form, handleSubmit, validateForm };
 };
