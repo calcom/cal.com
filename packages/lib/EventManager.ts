@@ -587,6 +587,7 @@ export default class EventManager {
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
 
     let isDailyVideoRoomExpired = false;
+    let createdNewCalendarEvents = false;
 
     if (evt.location === "integrations:daily") {
       const originalBookingEndTime = new Date(booking.endTime);
@@ -596,7 +597,11 @@ export default class EventManager {
     }
 
     const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
+      !!changedOrganizer ||
+      isLocationChanged ||
+      !!isBookingRequestedReschedule ||
+      isDailyVideoRoomExpired ||
+      createdNewCalendarEvents;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -643,10 +648,34 @@ export default class EventManager {
           const bookingCalendarReference = booking.references.find((reference) =>
             reference.type.includes("_calendar")
           );
-          // There was a case that booking didn't had any reference and we don't want to throw error on function
-          if (bookingCalendarReference) {
-            // Update all calendar events.
+
+          if (bookingCalendarReference && bookingCalendarReference.uid) {
+            // Update existing calendar events
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          } else {
+            log.debug("No valid calendar event found for booking, creating new calendar events");
+            const createdEvents = await this.createAllCalendarEvents(evt);
+            results.push(...createdEvents);
+
+            // Update booking references with newly created calendar events
+            const calendarReferences = createdEvents
+              .filter((result) => result.type.includes("_calendar") && result.success)
+              .map((result) => ({
+                type: result.type,
+                uid: result.uid,
+                meetingId: result.uid,
+                meetingPassword: result.originalEvent.attendees?.[0]?.timeZone || "",
+                meetingUrl: result.originalEvent.videoCallData?.url || "",
+                externalCalendarId: result.externalId || null,
+                credentialId: result.credentialId || null,
+              }));
+
+            // Preserve existing non-calendar references and add new calendar references
+            const existingNonCalendarReferences = booking.references.filter(
+              (ref) => !ref.type.includes("_calendar")
+            );
+            updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
+            createdNewCalendarEvents = calendarReferences.length > 0;
           }
         }
 
@@ -670,9 +699,18 @@ export default class EventManager {
       });
     }
 
+    const finalShouldUpdateBookingReferences =
+      !!changedOrganizer ||
+      isLocationChanged ||
+      !!isBookingRequestedReschedule ||
+      isDailyVideoRoomExpired ||
+      createdNewCalendarEvents;
+
     return {
       results,
-      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
+      referencesToCreate: finalShouldUpdateBookingReferences
+        ? updatedBookingReferences
+        : [...booking.references],
     };
   }
 
