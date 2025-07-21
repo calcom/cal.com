@@ -814,7 +814,8 @@ export default function Success(props: PageProps) {
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
                       !isRerouting &&
-                      canCancelOrReschedule &&
+                      ((!isBookingInPast && canCancelOrReschedule) ||
+                        ((!isBookingInPast || eventType.allowReschedulingPastBookings) && canReschedule)) &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -839,13 +840,13 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    {canCancelAndReschedule && (
+                                    {!isBookingInPast && canCancel && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
                                     )}
                                   </span>
                                 )}
 
-                              {canCancel && (
+                              {!isBookingInPast && canCancel && (
                                 <button
                                   data-testid="cancel"
                                   className={classNames(
