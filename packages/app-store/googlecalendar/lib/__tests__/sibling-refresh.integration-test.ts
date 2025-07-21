@@ -507,8 +507,8 @@ describe("Sibling Cache Refresh Integration Tests", () => {
       });
 
       expect(thisMonthCache).toBeTruthy();
-      expect(thisMonthCache?.nextSyncToken).toBe("sync-token-thismonth");
       expect(nextMonthCache).toBeTruthy();
+      expect(thisMonthCache?.nextSyncToken).toBe("sync-token-nextmonth");
       expect(nextMonthCache?.nextSyncToken).toBe("sync-token-nextmonth");
     });
   });

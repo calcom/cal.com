@@ -40,11 +40,15 @@ describe("CalendarCacheRepository", () => {
         credentialId: 1,
         userId: 1,
         key: JSON.stringify({
-          timeMin: args.timeMin,
-          timeMax: args.timeMax,
           items: args.items,
         }),
-        value: { busy: [] },
+        value: {
+          busy: [],
+          dateRange: {
+            timeMin: args.timeMin,
+            timeMax: args.timeMax,
+          },
+        },
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
 
@@ -76,11 +80,15 @@ describe("CalendarCacheRepository", () => {
         credentialId: -1,
         userId: 1,
         key: JSON.stringify({
-          timeMin: args.timeMin,
-          timeMax: args.timeMax,
           items: args.items,
         }),
-        value: { busy: [] },
+        value: {
+          busy: [],
+          dateRange: {
+            timeMin: args.timeMin,
+            timeMax: args.timeMax,
+          },
+        },
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
 
@@ -134,7 +142,13 @@ describe("CalendarCacheRepository", () => {
       expect(result).toEqual(
         expect.objectContaining({
           credentialId: 1,
-          value,
+          value: expect.objectContaining({
+            busy: [],
+            dateRange: {
+              timeMin: args.timeMin,
+              timeMax: args.timeMax,
+            },
+          }),
         })
       );
     });
@@ -148,8 +162,6 @@ describe("CalendarCacheRepository", () => {
       };
 
       const key = JSON.stringify({
-        timeMin: args.timeMin,
-        timeMax: args.timeMax,
         items: args.items,
       });
 
@@ -157,13 +169,25 @@ describe("CalendarCacheRepository", () => {
       const initialData = {
         credentialId: 1,
         key,
-        value: { busy: [] },
+        value: {
+          busy: [],
+          dateRange: {
+            timeMin: args.timeMin,
+            timeMax: args.timeMax,
+          },
+        },
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
       await prismock.calendarCache.create({ data: initialData });
 
       // Update with new value
-      const newValue = { busy: [{ start: "2023-01-01T10:00:00Z", end: "2023-01-01T11:00:00Z" }] };
+      const newValue = {
+        busy: [{ start: "2023-01-01T10:00:00Z", end: "2023-01-01T11:00:00Z" }],
+        dateRange: {
+          timeMin: args.timeMin,
+          timeMax: args.timeMax,
+        },
+      };
       await repository.upsertCachedAvailability({
         credentialId: 1,
         userId: 1,
