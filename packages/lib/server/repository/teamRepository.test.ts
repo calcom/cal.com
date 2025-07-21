@@ -2,7 +2,7 @@ import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { it, describe, expect } from "vitest";
 
-import { getTeam, getOrg } from "./team";
+import { getTeam, getOrg } from "./teamRepository";
 
 const sampleTeamProps = {
   logo: null,

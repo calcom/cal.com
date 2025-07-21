@@ -169,11 +169,11 @@ export class InsightsRoutingService {
     const filterConditions = await this.getFilterConditions();
 
     if (authConditions && filterConditions) {
-      return Prisma.sql`(${authConditions}) AND (${filterConditions})`;
+      return Prisma.sql`((${authConditions}) AND (${filterConditions}))`;
     } else if (authConditions) {
-      return authConditions;
+      return Prisma.sql`(${authConditions})`;
     } else if (filterConditions) {
-      return filterConditions;
+      return Prisma.sql`(${filterConditions})`;
     } else {
       return NOTHING_CONDITION;
     }

@@ -554,7 +554,7 @@ describe("InsightsRoutingService Integration Tests", () => {
 
       const results = await service.getBaseConditions();
       expect(results).toEqual(
-        Prisma.sql`("formUserId" = ${testData.user.id} AND "formTeamId" IS NULL) AND (${dateCondition})`
+        Prisma.sql`(("formUserId" = ${testData.user.id} AND "formTeamId" IS NULL) AND (${dateCondition}))`
       );
 
       await testData.cleanup();
