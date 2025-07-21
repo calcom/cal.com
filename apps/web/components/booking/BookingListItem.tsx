@@ -369,7 +369,7 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed)) {
+  if (isDisabledCancelling || isBookingInPast) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
   }
 
