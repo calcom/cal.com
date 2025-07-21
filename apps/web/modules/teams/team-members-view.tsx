@@ -41,6 +41,7 @@ export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProp
               team={team}
               isOrgAdminOrOwner={false}
               setShowMemberInvitationModal={setShowMemberInvitationModal}
+              facetedTeamValues={facetedTeamValues}
             />
           </div>
         )}
