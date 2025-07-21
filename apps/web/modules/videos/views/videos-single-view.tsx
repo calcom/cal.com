@@ -155,6 +155,7 @@ export default function JoinCall(props: PageProps) {
       setDaily(null);
       setIsCallFrameReady(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayLogInOverlay, isUserNameConfirmed, userNameForCall, createCallFrame]);
 
   const handleJoinAsGuest = useCallback((guestName: string) => {
