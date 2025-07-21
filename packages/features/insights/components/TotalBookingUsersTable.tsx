@@ -22,7 +22,7 @@ export const TotalBookingUsersTable = ({
     <div className="overflow-hidden rounded-md">
       {filteredData.length > 0 ? (
         filteredData.map((item) => (
-          <ChartCardItem key={item.userId} count={item.count}>
+          <ChartCardItem key={item.userId} count={item.count} className="py-3">
             <div className="flex items-center">
               <Avatar
                 alt={item.user.name || ""}
