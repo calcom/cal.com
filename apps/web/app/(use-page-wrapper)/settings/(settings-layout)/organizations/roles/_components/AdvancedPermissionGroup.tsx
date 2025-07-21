@@ -54,6 +54,12 @@ export function AdvancedPermissionGroup({
     }
   };
 
+  const handleCheckedChange = (checked: boolean | string) => {
+    if (!disabled) {
+      onChange(toggleResourcePermissionLevel(resource, checked ? "all" : "none", selectedPermissions));
+    }
+  };
+
   // Helper function to check if read permission is auto-enabled
   const isReadAutoEnabled = (action: string) => {
     if (action === CrudAction.Read) return false;
@@ -86,7 +92,7 @@ export function AdvancedPermissionGroup({
         <div className="flex items-center gap-2">
           <Checkbox
             checked={isAllSelected}
-            onCheckedChange={handleToggleAll}
+            onCheckedChange={handleCheckedChange}
             onClick={handleToggleAll}
             disabled={disabled}
           />
