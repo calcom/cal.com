@@ -22,6 +22,12 @@ import { TextField } from "@calcom/ui/components/form";
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 import WeightDescription from "./WeightDescription";
 
+// Add local type that extends Host with display data
+type HostWithUserOptionData = Host & {
+  avatar: string;
+  label: string;
+};
+
 interface IDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
@@ -61,35 +67,40 @@ export const PriorityDialog = (
 
       const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
 
-      const updateHostPriority = (host: Host) => {
-        if (host.userId === parseInt(option.value, 10)) {
-          return { ...host, priority: newPriority.value };
-        }
-        return host;
-      };
-
       // Sort hosts within the group
-      let sortedHostGroup: Host[] = [];
+      let sortedHostGroup: HostWithUserOptionData[] = [];
       const hostGroupToSort = groupedHosts[option.groupId ?? "default_group_id"];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
-          .map(updateHostPriority)
+          .map((host) => {
+            const userOption = options.find((opt) => opt.value === host.userId.toString());
+            if (host.userId === parseInt(option.value, 10)) {
+              return {
+                ...host,
+                priority: newPriority.value,
+                avatar: userOption?.avatar ?? "",
+                label: userOption?.label ?? host.userId.toString(),
+              };
+            }
+            return {
+              ...host,
+              avatar: userOption?.avatar ?? "",
+              label: userOption?.label ?? host.userId.toString(),
+            };
+          })
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
       }
 
-      const updatedOptions = sortedHostGroup.map((host) => {
-        const userOption = options.find((opt) => opt.value === host.userId.toString());
-        return {
-          avatar: userOption?.avatar ?? "",
-          label: userOption?.label ?? host.userId.toString(),
-          value: host.userId.toString(),
-          priority: host.priority,
-          weight: host.weight,
-          isFixed: host.isFixed,
-          groupId: host.groupId,
-        };
-      });
+      const updatedOptions = sortedHostGroup.map((host) => ({
+        avatar: host.avatar,
+        label: host.label,
+        value: host.userId.toString(),
+        priority: host.priority,
+        weight: host.weight,
+        isFixed: host.isFixed,
+        groupId: host.groupId,
+      }));
 
       const otherGroupsHosts = rrHosts.filter(
         (host) =>
@@ -108,8 +119,8 @@ export const PriorityDialog = (
           groupId: host.groupId,
         };
       });
-      const newFullValue = [...otherGroupsOptions, ...updatedOptions];
-      onChange(newFullValue);
+      const updatedHosts = [...otherGroupsOptions, ...updatedOptions];
+      onChange(updatedHosts);
     }
     setIsOpenDialog(false);
   };
@@ -191,27 +202,32 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
       };
 
       // Sort hosts within the group
-      let sortedHostGroup: Host[] = [];
+      let sortedHostGroup: HostWithUserOptionData[] = [];
       const hostGroupToSort = groupedHosts[option.groupId ?? "default_group_id"];
 
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
-          .map(updateHostWeight)
+          .map((host) => {
+            const userOption = options.find((opt) => opt.value === host.userId.toString());
+            const updatedHost = updateHostWeight(host);
+            return {
+              ...updatedHost,
+              avatar: userOption?.avatar ?? "",
+              label: userOption?.label ?? host.userId.toString(),
+            };
+          })
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
       }
 
-      const updatedOptions = sortedHostGroup.map((host) => {
-        const userOption = options.find((opt) => opt.value === host.userId.toString());
-        return {
-          avatar: userOption?.avatar ?? "",
-          label: userOption?.label ?? host.userId.toString(),
-          value: host.userId.toString(),
-          priority: host.priority,
-          weight: host.weight,
-          isFixed: host.isFixed,
-          groupId: host.groupId,
-        };
-      });
+      const updatedOptions = sortedHostGroup.map((host) => ({
+        avatar: host.avatar,
+        label: host.label,
+        value: host.userId.toString(),
+        priority: host.priority,
+        weight: host.weight,
+        isFixed: host.isFixed,
+        groupId: host.groupId,
+      }));
 
       // Preserve hosts from other groups
       const otherGroupsHosts = rrHosts.filter(

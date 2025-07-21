@@ -806,11 +806,7 @@ async function handler(
       const nonFixedUsers: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
-        if (user.isFixed) {
-          fixedUserPool.push(user);
-        } else {
-          nonFixedUsers.push(user);
-        }
+        user.isFixed ? fixedUserPool.push(user) : nonFixedUsers.push(user);
       });
 
       // Group non-fixed users by their group IDs
@@ -942,7 +938,7 @@ async function handler(
         fixedUsers: fixedUserPool.map((u) => u.id),
         luckyUserPool: Object.values(luckyUserPools)
           .flat()
-          .map((u) => u.id), //todo
+          .map((u) => u.id),
       };
     } else if (
       input.bookingData.allRecurringDates &&

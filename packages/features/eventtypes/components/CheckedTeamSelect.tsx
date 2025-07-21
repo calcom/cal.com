@@ -69,15 +69,15 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const fitleredValue = groupId ? value.filter((host) => host.groupId === groupId) : value;
+  const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
-  const handleSelectChange = (newFilteredValue: readonly CheckedSelectOption[]) => {
+  const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
     const otherGroupsHosts = value.filter(
       (host) => (groupId && (!host.groupId || host.groupId !== groupId)) || (!groupId && host.groupId)
     );
 
-    const newFullValue = [...otherGroupsHosts, ...newFilteredValue.map((host) => ({ ...host, groupId }))];
-    props.onChange(newFullValue);
+    const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
+    props.onChange(newValueAllGroups);
   };
 
   return (
@@ -88,7 +88,7 @@ export const CheckedTeamSelect = ({
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
         options={options}
-        value={fitleredValue}
+        value={valueFromGroup}
         onChange={handleSelectChange}
         isMulti
         className={customClassNames?.hostsSelect?.select}
@@ -99,16 +99,16 @@ export const CheckedTeamSelect = ({
       <ul
         className={classNames(
           "mb-4 mt-3 rounded-md",
-          fitleredValue.length >= 1 && "border-subtle border",
+          valueFromGroup.length >= 1 && "border-subtle border",
           customClassNames?.selectedHostList?.container
         )}
         ref={animationRef}>
-        {fitleredValue.map((option, index) => (
+        {valueFromGroup.map((option, index) => (
           <>
             <li
               key={option.value}
               className={classNames(
-                `flex px-3 py-2 ${index === fitleredValue.length - 1 ? "" : "border-subtle border-b"}`,
+                `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
                 customClassNames?.selectedHostList?.listItem?.container
               )}>
               {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
