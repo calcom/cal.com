@@ -202,7 +202,7 @@ const AvailabilityLockView = ({ team }: ProfileViewProps) => {
 
   return (
     <>
-      {isAdmin ? (
+      {isAdmin && (
         <div className="mt-6">
           <SettingsToggle
             toggleSwitchAtTheEnd={true}
@@ -213,10 +213,6 @@ const AvailabilityLockView = ({ team }: ProfileViewProps) => {
               mutation.mutate({ id: team.id, lockDefaultAvailability: checked });
             }}
           />
-        </div>
-      ) : (
-        <div className="border-subtle rounded-md border p-5">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
       )}
     </>

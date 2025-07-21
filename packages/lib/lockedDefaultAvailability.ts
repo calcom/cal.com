@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 
+import { TRPCError } from "@trpc/server";
+
 /**
  * Checks if a user has locked default availability restrictions.
  * Returns true if the user is a member (not admin/owner) of any team with locked default availability
@@ -49,7 +51,6 @@ export async function checkLockedDefaultAvailabilityRestriction(
   const hasRestriction = await hasLockedDefaultAvailabilityRestriction(userId, prisma);
 
   if (hasRestriction) {
-    const { TRPCError } = await import("@trpc/server");
     throw new TRPCError({
       code: "FORBIDDEN",
       message: errorMessage,
