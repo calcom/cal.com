@@ -141,10 +141,10 @@ The AvailabilitySettings component supports programmatic form validation and sub
 ```js
 import { useRef } from 'react';
 import { AvailabilitySettings } from "@calcom/atoms";
-import type { AvailabilitySettingsPlatformWrapperRef } from "@calcom/atoms";
+import type { AvailabilitySettingsFormRef } from "@calcom/atoms";
 
 export function AvailabilityWithValidation() {
-  const availabilityRef = useRef<AvailabilitySettingsPlatformWrapperRef>(null);
+  const availabilityRef = useRef<AvailabilitySettingsFormRef>(null);
 
   const handleValidate = async () => {
     const result = await availabilityRef.current?.validateForm();

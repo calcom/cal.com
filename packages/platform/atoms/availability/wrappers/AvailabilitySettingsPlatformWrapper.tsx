@@ -12,7 +12,7 @@ import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
-import type { CustomClassNames, AvailabilitySettingsPlatformWrapperRef } from "../AvailabilitySettings";
+import type { CustomClassNames, AvailabilitySettingsFormRef } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
@@ -39,7 +39,7 @@ export type AvailabilitySettingsPlatformWrapperProps = {
 };
 
 export const AvailabilitySettingsPlatformWrapper = forwardRef<
-  AvailabilitySettingsPlatformWrapperRef,
+  AvailabilitySettingsFormRef,
   AvailabilitySettingsPlatformWrapperProps
 >(function AvailabilitySettingsPlatformWrapper(props, ref) {
   const {

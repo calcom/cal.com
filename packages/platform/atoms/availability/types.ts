@@ -35,7 +35,7 @@ export type AvailabilityFormValidationResult = {
   errors: Record<string, unknown>;
 };
 
-export interface AvailabilitySettingsPlatformWrapperRef {
+export interface AvailabilitySettingsFormRef {
   validateForm: () => Promise<AvailabilityFormValidationResult>;
   handleFormSubmit: () => void;
 }
