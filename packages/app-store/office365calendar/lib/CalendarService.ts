@@ -332,11 +332,14 @@ export default class Office365CalendarService implements Calendar {
 
         const items = ids.map((id) => ({ id }));
 
-        return await this.getCacheOrFetchAvailability({
-          timeMin,
-          timeMax,
-          items,
-        });
+        return await this.getCacheOrFetchAvailability(
+          {
+            timeMin,
+            timeMax,
+            items,
+          },
+          shouldServeCache
+        );
       }
 
       const items = ids.map((id) => ({ id }));
@@ -915,7 +918,7 @@ export default class Office365CalendarService implements Calendar {
    * Get availability from cache or fetch from Office365 if cache miss
    * This method is used when calendar-cache feature is enabled
    */
-  async getFreeBusyResult(args: FreeBusyArgs, shouldServeCache = true): Promise<BufferedBusyTime[]> {
+  async getFreeBusyResult(args: FreeBusyArgs, shouldServeCache?: boolean): Promise<BufferedBusyTime[]> {
     const { timeMin, timeMax, items } = args;
 
     // If cache is disabled, fetch directly from Office365
@@ -923,7 +926,7 @@ export default class Office365CalendarService implements Calendar {
       return this.fetchAvailability({ timeMin, timeMax, items });
     }
 
-    const calendarCache = await CalendarCache.init(this);
+    const calendarCache = await CalendarCache.init(null);
 
     // Try to get from cache first
     const cachedAvailability = await calendarCache.getCachedAvailability({
@@ -936,7 +939,7 @@ export default class Office365CalendarService implements Calendar {
       },
       // For delegation scenarios, use userId instead of credentialId
       credentialId: this.credential.id,
-      userId: this.credential.delegatedTo ? this.credential.userId : null,
+      userId: this.credential.userId,
     });
 
     if (cachedAvailability?.value) {
@@ -954,8 +957,11 @@ export default class Office365CalendarService implements Calendar {
     return availability;
   }
 
-  async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<EventBusyDate[]> {
-    const bufferedBusyTimes = await this.getFreeBusyResult(args);
+  async getCacheOrFetchAvailability(
+    args: FreeBusyArgs,
+    shouldServeCache?: boolean
+  ): Promise<EventBusyDate[]> {
+    const bufferedBusyTimes = await this.getFreeBusyResult(args, shouldServeCache);
 
     return bufferedBusyTimes.map((busyTime) => ({
       start: busyTime.start,
@@ -1063,7 +1069,7 @@ export default class Office365CalendarService implements Calendar {
 
         const data = await this.fetchAvailability(parsedArgs);
 
-        const calendarCache = await CalendarCache.init(this);
+        const calendarCache = await CalendarCache.init(null);
 
         const cacheData = {
           credentialId: this.credential.id,
