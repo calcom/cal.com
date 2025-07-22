@@ -3386,5 +3386,12 @@
   "reassign_to_another_managed_host_description": "Select a new host for this booking",
   "team_member_managed_event_reassign": "Manually reassign managed event host",
   "team_member_managed_event_reassign_description": "Manually reassign managed event host to another available host",
+  "cache_status": "Cache Status",
+  "cache_last_updated": "Last updated: {{timestamp}}",
+  "delete_cached_data": "Delete cached data",
+  "cache_deleted_successfully": "Cache deleted successfully",
+  "error_deleting_cache": "Error deleting cache",
+  "confirm_delete_cache": "Are you sure you want to delete the cached data? This action cannot be undone.",
+  "yes_delete_cache": "Yes, delete cache",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
