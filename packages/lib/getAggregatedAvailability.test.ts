@@ -330,7 +330,7 @@ describe("getAggregatedAvailability", () => {
     expect(isAvailable(result, timeRangeNotAvailable)).toBe(false);
   });
 
-  it.only("handles mixed groups with some hosts having groupId and others not", () => {
+  it("handles mixed groups with some hosts having groupId and others not", () => {
     // Test scenario:
     // Group 1: Host A (available 11:00-11:45)
     // Group 2: Host B (available 11:15-12:00)
