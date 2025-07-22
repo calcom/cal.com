@@ -131,6 +131,11 @@ export const useEventTypeForm = ({
         templateType: eventType.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE",
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
+      aiSelfServeConfiguration: {
+        enabled: eventType.aiSelfServeConfiguration?.enabled,
+        yourPhoneNumberId: eventType.aiSelfServeConfiguration?.yourPhoneNumberId ?? undefined,
+        numberToCall: eventType.aiSelfServeConfiguration?.numberToCall,
+      },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
       includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
@@ -406,6 +411,7 @@ export const useEventTypeForm = ({
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
+      aiSelfServeConfiguration: rest.aiSelfServeConfiguration,
     } satisfies EventTypeUpdateInput;
     // Filter out undefined values
     const filteredPayload = Object.entries(payload).reduce((acc, [key, value]) => {

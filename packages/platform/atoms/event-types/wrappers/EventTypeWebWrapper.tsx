@@ -88,6 +88,12 @@ const EventAITab = dynamic(() =>
   import("@calcom/features/eventtypes/components/tabs/ai/EventAITab").then((mod) => mod.EventAITab)
 );
 
+const EventAISelfServeTab = dynamic(() =>
+  import("@calcom/features/eventtypes/components/tabs/ai/EventAISelfServeTab").then(
+    (mod) => mod.EventAISelfServeTab
+  )
+);
+
 export type EventTypeWebWrapperProps = {
   id: number;
   data: RouterOutputs["viewer"]["eventTypes"]["get"];
@@ -243,6 +249,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
+    aiSelfServe: <EventAISelfServeTab eventType={eventType} />,
   } as const;
 
   useHandleRouteChange({
@@ -309,6 +316,7 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
         "workflows",
         "webhooks",
         "ai",
+        "aiSelfServe",
       ])
       .optional()
       .default("setup"),

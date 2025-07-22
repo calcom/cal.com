@@ -183,6 +183,7 @@ model EventType {
   rrSegmentQueryValue                      Json?
   useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
+  aiSelfServeConfiguration                 AISelfServeConfiguration?
   isRRWeightsEnabled                       Boolean                   @default(false)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?
@@ -381,6 +382,7 @@ model User {
   updatedRoutingForms  App_RoutingForms_Form[] @relation("updated-routing-form")
   verifiedNumbers      VerifiedNumber[]
   verifiedEmails       VerifiedEmail[]
+  calAiPhoneNumbers    CalAiPhoneNumber[]
   hosts                Host[]
   // organizationId is deprecated. Instead, rely on the Profile to search profiles by organizationId and then get user from the profile.
   organizationId       Int?
@@ -1375,6 +1377,22 @@ model AIPhoneCallConfiguration {
   @@index([eventTypeId])
 }
 
+model AISelfServeConfiguration {
+  id                Int               @id @default(autoincrement())
+  eventType         EventType         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId       Int
+  yourPhoneNumber   CalAiPhoneNumber? @relation(fields: [yourPhoneNumberId], references: [id], onDelete: SetNull)
+  yourPhoneNumberId Int?              @unique
+  numberToCall      String?
+  enabled           Boolean           @default(false)
+  agentId           String
+  llmId             String
+  agentTimeZone     String
+
+  @@unique([eventTypeId])
+  @@index([eventTypeId])
+}
+
 model WorkflowsOnEventTypes {
   id          Int       @id @default(autoincrement())
   workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
@@ -2204,6 +2222,16 @@ enum BillingPeriod {
   ANNUALLY
 }
 
+enum PhoneNumberSubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
+}
+
 model OrganizationOnboarding {
   // TODO: Use uuid for id
   id String @id @default(uuid())
@@ -2405,4 +2433,24 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+model CalAiPhoneNumber {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String   @unique
+  provider    String? // e.g. "retell"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Billing fields for $5/month subscription
+  stripeCustomerId     String?
+  stripeSubscriptionId String?                        @unique
+  subscriptionStatus   PhoneNumberSubscriptionStatus?
+
+  aiSelfServeConfigurations AISelfServeConfiguration?
+
+  @@index([userId])
+  @@index([stripeSubscriptionId])
 }
