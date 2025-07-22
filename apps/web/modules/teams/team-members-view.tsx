@@ -28,6 +28,7 @@ interface TeamMembersViewProps {
 export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProps) => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const [showInviteLinkSettingsModal, setShowInviteLinkSettingsModal] = useState(false);
 
   const isTeamAdminOrOwner = checkAdminOrOwner(team.membership.role);
   const canLoggedInUserSeeMembers = !team.isPrivate || isTeamAdminOrOwner;
@@ -56,6 +57,7 @@ export const TeamMembersView = ({ team, facetedTeamValues }: TeamMembersViewProp
             showMemberInvitationModal={showMemberInvitationModal}
             teamId={team.id}
             token={team.inviteToken?.token}
+            onSettingsOpen={() => setShowInviteLinkSettingsModal(true)}
           />
         )}
       </div>

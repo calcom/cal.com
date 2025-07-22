@@ -24,7 +24,7 @@ export const updateRoleInCache = ({
   utils: ReturnType<typeof trpc.useUtils>;
   teamId: number;
   searchTerm: string | undefined;
-  role: MembershipRole;
+  role: MembershipRole | string;
   memberId: number;
 }) => {
   utils.viewer.teams.listMembers.setInfiniteData(
@@ -45,10 +45,18 @@ export const updateRoleInCache = ({
         ...data,
         pages: data.pages.map((page) => ({
           ...page,
-          members: page.members.map((member) => ({
-            ...member,
-            role: member.id === memberId ? role : member.role,
-          })),
+          members: page.members.map((member) => {
+            if (member.id === memberId) {
+              const isTraditionalRole = Object.values(MembershipRole).includes(role as MembershipRole);
+              return {
+                ...member,
+                role: isTraditionalRole ? (role as MembershipRole) : member.role,
+                customRoleId: isTraditionalRole ? null : (role as string),
+                customRole: isTraditionalRole ? null : member.customRole,
+              };
+            }
+            return member;
+          }),
         })),
       };
     }

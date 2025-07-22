@@ -123,7 +123,13 @@ export function EditMemberSheet({
       });
 
       if (previousValue) {
-        updateRoleInCache({ utils, teamId, memberId, role, searchTerm: undefined });
+        updateRoleInCache({
+          utils,
+          teamId,
+          memberId,
+          role: role as MembershipRole | string,
+          searchTerm: undefined,
+        });
       }
 
       return { previousValue };
