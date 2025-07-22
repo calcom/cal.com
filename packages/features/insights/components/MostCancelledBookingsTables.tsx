@@ -1,10 +1,8 @@
-import { Title } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
 import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 
@@ -31,9 +29,8 @@ export const MostCancelledBookingsTables = () => {
   if (isPending) return <LoadingInsight />;
 
   return (
-    <CardInsights className="shadow-none">
-      <Title className="text-emphasis">{t("most_cancelled_bookings")}</Title>
+    <ChartCard title={t("most_cancelled_bookings")}>
       {!isSuccess || !startDate || !endDate || !teamId ? null : <TotalBookingUsersTable data={data} />}
-    </CardInsights>
+    </ChartCard>
   );
 };
