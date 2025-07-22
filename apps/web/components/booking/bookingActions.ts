@@ -48,8 +48,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 
   // For bookings with payment, only confirm if the booking is paid for
   // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
-  // Simplified: isPending && !showPendingPayment
-  if (isPending && !showPendingPayment) {
+  if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
     actions.push({
       id: "confirm",
       bookingId: booking.id,
