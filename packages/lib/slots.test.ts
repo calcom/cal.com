@@ -35,6 +35,18 @@ describe("Tests the slot logic", () => {
     ).toHaveLength(24);
   });
 
+  it("does not duplicate slots if multiple date ranges are given", async () => {
+    expect(
+      getSlots({
+        inviteeDate: dayjs.utc().add(1, "day"),
+        frequency: 60,
+        minimumBookingNotice: 0,
+        eventLength: 60,
+        dateRanges: [...dateRangesNextDay, ...dateRangesNextDay],
+      })
+    ).toHaveLength(24);
+  });
+
   it("can fit 24 hourly slots for an empty day with interval != eventLength", async () => {
     expect(
       getSlots({
@@ -303,6 +315,24 @@ describe("Tests the slot logic", () => {
     expect(slots[1].time.format()).toBe("2023-07-13T09:35:00+02:00");
   });
 
+  it("tests something", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13TT18:30:00.000", "Asia/Kolkata"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges: [
+        {
+          start: dayjs.tz("2025-07-24T04:15:00.000", "Asia/Kolkata"),
+          end: dayjs.tz("2025-07-24T17:00:00.000", "Asia/Kolkata"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(3);
+    expect(slots[0].time.format()).toBe("2023-07-13T09:00:00+02:00");
+  });
+
   it("correctly starts half hour timezones on the full hour", async () => {
     const slots = getSlots({
       inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Asia/Kolkata"),
@@ -430,10 +460,7 @@ describe("Tests the slots function performance", () => {
 
           dateRanges.push({
             start: currentDay.hour(hour).minute(minute),
-            end: currentDay
-              .hour(hour)
-              .minute(minute + 4)
-              .second(59),
+            end: currentDay.hour(hour).minute(minute + 5),
           });
         }
         if (dateRanges.length >= 2000) break;
