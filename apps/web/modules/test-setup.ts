@@ -69,6 +69,7 @@ vi.mock("@calcom/lib/constants", () => {
     DEFAULT_LIGHT_BRAND_COLOR: "DEFAULT_LIGHT_BRAND_COLOR",
     DEFAULT_DARK_BRAND_COLOR: "DEFAULT_DARK_BRAND_COLOR",
     BOOKER_NUMBER_OF_DAYS_TO_LOAD: 1,
+    DEFAULT_GROUP_ID: "default_group_id",
   };
 });
 
