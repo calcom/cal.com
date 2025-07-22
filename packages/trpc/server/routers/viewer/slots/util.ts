@@ -43,7 +43,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";

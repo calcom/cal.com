@@ -32,8 +32,6 @@ if [ -n "$TMOLE_RUNNING" ]; then
 else
   echo "Starting a new Tunnelmole session..."
   rm -f "$LOG_FILE"
-  
-  # Start tmole and capture output
   tmole $TM_PORT > "$LOG_FILE" 2>&1 &
   TMOLE_PID=$!
   OWNED_PID=true
