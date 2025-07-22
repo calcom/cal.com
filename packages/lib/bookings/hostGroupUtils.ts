@@ -28,3 +28,12 @@ export function groupHostsByGroupId<T extends { groupId?: string | null }>({
 
   return groups;
 }
+
+export function getHostsFromOtherGroups<T extends { groupId?: string | null }>(
+  hosts: readonly T[],
+  groupId: string | null
+): T[] {
+  return hosts.filter(
+    (host) => (groupId && (!host.groupId || host.groupId !== groupId)) || (!groupId && host.groupId)
+  );
+}

@@ -25,7 +25,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 describe("Round Robin handleNewBooking", () => {
   setupAndTeardown();
 
-  describe("Grouped Round Robin Event", () => {
+  describe("Round Robin with groups", () => {
     test("Books one host from each round robin group", async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const booker = getBooker({

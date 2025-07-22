@@ -6,6 +6,7 @@ import type { Options, Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
+import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -72,9 +73,7 @@ export const CheckedTeamSelect = ({
   const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
 
   const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
-    const otherGroupsHosts = value.filter(
-      (host) => (groupId && (!host.groupId || host.groupId !== groupId)) || (!groupId && host.groupId)
-    );
+    const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
 
     const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
     props.onChange(newValueAllGroups);

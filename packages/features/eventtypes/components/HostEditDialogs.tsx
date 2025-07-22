@@ -10,7 +10,7 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { groupHostsByGroupId } from "@calcom/lib/bookings/groupHostsByGroupId";
+import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -82,11 +82,8 @@ export const PriorityDialog = (
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
       }
 
-      const otherGroupsHosts = rrHosts.filter(
-        (host) =>
-          (option.groupId && (!host.groupId || host.groupId !== option.groupId)) ||
-          (!option.groupId && host.groupId)
-      );
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+
       const otherGroupsOptions = otherGroupsHosts.map((host) => {
         return {
           ...option,
@@ -213,11 +210,8 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
       }));
 
       // Preserve hosts from other groups
-      const otherGroupsHosts = rrHosts.filter(
-        (host) =>
-          (option.groupId && (!host.groupId || host.groupId !== option.groupId)) ||
-          (!option.groupId && host.groupId)
-      );
+      const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
+
       const otherGroupsOptions = otherGroupsHosts.map((host) => {
         const userOption = options.find((opt) => opt.value === host.userId.toString());
         return {
