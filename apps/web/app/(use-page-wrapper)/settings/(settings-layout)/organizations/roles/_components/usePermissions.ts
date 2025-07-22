@@ -46,6 +46,11 @@ export function usePermissions(): UsePermissionsReturn {
     const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
     if (!resourceConfig) return "none";
 
+    // Check if global all permissions (*.*) is present
+    if (permissions.includes("*.*")) {
+      return "all";
+    }
+
     // Filter out internal keys like _resource when checking permissions
     const allResourcePerms = Object.keys(resourceConfig)
       .filter((action) => !action.startsWith("_"))
