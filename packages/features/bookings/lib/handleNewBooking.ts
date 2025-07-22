@@ -830,7 +830,6 @@ async function handler(
       const luckyUsers: typeof users = [];
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
-      let index = 0;
       for (const [groupId, luckyUserPool] of Object.entries(luckyUserPools)) {
         let luckUserFound = false;
         while (luckyUserPool.length > 0 && !luckUserFound) {
@@ -905,7 +904,6 @@ async function handler(
             luckUserFound = true;
           }
         }
-        index++;
       }
 
       // ALL fixed users must be available
