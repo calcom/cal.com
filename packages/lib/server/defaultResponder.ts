@@ -29,7 +29,9 @@ export function defaultResponder<T>(
     });
     const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
 
-    const tracedReq = Object.assign(req, { traceContext }) as TracedRequest;
+    const tracedReq = req as TracedRequest;
+    tracedReq.traceContext = traceContext;
+
     try {
       performance.mark("Start");
       const result = endpointRoute

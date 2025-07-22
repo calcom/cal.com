@@ -38,50 +38,63 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  let traceId: string | undefined;
+  let tracedData: Record<string, unknown> | undefined;
+
   if (cause instanceof TracedError) {
-    const innerError = cause.originalError;
-    const statusCode = innerError instanceof Error ? getStatusCode(innerError) : 500;
-    return new HttpError({
-      statusCode,
-      message: cause.message,
-      data: {
-        ...cause.data,
-        traceId: cause.traceId,
-      },
-      cause,
-    });
+    traceId = cause.traceId;
+    tracedData = cause.data;
+    cause = cause.originalError;
   }
 
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
-    return new HttpError({ statusCode, message: cause.message });
+    return new HttpError({
+      statusCode,
+      message: cause.message,
+      data: traceId ? { ...tracedData, traceId } : undefined,
+    });
   }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,
       message: parseZodErrorIssues(cause.issues),
       cause,
+      data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
   if (cause instanceof SyntaxError) {
     return new HttpError({
       statusCode: 500,
       message: "Unexpected error, please reach out for our customer support.",
+      data: traceId ? { ...tracedData, traceId } : undefined,
     });
   }
   if (isPrismaError(cause)) {
-    return getServerErrorFromPrismaError(cause);
+    const prismaError = getServerErrorFromPrismaError(cause);
+    return new HttpError({
+      statusCode: prismaError.statusCode,
+      message: prismaError.message,
+      cause: prismaError.cause,
+      data: traceId ? { ...tracedData, traceId } : prismaError.data,
+    });
   }
   const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
   if (parsedStripeError.success) {
-    return getHttpError({ statusCode: 400, cause: parsedStripeError.data });
+    const stripeError = getHttpError({ statusCode: 400, cause: parsedStripeError.data });
+    return new HttpError({
+      statusCode: stripeError.statusCode,
+      message: stripeError.message,
+      cause: stripeError.cause,
+      data: traceId ? { ...tracedData, traceId } : stripeError.data,
+    });
   }
   if (cause instanceof ErrorWithCode) {
     const statusCode = getStatusCode(cause);
     return new HttpError({
       statusCode,
       message: cause.message ?? "",
-      data: cause.data,
+      data: traceId ? { ...cause.data, ...tracedData, traceId } : cause.data,
       cause,
     });
   }
@@ -95,11 +108,18 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       url: cause.url,
       statusCode: cause.statusCode,
       method: cause.method,
+      data: traceId ? { ...redactedCause.data, ...tracedData, traceId } : redactedCause.data,
     };
   }
   if (cause instanceof Error) {
     const statusCode = getStatusCode(cause);
-    return getHttpError({ statusCode, cause });
+    const error = getHttpError({ statusCode, cause });
+    return new HttpError({
+      statusCode: error.statusCode,
+      message: error.message,
+      cause: error.cause,
+      data: traceId ? { ...tracedData, traceId } : error.data,
+    });
   }
   if (typeof cause === "string") {
     // @ts-expect-error https://github.com/tc39/proposal-error-cause
@@ -109,6 +129,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   return new HttpError({
     statusCode: 500,
     message: `Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`,
+    data: traceId ? { ...tracedData, traceId } : undefined,
   });
 }
 

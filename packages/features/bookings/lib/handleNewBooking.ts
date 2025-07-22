@@ -407,16 +407,21 @@ async function handler(
   const traceContext = passedTraceContext
     ? {
         ...passedTraceContext,
-        eventTypeId: rawBookingData.eventTypeId,
-        userId: userId,
-        eventTypeSlug: rawBookingData.eventTypeSlug,
-        userInfo: rawBookingData.user,
+        meta: {
+          ...passedTraceContext.meta,
+          eventTypeId: rawBookingData.eventTypeId,
+          userId: userId,
+          eventTypeSlug: rawBookingData.eventTypeSlug,
+          userInfo: rawBookingData.user,
+        },
       }
     : DistributedTracing.createTrace("booking_creation", {
-        eventTypeId: rawBookingData.eventTypeId,
-        userId: userId,
-        eventTypeSlug: rawBookingData.eventTypeSlug,
-        userInfo: rawBookingData.user,
+        meta: {
+          eventTypeId: rawBookingData.eventTypeId,
+          userId: userId,
+          eventTypeSlug: rawBookingData.eventTypeSlug,
+          userInfo: rawBookingData.user,
+        },
       });
   const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
 
