@@ -51,9 +51,21 @@ export function ChartCard({
   );
 }
 
-export function ChartCardItem({ count, children }: { count?: number | string; children: ReactNode }) {
+export function ChartCardItem({
+  count,
+  className,
+  children,
+}: {
+  count?: number | string;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0">
+    <div
+      className={classNames(
+        "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
+        className
+      )}>
       <div className="text-sm font-medium">{children}</div>
       {count !== undefined && <div className="text-sm font-medium">{count}</div>}
     </div>
