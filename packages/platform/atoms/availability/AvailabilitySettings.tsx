@@ -1,7 +1,15 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import React, { useMemo, useState, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useCallback,
+} from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -38,7 +46,11 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues, scheduleClassNames } from "./types";
+import type {
+  AvailabilityFormValues,
+  scheduleClassNames,
+  AvailabilitySettingsPlatformWrapperRef,
+} from "./types";
 
 export type Schedule = {
   id: number;
@@ -257,26 +269,30 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
   );
 };
 
-export function AvailabilitySettings({
-  schedule,
-  travelSchedules,
-  handleDelete,
-  isDeleting,
-  isLoading,
-  isSaving,
-  timeFormat,
-  weekStart,
-  backPath,
-  handleSubmit,
-  isPlatform = false,
-  customClassNames,
-  disableEditableHeading = false,
-  enableOverrides = false,
-  onFormStateChange,
-  bulkUpdateModalProps,
-  allowSetToDefault = true,
-  allowDelete = true,
-}: AvailabilitySettingsProps) {
+export const AvailabilitySettings = forwardRef<
+  AvailabilitySettingsPlatformWrapperRef,
+  AvailabilitySettingsProps
+>(function AvailabilitySettings(props, ref) {
+  const {
+    schedule,
+    travelSchedules,
+    handleDelete,
+    isDeleting,
+    isLoading,
+    isSaving,
+    timeFormat,
+    weekStart,
+    backPath,
+    handleSubmit,
+    isPlatform = false,
+    customClassNames,
+    disableEditableHeading = false,
+    enableOverrides = false,
+    onFormStateChange,
+    bulkUpdateModalProps,
+    allowSetToDefault = true,
+    allowDelete = true,
+  } = props;
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
 
@@ -303,6 +319,36 @@ export function AvailabilitySettings({
       ? [PlatformShell, PlatformSchedule, PlatformTimzoneSelect]
       : [WebShell, WebSchedule, WebTimezoneSelect];
   }, [isPlatform]);
+
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleFormSubmit = useCallback(() => {
+    if (saveButtonRef.current) {
+      saveButtonRef.current.click();
+    } else {
+      const formElement = document.getElementById("availability-form") as HTMLFormElement;
+      if (formElement) {
+        formElement.requestSubmit();
+      }
+    }
+  }, []);
+
+  const validateForm = useCallback(async () => {
+    const isValid = await form.trigger();
+    return {
+      isValid,
+      errors: form.formState.errors,
+    };
+  }, [form]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      validateForm,
+      handleFormSubmit,
+    }),
+    [validateForm, handleFormSubmit]
+  );
 
   return (
     <Shell
@@ -539,7 +585,12 @@ export function AvailabilitySettings({
             </>
           </SmallScreenSideBar>
           <div className="border-default border-l-2" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="availability-form" loading={isSaving}>
+          <Button
+            ref={saveButtonRef}
+            className="ml-4 lg:ml-0"
+            type="submit"
+            form="availability-form"
+            loading={isSaving}>
             {t("save")}
           </Button>
           <Button
@@ -659,4 +710,4 @@ export function AvailabilitySettings({
       </div>
     </Shell>
   );
-}
+});
