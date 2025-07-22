@@ -174,7 +174,7 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext?: TraceConte
   }
 };
 
-type WebhookHandler = (event: Stripe.Event) => Promise<void>;
+type WebhookHandler = (event: Stripe.Event, traceContext?: TraceContext) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handleStripePaymentSuccess,
