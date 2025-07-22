@@ -72,15 +72,15 @@ model CalVideoSettings {
   eventTypeId Int       @id
   eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
 
-  disableRecordingForOrganizer     Boolean @default(false)
-  disableRecordingForGuests        Boolean @default(false)
-  enableAutomaticTranscription     Boolean @default(false)
-  redirectUrlOnExit                String?
-  disableTranscriptionForGuests    Boolean @default(false)
-  disableTranscriptionForOrganizer Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  disableRecordingForOrganizer         Boolean  @default(false)
+  disableRecordingForGuests            Boolean  @default(false)
+  enableAutomaticTranscription         Boolean  @default(false)
+  enableAutomaticRecordingForOrganizer Boolean  @default(false)
+  redirectUrlOnExit                    String?
+  disableTranscriptionForGuests        Boolean  @default(false)
+  disableTranscriptionForOrganizer     Boolean  @default(false)
+  createdAt                            DateTime @default(now())
+  updatedAt                            DateTime @updatedAt
 }
 
 model EventType {
@@ -1715,6 +1715,8 @@ model CalendarCache {
   key          String
   value        Json
   expiresAt    DateTime
+  // Provide an initial value for legacy rows and future raw inserts
+  updatedAt    DateTime    @default(now()) @updatedAt
   credentialId Int
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)

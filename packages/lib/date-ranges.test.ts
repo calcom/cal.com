@@ -957,14 +957,6 @@ describe("intersect function comprehensive tests", () => {
       const endTime = performance.now();
       const executionTime = endTime - startTime;
 
-      console.log(`Intersect function execution time: ${executionTime.toFixed(2)}ms`);
-      console.log(
-        `Processed ${
-          commonAvailability.length + userRanges1.length + userRanges2.length + userRanges3.length
-        } total date ranges`
-      );
-      console.log(`Found ${result.length} intersections`);
-
       expect(executionTime).toBeLessThan(100);
       expect(result.length).toBeGreaterThanOrEqual(0);
 
@@ -1036,6 +1028,82 @@ describe("intersect function comprehensive tests", () => {
 
       const result = intersect([userA_Availability, userB_Availability]);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("timezone offset exclusion bug", () => {
+    it("should succesfully mix UTC and timezone-aware dayjs objects in subtract", () => {
+      const TIMEZONE = "Asia/Kolkata"; // IST timezone (+05:30)
+
+      const sourceRanges = [
+        { start: dayjs.utc("2024-05-31T12:30:00.000Z"), end: dayjs.utc("2024-05-31T13:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T13:30:00.000Z"), end: dayjs.utc("2024-05-31T14:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T14:30:00.000Z"), end: dayjs.utc("2024-05-31T15:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T15:30:00.000Z"), end: dayjs.utc("2024-05-31T16:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T16:30:00.000Z"), end: dayjs.utc("2024-05-31T17:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T17:30:00.000Z"), end: dayjs.utc("2024-05-31T18:30:00.000Z") },
+      ];
+
+      const excludedRanges = [
+        {
+          start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
+          end: dayjs("2024-05-31T23:59:59.999Z").tz(TIMEZONE),
+        },
+      ];
+
+      const result = subtract(sourceRanges, excludedRanges);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should demonstrate timezone handling when same timezone", () => {
+      const TIMEZONE = "Asia/Kolkata";
+
+      const sourceRange = {
+        start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
+        end: dayjs("2024-05-31T13:30:00.000Z").tz(TIMEZONE),
+      };
+
+      const excludedRange = {
+        start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
+        end: dayjs("2024-05-31T18:00:00.000Z").tz(TIMEZONE),
+      };
+
+      const result = subtract([sourceRange], [excludedRange]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should not extend ranges instead of excluding busy times", () => {
+      const dateRanges = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
+        { start: dayjs("2024-06-02T04:00:00.000Z"), end: dayjs("2024-06-02T12:30:00.000Z") },
+        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
+        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
+        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+      ];
+
+      // formattedBusyTimes from failing ROLLING_WINDOW test - this is the booking that should NOT affect dateRanges
+      const formattedBusyTimes = [
+        { start: dayjs("2024-06-01T18:30:00.000Z"), end: dayjs("2024-06-02T18:30:00.000Z") },
+      ];
+
+      const result = subtract(dateRanges, formattedBusyTimes);
+
+      // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
+      const expectedCorrectedOutput = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
+        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
+        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
+        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+      ];
+
+      expect(result).toHaveLength(5); // Correct: June 2 range is properly excluded
+      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // Correct: no extension
+      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // Correct: no extension
+      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeUndefined(); // Correct: June 2 excluded
     });
   });
 });

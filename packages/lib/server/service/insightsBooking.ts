@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -26,6 +26,13 @@ export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope",
   }),
 ]);
 
+export type InsightsBookingServicePublicOptions = {
+  scope: "user" | "org" | "team";
+  userId: number;
+  orgId: number;
+  teamId?: number;
+};
+
 export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServiceOptionsSchema>;
 
 export type InsightsBookingServiceFilterOptions = {
@@ -33,16 +40,14 @@ export type InsightsBookingServiceFilterOptions = {
   memberUserId?: number;
 };
 
-const NOTHING = {
-  id: -1,
-} as const;
+const NOTHING_CONDITION = Prisma.sql`1=0`;
 
 export class InsightsBookingService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
   private filters?: InsightsBookingServiceFilterOptions;
-  private cachedAuthConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput;
-  private cachedFilterConditions?: Prisma.BookingTimeStatusDenormalizedWhereInput | null;
+  private cachedAuthConditions?: Prisma.Sql;
+  private cachedFilterConditions?: Prisma.Sql | null;
 
   constructor({
     prisma,
@@ -50,7 +55,7 @@ export class InsightsBookingService {
     filters,
   }: {
     prisma: typeof readonlyPrisma;
-    options: InsightsBookingServiceOptions;
+    options: InsightsBookingServicePublicOptions;
     filters?: InsightsBookingServiceFilterOptions;
   }) {
     this.prisma = prisma;
@@ -60,89 +65,130 @@ export class InsightsBookingService {
     this.filters = filters;
   }
 
-  async findMany(findManyArgs: Prisma.BookingTimeStatusDenormalizedFindManyArgs) {
+  async getBookingsByHourStats({
+    startDate,
+    endDate,
+    timeZone,
+  }: {
+    startDate: string;
+    endDate: string;
+    timeZone: string;
+  }) {
+    // Validate date formats
+    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
+      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const results = await this.prisma.$queryRaw<
+      Array<{
+        hour: string;
+        count: number;
+      }>
+    >`
+      SELECT
+        EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}))::int as "hour",
+        COUNT(*)::int as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+        AND "startTime" >= ${startDate}::timestamp
+        AND "startTime" <= ${endDate}::timestamp
+        AND "status" = 'accepted'
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    // Create a map of results by hour for easy lookup
+    const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
+
+    // Return all 24 hours (0-23), filling with 0 values for missing data
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      count: resultsMap.get(hour) || 0,
+    }));
+  }
+
+  async getBaseConditions(): Promise<Prisma.Sql> {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
 
-    return this.prisma.bookingTimeStatusDenormalized.findMany({
-      ...findManyArgs,
-      where: {
-        ...findManyArgs.where,
-        AND: [authConditions, filterConditions].filter(
-          (c): c is Prisma.BookingTimeStatusDenormalizedWhereInput => c !== null
-        ),
-      },
-    });
+    if (authConditions && filterConditions) {
+      return Prisma.sql`((${authConditions}) AND (${filterConditions}))`;
+    } else if (authConditions) {
+      return Prisma.sql`(${authConditions})`;
+    } else if (filterConditions) {
+      return Prisma.sql`(${filterConditions})`;
+    } else {
+      return NOTHING_CONDITION;
+    }
   }
 
-  async getAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
+  async getAuthorizationConditions(): Promise<Prisma.Sql> {
     if (this.cachedAuthConditions === undefined) {
       this.cachedAuthConditions = await this.buildAuthorizationConditions();
     }
     return this.cachedAuthConditions;
   }
 
-  async getFilterConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput | null> {
+  async getFilterConditions(): Promise<Prisma.Sql | null> {
     if (this.cachedFilterConditions === undefined) {
       this.cachedFilterConditions = await this.buildFilterConditions();
     }
     return this.cachedFilterConditions;
   }
 
-  async buildFilterConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput | null> {
-    const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
+  async buildFilterConditions(): Promise<Prisma.Sql | null> {
+    const conditions: Prisma.Sql[] = [];
 
     if (!this.filters) {
       return null;
     }
 
     if (this.filters.eventTypeId) {
-      conditions.push({
-        OR: [{ eventTypeId: this.filters.eventTypeId }, { eventParentId: this.filters.eventTypeId }],
-      });
+      conditions.push(
+        Prisma.sql`("eventTypeId" = ${this.filters.eventTypeId}) OR ("eventParentId" = ${this.filters.eventTypeId})`
+      );
     }
 
     if (this.filters.memberUserId) {
-      conditions.push({
-        userId: this.filters.memberUserId,
-      });
+      conditions.push(Prisma.sql`"userId" = ${this.filters.memberUserId}`);
     }
 
-    return conditions.length > 0 ? { AND: conditions } : null;
+    if (conditions.length === 0) {
+      return null;
+    }
+
+    // Join all conditions with AND
+    return conditions.reduce((acc, condition, index) => {
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) AND (${condition})`;
+    });
   }
 
-  async buildAuthorizationConditions(): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
+  async buildAuthorizationConditions(): Promise<Prisma.Sql> {
     if (!this.options) {
-      return NOTHING;
+      return NOTHING_CONDITION;
     }
     const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, this.options.orgId);
     if (!isOwnerOrAdmin) {
-      return NOTHING;
+      return NOTHING_CONDITION;
     }
-
-    const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
 
     if (this.options.scope === "user") {
-      conditions.push({
-        userId: this.options.userId,
-        teamId: null,
-      });
+      return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
     } else if (this.options.scope === "org") {
-      conditions.push(await this.buildOrgAuthorizationCondition(this.options));
+      return await this.buildOrgAuthorizationCondition(this.options);
     } else if (this.options.scope === "team") {
-      conditions.push(await this.buildTeamAuthorizationCondition(this.options));
+      return await this.buildTeamAuthorizationCondition(this.options);
     } else {
-      return NOTHING;
+      return NOTHING_CONDITION;
     }
-
-    return {
-      AND: conditions,
-    };
   }
 
   private async buildOrgAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
-  ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
+  ): Promise<Prisma.Sql> {
     // Get all teams from the organization
     const teamRepo = new TeamRepository(this.prisma);
     const teamsFromOrg = await teamRepo.findAllByParentId({
@@ -159,31 +205,22 @@ export class InsightsBookingService {
           )
         : [];
 
-    return {
-      OR: [
-        {
-          teamId: {
-            in: teamIds,
-          },
-          isTeamBooking: true,
-        },
-        ...(userIdsFromOrg.length > 0
-          ? [
-              {
-                userId: {
-                  in: Array.from(new Set(userIdsFromOrg)),
-                },
-                isTeamBooking: false,
-              },
-            ]
-          : []),
-      ],
-    };
+    const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
+
+    if (userIdsFromOrg.length > 0) {
+      const uniqueUserIds = Array.from(new Set(userIdsFromOrg));
+      conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
+    }
+
+    return conditions.reduce((acc, condition, index) => {
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) OR (${condition})`;
+    });
   }
 
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
-  ): Promise<Prisma.BookingTimeStatusDenormalizedWhereInput> {
+  ): Promise<Prisma.Sql> {
     const teamRepo = new TeamRepository(this.prisma);
     const childTeamOfOrg = await teamRepo.findByIdAndParentId({
       id: options.teamId,
@@ -191,7 +228,7 @@ export class InsightsBookingService {
       select: { id: true },
     });
     if (!childTeamOfOrg) {
-      return NOTHING;
+      return NOTHING_CONDITION;
     }
 
     const usersFromTeam = await MembershipRepository.findAllByTeamIds({
@@ -200,20 +237,18 @@ export class InsightsBookingService {
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    return {
-      OR: [
-        {
-          teamId: options.teamId,
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromTeam,
-          },
-          isTeamBooking: false,
-        },
-      ],
-    };
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
+    ];
+
+    if (userIdsFromTeam.length > 0) {
+      conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
+    }
+
+    return conditions.reduce((acc, condition, index) => {
+      if (index === 0) return condition;
+      return Prisma.sql`(${acc}) OR (${condition})`;
+    });
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
@@ -223,7 +258,7 @@ export class InsightsBookingService {
       membership &&
         membership.accepted &&
         membership.role &&
-        ([MembershipRole.OWNER, MembershipRole.ADMIN] as const).includes(membership.role)
+        (membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN)
     );
   }
 }
