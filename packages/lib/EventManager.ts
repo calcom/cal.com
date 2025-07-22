@@ -22,7 +22,7 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { BookingReferenceService } from "@calcom/lib/server/service/bookingReference";
+import { BookingReferenceService } from "@calcom/lib/server/service/BookingReferenceService";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
