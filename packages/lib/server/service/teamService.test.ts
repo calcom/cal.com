@@ -10,7 +10,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import { TeamService } from "./team";
+import { TeamService } from "./teamService";
 
 vi.mock("@calcom/features/ee/billing/teams");
 vi.mock("@calcom/lib/server/repository/team");
