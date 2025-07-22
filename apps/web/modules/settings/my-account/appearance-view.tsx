@@ -100,7 +100,7 @@ const AppearanceView = ({
 
   const userAppThemeFormMethods = useForm({
     defaultValues: {
-      appTheme: user.appTheme || "system",
+      appTheme: user.appTheme ?? "system",
     },
   });
 
@@ -110,12 +110,12 @@ const AppearanceView = ({
   } = userAppThemeFormMethods;
 
   useEffect(() => {
-    resetUserAppThemeReset({ appTheme: user.appTheme || "system" });
+    resetUserAppThemeReset({ appTheme: user.appTheme ?? "system" });
   }, [user.appTheme, resetUserAppThemeReset]);
 
   const userThemeFormMethods = useForm({
     defaultValues: {
-      theme: user.theme || "system",
+      theme: user.theme ?? "system",
     },
   });
 
@@ -125,7 +125,7 @@ const AppearanceView = ({
   } = userThemeFormMethods;
 
   useEffect(() => {
-    resetUserThemeReset({ theme: user.theme || "system" });
+    resetUserThemeReset({ theme: user.theme ?? "system" });
   }, [user.theme, resetUserThemeReset]);
 
   const bookerLayoutFormMethods = useForm({
@@ -169,8 +169,8 @@ const AppearanceView = ({
       showToast(t("settings_updated_successfully"), "success");
       resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
       resetBookerLayoutThemeReset({ metadata: data.metadata });
-      resetUserThemeReset({ theme: data.theme });
-      resetUserAppThemeReset({ appTheme: data.appTheme });
+      resetUserThemeReset({ theme: data.theme ?? "system" });
+      resetUserAppThemeReset({ appTheme: data.appTheme ?? "system" });
     },
     onError: (error) => {
       if (error.message) {
@@ -195,9 +195,8 @@ const AppearanceView = ({
       <Form
         form={userAppThemeFormMethods}
         handleSubmit={({ appTheme }) => {
-          if (appTheme === "system") appTheme = null;
           mutation.mutate({
-            appTheme,
+            appTheme: appTheme === "system" ? null : appTheme,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -249,14 +248,8 @@ const AppearanceView = ({
           <Form
             form={userThemeFormMethods}
             handleSubmit={({ theme }) => {
-              if (theme === "light" || theme === "dark") {
-                mutation.mutate({
-                  theme,
-                });
-                return;
-              }
               mutation.mutate({
-                theme: null,
+                theme: theme === "system" ? null : theme,
               });
             }}>
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
