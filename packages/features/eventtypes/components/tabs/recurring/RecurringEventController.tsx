@@ -22,6 +22,7 @@ export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
   paymentEnabled: boolean;
   customClassNames?: EventRecurringTabCustomClassNames;
+  hideRecurringAlerts?: boolean;
 };
 
 export type EventRecurringTabCustomClassNames = {
@@ -43,6 +44,7 @@ export default function RecurringEventController({
   eventType,
   paymentEnabled,
   customClassNames,
+  hideRecurringAlerts = false,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -66,7 +68,7 @@ export default function RecurringEventController({
   return (
     <div className={classNames("block items-start sm:flex", customClassNames?.container)}>
       <div className={!paymentEnabled ? "w-full" : ""}>
-        {paymentEnabled ? (
+        {paymentEnabled && !hideRecurringAlerts ? (
           <Alert
             severity="warning"
             className={customClassNames?.paymentAlert}
@@ -74,11 +76,13 @@ export default function RecurringEventController({
           />
         ) : (
           <>
-            <Alert
-              className={classNames("mb-4", customClassNames?.experimentalAlert)}
-              severity="warning"
-              title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
-            />
+            {!hideRecurringAlerts && (
+              <Alert
+                className={classNames("mb-4", customClassNames?.experimentalAlert)}
+                severity="warning"
+                title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
+              />
+            )}
             <SettingsToggle
               labelClassName={classNames("text-sm", customClassNames?.recurringToggle?.label)}
               toggleSwitchAtTheEnd={true}

@@ -4,9 +4,15 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { RecurringEventControllerProps } from "./RecurringEventController";
 import RecurringEventController from "./RecurringEventController";
 
-export type EventRecurringTabProps = Omit<RecurringEventControllerProps, "paymentEnabled">;
+export type EventRecurringTabProps = Omit<RecurringEventControllerProps, "paymentEnabled"> & {
+  hideRecurringAlerts?: boolean;
+};
 
-export const EventRecurringTab = ({ eventType, customClassNames }: EventRecurringTabProps) => {
+export const EventRecurringTab = ({
+  eventType,
+  customClassNames,
+  hideRecurringAlerts,
+}: EventRecurringTabProps) => {
   const paymentAppData = getPaymentAppData({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -19,6 +25,7 @@ export const EventRecurringTab = ({ eventType, customClassNames }: EventRecurrin
       paymentEnabled={requirePayment}
       eventType={eventType}
       customClassNames={customClassNames}
+      hideRecurringAlerts={hideRecurringAlerts}
     />
   );
 };

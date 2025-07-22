@@ -42,7 +42,7 @@ export type EventTypeCustomClassNames = {
   eventLimitsTab?: EventLimitsTabCustomClassNames;
   eventAdvancedTab?: EventAdvancedTabCustomClassNames;
   eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
-  eventRecurringTab?: EventRecurringTabCustomClassNames;
+  eventRecurringTab?: EventRecurringTabCustomClassNames & { hideRecurringAlerts?: boolean };
   eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
 };
 
@@ -57,6 +57,7 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
   isDryRun?: boolean;
+  hideRecurringAlerts?: boolean;
   onFormStateChange?: (formState: {
     isDirty: boolean;
     dirtyFields: Partial<FormValues>;
@@ -75,6 +76,7 @@ const EventType = ({
   customClassNames,
   disableToasts = false,
   isDryRun = false,
+  hideRecurringAlerts = false,
   onFormStateChange,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
@@ -227,6 +229,7 @@ const EventType = ({
       <EventRecurringTabPlatformWrapper
         eventType={eventType}
         customClassNames={customClassNames?.eventRecurringTab}
+        hideRecurringAlerts={hideRecurringAlerts}
       />
     ) : (
       <></>
@@ -327,6 +330,7 @@ export const EventTypePlatformWrapper = ({
   allowDelete = true,
   customClassNames,
   isDryRun,
+  hideRecurringAlerts,
   onFormStateChange,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
@@ -360,6 +364,7 @@ export const EventTypePlatformWrapper = ({
       allowDelete={allowDelete}
       customClassNames={customClassNames}
       isDryRun={isDryRun}
+      hideRecurringAlerts={hideRecurringAlerts}
       onFormStateChange={onFormStateChange}
     />
   );
