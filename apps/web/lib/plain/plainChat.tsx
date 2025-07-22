@@ -288,15 +288,14 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
 
       if (!isAppDomain || isSmallScreen || typeof window === "undefined") return null;
 
-      // if (!isPaidUser) {
-      return <PlainContactForm />;
-      // }
+      if (!isPaidUser) {
+        return <PlainContactForm />;
+      }
 
       if (!config) return null;
 
       return (
         <>
-          {/* <PlainContactForm />; */}
           <Script
             id="plain-chat"
             src="https://chat.cdn-plain.com/index.js"
