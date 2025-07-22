@@ -89,8 +89,7 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
 
       const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
       const userEmail = session?.user?.email;
-      // const isPaidUser = session?.user.belongsToActiveTeam || !!session?.user.org;
-      const isPaidUser = false;
+      const isPaidUser = session?.user.belongsToActiveTeam || !!session?.user.org;
 
       const isAppDomain = useMemo(() => {
         const restrictedPathsSet = new Set(

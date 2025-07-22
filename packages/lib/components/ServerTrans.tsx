@@ -26,9 +26,6 @@ const ServerTrans: FC<ServerTransProps> = ({
   const translationOptions = { ...values };
   // Get translated content
   const content = t(i18nKey, translationOptions);
-  console.log("translationOptions: ", translationOptions);
-  console.log(`is key ${i18nKey} present: `, translationOptions[i18nKey]);
-  console.log("content in server trans: ", content);
 
   // If no content at all, use children as fallback
   if (!content && children) {
