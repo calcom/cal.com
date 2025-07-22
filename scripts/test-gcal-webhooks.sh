@@ -14,10 +14,6 @@ cleanup() {
     kill "$TMOLE_PID" 2>/dev/null
     wait "$TMOLE_PID" 2>/dev/null
   fi
-  # Also kill the tail process if it exists
-  if [ -n "$TAIL_PID" ]; then
-    kill "$TAIL_PID" 2>/dev/null
-  fi
   exit 0
 }
 
@@ -36,18 +32,11 @@ if [ -n "$TMOLE_RUNNING" ]; then
 else
   echo "Starting a new Tunnelmole session..."
   rm -f "$LOG_FILE"
-  # Use tee to both save to file and display in real-time
-  tmole $TM_PORT 2>&1 | tee "$LOG_FILE" &
+  
+  # Start tmole and capture output
+  tmole $TM_PORT > "$LOG_FILE" 2>&1 &
   TMOLE_PID=$!
   OWNED_PID=true
-
-  # Alternative approach: Use background tail for real-time logs
-  # tmole $TM_PORT > "$LOG_FILE" 2>&1 &
-  # TMOLE_PID=$!
-  # OWNED_PID=true
-  # # Start background tail to show logs in real-time
-  # tail -f "$LOG_FILE" &
-  # TAIL_PID=$!
 
   # Wait for URL or error
   echo "Waiting for tmole to initialize..."
