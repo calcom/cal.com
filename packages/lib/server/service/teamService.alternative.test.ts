@@ -5,7 +5,7 @@ import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 
-import { TeamService } from "./team";
+import { TeamService } from "./teamService";
 
 vi.mock("@calcom/features/ee/billing/teams");
 vi.mock("@calcom/lib/server/repository/team");
