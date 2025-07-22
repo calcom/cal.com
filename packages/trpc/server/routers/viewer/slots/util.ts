@@ -35,6 +35,7 @@ import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
+  BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
@@ -731,8 +732,20 @@ export class AvailableSlotsService {
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
     ]);
 
-    const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-    const durationLimits = parseDurationLimit(eventType?.durationLimits);
+    const bookingLimits =
+      eventType?.bookingLimits &&
+      typeof eventType?.bookingLimits === "object" &&
+      Object.keys(eventType?.bookingLimits).length > 0
+        ? parseBookingLimit(eventType?.bookingLimits)
+        : null;
+
+    const durationLimits =
+      eventType?.durationLimits &&
+      typeof eventType?.durationLimits === "object" &&
+      Object.keys(eventType?.durationLimits).length > 0
+        ? parseDurationLimit(eventType?.durationLimits)
+        : null;
+
     let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
     if (eventType && (bookingLimits || durationLimits)) {
@@ -1269,11 +1282,8 @@ export class AvailableSlotsService {
     const mapSlotsToDate = withReporting(_mapSlotsToDate.bind(this), "mapSlotsToDate");
     const slotsMappedToDate = mapSlotsToDate();
 
-    loggerWithEventDetails.debug({ slotsMappedToDate });
-
     const availableDates = Object.keys(slotsMappedToDate);
     const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(availableDates);
-    loggerWithEventDetails.debug({ availableDates });
 
     // timeZone isn't directly set on eventType now(So, it is legacy)
     // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
@@ -1313,6 +1323,22 @@ export class AvailableSlotsService {
             periodLimits,
           });
 
+          let isOutOfBounds = false;
+          try {
+            isOutOfBounds = isTimeOutOfBounds({
+              time: slot.time,
+              minimumBookingNotice: eventType.minimumBookingNotice,
+            });
+          } catch (error) {
+            if (error instanceof BookingDateInPastError) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: error.message,
+              });
+            }
+            throw error;
+          }
+
           if (isFutureLimitViolationForTheSlot) {
             foundAFutureLimitViolation = true;
           }
@@ -1320,7 +1346,7 @@ export class AvailableSlotsService {
           return (
             !isFutureLimitViolationForTheSlot &&
             // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-            !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+            !isOutOfBounds
           );
         });
 
