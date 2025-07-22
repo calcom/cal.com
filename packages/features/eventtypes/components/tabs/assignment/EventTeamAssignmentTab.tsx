@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
+import { v4 as uuidv4 } from "uuid";
 
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
@@ -392,23 +393,23 @@ const RoundRobinHosts = ({
             StartIcon="plus"
             onClick={() => {
               const allHosts = getValues("hosts");
-              const currentHosts = allHosts.filter((host) => !host.isFixed);
+              const currentRRHosts = allHosts.filter((host) => !host.isFixed);
               const fixedHosts = allHosts.filter((host) => host.isFixed);
 
-              // If no groups exist yet, create two groups
-              if (hostGroups?.length === 0 && currentHosts.length > 0) {
+              // If there are already hosts added and no group  exists yet, create two groups
+              if (hostGroups?.length === 0 && currentRRHosts.length > 0) {
                 const firstGroup = {
-                  id: `temp_${Date.now()}_1`,
+                  id: uuidv4(),
                   name: "",
                 };
                 const secondGroup = {
-                  id: `temp_${Date.now()}_2`,
+                  id: uuidv4(),
                   name: "",
                 };
                 const updatedHostGroups = [firstGroup, secondGroup];
                 setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
 
-                const updatedRRHosts = currentHosts.map((host) => {
+                const updatedRRHosts = currentRRHosts.map((host) => {
                   if (!host.groupId && !host.isFixed) {
                     return { ...host, groupId: firstGroup.id };
                   }
@@ -419,7 +420,7 @@ const RoundRobinHosts = ({
               } else {
                 // If groups already exist, just add one more group
                 const newGroup = {
-                  id: `temp_${Date.now()}_${hostGroups.length + 1}`,
+                  id: uuidv4(),
                   name: ``,
                 };
                 const updatedHostGroups = [...hostGroups, newGroup];
