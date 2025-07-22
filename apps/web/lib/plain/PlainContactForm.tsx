@@ -123,6 +123,7 @@ const PlainContactForm = () => {
       }
 
       setIsSubmitted(true);
+      setIsSubmitting(false);
       setData({
         message: "",
         attachmentIds: [],
