@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
