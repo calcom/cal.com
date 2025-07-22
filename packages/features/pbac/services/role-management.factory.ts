@@ -51,11 +51,11 @@ class PBACRoleManager implements IRoleManager {
     role: MembershipRole | string,
     membershipId: number
   ): Promise<void> {
-    // Check if role is one of the default role IDs (values, not keys)
-    const isDefaultRole = Object.values(DEFAULT_ROLE_IDS).includes(role as any);
+    // Check if role is one of the default MembershipRole enum values
+    const isDefaultRole = Object.keys(DEFAULT_ROLE_IDS).includes(role as string);
 
     if (isDefaultRole) {
-      await this.roleService.assignRoleToMember(role as string, membershipId);
+      await this.roleService.assignRoleToMember(DEFAULT_ROLE_IDS[role as MembershipRole], membershipId);
     } else {
       const roleExists = await this.roleService.roleBelongsToTeam(role as string, organizationId);
       if (!roleExists) {
