@@ -379,11 +379,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
 
     const traceContext: TraceContext = DistributedTracing.createTrace("booking_confirmation", {
-      bookingUid: booking.uid,
-      confirmed,
-      userId: user.id,
-      teamId,
-      eventTypeId: booking.eventType?.id,
+      meta: {
+        bookingUid: booking.uid,
+        confirmed,
+        userId: user.id,
+        teamId,
+        eventTypeId: booking.eventType?.id,
+      },
     });
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });

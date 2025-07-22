@@ -19,6 +19,8 @@ const moveSeatedBookingToNewTimeSlot = async (
   eventManager: EventManager,
   traceContext?: TraceContext
 ) => {
+  const { rescheduleUid } = rescheduleSeatedBookingObject;
+
   const spanContext = traceContext
     ? DistributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
         meta: {
@@ -37,7 +39,6 @@ const moveSeatedBookingToNewTimeSlot = async (
   const loggerWithEventDetails = DistributedTracing.getTracingLogger(spanContext);
   const {
     rescheduleReason,
-    rescheduleUid,
     eventType,
     organizerUser,
     reqAppsStatus,

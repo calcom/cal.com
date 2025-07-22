@@ -13,24 +13,24 @@ async function _handleWebhookTrigger(args: {
   isDryRun?: boolean;
   traceContext: TraceContext;
 }) {
+  if (args.isDryRun) return;
+
+  const spanContext = args.traceContext
+    ? DistributedTracing.createSpan(args.traceContext, "webhook_trigger", {
+        meta: {
+          eventTrigger: args.eventTrigger,
+          isDryRun: args.isDryRun,
+        },
+      })
+    : DistributedTracing.createTrace("webhook_trigger_fallback", {
+        meta: {
+          eventTrigger: args.eventTrigger,
+          isDryRun: args.isDryRun,
+        },
+      });
+  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+
   try {
-    if (args.isDryRun) return;
-
-    const spanContext = args.traceContext
-      ? DistributedTracing.createSpan(args.traceContext, "webhook_trigger", {
-          meta: {
-            eventTrigger: args.eventTrigger,
-            isDryRun: args.isDryRun,
-          },
-        })
-      : DistributedTracing.createTrace("webhook_trigger_fallback", {
-          meta: {
-            eventTrigger: args.eventTrigger,
-            isDryRun: args.isDryRun,
-          },
-        });
-    const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
-
     tracingLogger.info("Handling webhook trigger", {
       eventTrigger: args.eventTrigger,
       originalTraceId: args.traceContext?.traceId,
