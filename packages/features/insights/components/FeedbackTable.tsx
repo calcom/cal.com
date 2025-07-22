@@ -1,11 +1,10 @@
-import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
-
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const FeedbackTable = ({
   data,
@@ -23,50 +22,44 @@ export const FeedbackTable = ({
 }) => {
   const { t } = useLocale();
   return (
-    <Table>
-      <TableBody>
-        <>
-          {data && data?.length > 0 ? (
-            data?.map((item) => (
-              <TableRow key={item.userId}>
-                <TableCell className="flex flex-row">
-                  <Avatar
-                    alt={item.user.name || ""}
-                    size="sm"
-                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
-                    title={item.user.name || ""}
-                    className="m-2"
-                  />
-                  <p className="text-default mx-0 my-auto">
-                    <strong>{item.user.name}</strong>
-                  </p>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text>
-                    <strong className="text-default">{item.rating}</strong>
-                  </Text>
-                </TableCell>
-                <TableCell className="text-left">
-                  <Text>
-                    <strong className="text-default">{item.feedback}</strong>
-                  </Text>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <EmptyScreen
-              Icon="zap"
-              headline={t("no_ratings")}
-              description={t("no_ratings_description")}
-              buttonRaw={
-                <Button target="_blank" color="secondary" href="/workflows">
-                  {t("workflows")}
-                </Button>
-              }
-            />
-          )}
-        </>
-      </TableBody>
-    </Table>
+    <div className="overflow-hidden rounded-md">
+      {data && data?.length > 0 ? (
+        data?.map((item) => (
+          <div
+            key={item.userId}
+            className="border-subtle flex items-center justify-between border-b px-4 py-3 last:border-b-0">
+            <div className="flex items-center">
+              <Avatar
+                alt={item.user.name || ""}
+                size="sm"
+                imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
+                title={item.user.name || ""}
+                className="mr-3"
+              />
+              <div className="text-default text-sm font-medium">{item.user.name}</div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-default text-sm font-medium">{item.rating}</div>
+              <Tooltip content={item.feedback}>
+                <div className="text-default max-w-32 md:max-w-52 truncate text-sm font-medium">
+                  {item.feedback}
+                </div>
+              </Tooltip>
+            </div>
+          </div>
+        ))
+      ) : (
+        <EmptyScreen
+          Icon="zap"
+          headline={t("no_ratings")}
+          description={t("no_ratings_description")}
+          buttonRaw={
+            <Button target="_blank" color="secondary" href="/workflows">
+              {t("workflows")}
+            </Button>
+          }
+        />
+      )}
+    </div>
   );
 };
