@@ -330,20 +330,22 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     }
   }
 
-  async getCacheStatusByCredentialIds(credentialIds: number[]) {
+  async getCacheStatusByCredentialIds(
+    credentialIds: number[]
+  ): Promise<{ credentialId: number; updatedAt: Date | null }[]> {
     const cacheStatuses = await prisma.calendarCache.groupBy({
       by: ["credentialId"],
       where: {
         credentialId: { in: credentialIds },
       },
       _max: {
-        updatedAt: true,
+        expiresAt: true,
       },
     });
 
     return cacheStatuses.map((cache) => ({
       credentialId: cache.credentialId,
-      updatedAt: cache._max.updatedAt,
+      updatedAt: cache._max.expiresAt,
     }));
   }
 }

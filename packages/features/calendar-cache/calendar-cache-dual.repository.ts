@@ -44,7 +44,7 @@ export class CalendarCacheDualRepository implements ICalendarCacheRepository {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
-    value: unknown;
+    value: any;
     nextSyncToken?: string | null;
   }) {
     await this.jsonCache.upsertCachedAvailability(args);
@@ -52,5 +52,15 @@ export class CalendarCacheDualRepository implements ICalendarCacheRepository {
     if (await this.sqlCache.shouldUseSqlCacheForWriting()) {
       await this.sqlCache.upsertCachedAvailability(args);
     }
+  }
+
+  async getCacheStatusByCredentialIds(
+    credentialIds: number[]
+  ): Promise<{ credentialId: number; updatedAt: Date | null }[]> {
+    if (await this.sqlCache.shouldUseSqlCacheForReading()) {
+      return await this.sqlCache.getCacheStatusByCredentialIds(credentialIds);
+    }
+
+    return await this.jsonCache.getCacheStatusByCredentialIds(credentialIds);
   }
 }

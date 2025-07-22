@@ -98,7 +98,7 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
-    value: unknown;
+    value: any;
     nextSyncToken?: string | null;
   }) {
     const events = this.extractEventsFromValue(args.value, args.args.items);
@@ -136,8 +136,8 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
         update: {
           status: event.status || "confirmed",
           summary: event.summary,
-          startTime: new Date(event.start?.dateTime || event.start),
-          endTime: new Date(event.end?.dateTime || event.end),
+          startTime: new Date(typeof event.start === "string" ? event.start : event.start?.dateTime || ""),
+          endTime: new Date(typeof event.end === "string" ? event.end : event.end?.dateTime || ""),
           googleUpdatedAt: event.updated ? new Date(event.updated) : undefined,
           updatedAt: new Date(),
         },
@@ -148,8 +148,8 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
           googleEventId: event.id,
           status: event.status || "confirmed",
           summary: event.summary,
-          startTime: new Date(event.start?.dateTime || event.start),
-          endTime: new Date(event.end?.dateTime || event.end),
+          startTime: new Date(typeof event.start === "string" ? event.start : event.start?.dateTime || ""),
+          endTime: new Date(typeof event.end === "string" ? event.end : event.end?.dateTime || ""),
           googleCreatedAt: event.created ? new Date(event.created) : undefined,
           googleUpdatedAt: event.updated ? new Date(event.updated) : undefined,
         },
@@ -242,5 +242,24 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
         endTime: { lt: new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000) },
       },
     });
+  }
+
+  async getCacheStatusByCredentialIds(
+    credentialIds: number[]
+  ): Promise<{ credentialId: number; updatedAt: Date | null }[]> {
+    const results = await prisma.calendarEvent.groupBy({
+      by: ["credentialId"],
+      where: {
+        credentialId: { in: credentialIds },
+      },
+      _max: {
+        updatedAt: true,
+      },
+    });
+
+    return results.map((result) => ({
+      credentialId: result.credentialId,
+      updatedAt: result._max.updatedAt,
+    }));
   }
 }
