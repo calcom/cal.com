@@ -46,7 +46,7 @@ export default function JoinCall(props: PageProps) {
   const [userNameForCall, setUserNameForCall] = useState<string | undefined>(
     overrideName ?? loggedInUserName ?? undefined
   );
-  const [isUserNameConfirmed, setIsUserNameConfirmed] = useState<boolean>(!true);
+  const [isUserNameConfirmed, setIsUserNameConfirmed] = useState<boolean>(!displayLogInOverlay);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
   const createCallFrame = useCallback(
@@ -54,7 +54,7 @@ export default function JoinCall(props: PageProps) {
       let callFrame: DailyCall | undefined;
 
       try {
-        const shouldShowUserNameChangeUI = !true;
+        const shouldShowUserNameChangeUI = !displayLogInOverlay;
 
         callFrame = DailyIframe.createFrame({
           theme: {
@@ -128,7 +128,7 @@ export default function JoinCall(props: PageProps) {
   );
 
   useEffect(() => {
-    if (true && !isUserNameConfirmed) {
+    if (displayLogInOverlay && !isUserNameConfirmed) {
       return;
     }
 
@@ -209,7 +209,7 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {true && !isUserNameConfirmed && (
+      {displayLogInOverlay && !isUserNameConfirmed && (
         <LogInOverlay
           isLoggedIn={!!loggedInUserName}
           bookingUid={booking.uid}
@@ -370,7 +370,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
         className="bg-white text-black dark:bg-black dark:text-white sm:max-w-[480px]">
-        <div className="pb-8">
+        <div className="pb-4">
           <div className="space-y-4">
             <div>
               <div className="font-semibold">{t("join_as_guest")}</div>
@@ -413,14 +413,14 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
           <div className="mt-5 space-y-4">
             <div>
-              <h4 className="text-lg font-semibold text-black dark:text-white">{t("sign_in_to_cal_com")}</h4>
+              <h4 className="text-base font-semibold text-black dark:text-white">{t("sign_in_to_cal_com")}</h4>
               <p className="text-sm text-[#6B7280] dark:text-gray-300">
                 {t("track_meetings_and_manage_schedule")}
               </p>
             </div>
 
             <Button
-              color="primary"
+              color="secondary"
               className="w-full justify-center"
               onClick={handleSignIn}
               disabled={isLoading}>
