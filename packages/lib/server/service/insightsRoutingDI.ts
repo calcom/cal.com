@@ -13,7 +13,7 @@ export interface IInsightsRoutingService {
 export class InsightsRoutingService {
   constructor(private readonly dependencies: IInsightsRoutingService) {}
 
-  create({
+  configure({
     options,
     filters,
   }: {
