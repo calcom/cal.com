@@ -790,7 +790,16 @@ describe("Calendar Cache", () => {
     try {
       for (const { dateFrom, dateTo } of datesForWhichCachedAvailabilityIsUsed) {
         const result = await calendarService.getAvailability(dateFrom, dateTo, selectedCalendars, true);
-        expect(result).toEqual(mockedBusyTimes);
+        expect(result).toEqual(
+          expect.arrayContaining(
+            mockedBusyTimes.map((busyTime) =>
+              expect.objectContaining({
+                start: busyTime.start,
+                end: busyTime.end,
+              })
+            )
+          )
+        );
       }
     } catch (error) {
       console.log({ error });

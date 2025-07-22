@@ -345,7 +345,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
 
     return cacheStatuses.map((cache) => ({
       credentialId: cache.credentialId,
-      updatedAt: cache._max.expiresAt,
+      updatedAt: cache._max.expiresAt as Date | null,
     }));
   }
 }

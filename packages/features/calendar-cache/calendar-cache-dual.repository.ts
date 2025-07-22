@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCacheSqlRepository } from "./calendar-cache-sql.repository";
@@ -44,7 +46,7 @@ export class CalendarCacheDualRepository implements ICalendarCacheRepository {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
-    value: any;
+    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
     nextSyncToken?: string | null;
   }) {
     await this.jsonCache.upsertCachedAvailability(args);

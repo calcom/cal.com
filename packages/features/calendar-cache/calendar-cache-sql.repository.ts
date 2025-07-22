@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
@@ -98,7 +100,7 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
     credentialId: number;
     userId: number | null;
     args: FreeBusyArgs;
-    value: any;
+    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
     nextSyncToken?: string | null;
   }) {
     const events = this.extractEventsFromValue(args.value, args.args.items);
@@ -136,8 +138,8 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
         update: {
           status: event.status || "confirmed",
           summary: event.summary,
-          startTime: new Date(typeof event.start === "string" ? event.start : event.start?.dateTime || ""),
-          endTime: new Date(typeof event.end === "string" ? event.end : event.end?.dateTime || ""),
+          startTime: new Date(this.extractDateTime(event.start)),
+          endTime: new Date(this.extractDateTime(event.end)),
           googleUpdatedAt: event.updated ? new Date(event.updated) : undefined,
           updatedAt: new Date(),
         },
@@ -148,8 +150,8 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
           googleEventId: event.id,
           status: event.status || "confirmed",
           summary: event.summary,
-          startTime: new Date(typeof event.start === "string" ? event.start : event.start?.dateTime || ""),
-          endTime: new Date(typeof event.end === "string" ? event.end : event.end?.dateTime || ""),
+          startTime: new Date(this.extractDateTime(event.start)),
+          endTime: new Date(this.extractDateTime(event.end)),
           googleCreatedAt: event.created ? new Date(event.created) : undefined,
           googleUpdatedAt: event.updated ? new Date(event.updated) : undefined,
         },
@@ -242,6 +244,21 @@ export class CalendarCacheSqlRepository implements ICalendarCacheRepository {
         endTime: { lt: new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000) },
       },
     });
+  }
+
+  private extractDateTime(dateTimeField: { dateTime?: string } | string | undefined): string {
+    if (typeof dateTimeField === "string") {
+      return dateTimeField;
+    }
+    if (
+      dateTimeField &&
+      typeof dateTimeField === "object" &&
+      "dateTime" in dateTimeField &&
+      dateTimeField.dateTime
+    ) {
+      return dateTimeField.dateTime;
+    }
+    return "";
   }
 
   async getCacheStatusByCredentialIds(
