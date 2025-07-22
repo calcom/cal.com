@@ -720,7 +720,7 @@ export default class EventManager {
       });
     }
 
-    const finalShouldUpdateBookingReferences =
+    const shouldUpdateBookingReferences =
       !!changedOrganizer ||
       isLocationChanged ||
       !!isBookingRequestedReschedule ||
@@ -729,7 +729,7 @@ export default class EventManager {
 
     return {
       results,
-      referencesToCreate: finalShouldUpdateBookingReferences
+      referencesToCreate: shouldUpdateBookingReferences
         ? updatedBookingReferences
         : [...booking.references],
     };
