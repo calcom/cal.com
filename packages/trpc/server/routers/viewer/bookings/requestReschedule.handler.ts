@@ -19,7 +19,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { deleteMeeting } from "@calcom/lib/videoClient";
 import { prisma } from "@calcom/prisma";
@@ -108,14 +107,56 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     },
   });
 
-  const bookingRepo = new BookingRepository(prisma);
-  const hasAccess = await bookingRepo.doesUserIdHaveAccessToBooking({
-    userId: user.id,
-    bookingId: bookingToReschedule.id,
-  });
+  if (bookingToReschedule.userId === user.id) {
+  } else {
+    const membershipIdsWhereUserIsAdminOwner = (
+      await prisma.membership.findMany({
+        where: {
+          userId: user.id,
+          role: {
+            in: ["ADMIN", "OWNER"],
+          },
+        },
+        select: {
+          id: true,
+        },
+      })
+    ).map((membership) => membership.id);
 
-  if (!hasAccess) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "User doesn't have access to this booking" });
+    const membershipConditionWhereUserIsAdminOwner = {
+      some: {
+        id: { in: membershipIdsWhereUserIsAdminOwner },
+      },
+    };
+
+    const usersWhereUserIsAdminOrOwner = await prisma.user.findMany({
+      where: {
+        teams: {
+          some: {
+            team: {
+              members: membershipConditionWhereUserIsAdminOwner,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const userIdsWhereUserIsAdminOrOwner = usersWhereUserIsAdminOrOwner.map((user) => user.id);
+
+    const canAccessPersonalBooking = userIdsWhereUserIsAdminOrOwner.includes(bookingToReschedule.userId);
+
+    let canAccessTeamBooking = false;
+    if (bookingToReschedule.eventType?.teamId) {
+      const userTeamIds = userTeams.teams.map((item) => item.teamId);
+      canAccessTeamBooking = userTeamIds.includes(bookingToReschedule.eventType.teamId);
+    }
+
+    if (!canAccessPersonalBooking && !canAccessTeamBooking) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "User doesn't have access to this booking" });
+    }
   }
 
   if (!bookingToReschedule) return;
