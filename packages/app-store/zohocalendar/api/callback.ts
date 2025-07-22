@@ -86,11 +86,11 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     server_location: server_location || "com",
   };
 
-  function getCalenderUri(domain: string): string {
+  function getCalendarUri(domain: string): string {
     return `https://calendar.zoho.${domain}/api/v1/calendars`;
   }
 
-  const calendarResponse = await fetch(getCalenderUri(server_location || "com"), {
+  const calendarResponse = await fetch(getCalendarUri(server_location || "com"), {
     method: "GET",
     headers: {
       Authorization: `Bearer ${key.access_token}`,

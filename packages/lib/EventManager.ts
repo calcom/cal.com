@@ -1031,9 +1031,9 @@ export default class EventManager {
       let result = [];
       for (const reference of calendarReference) {
         const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = reference;
-        let calenderExternalId: string | null = null;
+        let calendarExternalId: string | null = null;
         if (bookingExternalCalendarId) {
-          calenderExternalId = bookingExternalCalendarId;
+          calendarExternalId = bookingExternalCalendarId;
         }
 
         if (reference.credentialId) {
@@ -1061,14 +1061,14 @@ export default class EventManager {
               };
             }
           }
-          result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+          result.push(updateEvent(credential, event, bookingRefUid, calendarExternalId));
         } else {
           const credentials = this.calendarCredentials.filter(
             (credential) => credential.type === reference?.type
           );
           for (const credential of credentials) {
             log.silly("updateAllCalendarEvents-credential", JSON.stringify({ credentials }));
-            result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+            result.push(updateEvent(credential, event, bookingRefUid, calendarExternalId));
           }
         }
       }
