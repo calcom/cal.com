@@ -12,7 +12,7 @@ import type { ICalendarCacheRepository } from "./calendar-cache.repository.inter
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const THREE_MONTHS_IN_MS = 90 * MS_PER_DAY;
+export const THREE_MONTHS_IN_MS = 90 * MS_PER_DAY;
 const CACHING_TIME = THREE_MONTHS_IN_MS;
 
 function parseKeyForCache(args: FreeBusyArgs): string {

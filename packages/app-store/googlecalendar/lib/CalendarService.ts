@@ -6,6 +6,7 @@ import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { THREE_MONTHS_IN_MS } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
@@ -476,6 +477,8 @@ export default class GoogleCalendarService implements Calendar {
     let pageToken: string | undefined = options.pageToken;
     let nextSyncToken: string | undefined;
 
+    const timeMin = !options.syncToken ? new Date(Date.now() - THREE_MONTHS_IN_MS).toISOString() : undefined;
+
     do {
       const response = await calendar.events.list({
         calendarId,
@@ -483,6 +486,7 @@ export default class GoogleCalendarService implements Calendar {
         pageToken,
         singleEvents: true,
         maxResults: 2500,
+        ...(timeMin && { timeMin }),
       });
 
       if (response.data.items) {

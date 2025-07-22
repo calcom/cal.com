@@ -1118,4 +1118,391 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
       vi.useRealTimers();
     });
   });
+
+  describe("Over-fetching Prevention", () => {
+    test("prevents fetching 3-year-old events for new credentials", async () => {
+      const userEmail = `overfetch-${testUniqueId}@example.com`;
+
+      const mockHistoricalEvents = [
+        {
+          id: "old-event-2022",
+          start: { dateTime: "2022-01-15T10:00:00.000Z" },
+          end: { dateTime: "2022-01-15T11:00:00.000Z" },
+          status: "confirmed",
+        },
+        {
+          id: "recent-event",
+          start: { dateTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+          end: { dateTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString() },
+          status: "confirmed",
+        },
+      ];
+
+      // Get credential with proper typing
+      const credential = await prisma.credential.findUnique({
+        where: { id: testCredentialId },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      expect(credential).toBeTruthy();
+
+      if (!credential) {
+        throw new Error("Credential not found");
+      }
+
+      const calendarService = new CalendarService({
+        ...credential,
+        delegatedTo: null,
+      });
+
+      const fetchEventsIncrementalSpy = vi
+        .spyOn(calendarService, "fetchEventsIncremental")
+        .mockResolvedValue({
+          events: mockHistoricalEvents,
+          nextSyncToken: "new-sync-token",
+        });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      // Verify fetchEventsIncremental was called without sync token (indicating new credential)
+      expect(fetchEventsIncrementalSpy).toHaveBeenCalledWith(userEmail, undefined);
+    });
+  });
+
+  describe("Webhook Event Modifications", () => {
+    test("webhook adding an event should update cache incrementally", async () => {
+      const userEmail = `webhook-add-${testUniqueId}@example.com`;
+
+      const initialEvents = [
+        {
+          id: "existing-event",
+          start: { dateTime: "2025-01-15T10:00:00.000Z" },
+          end: { dateTime: "2025-01-15T11:00:00.000Z" },
+          status: "confirmed",
+        },
+      ];
+
+      const newEvent = {
+        id: "new-event",
+        start: { dateTime: "2025-01-15T14:00:00.000Z" },
+        end: { dateTime: "2025-01-15T15:00:00.000Z" },
+        status: "confirmed",
+      };
+
+      // Get credential with proper typing
+      const credential = await prisma.credential.findUnique({
+        where: { id: testCredentialId },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      expect(credential).toBeTruthy();
+
+      if (!credential) {
+        throw new Error("Credential not found");
+      }
+
+      const calendarService = new CalendarService({
+        ...credential,
+        delegatedTo: null,
+      });
+
+      const fetchEventsIncrementalSpy = vi
+        .spyOn(calendarService, "fetchEventsIncremental")
+        .mockResolvedValueOnce({
+          events: initialEvents,
+          nextSyncToken: "initial-sync-token",
+        })
+        .mockResolvedValueOnce({
+          events: [newEvent],
+          nextSyncToken: "updated-sync-token",
+        });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      const cacheAfterInitial = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId: testCredentialId,
+          key: JSON.stringify({ items: [{ id: userEmail }] }),
+        },
+      });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      const cacheAfterAdd = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId: testCredentialId,
+          key: JSON.stringify({ items: [{ id: userEmail }] }),
+        },
+      });
+
+      expect(fetchEventsIncrementalSpy).toHaveBeenCalledTimes(2);
+      expect(fetchEventsIncrementalSpy).toHaveBeenNthCalledWith(2, userEmail, "initial-sync-token");
+
+      expect(cacheAfterInitial?.value).toBeTruthy();
+      expect(cacheAfterAdd?.value).toBeTruthy();
+
+      const initialValue = cacheAfterInitial?.value as any;
+      const addedValue = cacheAfterAdd?.value as any;
+
+      expect(initialValue.calendars[userEmail].busy).toHaveLength(1);
+      expect(addedValue.calendars[userEmail].busy).toHaveLength(2);
+    });
+
+    test("webhook moving an event creates ghost busy slot due to cache merge limitation", async () => {
+      const userEmail = `webhook-move-${testUniqueId}@example.com`;
+
+      const originalEvent = {
+        id: "moved-event",
+        start: { dateTime: "2025-01-15T10:00:00.000Z" },
+        end: { dateTime: "2025-01-15T11:00:00.000Z" },
+        status: "confirmed",
+      };
+
+      const movedEvent = {
+        id: "moved-event",
+        start: { dateTime: "2025-01-15T14:00:00.000Z" },
+        end: { dateTime: "2025-01-15T15:00:00.000Z" },
+        status: "confirmed",
+      };
+
+      // Get credential with proper typing
+      const credential = await prisma.credential.findUnique({
+        where: { id: testCredentialId },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      expect(credential).toBeTruthy();
+
+      if (!credential) {
+        throw new Error("Credential not found");
+      }
+
+      const calendarService = new CalendarService({
+        ...credential,
+        delegatedTo: null,
+      });
+
+      const fetchEventsIncrementalSpy = vi
+        .spyOn(calendarService, "fetchEventsIncremental")
+        .mockResolvedValueOnce({
+          events: [originalEvent],
+          nextSyncToken: "initial-sync-token",
+        })
+        .mockResolvedValueOnce({
+          events: [movedEvent],
+          nextSyncToken: "updated-sync-token",
+        });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      const cacheAfterInitial = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId: testCredentialId,
+          key: JSON.stringify({ items: [{ id: userEmail }] }),
+        },
+      });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      const cacheAfterMove = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId: testCredentialId,
+          key: JSON.stringify({ items: [{ id: userEmail }] }),
+        },
+      });
+
+      expect(cacheAfterInitial?.value).toBeTruthy();
+      expect(cacheAfterMove?.value).toBeTruthy();
+
+      const initialValue = cacheAfterInitial?.value as any;
+      const movedValue = cacheAfterMove?.value as any;
+
+      expect(initialValue.calendars[userEmail].busy).toHaveLength(1);
+      expect(movedValue.calendars[userEmail].busy).toHaveLength(2);
+
+      const busyTimes = movedValue.calendars[userEmail].busy;
+      const originalSlot = busyTimes.find((slot: any) => slot.start === "2025-01-15T10:00:00.000Z");
+      const newSlot = busyTimes.find((slot: any) => slot.start === "2025-01-15T14:00:00.000Z");
+
+      expect(originalSlot).toBeTruthy();
+      expect(newSlot).toBeTruthy();
+    });
+
+    test("webhook deleting an event should remove busy slot from cache", async () => {
+      const userEmail = `webhook-delete-${testUniqueId}@example.com`;
+
+      const eventToDelete = {
+        id: "event-to-delete",
+        start: { dateTime: "2025-01-15T10:00:00.000Z" },
+        end: { dateTime: "2025-01-15T11:00:00.000Z" },
+        status: "confirmed",
+      };
+
+      const deletedEvent = {
+        id: "event-to-delete",
+        start: { dateTime: "2025-01-15T10:00:00.000Z" },
+        end: { dateTime: "2025-01-15T11:00:00.000Z" },
+        status: "cancelled",
+      };
+
+      // Get credential with proper typing
+      const credential = await prisma.credential.findUnique({
+        where: { id: testCredentialId },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      expect(credential).toBeTruthy();
+
+      if (!credential) {
+        throw new Error("Credential not found");
+      }
+
+      const calendarService = new CalendarService({
+        ...credential,
+        delegatedTo: null,
+      });
+
+      const fetchEventsIncrementalSpy = vi
+        .spyOn(calendarService, "fetchEventsIncremental")
+        .mockResolvedValueOnce({
+          events: [eventToDelete],
+          nextSyncToken: "initial-sync-token",
+        })
+        .mockResolvedValueOnce({
+          events: [deletedEvent],
+          nextSyncToken: "updated-sync-token",
+        });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      const cacheAfterInitial = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId: testCredentialId,
+          key: JSON.stringify({ items: [{ id: userEmail }] }),
+        },
+      });
+
+      await calendarService.fetchAvailabilityAndSetCacheIncremental([
+        {
+          externalId: userEmail,
+          integration: "google_calendar",
+          eventTypeId: null,
+          credentialId: testCredentialId,
+          userId: testUserId,
+          name: "Test Calendar",
+          primary: true,
+          readOnly: false,
+          email: userEmail,
+        },
+      ]);
+
+      const cacheAfterDelete = await prisma.calendarCache.findFirst({
+        where: {
+          credentialId: testCredentialId,
+          key: JSON.stringify({ items: [{ id: userEmail }] }),
+        },
+      });
+
+      expect(cacheAfterInitial?.value).toBeTruthy();
+      expect(cacheAfterDelete?.value).toBeTruthy();
+
+      const initialValue = cacheAfterInitial?.value as any;
+      const deletedValue = cacheAfterDelete?.value as any;
+
+      expect(initialValue.calendars[userEmail].busy).toHaveLength(1);
+      expect(deletedValue.calendars[userEmail].busy).toHaveLength(0);
+    });
+  });
 });

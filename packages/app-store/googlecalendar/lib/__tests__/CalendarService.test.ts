@@ -19,6 +19,7 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { THREE_MONTHS_IN_MS } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -1870,11 +1871,52 @@ describe("Google Calendar Sync Tokens", () => {
         pageToken: undefined,
         singleEvents: true,
         maxResults: 2500,
+        timeMin: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
       });
+
+      const callArgs = eventsListMock.mock.calls[0][0];
+      const timeMinDate = new Date(callArgs.timeMin);
+      const expectedTimeMin = new Date(Date.now() - THREE_MONTHS_IN_MS);
+      const timeDiff = Math.abs(timeMinDate.getTime() - expectedTimeMin.getTime());
+      expect(timeDiff).toBeLessThan(1000);
 
       expect(result).toEqual({
         events: mockSingleCalendarEvents,
         nextSyncToken: "first_sync_token_789",
+      });
+    });
+
+    test("should NOT apply timeMin when sync token exists", async () => {
+      const credential = await createCredentialForCalendarService();
+      const calendarService = new CalendarService(credential);
+      setFullMockOAuthManagerRequest();
+
+      const mockEventsListResponse = {
+        data: {
+          items: mockSingleCalendarEvents,
+          nextSyncToken: "next_sync_token_123",
+        },
+      };
+
+      const eventsListMock = vi.fn().mockResolvedValue(mockEventsListResponse);
+      calendarMock.calendar_v3.Calendar().events.list = eventsListMock;
+
+      const result = await calendarService.fetchEventsIncremental(
+        "calendar@example.com",
+        "existing_sync_token"
+      );
+
+      expect(eventsListMock).toHaveBeenCalledWith({
+        calendarId: "calendar@example.com",
+        syncToken: "existing_sync_token",
+        pageToken: undefined,
+        singleEvents: true,
+        maxResults: 2500,
+      });
+
+      expect(result).toEqual({
+        events: mockSingleCalendarEvents,
+        nextSyncToken: "next_sync_token_123",
       });
     });
 
@@ -1969,6 +2011,7 @@ describe("Google Calendar Sync Tokens", () => {
         pageToken: undefined,
         singleEvents: true,
         maxResults: 2500,
+        timeMin: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
       });
 
       expect(result).toEqual({
@@ -2175,7 +2218,14 @@ describe("Google Calendar Sync Tokens", () => {
         pageToken: undefined,
         singleEvents: true,
         maxResults: 2500,
+        timeMin: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
       });
+
+      const callArgs = eventsListMock.mock.calls[0][0];
+      const timeMinDate = new Date(callArgs.timeMin);
+      const expectedTimeMin = new Date(Date.now() - THREE_MONTHS_IN_MS);
+      const timeDiff = Math.abs(timeMinDate.getTime() - expectedTimeMin.getTime());
+      expect(timeDiff).toBeLessThan(1000);
 
       // Verify cache was updated
       const cacheEntries = await prismock.calendarCache.findMany({
