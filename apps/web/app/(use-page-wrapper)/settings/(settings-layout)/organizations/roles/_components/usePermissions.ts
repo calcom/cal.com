@@ -42,7 +42,14 @@ export function usePermissions(): UsePermissionsReturn {
     const resourceConfig = PERMISSION_REGISTRY[resource as keyof typeof PERMISSION_REGISTRY];
     if (!resourceConfig) return "none";
 
-    const allResourcePerms = Object.keys(resourceConfig).map((action) => `${resource}.${action}`);
+    // Check if global all permissions (*.*) is present
+    if (permissions.includes("*.*")) {
+      return "all";
+    }
+
+    const allResourcePerms = Object.keys(resourceConfig)
+      .filter((action) => action !== "_resource")
+      .map((action) => `${resource}.${action}`);
     const hasAllPerms = allResourcePerms.every((p) => permissions.includes(p));
     const hasReadPerm = permissions.includes(`${resource}.${CrudAction.Read}`);
 
