@@ -23,6 +23,7 @@ type Props = {
 export const useAtomGetPublicEvent = ({ username, eventSlug, isTeamEvent, teamId, selectedDuration }: Props) => {
 
   const { organizationId } = useAtomsContext();
+  console.log('useAtomGetPublicEvent-organizationId: ', organizationId);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;

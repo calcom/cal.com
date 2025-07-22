@@ -86,6 +86,7 @@ export function BaseCalProvider({
     refreshUrl: options.refreshUrl,
     onError: setError,
     onSuccess: (data) => {
+      console.log("useOAuthClient-onSuccess: ", data);
       setError("");
       setOrganizationId(data.organizationId);
     },
@@ -155,6 +156,10 @@ export function BaseCalProvider({
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
+
+  console.log("organizationId: ", organizationId);
+  console.log("stateOrgId: ", stateOrgId);
+  console.log("me?.data.organizationId: ", me?.data.organizationId);
 
   return isInit ? (
     <AtomsContext.Provider
