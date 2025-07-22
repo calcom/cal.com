@@ -27,4 +27,7 @@ export interface ICalendarCacheRepository {
     userId: number | null;
     args: FreeBusyArgs;
   }): Promise<CalendarCache | null>;
+  getCacheStatusByCredentialIds(
+    credentialIds: number[]
+  ): Promise<{ credentialId: number; updatedAt: Date | null }[]>;
 }
