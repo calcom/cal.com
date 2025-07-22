@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
 
