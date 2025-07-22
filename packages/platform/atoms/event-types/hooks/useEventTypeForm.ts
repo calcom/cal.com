@@ -80,6 +80,7 @@ export const useEventTypeForm = ({
         endDate: periodDates.endDate,
       },
       hideCalendarNotes: eventType.hideCalendarNotes,
+      optionalGuestTeamMembers: eventType.optionalGuestTeamMembers || [],
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
       offsetStart: eventType.offsetStart,
       bookingFields: eventType.bookingFields,
