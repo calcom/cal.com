@@ -23,6 +23,7 @@ import {
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { BookingReferenceService } from "@calcom/lib/server/service/BookingReferenceService";
+import { EventResultService } from "@calcom/lib/server/service/EventResultService";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -139,6 +140,8 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
+  private readonly bookingReferenceService: BookingReferenceService;
+  private readonly eventResultService: EventResultService;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -174,6 +177,13 @@ export default class EventManager {
     );
 
     this.appOptions = eventTypeAppMetadata;
+
+    this.bookingReferenceService = new BookingReferenceService({
+      logger: log,
+    });
+    this.eventResultService = new EventResultService({
+      logger: log,
+    });
   }
 
   private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
@@ -535,17 +545,17 @@ export default class EventManager {
     updatedBookingReferences: Array<PartialReference>
   ): Promise<{ results: Array<EventResult<Event>>; createdNewCalendarEvents: boolean }> {
     log.debug("No valid calendar event found for booking, creating new calendar events");
-    const createdEvents = await this.createAllCalendarEvents(evt);
-    const results = [...createdEvents];
+    const createdEventsResults = await this.createAllCalendarEvents(evt);
+    const results = [...createdEventsResults];
 
     // Update booking references with newly created calendar events
-    const calendarReferences = createdEvents
-      .filter((result) => result.type.includes("_calendar") && result.success)
-      .map((result) => BookingReferenceService.buildFromResult(result));
+    const calendarReferences = this.eventResultService
+      .extractSuccessfulCalendarResults(createdEventsResults)
+      .map((result) => this.bookingReferenceService.mapToReferenceData(result));
 
     // Preserve existing non-calendar references and add new calendar references
-    const existingNonCalendarReferences = booking.references.filter(
-      (ref: PartialReference) => !ref.type.includes("_calendar")
+    const existingNonCalendarReferences = this.bookingReferenceService.filterNonCalendarReferences(
+      booking.references
     );
     updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
     const createdNewCalendarEvents = calendarReferences.length > 0;

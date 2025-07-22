@@ -1,7 +1,14 @@
-import type { EventResult } from "@calcom/types/EventManager";
+import type logger from "@calcom/lib/logger";
+import type { EventResult, PartialReference } from "@calcom/types/EventManager";
+
+interface Dependencies {
+  logger: typeof logger;
+}
 
 export class BookingReferenceService {
-  static buildFromResult(result: EventResult<unknown>) {
+  constructor(private readonly deps: Dependencies) {}
+
+  mapToReferenceData(result: EventResult<unknown>) {
     return {
       type: result.type,
       uid: result.uid,
@@ -11,5 +18,13 @@ export class BookingReferenceService {
       externalCalendarId: result.externalId || null,
       credentialId: result.credentialId || null,
     };
+  }
+
+  isCalendarReference(reference: PartialReference): boolean {
+    return reference.type.includes("_calendar");
+  }
+
+  filterNonCalendarReferences(references: PartialReference[]): PartialReference[] {
+    return references.filter((ref) => !this.isCalendarReference(ref));
   }
 }
