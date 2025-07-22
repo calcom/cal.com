@@ -520,6 +520,47 @@ export default class EventManager {
   }
 
   /**
+   * Handles the creation of new calendar events when no valid calendar event exists for a booking.
+   * This method encapsulates logging, event creation, and reference management.
+   *
+   * @param evt - The calendar event to create
+   * @param booking - The existing booking
+   * @param updatedBookingReferences - Array to update with new calendar references
+   * @returns Promise<{ results: EventResult<Event>[], createdNewCalendarEvents: boolean }>
+   */
+  private async handleMissingCalendarEvents(
+    evt: CalendarEvent,
+    booking: any,
+    updatedBookingReferences: Array<PartialReference>
+  ): Promise<{ results: Array<EventResult<Event>>; createdNewCalendarEvents: boolean }> {
+    log.debug("No valid calendar event found for booking, creating new calendar events");
+    const createdEvents = await this.createAllCalendarEvents(evt);
+    const results = [...createdEvents];
+
+    // Update booking references with newly created calendar events
+    const calendarReferences = createdEvents
+      .filter((result) => result.type.includes("_calendar") && result.success)
+      .map((result) => ({
+        type: result.type,
+        uid: result.uid,
+        meetingId: result.uid,
+        meetingPassword: result.originalEvent.attendees?.[0]?.timeZone || "",
+        meetingUrl: result.originalEvent.videoCallData?.url || "",
+        externalCalendarId: result.externalId || null,
+        credentialId: result.credentialId || null,
+      }));
+
+    // Preserve existing non-calendar references and add new calendar references
+    const existingNonCalendarReferences = booking.references.filter(
+      (ref: PartialReference) => !ref.type.includes("_calendar")
+    );
+    updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
+    const createdNewCalendarEvents = calendarReferences.length > 0;
+
+    return { results, createdNewCalendarEvents };
+  }
+
+  /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
    * given uid using the data delivered in the given CalendarEvent.
    *
@@ -596,13 +637,6 @@ export default class EventManager {
       isDailyVideoRoomExpired = now > roomExpiryTime;
     }
 
-    const shouldUpdateBookingReferences =
-      !!changedOrganizer ||
-      isLocationChanged ||
-      !!isBookingRequestedReschedule ||
-      isDailyVideoRoomExpired ||
-      createdNewCalendarEvents;
-
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
@@ -653,29 +687,13 @@ export default class EventManager {
             // Update existing calendar events
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
           } else {
-            log.debug("No valid calendar event found for booking, creating new calendar events");
-            const createdEvents = await this.createAllCalendarEvents(evt);
-            results.push(...createdEvents);
-
-            // Update booking references with newly created calendar events
-            const calendarReferences = createdEvents
-              .filter((result) => result.type.includes("_calendar") && result.success)
-              .map((result) => ({
-                type: result.type,
-                uid: result.uid,
-                meetingId: result.uid,
-                meetingPassword: result.originalEvent.attendees?.[0]?.timeZone || "",
-                meetingUrl: result.originalEvent.videoCallData?.url || "",
-                externalCalendarId: result.externalId || null,
-                credentialId: result.credentialId || null,
-              }));
-
-            // Preserve existing non-calendar references and add new calendar references
-            const existingNonCalendarReferences = booking.references.filter(
-              (ref) => !ref.type.includes("_calendar")
+            const missingCalendarEventsResult = await this.handleMissingCalendarEvents(
+              evt,
+              booking,
+              updatedBookingReferences
             );
-            updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
-            createdNewCalendarEvents = calendarReferences.length > 0;
+            results.push(...missingCalendarEventsResult.results);
+            createdNewCalendarEvents = missingCalendarEventsResult.createdNewCalendarEvents;
           }
         }
 
