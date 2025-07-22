@@ -22,7 +22,7 @@ export type RecurringEventControllerProps = {
   eventType: EventTypeSetup;
   paymentEnabled: boolean;
   customClassNames?: EventRecurringTabCustomClassNames;
-  hideRecurringAlerts?: boolean;
+  hideRecurringAlert?: boolean;
 };
 
 export type EventRecurringTabCustomClassNames = {
@@ -44,7 +44,7 @@ export default function RecurringEventController({
   eventType,
   paymentEnabled,
   customClassNames,
-  hideRecurringAlerts = false,
+  hideRecurringAlert = false,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -68,7 +68,7 @@ export default function RecurringEventController({
   return (
     <div className={classNames("block items-start sm:flex", customClassNames?.container)}>
       <div className={!paymentEnabled ? "w-full" : ""}>
-        {paymentEnabled && !hideRecurringAlerts ? (
+        {paymentEnabled ? (
           <Alert
             severity="warning"
             className={customClassNames?.paymentAlert}
@@ -76,7 +76,7 @@ export default function RecurringEventController({
           />
         ) : (
           <>
-            {!hideRecurringAlerts && (
+            {!hideRecurringAlert && (
               <Alert
                 className={classNames("mb-4", customClassNames?.experimentalAlert)}
                 severity="warning"

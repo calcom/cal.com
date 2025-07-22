@@ -5,13 +5,13 @@ import type { RecurringEventControllerProps } from "./RecurringEventController";
 import RecurringEventController from "./RecurringEventController";
 
 export type EventRecurringTabProps = Omit<RecurringEventControllerProps, "paymentEnabled"> & {
-  hideRecurringAlerts?: boolean;
+  hideRecurringAlert?: boolean;
 };
 
 export const EventRecurringTab = ({
   eventType,
   customClassNames,
-  hideRecurringAlerts,
+  hideRecurringAlert,
 }: EventRecurringTabProps) => {
   const paymentAppData = getPaymentAppData({
     ...eventType,
@@ -25,7 +25,7 @@ export const EventRecurringTab = ({
       paymentEnabled={requirePayment}
       eventType={eventType}
       customClassNames={customClassNames}
-      hideRecurringAlerts={hideRecurringAlerts}
+      hideRecurringAlert={hideRecurringAlert}
     />
   );
 };

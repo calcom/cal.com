@@ -42,7 +42,7 @@ export type EventTypeCustomClassNames = {
   eventLimitsTab?: EventLimitsTabCustomClassNames;
   eventAdvancedTab?: EventAdvancedTabCustomClassNames;
   eventAssignmentTab?: EventTeamAssignmentTabCustomClassNames;
-  eventRecurringTab?: EventRecurringTabCustomClassNames & { hideRecurringAlerts?: boolean };
+  eventRecurringTab?: EventRecurringTabCustomClassNames & { hideRecurringAlert?: boolean };
   eventAvailabilityTab?: EventAvailabilityTabCustomClassNames;
 };
 
@@ -57,7 +57,7 @@ export type EventTypePlatformWrapperProps = {
   customClassNames?: EventTypeCustomClassNames;
   disableToasts?: boolean;
   isDryRun?: boolean;
-  hideRecurringAlerts?: boolean;
+  hideRecurringAlert?: boolean;
   onFormStateChange?: (formState: {
     isDirty: boolean;
     dirtyFields: Partial<FormValues>;
@@ -76,7 +76,7 @@ const EventType = ({
   customClassNames,
   disableToasts = false,
   isDryRun = false,
-  hideRecurringAlerts = false,
+  hideRecurringAlert = false,
   onFormStateChange,
   ...props
 }: EventTypeSetupProps & EventTypePlatformWrapperProps) => {
@@ -229,7 +229,7 @@ const EventType = ({
       <EventRecurringTabPlatformWrapper
         eventType={eventType}
         customClassNames={customClassNames?.eventRecurringTab}
-        hideRecurringAlerts={hideRecurringAlerts}
+        hideRecurringAlert={hideRecurringAlert}
       />
     ) : (
       <></>
@@ -330,7 +330,7 @@ export const EventTypePlatformWrapper = ({
   allowDelete = true,
   customClassNames,
   isDryRun,
-  hideRecurringAlerts,
+  hideRecurringAlert,
   onFormStateChange,
 }: EventTypePlatformWrapperProps) => {
   const { data: eventTypeQueryData } = useAtomsEventTypeById(id);
