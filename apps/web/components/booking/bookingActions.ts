@@ -62,17 +62,7 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 }
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
-  const {
-    booking,
-    isTabRecurring,
-    isRecurring,
-    isDisabledCancelling,
-    isBookingInPast,
-    isPending,
-    isConfirmed,
-    getSeatReferenceUid,
-    t,
-  } = context;
+  const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
 
   return {
     id: "cancel",
@@ -82,7 +72,7 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
     }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
     icon: "circle-x",
     color: "destructive",
-    disabled: isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed),
+    disabled: isActionDisabled("cancel", context),
   };
 }
 
@@ -211,14 +201,15 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed } =
+    context;
 
   switch (actionId) {
     case "reschedule":
     case "reschedule_request":
       return (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling;
     case "cancel":
-      return isDisabledCancelling || (isBookingInPast && booking.status === BookingStatus.PENDING);
+      return isDisabledCancelling || (isBookingInPast && isPending && !isConfirmed);
     case "view_recordings":
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "meeting_session_details":
