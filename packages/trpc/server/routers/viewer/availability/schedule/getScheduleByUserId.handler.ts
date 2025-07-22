@@ -43,6 +43,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
 
     return {
       ...schedule,
+      hasDefaultSchedule: true,
       lockedDefaultAvailability,
     };
   } catch (e) {

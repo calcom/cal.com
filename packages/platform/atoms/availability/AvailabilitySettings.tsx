@@ -119,14 +119,26 @@ const DeleteDialogButton = ({
   isPending,
   onDeleteConfirmed,
   handleDelete,
+  schedule,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
   handleDelete: () => void;
   isPending: boolean;
+  schedule?: AvailabilitySettingsScheduleType;
 }) => {
   const { t } = useLocale();
+
+  const getTooltipText = () => {
+    if (!disabled) return t("delete");
+
+    if (schedule?.isDefault && schedule?.lockedDefaultAvailability) {
+      return t("default_availability_is_locked");
+    }
+
+    return t("requires_at_least_one_schedule");
+  };
 
   return (
     <Dialog>
@@ -138,7 +150,7 @@ const DeleteDialogButton = ({
           aria-label={t("delete")}
           className={buttonClassName}
           disabled={disabled}
-          tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+          tooltip={getTooltipText()}
           tooltipSide="bottom"
         />
       </DialogTrigger>
@@ -404,9 +416,12 @@ export function AvailabilitySettings({
             <>
               <DeleteDialogButton
                 buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
-                disabled={schedule.isLastSchedule}
+                disabled={
+                  schedule.isLastSchedule || (schedule.isDefault && schedule.lockedDefaultAvailability)
+                }
                 isPending={isDeleting}
                 handleDelete={handleDelete}
+                schedule={schedule}
               />
               <VerticalDivider className="hidden sm:inline" />
             </>
@@ -430,12 +445,16 @@ export function AvailabilitySettings({
                     {allowDelete && (
                       <DeleteDialogButton
                         buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
-                        disabled={schedule.isLastSchedule}
+                        disabled={
+                          schedule.isLastSchedule ||
+                          (schedule.isDefault && schedule.lockedDefaultAvailability)
+                        }
                         isPending={isDeleting}
                         handleDelete={handleDelete}
                         onDeleteConfirmed={() => {
                           setOpenSidebar(false);
                         }}
+                        schedule={schedule}
                       />
                     )}
                   </div>
@@ -507,6 +526,7 @@ export function AvailabilitySettings({
                                   customClassNames?.timezoneSelectClassName
                                 )}
                                 onChange={(timezone) => onChange(timezone.value)}
+                                isDisabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                               />
                             ) : (
                               <SelectSkeletonLoader className="mt-1 w-72" />
@@ -636,6 +656,7 @@ export function AvailabilitySettings({
                         value={value}
                         className="focus:border-brand-default border-default mt-1 block w-72 rounded-md text-sm"
                         onChange={(timezone) => onChange(timezone.value)}
+                        isDisabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                       />
                     ) : (
                       <SelectSkeletonLoader className="mt-1 w-72" />
