@@ -1486,6 +1486,9 @@ export default class GoogleCalendarService implements Calendar {
       });
       // Don't throw - continue with other siblings
     }
+
+    // Update SelectedCalendar.updatedAt for all calendars under this credential
+    await SelectedCalendarRepository.updateManyByCredentialId(this.credential.id, {});
   }
 
   async createSelectedCalendar(
