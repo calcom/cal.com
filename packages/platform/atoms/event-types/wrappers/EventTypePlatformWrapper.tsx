@@ -167,8 +167,15 @@ const EventType = forwardRef<
     onFormStateChange: onFormStateChange,
   });
 
+  // Create a ref for the save button to trigger its click
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+
   const handleFormSubmit = useCallback(() => {
-    handleSubmit(form.getValues());
+    if (saveButtonRef.current) {
+      saveButtonRef.current.click();
+    } else {
+      form.handleSubmit(handleSubmit)();
+    }
   }, [handleSubmit, form]);
 
   const validateForm = useCallback(async () => {
@@ -323,7 +330,8 @@ const EventType = forwardRef<
         isPlatform
         tabName={currentTab}
         tabsNavigation={tabsNavigation}
-        allowDelete={allowDelete}>
+        allowDelete={allowDelete}
+        saveButtonRef={saveButtonRef}>
         <>
           {slugExistsChildrenDialogOpen.length ? (
             <ManagedEventTypeDialog
