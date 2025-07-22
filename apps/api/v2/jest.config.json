@@ -3,15 +3,12 @@
   "rootDir": ".",
   "moduleNameMapper": {
     "@/(.*)": "<rootDir>/src/$1",
-    "test/(.*)": "<rootDir>/test/$1",
-    "@calcom/platform-libraries/repositories": "<rootDir>/../../../packages/platform/libraries/repositories.ts",
-    "@calcom/prisma/client": "@prisma/client"
+    "test/(.*)": "<rootDir>/test/$1"
   },
   "testEnvironment": "node",
   "testRegex": ".*\\.spec\\.ts$",
   "transform": {
     "^.+\\.ts$": "ts-jest"
   },
-  "setupFiles": ["<rootDir>/test/setEnvVars.ts"],
-  "setupFilesAfterEnv": ["<rootDir>/test/jest-setup.ts"]
+  "setupFiles": ["<rootDir>/test/setEnvVars.ts"]
 }
