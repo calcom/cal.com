@@ -13,10 +13,6 @@ export interface IInsightsRoutingService {
 export class InsightsRoutingService {
   constructor(private readonly dependencies: IInsightsRoutingService) {}
 
-  get prisma() {
-    return this.dependencies.prisma;
-  }
-
   create({
     options,
     filters,
