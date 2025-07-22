@@ -143,7 +143,7 @@ describe("CreditService", () => {
 
     describe("getTeamWithAvailableCredits", () => {
       it("should return team with available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -169,7 +169,7 @@ describe("CreditService", () => {
       });
 
       it("should return first team if no team has available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -357,7 +357,9 @@ describe("CreditService", () => {
       });
 
       it("should return team with available credits when userId is provided", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([{ teamId: 1 }]);
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+          { teamId: 1 },
+        ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
@@ -641,6 +643,34 @@ describe("CreditService", () => {
           creditType: CreditType.ADDITIONAL,
         });
       });
+    });
+
+    it("should skip unpublished platform organizations and return regular team with credits", async () => {
+      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        { teamId: 2 },
+      ]);
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "2",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 200,
+        additionalCredits: 100,
+      });
+      const result = await creditService.getTeamWithAvailableCredits(1);
+      expect(result).toEqual({
+        teamId: 2,
+        availableCredits: 300,
+        creditType: CreditType.MONTHLY,
+      });
+
+      expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
     });
   });
 });
