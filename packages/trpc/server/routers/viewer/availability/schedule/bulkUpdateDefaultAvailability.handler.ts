@@ -30,11 +30,7 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
   const user = ctx.user;
 
   // Only block if user has locked team membership AND is not an admin/owner of any team
-  await checkLockedDefaultAvailabilityRestriction(
-    user.id,
-    prisma,
-    "Cannot edit default availability when team has locked default availability setting enabled"
-  );
+  await checkLockedDefaultAvailabilityRestriction(user.id);
 
   return await prisma.eventType.updateMany({
     where: {

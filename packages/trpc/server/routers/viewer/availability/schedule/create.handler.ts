@@ -63,11 +63,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (!user.defaultScheduleId) {
     // Only block if user has locked team membership AND is not an admin/owner of any team
-    await checkLockedDefaultAvailabilityRestriction(
-      user.id,
-      prisma,
-      "Cannot edit default availability when team has locked default availability setting enabled"
-    );
+    await checkLockedDefaultAvailabilityRestriction(user.id);
 
     await prisma.user.update({
       where: {

@@ -119,21 +119,23 @@ const DeleteDialogButton = ({
   isPending,
   onDeleteConfirmed,
   handleDelete,
-  schedule,
+  isDefaultSchedule,
+  lockedDefaultAvailability,
 }: {
   disabled?: boolean;
   onDeleteConfirmed?: () => void;
   buttonClassName: string;
   handleDelete: () => void;
   isPending: boolean;
-  schedule?: AvailabilitySettingsScheduleType;
+  isDefaultSchedule?: boolean;
+  lockedDefaultAvailability?: boolean;
 }) => {
   const { t } = useLocale();
 
   const getTooltipText = () => {
     if (!disabled) return t("delete");
 
-    if (schedule?.isDefault && schedule?.lockedDefaultAvailability) {
+    if (isDefaultSchedule && lockedDefaultAvailability) {
       return t("default_availability_is_locked");
     }
 
@@ -421,7 +423,8 @@ export function AvailabilitySettings({
                 }
                 isPending={isDeleting}
                 handleDelete={handleDelete}
-                schedule={schedule}
+                isDefaultSchedule={schedule.isDefault}
+                lockedDefaultAvailability={schedule.lockedDefaultAvailability}
               />
               <VerticalDivider className="hidden sm:inline" />
             </>
@@ -454,7 +457,8 @@ export function AvailabilitySettings({
                         onDeleteConfirmed={() => {
                           setOpenSidebar(false);
                         }}
-                        schedule={schedule}
+                        isDefaultSchedule={schedule.isDefault}
+                        lockedDefaultAvailability={schedule.lockedDefaultAvailability}
                       />
                     )}
                   </div>

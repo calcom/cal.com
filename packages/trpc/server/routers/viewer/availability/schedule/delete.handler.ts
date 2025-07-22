@@ -32,11 +32,7 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
   // if this is the last remaining schedule of the user then this would be the default schedule and so cannot remove it
   if (user.defaultScheduleId === input.scheduleId) {
     // Only block if user has locked team membership AND is not an admin/owner of any team
-    await checkLockedDefaultAvailabilityRestriction(
-      user.id,
-      prisma,
-      "Cannot delete default availability when team has locked default availability setting enabled"
-    );
+    await checkLockedDefaultAvailabilityRestriction(user.id);
 
     // set a new default or unset default if no other schedule
     const scheduleToSetAsDefault = await prisma.schedule.findFirst({

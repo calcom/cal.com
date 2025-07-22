@@ -66,11 +66,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
 
   // Check for locked default availability if this is the default schedule OR if we're setting it as default
   if (isDefaultSchedule || isSettingAsDefault) {
-    await checkLockedDefaultAvailabilityRestriction(
-      user.id,
-      prisma,
-      "Cannot edit default availability when team has locked default availability setting enabled"
-    );
+    await checkLockedDefaultAvailabilityRestriction(user.id);
   }
 
   let updatedUser;
