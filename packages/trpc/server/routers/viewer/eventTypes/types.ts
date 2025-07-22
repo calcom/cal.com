@@ -49,7 +49,7 @@ const hostSchema = z.object({
 });
 
 const hostGroupSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   name: z.string(),
 });
 
