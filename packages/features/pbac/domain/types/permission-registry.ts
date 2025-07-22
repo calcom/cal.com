@@ -28,11 +28,17 @@ export enum CustomAction {
   AdminApi = "adminApi",
 }
 
+export enum Scope {
+  Team = "team",
+  Organization = "organization",
+}
+
 export interface PermissionDetails {
   description: string;
   category: string;
   i18nKey: string;
   descriptionI18nKey: string;
+  scope?: Scope[]; // Optional for backward compatibility
 }
 
 export type ResourceConfig = {
@@ -59,6 +65,38 @@ export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfi
   return rest;
 };
 
+/**
+ * Filter resources and actions based on scope
+ * @param scope The scope to filter by (Team or Organization)
+ * @returns Filtered permission registry
+ */
+export const getPermissionsForScope = (scope: Scope): PermissionRegistry => {
+  const filteredRegistry: Partial<PermissionRegistry> = {};
+
+  Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
+    const filteredConfig: ResourceConfig = { _resource: config._resource };
+
+    Object.entries(config).forEach(([action, details]) => {
+      if (action === "_resource") return;
+
+      const permissionDetails = details as PermissionDetails;
+      // If no scope is defined, include in both Team and Organization (backward compatibility)
+      // If scope is defined, only include if it matches the requested scope
+      if (!permissionDetails.scope || permissionDetails.scope.includes(scope)) {
+        filteredConfig[action as CrudAction | CustomAction] = permissionDetails;
+      }
+    });
+
+    // Only include resource if it has at least one action for this scope
+    const hasActions = Object.keys(filteredConfig).length > 1; // > 1 because _resource is always there
+    if (hasActions) {
+      filteredRegistry[resource as Resource] = filteredConfig;
+    }
+  });
+
+  return filteredRegistry as PermissionRegistry;
+};
+
 // Keep in mind these are on a team/organization level, not a user level
 export const PERMISSION_REGISTRY: PermissionRegistry = {
   [Resource.All]: {
@@ -70,6 +108,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "system",
       i18nKey: "pbac_resource_all",
       descriptionI18nKey: "pbac_desc_all_actions_all_resources",
+      scope: [Scope.Organization], // Only organizations should have "All" permissions
     },
   },
   [Resource.Role]: {
@@ -139,6 +178,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_teams",
+      scope: [Scope.Organization],
     },
     [CrudAction.Read]: {
       description: "View team details",
@@ -186,48 +226,56 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "org",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_organization",
+      scope: [Scope.Organization],
     },
     [CrudAction.Read]: {
       description: "View organization details",
       category: "org",
       i18nKey: "pbac_action_read",
       descriptionI18nKey: "pbac_desc_view_organization_details",
+      scope: [Scope.Organization],
     },
     [CustomAction.ListMembers]: {
       description: "List organization members",
       category: "org",
       i18nKey: "pbac_action_list_members",
       descriptionI18nKey: "pbac_desc_list_organization_members",
+      scope: [Scope.Organization],
     },
     [CustomAction.Invite]: {
       description: "Invite organization members",
       category: "org",
       i18nKey: "pbac_action_invite",
       descriptionI18nKey: "pbac_desc_invite_organization_members",
+      scope: [Scope.Organization],
     },
     [CustomAction.Remove]: {
       description: "Remove organization members",
       category: "org",
       i18nKey: "pbac_action_remove",
       descriptionI18nKey: "pbac_desc_remove_organization_members",
+      scope: [Scope.Organization],
     },
     [CustomAction.ManageBilling]: {
       description: "Manage organization billing",
       category: "org",
       i18nKey: "pbac_action_manage_billing",
       descriptionI18nKey: "pbac_desc_manage_organization_billing",
+      scope: [Scope.Organization],
     },
     [CustomAction.ChangeMemberRole]: {
       description: "Change role of team members",
       category: "org",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_organization_member_role",
+      scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
       description: "Edit organization settings",
       category: "org",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_edit_organization_settings",
+      scope: [Scope.Organization],
     },
     [CustomAction.AdminApi]: {
       description: "Access organization admin API",
@@ -251,12 +299,14 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "booking",
       i18nKey: "pbac_action_read_team_bookings",
       descriptionI18nKey: "pbac_desc_view_team_bookings",
+      scope: [Scope.Team],
     },
     [CustomAction.ReadOrgBookings]: {
       description: "View organization bookings",
       category: "booking",
       i18nKey: "pbac_action_read_org_bookings",
       descriptionI18nKey: "pbac_desc_view_organization_bookings",
+      scope: [Scope.Organization],
     },
     [CustomAction.ReadRecordings]: {
       description: "View booking recordings",
