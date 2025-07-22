@@ -866,10 +866,9 @@ export const EventTeamAssignmentTab = ({
                         </strong>
                         <p>{t("rr_distribution_method_availability_description")}</p>
                       </RadioArea.Item>
-                      {!!(
-                        eventType.team?.rrTimestampBasis &&
-                        eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                      ) || hostGroups?.length > 1 ? (
+                      {(eventType.team?.rrTimestampBasis &&
+                        eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
+                      hostGroups?.length > 1 ? (
                         <Tooltip
                           content={
                             !!(

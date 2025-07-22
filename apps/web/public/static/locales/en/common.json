@@ -119,7 +119,7 @@
   "already_signed_up_for_this_booking_error": "You are already signed up for this booking.",
   "hosts_unavailable_for_booking": "Some of the hosts are unavailable for booking.",
   "fixed_hosts_unavailable_for_booking": "Some of the fixed hosts are unavailable for booking.",
-  "round_robin_hosts_unavailable_for_booking": "Round Robin host is unavailable for booking.",
+  "round_robin_host_unavailable_for_booking": "Round Robin host is unavailable for booking.",
   "help": "Help",
   "price": "Price",
   "paid": "Paid",
