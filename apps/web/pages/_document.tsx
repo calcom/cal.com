@@ -72,14 +72,39 @@ class MyDocument extends Document<Props> {
               window.calNewLocale = "${newLocale}";
               (function applyTheme() {
                 try {
-                  const appTheme = localStorage.getItem('app-theme');
+                  // Local wrapper for safe localStorage access
+                  const safeLocalStorage = {
+                    getItem: function(key) {
+                      try {
+                        return localStorage.getItem(key);
+                      } catch (e) {
+                        return null;
+                      }
+                    },
+                    key: function(index) {
+                      try {
+                        return localStorage.key(index);
+                      } catch (e) {
+                        return null;
+                      }
+                    },
+                    get length() {
+                      try {
+                        return localStorage.length;
+                      } catch (e) {
+                        return 0;
+                      }
+                    }
+                  };
+
+                  const appTheme = safeLocalStorage.getItem('app-theme');
                   if (!appTheme) return;
 
                   let bookingTheme, username;
-                  for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('booking-theme:')) {
-                      bookingTheme = localStorage.getItem(key);
+                  for (let i = 0; i < safeLocalStorage.length; i++) {
+                    const key = safeLocalStorage.key(i);
+                    if (key && key.startsWith('booking-theme:')) {
+                      bookingTheme = safeLocalStorage.getItem(key);
                       username = key.split("booking-theme:")[1];
                       break;
                     }
