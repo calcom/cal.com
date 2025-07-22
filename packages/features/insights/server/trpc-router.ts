@@ -10,8 +10,8 @@ import {
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
 import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
-import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -1742,8 +1742,7 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = new InsightsRoutingService({
-        prisma: ctx.insightsDb,
+      const insightsRoutingService = getInsightsRoutingService({
         options: {
           scope: input.scope,
           teamId: input.selectedTeamId,
