@@ -19,13 +19,12 @@ import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
-import { THREE_MONTHS_IN_MS } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
-import CalendarService from "../CalendarService";
+import CalendarService, { ONE_MONTH_IN_MS } from "../CalendarService";
 import {
   createMockJWTInstance,
   createInMemoryDelegationCredentialForCalendarService,
@@ -299,6 +298,8 @@ describe("Calendar Cache", () => {
       {
         start: "2023-12-01T18:00:00Z",
         end: "2023-12-01T19:00:00Z",
+        id: null,
+        source: null,
       },
     ]);
   });
@@ -347,6 +348,8 @@ describe("Calendar Cache", () => {
       {
         start: "2023-12-01T18:00:00Z",
         end: "2023-12-01T19:00:00Z",
+        id: null,
+        source: null,
       },
     ]);
 
@@ -746,7 +749,14 @@ describe("Calendar Cache", () => {
       },
     ];
 
-    const mockedBusyTimes = [{ end: "2025-04-02T18:30:00Z", start: "2025-04-01T18:30:00Z" }];
+    const mockedBusyTimes = [
+      {
+        end: "2025-04-02T18:30:00Z",
+        start: "2025-04-01T18:30:00Z",
+        id: null,
+        source: null,
+      },
+    ];
     // Mock Once so that the getAvailability call doesn't accidentally reuse this mock result
     freebusyQueryMock.mockResolvedValueOnce({
       data: {
@@ -762,7 +772,9 @@ describe("Calendar Cache", () => {
     expect(calendarCachesBefore).toHaveLength(0);
     await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
     const calendarCachesAfter = await prismock.calendarCache.findMany();
-    console.log({ calendarCachesAfter });
+    console.log({
+      calendarCachesAfter: calendarCachesAfter.map((c) => ({ ...c, value: JSON.stringify(c.value) })),
+    });
     expect(calendarCachesAfter).toHaveLength(1);
     const datesForWhichCachedAvailabilityIsUsed = [
       {
@@ -1790,10 +1802,14 @@ describe("Google Calendar Sync Tokens", () => {
     {
       start: "2024-03-15T10:00:00Z",
       end: "2024-03-15T11:00:00Z",
+      id: "event1",
+      source: null,
     },
     {
       start: "2024-03-15T14:00:00Z",
       end: "2024-03-15T15:00:00Z",
+      id: "event2",
+      source: null,
     },
   ];
 
@@ -1876,7 +1892,7 @@ describe("Google Calendar Sync Tokens", () => {
 
       const callArgs = eventsListMock.mock.calls[0][0];
       const timeMinDate = new Date(callArgs.timeMin);
-      const expectedTimeMin = new Date(Date.now() - THREE_MONTHS_IN_MS);
+      const expectedTimeMin = new Date(Date.now() - ONE_MONTH_IN_MS);
       const timeDiff = Math.abs(timeMinDate.getTime() - expectedTimeMin.getTime());
       expect(timeDiff).toBeLessThan(1000);
 
@@ -1918,6 +1934,39 @@ describe("Google Calendar Sync Tokens", () => {
         events: mockSingleCalendarEvents,
         nextSyncToken: "next_sync_token_123",
       });
+    });
+
+    test("should preserve event IDs in busy times", async () => {
+      const credential = await createCredentialForCalendarService();
+      const calendarService = new CalendarService(credential);
+
+      const eventsWithIds = [
+        {
+          ...mockSingleCalendarEvents[0],
+          id: "event_id_123",
+        },
+        {
+          ...mockSingleCalendarEvents[1],
+          id: "event_id_456",
+        },
+      ];
+
+      const result = (calendarService as any).convertEventsToBusyTimes(eventsWithIds);
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          start: mockSingleCalendarEvents[0].start?.dateTime,
+          end: mockSingleCalendarEvents[0].end?.dateTime,
+          id: "event_id_123",
+          source: null,
+        }),
+        expect.objectContaining({
+          start: mockSingleCalendarEvents[1].start?.dateTime,
+          end: mockSingleCalendarEvents[1].end?.dateTime,
+          id: "event_id_456",
+          source: null,
+        }),
+      ]);
     });
 
     test("should handle paginated results with sync token", async () => {
@@ -2047,7 +2096,7 @@ describe("Google Calendar Sync Tokens", () => {
       expect(result).toEqual(mockExpectedBusyTimes);
     });
 
-    test("should filter out cancelled events", async () => {
+    test("should mark cancelled events for deletion", async () => {
       const credential = await createCredentialForCalendarService();
       const calendarService = new CalendarService(credential);
 
@@ -2063,7 +2112,15 @@ describe("Google Calendar Sync Tokens", () => {
 
       const result = (calendarService as any).convertEventsToBusyTimes(eventsWithCancelled);
 
-      expect(result).toEqual(mockExpectedBusyTimes);
+      expect(result).toEqual([
+        ...mockExpectedBusyTimes,
+        {
+          start: "2024-03-15T12:00:00Z",
+          end: "2024-03-15T13:00:00Z",
+          id: "cancelled_event",
+          source: "cancelled",
+        },
+      ]);
     });
 
     test("should filter out events without dateTime", async () => {
@@ -2223,7 +2280,7 @@ describe("Google Calendar Sync Tokens", () => {
 
       const callArgs = eventsListMock.mock.calls[0][0];
       const timeMinDate = new Date(callArgs.timeMin);
-      const expectedTimeMin = new Date(Date.now() - THREE_MONTHS_IN_MS);
+      const expectedTimeMin = new Date(Date.now() - ONE_MONTH_IN_MS);
       const timeDiff = Math.abs(timeMinDate.getTime() - expectedTimeMin.getTime());
       expect(timeDiff).toBeLessThan(1000);
 
@@ -2569,6 +2626,8 @@ describe("Google Calendar Sync Tokens", () => {
         {
           start: "2024-03-15T10:00:00Z",
           end: "2024-03-15T11:00:00Z",
+          id: "valid1",
+          source: null,
         },
       ]);
     });

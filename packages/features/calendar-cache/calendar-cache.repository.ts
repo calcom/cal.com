@@ -26,7 +26,10 @@ function parseKeyForCache(args: FreeBusyArgs): string {
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
 type CalendarCacheValue = {
-  calendars?: Record<string, { busy?: Array<{ start: string | Date; end: string | Date }> }>;
+  calendars?: Record<
+    string,
+    { busy?: Array<{ start: string | Date; end: string | Date; id?: string | null }> }
+  >;
   dateRange?: {
     timeMin: string;
     timeMax: string;
@@ -282,16 +285,41 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         const existingBusyTimes = result.calendars[calendarId]?.busy || [];
         const incomingBusyTimes = incoming.calendars[calendarId]?.busy || [];
 
-        const allBusyTimes = [...existingBusyTimes, ...incomingBusyTimes];
+        const existingEventsById = new Map();
+        const existingEventsWithoutId: typeof existingBusyTimes = [];
 
-        const uniqueBusyTimes = allBusyTimes.filter((busyTime, index, array) => {
-          return array.findIndex((bt) => bt.start === busyTime.start && bt.end === busyTime.end) === index;
+        existingBusyTimes.forEach((event) => {
+          if (event.id) {
+            existingEventsById.set(event.id, event);
+          } else {
+            existingEventsWithoutId.push(event);
+          }
         });
 
-        uniqueBusyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        const updatedEventsWithoutId = [...existingEventsWithoutId];
+        incomingBusyTimes.forEach((incomingEvent) => {
+          if (incomingEvent.id) {
+            if ((incomingEvent as any).source === "cancelled") {
+              existingEventsById.delete(incomingEvent.id);
+            } else {
+              existingEventsById.set(incomingEvent.id, incomingEvent);
+            }
+          } else if ((incomingEvent as any).source !== "cancelled") {
+            const isDuplicate = updatedEventsWithoutId.some(
+              (existing) => existing.start === incomingEvent.start && existing.end === incomingEvent.end
+            );
+            if (!isDuplicate) {
+              updatedEventsWithoutId.push(incomingEvent);
+            }
+          }
+        });
+
+        const allEvents = [...Array.from(existingEventsById.values()), ...updatedEventsWithoutId];
+
+        allEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
         result.calendars[calendarId] = {
-          busy: uniqueBusyTimes,
+          busy: allEvents,
         };
       }
 

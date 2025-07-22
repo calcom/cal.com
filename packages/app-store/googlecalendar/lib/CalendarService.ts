@@ -6,7 +6,6 @@ import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
-import { THREE_MONTHS_IN_MS } from "@calcom/features/calendar-cache/calendar-cache.repository";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
@@ -35,6 +34,8 @@ type CalendarFreeBusyResponse = {
     busy: {
       start: Date | string;
       end: Date | string;
+      id?: string | null;
+      source?: string | null;
     }[];
   };
 };
@@ -46,7 +47,7 @@ interface GoogleCalError extends Error {
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
+export const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
@@ -477,7 +478,7 @@ export default class GoogleCalendarService implements Calendar {
     let pageToken: string | undefined = options.pageToken;
     let nextSyncToken: string | undefined;
 
-    const timeMin = !options.syncToken ? new Date(Date.now() - THREE_MONTHS_IN_MS).toISOString() : undefined;
+    const timeMin = !options.syncToken ? new Date(Date.now() - ONE_MONTH_IN_MS).toISOString() : undefined;
 
     do {
       const response = await calendar.events.list({
@@ -525,7 +526,7 @@ export default class GoogleCalendarService implements Calendar {
     const busyTimes: EventBusyDate[] = [];
 
     for (const event of events) {
-      if (event.status === "cancelled" || !event.start || !event.end) {
+      if (!event.start || !event.end) {
         continue;
       }
 
@@ -536,6 +537,8 @@ export default class GoogleCalendarService implements Calendar {
       busyTimes.push({
         start: event.start.dateTime,
         end: event.end.dateTime,
+        id: event.id || null,
+        source: event.status === "cancelled" ? "cancelled" : null,
       });
     }
 
@@ -687,6 +690,8 @@ export default class GoogleCalendarService implements Calendar {
         calendar.busy?.map((busyTime) => ({
           start: busyTime.start || "",
           end: busyTime.end || "",
+          id: (busyTime as any).id || null,
+          source: (busyTime as any).source || null,
         })) || []
     );
   }
@@ -702,26 +707,42 @@ export default class GoogleCalendarService implements Calendar {
     try {
       const calendarCache = await CalendarCache.init(null);
 
-      // First try to find exact match for multi-calendar query
+      // First try to find exact match for multi-calendar query using calendar-based keys
+      const cacheArgs = {
+        timeMin,
+        timeMax,
+        items: calendarIds.map((id) => ({ id })),
+      };
+
+      console.log(
+        "[Cache Lookup] Attempting cache lookup",
+        JSON.stringify({
+          cacheArgs,
+          credentialId: this.credential.id,
+          userId: this.credential.userId,
+        })
+      );
+
       const cached = await calendarCache.getCachedAvailability({
         credentialId: this.credential.id,
         userId: this.credential.userId,
-        args: {
-          // Expand the start date to the start of the month to increase cache hits
-          timeMin: getTimeMin(timeMin),
-          // Expand the end date to the end of the month to increase cache hits
-          timeMax: getTimeMax(timeMax),
-          items: calendarIds.map((id) => ({ id })),
-        },
+        args: cacheArgs,
       });
 
+      console.log(
+        "[Cache Lookup Result]",
+        JSON.stringify({
+          cached: !!cached,
+          cacheValue: cached?.value ? "present" : "missing",
+        })
+      );
+
       if (cached) {
-        this.log.debug(
-          "[Cache Hit] Returning cached availability result",
-          safeStringify({ timeMin, timeMax, calendarIds })
-        );
+        console.log("[Cache Hit] Using cached availability");
         const freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
         return this.convertFreeBusyToEventBusyDates(freeBusyResult);
+      } else {
+        console.log("[Cache Miss] No cached availability found");
       }
 
       // If multi-calendar cache miss and we have multiple calendars, try individual cache entries
@@ -734,8 +755,8 @@ export default class GoogleCalendarService implements Calendar {
             credentialId: this.credential.id,
             userId: this.credential.userId,
             args: {
-              timeMin: getTimeMin(timeMin),
-              timeMax: getTimeMax(timeMax),
+              timeMin,
+              timeMax,
               items: [{ id: calendarId }],
             },
           });
@@ -1131,16 +1152,42 @@ export default class GoogleCalendarService implements Calendar {
       const newBusyTimes = incrementalBusyTimes.map((bt) => ({
         start: bt.start,
         end: bt.end,
+        id: bt.id || null,
       }));
 
-      const allBusyTimes = [...existingBusyTimes, ...newBusyTimes];
+      const existingEventsById = new Map();
+      const existingEventsWithoutId: typeof existingBusyTimes = [];
 
-      const uniqueBusyTimes = allBusyTimes.filter((busyTime, index, array) => {
-        return array.findIndex((bt) => bt.start === busyTime.start && bt.end === busyTime.end) === index;
+      existingBusyTimes.forEach((event) => {
+        if (event.id) {
+          existingEventsById.set(event.id, event);
+        } else {
+          existingEventsWithoutId.push(event);
+        }
       });
 
+      const updatedEventsWithoutId = [...existingEventsWithoutId];
+      newBusyTimes.forEach((newEvent) => {
+        if (newEvent.id) {
+          if ((newEvent as any).source === "cancelled") {
+            existingEventsById.delete(newEvent.id);
+          } else {
+            existingEventsById.set(newEvent.id, newEvent);
+          }
+        } else if ((newEvent as any).source !== "cancelled") {
+          const isDuplicate = updatedEventsWithoutId.some(
+            (existing) => existing.start === newEvent.start && existing.end === newEvent.end
+          );
+          if (!isDuplicate) {
+            updatedEventsWithoutId.push(newEvent);
+          }
+        }
+      });
+
+      const allEvents = [...Array.from(existingEventsById.values()), ...updatedEventsWithoutId];
+
       result[cal.id] = {
-        busy: uniqueBusyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+        busy: allEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
       };
     }
 
@@ -1198,7 +1245,7 @@ export default class GoogleCalendarService implements Calendar {
     }, selectedCalendarsPerEventType);
 
     for (const [_eventTypeId, selectedCalendars] of Array.from(selectedCalendarsPerEventType.entries())) {
-      const parsedArgs = {
+      const fetchArgs = {
         /** Expand the start date to the start of the month to increase cache hits */
         timeMin: getTimeMin(),
         /** Expand the end date to the end of the month to increase cache hits */
@@ -1207,8 +1254,13 @@ export default class GoogleCalendarService implements Calendar {
         // The only reason we are building it per eventType is because there can be different groups of calendars to lookup the availability for
         items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
       };
-      const data = await this.fetchAvailability(parsedArgs);
-      await this.setAvailabilityInCache(parsedArgs, data);
+      const cacheArgs = {
+        timeMin: fetchArgs.timeMin,
+        timeMax: fetchArgs.timeMax,
+        items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
+      };
+      const data = await this.fetchAvailability(fetchArgs);
+      await this.setAvailabilityInCache(cacheArgs, data);
     }
   }
 

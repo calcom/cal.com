@@ -1186,323 +1186,220 @@ describe("Google Calendar Sync Tokens Integration Tests", () => {
     });
   });
 
-  describe("Webhook Event Modifications", () => {
-    test("webhook adding an event should update cache incrementally", async () => {
+  describe("Webhook Event Modifications with Event IDs", () => {
+    test("should add event to cache when webhook adds new event", async () => {
       const userEmail = `webhook-add-${testUniqueId}@example.com`;
+      const eventId = "_6923ic9i890j6ba268pj4b9k60p48ba26kpk4b9g8oq48h9k8grkcgho6s";
 
-      const initialEvents = [
-        {
-          id: "existing-event",
-          start: { dateTime: "2025-01-15T10:00:00.000Z" },
-          end: { dateTime: "2025-01-15T11:00:00.000Z" },
-          status: "confirmed",
-        },
-      ];
-
-      const newEvent = {
-        id: "new-event",
-        start: { dateTime: "2025-01-15T14:00:00.000Z" },
-        end: { dateTime: "2025-01-15T15:00:00.000Z" },
-        status: "confirmed",
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
       };
 
-      // Get credential with proper typing
-      const credential = await prisma.credential.findUnique({
-        where: { id: testCredentialId },
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
+      const addedEventResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-07-23T16:00:00.000Z",
+                end: "2025-07-23T17:00:00.000Z",
+                id: eventId,
+              },
+            ],
           },
         },
-      });
-      expect(credential).toBeTruthy();
+      };
 
-      if (!credential) {
-        throw new Error("Credential not found");
-      }
-
-      const calendarService = new CalendarService({
-        ...credential,
-        delegatedTo: null,
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: addedEventResponse,
+        nextSyncToken: "add_sync_token_123",
       });
 
-      const fetchEventsIncrementalSpy = vi
-        .spyOn(calendarService, "fetchEventsIncremental")
-        .mockResolvedValueOnce({
-          events: initialEvents,
-          nextSyncToken: "initial-sync-token",
+      const cachedResult = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+
+      expect(cachedResult?.value).toEqual(
+        expect.objectContaining({
+          calendars: {
+            [userEmail]: {
+              busy: expect.arrayContaining([
+                expect.objectContaining({
+                  start: "2025-07-23T16:00:00.000Z",
+                  end: "2025-07-23T17:00:00.000Z",
+                  id: eventId,
+                }),
+              ]),
+            },
+          },
         })
-        .mockResolvedValueOnce({
-          events: [newEvent],
-          nextSyncToken: "updated-sync-token",
-        });
-
-      await calendarService.fetchAvailabilityAndSetCacheIncremental([
-        {
-          externalId: userEmail,
-          integration: "google_calendar",
-          eventTypeId: null,
-          credentialId: testCredentialId,
-          userId: testUserId,
-          name: "Test Calendar",
-          primary: true,
-          readOnly: false,
-          email: userEmail,
-        },
-      ]);
-
-      const cacheAfterInitial = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId: testCredentialId,
-          key: JSON.stringify({ items: [{ id: userEmail }] }),
-        },
-      });
-
-      await calendarService.fetchAvailabilityAndSetCacheIncremental([
-        {
-          externalId: userEmail,
-          integration: "google_calendar",
-          eventTypeId: null,
-          credentialId: testCredentialId,
-          userId: testUserId,
-          name: "Test Calendar",
-          primary: true,
-          readOnly: false,
-          email: userEmail,
-        },
-      ]);
-
-      const cacheAfterAdd = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId: testCredentialId,
-          key: JSON.stringify({ items: [{ id: userEmail }] }),
-        },
-      });
-
-      expect(fetchEventsIncrementalSpy).toHaveBeenCalledTimes(2);
-      expect(fetchEventsIncrementalSpy).toHaveBeenNthCalledWith(2, userEmail, "initial-sync-token");
-
-      expect(cacheAfterInitial?.value).toBeTruthy();
-      expect(cacheAfterAdd?.value).toBeTruthy();
-
-      const initialValue = cacheAfterInitial?.value as any;
-      const addedValue = cacheAfterAdd?.value as any;
-
-      expect(initialValue.calendars[userEmail].busy).toHaveLength(1);
-      expect(addedValue.calendars[userEmail].busy).toHaveLength(2);
+      );
     });
 
-    test("webhook moving an event creates ghost busy slot due to cache merge limitation", async () => {
+    test("should update event in cache when webhook moves event (same ID, different times)", async () => {
       const userEmail = `webhook-move-${testUniqueId}@example.com`;
+      const eventId = "_6923ic9i890j6ba268pj4b9k60p48ba26kpk4b9g8oq48h9k8grkcgho6s";
 
-      const originalEvent = {
-        id: "moved-event",
-        start: { dateTime: "2025-01-15T10:00:00.000Z" },
-        end: { dateTime: "2025-01-15T11:00:00.000Z" },
-        status: "confirmed",
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
       };
 
-      const movedEvent = {
-        id: "moved-event",
-        start: { dateTime: "2025-01-15T14:00:00.000Z" },
-        end: { dateTime: "2025-01-15T15:00:00.000Z" },
-        status: "confirmed",
-      };
-
-      // Get credential with proper typing
-      const credential = await prisma.credential.findUnique({
-        where: { id: testCredentialId },
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
+      const initialEventResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-07-23T16:00:00.000Z",
+                end: "2025-07-23T17:00:00.000Z",
+                id: eventId,
+              },
+            ],
           },
         },
-      });
-      expect(credential).toBeTruthy();
+      };
 
-      if (!credential) {
-        throw new Error("Credential not found");
-      }
-
-      const calendarService = new CalendarService({
-        ...credential,
-        delegatedTo: null,
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: initialEventResponse,
+        nextSyncToken: "initial_sync_token",
       });
 
-      const fetchEventsIncrementalSpy = vi
-        .spyOn(calendarService, "fetchEventsIncremental")
-        .mockResolvedValueOnce({
-          events: [originalEvent],
-          nextSyncToken: "initial-sync-token",
+      const movedEventResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-07-24T16:00:00.000Z",
+                end: "2025-07-24T17:00:00.000Z",
+                id: eventId,
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: movedEventResponse,
+        nextSyncToken: "move_sync_token_123",
+      });
+
+      const cachedResult = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+
+      expect(cachedResult?.value).toEqual(
+        expect.objectContaining({
+          calendars: {
+            [userEmail]: {
+              busy: [
+                expect.objectContaining({
+                  start: "2025-07-24T16:00:00.000Z",
+                  end: "2025-07-24T17:00:00.000Z",
+                  id: eventId,
+                }),
+              ],
+            },
+          },
         })
-        .mockResolvedValueOnce({
-          events: [movedEvent],
-          nextSyncToken: "updated-sync-token",
-        });
+      );
 
-      await calendarService.fetchAvailabilityAndSetCacheIncremental([
-        {
-          externalId: userEmail,
-          integration: "google_calendar",
-          eventTypeId: null,
-          credentialId: testCredentialId,
-          userId: testUserId,
-          name: "Test Calendar",
-          primary: true,
-          readOnly: false,
-          email: userEmail,
-        },
-      ]);
-
-      const cacheAfterInitial = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId: testCredentialId,
-          key: JSON.stringify({ items: [{ id: userEmail }] }),
-        },
-      });
-
-      await calendarService.fetchAvailabilityAndSetCacheIncremental([
-        {
-          externalId: userEmail,
-          integration: "google_calendar",
-          eventTypeId: null,
-          credentialId: testCredentialId,
-          userId: testUserId,
-          name: "Test Calendar",
-          primary: true,
-          readOnly: false,
-          email: userEmail,
-        },
-      ]);
-
-      const cacheAfterMove = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId: testCredentialId,
-          key: JSON.stringify({ items: [{ id: userEmail }] }),
-        },
-      });
-
-      expect(cacheAfterInitial?.value).toBeTruthy();
-      expect(cacheAfterMove?.value).toBeTruthy();
-
-      const initialValue = cacheAfterInitial?.value as any;
-      const movedValue = cacheAfterMove?.value as any;
-
-      expect(initialValue.calendars[userEmail].busy).toHaveLength(1);
-      expect(movedValue.calendars[userEmail].busy).toHaveLength(2);
-
-      const busyTimes = movedValue.calendars[userEmail].busy;
-      const originalSlot = busyTimes.find((slot: any) => slot.start === "2025-01-15T10:00:00.000Z");
-      const newSlot = busyTimes.find((slot: any) => slot.start === "2025-01-15T14:00:00.000Z");
-
-      expect(originalSlot).toBeTruthy();
-      expect(newSlot).toBeTruthy();
+      const busyTimes = (cachedResult?.value as any)?.calendars?.[userEmail]?.busy || [];
+      const originalTimeSlot = busyTimes.find(
+        (bt: any) => bt.start === "2025-07-23T16:00:00.000Z" && bt.end === "2025-07-23T17:00:00.000Z"
+      );
+      expect(originalTimeSlot).toBeUndefined();
     });
 
-    test("webhook deleting an event should remove busy slot from cache", async () => {
+    test("should remove event from cache when webhook deletes event (cancelled status)", async () => {
       const userEmail = `webhook-delete-${testUniqueId}@example.com`;
+      const eventId = "_6923ic9i890j6ba268pj4b9k60p48ba26kpk4b9g8oq48h9k8grkcgho6s";
 
-      const eventToDelete = {
-        id: "event-to-delete",
-        start: { dateTime: "2025-01-15T10:00:00.000Z" },
-        end: { dateTime: "2025-01-15T11:00:00.000Z" },
-        status: "confirmed",
+      const cacheArgs = {
+        timeMin: getTimeMin(TEST_DATE_ISO),
+        timeMax: getTimeMax(TEST_DATE_ISO),
+        items: [{ id: userEmail }],
       };
 
-      const deletedEvent = {
-        id: "event-to-delete",
-        start: { dateTime: "2025-01-15T10:00:00.000Z" },
-        end: { dateTime: "2025-01-15T11:00:00.000Z" },
-        status: "cancelled",
-      };
-
-      // Get credential with proper typing
-      const credential = await prisma.credential.findUnique({
-        where: { id: testCredentialId },
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
+      const initialEventResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-07-24T16:00:00.000Z",
+                end: "2025-07-24T17:00:00.000Z",
+                id: eventId,
+              },
+            ],
           },
         },
-      });
-      expect(credential).toBeTruthy();
+      };
 
-      if (!credential) {
-        throw new Error("Credential not found");
-      }
-
-      const calendarService = new CalendarService({
-        ...credential,
-        delegatedTo: null,
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: initialEventResponse,
+        nextSyncToken: "initial_sync_token",
       });
 
-      const fetchEventsIncrementalSpy = vi
-        .spyOn(calendarService, "fetchEventsIncremental")
-        .mockResolvedValueOnce({
-          events: [eventToDelete],
-          nextSyncToken: "initial-sync-token",
+      const deletionResponse = {
+        kind: "calendar#freeBusy",
+        calendars: {
+          [userEmail]: {
+            busy: [
+              {
+                start: "2025-07-24T16:00:00.000Z",
+                end: "2025-07-24T17:00:00.000Z",
+                id: eventId,
+                source: "cancelled",
+              },
+            ],
+          },
+        },
+      };
+
+      await calendarCache.upsertCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+        value: deletionResponse,
+        nextSyncToken: "delete_sync_token_123",
+      });
+
+      const cachedResult = await calendarCache.getCachedAvailability({
+        credentialId: testCredentialId,
+        userId: testUserId,
+        args: cacheArgs,
+      });
+
+      expect(cachedResult?.value).toEqual(
+        expect.objectContaining({
+          calendars: {
+            [userEmail]: {
+              busy: [],
+            },
+          },
         })
-        .mockResolvedValueOnce({
-          events: [deletedEvent],
-          nextSyncToken: "updated-sync-token",
-        });
-
-      await calendarService.fetchAvailabilityAndSetCacheIncremental([
-        {
-          externalId: userEmail,
-          integration: "google_calendar",
-          eventTypeId: null,
-          credentialId: testCredentialId,
-          userId: testUserId,
-          name: "Test Calendar",
-          primary: true,
-          readOnly: false,
-          email: userEmail,
-        },
-      ]);
-
-      const cacheAfterInitial = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId: testCredentialId,
-          key: JSON.stringify({ items: [{ id: userEmail }] }),
-        },
-      });
-
-      await calendarService.fetchAvailabilityAndSetCacheIncremental([
-        {
-          externalId: userEmail,
-          integration: "google_calendar",
-          eventTypeId: null,
-          credentialId: testCredentialId,
-          userId: testUserId,
-          name: "Test Calendar",
-          primary: true,
-          readOnly: false,
-          email: userEmail,
-        },
-      ]);
-
-      const cacheAfterDelete = await prisma.calendarCache.findFirst({
-        where: {
-          credentialId: testCredentialId,
-          key: JSON.stringify({ items: [{ id: userEmail }] }),
-        },
-      });
-
-      expect(cacheAfterInitial?.value).toBeTruthy();
-      expect(cacheAfterDelete?.value).toBeTruthy();
-
-      const initialValue = cacheAfterInitial?.value as any;
-      const deletedValue = cacheAfterDelete?.value as any;
-
-      expect(initialValue.calendars[userEmail].busy).toHaveLength(1);
-      expect(deletedValue.calendars[userEmail].busy).toHaveLength(0);
+      );
     });
   });
 });
