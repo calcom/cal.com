@@ -120,7 +120,7 @@ export class ScheduleRepository {
     }
 
     // Check if user is a member (not admin/owner) of any team with locked default availability
-    const lockedDefaultAvailability = await hasLockedDefaultAvailabilityRestriction(userId, prisma);
+    const lockedDefaultAvailability = await hasLockedDefaultAvailabilityRestriction(userId);
 
     const timeZone = schedule.timeZone || userTimeZone;
 

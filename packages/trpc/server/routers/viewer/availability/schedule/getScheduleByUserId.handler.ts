@@ -26,7 +26,7 @@ export const getScheduleByUserIdHandler = async ({ ctx, input }: GetOptions) => 
   });
 
   const lockedDefaultAvailability = input.userId
-    ? await hasLockedDefaultAvailabilityRestriction(input.userId, ctx.prisma)
+    ? await hasLockedDefaultAvailabilityRestriction(input.userId)
     : false;
 
   try {
