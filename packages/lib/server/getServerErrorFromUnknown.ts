@@ -81,7 +81,9 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   }
   const parsedStripeError = stripeInvalidRequestErrorSchema.safeParse(cause);
   if (parsedStripeError.success) {
-    const stripeError = getHttpError({ statusCode: 400, cause: parsedStripeError.data });
+    const stripeErrorObj = new Error(parsedStripeError.data.message || "Stripe error");
+    stripeErrorObj.name = parsedStripeError.data.type || "StripeInvalidRequestError";
+    const stripeError = getHttpError({ statusCode: 400, cause: stripeErrorObj });
     return new HttpError({
       statusCode: stripeError.statusCode,
       message: stripeError.message,
@@ -100,6 +102,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   }
   if (cause instanceof HttpError) {
     const redactedCause = redactError(cause);
+    const originalData = cause.data;
     return {
       ...redactedCause,
       name: cause.name,
@@ -108,7 +111,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       url: cause.url,
       statusCode: cause.statusCode,
       method: cause.method,
-      data: traceId ? { ...redactedCause.data, ...tracedData, traceId } : redactedCause.data,
+      data: traceId ? { ...originalData, ...tracedData, traceId } : originalData,
     };
   }
   if (cause instanceof Error) {
