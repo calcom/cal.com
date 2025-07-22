@@ -3379,5 +3379,12 @@
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "failed_bookings_by_field": "Failed Bookings By Field",
   "event_type_no_hosts": "No hosts are assigned to event type",
+  "cache_status": "Cache Status",
+  "cache_last_updated": "Last updated: {{timestamp}}",
+  "delete_cached_data": "Delete cached data",
+  "cache_deleted_successfully": "Cache deleted successfully",
+  "error_deleting_cache": "Error deleting cache",
+  "confirm_delete_cache": "Are you sure you want to delete the cached data? This action cannot be undone.",
+  "yes_delete_cache": "Yes, delete cache",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
