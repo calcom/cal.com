@@ -28,6 +28,7 @@ vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "http://localhost:3000",
   RESERVED_SUBDOMAINS: ["auth", "docs"],
   SINGLE_ORG_SLUG: "",
+  DEFAULT_GROUP_ID: "default_group_id",
 }));
 
 describe("getSchedule", () => {
