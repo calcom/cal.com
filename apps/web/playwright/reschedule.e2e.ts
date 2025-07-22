@@ -96,8 +96,11 @@ test.describe("Reschedule Tests", async () => {
     // Click the ellipsis menu button to open the dropdown
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
-    await expect(page.locator('[data-testid="reschedule"]')).toBeHidden();
-    await expect(page.locator('[data-testid="reschedule_request"]')).toBeHidden();
+    // Check that the reschedule options are visible but disabled
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeDisabled();
   });
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
