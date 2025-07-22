@@ -17,6 +17,8 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DistributedTracing } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";

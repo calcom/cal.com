@@ -19,7 +19,22 @@ const moveSeatedBookingToNewTimeSlot = async (
   eventManager: EventManager,
   traceContext?: TraceContext
 ) => {
-  const loggerWithEventDetails = traceContext ? DistributedTracing.getTracingLogger(traceContext) : undefined;
+  const spanContext = traceContext
+    ? DistributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
+        meta: {
+          bookingId: seatedBooking.id,
+          rescheduleUid,
+          eventTypeId: rescheduleSeatedBookingObject.eventType.id,
+        },
+      })
+    : DistributedTracing.createTrace("move_seated_booking_to_new_time_slot_fallback", {
+        meta: {
+          bookingId: seatedBooking.id,
+          rescheduleUid,
+          eventTypeId: rescheduleSeatedBookingObject.eventType.id,
+        },
+      });
+  const loggerWithEventDetails = DistributedTracing.getTracingLogger(spanContext);
   const {
     rescheduleReason,
     rescheduleUid,
@@ -71,7 +86,7 @@ const moveSeatedBookingToNewTimeSlot = async (
       errorCode: "BookingReschedulingMeetingFailed",
       message: "Booking Rescheduling failed",
     };
-    loggerWithEventDetails?.error(`Booking ${organizerUser.name} failed`, JSON.stringify({ error, results }));
+    loggerWithEventDetails.error(`Booking ${organizerUser.name} failed`, JSON.stringify({ error, results }));
   } else {
     const metadata: AdditionalInformation = {};
     if (results.length) {
@@ -90,7 +105,7 @@ const moveSeatedBookingToNewTimeSlot = async (
 
   if (noEmail !== true && isConfirmedByDefault) {
     const copyEvent = cloneDeep(evt);
-    loggerWithEventDetails?.debug("Emails: Sending reschedule emails - handleSeats");
+    loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,

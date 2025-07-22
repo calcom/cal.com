@@ -1381,6 +1381,7 @@
   "trial_expired": "Your trial has expired",
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
+  "reference_id": "Reference ID",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
   "app_removed_successfully": "App removed successfully",
   "error_removing_app": "Error removing app",

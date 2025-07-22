@@ -2,7 +2,6 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isEventPayload, type WebhookPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
-import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
@@ -18,9 +17,19 @@ async function _handleWebhookTrigger(args: {
     if (args.isDryRun) return;
 
     const spanContext = args.traceContext
-      ? DistributedTracing.createSpan(args.traceContext, "webhook_trigger")
-      : undefined;
-    const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : logger;
+      ? DistributedTracing.createSpan(args.traceContext, "webhook_trigger", {
+          meta: {
+            eventTrigger: args.eventTrigger,
+            isDryRun: args.isDryRun,
+          },
+        })
+      : DistributedTracing.createTrace("webhook_trigger_fallback", {
+          meta: {
+            eventTrigger: args.eventTrigger,
+            isDryRun: args.isDryRun,
+          },
+        });
+    const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
 
     tracingLogger.info("Handling webhook trigger", {
       eventTrigger: args.eventTrigger,
@@ -33,7 +42,7 @@ async function _handleWebhookTrigger(args: {
       sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
         (e) => {
           if (isEventPayload(args.webhookData)) {
-            logger.error(
+            tracingLogger.error(
               `Error executing webhook for event: ${args.eventTrigger}, URL: ${sub.subscriberUrl}, booking id: ${args.webhookData.bookingId}, booking uid: ${args.webhookData.uid}`,
               safeStringify(e)
             );
@@ -43,7 +52,7 @@ async function _handleWebhookTrigger(args: {
     );
     await Promise.all(promises);
   } catch (error) {
-    logger.error("Error while sending webhook", error);
+    tracingLogger.error("Error while sending webhook", error);
   }
 }
 

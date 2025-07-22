@@ -8,7 +8,7 @@ type Props = {
   reqBodyEnd: string;
   eventTypeMultipleDuration?: number[];
   eventTypeLength: number;
-  traceContext: TraceContext;
+  traceContext?: TraceContext;
 };
 
 // Define the function with underscore prefix
@@ -19,7 +19,24 @@ const _validateEventLength = ({
   eventTypeLength,
   traceContext,
 }: Props) => {
-  const logger = DistributedTracing.getTracingLogger(traceContext);
+  const spanContext = traceContext
+    ? DistributedTracing.createSpan(traceContext, "validate_event_length", {
+        meta: {
+          reqBodyStart,
+          reqBodyEnd,
+          eventTypeMultipleDuration,
+          eventTypeLength,
+        },
+      })
+    : DistributedTracing.createTrace("validate_event_length_fallback", {
+        meta: {
+          reqBodyStart,
+          reqBodyEnd,
+          eventTypeMultipleDuration,
+          eventTypeLength,
+        },
+      });
+  const logger = DistributedTracing.getTracingLogger(spanContext);
   const reqEventLength = dayjs(reqBodyEnd).diff(dayjs(reqBodyStart), "minutes");
   const validEventLengths = eventTypeMultipleDuration?.length ? eventTypeMultipleDuration : [eventTypeLength];
   if (!validEventLengths.includes(reqEventLength)) {
