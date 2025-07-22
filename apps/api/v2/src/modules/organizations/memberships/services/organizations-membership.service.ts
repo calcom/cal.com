@@ -33,9 +33,7 @@ export class OrganizationsMembershipService {
       userId
     );
     if (!membership) {
-      throw new NotFoundException(
-        `Membership for user with id ${userId} within organization id ${organizationId} not found`
-      );
+      return false;
     }
     return membership.role === "ADMIN" || membership.role === "OWNER";
   }
