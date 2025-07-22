@@ -1127,11 +1127,20 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     for (const cal of calendarIds) {
+      const existingBusyTimes = result[cal.id]?.busy || [];
+      const newBusyTimes = incrementalBusyTimes.map((bt) => ({
+        start: bt.start,
+        end: bt.end,
+      }));
+
+      const allBusyTimes = [...existingBusyTimes, ...newBusyTimes];
+
+      const uniqueBusyTimes = allBusyTimes.filter((busyTime, index, array) => {
+        return array.findIndex((bt) => bt.start === busyTime.start && bt.end === busyTime.end) === index;
+      });
+
       result[cal.id] = {
-        busy: incrementalBusyTimes.map((bt) => ({
-          start: bt.start,
-          end: bt.end,
-        })),
+        busy: uniqueBusyTimes.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
       };
     }
 
@@ -1218,8 +1227,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        const existingSyncToken =
-          cached && "nextSyncToken" in cached ? (cached.nextSyncToken as string) || undefined : undefined;
+        const existingSyncToken = cached?.nextSyncToken || undefined;
 
         const { events, nextSyncToken } = await this.fetchEventsIncremental(
           selectedCalendar.externalId,
@@ -1407,8 +1415,7 @@ export default class GoogleCalendarService implements Calendar {
         },
       });
 
-      const existingSyncToken =
-        cached && "nextSyncToken" in cached ? (cached.nextSyncToken as string) || undefined : undefined;
+      const existingSyncToken = cached?.nextSyncToken || undefined;
 
       const { events, nextSyncToken } = await this.fetchEventsIncremental(
         calendar.externalId,
