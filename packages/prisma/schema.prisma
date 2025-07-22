@@ -241,6 +241,8 @@ model Credential {
   selectedCalendars      SelectedCalendar[]
   invalid                Boolean?              @default(false)
   CalendarCache          CalendarCache[]
+  calendarEvents         CalendarEvent[]
+  calendarSyncTokens     CalendarSyncToken[]
   references             BookingReference[]
   delegationCredentialId String?
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
@@ -340,6 +342,7 @@ model User {
   schedules           Schedule[]
   defaultScheduleId   Int?
   selectedCalendars   SelectedCalendar[]
+  calendarEvents      CalendarEvent[]
   completedOnboarding Boolean              @default(false)
   locale              String?
   timeFormat          Int?                 @default(12)
@@ -1723,6 +1726,53 @@ model CalendarCache {
   @@id([credentialId, key])
   @@unique([credentialId, key])
   @@index([userId, key])
+}
+
+model CalendarEvent {
+  id           BigInt @id @default(autoincrement())
+  credentialId Int
+  userId       Int?
+  calendarId   String @db.VarChar(255)
+
+  googleEventId String  @db.VarChar(255)
+  googleEtag    String? @db.VarChar(255)
+  status        String  @db.VarChar(50)
+  summary       String? @db.Text
+
+  startTime DateTime
+  endTime   DateTime
+  timezone  String?  @db.VarChar(100)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  googleCreatedAt DateTime?
+  googleUpdatedAt DateTime?
+
+  sequence Int?    @default(0)
+  icalUid  String? @db.VarChar(255)
+
+  credential Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  user       User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialId, calendarId, googleEventId])
+  @@index([credentialId, calendarId, startTime, endTime], name: "idx_calendar_events_time_range")
+  @@index([status], name: "idx_calendar_events_status")
+  @@index([updatedAt], name: "idx_calendar_events_updated")
+  @@index([googleEventId], name: "idx_calendar_events_google_id")
+  @@index([credentialId, updatedAt], name: "idx_calendar_events_cleanup")
+}
+
+model CalendarSyncToken {
+  id           BigInt   @id @default(autoincrement())
+  credentialId Int
+  calendarId   String   @db.VarChar(255)
+  syncToken    String   @db.Text
+  lastSyncAt   DateTime @default(now())
+
+  credential Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialId, calendarId])
+  @@index([lastSyncAt], name: "idx_calendar_sync_tokens_cleanup")
 }
 
 enum RedirectType {

@@ -705,7 +705,12 @@ export default class GoogleCalendarService implements Calendar {
     calendarIds: string[]
   ): Promise<EventBusyDate[] | null> {
     try {
-      const calendarCache = await CalendarCache.init(null);
+      const calendarCache = await CalendarCache.init(
+        null,
+        this.credential.id,
+        this.credential.userId,
+        this.credential.teamId
+      );
 
       // First try to find exact match for multi-calendar query using calendar-based keys
       const cacheArgs = {
@@ -1121,14 +1126,24 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
+  async setAvailabilityInCache(
+    args: FreeBusyArgs,
+    data: calendar_v3.Schema$FreeBusyResponse,
+    nextSyncToken?: string
+  ): Promise<void> {
     log.debug("setAvailabilityInCache", safeStringify({ args, data }));
-    const calendarCache = await CalendarCache.init(null);
+    const calendarCache = await CalendarCache.init(
+      null,
+      this.credential.id,
+      this.credential.userId,
+      this.credential.teamId
+    );
     await calendarCache.upsertCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
       args,
       value: JSON.parse(JSON.stringify(data)),
+      nextSyncToken,
     });
   }
 
@@ -1279,7 +1294,7 @@ export default class GoogleCalendarService implements Calendar {
           },
         });
 
-        const existingSyncToken = cached?.nextSyncToken || undefined;
+        const existingSyncToken = cached?.nextSyncToken ?? undefined;
 
         const { events, nextSyncToken } = await this.fetchEventsIncremental(
           selectedCalendar.externalId,
@@ -1467,7 +1482,7 @@ export default class GoogleCalendarService implements Calendar {
         },
       });
 
-      const existingSyncToken = cached?.nextSyncToken || undefined;
+      const existingSyncToken = cached?.nextSyncToken ?? undefined;
 
       const { events, nextSyncToken } = await this.fetchEventsIncremental(
         calendar.externalId,
