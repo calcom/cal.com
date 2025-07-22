@@ -33,7 +33,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/upcoming");
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
     await page.locator('[data-testid="reschedule_request"]').click();
 
@@ -75,7 +76,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/past");
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
     await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
     await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
@@ -91,7 +93,8 @@ test.describe("Reschedule Tests", async () => {
 
     await page.reload();
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
     await expect(page.locator('[data-testid="reschedule"]')).toBeHidden();
     await expect(page.locator('[data-testid="reschedule_request"]')).toBeHidden();

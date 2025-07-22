@@ -681,7 +681,13 @@ function BookingListItem(booking: BookingItemProps) {
             {!isPending && !(isTabRecurring && isRecurring) && !isCancelled && (
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+                  <Button
+                    type="button"
+                    color="secondary"
+                    variant="icon"
+                    StartIcon="ellipsis"
+                    data-testid="booking-actions-dropdown"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuContent>
@@ -696,6 +702,7 @@ function BookingListItem(booking: BookingItemProps) {
                           disabled={action.disabled}
                           onClick={action.onClick}
                           data-bookingid={action.bookingId}
+                          data-testid={action.id}
                           className={action.disabled ? "text-muted" : undefined}>
                           {action.label}
                         </DropdownItem>
@@ -713,6 +720,7 @@ function BookingListItem(booking: BookingItemProps) {
                           onClick={action.onClick}
                           disabled={action.disabled}
                           data-bookingid={action.bookingId}
+                          data-testid={action.id}
                           className={action.disabled ? "text-muted" : undefined}>
                           {action.label}
                         </DropdownItem>
@@ -731,6 +739,7 @@ function BookingListItem(booking: BookingItemProps) {
                         onClick={cancelEventAction.onClick}
                         disabled={cancelEventAction.disabled}
                         data-bookingid={cancelEventAction.bookingId}
+                        data-testid={cancelEventAction.id}
                         className={cancelEventAction.disabled ? "text-muted" : undefined}>
                         {cancelEventAction.label}
                       </DropdownItem>
