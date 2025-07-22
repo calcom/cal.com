@@ -19,9 +19,11 @@ export function usePermissions(): UsePermissionsReturn {
     const permissions: string[] = [];
     Object.entries(PERMISSION_REGISTRY).forEach(([resource, config]) => {
       if (resource !== "*") {
-        Object.keys(config).forEach((action) => {
-          permissions.push(`${resource}.${action}`);
-        });
+        Object.keys(config)
+          .filter((action) => !action.startsWith("_"))
+          .forEach((action) => {
+            permissions.push(`${resource}.${action}`);
+          });
       }
     });
     return permissions;
@@ -30,7 +32,9 @@ export function usePermissions(): UsePermissionsReturn {
   const hasAllPermissions = (permissions: string[]) => {
     return Object.entries(PERMISSION_REGISTRY).every(([resource, config]) => {
       if (resource === "*") return true;
-      return Object.keys(config).every((action) => permissions.includes(`${resource}.${action}`));
+      return Object.keys(config)
+        .filter((action) => !action.startsWith("_"))
+        .every((action) => permissions.includes(`${resource}.${action}`));
     });
   };
 
@@ -47,8 +51,9 @@ export function usePermissions(): UsePermissionsReturn {
       return "all";
     }
 
+    // Filter out internal keys like _resource when checking permissions
     const allResourcePerms = Object.keys(resourceConfig)
-      .filter((action) => action !== "_resource")
+      .filter((action) => !action.startsWith("_"))
       .map((action) => `${resource}.${action}`);
     const hasAllPerms = allResourcePerms.every((p) => permissions.includes(p));
     const hasReadPerm = permissions.includes(`${resource}.${CrudAction.Read}`);
@@ -80,6 +85,9 @@ export function usePermissions(): UsePermissionsReturn {
 
       if (!resourceConfig) return currentPermissions;
 
+      // Declare variable before switch to avoid scope issues
+      let allResourcePerms: string[];
+
       switch (level) {
         case "none":
           // No permissions to add, just keep other permissions
@@ -89,8 +97,10 @@ export function usePermissions(): UsePermissionsReturn {
           newPermissions.push(`${resource}.${CrudAction.Read}`);
           break;
         case "all":
-          // Add all permissions for this resource
-          const allResourcePerms = Object.keys(resourceConfig).map((action) => `${resource}.${action}`);
+          // Add all permissions for this resource (excluding internal keys)
+          allResourcePerms = Object.keys(resourceConfig)
+            .filter((action) => !action.startsWith("_"))
+            .map((action) => `${resource}.${action}`);
           newPermissions.push(...allResourcePerms);
           break;
       }
