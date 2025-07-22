@@ -22,6 +22,7 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceService } from "@calcom/lib/server/service/bookingReference";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -660,15 +661,7 @@ export default class EventManager {
             // Update booking references with newly created calendar events
             const calendarReferences = createdEvents
               .filter((result) => result.type.includes("_calendar") && result.success)
-              .map((result) => ({
-                type: result.type,
-                uid: result.uid,
-                meetingId: result.uid,
-                meetingPassword: result.originalEvent.attendees?.[0]?.timeZone || "",
-                meetingUrl: result.originalEvent.videoCallData?.url || "",
-                externalCalendarId: result.externalId || null,
-                credentialId: result.credentialId || null,
-              }));
+              .map((result) => BookingReferenceService.buildFromResult(result));
 
             // Preserve existing non-calendar references and add new calendar references
             const existingNonCalendarReferences = booking.references.filter(
