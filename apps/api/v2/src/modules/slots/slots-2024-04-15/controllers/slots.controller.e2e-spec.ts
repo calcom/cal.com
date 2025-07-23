@@ -250,7 +250,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotsRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let bookingSeatsRepositoryFixture: BookingSeatRepositoryFixture;
     let attendeesRepositoryFixture: AttendeeRepositoryFixture;
@@ -288,7 +288,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
@@ -773,7 +773,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlotUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
 
       await app.close();

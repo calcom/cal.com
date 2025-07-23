@@ -28,7 +28,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       teamRepo: teamRepository,
       routingFormResponseRepo: routingFormResponseRepository,
       bookingRepo: bookingRepository,
-      selectedSlotsRepo: selectedSlotsRepository,
+      selectedSlotRepo: selectedSlotsRepository,
       eventTypeRepo: eventTypeRepository,
       userRepo: userRepository,
     });

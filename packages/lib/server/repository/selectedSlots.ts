@@ -22,7 +22,7 @@ export type TimeSlot = {
   utcEndIso: string;
 };
 
-export class SelectedSlotsRepository {
+export class PrismaSelectedSlotRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async findMany({ where, select }: FindManyArgs) {
