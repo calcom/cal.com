@@ -947,7 +947,7 @@ export class InsightsBookingService {
       isOrgAdminOrOwner: boolean | null;
     }
   ) => {
-    EventsInsights.getCsvData(props);
+    return await EventsInsights.getCsvData(props);
   };
 
   async getFilterConditions(): Promise<Prisma.Sql | null> {

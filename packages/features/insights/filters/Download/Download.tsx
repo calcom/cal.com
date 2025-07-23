@@ -45,6 +45,8 @@ const Download = () => {
         offset,
       });
 
+      console.log("--- result", result);
+
       if (result && "data" in result && "total" in result) {
         return result as PaginatedResponse;
       }
