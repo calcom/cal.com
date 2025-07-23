@@ -47,7 +47,7 @@ import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTyp
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import type { SelectedSlotRepositoryInterface } from "@calcom/lib/server/repository/selectedSlots";
+import type { SelectedSlotRepositoryInterface } from "@calcom/lib/server/repository/selectedSlot";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
