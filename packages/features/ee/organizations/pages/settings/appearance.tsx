@@ -198,6 +198,7 @@ const OrgAppearanceView = ({
       />
 
       <SettingsToggle
+        data-testid={`${currentOrg?.id}-disable-auto-prefill-switch`}
         toggleSwitchAtTheEnd={true}
         title={t("disable_auto_prefill")}
         description={t("disable_auto_prefill_description")}
