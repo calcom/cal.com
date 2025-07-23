@@ -91,8 +91,6 @@ const EventType = forwardRef<
   const { organizationId } = useAtomsContext();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
-  const [, /* isOpenAssignmentWarnDialog */ setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
-  const [, /* pendingRoute */ setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = restProps;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: user, isLoading: isUserLoading } = useMe();
@@ -101,7 +99,6 @@ const EventType = forwardRef<
     showToast(t("event_type_deleted_successfully"), "success");
     isTeamEventTypeDeleted.current = true;
     setSlugExistsChildrenDialogOpen([]);
-    setIsOpenAssignmentWarnDialog(false);
     onDeleteSuccess?.();
   };
 
@@ -282,9 +279,8 @@ const EventType = forwardRef<
     hosts: eventType.hosts,
     assignAllTeamMembers: eventType.assignAllTeamMembers,
     isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
-    onError: (url) => {
-      setIsOpenAssignmentWarnDialog(true);
-      setPendingRoute(url);
+    onError: () => {
+      return;
     },
     onStart: () => {
       return;
