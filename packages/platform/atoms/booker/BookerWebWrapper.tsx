@@ -101,13 +101,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
-  // console.log("eventData", event.data.team);
-
   const disableAutoFillOnBookingPage =
     event.data?.team?.parent?.organizationSettings?.disableAutoFillOnBookingPage ?? false;
-  console.log("disableAutoFillOnBookingPage", disableAutoFillOnBookingPage);
-
-  console.log("--- session", session);
 
   const bookerForm = useBookingForm({
     event: event.data,
