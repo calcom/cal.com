@@ -1,6 +1,3 @@
-import type { IncomingMessage, OutgoingMessage } from "http";
-import type { NextRequest, NextResponse } from "next/server";
-
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -38,14 +35,6 @@ function getCspPolicy(nonce: string) {
 	`;
 }
 
-// Taken from @next-safe/middleware
-const isPagePathRequest = (url: URL) => {
-  const isNonPagePathPrefix = /^\/(?:_next|api)\//;
-  const isFile = /\..*$/;
-  const { pathname } = url;
-  return !isNonPagePathPrefix.test(pathname) && !isFile.test(pathname);
-};
-
 function safeParseString(value: unknown): { success: boolean; data?: string } {
   if (typeof value === "string") {
     return { success: true, data: value };
@@ -53,62 +42,24 @@ function safeParseString(value: unknown): { success: boolean; data?: string } {
   return { success: false };
 }
 
-export function csp(req: IncomingMessage | NextRequest | null, res: OutgoingMessage | NextResponse | null) {
-  if (!req) {
-    return { nonce: undefined };
-  }
-  const existingNonce = "cache" in req ? req.headers.get("x-nonce") : req.headers["x-nonce"];
-
-  if (existingNonce) {
-    const existingNoneParsed = safeParseString(existingNonce);
-    return { nonce: existingNoneParsed.success ? existingNoneParsed.data : "" };
-  }
-  if (!req.url) {
-    return { nonce: undefined };
-  }
-  const CSP_POLICY = process.env.CSP_POLICY;
-  const cspEnabledForInstance = CSP_POLICY;
+export function getCspNonce() {
   const nonce = buildNonce(crypto.getRandomValues(new Uint8Array(22)));
 
-  const parsedUrl = new URL(req.url, "http://base_url");
-  const cspEnabledForPage = cspEnabledForInstance && isPagePathRequest(parsedUrl);
-  if (!cspEnabledForPage) {
-    return {
-      nonce: undefined,
-    };
-  }
-  // Set x-nonce request header to be used by `getServerSideProps` or similar fns and `Document.getInitialProps` to read the nonce from
-  // It is generated for all page requests but only used by pages that need CSP
+  return nonce;
+}
 
-  if ("cache" in req) {
-    req.headers.set("x-nonce", nonce);
-  } else {
-    req.headers["x-nonce"] = nonce;
+export function getCspHeader({ shouldEnforceCsp, nonce }: { shouldEnforceCsp: boolean; nonce: string }) {
+  const cspHeaderName = shouldEnforceCsp
+    ? "Content-Security-Policy"
+    : /*"Content-Security-Policy-Report-Only"*/ null;
+
+  if (!cspHeaderName) {
+    return null;
   }
 
-  if (res) {
-    const enforced =
-      "cache" in req ? req.headers.get("x-csp-enforce") === "true" : req.headers["x-csp-enforce"] === "true";
+  const cspHeaderValue = getCspPolicy(nonce)
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
-    // No need to enable REPORT ONLY mode for CSP unless we start actively working on it. See https://github.com/calcom/cal.com/issues/13844
-    const name = enforced ? "Content-Security-Policy" : /*"Content-Security-Policy-Report-Only"*/ null;
-
-    if (!name) {
-      return {
-        nonce: undefined,
-      };
-    }
-
-    const value = getCspPolicy(nonce)
-      .replace(/\s{2,}/g, " ")
-      .trim();
-
-    if ("body" in res) {
-      res.headers.set(name, value);
-    } else {
-      res.setHeader(name, value);
-    }
-  }
-
-  return { nonce };
+  return { name: cspHeaderName, value: cspHeaderValue };
 }
