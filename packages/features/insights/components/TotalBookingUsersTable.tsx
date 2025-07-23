@@ -1,8 +1,8 @@
-import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
-
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui/components/avatar";
+
+import { ChartCardItem } from "./ChartCard";
 
 export const TotalBookingUsersTable = ({
   data,
@@ -19,38 +19,27 @@ export const TotalBookingUsersTable = ({
 }) => {
   const filteredData = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
   return (
-    <Table>
-      <TableBody>
-        <>
-          {filteredData.length > 0 ? (
-            filteredData.map((item) => (
-              <TableRow key={item.userId}>
-                <TableCell className="flex flex-row">
-                  <Avatar
-                    alt={item.user.name || ""}
-                    size="sm"
-                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
-                    title={item.user.name || ""}
-                    className="m-2"
-                  />
-                  <p className="text-default mx-0 my-auto">
-                    <strong>{item.user.name}</strong>
-                  </p>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text>
-                    <strong className="text-default">{item.count}</strong>
-                  </Text>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell>No members found</TableCell>
-            </TableRow>
-          )}
-        </>
-      </TableBody>
-    </Table>
+    <div className="overflow-hidden rounded-md">
+      {filteredData.length > 0 ? (
+        filteredData.map((item, index) => (
+          <ChartCardItem key={index} count={item.count} className="py-3">
+            <div className="flex items-center">
+              <Avatar
+                alt={item.user.name || ""}
+                size="sm"
+                imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
+                title={item.user.name || ""}
+                className="mr-3"
+              />
+              <div>{item.user.name}</div>
+            </div>
+          </ChartCardItem>
+        ))
+      ) : (
+        <div className="flex h-60 text-center">
+          <p className="m-auto text-sm font-light">No members found</p>
+        </div>
+      )}
+    </div>
   );
 };
