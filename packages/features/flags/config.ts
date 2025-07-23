@@ -5,6 +5,8 @@
 export type AppFlags = {
   "calendar-cache": boolean;
   "calendar-cache-serve": boolean;
+  "calendar-cache-sql-read": boolean;
+  "calendar-cache-sql-write": boolean;
   emails: boolean;
   insights: boolean;
   teams: boolean;

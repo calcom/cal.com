@@ -237,13 +237,15 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars   DestinationCalendar[]
-  selectedCalendars      SelectedCalendar[]
-  invalid                Boolean?              @default(false)
-  CalendarCache          CalendarCache[]
-  references             BookingReference[]
-  delegationCredentialId String?
-  delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  destinationCalendars           DestinationCalendar[]
+  selectedCalendars              SelectedCalendar[]
+  invalid                        Boolean?               @default(false)
+  CalendarCache                  CalendarCache[]
+  references                     BookingReference[]
+  delegationCredentialId         String?
+  delegationCredential           DelegationCredential?  @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  calendarSubscriptions          CalendarSubscription[]
+  delegatedCalendarSubscriptions CalendarSubscription[] @relation("CalendarSubscriptionDelegationCredential")
 
   @@index([appId])
   @@index([subscriptionId])
@@ -309,54 +311,55 @@ model TravelSchedule {
 
 // It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
-  id                  Int                  @id @default(autoincrement())
-  username            String?
-  name                String?
+  id                    Int                    @id @default(autoincrement())
+  username              String?
+  name                  String?
   /// @zod.custom(imports.emailSchema)
-  email               String
-  emailVerified       DateTime?
-  password            UserPassword?
-  bio                 String?
-  avatarUrl           String?
-  timeZone            String               @default("Europe/London")
-  travelSchedules     TravelSchedule[]
-  weekStart           String               @default("Sunday")
+  email                 String
+  emailVerified         DateTime?
+  password              UserPassword?
+  bio                   String?
+  avatarUrl             String?
+  timeZone              String                 @default("Europe/London")
+  travelSchedules       TravelSchedule[]
+  weekStart             String                 @default("Sunday")
   // DEPRECATED - TO BE REMOVED
-  startTime           Int                  @default(0)
-  endTime             Int                  @default(1440)
+  startTime             Int                    @default(0)
+  endTime               Int                    @default(1440)
   // </DEPRECATED>
-  bufferTime          Int                  @default(0)
-  hideBranding        Boolean              @default(false)
+  bufferTime            Int                    @default(0)
+  hideBranding          Boolean                @default(false)
   // TODO: should be renamed since it only affects the booking page
-  theme               String?
-  appTheme            String?
-  createdDate         DateTime             @default(now()) @map(name: "created")
-  trialEndsAt         DateTime?
-  lastActiveAt        DateTime?
-  eventTypes          EventType[]          @relation("user_eventtype")
-  credentials         Credential[]
-  teams               Membership[]
-  bookings            Booking[]
-  schedules           Schedule[]
-  defaultScheduleId   Int?
-  selectedCalendars   SelectedCalendar[]
-  completedOnboarding Boolean              @default(false)
-  locale              String?
-  timeFormat          Int?                 @default(12)
-  twoFactorSecret     String?
-  twoFactorEnabled    Boolean              @default(false)
-  backupCodes         String?
-  identityProvider    IdentityProvider     @default(CAL)
-  identityProviderId  String?
-  availability        Availability[]
-  invitedTo           Int?
-  webhooks            Webhook[]
-  brandColor          String?
-  darkBrandColor      String?
+  theme                 String?
+  appTheme              String?
+  createdDate           DateTime               @default(now()) @map(name: "created")
+  trialEndsAt           DateTime?
+  lastActiveAt          DateTime?
+  eventTypes            EventType[]            @relation("user_eventtype")
+  credentials           Credential[]
+  teams                 Membership[]
+  bookings              Booking[]
+  schedules             Schedule[]
+  defaultScheduleId     Int?
+  selectedCalendars     SelectedCalendar[]
+  calendarSubscriptions CalendarSubscription[]
+  completedOnboarding   Boolean                @default(false)
+  locale                String?
+  timeFormat            Int?                   @default(12)
+  twoFactorSecret       String?
+  twoFactorEnabled      Boolean                @default(false)
+  backupCodes           String?
+  identityProvider      IdentityProvider       @default(CAL)
+  identityProviderId    String?
+  availability          Availability[]
+  invitedTo             Int?
+  webhooks              Webhook[]
+  brandColor            String?
+  darkBrandColor        String?
   // the location where the events will end up
-  destinationCalendar DestinationCalendar?
+  destinationCalendar   DestinationCalendar?
   // participate in dynamic group booking or not
-  allowDynamicBooking Boolean?             @default(true)
+  allowDynamicBooking   Boolean?               @default(true)
 
   // participate in SEO indexing or not
   allowSEOIndexing Boolean? @default(true)
@@ -1555,6 +1558,86 @@ model TeamFeatures {
 
   @@id([teamId, featureId])
   @@index([teamId, featureId])
+}
+
+model CalendarSubscription {
+  id                     String @id @default(uuid())
+  userId                 Int
+  integration            String // "google_calendar", etc.
+  externalId             String // Calendar ID from provider
+  credentialId           Int?
+  delegationCredentialId Int?
+
+  // Webhook subscription details
+  googleChannelId         String?
+  googleChannelToken      String?
+  googleChannelExpiration String?
+  nextSyncToken           String?
+
+  // Sync management
+  lastFullSync  DateTime?
+  syncErrors    Int       @default(0)
+  maxSyncErrors Int       @default(5)
+  backoffUntil  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credential           Credential?     @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  delegationCredential Credential?     @relation("CalendarSubscriptionDelegationCredential", fields: [delegationCredentialId], references: [id], onDelete: Cascade)
+  events               CalendarEvent[]
+
+  @@unique([userId, integration, externalId])
+  @@index([googleChannelExpiration, syncErrors, backoffUntil])
+  @@index([nextSyncToken])
+  @@index([userId, integration])
+}
+
+model CalendarEvent {
+  id                     String @id @default(uuid())
+  calendarSubscriptionId String
+
+  // Google Calendar event data
+  googleEventId String
+  iCalUID       String?
+  etag          String
+  sequence      Int     @default(0)
+
+  // Event details
+  summary     String?
+  description String?
+  location    String?
+  start       DateTime
+  end         DateTime
+  isAllDay    Boolean  @default(false)
+
+  // Event metadata
+  status       String @default("confirmed") // confirmed, tentative, cancelled
+  transparency String @default("opaque") // opaque, transparent
+  visibility   String @default("default") // default, public, private
+
+  // Recurring events
+  recurringEventId  String?
+  originalStartTime DateTime?
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  googleCreatedAt DateTime?
+  googleUpdatedAt DateTime?
+
+  // Relations
+  calendarSubscription CalendarSubscription @relation(fields: [calendarSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarSubscriptionId, googleEventId])
+  @@index([calendarSubscriptionId, start, end])
+  @@index([calendarSubscriptionId, iCalUID])
+  @@index([updatedAt, calendarSubscriptionId])
+  @@index([start, end, status]) // For availability queries
+  @@index([googleEventId])
 }
 
 enum FeatureType {

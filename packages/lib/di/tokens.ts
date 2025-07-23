@@ -20,4 +20,10 @@ export const DI_TOKENS = {
   ROUTING_FORM_RESPONSE_REPOSITORY_MODULE: Symbol("RoutingFormResponseRepositoryModule"),
   AVAILABLE_SLOTS_SERVICE: Symbol("AvailableSlotsService"),
   AVAILABLE_SLOTS_SERVICE_MODULE: Symbol("AvailableSlotsModule"),
+  CALENDAR_SUBSCRIPTION_REPOSITORY: Symbol("CalendarSubscriptionRepository"),
+  CALENDAR_SUBSCRIPTION_REPOSITORY_MODULE: Symbol("CalendarSubscriptionRepositoryModule"),
+  CALENDAR_EVENT_REPOSITORY: Symbol("CalendarEventRepository"),
+  CALENDAR_EVENT_REPOSITORY_MODULE: Symbol("CalendarEventRepositoryModule"),
+  CALENDAR_CACHE_SQL_SERVICE: Symbol("CalendarCacheSqlService"),
+  CALENDAR_CACHE_SQL_SERVICE_MODULE: Symbol("CalendarCacheSqlServiceModule"),
 };

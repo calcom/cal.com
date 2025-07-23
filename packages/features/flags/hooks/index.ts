@@ -6,6 +6,8 @@ const initialData: AppFlags = {
   teams: false,
   "calendar-cache": false,
   "calendar-cache-serve": false,
+  "calendar-cache-sql-read": false,
+  "calendar-cache-sql-write": false,
   emails: false,
   insights: false,
   webhooks: false,
