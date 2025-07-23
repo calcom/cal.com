@@ -1442,20 +1442,18 @@ model WorkflowReminder {
 }
 
 model WebhookScheduledTriggers {
-  id             Int            @id @default(autoincrement())
-  jobName        String? // jobName is deprecated, not needed when webhook and booking is set
-  subscriberUrl  String
-  payload        String
-  startAfter     DateTime
-  retryCount     Int            @default(0)
-  createdAt      DateTime?      @default(now())
-  appId          String?
-  webhookId      String?
-  webhook        Webhook?       @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-  bookingId      Int?
-  booking        Booking?       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  selectedSlotId Int?
-  SelectedSlots  SelectedSlots? @relation(fields: [selectedSlotId], references: [id], onDelete: Cascade)
+  id            Int       @id @default(autoincrement())
+  jobName       String? // jobName is deprecated, not needed when webhook and booking is set
+  subscriberUrl String
+  payload       String
+  startAfter    DateTime
+  retryCount    Int       @default(0)
+  createdAt     DateTime? @default(now())
+  appId         String?
+  webhookId     String?
+  webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  bookingId     Int?
+  booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {
@@ -1579,15 +1577,14 @@ enum RRTimestampBasis {
 }
 
 model SelectedSlots {
-  id                Int                        @id @default(autoincrement())
-  eventTypeId       Int
-  userId            Int
-  slotUtcStartDate  DateTime
-  slotUtcEndDate    DateTime
-  uid               String
-  releaseAt         DateTime
-  isSeat            Boolean                    @default(false)
-  scheduledTriggers WebhookScheduledTriggers[]
+  id               Int      @id @default(autoincrement())
+  eventTypeId      Int
+  userId           Int
+  slotUtcStartDate DateTime
+  slotUtcEndDate   DateTime
+  uid              String
+  releaseAt        DateTime
+  isSeat           Boolean  @default(false)
 
   @@unique(fields: [userId, slotUtcStartDate, slotUtcEndDate, uid], name: "selectedSlotUnique")
 }
