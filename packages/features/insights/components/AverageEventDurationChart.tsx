@@ -1,4 +1,6 @@
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
@@ -9,17 +11,18 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { timeZone } = useDataTable();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
+      scope,
+      selectedTeamId,
       startDate,
       endDate,
-      teamId,
+      timeZone: timeZone || CURRENT_TIMEZONE,
       eventTypeId,
       memberUserId,
-      userId,
-      isAll,
     },
     {
       staleTime: 30000,
@@ -32,7 +35,7 @@ export const AverageEventDurationChart = () => {
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
-  const isNoData = data.every((item) => item["Average"] === 0);
+  const isNoData = data.every((item: { Date: string; Average: number }) => item["Average"] === 0);
   return (
     <ChartCard title={t("average_event_duration")}>
       {isNoData && (

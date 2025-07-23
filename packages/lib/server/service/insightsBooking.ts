@@ -7,6 +7,52 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
+// Type definition for BookingTimeStatusDenormalized view
+export type BookingTimeStatusDenormalized = z.infer<typeof bookingDataSchema>;
+
+// Helper type for select parameter
+export type BookingSelect = {
+  [K in keyof BookingTimeStatusDenormalized]?: boolean;
+};
+
+// Zod schema for the actual data shape (matching Prisma schema)
+export const bookingDataSchema = z
+  .object({
+    id: z.number(),
+    uid: z.string(),
+    eventTypeId: z.number().nullable(),
+    title: z.string(),
+    description: z.string().nullable(),
+    startTime: z.date(),
+    endTime: z.date(),
+    createdAt: z.date(),
+    updatedAt: z.date().nullable(),
+    location: z.string().nullable(),
+    paid: z.boolean(),
+    status: z.string(), // BookingStatus enum
+    rescheduled: z.boolean().nullable(),
+    userId: z.number().nullable(),
+    teamId: z.number().nullable(),
+    eventLength: z.number().nullable(),
+    eventParentId: z.number().nullable(),
+    userEmail: z.string().nullable(),
+    userName: z.string().nullable(),
+    userUsername: z.string().nullable(),
+    ratingFeedback: z.string().nullable(),
+    rating: z.number().nullable(),
+    noShowHost: z.boolean().nullable(),
+    isTeamBooking: z.boolean(),
+    timeStatus: z.string().nullable(),
+  })
+  .strict();
+
+// Zod schema for runtime validation of select parameter (derived from data schema)
+export const bookingSelectSchema = z
+  .object(
+    Object.fromEntries(Object.keys(bookingDataSchema.shape).map((key) => [key, z.boolean().optional()]))
+  )
+  .strict();
+
 export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
@@ -38,9 +84,14 @@ export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServic
 export type InsightsBookingServiceFilterOptions = {
   eventTypeId?: number;
   memberUserId?: number;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
 };
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
+
+const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
 export class InsightsBookingService {
   private prisma: typeof readonlyPrisma;
@@ -109,6 +160,37 @@ export class InsightsBookingService {
     }));
   }
 
+  async findAll<TSelect extends BookingSelect>({
+    select,
+  }: {
+    select?: TSelect;
+  } = {}): Promise<
+    Array<Pick<BookingTimeStatusDenormalized, Extract<keyof TSelect, keyof BookingTimeStatusDenormalized>>>
+  > {
+    const baseConditions = await this.getBaseConditions();
+
+    // Build the select clause with validated fields
+    let selectFields = "*";
+    if (select) {
+      const keys = Object.keys(select);
+      if (keys.length === 0 || keys.some((key) => !bookingDataKeys.has(key))) {
+        throw new Error("Invalid select keys provided");
+      }
+
+      selectFields = keys.map((field) => `"${field}"`).join(", ");
+    }
+
+    const results = await this.prisma.$queryRaw<
+      Array<Pick<BookingTimeStatusDenormalized, Extract<keyof TSelect, keyof BookingTimeStatusDenormalized>>>
+    >`
+      SELECT ${Prisma.raw(selectFields)}
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    `;
+
+    return results;
+  }
+
   async getBaseConditions(): Promise<Prisma.Sql> {
     const authConditions = await this.getAuthorizationConditions();
     const filterConditions = await this.getFilterConditions();
@@ -155,6 +237,18 @@ export class InsightsBookingService {
       conditions.push(Prisma.sql`"userId" = ${this.filters.memberUserId}`);
     }
 
+    if (this.filters.startDate) {
+      conditions.push(Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp`);
+    }
+
+    if (this.filters.endDate) {
+      conditions.push(Prisma.sql`"createdAt" <= ${this.filters.endDate}::timestamp`);
+    }
+
+    if (this.filters.status) {
+      conditions.push(Prisma.sql`"status" = ${this.filters.status}`);
+    }
+
     if (conditions.length === 0) {
       return null;
     }
@@ -178,9 +272,13 @@ export class InsightsBookingService {
     if (this.options.scope === "user") {
       return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
     } else if (this.options.scope === "org") {
-      return await this.buildOrgAuthorizationCondition(this.options);
+      return await this.buildOrgAuthorizationCondition(
+        this.options as Extract<InsightsBookingServiceOptions, { scope: "org" }>
+      );
     } else if (this.options.scope === "team") {
-      return await this.buildTeamAuthorizationCondition(this.options);
+      return await this.buildTeamAuthorizationCondition(
+        this.options as Extract<InsightsBookingServiceOptions, { scope: "team" }>
+      );
     } else {
       return NOTHING_CONDITION;
     }
