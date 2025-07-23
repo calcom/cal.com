@@ -66,11 +66,11 @@ describe("applyTheme", () => {
     expect(() => reconstructedFn()).not.toThrow();
   });
 
-  it("should add light theme when no booking theme is found", () => {
+  it("should not add any theme when no app-theme is found", () => {
     reconstructedFn();
 
-    expect(mockRequestAnimationFrame).toHaveBeenCalled();
-    expect(addedClasses).toContain("light");
+    expect(mockRequestAnimationFrame).not.toHaveBeenCalled();
+    expect(addedClasses).toHaveLength(0);
   });
 
   it("should handle localStorage errors gracefully", () => {
@@ -88,10 +88,10 @@ describe("applyTheme", () => {
     });
 
     expect(() => reconstructedFn()).not.toThrow();
-    expect(addedClasses).toContain("light");
+    expect(addedClasses).toHaveLength(0);
   });
 
-  it("should apply booking theme when found", () => {
+  it("should apply booking theme when app-theme exists and on booking page", () => {
     const username = "testuser";
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -102,6 +102,7 @@ describe("applyTheme", () => {
       return null;
     });
     mockLocalStorage.getItem = vi.fn((key: string) => {
+      if (key === "app-theme") return "light";
       if (key === `booking-theme:${username}`) return "dark";
       return null;
     });
@@ -125,6 +126,7 @@ describe("applyTheme", () => {
       return null;
     });
     mockLocalStorage.getItem = vi.fn((key: string) => {
+      if (key === "app-theme") return "light";
       if (key === "booking-theme:testuser") return "dark";
       return null;
     });
@@ -136,5 +138,20 @@ describe("applyTheme", () => {
     reconstructedFn();
 
     expect(addedClasses).toContain("light");
+  });
+
+  it("should apply app theme when app-theme exists but no booking theme", () => {
+    mockLocalStorage.getItem = vi.fn((key: string) => {
+      if (key === "app-theme") return "dark";
+      return null;
+    });
+    Object.defineProperty(mockLocalStorage, "length", {
+      get: () => 0,
+      configurable: true,
+    });
+
+    reconstructedFn();
+
+    expect(addedClasses).toContain("dark");
   });
 });

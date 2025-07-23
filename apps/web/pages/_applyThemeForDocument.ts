@@ -29,7 +29,7 @@ export const applyTheme = function () {
       },
     };
 
-    const appTheme = "light";
+    const appTheme = safeLocalStorage.getItem("app-theme");
     if (!appTheme) return;
 
     let bookingTheme: string | null = null;
