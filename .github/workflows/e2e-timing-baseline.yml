@@ -1,0 +1,174 @@
+name: E2E Timing Baseline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "devin/optimize-e2e-tests-*" ]
+
+jobs:
+  e2e-timing:
+    timeout-minutes: 60
+    name: E2E Tests with Timing
+    runs-on: buildjet-8vcpu-ubuntu-2204
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/calendso"
+      DATABASE_DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/calendso"
+      NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
+      CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+      NEXT_PUBLIC_WEBAPP_URL: "http://localhost:3000"
+      NEXT_PUBLIC_WEBSITE_URL: "http://localhost:3000"
+      NEXTAUTH_URL: "http://localhost:3000"
+      E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
+      E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}
+      PLAYWRIGHT_HEADLESS: 1
+      NEXT_PUBLIC_IS_E2E: 1
+      STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+      STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+      PAYMENT_FEE_PERCENTAGE: 0.005
+      PAYMENT_FEE_FIXED: 10
+      SAML_DATABASE_URL: ${{ secrets.SAML_DATABASE_URL }}
+      SAML_ADMINS: pro@example.com
+      NEXTAUTH_COOKIE_DOMAIN: .cal.local
+      EMAIL_FROM: e2e@cal.com
+      NEXT_PUBLIC_SENDER_ID: Cal
+      NEXT_PUBLIC_SENDGRID_SENDER_NAME: Cal.com
+      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+      TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+
+    services:
+      postgres:
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calendso
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      mailhog:
+        image: mailhog/mailhog
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Use Node 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+
+      - name: Cache dependencies
+        uses: ./.github/actions/yarn-install
+
+      - name: Cache database
+        uses: ./.github/actions/cache-db
+
+      - name: Cache build
+        uses: ./.github/actions/cache-build
+
+      - name: Start timing measurement
+        run: |
+          echo "E2E_START_TIME=$(date +%s)" >> $GITHUB_ENV
+          echo "Starting E2E tests at $(date)"
+
+      - name: Run E2E tests with timing
+        run: |
+          echo "Running shard ${{ matrix.shard }}/3"
+          yarn e2e --shard=${{ matrix.shard }}/3 --reporter=html,json
+        env:
+          NEXT_PUBLIC_IS_E2E: 1
+
+      - name: Calculate execution time
+        if: always()
+        run: |
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - E2E_START_TIME))
+          echo "E2E execution time for shard ${{ matrix.shard }}: ${DURATION} seconds"
+          echo "SHARD_DURATION=${DURATION}" >> $GITHUB_ENV
+          
+          # Create timing report
+          mkdir -p timing-reports
+          echo "{\"shard\": ${{ matrix.shard }}, \"duration\": ${DURATION}, \"timestamp\": \"$(date -Iseconds)\"}" > timing-reports/shard-${{ matrix.shard }}-timing.json
+
+      - name: Upload timing report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: timing-report-shard-${{ matrix.shard }}
+          path: timing-reports/
+          retention-days: 30
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-shard-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
+  timing-summary:
+    needs: e2e-timing
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all timing reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: timing-report-shard-*
+          merge-multiple: true
+          path: timing-reports/
+
+      - name: Generate timing summary
+        run: |
+          echo "# E2E Test Timing Summary" > timing-summary.md
+          echo "" >> timing-summary.md
+          echo "| Shard | Duration (seconds) | Duration (minutes) |" >> timing-summary.md
+          echo "|-------|-------------------|-------------------|" >> timing-summary.md
+          
+          total_duration=0
+          for file in timing-reports/*.json; do
+            if [ -f "$file" ]; then
+              shard=$(jq -r '.shard' "$file")
+              duration=$(jq -r '.duration' "$file")
+              minutes=$((duration / 60))
+              seconds=$((duration % 60))
+              echo "| $shard | $duration | ${minutes}m ${seconds}s |" >> timing-summary.md
+              total_duration=$((total_duration + duration))
+            fi
+          done
+          
+          total_minutes=$((total_duration / 60))
+          total_seconds=$((total_duration % 60))
+          echo "" >> timing-summary.md
+          echo "**Total execution time across all shards: ${total_duration}s (${total_minutes}m ${total_seconds}s)**" >> timing-summary.md
+          echo "" >> timing-summary.md
+          echo "Generated at: $(date -Iseconds)" >> timing-summary.md
+          
+          cat timing-summary.md
+
+      - name: Upload timing summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: timing-summary
+          path: timing-summary.md
+          retention-days: 30
