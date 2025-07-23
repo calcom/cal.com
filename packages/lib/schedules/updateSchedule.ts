@@ -65,6 +65,10 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
     updatedUser = setupDefault;
   }
 
+  if (typeof input.name === "string" && input.name.trim().length === 0) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Schedule name cannot be empty" });
+  }
+
   if (!input.name) {
     // TODO: Improve
     // We don't want to pass the full schedule for just a set as default update
