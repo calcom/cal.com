@@ -7,8 +7,9 @@ import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { applyTheme } from "@lib/_applyThemeForDocument";
 import { csp } from "@lib/csp";
+
+import { applyTheme } from "./_applyThemeForDocument";
 
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 function setHeader(ctx: NextPageContext, name: string, value: string) {
