@@ -35,7 +35,7 @@ export const AverageEventDurationChart = () => {
   if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !data) return null;
-  const isNoData = data.every((item: { Date: string; Average: number }) => item["Average"] === 0);
+  const isNoData = data.every((item) => item["Average"] === 0);
   return (
     <ChartCard title={t("average_event_duration")}>
       {isNoData && (

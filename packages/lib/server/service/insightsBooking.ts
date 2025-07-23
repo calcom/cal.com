@@ -85,7 +85,6 @@ export const insightsBookingServiceFilterOptionsSchema = z.object({
       endDate: z.string(),
     })
     .optional(),
-  status: z.string().optional(),
 });
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
@@ -130,6 +129,7 @@ export class InsightsBookingService {
         COUNT(*)::int as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
+        AND "status" = 'accepted'
       GROUP BY 1
       ORDER BY 1
     `;
@@ -236,10 +236,6 @@ export class InsightsBookingService {
         }
         conditions.push(Prisma.sql`"${Prisma.raw(target)}" <= ${endDate}::timestamp`);
       }
-    }
-
-    if (this.filters.status) {
-      conditions.push(Prisma.sql`"status" = ${this.filters.status}`);
     }
 
     if (conditions.length === 0) {

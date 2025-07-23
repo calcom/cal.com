@@ -1775,7 +1775,6 @@ export const insightsRouter = router({
         filters: {
           ...(eventTypeId && { eventTypeId }),
           ...(memberUserId && { memberUserId }),
-          status: "accepted",
           dateRange: {
             target: "startTime",
             startDate,
