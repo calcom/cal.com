@@ -16,7 +16,6 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
-import type { WithNonceProps } from "@lib/withNonce";
 
 import type { PageWrapperProps } from "@components/PageWrapperAppDir";
 
@@ -26,10 +25,11 @@ import { getThemeProviderProps } from "./getThemeProviderProps";
 export type AppProps = Omit<
   NextAppProps<
     WithLocaleProps<
-      WithNonceProps<{
+      {
+        nonce: string | undefined;
         themeBasis?: string;
         session: Session;
-      }>
+      }
     >
   >,
   "Component"

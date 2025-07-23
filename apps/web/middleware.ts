@@ -54,10 +54,8 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   if (postCheckResult) return postCheckResult;
 
   const isStaticFile = checkStaticFiles(req.nextUrl.pathname);
-  console.log("isStaticFile", isStaticFile);
   if (isStaticFile) return isStaticFile;
 
-  console.log("middleware", req.nextUrl.pathname);
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
