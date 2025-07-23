@@ -1519,7 +1519,7 @@ export const insightsRouter = router({
 
     const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
     try {
-      return await EventsInsights.getCsvData({
+      return await InsightsBookingService.getCsvData({
         startDate,
         endDate,
         teamId,
