@@ -157,11 +157,13 @@ export class InsightsBookingService {
     let selectFields = "*";
     if (select) {
       const keys = Object.keys(select);
-      if (keys.length === 0 || keys.some((key) => !bookingDataKeys.has(key))) {
+      if (keys.some((key) => !bookingDataKeys.has(key))) {
         throw new Error("Invalid select keys provided");
       }
 
-      selectFields = keys.map((field) => `"${field}"`).join(", ");
+      if (keys.length > 0) {
+        selectFields = keys.map((field) => `"${field}"`).join(", ");
+      }
     }
 
     const results = await this.prisma.$queryRaw<
