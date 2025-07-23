@@ -30,30 +30,15 @@ async function postHandler(req: NextRequest) {
     }
 
     const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
-    const selectedCalendars = await SelectedCalendarRepository.getNextBatchToWatch(50);
+    const selectedCalendars = await SelectedCalendarRepository.getNextBatchForSqlCache(50);
 
     let createdCount = 0;
     let errorCount = 0;
 
     for (const selectedCalendar of selectedCalendars) {
       try {
-        const hasFeature = await featuresRepo.checkIfUserHasFeature(
-          selectedCalendar.userId,
-          "calendar-cache-sql-write"
-        );
-
-        if (!hasFeature) continue;
-
         await subscriptionRepo.upsert({
-          user: { connect: { id: selectedCalendar.userId } },
-          integration: selectedCalendar.integration,
-          externalId: selectedCalendar.externalId,
-          credential: selectedCalendar.credentialId
-            ? { connect: { id: selectedCalendar.credentialId } }
-            : undefined,
-          delegationCredential: selectedCalendar.delegationCredentialId
-            ? { connect: { id: parseInt(selectedCalendar.delegationCredentialId) } }
-            : undefined,
+          selectedCalendar: { connect: { id: selectedCalendar.id } },
         });
 
         createdCount++;
@@ -71,17 +56,17 @@ async function postHandler(req: NextRequest) {
 
     for (const subscription of subscriptionsToWatch) {
       try {
-        if (!subscription.credential) continue;
+        if (!subscription.selectedCalendar?.credential) continue;
 
         const credentialForCalendarCache = await getCredentialForCalendarCache({
-          credentialId: subscription.credential.id,
+          credentialId: subscription.selectedCalendar.credential.id,
         });
         const calendarService = await getCalendar(credentialForCalendarCache);
 
         if (!calendarService?.watchCalendar) continue;
 
         await calendarService.watchCalendar({
-          calendarId: subscription.externalId,
+          calendarId: subscription.selectedCalendar.externalId,
           eventTypeIds: [],
         });
 

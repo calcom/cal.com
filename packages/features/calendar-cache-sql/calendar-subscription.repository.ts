@@ -8,19 +8,18 @@ import type { ICalendarSubscriptionRepository } from "./calendar-subscription.re
 export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findByUserAndCalendar(userId: number, integration: string, externalId: string) {
+  async findBySelectedCalendar(selectedCalendarId: string) {
     try {
       return await this.prismaClient.calendarSubscription.findUnique({
         where: {
-          userId_integration_externalId: {
-            userId,
-            integration,
-            externalId,
-          },
+          selectedCalendarId,
         },
         include: {
-          user: true,
-          credential: true,
+          selectedCalendar: {
+            include: {
+              credential: true,
+            },
+          },
         },
       });
     } catch (err) {
@@ -36,8 +35,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
           googleChannelId: channelId,
         },
         include: {
-          user: true,
-          credential: true,
+          selectedCalendar: {
+            include: {
+              credential: true,
+            },
+          },
         },
       });
     } catch (err) {
@@ -50,11 +52,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     try {
       return await this.prismaClient.calendarSubscription.upsert({
         where: {
-          userId_integration_externalId: {
-            userId: data.user.connect!.id as number,
-            integration: data.integration,
-            externalId: data.externalId,
-          },
+          selectedCalendarId: data.selectedCalendar.connect!.id as string,
         },
         create: data,
         update: {
@@ -113,26 +111,31 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       return await this.prismaClient.calendarSubscription.findMany({
         take: limit,
         where: {
-          user: {
-            teams: {
-              some: {
-                team: {
-                  features: {
-                    some: {
-                      featureId: "calendar-cache-sql-write",
+          selectedCalendar: {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    features: {
+                      some: {
+                        featureId: "calendar-cache-sql-write",
+                      },
                     },
                   },
                 },
               },
             },
+            integration: "google_calendar",
           },
-          integration: "google_calendar",
           syncErrors: { lt: 5 },
           OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
         },
         include: {
-          user: true,
-          credential: true,
+          selectedCalendar: {
+            include: {
+              credential: true,
+            },
+          },
         },
       });
     } catch (err) {

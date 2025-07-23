@@ -435,4 +435,29 @@ export class SelectedCalendarRepository {
       unwatchAttempts: 0,
     });
   }
+
+  static async getNextBatchForSqlCache(limit = 100) {
+    const nextBatch = await prisma.selectedCalendar.findMany({
+      take: limit,
+      where: {
+        user: {
+          teams: {
+            some: {
+              team: {
+                features: {
+                  some: {
+                    featureId: "calendar-cache-sql-write",
+                  },
+                },
+              },
+            },
+          },
+        },
+        integration: "google_calendar",
+        calendarSubscription: null,
+        eventTypeId: null,
+      },
+    });
+    return nextBatch;
+  }
 }

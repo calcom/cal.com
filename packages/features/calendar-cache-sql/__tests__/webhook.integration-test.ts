@@ -20,9 +20,11 @@ vi.mock("@calcom/features/calendar-cache-sql/calendar-subscription.repository", 
   CalendarSubscriptionRepository: vi.fn().mockImplementation(() => ({
     findByChannelId: vi.fn().mockResolvedValue({
       id: "subscription-id",
-      credential: { id: 1 },
-      integration: "google_calendar",
-      externalId: "test@example.com",
+      selectedCalendar: {
+        credential: { id: 1 },
+        integration: "google_calendar",
+        externalId: "test@example.com",
+      },
     }),
   })),
 }));

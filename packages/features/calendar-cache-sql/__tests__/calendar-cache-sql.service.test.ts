@@ -11,7 +11,7 @@ describe("CalendarCacheSqlService", () => {
 
   beforeEach(() => {
     mockSubscriptionRepo = {
-      findByUserAndCalendar: vi.fn(),
+      findBySelectedCalendar: vi.fn(),
       findByChannelId: vi.fn(),
       upsert: vi.fn(),
       updateSyncToken: vi.fn(),
@@ -55,13 +55,11 @@ describe("CalendarCacheSqlService", () => {
         },
       ];
 
-      vi.mocked(mockSubscriptionRepo.findByUserAndCalendar).mockResolvedValue(mockSubscription as any);
+      vi.mocked(mockSubscriptionRepo.findBySelectedCalendar).mockResolvedValue(mockSubscription as any);
       vi.mocked(mockEventRepo.getEventsForAvailability).mockResolvedValue(mockEvents as any);
 
       const result = await service.getAvailability(
-        1,
-        "google_calendar",
-        "test@example.com",
+        "selected-calendar-id",
         new Date("2024-01-01T09:00:00Z"),
         new Date("2024-01-01T17:00:00Z")
       );
@@ -83,13 +81,11 @@ describe("CalendarCacheSqlService", () => {
     });
 
     it("should throw error if subscription not found", async () => {
-      vi.mocked(mockSubscriptionRepo.findByUserAndCalendar).mockResolvedValue(null);
+      vi.mocked(mockSubscriptionRepo.findBySelectedCalendar).mockResolvedValue(null);
 
       await expect(
         service.getAvailability(
-          1,
-          "google_calendar",
-          "test@example.com",
+          "selected-calendar-id",
           new Date("2024-01-01T09:00:00Z"),
           new Date("2024-01-01T17:00:00Z")
         )
@@ -108,14 +104,10 @@ describe("CalendarCacheSqlService", () => {
 
       vi.mocked(mockSubscriptionRepo.upsert).mockResolvedValue(mockSubscription as any);
 
-      const result = await service.ensureSubscription(1, "google_calendar", "test@example.com", 123);
+      const result = await service.ensureSubscription("selected-calendar-id");
 
       expect(mockSubscriptionRepo.upsert).toHaveBeenCalledWith({
-        user: { connect: { id: 1 } },
-        integration: "google_calendar",
-        externalId: "test@example.com",
-        credential: { connect: { id: 123 } },
-        delegationCredential: undefined,
+        selectedCalendar: { connect: { id: "selected-calendar-id" } },
       });
 
       expect(result).toEqual(mockSubscription);

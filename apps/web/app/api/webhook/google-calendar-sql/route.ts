@@ -44,13 +44,13 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({ message: "ok" });
     }
 
-    if (!subscription.credential) {
+    if (!subscription.selectedCalendar?.credential) {
       log.info("No credential found for subscription", { channelId });
       return NextResponse.json({ message: "ok" });
     }
 
     const credentialForCalendarCache = await getCredentialForCalendarCache({
-      credentialId: subscription.credential.id,
+      credentialId: subscription.selectedCalendar.credential.id,
     });
     const calendarService = await getCalendar(credentialForCalendarCache);
 
@@ -59,13 +59,7 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({ message: "Calendar service unavailable" }, { status: 500 });
     }
 
-    await calendarService.fetchAvailabilityAndSetCache?.([
-      {
-        integration: subscription.integration,
-        externalId: subscription.externalId,
-        credentialId: subscription.credentialId,
-      },
-    ]);
+    await calendarService.fetchAvailabilityAndSetCache?.([subscription.selectedCalendar]);
 
     return NextResponse.json({ message: "ok" });
   } catch (error) {

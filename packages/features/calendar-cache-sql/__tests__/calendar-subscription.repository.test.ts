@@ -12,75 +12,43 @@ describe("CalendarSubscriptionRepository", () => {
     prismock.calendarSubscription.deleteMany();
   });
 
-  describe("findByUserAndCalendar", () => {
-    it("should find subscription by user and calendar", async () => {
+  describe("findBySelectedCalendar", () => {
+    it("should find subscription by selected calendar ID", async () => {
       const mockSubscription = {
         id: "test-id",
-        userId: 1,
-        integration: "google_calendar",
-        externalId: "test@example.com",
-        credentialId: 1,
+        selectedCalendarId: "selected-calendar-id",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       prismock.calendarSubscription.create({ data: mockSubscription });
 
-      const result = await repository.findByUserAndCalendar(1, "google_calendar", "test@example.com");
+      const result = await repository.findBySelectedCalendar("selected-calendar-id");
 
       expect(result).toEqual(
         expect.objectContaining({
-          userId: 1,
-          integration: "google_calendar",
-          externalId: "test@example.com",
+          selectedCalendarId: "selected-calendar-id",
         })
       );
     });
 
     it("should return null if subscription not found", async () => {
-      const result = await repository.findByUserAndCalendar(
-        999,
-        "google_calendar",
-        "nonexistent@example.com"
-      );
+      const result = await repository.findBySelectedCalendar("nonexistent-calendar-id");
       expect(result).toBeNull();
     });
   });
 
   describe("upsert", () => {
     it("should create new subscription if not exists", async () => {
-      const mockSubscription = {
-        id: "test-id",
-        userId: 1,
-        integration: "google_calendar",
-        externalId: "test@example.com",
-        credentialId: 1,
-        delegationCredentialId: null,
-        googleChannelId: null,
-        googleChannelToken: null,
-        googleChannelExpiration: null,
-        nextSyncToken: null,
-        lastFullSync: null,
-        syncErrors: 0,
-        maxSyncErrors: 5,
-        backoffUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       const data = {
-        user: { connect: { id: 1 } },
-        integration: "google_calendar",
-        externalId: "test@example.com",
-        credential: { connect: { id: 1 } },
+        selectedCalendar: { connect: { id: "selected-calendar-id" } },
       };
 
       const result = await repository.upsert(data);
 
       expect(result).toEqual(
         expect.objectContaining({
-          integration: "google_calendar",
-          externalId: "test@example.com",
+          id: expect.any(String),
         })
       );
     });
