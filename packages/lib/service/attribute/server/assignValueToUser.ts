@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { reassignEventTypesBasedOnAttributes } from "@calcom/lib/server/eventTypeAttributeReassignment";
 import prisma from "@calcom/prisma";
 
 import { AttributeRepository } from "../../../server/repository/attribute";
@@ -502,6 +503,15 @@ export const assignValueToUserInOrgBulk = async ({
     numOfAttributeOptionsDeleted,
     numOfAttributeOptionsUpdated,
   });
+
+  try {
+    await reassignEventTypesBasedOnAttributes({
+      orgId,
+      affectedUserIds: [userId],
+    });
+  } catch (error) {
+    log.error("Failed to reassign event types after attribute update:", error);
+  }
 
   return {
     numOfAttributeOptionsSet,
