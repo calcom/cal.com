@@ -409,6 +409,17 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  const obfuscate = (value = "", visibleChars = 1) => {
+    if (!value) return "";
+    return value.substring(0, visibleChars) + "•".repeat(Math.max(0, value.length - visibleChars));
+  };
+
+  const obfuscateEmail = (email = "") => {
+    if (!email || !email.includes("@")) return obfuscate(email, 2);
+    const [user, domain] = email.split("@");
+    return `${obfuscate(user, 2)}@${domain}`;
+  };
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -615,13 +626,19 @@ export default function Success(props: PageProps) {
                                 <div className="mb-3">
                                   <div>
                                     <span data-testid="booking-host-name" className="mr-2">
-                                      {bookingInfo.user.name}
+                                      {!session
+                                        ? obfuscate(bookingInfo.user.name as string)
+                                        : bookingInfo.user.name}
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
                                     <p className="text-default" data-testid="booking-host-email">
-                                      {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
+                                      {!session
+                                        ? obfuscateEmail(
+                                            bookingInfo.userPrimaryEmail || bookingInfo.user.email
+                                          )
+                                        : bookingInfo.userPrimaryEmail || bookingInfo.user.email}
                                     </p>
                                   )}
                                 </div>
@@ -629,15 +646,19 @@ export default function Success(props: PageProps) {
                               {bookingInfo?.attendees.map((attendee) => (
                                 <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                                   {attendee.name && (
-                                    <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
+                                    <p data-testid={`attendee-name-${attendee.name}`}>
+                                      {!session ? obfuscate(attendee.name) : attendee.name}
+                                    </p>
                                   )}
                                   {attendee.phoneNumber && (
                                     <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {attendee.phoneNumber}
+                                      {!session ? obfuscate(attendee.phoneNumber) : attendee.phoneNumber}
                                     </p>
                                   )}
                                   {!isSmsCalEmail(attendee.email) && (
-                                    <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
+                                    <p data-testid={`attendee-email-${attendee.email}`}>
+                                      {!session ? obfuscateEmail(attendee.email) : attendee.email}
+                                    </p>
                                   )}
                                 </div>
                               ))}
