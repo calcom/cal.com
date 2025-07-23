@@ -17,6 +17,7 @@ import type { Ensure } from "@calcom/types/utils";
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
+import { createPBACOrganization } from "./seed-pbac-organization";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
@@ -342,8 +343,19 @@ async function createOrganizationAndAddMembersAndTeams({
             orgProfile: member.orgProfile,
           };
 
-          await prisma.tempOrgRedirect.create({
-            data: {
+          // Create temp org redirect with upsert to handle duplicates
+          await prisma.tempOrgRedirect.upsert({
+            where: {
+              from_type_fromOrgId: {
+                from: member.memberData.username,
+                type: RedirectType.User,
+                fromOrgId: 0,
+              },
+            },
+            update: {
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+            },
+            create: {
               fromOrgId: 0,
               type: RedirectType.User,
               from: member.memberData.username,
@@ -1341,6 +1353,9 @@ async function main() {
       },
     ],
   });
+
+  // Create PBAC-enabled organization with custom roles
+  await createPBACOrganization();
 }
 
 main()
