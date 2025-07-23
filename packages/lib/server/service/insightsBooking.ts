@@ -279,8 +279,8 @@ export class InsightsBookingService {
     `;
     const totalCount = totalCountResult[0]?.count || 0;
 
-    // Single query with JSON aggregation to get one row per booking
-    const csvDataWithAttendees = await this.prisma.$queryRaw<
+    // 1. Get booking data from BookingTimeStatusDenormalized
+    const csvData = await this.prisma.$queryRaw<
       Array<{
         id: number;
         uid: string | null;
@@ -297,98 +297,167 @@ export class InsightsBookingService {
         rating: number | null;
         ratingFeedback: string | null;
         noShowHost: boolean;
-        attendees: Array<{ name: string; email: string; noShow: boolean }>;
       }>
     >`
-      SELECT 
-        btsd."id",
-        btsd."uid",
-        btsd."title",
-        btsd."createdAt",
-        btsd."timeStatus",
-        btsd."eventTypeId",
-        btsd."eventLength",
-        btsd."startTime",
-        btsd."endTime",
-        btsd."paid",
-        btsd."userEmail",
-        btsd."userUsername",
-        btsd."rating",
-        btsd."ratingFeedback",
-        btsd."noShowHost",
-        COALESCE(
-          (
-            SELECT JSON_AGG(
-              JSON_BUILD_OBJECT(
-                'name', attendee_data.name,
-                'email', attendee_data.email, 
-                'noShow', attendee_data.no_show
-              )
-            )
-            FROM (
-              -- Regular attendees
-              SELECT DISTINCT a."name", a."email", COALESCE(a."noShow", false) as no_show
-              FROM "Booking" b
-              JOIN "Attendee" a ON b."id" = a."bookingId"
-              WHERE b."uid" = btsd."uid" AND a."name" IS NOT NULL AND a."email" IS NOT NULL
-              
-              UNION
-              
-              -- Seat attendees
-              SELECT DISTINCT sa."name", sa."email", COALESCE(sa."noShow", false) as no_show
-              FROM "Booking" b
-              JOIN "BookingSeat" bs ON b."id" = bs."bookingId"
-              JOIN "Attendee" sa ON bs."attendeeId" = sa."id"
-              WHERE b."uid" = btsd."uid" AND sa."name" IS NOT NULL AND sa."email" IS NOT NULL
-            ) attendee_data
-          ),
-          '[]'::json
-        ) as attendees
-      FROM "BookingTimeStatusDenormalized" btsd
+      SELECT
+        "id",
+        "uid",
+        "title",
+        "createdAt",
+        "timeStatus",
+        "eventTypeId",
+        "eventLength",
+        "startTime",
+        "endTime",
+        "paid",
+        "userEmail",
+        "userUsername",
+        "rating",
+        "ratingFeedback",
+        "noShowHost"
+      FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-        AND btsd."createdAt" >= ${startDate}::timestamp
-        AND btsd."createdAt" <= ${endDate}::timestamp
-      ORDER BY btsd."createdAt" DESC
+        AND "createdAt" >= ${startDate}::timestamp
+        AND "createdAt" <= ${endDate}::timestamp
+      ORDER BY "createdAt" DESC
       LIMIT ${limit}
       OFFSET ${offset}
     `;
 
-    if (csvDataWithAttendees.length === 0) {
-      return { data: [], total: totalCount };
+    if (csvData.length === 0) {
+      return { data: csvData, total: totalCount };
     }
 
-    // Calculate max attendees for dynamic columns
-    const maxAttendees = Math.max(...csvDataWithAttendees.map((b) => b.attendees.length), 0);
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
 
-    const data = csvDataWithAttendees.map((booking) => {
-      // Format attendees
-      const formattedAttendees = booking.attendees.map((a) => `${a.name} (${a.email})`);
-      const noShowGuests =
-        booking.attendees
-          .filter((a) => a.noShow)
-          .map((a) => `${a.name} (${a.email})`)
-          .join("; ") || null;
-      const noShowGuestsCount = booking.attendees.filter((a) => a.noShow).length;
+    if (uids.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
 
-      // Create attendee fields
-      const attendeeFields: Record<string, string | null> = {};
-      for (let i = 1; i <= maxAttendees; i++) {
-        attendeeFields[`attendee${i}`] = formattedAttendees[i - 1] || null;
+    // 2. Get all bookings with their attendees and seat references
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            noShow: true,
+          },
+        },
+        seatsReferences: {
+          select: {
+            attendee: {
+              select: {
+                name: true,
+                email: true,
+                noShow: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 3. Create booking map with attendee data (matching original logic)
+    const bookingMap = new Map(
+      bookings.map((booking) => {
+        const attendeeList =
+          booking.seatsReferences.length > 0
+            ? booking.seatsReferences.map((ref) => ref.attendee)
+            : booking.attendees;
+
+        // List all no-show guests (name and email)
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
+
+        const formattedAttendees = attendeeList
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
+
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
+      })
+    );
+
+    // 4. Calculate max attendees for dynamic columns
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    // 5. Create final booking map with attendee fields
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+        }
+
+        return [
+          uid,
+          {
+            noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
+            ...attendeeFields,
+          },
+        ];
+      })
+    );
+
+    // 6. Combine booking data with attendee data
+    const data = csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
       }
 
-      // Remove attendees array from the final output and add processed attendee data
-      const { attendees: _attendees, ...bookingData } = booking;
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
+
+      if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
       return {
-        ...bookingData,
-        noShowGuests,
-        noShowGuestsCount,
-        ...attendeeFields,
+        ...bookingTimeStatus,
+        noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
       };
     });
 
     return { data, total: totalCount };
   }
-
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
