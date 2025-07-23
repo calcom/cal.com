@@ -155,7 +155,8 @@ test.describe("pro user", () => {
     await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -205,6 +206,9 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
@@ -237,6 +241,9 @@ test.describe("pro user", () => {
     await pro.apiLogin();
 
     await page.goto("/bookings/upcoming");
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    // Click the cancel option in the dropdown
     await page.locator('[data-testid="cancel"]').click();
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
