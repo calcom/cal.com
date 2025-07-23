@@ -52,6 +52,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { RemoveBookingSeatsDialog } from "@components/dialog/RemoveBookingSeatsDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -59,15 +60,24 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+type LoggedInUser = {
+  userId: number | undefined;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
+  userEmail: string | undefined;
+  userIsOrgAdminOrOwner: boolean | undefined;
+  teamsWhereUserIsAdminOrOwner:
+    | {
+        id: number;
+        teamId: number;
+      }[]
+    | undefined;
+};
+
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
+  loggedInUser: LoggedInUser;
   isToday: boolean;
 };
 
@@ -177,6 +187,33 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
+
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      booking.user?.id === userId ||
+      booking.eventType.hosts?.some(
+        (host) => host.id === userId && booking.attendees.some((attendee) => attendee.email === host.email)
+      )
+    );
+  };
+
+  const checkIfUserIsAuthorizedToCancelSeats = (
+    { user, eventType }: Pick<BookingItemProps, "user" | "eventType">,
+    {
+      userId,
+      userIsOrgAdminOrOwner,
+      teamsWhereUserIsAdminOrOwner,
+    }: Pick<LoggedInUser, "userId" | "userIsOrgAdminOrOwner" | "teamsWhereUserIsAdminOrOwner">
+  ) => {
+    const isUserOwner = user?.id === userId;
+    const isUserTeamEventHost = checkIfUserIsHost(userId);
+    const isUserTeamAdminOrOwner = teamsWhereUserIsAdminOrOwner?.some(
+      (team) => team.teamId === eventType?.team?.id || team.teamId === eventType?.parent?.teamId
+    );
+    return isUserOwner || isUserTeamEventHost || userIsOrgAdminOrOwner || isUserTeamAdminOrOwner;
+  };
 
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
@@ -296,6 +333,27 @@ function BookingListItem(booking: BookingItemProps) {
             icon: "user-plus" as const,
           },
         ]),
+    ...(booking.seatsReferences.length > 0 &&
+    !isBookingInPast &&
+    checkIfUserIsAuthorizedToCancelSeats(
+      { user: booking.user, eventType: booking.eventType },
+      {
+        userId: booking.loggedInUser.userId,
+        userIsOrgAdminOrOwner: booking.loggedInUser.userIsOrgAdminOrOwner,
+        teamsWhereUserIsAdminOrOwner: booking.loggedInUser.teamsWhereUserIsAdminOrOwner,
+      }
+    )
+      ? [
+          {
+            id: "remove_seats",
+            label: t("remove_seats"),
+            onClick: () => {
+              setIsOpenRemoveSeatsDialog(true);
+            },
+            icon: "user-x" as const,
+          },
+        ]
+      : []),
   ];
 
   if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
@@ -492,6 +550,8 @@ function BookingListItem(booking: BookingItemProps) {
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
+  const [isOpenRemoveSeatsDialog, setIsOpenRemoveSeatsDialog] = useState(false);
+
   return (
     <>
       <RescheduleDialog
@@ -520,6 +580,27 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
+      {checkIfUserIsAuthorizedToCancelSeats(
+        { user: booking.user, eventType: booking.eventType },
+        {
+          userId: booking.loggedInUser.userId,
+          userIsOrgAdminOrOwner: booking.loggedInUser.userIsOrgAdminOrOwner,
+          teamsWhereUserIsAdminOrOwner: booking.loggedInUser.teamsWhereUserIsAdminOrOwner,
+        }
+      ) && (
+        <RemoveBookingSeatsDialog
+          isOpenDialog={isOpenRemoveSeatsDialog}
+          setIsOpenDialog={setIsOpenRemoveSeatsDialog}
+          bookingUid={booking.uid}
+          attendees={booking.seatsReferences
+            .map((seat) => ({
+              email: seat.attendee?.email || "",
+              name: seat.attendee?.name || null,
+              referenceUid: seat.referenceUid,
+            }))
+            .filter((attendee) => attendee.email)}
+        />
+      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}

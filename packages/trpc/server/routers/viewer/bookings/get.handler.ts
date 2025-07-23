@@ -488,6 +488,19 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .innerJoin("users", "Host.userId", "users.id")
+                    .select(["users.id", "users.email"])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("EventType as ParentEventType")
+                    .select(["ParentEventType.id", "ParentEventType.teamId"])
+                    .whereRef("ParentEventType.id", "=", "EventType.parentId")
+                ).as("parent"),
                 eb
                   .cast<SchedulingType | null>(
                     eb
@@ -542,9 +555,18 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
+                    .where((qb) => {
+                      const isOwner = eb.exists(
+                        eb
+                          .selectFrom("Booking")
+                          .select("Booking.id")
+                          .whereRef("Booking.id", "=", "BookingSeat.bookingId")
+                          .where("Booking.userId", "=", user.id)
+                      );
+                      return eb.or([isOwner, qb("Attendee.email", "=", user.email)]);
+                    })
                 ).as("attendee"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
@@ -643,7 +665,11 @@ export async function getBookings({
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        booking.user?.id !== user.id
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 
