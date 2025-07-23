@@ -5,9 +5,19 @@ import { RoleType } from "@calcom/prisma/enums";
 import type { Role } from "../../domain/models/Role";
 import type { IRoleRepository } from "../../domain/repositories/IRoleRepository";
 import type { PermissionString } from "../../domain/types/permission-registry";
+import type { PermissionDiffService } from "../permission-diff.service";
 import { RoleService } from "../role.service";
 
 vi.mock("../../infrastructure/repositories/RoleRepository");
+vi.mock("../permission-diff.service");
+
+// Mock db.$transaction
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    $transaction: vi.fn((cb) => cb({ membership: { update: vi.fn() } })),
+    membership: { update: vi.fn() },
+  },
+}));
 
 type MockRepository = {
   [K in keyof IRoleRepository]: Mock;
@@ -16,6 +26,7 @@ type MockRepository = {
 describe("RoleService", () => {
   let service: RoleService;
   let mockRepository: MockRepository;
+  let mockPermissionDiffService: { calculateDiff: Mock };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,10 +37,19 @@ describe("RoleService", () => {
       create: vi.fn(),
       delete: vi.fn(),
       update: vi.fn(),
-      transaction: vi.fn(),
       roleBelongsToTeam: vi.fn(),
+      getPermissions: vi.fn(),
     };
-    service = new RoleService(mockRepository);
+
+    mockPermissionDiffService = {
+      calculateDiff: vi.fn(),
+    };
+
+    service = new RoleService(
+      mockRepository,
+      undefined, // permissionService is not mocked as it's not relevant for these tests
+      mockPermissionDiffService as unknown as PermissionDiffService
+    );
   });
 
   describe("createRole", () => {
@@ -47,7 +67,15 @@ describe("RoleService", () => {
         teamId: roleData.teamId,
         color: "#000000",
         type: RoleType.CUSTOM,
-        permissions: [{ id: "perm-1", resource: "eventType", action: "create" }],
+        permissions: [
+          {
+            id: "perm-1",
+            resource: "eventType",
+            action: "create",
+            roleId: "new-role",
+            createdAt: new Date(),
+          },
+        ],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -153,9 +181,18 @@ describe("RoleService", () => {
   });
 
   describe("update", () => {
-    it("should update role permissions", async () => {
+    it("should update role permissions using permission diff", async () => {
       const roleId = "role-id";
       const permissions = ["eventType.create", "eventType.read"] as PermissionString[];
+      const existingPermissions = [{ id: "1", roleId, resource: "eventType", action: "delete" }];
+
+      const permissionChanges = {
+        toAdd: [
+          { resource: "eventType", action: "create" },
+          { resource: "eventType", action: "read" },
+        ],
+        toRemove: [{ id: "1", roleId, resource: "eventType", action: "delete" }],
+      };
 
       const role: Role = {
         id: roleId,
@@ -172,14 +209,65 @@ describe("RoleService", () => {
       };
 
       mockRepository.findById.mockResolvedValueOnce(role);
+      mockRepository.getPermissions.mockResolvedValueOnce(existingPermissions);
+      mockPermissionDiffService.calculateDiff.mockReturnValueOnce(permissionChanges);
       mockRepository.update.mockResolvedValueOnce(role);
 
       const result = await service.update({ roleId, permissions });
-      expect(result).toBeDefined();
-      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissions, {
+
+      expect(mockPermissionDiffService.calculateDiff).toHaveBeenCalledWith(permissions, existingPermissions);
+      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissionChanges, {
         color: undefined,
         name: undefined,
       });
+      expect(result).toBeDefined();
+    });
+
+    it("should properly remove multiple permissions when changing from all to none", async () => {
+      const roleId = "role-id";
+      const permissions = [] as PermissionString[]; // Setting to none
+      const existingPermissions = [
+        { id: "1", roleId, resource: "eventType", action: "create" },
+        { id: "2", roleId, resource: "eventType", action: "read" },
+        { id: "3", roleId, resource: "eventType", action: "update" },
+        { id: "4", roleId, resource: "eventType", action: "delete" },
+      ];
+
+      const permissionChanges = {
+        toAdd: [],
+        toRemove: [
+          { id: "1", roleId, resource: "eventType", action: "create" },
+          { id: "2", roleId, resource: "eventType", action: "read" },
+          { id: "3", roleId, resource: "eventType", action: "update" },
+          { id: "4", roleId, resource: "eventType", action: "delete" },
+        ],
+      };
+
+      const role: Role = {
+        id: roleId,
+        name: "Test Role",
+        teamId: 1,
+        type: RoleType.CUSTOM,
+        color: "#000000",
+        permissions: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findById.mockResolvedValueOnce(role);
+      mockRepository.getPermissions.mockResolvedValueOnce(existingPermissions);
+      mockPermissionDiffService.calculateDiff.mockReturnValueOnce(permissionChanges);
+      mockRepository.update.mockResolvedValueOnce(role);
+
+      const result = await service.update({ roleId, permissions });
+
+      expect(mockPermissionDiffService.calculateDiff).toHaveBeenCalledWith(permissions, existingPermissions);
+      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissionChanges, {
+        color: undefined,
+        name: undefined,
+      });
+      expect(result).toBeDefined();
+      expect(result.permissions).toHaveLength(0);
     });
 
     it("should throw error if role does not exist", async () => {
@@ -277,45 +365,18 @@ describe("RoleService", () => {
         updatedAt: new Date(),
       };
 
-      const mockTrx = {
-        selectFrom: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        executeTakeFirst: vi.fn().mockResolvedValue({ id: roleId }),
-        updateTable: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        execute: vi.fn().mockResolvedValue(undefined),
-      };
-
-      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
+      mockRepository.findById.mockResolvedValueOnce(role);
 
       const result = await service.assignRoleToMember(roleId, membershipId);
-      expect(result).toEqual({ id: roleId });
-      expect(mockTrx.selectFrom).toHaveBeenCalledWith("Role");
-      expect(mockTrx.select).toHaveBeenCalledWith("id");
-      expect(mockTrx.where).toHaveBeenCalledWith("id", "=", roleId);
-      expect(mockTrx.executeTakeFirst).toHaveBeenCalled();
-      expect(mockTrx.updateTable).toHaveBeenCalledWith("Membership");
-      expect(mockTrx.set).toHaveBeenCalledWith({ customRoleId: roleId });
-      expect(mockTrx.where).toHaveBeenCalledWith("id", "=", membershipId);
-      expect(mockTrx.execute).toHaveBeenCalled();
+      expect(result).toEqual(role); // Check the full role object
     });
 
     it("should throw error if role does not exist", async () => {
-      const mockTrx = {
-        selectFrom: vi.fn().mockReturnThis(),
-        select: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        executeTakeFirst: vi.fn().mockResolvedValue(null),
-      };
-
-      mockRepository.transaction.mockImplementationOnce((callback) => callback(mockRepository, mockTrx));
+      mockRepository.findById.mockResolvedValueOnce(null);
 
       await expect(service.assignRoleToMember(roleId, membershipId)).rejects.toThrow("Role not found");
-      expect(mockTrx.selectFrom).toHaveBeenCalledWith("Role");
-      expect(mockTrx.select).toHaveBeenCalledWith("id");
-      expect(mockTrx.where).toHaveBeenCalledWith("id", "=", roleId);
-      expect(mockTrx.executeTakeFirst).toHaveBeenCalled();
+      expect(mockRepository.findById).toHaveBeenCalledWith(roleId);
+      // Do NOT expect transaction methods to be called, since the repository returns null
     });
   });
 });

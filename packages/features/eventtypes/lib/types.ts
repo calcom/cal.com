@@ -159,6 +159,7 @@ export type FormValues = {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
     enableAutomaticTranscription?: boolean;
+    enableAutomaticRecordingForOrganizer?: boolean;
     disableTranscriptionForGuests?: boolean;
     disableTranscriptionForOrganizer?: boolean;
     redirectUrlOnExit?: string;
@@ -219,3 +220,13 @@ export type SelectClassNames = {
   label?: string;
   container?: string;
 };
+
+export type FormValidationResult = {
+  isValid: boolean;
+  errors: Record<string, unknown>;
+};
+
+export interface EventTypePlatformWrapperRef {
+  validateForm: () => Promise<FormValidationResult>;
+  handleFormSubmit: () => void;
+}
