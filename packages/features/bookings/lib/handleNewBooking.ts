@@ -379,6 +379,7 @@ export type PlatformParams = {
 };
 
 export type BookingHandlerInput = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bookingData: Record<string, any>;
   userId?: number;
   // These used to come from headers but now we're passing them as params
@@ -598,6 +599,7 @@ async function handler(
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+  const crmRecordId: string | undefined = reqBody.crmRecordId ?? undefined;
 
   let routingFormResponse = null;
 
@@ -1398,6 +1400,7 @@ async function handler(
             teamMemberEmail: contactOwnerEmail,
             recordType: reqBody.crmOwnerRecordType,
             routingFormResponseId,
+            recordId: crmRecordId,
           });
         } else if (routingFormResponseId && teamId) {
           assignmentReason = await AssignmentReasonRecorder.routingFormRoute({

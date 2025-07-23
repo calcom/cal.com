@@ -1720,6 +1720,8 @@ model CalendarCache {
   key          String
   value        Json
   expiresAt    DateTime
+  // Provide an initial value for legacy rows and future raw inserts
+  updatedAt    DateTime    @default(now()) @updatedAt
   credentialId Int
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
