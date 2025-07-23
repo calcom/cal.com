@@ -51,6 +51,16 @@ export async function createPBACOrganization() {
     },
   });
 
+  // Add the feature flag
+  await prisma.teamFeatures.create({
+    data: {
+      featureId: "pbac",
+      teamId: organization.id,
+      assignedBy: "system (Seed script)",
+      assignedAt: new Date(),
+    },
+  });
+
   console.log(`✅ Created organization: ${organization.name} (ID: ${organization.id})`);
 
   // Create custom roles with specific permissions
