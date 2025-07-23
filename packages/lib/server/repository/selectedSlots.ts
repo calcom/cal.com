@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import type { PrismaClient } from "@calcom/prisma";
 
 type WhereCondition = {
@@ -14,7 +12,7 @@ export type FindManyArgs = {
   where?: WhereCondition & {
     OR?: WhereCondition[];
   };
-  select?: Prisma.SelectedSlotsSelect;
+  select?: any;
 };
 
 export type TimeSlot = {
@@ -22,14 +20,42 @@ export type TimeSlot = {
   utcEndIso: string;
 };
 
-export class PrismaSelectedSlotRepository {
+export interface SelectedSlotRepositoryInterface {
+  findMany(args: any): Promise<any[]>;
+  findFirst(args: any): Promise<any | null>;
+  findReservedByOthers(args: { slot: TimeSlot; eventTypeId: number; uid: string }): Promise<any | null>;
+  findManyReservedByOthers(
+    slots: TimeSlot[],
+    eventTypeId: number,
+    uid: string
+  ): Promise<
+    Array<{
+      slotUtcStartDate: Date;
+      slotUtcEndDate: Date;
+    }>
+  >;
+  findManyUnexpiredSlots(args: { userIds: number[]; currentTimeInUtc: string }): Promise<
+    Array<{
+      id: number;
+      slotUtcStartDate: Date;
+      slotUtcEndDate: Date;
+      userId: number | null;
+      isSeat: boolean;
+      eventTypeId: number;
+      uid: string;
+    }>
+  >;
+  deleteManyExpiredSlots(args: { eventTypeId: number; currentTimeInUtc: string }): Promise<{ count: number }>;
+}
+
+export class PrismaSelectedSlotRepository implements SelectedSlotRepositoryInterface {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findMany({ where, select }: FindManyArgs) {
+  async findMany({ where, select }: any) {
     return await this.prismaClient.selectedSlots.findMany({ where, select });
   }
 
-  async findFirst({ where }: { where: Prisma.SelectedSlotsWhereInput }) {
+  async findFirst({ where }: any) {
     return await this.prismaClient.selectedSlots.findFirst({
       where,
     });
@@ -56,7 +82,7 @@ export class PrismaSelectedSlotRepository {
   }
 
   async findManyReservedByOthers(slots: TimeSlot[], eventTypeId: number, uid: string) {
-    return await this.findMany({
+    return await this.prismaClient.selectedSlots.findMany({
       where: {
         OR: slots.map((slot) => ({
           slotUtcStartDate: slot.utcStartIso,

@@ -5,9 +5,9 @@ import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-r
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { PrismaSelectedSlotRepository } from "@/lib/repositories/prismaSelectedSlotRepository";
 import { Injectable } from "@nestjs/common";
 
+import { SelectedSlotRepositoryInterface } from "@calcom/lib/server/repository/selectedSlots";
 import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
 
 @Injectable()
@@ -18,7 +18,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     private readonly teamRepository: PrismaTeamRepository,
     private readonly routingFormResponseRepository: PrismaRoutingFormResponseRepository,
     private readonly bookingRepository: PrismaBookingRepository,
-    private readonly selectedSlotRepository: PrismaSelectedSlotRepository,
+    private readonly selectedSlotRepository: SelectedSlotRepositoryInterface,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
     private readonly userRepository: PrismaUserRepository
   ) {
