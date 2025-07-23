@@ -6,7 +6,8 @@ import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -21,7 +22,7 @@ const combineTwoSeatedBookings = async (
   eventManager: EventManager,
   traceContext?: TraceContext
 ) => {
-  const loggerWithEventDetails = traceContext ? DistributedTracing.getTracingLogger(traceContext) : undefined;
+  const loggerWithEventDetails = traceContext ? distributedTracing.getTracingLogger(traceContext) : undefined;
   const {
     eventType,
     tAttendees,

@@ -8,7 +8,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { ApiKey } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -284,9 +285,9 @@ export async function scheduleTrigger({
   if (isDryRun) return;
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "webhook_scheduling")
+    ? distributedTracing.createSpan(traceContext, "webhook_scheduling")
     : undefined;
-  const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : log;
+  const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : log;
 
   tracingLogger.info("Scheduling webhook trigger", {
     bookingId: booking.id,
@@ -298,7 +299,7 @@ export async function scheduleTrigger({
   try {
     const payloadData = { triggerEvent, ...booking };
     const payload = JSON.stringify(
-      spanContext ? DistributedTracing.injectTraceIntoPayload(payloadData, spanContext) : payloadData
+      spanContext ? distributedTracing.injectTraceIntoPayload(payloadData, spanContext) : payloadData
     );
 
     await prisma.webhookScheduledTriggers.create({

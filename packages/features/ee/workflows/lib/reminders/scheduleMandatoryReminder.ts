@@ -3,7 +3,8 @@ import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminde
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
@@ -43,11 +44,11 @@ async function _scheduleMandatoryReminder({
   };
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "schedule_mandatory_reminder", reminderMeta)
-    : DistributedTracing.createTrace("schedule_mandatory_reminder_fallback", {
+    ? distributedTracing.createSpan(traceContext, "schedule_mandatory_reminder", reminderMeta)
+    : distributedTracing.createTrace("schedule_mandatory_reminder_fallback", {
         meta: reminderMeta,
       });
-  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Scheduling mandatory reminder", {
     eventTitle: evt.title,

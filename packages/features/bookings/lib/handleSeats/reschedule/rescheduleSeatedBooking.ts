@@ -3,7 +3,8 @@ import dayjs from "@calcom/dayjs";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import EventManager from "@calcom/lib/EventManager";
 import { HttpError } from "@calcom/lib/http-error";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
@@ -24,7 +25,7 @@ const rescheduleSeatedBooking = async (
   resultBooking: HandleSeatsResultBooking | null,
   traceContext?: TraceContext
 ) => {
-  const loggerWithEventDetails = traceContext ? DistributedTracing.getTracingLogger(traceContext) : undefined;
+  const loggerWithEventDetails = traceContext ? distributedTracing.getTracingLogger(traceContext) : undefined;
   const { evt, eventType, allCredentials, organizerUser, bookerEmail, tAttendees, bookingSeat, reqUserId } =
     rescheduleSeatedBookingObject;
 

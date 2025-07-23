@@ -19,7 +19,8 @@ import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
@@ -378,7 +379,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
 
-    const traceContext: TraceContext = DistributedTracing.createTrace("booking_confirmation", {
+    const traceContext: TraceContext = distributedTracing.createTrace("booking_confirmation", {
       meta: {
         bookingUid: booking.uid,
         confirmed,

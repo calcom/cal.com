@@ -1,7 +1,3 @@
-import { nanoid } from "nanoid";
-
-import logger from "../logger";
-
 export interface TraceContext {
   traceId: string;
   spanId: string;
@@ -11,12 +7,18 @@ export interface TraceContext {
   meta?: Record<string, any>;
 }
 
+export interface IdGenerator {
+  generate: () => string;
+}
+
 export class DistributedTracing {
-  static createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
+  constructor(private idGenerator: IdGenerator, private loggerInstance: any) {}
+
+  createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
     const { traceId, spanId, meta, ...otherContext } = context || {};
     return {
-      traceId: traceId || `trace_${nanoid()}`,
-      spanId: `span_${nanoid()}`,
+      traceId: traceId || `trace_${this.idGenerator.generate()}`,
+      spanId: `span_${this.idGenerator.generate()}`,
       parentSpanId: spanId,
       operation,
       meta,
@@ -24,7 +26,7 @@ export class DistributedTracing {
     };
   }
 
-  static createSpan(
+  createSpan(
     parentContext: TraceContext,
     operation: string,
     additionalMeta?: Record<string, any>
@@ -36,14 +38,14 @@ export class DistributedTracing {
 
     return {
       ...parentContext,
-      spanId: `span_${nanoid()}`,
+      spanId: `span_${this.idGenerator.generate()}`,
       parentSpanId: parentContext.spanId,
       operation,
       meta: mergedMeta,
     };
   }
 
-  static getTracingLogger(context: TraceContext) {
+  getTracingLogger(context: TraceContext) {
     const prefixes = [
       "distributed-trace",
       `trace:${context.traceId}`,
@@ -59,10 +61,10 @@ export class DistributedTracing {
       });
     }
 
-    return logger.getSubLogger({ prefix: prefixes });
+    return this.loggerInstance.getSubLogger({ prefix: prefixes });
   }
 
-  static extractTraceFromPayload(payload: string): TraceContext | null {
+  extractTraceFromPayload(payload: string): TraceContext | null {
     try {
       const parsed = JSON.parse(payload);
       if (parsed._traceContext && parsed._traceContext.traceId) {
@@ -72,7 +74,7 @@ export class DistributedTracing {
     return null;
   }
 
-  static injectTraceIntoPayload(payload: any, traceContext?: TraceContext): any {
+  injectTraceIntoPayload(payload: any, traceContext?: TraceContext): any {
     if (!traceContext) return payload;
 
     return {

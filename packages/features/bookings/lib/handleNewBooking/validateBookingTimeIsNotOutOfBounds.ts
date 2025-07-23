@@ -3,7 +3,8 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { EventType } from "@calcom/prisma/client";
 
 type ValidateBookingTimeEventType = Pick<
@@ -27,7 +28,7 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
   eventTimeZone: string | null | undefined,
   traceContext: TraceContext
 ) => {
-  const logger = DistributedTracing.getTracingLogger(traceContext);
+  const logger = distributedTracing.getTracingLogger(traceContext);
   let timeOutOfBounds = false;
   try {
     timeOutOfBounds = isOutOfBounds(

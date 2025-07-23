@@ -1,25 +1,18 @@
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { TracedError } from "@calcom/lib/tracing/error";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 
 export const createLoggerWithEventDetails = (
-  eventTypeId: number,
-  reqBodyUser: string | string[] | undefined,
-  eventTypeSlug: string | undefined,
-  existingTraceContext?: TraceContext
+  existingTraceContext: TraceContext | undefined,
+  eventMeta: Record<string, unknown>
 ) => {
-  const eventMeta = {
-    eventTypeId,
-    userInfo: reqBodyUser,
-    eventTypeSlug,
-  };
-
   const traceContext = existingTraceContext
-    ? DistributedTracing.createSpan(existingTraceContext, "booking_event", eventMeta)
-    : DistributedTracing.createTrace("booking_event", {
+    ? distributedTracing.createSpan(existingTraceContext, "booking_event", eventMeta)
+    : distributedTracing.createTrace("booking_event", {
         meta: eventMeta,
       });
 
-  const logger = DistributedTracing.getTracingLogger(traceContext);
+  const logger = distributedTracing.getTracingLogger(traceContext);
 
   return {
     logger,

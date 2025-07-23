@@ -17,8 +17,8 @@ import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DistributedTracing } from "@calcom/lib/tracing";
 import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
@@ -39,12 +39,12 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
   };
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "stripe_payment_success", webhookMeta)
-    : DistributedTracing.createTrace("stripe_payment_success_fallback", {
+    ? distributedTracing.createSpan(traceContext, "stripe_payment_success", webhookMeta)
+    : distributedTracing.createTrace("stripe_payment_success_fallback", {
         meta: webhookMeta,
       });
 
-  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Processing Stripe payment success webhook", {
     paymentIntentId: paymentIntent.id,
@@ -82,12 +82,12 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext?: TraceConte
   };
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "stripe_setup_success", webhookMeta)
-    : DistributedTracing.createTrace("stripe_setup_success_fallback", {
+    ? distributedTracing.createSpan(traceContext, "stripe_setup_success", webhookMeta)
+    : distributedTracing.createTrace("stripe_setup_success_fallback", {
         meta: webhookMeta,
       });
 
-  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Processing Stripe setup success webhook", {
     setupIntentId: setupIntent.id,
@@ -193,11 +193,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     contentType: req.headers["content-type"],
   };
 
-  const traceContext = DistributedTracing.createTrace("stripe_webhook_handler", {
+  const traceContext = distributedTracing.createTrace("stripe_webhook_handler", {
     meta: webhookMeta,
   });
 
-  const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   try {
     if (req.method !== "POST") {

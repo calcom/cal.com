@@ -69,7 +69,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -114,7 +115,6 @@ import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 
 const translator = short();
-const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
 type IsFixedAwareUserWithCredentials = Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -416,7 +416,7 @@ async function handler(
           userInfo: rawBookingData.user,
         },
       }
-    : DistributedTracing.createTrace("booking_creation", {
+    : distributedTracing.createTrace("booking_creation", {
         meta: {
           eventTypeId: rawBookingData.eventTypeId,
           userId: userId,
@@ -424,7 +424,7 @@ async function handler(
           userInfo: rawBookingData.user,
         },
       });
-  const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("Booking creation started", {
     eventTypeId: rawBookingData.eventTypeId,
@@ -1068,7 +1068,7 @@ async function handler(
   }, [] as Invitee);
 
   if (guestsRemoved.length > 0) {
-    log.info("Removed guests from the booking", guestsRemoved);
+    tracingLogger.info("Removed guests from the booking", guestsRemoved);
   }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
@@ -1083,8 +1083,8 @@ async function handler(
       }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
-  log.info("locationBodyString", locationBodyString);
-  log.info("event type locations", eventType.locations);
+  tracingLogger.info("locationBodyString", locationBodyString);
+  tracingLogger.info("event type locations", eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const attendeesList = [...invitee, ...guests];
@@ -1534,7 +1534,7 @@ async function handler(
 
   //this is the actual rescheduling logic
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
-    log.silly("Rescheduling booking", originalRescheduledBooking.uid);
+    tracingLogger.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
     await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 

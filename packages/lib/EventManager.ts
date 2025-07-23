@@ -22,6 +22,8 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -38,7 +40,6 @@ import type {
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
 import { isDelegationCredential } from "./delegationCredential/clientAndServer";
-import { DistributedTracing, type TraceContext } from "./tracing";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
@@ -267,9 +268,9 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const spanContext = this.traceContext
-      ? DistributedTracing.createSpan(this.traceContext, "calendar_event_creation")
+      ? distributedTracing.createSpan(this.traceContext, "calendar_event_creation")
       : undefined;
-    const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : log;
+    const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : log;
 
     tracingLogger.info("EventManager.create started", {
       eventTitle: event.title,

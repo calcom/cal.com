@@ -2,9 +2,9 @@ import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
 import { captureException } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { DistributedTracing } from "@calcom/lib/tracing";
-import type { TraceContext } from "@calcom/lib/tracing";
+import { type TraceContext } from "@calcom/lib/tracing";
 import { TracedError } from "@calcom/lib/tracing/error";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
@@ -24,10 +24,10 @@ export function defaultResponder<T>(
   return async (req: NextApiRequest, res: NextApiResponse) => {
     let ok = false;
     const operation = endpointRoute?.replace(/^\//, "").replace(/\//g, "_") || "api_request";
-    const traceContext = DistributedTracing.createTrace(operation, {
+    const traceContext = distributedTracing.createTrace(operation, {
       meta: { method: req.method, url: req.url, body: req.body },
     });
-    const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+    const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
     const tracedReq = req as TracedRequest;
     tracedReq.traceContext = traceContext;

@@ -6,14 +6,14 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import getIP from "@calcom/lib/getIP";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { DistributedTracing } from "@calcom/lib/tracing";
 import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number; traceContext?: TraceContext }) {
   const userIp = getIP(req);
 
-  const traceContext = DistributedTracing.createTrace("api_book_event", {
+  const traceContext = distributedTracing.createTrace("api_book_event", {
     ...(req.traceContext || {}),
     meta: {
       ...(req.traceContext?.meta || {}),
@@ -21,7 +21,7 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext?: T
       eventTypeId: req.body?.eventTypeId,
     },
   });
-  const tracingLogger = DistributedTracing.getTracingLogger(traceContext);
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("API book event request started", {
     userIp,

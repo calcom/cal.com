@@ -5,7 +5,8 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -50,12 +51,12 @@ const handleSeats = async (
   };
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "handle_seats", seatsMeta)
-    : DistributedTracing.createTrace("handle_seats_fallback", {
+    ? distributedTracing.createSpan(traceContext, "handle_seats", seatsMeta)
+    : distributedTracing.createTrace("handle_seats_fallback", {
         meta: seatsMeta,
       });
 
-  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Processing seated booking", {
     eventTypeId,

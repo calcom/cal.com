@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 
 type Props = {
   reqBodyStart: string;
@@ -20,7 +21,7 @@ const _validateEventLength = ({
   traceContext,
 }: Props) => {
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "validate_event_length", {
+    ? distributedTracing.createSpan(traceContext, "validate_event_length", {
         meta: {
           reqBodyStart,
           reqBodyEnd,
@@ -28,7 +29,7 @@ const _validateEventLength = ({
           eventTypeLength,
         },
       })
-    : DistributedTracing.createTrace("validate_event_length_fallback", {
+    : distributedTracing.createTrace("validate_event_length_fallback", {
         meta: {
           reqBodyStart,
           reqBodyEnd,
@@ -36,7 +37,7 @@ const _validateEventLength = ({
           eventTypeLength,
         },
       });
-  const logger = DistributedTracing.getTracingLogger(spanContext);
+  const logger = distributedTracing.getTracingLogger(spanContext);
   const reqEventLength = dayjs(reqBodyEnd).diff(dayjs(reqBodyStart), "minutes");
   const validEventLengths = eventTypeMultipleDuration?.length ? eventTypeMultipleDuration : [eventTypeLength];
   if (!validEventLengths.includes(reqEventLength)) {

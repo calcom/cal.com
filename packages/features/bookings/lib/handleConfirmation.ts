@@ -19,7 +19,8 @@ import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -97,12 +98,12 @@ export async function handleConfirmation(args: {
   };
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "handle_confirmation", confirmationMeta)
-    : DistributedTracing.createTrace("handle_confirmation_fallback", {
+    ? distributedTracing.createSpan(traceContext, "handle_confirmation", confirmationMeta)
+    : distributedTracing.createTrace("handle_confirmation_fallback", {
         meta: confirmationMeta,
       });
 
-  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);

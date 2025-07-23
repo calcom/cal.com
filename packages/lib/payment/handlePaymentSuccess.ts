@@ -10,12 +10,12 @@ import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-c
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
-
-import { DistributedTracing, type TraceContext } from "../tracing";
 
 export async function handlePaymentSuccess(
   paymentId: number,
@@ -28,11 +28,11 @@ export async function handlePaymentSuccess(
   };
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "payment_success_processing", paymentMeta)
-    : DistributedTracing.createTrace("payment_success_processing_fallback", {
+    ? distributedTracing.createSpan(traceContext, "payment_success_processing", paymentMeta)
+    : distributedTracing.createTrace("payment_success_processing_fallback", {
         meta: paymentMeta,
       });
-  const tracingLogger = DistributedTracing.getTracingLogger(spanContext);
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
 
   tracingLogger.info("Processing payment success", {
     paymentId,

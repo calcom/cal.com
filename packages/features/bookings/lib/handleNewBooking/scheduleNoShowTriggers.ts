@@ -3,7 +3,8 @@ import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { DistributedTracing, type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
@@ -36,9 +37,9 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   } = args;
 
   const spanContext = traceContext
-    ? DistributedTracing.createSpan(traceContext, "schedule_no_show_triggers")
+    ? distributedTracing.createSpan(traceContext, "schedule_no_show_triggers")
     : undefined;
-  const tracingLogger = spanContext ? DistributedTracing.getTracingLogger(spanContext) : undefined;
+  const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : undefined;
 
   if (tracingLogger) {
     tracingLogger.info("Scheduling no-show triggers", {
