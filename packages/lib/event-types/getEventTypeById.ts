@@ -264,7 +264,7 @@ export const getEventTypeById = async ({
   return finalObj;
 };
 
-async function getRawEventType({
+export async function getRawEventType({
   userId,
   eventTypeId,
   isUserOrganizationAdmin,
