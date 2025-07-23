@@ -15,6 +15,15 @@ export type BookingSelect = {
   [K in keyof BookingTimeStatusDenormalized]?: boolean;
 };
 
+// Helper type for selected fields
+export type SelectedFields<T> = T extends undefined
+  ? BookingTimeStatusDenormalized
+  : {
+      [K in keyof T as T[K] extends true ? K : never]: K extends keyof BookingTimeStatusDenormalized
+        ? BookingTimeStatusDenormalized[K]
+        : never;
+    };
+
 export const bookingDataSchema = z
   .object({
     id: z.number(),
@@ -144,13 +153,11 @@ export class InsightsBookingService {
     }));
   }
 
-  async findAll<TSelect extends BookingSelect>({
+  async findAll<TSelect extends BookingSelect | undefined = undefined>({
     select,
   }: {
     select?: TSelect;
-  } = {}): Promise<
-    Array<Pick<BookingTimeStatusDenormalized, Extract<keyof TSelect, keyof BookingTimeStatusDenormalized>>>
-  > {
+  } = {}): Promise<Array<SelectedFields<TSelect>>> {
     const baseConditions = await this.getBaseConditions();
 
     // Build the select clause with validated fields
@@ -166,15 +173,11 @@ export class InsightsBookingService {
       }
     }
 
-    const results = await this.prisma.$queryRaw<
-      Array<Pick<BookingTimeStatusDenormalized, Extract<keyof TSelect, keyof BookingTimeStatusDenormalized>>>
-    >`
+    return await this.prisma.$queryRaw<Array<SelectedFields<TSelect>>>`
       SELECT ${Prisma.raw(selectFields)}
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
     `;
-
-    return results;
   }
 
   async getBaseConditions(): Promise<Prisma.Sql> {
