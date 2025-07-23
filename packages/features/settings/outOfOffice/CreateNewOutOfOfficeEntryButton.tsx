@@ -24,7 +24,9 @@ const CreateNewOutOfOfficeEntry = ({
   const me = useMeQuery();
   const { data: orgData } = trpc.viewer.organizations.listCurrent.useQuery();
   const isOrgAdminOrOwner = orgData && checkAdminOrOwner(orgData.user.role);
-  const hasTeamOOOAdminAccess = isOrgAdminOrOwner || me?.data?.isTeamAdminOrOwner;
+  const hasTeamOOOAdminAccess =
+    isOrgAdminOrOwner ||
+    (!!me?.data?.teamsWhereUserIsAdminOrOwner && me?.data?.teamsWhereUserIsAdminOrOwner?.length > 0);
 
   const params = useCompatSearchParams();
   const openModalOnStart = !!params?.get("om");
