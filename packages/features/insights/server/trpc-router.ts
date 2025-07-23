@@ -8,7 +8,9 @@ import {
   routingFormResponsesInputSchema,
   routingFormStatsInputSchema,
   routingRepositoryBaseInputSchema,
+  bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
 import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1756,6 +1758,35 @@ export const insightsRouter = router({
       });
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  bookingsByHourStats: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
+
+      const insightsBookingService = new InsightsBookingService({
+        prisma: ctx.insightsDb,
+        options: {
+          scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(selectedTeamId && { teamId: selectedTeamId }),
+        },
+        filters: {
+          ...(eventTypeId && { eventTypeId }),
+          ...(memberUserId && { memberUserId }),
+        },
+      });
+
+      try {
+        return await insightsBookingService.getBookingsByHourStats({
+          startDate,
+          endDate,
+          timeZone,
+        });
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
