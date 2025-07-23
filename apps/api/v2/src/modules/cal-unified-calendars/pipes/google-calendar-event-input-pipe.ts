@@ -7,11 +7,7 @@ import {
   UpdateCalendarEventHost,
   UpdateDateTimeWithZone,
 } from "../inputs/update-unified-calendar-event.input";
-import {
-  CalendarEventResponseStatus,
-  CalendarEventStatus,
-  CalendarEventHost,
-} from "../outputs/get-unified-calendar-event";
+import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event";
 
 // Common interfaces for Google Calendar types
 interface GoogleCalendarDateTime {

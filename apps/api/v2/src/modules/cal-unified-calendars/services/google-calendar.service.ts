@@ -12,7 +12,7 @@ import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/p
 
 import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
-import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input.pipe";
+import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
 
 @Injectable()
 export class GoogleCalendarService {
