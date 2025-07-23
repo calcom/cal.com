@@ -241,12 +241,14 @@ export function EventTypeWithValidation(eventTypeId: number) {
 
 | Method | Description |
 |:-------|:------------|
-| validateForm | Validates the current form state and returns a promise with validation results |
-| handleFormSubmit | Programmatically submits the form, triggering the same validation and submission flow as clicking the save button |
+| validateForm | Validates the current event type form state and returns a promise with validation results. |
+| handleFormSubmit | Programmatically submits the event type form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
 
-The `validateForm` method returns a `FormValidationResult` object with:
+The `validateForm` method returns an `EventTypeFormValidationResult` object with:
 - `isValid`: Boolean indicating if the form passed validation
 - `errors`: Object containing any validation errors found
+
+**Note:** If a required field is not filled in, the `validateForm` method will not return any error. The validation focuses on the format and consistency of provided data rather than enforcing required field completion.
 
 Following are the tabs that are available in the event type settings atom:
 

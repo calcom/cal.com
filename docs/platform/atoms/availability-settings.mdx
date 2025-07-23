@@ -181,9 +181,11 @@ export function AvailabilityWithValidation() {
 
 | Method | Description |
 |:-------|:------------|
-| validateForm | Validates the current availability form state and returns a promise with validation results |
-| handleFormSubmit | Programmatically submits the availability form, triggering the same validation and submission flow as clicking the save button |
+| validateForm | Validates the current availability form state and returns a promise with validation results. |
+| handleFormSubmit | Programmatically submits the availability form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
 
 The `validateForm` method returns an `AvailabilityFormValidationResult` object with:
 - `isValid`: Boolean indicating if the form passed validation
 - `errors`: Object containing any validation errors found
+
+**Note:** If a required field is not filled in, the `validateForm` method will not return any error. The validation focuses on the format and consistency of provided data rather than enforcing required field completion.
