@@ -334,6 +334,8 @@ export class Cal {
       iframe.setAttribute("id", iframeAttrs.id);
     }
 
+    iframe.setAttribute("allow", "payment");
+
     const searchParams = this.buildFilteredQueryParams(queryParamsFromConfig);
 
     // cal.com has rewrite issues on Safari that sometimes cause 404 for assets.
