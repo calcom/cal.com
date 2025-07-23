@@ -129,6 +129,7 @@ export function EditMemberSheet({
           memberId,
           role: role as MembershipRole | string,
           searchTerm: undefined,
+          customRoles,
         });
       }
 
