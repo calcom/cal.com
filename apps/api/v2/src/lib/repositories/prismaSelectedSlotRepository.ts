@@ -5,7 +5,7 @@ import { PrismaSelectedSlotsRepository as PrismaSelectedSlotsRepositoryLib } fro
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
-export class PrismaSelectedSlotsRepository extends PrismaSelectedSlotsRepositoryLib {
+export class PrismaSelectedSlotRepository extends PrismaSelectedSlotsRepositoryLib {
   constructor(private readonly dbWrite: PrismaWriteService) {
     super(dbWrite.prisma as unknown as PrismaClient);
   }
