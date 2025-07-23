@@ -1,8 +1,9 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { RawDataInput } from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+
+import type { RawDataInput } from "./raw-data.schema";
 
 type TimeViewType = "week" | "month" | "year" | "day";
 

@@ -279,4 +279,4 @@ export class InsightsBookingService {
   }
 }
 
-// export { EventsInsights };
+export { EventsInsights };
