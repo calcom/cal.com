@@ -105,6 +105,11 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
+            organizationSettings: {
+              select: {
+                disableAutoFillOnBookingPage: true,
+              },
+            },
           },
         },
         isPrivate: true,

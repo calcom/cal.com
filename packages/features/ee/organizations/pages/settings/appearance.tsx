@@ -53,6 +53,10 @@ const OrgAppearanceView = ({
     currentOrg?.organizationSettings?.orgProfileRedirectsToVerifiedDomain ?? false
   );
 
+  const [disableAutoFillOnBookingPageValue, setDisableAutoFillOnBookingPageValue] = useState(
+    currentOrg?.organizationSettings?.disableAutoFillOnBookingPage ?? false
+  );
+
   const brandColorsFormMethods = useForm<BrandColorsFormValues>({
     defaultValues: {
       brandColor: currentOrg?.brandColor || DEFAULT_LIGHT_BRAND_COLOR,
@@ -189,6 +193,19 @@ const OrgAppearanceView = ({
         onCheckedChange={(checked) => {
           setOrgProfileRedirectsToVerifiedDomainValue(checked);
           mutation.mutate({ orgProfileRedirectsToVerifiedDomain: checked });
+        }}
+        switchContainerClassName="mt-6"
+      />
+
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("disable_auto_prefill")}
+        description={t("disable_auto_prefill_description")}
+        disabled={mutation.isPending}
+        checked={disableAutoFillOnBookingPageValue}
+        onCheckedChange={(checked) => {
+          setDisableAutoFillOnBookingPageValue(checked);
+          mutation.mutate({ disableAutoFillOnBookingPage: checked });
         }}
         switchContainerClassName="mt-6"
       />
