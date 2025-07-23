@@ -5,8 +5,32 @@ import type { CalendarRedirectUrls } from "../../selected-calendars/wrappers/Sel
 type CalendarSettingsPlatformWrapperProps = {
   classNames?: {
     calendarSettingsCustomClassnames?: string;
-    destinationCalendarSettingsCustomClassnames?: string;
-    selectedCalendarSettingsCustomClassnames?: string;
+    destinationCalendarSettingsCustomClassnames?: {
+      container?: string;
+      headingContainer?: string;
+      headingTitle?: string;
+      headingDescription?: string;
+      contentContainer?: string;
+      labelClassName?: string;
+      selectorClassName?: string;
+    };
+    selectedCalendarSettingsCustomClassnames?: {
+      container?: string;
+      headingContainer?: string;
+      headingTitle?: string;
+      headingDescription?: string;
+      addButtonContainer?: string;
+      addButton?: string;
+      calendarListContainer?: string;
+      calendarItemContainer?: string;
+      calendarItemTitle?: string;
+      calendarItemDescription?: string;
+      calendarItemActions?: string;
+      calendarSwitchContainer?: string;
+      calendarSwitchLabel?: string;
+      disconnectButton?: string;
+      noCalendarsMessage?: string;
+    };
   };
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
