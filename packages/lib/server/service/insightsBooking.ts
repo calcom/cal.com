@@ -15,7 +15,6 @@ export type BookingSelect = {
   [K in keyof BookingTimeStatusDenormalized]?: boolean;
 };
 
-// Zod schema for the actual data shape (matching Prisma schema)
 export const bookingDataSchema = z
   .object({
     id: z.number(),
@@ -46,13 +45,6 @@ export const bookingDataSchema = z
   })
   .strict();
 
-// Zod schema for runtime validation of select parameter (derived from data schema)
-export const bookingSelectSchema = z
-  .object(
-    Object.fromEntries(Object.keys(bookingDataSchema.shape).map((key) => [key, z.boolean().optional()]))
-  )
-  .strict();
-
 export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
@@ -81,13 +73,20 @@ export type InsightsBookingServicePublicOptions = {
 
 export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServiceOptionsSchema>;
 
-export type InsightsBookingServiceFilterOptions = {
-  eventTypeId?: number;
-  memberUserId?: number;
-  startDate?: string;
-  endDate?: string;
-  status?: string;
-};
+export type InsightsBookingServiceFilterOptions = z.infer<typeof insightsBookingServiceFilterOptionsSchema>;
+
+export const insightsBookingServiceFilterOptionsSchema = z.object({
+  eventTypeId: z.number().optional(),
+  memberUserId: z.number().optional(),
+  dateRange: z
+    .object({
+      target: z.enum(["createdAt", "startTime"]),
+      startDate: z.string(),
+      endDate: z.string(),
+    })
+    .optional(),
+  status: z.string().optional(),
+});
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 
@@ -96,7 +95,7 @@ const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 export class InsightsBookingService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
-  private filters?: InsightsBookingServiceFilterOptions;
+  private filters: InsightsBookingServiceFilterOptions | null;
   private cachedAuthConditions?: Prisma.Sql;
   private cachedFilterConditions?: Prisma.Sql | null;
 
@@ -110,26 +109,14 @@ export class InsightsBookingService {
     filters?: InsightsBookingServiceFilterOptions;
   }) {
     this.prisma = prisma;
-    const validation = insightsBookingServiceOptionsSchema.safeParse(options);
-    this.options = validation.success ? validation.data : null;
+    const optionsValidated = insightsBookingServiceOptionsSchema.safeParse(options);
+    this.options = optionsValidated.success ? optionsValidated.data : null;
 
-    this.filters = filters;
+    const filtersValidated = insightsBookingServiceFilterOptionsSchema.safeParse(filters);
+    this.filters = filtersValidated.success ? filtersValidated.data : null;
   }
 
-  async getBookingsByHourStats({
-    startDate,
-    endDate,
-    timeZone,
-  }: {
-    startDate: string;
-    endDate: string;
-    timeZone: string;
-  }) {
-    // Validate date formats
-    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
-      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
-    }
-
+  async getBookingsByHourStats({ timeZone }: { timeZone: string }) {
     const baseConditions = await this.getBaseConditions();
 
     const results = await this.prisma.$queryRaw<
@@ -143,9 +130,6 @@ export class InsightsBookingService {
         COUNT(*)::int as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-        AND "startTime" >= ${startDate}::timestamp
-        AND "startTime" <= ${endDate}::timestamp
-        AND "status" = 'accepted'
       GROUP BY 1
       ORDER BY 1
     `;
@@ -237,12 +221,21 @@ export class InsightsBookingService {
       conditions.push(Prisma.sql`"userId" = ${this.filters.memberUserId}`);
     }
 
-    if (this.filters.startDate) {
-      conditions.push(Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp`);
-    }
-
-    if (this.filters.endDate) {
-      conditions.push(Prisma.sql`"createdAt" <= ${this.filters.endDate}::timestamp`);
+    // Use dateRange object for date filtering
+    if (this.filters.dateRange) {
+      const { target, startDate, endDate } = this.filters.dateRange;
+      if (startDate) {
+        if (isNaN(Date.parse(startDate))) {
+          throw new Error(`Invalid date format: ${startDate}`);
+        }
+        conditions.push(Prisma.sql`"${Prisma.raw(target)}" >= ${startDate}::timestamp`);
+      }
+      if (endDate) {
+        if (isNaN(Date.parse(endDate))) {
+          throw new Error(`Invalid date format: ${endDate}`);
+        }
+        conditions.push(Prisma.sql`"${Prisma.raw(target)}" <= ${endDate}::timestamp`);
+      }
     }
 
     if (this.filters.status) {
@@ -272,13 +265,9 @@ export class InsightsBookingService {
     if (this.options.scope === "user") {
       return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
     } else if (this.options.scope === "org") {
-      return await this.buildOrgAuthorizationCondition(
-        this.options as Extract<InsightsBookingServiceOptions, { scope: "org" }>
-      );
+      return await this.buildOrgAuthorizationCondition(this.options);
     } else if (this.options.scope === "team") {
-      return await this.buildTeamAuthorizationCondition(
-        this.options as Extract<InsightsBookingServiceOptions, { scope: "team" }>
-      );
+      return await this.buildTeamAuthorizationCondition(this.options);
     } else {
       return NOTHING_CONDITION;
     }

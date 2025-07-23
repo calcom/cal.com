@@ -668,8 +668,11 @@ export const insightsRouter = router({
         filters: {
           ...(eventTypeId && { eventTypeId }),
           ...(memberUserId && { memberUserId }),
-          startDate,
-          endDate,
+          dateRange: {
+            target: "createdAt",
+            startDate,
+            endDate,
+          },
         },
       });
 
@@ -1744,7 +1747,11 @@ export const insightsRouter = router({
           userId: ctx.user.id,
           orgId: ctx.user.organizationId,
         },
-        filters: {},
+        filters: {
+          startDate: input.startDate,
+          endDate: input.endDate,
+          columnFilters: input.columnFilters,
+        },
       });
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
@@ -1768,13 +1775,17 @@ export const insightsRouter = router({
         filters: {
           ...(eventTypeId && { eventTypeId }),
           ...(memberUserId && { memberUserId }),
+          status: "accepted",
+          dateRange: {
+            target: "startTime",
+            startDate,
+            endDate,
+          },
         },
       });
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
-          startDate,
-          endDate,
           timeZone,
         });
       } catch (e) {
