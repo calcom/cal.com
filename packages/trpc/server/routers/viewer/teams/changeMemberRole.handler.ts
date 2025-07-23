@@ -81,6 +81,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
+  // TODO(SEAN): Remove this logic once PBAC is rolled out as there is no concept of higher roles for custom roles. Only default.
   if (
     myMembership?.role === MembershipRole.ADMIN &&
     input.memberId === ctx.user.id &&
