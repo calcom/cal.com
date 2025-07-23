@@ -184,9 +184,11 @@ const organizationAdminKeys = [
 const useTabs = ({
   isDelegationCredentialEnabled,
   isPbacEnabled,
+  canViewRoles,
 }: {
   isDelegationCredentialEnabled: boolean;
   isPbacEnabled: boolean;
+  canViewRoles?: boolean;
 }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
@@ -223,8 +225,9 @@ const useTabs = ({
           });
         }
 
-        // Add pbac menu item only if feature flag is enabled
-        if (isPbacEnabled) {
+        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
+        // This prevents showing the menu item when user has no organization permissions
+        if (isPbacEnabled && canViewRoles) {
           newArray.push({
             name: "roles_and_permissions",
             href: "/settings/organizations/roles",
@@ -291,6 +294,7 @@ interface SettingsSidebarContainerProps {
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
   teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 }
 
 const TeamRolesNavItem = ({
@@ -483,6 +487,7 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
   teamFeatures,
+  canViewRoles,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
@@ -512,6 +517,7 @@ const SettingsSidebarContainer = ({
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
     isPbacEnabled,
+    canViewRoles,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
@@ -786,9 +792,15 @@ export type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
   teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...rest }: SettingsLayoutProps) {
+export default function SettingsLayoutAppDirClient({
+  children,
+  teamFeatures,
+  canViewRoles,
+  ...rest
+}: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -821,6 +833,7 @@ export default function SettingsLayoutAppDirClient({ children, teamFeatures, ...
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
           teamFeatures={teamFeatures}
+          canViewRoles={canViewRoles}
         />
       }
       drawerState={state}
@@ -843,6 +856,7 @@ type SidebarContainerElementProps = {
   bannersHeight?: number;
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 };
 
 const SidebarContainerElement = ({
@@ -850,6 +864,7 @@ const SidebarContainerElement = ({
   bannersHeight,
   setSideContainerOpen,
   teamFeatures,
+  canViewRoles,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -866,6 +881,7 @@ const SidebarContainerElement = ({
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
         teamFeatures={teamFeatures}
+        canViewRoles={canViewRoles}
       />
     </>
   );

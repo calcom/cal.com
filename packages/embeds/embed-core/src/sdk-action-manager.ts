@@ -116,6 +116,12 @@ export type EventDataMap = {
     iframeWidth: number;
     isFirstTime: boolean;
   };
+  __scrollByDistance: {
+    /**
+     * Distance in pixels to scroll by.
+     */
+    distance: number;
+  };
 };
 
 export type EventData<T extends keyof EventDataMap> = {
