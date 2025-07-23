@@ -9,8 +9,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
-type TimeViewType = "week" | "month" | "year" | "day";
-
 type StatusAggregate = {
   completed: number;
   rescheduled: number;
@@ -79,6 +77,7 @@ export interface GetDateRangesParams {
   timeView: "day" | "week" | "month" | "year";
   weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | string;
 }
+
 export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
