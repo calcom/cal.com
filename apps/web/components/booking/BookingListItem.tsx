@@ -208,10 +208,10 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    if (!booking.seatsReferences[0]) {
-      return undefined;
-    }
-    return booking.seatsReferences[0].referenceUid;
+    const seatReferenceUid = booking.seatsReferences.find(
+      (seat) => seat.attendee?.email === userEmail
+    )?.referenceUid;
+    return seatReferenceUid;
   };
 
   const pendingActions: ActionType[] = [
@@ -251,7 +251,7 @@ function BookingListItem(booking: BookingItemProps) {
             icon: "clock" as const,
             label: t("reschedule_booking"),
             href: `/reschedule/${booking.uid}${
-              booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+              getSeatReferenceUid() ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
             }`,
           },
           {
@@ -339,8 +339,7 @@ function BookingListItem(booking: BookingItemProps) {
                cancel all remaining bookings or just that booking instance. */
       href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
-      `,
+      }`,
       icon: "x" as const,
     },
     {
