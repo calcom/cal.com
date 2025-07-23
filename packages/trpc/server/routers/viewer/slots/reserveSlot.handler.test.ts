@@ -5,7 +5,7 @@ import { vi, describe, it, expect, afterEach } from "vitest";
 // reserveSlotHandler relies on WEBAPP_URL being evaluated at import time, so we need to reset modules
 // between tests after tweaking process.env to simulate different deployment environments.
 //
-// The handler also calls into Prisma and the SelectedSlotsRepository, so we stub those parts out.
+// The handler also calls into Prisma and the SelectedSlotRepository, so we stub those parts out.
 
 // We alias the module path once we know WEBAPP_URL has been configured.
 const dynamicImportHandler = async () => await import("./reserveSlot.handler");
@@ -13,7 +13,7 @@ const dynamicImportHandler = async () => await import("./reserveSlot.handler");
 // The repository instance method is used to check for an existing reservation by someone else.
 // To keep this unit test isolated from the database layer, we stub this to always resolve falsey.
 vi.mock("@calcom/lib/server/repository/selectedSlots", () => ({
-  SelectedSlotsRepository: vi.fn().mockImplementation(() => ({
+  PrismaSelectedSlotRepository: vi.fn().mockImplementation(() => ({
     findReservedByOthers: vi.fn().mockResolvedValue(null),
   })),
 }));

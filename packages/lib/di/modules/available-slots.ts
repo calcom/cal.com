@@ -9,7 +9,7 @@ export const availableSlotsModule = createModule();
 availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
   oooRepo: DI_TOKENS.OOO_REPOSITORY,
   scheduleRepo: DI_TOKENS.SCHEDULE_REPOSITORY,
-  selectedSlotsRepo: DI_TOKENS.SELECTED_SLOTS_REPOSITORY,
+  selectedSlotRepo: DI_TOKENS.SELECTED_SLOTS_REPOSITORY,
   teamRepo: DI_TOKENS.TEAM_REPOSITORY,
   userRepo: DI_TOKENS.USER_REPOSITORY,
   bookingRepo: DI_TOKENS.BOOKING_REPOSITORY,
