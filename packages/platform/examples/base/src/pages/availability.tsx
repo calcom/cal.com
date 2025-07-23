@@ -20,7 +20,6 @@ export default function Availability(props: { calUsername: string; calEmail: str
   };
 
   const handleSubmit = () => {
-    console.log("handleSubmit: ", availabilityRef.current);
     availabilityRef.current?.handleFormSubmit();
   };
 
