@@ -82,4 +82,14 @@ export class DistributedTracing {
       _traceContext: traceContext,
     };
   }
+
+  updateTrace(traceContext: TraceContext, additionalMeta?: Record<string, any>): TraceContext {
+    return {
+      ...traceContext,
+      meta: {
+        ...traceContext.meta,
+        ...additionalMeta,
+      },
+    };
+  }
 }

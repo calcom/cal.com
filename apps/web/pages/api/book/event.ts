@@ -13,14 +13,17 @@ import { CreationSource } from "@calcom/prisma/enums";
 async function handler(req: NextApiRequest & { userId?: number; traceContext?: TraceContext }) {
   const userIp = getIP(req);
 
-  const traceContext = distributedTracing.createTrace("api_book_event", {
-    ...(req.traceContext || {}),
-    meta: {
-      ...(req.traceContext?.meta || {}),
-      userIp,
-      eventTypeId: req.body?.eventTypeId,
-    },
-  });
+  const traceContext = req.traceContext
+    ? distributedTracing.updateTrace(req.traceContext, {
+        userIp,
+        eventTypeId: req.body?.eventTypeId,
+      })
+    : distributedTracing.createTrace("api_book_event", {
+        meta: {
+          userIp,
+          eventTypeId: req.body?.eventTypeId,
+        },
+      });
   const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("API book event request started", {

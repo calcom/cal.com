@@ -406,16 +406,12 @@ async function handler(
   } = input;
 
   const traceContext = passedTraceContext
-    ? {
-        ...passedTraceContext,
-        meta: {
-          ...passedTraceContext.meta,
-          eventTypeId: rawBookingData.eventTypeId,
-          userId: userId,
-          eventTypeSlug: rawBookingData.eventTypeSlug,
-          userInfo: rawBookingData.user,
-        },
-      }
+    ? distributedTracing.updateTrace(passedTraceContext, {
+        eventTypeId: rawBookingData.eventTypeId,
+        userId: userId,
+        eventTypeSlug: rawBookingData.eventTypeSlug,
+        userInfo: rawBookingData.user,
+      })
     : distributedTracing.createTrace("booking_creation", {
         meta: {
           eventTypeId: rawBookingData.eventTypeId,
