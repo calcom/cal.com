@@ -214,6 +214,8 @@ export const AddNewTeamMembersForm = () => {
               return;
             }
             orgCreation.mutation.mutate({
+              name,
+              slug,
               logo,
               bio,
               teams,
