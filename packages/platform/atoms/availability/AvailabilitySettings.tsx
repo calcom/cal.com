@@ -457,7 +457,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               <>
                 <DeleteDialogButton
                   buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
-                  disabled={schedule.isLastSchedule}
+                  disabled={
+                    schedule.isLastSchedule || (schedule.isDefault && schedule.lockedDefaultAvailability)
+                  }
                   isPending={isDeleting}
                   handleDelete={handleDelete}
                   isDefaultSchedule={schedule.isDefault}
@@ -485,7 +487,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       {allowDelete && (
                         <DeleteDialogButton
                           buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
-                          disabled={schedule.isLastSchedule}
+                          disabled={
+                            schedule.isLastSchedule ||
+                            (schedule.isDefault && schedule.lockedDefaultAvailability)
+                          }
                           isPending={isDeleting}
                           handleDelete={handleDelete}
                           onDeleteConfirmed={() => {
@@ -665,6 +670,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           "Saturday",
                         ].indexOf(weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                       }
+                      disabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                     />
                   )}
                 </div>
