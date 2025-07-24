@@ -207,12 +207,14 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     }
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
-    if (newSelection.month() !== currentSelection.month()) {
-      set({ month: newSelection.format("YYYY-MM") });
-      if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
-        updateQueryParam("month", newSelection.format("YYYY-MM"));
-      }
-    }
+    // code was added here: https://github.com/calcom/cal.com/pull/9684/files#r1236983205
+    // month is also correctly changed without this code, so I don't think we need this
+    // if (newSelection.month() !== currentSelection.month()) {
+    //   set({ month: newSelection.format("YYYY-MM") });
+    //   if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
+    //     updateQueryParam("month", newSelection.format("YYYY-MM"));
+    //   }
+    // }
   },
   selectedDatesAndTimes: null,
   setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
