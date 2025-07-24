@@ -307,6 +307,11 @@ const getError = ({
   return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(error.message, { date })}
+      {error.traceId && (
+        <div className="mt-2 text-xs text-gray-500">
+          {t("reference_id")}: {error.traceId}
+        </div>
+      )}
     </>
   ) : (
     <>{t("can_you_try_again")}</>

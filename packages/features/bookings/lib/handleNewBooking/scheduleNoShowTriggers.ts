@@ -3,6 +3,8 @@ import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 type ScheduleNoShowTriggersArgs = {
@@ -18,6 +20,7 @@ type ScheduleNoShowTriggersArgs = {
   orgId?: number | null;
   oAuthClientId?: string | null;
   isDryRun?: boolean;
+  traceContext?: TraceContext;
 };
 
 const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
@@ -30,7 +33,21 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
     orgId,
     oAuthClientId,
     isDryRun = false,
+    traceContext,
   } = args;
+
+  const spanContext = traceContext
+    ? distributedTracing.createSpan(traceContext, "schedule_no_show_triggers")
+    : undefined;
+  const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : undefined;
+
+  if (tracingLogger) {
+    tracingLogger.info("Scheduling no-show triggers", {
+      bookingId: booking.id,
+      eventTypeId,
+      originalTraceId: traceContext?.traceId,
+    });
+  }
 
   const isCalVideoLocation = booking.location === DailyLocationType || booking.location?.trim() === "";
 

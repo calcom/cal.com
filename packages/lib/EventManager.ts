@@ -22,6 +22,8 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -138,12 +140,17 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
+  private traceContext?: TraceContext;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser, eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+  constructor(
+    user: EventManagerUser,
+    eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>,
+    traceContext?: TraceContext
+  ) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -173,6 +180,7 @@ export default class EventManager {
     );
 
     this.appOptions = eventTypeAppMetadata;
+    this.traceContext = traceContext;
   }
 
   private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
@@ -259,6 +267,17 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    const spanContext = this.traceContext
+      ? distributedTracing.createSpan(this.traceContext, "calendar_event_creation")
+      : undefined;
+    const tracingLogger = spanContext ? distributedTracing.getTracingLogger(spanContext) : log;
+
+    tracingLogger.info("EventManager.create started", {
+      eventTitle: event.title,
+      attendeeCount: event.attendees.length,
+      integrationCount: this.calendarCredentials.length,
+    });
+
     // TODO this method shouldn't be modifying the event object that's passed in
     const evt = processLocation(event);
 

@@ -19,6 +19,8 @@ import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import {
   BookingStatus,
@@ -376,7 +378,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    const traceContext: TraceContext = distributedTracing.createTrace("booking_confirmation", {
+      meta: {
+        bookingUid: booking.uid,
+        confirmed,
+        userId: user.id,
+        teamId,
+        eventTypeId: booking.eventType?.id,
+      },
+    });
+
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, traceContext });
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";

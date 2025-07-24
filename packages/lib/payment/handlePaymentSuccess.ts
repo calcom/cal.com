@@ -10,16 +10,37 @@ import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-c
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getBooking } from "@calcom/lib/payment/getBooking";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
-import logger from "../logger";
+export async function handlePaymentSuccess(
+  paymentId: number,
+  bookingId: number,
+  traceContext?: TraceContext
+) {
+  const paymentMeta = {
+    paymentId,
+    bookingId,
+  };
 
-const log = logger.getSubLogger({ prefix: ["[handlePaymentSuccess]"] });
-export async function handlePaymentSuccess(paymentId: number, bookingId: number) {
-  log.debug(`handling payment success for bookingId ${bookingId}`);
+  const spanContext = traceContext
+    ? distributedTracing.createSpan(traceContext, "payment_success_processing", paymentMeta)
+    : distributedTracing.createTrace("payment_success_processing_fallback", {
+        meta: paymentMeta,
+      });
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
+
+  tracingLogger.info("Processing payment success", {
+    paymentId,
+    bookingId,
+    originalTraceId: traceContext?.traceId,
+  });
+
+  tracingLogger.debug(`handling payment success for bookingId ${bookingId}`);
   const { booking, user: userWithCredentials, evt, eventType } = await getBooking(bookingId);
 
   if (booking.location) evt.location = booking.location;
@@ -45,7 +66,11 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
   if (isConfirmed) {
     const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-    const eventManager = new EventManager({ ...userWithCredentials, credentials: allCredentials }, apps);
+    const eventManager = new EventManager(
+      { ...userWithCredentials, credentials: allCredentials },
+      apps,
+      spanContext
+    );
     const scheduleResult = areCalendarEventsEnabled
       ? await eventManager.create(evt)
       : placeholderCreatedEvent;
@@ -79,6 +104,13 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
   });
 
   await prisma.$transaction([paymentUpdate, bookingUpdate]);
+
+  tracingLogger.info("Payment and booking updated successfully", {
+    paymentId,
+    bookingId: booking.id,
+    isConfirmed,
+    requiresConfirmation,
+  });
   if (!isConfirmed) {
     if (!requiresConfirmation) {
       await handleConfirmation({
@@ -89,13 +121,15 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
         booking,
         paid: true,
         platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
+        traceContext: spanContext,
       });
     } else {
       await handleBookingRequested({
         evt,
         booking,
+        traceContext: spanContext,
       });
-      log.debug(`handling booking request for eventId ${eventType.id}`);
+      tracingLogger.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
     await sendScheduledEmailsAndSMS({ ...evt }, undefined, undefined, undefined, eventType.metadata);
