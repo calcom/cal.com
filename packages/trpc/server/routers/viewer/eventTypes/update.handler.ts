@@ -691,6 +691,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     updatedValues,
   });
 
+  // Clean up empty host groups
+  if (hostGroups !== undefined || hosts) {
+    await ctx.prisma.hostGroup.deleteMany({
+      where: {
+        eventTypeId: id,
+        hosts: {
+          none: {},
+        },
+      },
+    });
+  }
+
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
     try {
