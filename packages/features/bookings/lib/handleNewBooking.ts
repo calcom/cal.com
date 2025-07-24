@@ -2118,7 +2118,7 @@ async function handler(
   }
 
   try {
-    const hashedLinkService = new HashedLinkService(prisma);
+    const hashedLinkService = new HashedLinkService();
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
       await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
     }

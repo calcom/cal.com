@@ -1,8 +1,8 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
-import { prisma, type PrismaClient } from "@calcom/prisma";
 
 import { HashedLinkRepository, type HashedLinkInputType } from "../repository/hashedLinkRepository";
+import { MembershipService } from "./membershipService";
 
 type NormalizedLink = {
   link: string;
@@ -11,11 +11,10 @@ type NormalizedLink = {
 };
 
 export class HashedLinkService {
-  private hashedLinkRepository: HashedLinkRepository;
-
-  constructor(private readonly prismaClient: PrismaClient = prisma) {
-    this.hashedLinkRepository = new HashedLinkRepository(this.prismaClient);
-  }
+  constructor(
+    private readonly hashedLinkRepository: HashedLinkRepository = HashedLinkRepository.create(),
+    private readonly membershipService: MembershipService = new MembershipService()
+  ) {}
 
   /**
    * Normalizes link input to a consistent format
@@ -145,18 +144,7 @@ export class HashedLinkService {
       return true;
     }
 
-    // Check team membership
-    const membership = await this.prismaClient.membership.findFirst({
-      where: {
-        teamId: link.eventType.teamId,
-        userId,
-        accepted: true,
-      },
-      select: {
-        id: true,
-      },
-    });
-
+    const membership = await this.membershipService.checkMembership(link.eventType.teamId, userId);
     return !!membership;
   }
 }

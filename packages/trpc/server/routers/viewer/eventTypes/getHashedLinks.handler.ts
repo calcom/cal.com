@@ -21,11 +21,11 @@ export const getHashedLinksHandler = async ({ ctx, input }: GetHashedLinksOption
   }
 
   // Get all hashed links with usage data
-  const privateLinksRepo = new HashedLinkRepository(ctx.prisma);
+  const privateLinksRepo = HashedLinkRepository.create();
   const hashedLinks = await privateLinksRepo.findLinksWithEventTypeDetails(linkIds);
 
   // Check if the user has permission to access these hashed links
-  const privateLinkService = new HashedLinkService(ctx.prisma);
+  const privateLinkService = new HashedLinkService();
   const validLinks = await Promise.all(
     hashedLinks.map(async (link) => {
       const hasPermission = await privateLinkService.checkUserPermissionForLink(link, ctx.user.id);

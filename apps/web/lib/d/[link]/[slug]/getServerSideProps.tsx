@@ -36,7 +36,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   } as const;
 
   // Use centralized validation logic to avoid duplication
-  const hashedLinkService = new HashedLinkService(prisma);
+  const hashedLinkService = new HashedLinkService();
   const hashedLinkRepository = new HashedLinkRepository(prisma);
   try {
     await hashedLinkService.validate(link);

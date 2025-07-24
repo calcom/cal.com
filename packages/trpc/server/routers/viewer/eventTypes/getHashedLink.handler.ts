@@ -25,7 +25,7 @@ export const getHashedLinkHandler = async ({ ctx, input }: GetHashedLinkOptions)
     });
   }
 
-  const hashedLinkRepository = new HashedLinkRepository(ctx.prisma);
+  const hashedLinkRepository = HashedLinkRepository.create();
   // Get the hashed link with usage data
   const hashedLink = await hashedLinkRepository.findLinkWithEventTypeDetails(linkId);
 
@@ -37,7 +37,7 @@ export const getHashedLinkHandler = async ({ ctx, input }: GetHashedLinkOptions)
   }
 
   // Check if the user has permission to access this hashed link
-  const hashedLinkService = new HashedLinkService(ctx.prisma);
+  const hashedLinkService = new HashedLinkService();
   const hasPermission = await hashedLinkService.checkUserPermissionForLink(hashedLink, ctx.user.id);
 
   if (!hasPermission) {

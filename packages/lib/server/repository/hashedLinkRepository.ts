@@ -1,4 +1,5 @@
-import { prisma, type PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 export type HashedLinkInputType = {
@@ -80,7 +81,11 @@ export const hashedLinkSelect = {
 } satisfies Prisma.HashedLinkSelect;
 
 export class HashedLinkRepository {
-  constructor(private readonly prismaClient: PrismaClient = prisma) {}
+  constructor(private readonly prismaClient: PrismaClient) {}
+
+  static create() {
+    return new HashedLinkRepository(prisma);
+  }
 
   async deleteLinks(eventTypeId: number, linksToDelete: string[]) {
     if (linksToDelete.length === 0) return;
