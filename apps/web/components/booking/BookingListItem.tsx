@@ -52,6 +52,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -132,6 +133,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
 
   const attendeeList = booking.attendees.map((attendee) => {
@@ -396,6 +398,35 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "no_show" && !(isBookingInPast || isOngoing)) ||
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
+
+  const hasBeenReported =
+    booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
+
+  const createReportAction = (hasBeenReported: boolean, onClick: () => void): ActionType => {
+    return hasBeenReported
+      ? {
+          id: "report",
+          label: t("already_reported"),
+          icon: "flag",
+          disabled: true,
+        }
+      : {
+          id: "report",
+          label: t("report"),
+          icon: "flag",
+          disabled: false,
+          onClick,
+        };
+  };
+
+  if (!isCancelled) {
+    const reportAction: ActionType = createReportAction(hasBeenReported, () => setIsReportDialogOpen(true));
+    afterEventActions.push(reportAction);
+  }
+
+  const cancelledBookingReportAction: ActionType | null = isCancelled
+    ? createReportAction(hasBeenReported, () => setIsReportDialogOpen(true))
+    : null;
 
   return (
     <>
@@ -709,6 +740,21 @@ function BookingListItem(booking: BookingItemProps) {
                 <RequestSentMessage />
               </div>
             )}
+            {cancelledBookingReportAction && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="icon"
+                  color="secondary"
+                  StartIcon={cancelledBookingReportAction.icon}
+                  onClick={cancelledBookingReportAction.onClick}
+                  disabled={cancelledBookingReportAction.disabled}
+                  data-testid={cancelledBookingReportAction.id}
+                  className="h-8 w-8"
+                  tooltip={cancelledBookingReportAction.label}
+                />
+              </div>
+            )}
           </div>
         </div>
         <BookingItemBadges
@@ -720,6 +766,18 @@ function BookingListItem(booking: BookingItemProps) {
           isRescheduled={isRescheduled}
         />
       </div>
+
+      <ReportBookingDialog
+        isOpen={isReportDialogOpen}
+        onClose={() => setIsReportDialogOpen(false)}
+        bookingId={booking.id}
+        bookingTitle={booking.title}
+        isUpcoming={isUpcoming}
+        isCancelled={isCancelled}
+        onSuccess={() => {
+          utils.viewer.bookings.invalidate();
+        }}
+      />
 
       {isBookingFromRoutingForm && (
         <RerouteDialog
@@ -762,6 +820,11 @@ const BookingItemBadges = ({
             {t("rescheduled")}
           </Badge>
         </Tooltip>
+      )}
+      {booking.reports && booking.reports.length > 0 && (
+        <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
+          {t("reported")}
+        </Badge>
       )}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
