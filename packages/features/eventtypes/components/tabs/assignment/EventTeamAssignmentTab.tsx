@@ -327,7 +327,13 @@ const RoundRobinHosts = ({
     name: "hostGroups",
   });
 
-  const createAddMembersWithSwitch = (groupId: string | null, containerClassName?: string) => {
+  const AddMembersWithSwitchComponent = ({
+    groupId,
+    containerClassName,
+  }: {
+    groupId: string | null;
+    containerClassName?: string;
+  }) => {
     return (
       <AddMembersWithSwitch
         placeholder={t("add_a_member")}
@@ -364,6 +370,25 @@ const RoundRobinHosts = ({
         }}
         customClassNames={customClassNames?.addMembers}
       />
+    );
+  };
+
+  const UnassignedHostsGroup = () => {
+    const unassignedHosts = value.filter((host) => !host.isFixed && !host.groupId);
+
+    if (unassignedHosts.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="border-subtle my-4 rounded-md border p-4 pb-0">
+        <div className="-mb-1 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-default text-sm font-medium">{`Group ${hostGroups.length + 1}`}</span>
+          </div>
+        </div>
+        <AddMembersWithSwitchComponent groupId={null} />
+      </div>
     );
   };
 
@@ -477,28 +502,11 @@ const RoundRobinHosts = ({
           />
         </>
         {!hostGroups.length ? (
-          createAddMembersWithSwitch(hostGroups[0]?.id ?? null)
+          <AddMembersWithSwitchComponent groupId={hostGroups[0]?.id ?? null} />
         ) : (
           <>
             {/* Show unassigned hosts first */}
-            {(() => {
-              const unassignedHosts = value.filter((host) => !host.isFixed && !host.groupId);
-              if (unassignedHosts.length > 0) {
-                return (
-                  <div className="border-subtle my-4 rounded-md border p-4 pb-0">
-                    <div className="-mb-1 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-default text-sm font-medium">{`Group ${
-                          hostGroups.length + 1
-                        }`}</span>
-                      </div>
-                    </div>
-                    {createAddMembersWithSwitch(null)}
-                  </div>
-                );
-              }
-              return null;
-            })()}
+            <UnassignedHostsGroup />
 
             {/* Show all defined groups */}
             {hostGroups.map((group, index) => {
@@ -538,7 +546,7 @@ const RoundRobinHosts = ({
                       <Icon name="x" className="h-4 w-4" />
                     </button>
                   </div>
-                  {createAddMembersWithSwitch(group.id)}
+                  <AddMembersWithSwitchComponent groupId={group.id} />
                 </div>
               );
             })}
