@@ -245,7 +245,9 @@ function BookingListItem(booking: BookingItemProps) {
     isDisabledCancelling,
     isDisabledRescheduling,
     isCalVideoLocation:
-      !booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "",
+      !booking.location ||
+      booking.location === "integrations:daily" ||
+      (typeof booking.location === "string" && booking.location.trim() === ""),
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
     cardCharged,
     attendeeList,
