@@ -122,6 +122,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
             weight: 100,
             scheduleId: null,
             user: { timeZone: "America/New_York" },
+            groupId: null,
           },
         ],
         isManagedEventType: true,
