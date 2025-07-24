@@ -10,11 +10,8 @@ import {
 } from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
 import css from "./embed.css";
-import { SdkActionManager } from "./sdk-action-manager";
-import type { EventData, EventDataMap } from "./sdk-action-manager";
-import tailwindCss from "./tailwindCss";
-import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig, ModalPrerenderOptions } from "./types";
-import { getMaxHeightForModal } from "./ui-utils";
+import { getScrollableAncestor } from "./lib/domUtils";
+import { getScrollByDistanceHandler } from "./lib/eventHandlers/scrollByDistanceEventHandler";
 import {
   fromEntriesWithDuplicateKeys,
   isRouterPath,
@@ -22,7 +19,12 @@ import {
   getConfigProp,
   isSameBookingLink,
   buildConfigWithPrerenderRelatedFields,
-} from "./utils";
+} from "./lib/utils";
+import { SdkActionManager } from "./sdk-action-manager";
+import type { EventData, EventDataMap } from "./sdk-action-manager";
+import tailwindCss from "./tailwindCss";
+import type { UiConfig, EmbedPageType, PrefillAndIframeAttrsConfig, ModalPrerenderOptions } from "./types";
+import { getMaxHeightForModal } from "./ui-utils";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
@@ -332,6 +334,8 @@ export class Cal {
       iframe.setAttribute("id", iframeAttrs.id);
     }
 
+    iframe.setAttribute("allow", "payment");
+
     const searchParams = this.buildFilteredQueryParams(queryParamsFromConfig);
 
     // cal.com has rewrite issues on Safari that sometimes cause 404 for assets.
@@ -472,6 +476,8 @@ export class Cal {
       }
     });
 
+    this.actionManager.on("__scrollByDistance", getScrollByDistanceHandler(this));
+
     this.actionManager.on("linkReady", () => {
       if (this.isPrerendering) {
         // Ensure that we don't mark embed as loaded if it's prerendering otherwise prerendered embed could show-up without any user action
@@ -498,6 +504,20 @@ export class Cal {
       this.inlineEl?.setAttribute("loading", "failed");
       this.modalBox?.setAttribute("state", "failed");
     });
+  }
+
+  scrollByDistance(distanceInPixels: number): void {
+    if (!this.iframe) {
+      return;
+    }
+    // We compute scrollable ancestor on demand here and not when the iframe is created because because we need to see if the ancestor has scrollable content at that time
+    const scrollContainer = getScrollableAncestor(this.iframe);
+    if (!scrollContainer) {
+      return;
+    }
+    const newScrollTop = scrollContainer.scrollTop + distanceInPixels;
+
+    scrollContainer.scrollTo({ top: newScrollTop, behavior: "smooth" });
   }
 
   private filterParams(params: Record<string, unknown>): Record<string, unknown> {
