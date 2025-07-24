@@ -64,11 +64,9 @@ export default function CreateEventTypeForm({
               required
               addOnLeading={
                 !isPlatform ? (
-                  <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
-                    <span className="max-w-24 md:max-w-56">
-                      /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                    </span>
-                  </Tooltip>
+                  <span className="max-w-24 md:max-w-56">
+                    /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                  </span>
                 ) : undefined
               }
               {...register("slug")}
