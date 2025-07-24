@@ -24,13 +24,11 @@ import { getThemeProviderProps } from "./getThemeProviderProps";
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithLocaleProps<
-      {
-        nonce: string | undefined;
-        themeBasis?: string;
-        session: Session;
-      }
-    >
+    WithLocaleProps<{
+      nonce: string | undefined;
+      themeBasis?: string;
+      session: Session;
+    }>
   >,
   "Component"
 > & {

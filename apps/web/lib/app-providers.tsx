@@ -32,13 +32,11 @@ const I18nextAdapter = appWithTranslation<
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithLocaleProps<
-      {
-        themeBasis?: string;
-        session: Session;
-        i18n?: SSRConfig;
-      }
-    >
+    WithLocaleProps<{
+      themeBasis?: string;
+      session: Session;
+      i18n?: SSRConfig;
+    }>
   >,
   "Component"
 > & {
@@ -71,12 +69,7 @@ const getEmbedNamespace = (query: ParsedUrlQuery) => {
   return typeof window !== "undefined" ? window.getEmbedNamespace() : (query.embed as string) || null;
 };
 
-// We dont need to pass nonce to the i18n provider - this was causing x2-x3 re-renders on a hard refresh
-type AppPropsWithoutNonce = Omit<AppPropsWithChildren, "pageProps"> & {
-  pageProps: Omit<AppPropsWithChildren["pageProps"], "nonce">;
-};
-
-const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
+const CustomI18nextProvider = (props: AppPropsWithChildren) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
@@ -278,18 +271,10 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 
 const AppProviders = (props: AppPropsWithChildren) => {
   const isBookingPage = useIsBookingPage();
-  const { pageProps, ...rest } = props;
-
-  const propsWithoutNonce = {
-    pageProps: {
-      ...pageProps,
-    },
-    ...rest,
-  };
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <CustomI18nextProvider {...propsWithoutNonce}>
+      <CustomI18nextProvider {...props}>
         <TooltipProvider>
           <CalcomThemeProvider
             themeBasis={props.pageProps.themeBasis}
