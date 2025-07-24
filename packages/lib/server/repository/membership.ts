@@ -87,15 +87,6 @@ export class MembershipRepository {
     return !!membership;
   }
 
-  async findUniqueByUserIdAndTeamId({ userId, teamId }: { userId: number; teamId: number }) {
-    return await this.prismaClient.membership.findFirst({
-      where: {
-        teamId,
-        userId,
-      },
-    });
-  }
-
   async listAcceptedTeamMemberIds({ teamId }: { teamId: number }): Promise<number[]> {
     const memberships =
       (await this.prismaClient.membership.findMany({
