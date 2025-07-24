@@ -1871,6 +1871,7 @@ describe("Event types Endpoints", () => {
           calVideoSettings: {
             disableRecordingForGuests: true,
             disableRecordingForOrganizer: true,
+            enableAutomaticRecordingForOrganizer: true,
           },
           locations: [
             {
@@ -1893,6 +1894,7 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.locations).toEqual(body.locations);
             expect(createdEventType.calVideoSettings?.disableRecordingForGuests).toEqual(true);
             expect(createdEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(true);
+            expect(createdEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(true);
             firstCreatedEventType = responseBody.data;
           });
       });
