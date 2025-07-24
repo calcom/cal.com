@@ -108,7 +108,7 @@ export class RoleRepository {
         await trx.rolePermission.deleteMany({
           where: {
             roleId,
-            AND: permissionChanges.toRemove.map((p) => ({
+            OR: permissionChanges.toRemove.map((p) => ({
               resource: p.resource,
               action: p.action,
             })),
