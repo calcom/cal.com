@@ -19,6 +19,17 @@ import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
+
+const hashedLinkSelect = {
+  select: {
+    id: true,
+    link: true,
+    expiresAt: true,
+    maxUsageCount: true,
+    usageCount: true,
+  },
+};
+
 type NotSupportedProps = "locations";
 type IEventType = Ensure<
   Partial<
@@ -50,6 +61,7 @@ const userSelect = {
   avatarUrl: true,
   username: true,
   id: true,
+  timeZone: true,
 } satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
@@ -159,7 +171,7 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
       users: { select: userSelect },
       children: {
         include: {
@@ -169,6 +181,21 @@ export class EventTypeRepository {
       hosts: {
         include: {
           user: { select: userSelect },
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
         },
       },
     };
@@ -274,7 +301,7 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
     };
 
     log.debug(
@@ -381,11 +408,12 @@ export class EventTypeRepository {
       avatarUrl: true,
       username: true,
       id: true,
+      timeZone: true,
     } satisfies Prisma.UserSelect;
 
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
       users: { select: userSelect, take: 5 },
       children: {
         include: {
@@ -397,6 +425,21 @@ export class EventTypeRepository {
           user: { select: userSelect },
         },
         take: 5,
+      },
+      team: {
+        select: {
+          id: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
       },
     };
 
@@ -478,6 +521,7 @@ export class EventTypeRepository {
       locale: true,
       defaultScheduleId: true,
       isPlatformManaged: true,
+      timeZone: true,
     } satisfies Prisma.UserSelect;
 
     const CompleteEventTypeSelect = {
@@ -528,7 +572,7 @@ export class EventTypeRepository {
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
@@ -551,6 +595,7 @@ export class EventTypeRepository {
       owner: {
         select: {
           id: true,
+          timeZone: true,
         },
       },
       parent: {
@@ -633,6 +678,11 @@ export class EventTypeRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
         },
       },
       userId: true,
