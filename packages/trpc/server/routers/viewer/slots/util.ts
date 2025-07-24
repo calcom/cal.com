@@ -42,12 +42,12 @@ import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
+import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import type { SelectedSlotRepositoryInterface } from "@calcom/lib/server/repository/selectedSlot";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
@@ -93,7 +93,7 @@ export type GetAvailableSlotsResponse = Awaited<
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
-  selectedSlotRepo: SelectedSlotRepositoryInterface;
+  selectedSlotRepo: ISelectedSlotRepository;
   teamRepo: TeamRepository;
   userRepo: UserRepository;
   bookingRepo: BookingRepository;

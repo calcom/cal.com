@@ -1,61 +1,13 @@
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
-type WhereCondition = {
-  slotUtcStartDate?: Date | string;
-  slotUtcEndDate?: Date | string;
-  eventTypeId?: number;
-  uid?: string | { not: string };
-  releaseAt?: { gt: Date };
-};
+import type { ISelectedSlotRepository } from "./ISelectedSlotRepository";
+import type { TimeSlot } from "./ISelectedSlotRepository";
 
-export type FindManyArgs = {
-  where?: WhereCondition & {
-    OR?: WhereCondition[];
-  };
-  select?: any;
-};
-
-export type TimeSlot = {
-  utcStartIso: string;
-  utcEndIso: string;
-};
-
-export interface SelectedSlotRepositoryInterface {
-  findMany(args: any): Promise<any[]>;
-  findFirst(args: any): Promise<any | null>;
-  findReservedByOthers(args: { slot: TimeSlot; eventTypeId: number; uid: string }): Promise<any | null>;
-  findManyReservedByOthers(
-    slots: TimeSlot[],
-    eventTypeId: number,
-    uid: string
-  ): Promise<
-    Array<{
-      slotUtcStartDate: Date;
-      slotUtcEndDate: Date;
-    }>
-  >;
-  findManyUnexpiredSlots(args: { userIds: number[]; currentTimeInUtc: string }): Promise<
-    Array<{
-      id: number;
-      slotUtcStartDate: Date;
-      slotUtcEndDate: Date;
-      userId: number | null;
-      isSeat: boolean;
-      eventTypeId: number;
-      uid: string;
-    }>
-  >;
-  deleteManyExpiredSlots(args: { eventTypeId: number; currentTimeInUtc: string }): Promise<{ count: number }>;
-}
-
-export class PrismaSelectedSlotRepository implements SelectedSlotRepositoryInterface {
+export class PrismaSelectedSlotRepository implements ISelectedSlotRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findMany({ where, select }: any) {
-    return await this.prismaClient.selectedSlots.findMany({ where, select });
-  }
-
-  async findFirst({ where }: any) {
+  private async findFirst({ where }: { where: Prisma.SelectedSlotsWhereInput }) {
     return await this.prismaClient.selectedSlots.findFirst({
       where,
     });
