@@ -2,7 +2,12 @@ import { ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger
 import { Type } from "class-transformer";
 import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 
-import { ApiResponseWithoutData, SlotsOutput_2024_09_04, RangeSlotsOutput_2024_09_04 } from "@calcom/platform-types";
+import {
+  ApiResponseWithoutData,
+  SlotsOutput_2024_09_04,
+  RangeSlotsOutput_2024_09_04,
+} from "@calcom/platform-types";
+
 class Routing {
   @ApiProperty({
     type: String,
@@ -81,11 +86,10 @@ export class CreateRoutingFormResponseOutputData {
   eventTypeId?: number;
 
   @ValidateNested()
-  @ApiProperty({ type: Routing })
   @Type(() => Routing)
   @ApiPropertyOptional({
     type: Routing,
-    description: "The routing information.",
+    description: "The routing information that could be passed as is to the booking API.",
     example: {
       eventTypeId: 123,
       routing: {
@@ -95,8 +99,6 @@ export class CreateRoutingFormResponseOutputData {
       },
     },
   })
-  @ValidateNested()
-  @Type(() => Routing)
   routing?: Routing;
 
   @IsString()
@@ -133,4 +135,4 @@ export class CreateRoutingFormResponseOutput extends ApiResponseWithoutData {
   @ApiProperty({ type: CreateRoutingFormResponseOutputData })
   @Type(() => CreateRoutingFormResponseOutputData)
   data!: CreateRoutingFormResponseOutputData;
-} 
+}
