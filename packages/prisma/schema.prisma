@@ -459,6 +459,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  bookingReports                 BookingReport[]
 
   @@unique([email])
   @@unique([email, username])
@@ -778,6 +779,27 @@ enum BookingStatus {
   AWAITING_HOST @map("awaiting_host")
 }
 
+enum ReportReason {
+  SPAM
+  DONT_KNOW_PERSON @map("dont_know_person")
+  OTHER
+}
+
+model BookingReport {
+  id           String       @id @default(uuid())
+  booking      Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId    Int
+  reportedBy   User         @relation(fields: [reportedById], references: [id], onDelete: Cascade)
+  reportedById Int
+  reason       ReportReason
+  description  String?
+  cancelled    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+
+  @@index([bookingId])
+  @@index([reportedById])
+}
+
 model Booking {
   id                           Int                               @id @default(autoincrement())
   uid                          String                            @unique
@@ -844,6 +866,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  reports                      BookingReport[]
 
   @@index([eventTypeId])
   @@index([userId])
