@@ -40,6 +40,7 @@ import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -108,7 +109,10 @@ type BookingField = z.infer<typeof fieldSchema>;
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
-    Pick<RouterOutputs["viewer"]["me"]["get"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
+    Pick<
+      RouterOutputs["viewer"]["me"]["get"],
+      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
+    >
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
@@ -529,6 +533,14 @@ export const EventAdvancedTab = ({
     }
   );
 
+  const userTimeZone = extractHostTimezone({
+    userId: eventType.userId,
+    teamId: eventType.teamId,
+    hosts: eventType.hosts,
+    owner: eventType.owner,
+    team: eventType.team,
+  });
+
   let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
@@ -576,27 +588,39 @@ export const EventAdvancedTab = ({
           isUserLoading={isUserLoading}
         />
       )}
-      <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <FormBuilder
-          title={t("booking_questions_title")}
-          description={t("booking_questions_description")}
-          addFieldLabel={t("add_a_booking_question")}
-          formProp="bookingFields"
-          {...shouldLockDisableProps("bookingFields")}
-          dataStore={{
-            options: {
-              locations: {
-                // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
-                source: { label: "Location" },
-                value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+
+      <div className="border-subtle bg-muted rounded-lg border p-1">
+        <div className="p-5">
+          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+            {t("booking_questions_title")}
+          </div>
+          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+            {t("booking_questions_description")}
+          </p>
+        </div>
+        <div className="border-subtle bg-default rounded-lg border p-5">
+          <FormBuilder
+            showPhoneAndEmailToggle
+            title={t("confirmation")}
+            description={t("what_booker_should_provide")}
+            addFieldLabel={t("add_a_booking_question")}
+            formProp="bookingFields"
+            {...shouldLockDisableProps("bookingFields")}
+            dataStore={{
+              options: {
+                locations: {
+                  // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                  source: { label: "Location" },
+                  value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+                },
               },
-            },
-          }}
-          shouldConsiderRequired={(field: BookingField) => {
-            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
-            return field.name === "location" ? true : field.required;
-          }}
-        />
+            }}
+            shouldConsiderRequired={(field: BookingField) => {
+              // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+              return field.name === "location" ? true : field.required;
+            }}
+          />
+        </div>
       </div>
       <RequiresConfirmationController
         eventType={eventType}
@@ -843,7 +867,12 @@ export const EventAdvancedTab = ({
                 }}>
                 {!isManagedEventType && (
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                    <MultiplePrivateLinksController
+                      team={team}
+                      bookerUrl={eventType.bookerUrl}
+                      setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                      userTimeZone={userTimeZone}
+                    />
                   </div>
                 )}
               </SettingsToggle>
