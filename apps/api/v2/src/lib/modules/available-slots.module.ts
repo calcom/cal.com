@@ -5,7 +5,7 @@ import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-r
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { PrismaSelectedSlotRepository } from "@/lib/repositories/prismaSelectedSlotRepository";
+import { PrismaSelectedSlotsRepository } from "@/lib/repositories/prisma-selected-slots.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
