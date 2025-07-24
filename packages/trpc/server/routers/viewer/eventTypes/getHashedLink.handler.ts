@@ -1,5 +1,5 @@
-import { HashedLinksRepository } from "@calcom/lib/server/repository/hashedLinks.repository";
-import { HashedLinksService } from "@calcom/lib/server/service/hashedLinks.service";
+import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -25,9 +25,9 @@ export const getHashedLinkHandler = async ({ ctx, input }: GetHashedLinkOptions)
     });
   }
 
-  const hashedLinksRepository = new HashedLinksRepository(ctx.prisma);
+  const hashedLinkRepository = new HashedLinkRepository(ctx.prisma);
   // Get the hashed link with usage data
-  const hashedLink = await hashedLinksRepository.findLinkWithEventTypeDetails(linkId);
+  const hashedLink = await hashedLinkRepository.findLinkWithEventTypeDetails(linkId);
 
   if (!hashedLink) {
     throw new TRPCError({
@@ -37,8 +37,8 @@ export const getHashedLinkHandler = async ({ ctx, input }: GetHashedLinkOptions)
   }
 
   // Check if the user has permission to access this hashed link
-  const hashedLinksService = new HashedLinksService(ctx.prisma);
-  const hasPermission = await hashedLinksService.checkUserPermissionForLink(hashedLink, ctx.user.id);
+  const hashedLinkService = new HashedLinkService(ctx.prisma);
+  const hasPermission = await hashedLinkService.checkUserPermissionForLink(hashedLink, ctx.user.id);
 
   if (!hasPermission) {
     throw new TRPCError({

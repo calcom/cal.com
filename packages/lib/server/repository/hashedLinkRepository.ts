@@ -7,7 +7,79 @@ export type HashedLinkInputType = {
   maxUsageCount?: number | null;
 };
 
-export class HashedLinksRepository {
+export const hashedLinkSelect = {
+  id: true,
+  link: true,
+  eventTypeId: true,
+  expiresAt: true,
+  maxUsageCount: true,
+  usageCount: true,
+  eventType: {
+    select: {
+      userId: true,
+      teamId: true,
+      users: {
+        select: {
+          username: true,
+          profiles: {
+            select: {
+              id: true,
+              organizationId: true,
+              username: true,
+            },
+          },
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          slug: true,
+          hideBranding: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
+      },
+      hosts: {
+        select: {
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
+        },
+      },
+      profile: {
+        select: {
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
+        },
+      },
+      owner: {
+        select: {
+          timeZone: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.HashedLinkSelect;
+
+export class HashedLinkRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
   async deleteLinks(eventTypeId: number, linksToDelete: string[]) {
@@ -92,6 +164,15 @@ export class HashedLinksRepository {
           },
         },
       },
+    });
+  }
+
+  async findLinkWithDetails(linkId: string) {
+    return await this.prismaClient.hashedLink.findUnique({
+      where: {
+        link: linkId,
+      },
+      select: hashedLinkSelect,
     });
   }
 

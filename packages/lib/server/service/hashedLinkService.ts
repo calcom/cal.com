@@ -2,7 +2,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
 import { prisma, type PrismaClient } from "@calcom/prisma";
 
-import { HashedLinksRepository, type HashedLinkInputType } from "../repository/hashedLinks.repository";
+import { HashedLinkRepository, type HashedLinkInputType } from "../repository/hashedLinkRepository";
 
 type NormalizedLink = {
   link: string;
@@ -10,11 +10,11 @@ type NormalizedLink = {
   maxUsageCount?: number | null;
 };
 
-export class HashedLinksService {
-  private hashedLinksRepository: HashedLinksRepository;
+export class HashedLinkService {
+  private hashedLinkRepository: HashedLinkRepository;
 
   constructor(private readonly prismaClient: PrismaClient = prisma) {
-    this.hashedLinksRepository = new HashedLinksRepository(this.prismaClient);
+    this.hashedLinkRepository = new HashedLinkRepository(this.prismaClient);
   }
 
   /**
@@ -52,7 +52,7 @@ export class HashedLinksService {
     }
 
     if (!multiplePrivateLinks || multiplePrivateLinks.length === 0) {
-      await this.hashedLinksRepository.deleteLinks(eventTypeId, connectedMultiplePrivateLinks);
+      await this.hashedLinkRepository.deleteLinks(eventTypeId, connectedMultiplePrivateLinks);
       return;
     }
 
@@ -62,16 +62,16 @@ export class HashedLinksService {
     const currentLinksSet = new Set(currentLinks);
 
     const linksToDelete = connectedMultiplePrivateLinks.filter((link) => !currentLinksSet.has(link));
-    await this.hashedLinksRepository.deleteLinks(eventTypeId, linksToDelete);
+    await this.hashedLinkRepository.deleteLinks(eventTypeId, linksToDelete);
 
     const existingLinksSet = new Set(connectedMultiplePrivateLinks);
 
     for (const linkData of normalizedLinks) {
       const exists = existingLinksSet.has(linkData.link);
       if (!exists) {
-        await this.hashedLinksRepository.createLink(eventTypeId, linkData);
+        await this.hashedLinkRepository.createLink(eventTypeId, linkData);
       } else {
-        await this.hashedLinksRepository.updateLink(eventTypeId, linkData);
+        await this.hashedLinkRepository.updateLink(eventTypeId, linkData);
       }
     }
   }
@@ -88,7 +88,7 @@ export class HashedLinksService {
       throw new Error("Invalid link ID");
     }
 
-    const hashedLink = await this.hashedLinksRepository.findLinkWithValidationData(linkId);
+    const hashedLink = await this.hashedLinkRepository.findLinkWithValidationData(linkId);
 
     if (!hashedLink) {
       throw new Error(ErrorCode.PrivateLinkExpired);
@@ -112,7 +112,7 @@ export class HashedLinksService {
 
     if (hashedLink.maxUsageCount && hashedLink.maxUsageCount > 0) {
       try {
-        await this.hashedLinksRepository.incrementUsage(hashedLink.id, hashedLink.maxUsageCount);
+        await this.hashedLinkRepository.incrementUsage(hashedLink.id, hashedLink.maxUsageCount);
       } catch (updateError) {
         throw new Error(ErrorCode.PrivateLinkExpired);
       }

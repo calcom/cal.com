@@ -68,7 +68,7 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { HashedLinksService } from "@calcom/lib/server/service/hashedLinks.service";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -2116,9 +2116,9 @@ async function handler(
   }
 
   try {
-    const privateLinksService = new HashedLinksService(prisma);
+    const hashedLinkService = new HashedLinkService(prisma);
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await privateLinksService.validateAndIncrementUsage(reqBody.hashedLink as string);
+      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));

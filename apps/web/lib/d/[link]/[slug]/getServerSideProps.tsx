@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
@@ -10,8 +9,9 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
+import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { HashedLinksService } from "@calcom/lib/server/service/hashedLinks.service";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -28,78 +28,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const hashedLinkSelect = {
-    id: true,
-    link: true,
-    eventTypeId: true,
-    expiresAt: true,
-    maxUsageCount: true,
-    usageCount: true,
-    eventType: {
-      select: {
-        userId: true,
-        teamId: true,
-        users: {
-          select: {
-            username: true,
-            profiles: {
-              select: {
-                id: true,
-                organizationId: true,
-                username: true,
-              },
-            },
-          },
-        },
-        team: {
-          select: {
-            id: true,
-            slug: true,
-            hideBranding: true,
-            parent: {
-              select: {
-                hideBranding: true,
-              },
-            },
-            members: {
-              select: {
-                user: {
-                  select: {
-                    timeZone: true,
-                  },
-                },
-              },
-              take: 1,
-            },
-          },
-        },
-        hosts: {
-          select: {
-            user: {
-              select: {
-                timeZone: true,
-              },
-            },
-          },
-        },
-        profile: {
-          select: {
-            user: {
-              select: {
-                timeZone: true,
-              },
-            },
-          },
-        },
-        owner: {
-          select: {
-            timeZone: true,
-          },
-        },
-      },
-    },
-  } satisfies Prisma.HashedLinkSelect;
-
   let name: string;
   let hideBranding = false;
 
@@ -108,21 +36,17 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   } as const;
 
   // Use centralized validation logic to avoid duplication
-  const hashedLinksService = new HashedLinksService(prisma);
+  const hashedLinkService = new HashedLinkService(prisma);
+  const hashedLinkRepository = new HashedLinkRepository(prisma);
   try {
-    await hashedLinksService.validate(link);
+    await hashedLinkService.validate(link);
   } catch (error) {
     // Link is expired, invalid, or doesn't exist
     return notFound;
   }
 
   // If validation passes, fetch the complete data needed for rendering
-  const hashedLink = await prisma.hashedLink.findUnique({
-    where: {
-      link,
-    },
-    select: hashedLinkSelect,
-  });
+  const hashedLink = await hashedLinkRepository.findLinkWithDetails(link);
 
   if (!hashedLink) {
     return notFound;
