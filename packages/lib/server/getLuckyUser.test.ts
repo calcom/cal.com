@@ -2,7 +2,7 @@ import CalendarManagerMock from "../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi, beforeAll } from "vitest";
+import { expect, it, describe, vi, beforeAll, afterEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
@@ -24,6 +24,10 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 it("can find lucky user with maximize availability", async () => {
@@ -1478,4 +1482,39 @@ describe("get interval times", () => {
     });
     expect(result).toEqual(new Date("2021-06-20T11:59:59Z")); // Based on the mocked system time
   });
+});
+
+it("returns the single user immediately if only one user is available", async () => {
+  const singleUser = buildUser({
+    id: 42,
+    username: "singleuser",
+    name: "Single User",
+    email: "singleuser@example.com",
+    bookings: [],
+  });
+
+  // Mocks should not be called for data fetching in this case
+  const spyCalendar = vi.spyOn(CalendarManagerMock, "getBusyCalendarTimes");
+  const spyPrismaUser = vi.spyOn(prismaMock.user, "findMany");
+  const spyPrismaHost = vi.spyOn(prismaMock.host, "findMany");
+  const spyPrismaBooking = vi.spyOn(prismaMock.booking, "findMany");
+
+  await expect(
+    getLuckyUser({
+      availableUsers: [singleUser],
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+      },
+      allRRHosts: [],
+      routingFormResponse: null,
+    })
+  ).resolves.toStrictEqual(singleUser);
+
+  // Ensure no unnecessary data fetching occurred
+  expect(spyCalendar).not.toHaveBeenCalled();
+  expect(spyPrismaUser).not.toHaveBeenCalled();
+  expect(spyPrismaHost).not.toHaveBeenCalled();
+  expect(spyPrismaBooking).not.toHaveBeenCalled();
 });
