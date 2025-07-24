@@ -161,7 +161,7 @@ export class InsightsBookingService {
     const baseConditions = await this.getBaseConditions();
 
     // Build the select clause with validated fields
-    let selectFields = "*";
+    let selectFields = Prisma.sql`*`;
     if (select) {
       const keys = Object.keys(select);
       if (keys.some((key) => !bookingDataKeys.has(key))) {
@@ -169,12 +169,14 @@ export class InsightsBookingService {
       }
 
       if (keys.length > 0) {
-        selectFields = keys.map((field) => `"${field}"`).join(", ");
+        // Use Prisma.sql for each field to ensure proper escaping
+        const sqlFields = keys.map((field) => Prisma.sql`"${Prisma.raw(field)}"`);
+        selectFields = Prisma.join(sqlFields, ", ");
       }
     }
 
     return await this.prisma.$queryRaw<Array<SelectedFields<TSelect>>>`
-      SELECT ${Prisma.raw(selectFields)}
+      SELECT ${selectFields}
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
     `;
