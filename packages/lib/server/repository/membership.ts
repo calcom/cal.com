@@ -1,6 +1,6 @@
 import { availabilityUserSelect, prisma, type PrismaTransaction, type PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, Membership } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import logger from "../../logger";
@@ -26,6 +26,16 @@ const membershipSelect = {
   role: true,
   disableImpersonation: true,
 } satisfies Prisma.MembershipSelect;
+
+type MembershipSelectableKeys = keyof typeof membershipSelect;
+
+type MembershipPartialSelect = Partial<Record<MembershipSelectableKeys, boolean>>;
+
+type MembershipDTO = Pick<Membership, MembershipSelectableKeys>;
+
+type MembershipDTOFromSelect<TSelect extends MembershipPartialSelect> = {
+  [K in keyof TSelect & keyof MembershipDTO as TSelect[K] extends true ? K : never]: MembershipDTO[K];
+};
 
 const teamParentSelect = {
   id: true,
@@ -420,23 +430,20 @@ export class MembershipRepository {
     });
   }
 
-  static async findAllByTeamIds({
+  static async findAllByTeamIds<TSelect extends MembershipPartialSelect = { userId: true }>({
     teamIds,
-    select = { userId: true },
+    select,
   }: {
     teamIds: number[];
-    select?: Prisma.MembershipSelect;
-  }) {
-    return prisma.membership.findMany({
+    select?: TSelect;
+  }): Promise<MembershipDTOFromSelect<TSelect>[]> {
+    return (await prisma.membership.findMany({
       where: {
-        team: {
-          id: {
-            in: teamIds,
-          },
-        },
+        teamId: { in: teamIds },
         accepted: true,
       },
-      select,
-    });
+      // this is explicit, and typed in TSelect default typings
+      select: select ?? { userId: true },
+    })) as unknown as Promise<MembershipDTOFromSelect<TSelect>[]>;
   }
 }
