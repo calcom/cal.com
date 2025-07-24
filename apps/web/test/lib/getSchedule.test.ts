@@ -25,9 +25,9 @@ import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
 import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
 constantsScenarios.set({
-  IS_PRODUCTION: "true",
+  IS_PRODUCTION: true,
   WEBAPP_URL: "http://localhost:3000",
-  RESERVED_SUBDOMAINS: '["auth", "docs"]',
+  RESERVED_SUBDOMAINS: ["auth", "docs"],
   SINGLE_ORG_SLUG: "",
 });
 
