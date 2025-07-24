@@ -1,4 +1,4 @@
-import { AttributeRepository } from "@calcom/lib/server/repository/attributeRepository";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,7 +20,7 @@ const listHandler = async (opts: GetOptions) => {
     });
   }
 
-  return await AttributeRepository.findAllByOrgIdWithOptions({ orgId: org.id });
+  return await PrismaAttributeRepository.findAllByOrgIdWithOptions({ orgId: org.id });
 };
 
 export default listHandler;
