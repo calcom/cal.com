@@ -2,8 +2,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
-import { AttributeRepository } from "../../../server/repository/attribute";
-import { AttributeOptionRepository } from "../../../server/repository/attributeOption";
+import { AttributeOptionRepository } from "../../../server/repository/attributeOptionRepository";
+import { AttributeRepository } from "../../../server/repository/attributeRepository";
 import { MembershipRepository } from "../../../server/repository/membership";
 import type { AttributeId, AttributeName, BulkAttributeAssigner, AttributeOptionAssignment } from "../types";
 import {
