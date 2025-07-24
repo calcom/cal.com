@@ -278,13 +278,14 @@ describe("Booking Actions", () => {
       expect(rerouteAction).toBeDefined();
     });
 
-    it("should include reassign action for round robin events", () => {
+    it("should include reassign action for round robin events with no host groups", () => {
       const context = createMockContext({
         booking: {
           ...createMockContext().booking,
           eventType: {
             ...createMockContext().booking.eventType,
             schedulingType: SchedulingType.ROUND_ROBIN,
+            hostGroups: [],
           },
         },
       });
@@ -292,6 +293,60 @@ describe("Booking Actions", () => {
 
       const reassignAction = actions.find((a) => a.id === "reassign");
       expect(reassignAction).toBeDefined();
+    });
+
+    it("should include reassign action for round robin events with one host group", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          eventType: {
+            ...createMockContext().booking.eventType,
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            hostGroups: [{ id: 1, name: "Group 1" }],
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const reassignAction = actions.find((a) => a.id === "reassign");
+      expect(reassignAction).toBeDefined();
+    });
+
+    it("should exclude reassign action for round robin events with more than one host groups", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          eventType: {
+            ...createMockContext().booking.eventType,
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            hostGroups: [
+              { id: 1, name: "Group 1" },
+              { id: 2, name: "Group 2" },
+            ],
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const reassignAction = actions.find((a) => a.id === "reassign");
+      expect(reassignAction).toBeUndefined();
+    });
+
+    it("should exclude reassign action for non-round-robin events", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          eventType: {
+            ...createMockContext().booking.eventType,
+            schedulingType: SchedulingType.COLLECTIVE,
+            hostGroups: [],
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const reassignAction = actions.find((a) => a.id === "reassign");
+      expect(reassignAction).toBeUndefined();
     });
 
     it("should exclude add_members when guests are disabled", () => {
