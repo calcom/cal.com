@@ -17,6 +17,7 @@ import {
 
 import type { BookingLanguageType } from "../inputs/language";
 import { BookingLanguage } from "../inputs/language";
+import { ValidateBookingLocation_2024_08_13 } from "../inputs/location.input";
 
 class BookingAttendee {
   @ApiProperty({ type: String, example: "John Doe" })
@@ -236,9 +237,16 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   meetingUrl?: string;
 
-  @ApiProperty({ type: String, example: "https://example.com/meeting" })
+  @ValidateBookingLocation_2024_08_13()
+  @ApiPropertyOptional({
+    description:
+      "The location string returned by the database. This is stored as either the optionValue or value from the location object.",
+    type: String,
+    example: "+12345678901",
+  })
+  @Type(() => Object)
   @Expose()
-  location!: string;
+  location?: string;
 
   @ApiProperty({ type: Boolean, example: true })
   @IsBoolean()
@@ -408,4 +416,21 @@ export class ReassignBookingOutput_2024_08_13 {
   @Type(() => ReassignedToDto)
   @Expose()
   reassignedTo!: ReassignedToDto;
+}
+
+export class UpdateBookingLocationOutputData_2024_08_13 {
+  @ApiProperty({ type: String, example: "booking_uid_123" })
+  @IsString()
+  @Expose()
+  bookingUid!: string;
+
+  @ValidateBookingLocation_2024_08_13()
+  @ApiPropertyOptional({
+    description:
+      "The location string returned by the database. This is stored as either the optionValue or value from the location object.",
+    type: String,
+    example: "+12345678901",
+  })
+  @Type(() => Object)
+  location!: string;
 }
