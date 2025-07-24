@@ -2140,6 +2140,42 @@ describe("Event types Endpoints", () => {
         });
     });
 
+    describe("EventType Hidden Property", () => {
+      let createdEventTypeId: number;
+
+      it("should create an event type with hidden=true", async () => {
+        const createPayload = {
+          title: "Hidden Event",
+          slug: "hidden-event",
+          lengthInMinutes: 30,
+          hidden: true,
+        };
+
+        const response = await request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .send(createPayload)
+          .expect(201);
+
+        expect(response.body).toHaveProperty("id");
+        expect(response.body.hidden).toBe(true);
+
+        createdEventTypeId = response.body.data.id;
+      });
+
+      it("should update the hidden property to false", async () => {
+        const updatePayload = {
+          hidden: false,
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/api/v2/event-types/${createdEventTypeId}`)
+          .send(updatePayload)
+          .expect(200);
+
+        expect(response.body.hidden).toBe(false);
+      });
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
