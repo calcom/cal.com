@@ -302,7 +302,7 @@ describe("Booking Actions", () => {
           eventType: {
             ...createMockContext().booking.eventType,
             schedulingType: SchedulingType.ROUND_ROBIN,
-            hostGroups: [{ id: 1, name: "Group 1" }],
+            hostGroups: [{ id: "group-1", name: "Group 1" }],
           },
         },
       });
@@ -320,8 +320,8 @@ describe("Booking Actions", () => {
             ...createMockContext().booking.eventType,
             schedulingType: SchedulingType.ROUND_ROBIN,
             hostGroups: [
-              { id: 1, name: "Group 1" },
-              { id: 2, name: "Group 2" },
+              { id: "group-1", name: "Group 1" },
+              { id: "group-2", name: "Group 2" },
             ],
           },
         },
