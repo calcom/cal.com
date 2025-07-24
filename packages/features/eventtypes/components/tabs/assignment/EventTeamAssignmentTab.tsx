@@ -382,8 +382,8 @@ const RoundRobinHosts = ({
 
     return (
       <div className="border-subtle my-4 rounded-md border p-4 pb-0">
-        <div className="-mb-1 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="-mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-1">
             <span className="text-default text-sm font-medium">{`Group ${hostGroups.length + 1}`}</span>
           </div>
         </div>
@@ -514,7 +514,7 @@ const RoundRobinHosts = ({
 
               return (
                 <div key={index} className="border-subtle my-4 rounded-md border p-4 pb-0">
-                  <div className="-mb-1 flex items-center justify-between">
+                  <div className="-mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
