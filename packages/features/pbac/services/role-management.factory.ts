@@ -3,8 +3,7 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
+import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
 import { PermissionCheckService } from "./permission-check.service";
 import { RoleService } from "./role.service";
@@ -19,6 +18,7 @@ interface IRoleManager {
     membershipId: number
   ): Promise<void>;
   getAllRoles(organizationId: number): Promise<{ id: string; name: string }[]>;
+  getTeamRoles(teamId: number): Promise<{ id: string; name: string }[]>;
 }
 
 class PBACRoleManager implements IRoleManager {
@@ -38,26 +38,41 @@ class PBACRoleManager implements IRoleManager {
     });
 
     if (!hasPermission) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new RoleManagementError(
+        "You do not have permission to change roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 
   async assignRole(
-    userId: number,
+    _userId: number,
     organizationId: number,
-    role: MembershipRole,
+    role: MembershipRole | string,
     membershipId: number
   ): Promise<void> {
+    // Check if role is one of the default MembershipRole enum values
     const isDefaultRole = role in DEFAULT_ROLE_IDS;
 
+    // Also check if the role is a default role ID value
+    const isDefaultRoleId = Object.values(DEFAULT_ROLE_IDS).includes(role as any);
+
     if (isDefaultRole) {
-      await this.roleService.assignRoleToMember(DEFAULT_ROLE_IDS[role], membershipId);
+      // Handle enum values like MembershipRole.ADMIN
+      await this.roleService.assignRoleToMember(DEFAULT_ROLE_IDS[role as MembershipRole], membershipId);
+    } else if (isDefaultRoleId) {
+      // Handle default role IDs like "admin_role"
+      await this.roleService.assignRoleToMember(role as string, membershipId);
     } else {
-      const roleExists = await this.roleService.roleBelongsToTeam(role, organizationId);
+      // Handle custom roles
+      const roleExists = await this.roleService.roleBelongsToTeam(role as string, organizationId);
       if (!roleExists) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have access to this role" });
+        throw new RoleManagementError(
+          "You do not have access to this role",
+          RoleManagementErrorCode.INVALID_ROLE
+        );
       }
-      await this.roleService.assignRoleToMember(role, membershipId);
+      await this.roleService.assignRoleToMember(role as string, membershipId);
     }
   }
 
@@ -68,16 +83,27 @@ class PBACRoleManager implements IRoleManager {
       name: role.name,
     }));
   }
+
+  async getTeamRoles(teamId: number): Promise<{ id: string; name: string }[]> {
+    const roles = await this.roleService.getTeamRoles(teamId);
+    return roles.map((role) => ({
+      id: role.id,
+      name: role.name,
+    }));
+  }
 }
 
 class LegacyRoleManager implements IRoleManager {
   public isPBACEnabled = false;
   async checkPermissionToChangeRole(userId: number, organizationId: number): Promise<void> {
-    const isUpdaterAnOwner = await isOrganisationAdmin(userId, organizationId);
+    const membership = await isOrganisationAdmin(userId, organizationId);
 
-    // Only OWNER can update role to OWNER
-    if (!isUpdaterAnOwner) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+    // Only OWNER/ADMIN can update role
+    if (!membership) {
+      throw new RoleManagementError(
+        "Only owners or admin can update roles",
+        RoleManagementErrorCode.UNAUTHORIZED
+      );
     }
   }
 
@@ -101,6 +127,14 @@ class LegacyRoleManager implements IRoleManager {
   }
 
   async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
+    return [
+      { id: MembershipRole.OWNER, name: "Owner" },
+      { id: MembershipRole.ADMIN, name: "Admin" },
+      { id: MembershipRole.MEMBER, name: "Member" },
+    ];
+  }
+
+  async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
       { id: MembershipRole.ADMIN, name: "Admin" },

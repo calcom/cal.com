@@ -271,9 +271,8 @@ export const FormBuilder = function FormBuilder({
                     )}
                   </>
                 )}
-
                 <div>
-                  <div className="flex flex-col lg:flex-row lg:items-center">
+                  <div className="mr-4 flex flex-col lg:flex-row lg:items-center">
                     <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
                       <FieldLabel field={field} />
                     </div>

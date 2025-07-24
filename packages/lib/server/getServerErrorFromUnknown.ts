@@ -111,16 +111,19 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.BookingNotAllowedByRestrictionSchedule:
     case ErrorCode.BookerLimitExceeded:
     case ErrorCode.BookerLimitExceededReschedule:
+    case ErrorCode.EventTypeNoHosts:
+    case ErrorCode.RequestBodyInvalid:
+    case ErrorCode.ChargeCardFailure:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:
-    case ErrorCode.HostsUnavailableForBooking:
+    case ErrorCode.FixedHostsUnavailableForBooking:
+    case ErrorCode.RoundRobinHostsUnavailableForBooking:
     case ErrorCode.AlreadySignedUpForBooking:
     case ErrorCode.BookingSeatsFull:
     case ErrorCode.NotEnoughAvailableSeats:
     case ErrorCode.BookingConflict:
     case ErrorCode.PaymentCreationFailure:
-    case ErrorCode.ChargeCardFailure:
       return 409;
     // 404 Not Found
     case ErrorCode.EventTypeNotFound:
