@@ -120,6 +120,15 @@ export class HashedLinkService {
     return hashedLink;
   }
 
+  async findLinkWithDetails(linkId: string) {
+    const hashedLink = await this.hashedLinkRepository.findLinkWithDetails(linkId);
+    if (!hashedLink) {
+      return null;
+    }
+
+    return hashedLink;
+  }
+
   /**
    * Checks if a user has permission to access a link
    * @param link - Link object with event type information
@@ -135,16 +144,16 @@ export class HashedLinkService {
     }
 
     // If it's a user event type, check if user owns it
-    if (link.eventType.userId && link.eventType.userId !== userId) {
+    if (link.eventType.userId) {
+      return link.eventType.userId === userId;
+    }
+
+    //No user ownership and no team - deny access
+    if (!link.eventType.teamId) {
       return false;
     }
 
-    // If it's not a team event, user has permission
-    if (!link.eventType.teamId) {
-      return true;
-    }
-
     const membership = await this.membershipService.checkMembership(link.eventType.teamId, userId);
-    return !!membership;
+    return membership.isMember;
   }
 }

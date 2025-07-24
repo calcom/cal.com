@@ -9,7 +9,6 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
-import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import slugify from "@calcom/lib/slugify";
@@ -37,7 +36,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   // Use centralized validation logic to avoid duplication
   const hashedLinkService = new HashedLinkService();
-  const hashedLinkRepository = new HashedLinkRepository(prisma);
   try {
     await hashedLinkService.validate(link);
   } catch (error) {
@@ -46,7 +44,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   }
 
   // If validation passes, fetch the complete data needed for rendering
-  const hashedLink = await hashedLinkRepository.findLinkWithDetails(link);
+  const hashedLink = await hashedLinkService.findLinkWithDetails(link);
 
   if (!hashedLink) {
     return notFound;
