@@ -14,6 +14,7 @@ import type { PeriodData } from "@calcom/types/Event";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
 
@@ -81,37 +82,39 @@ const Day = ({
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
 
   return (
-    <button
-      type="button"
-      style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
-      className={classNames(
-        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium transition disabled:cursor-default disabled:border-transparent disabled:font-light ",
-        active
-          ? "bg-brand-default text-brand"
-          : !disabled
-          ? `${
-              !customClassName?.dayActive
-                ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName.dayActive}`
-            }`
-          : `${customClassName ? "" : " text-mute"}`
-      )}
-      data-testid="day"
-      data-disabled={disabled}
-      disabled={disabled}
-      {...props}>
-      {away && <span data-testid="away-emoji">{emoji}</span>}
-      {!away && date.date()}
-      {date.isToday() && (
-        <span
-          className={classNames(
-            "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
-            active && "bg-brand-accent"
-          )}>
-          <span className="sr-only">{t("today")}</span>
-        </span>
-      )}
-    </button>
+    <Tooltip content={date.format("MMMM")}>
+      <button
+        type="button"
+        style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
+        className={classNames(
+          "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium transition disabled:cursor-default disabled:border-transparent disabled:font-light ",
+          active
+            ? "bg-brand-default text-brand"
+            : !disabled
+            ? `${
+                !customClassName?.dayActive
+                  ? "hover:border-brand-default text-emphasis bg-emphasis"
+                  : `hover:border-brand-default ${customClassName.dayActive}`
+              }`
+            : `${customClassName ? "" : " text-mute"}`
+        )}
+        data-testid="day"
+        data-disabled={disabled}
+        disabled={disabled}
+        {...props}>
+        {away && <span data-testid="away-emoji">{emoji}</span>}
+        {!away && date.date()}
+        {date.isToday() && (
+          <span
+            className={classNames(
+              "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
+              active && "bg-brand-accent"
+            )}>
+            <span className="sr-only">{t("today")}</span>
+          </span>
+        )}
+      </button>
+    </Tooltip>
   );
 };
 
