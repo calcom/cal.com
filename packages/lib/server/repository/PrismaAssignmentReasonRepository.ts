@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-export class AssignmentReasonRepository {
+export class PrismaAssignmentReasonRepository {
   static async findLatestReasonFromBookingUid(bookingUid: string) {
     return await prisma.assignmentReason.findFirst({
       where: {
