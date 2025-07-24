@@ -1,5 +1,6 @@
 import { vi, beforeEach } from "vitest";
 
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import type * as constants from "@calcom/lib/constants";
 
 const initialConstants = {
@@ -21,7 +22,7 @@ const initialConstants = {
   BOOKER_NUMBER_OF_DAYS_TO_LOAD: 14,
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
   SINGLE_ORG_SLUG: "",
-  DEFAULT_GROUP_ID: "default_group_id",
+  DEFAULT_GROUP_ID,
 } as typeof constants;
 
 export const mockedConstants = { ...initialConstants };

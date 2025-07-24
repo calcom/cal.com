@@ -13,6 +13,7 @@ import {
   mockCrmApp,
 } from "../utils/bookingScenario/bookingScenario";
 
+import { DEFAULT_GROUP_ID } from "v@calcom/lib/constants";
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
@@ -28,7 +29,7 @@ vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "http://localhost:3000",
   RESERVED_SUBDOMAINS: ["auth", "docs"],
   SINGLE_ORG_SLUG: "",
-  DEFAULT_GROUP_ID: "default_group_id",
+  DEFAULT_GROUP_ID,
 }));
 
 describe("getSchedule", () => {

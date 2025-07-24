@@ -1,6 +1,8 @@
 import React from "react";
 import { vi, afterEach } from "vitest";
 
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
+
 global.React = React;
 
 afterEach(() => {
@@ -69,7 +71,7 @@ vi.mock("@calcom/lib/constants", () => {
     DEFAULT_LIGHT_BRAND_COLOR: "DEFAULT_LIGHT_BRAND_COLOR",
     DEFAULT_DARK_BRAND_COLOR: "DEFAULT_DARK_BRAND_COLOR",
     BOOKER_NUMBER_OF_DAYS_TO_LOAD: 1,
-    DEFAULT_GROUP_ID: "default_group_id",
+    DEFAULT_GROUP_ID,
   };
 });
 
