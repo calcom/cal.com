@@ -2,7 +2,12 @@ import type { Prisma, CalendarSubscription } from "@prisma/client";
 
 export interface ICalendarSubscriptionRepository {
   findBySelectedCalendar(selectedCalendarId: string): Promise<CalendarSubscription | null>;
-  findByChannelId(channelId: string): Promise<CalendarSubscription | null>;
+  findByChannelId(channelId: string): Promise<
+    | (CalendarSubscription & {
+        selectedCalendar: { credential: any; externalId: string; integration: string; userId: number };
+      })
+    | null
+  >;
   upsert(data: Prisma.CalendarSubscriptionCreateInput): Promise<CalendarSubscription>;
   updateSyncToken(id: string, nextSyncToken: string): Promise<void>;
   updateWatchDetails(

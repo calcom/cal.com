@@ -2,8 +2,6 @@ import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { CalendarEventRepository } from "@calcom/features/calendar-cache-sql/calendar-event.repository";
 import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/calendar-subscription.repository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
@@ -36,7 +34,6 @@ async function postHandler(request: NextRequest) {
     }
 
     const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
-    const eventRepo = new CalendarEventRepository(prisma);
 
     const subscription = await subscriptionRepo.findByChannelId(channelId);
     if (!subscription) {
@@ -52,14 +49,18 @@ async function postHandler(request: NextRequest) {
     const credentialForCalendarCache = await getCredentialForCalendarCache({
       credentialId: subscription.selectedCalendar.credential.id,
     });
-    const calendarService = await getCalendar(credentialForCalendarCache);
 
-    if (!calendarService) {
-      log.error("Could not get calendar service", { channelId });
-      return NextResponse.json({ message: "Calendar service unavailable" }, { status: 500 });
-    }
+    const { CalendarEventRepository } = await import(
+      "@calcom/features/calendar-cache-sql/calendar-event.repository"
+    );
+    const { CalendarCacheSqlService } = await import(
+      "@calcom/features/calendar-cache-sql/calendar-cache-sql.service"
+    );
 
-    await calendarService.fetchAvailabilityAndSetCache?.([subscription.selectedCalendar]);
+    const eventRepo = new CalendarEventRepository(prisma);
+    const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
+
+    await calendarCacheService.processWebhookEvents(channelId, credentialForCalendarCache);
 
     return NextResponse.json({ message: "ok" });
   } catch (error) {

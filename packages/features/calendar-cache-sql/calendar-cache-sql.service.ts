@@ -30,37 +30,19 @@ export class CalendarCacheSqlService {
     });
   }
 
-  async processWebhookEvents(channelId: string, events: any[]) {
+  async processWebhookEvents(channelId: string, credential: any) {
     const subscription = await this.subscriptionRepo.findByChannelId(channelId);
     if (!subscription) {
       throw new Error("Calendar subscription not found");
     }
 
-    for (const event of events) {
-      if (event.status === "cancelled") {
-        await this.eventRepo.deleteEvent(subscription.id, event.id);
-      } else {
-        await this.eventRepo.upsertEvent({
-          calendarSubscription: { connect: { id: subscription.id } },
-          googleEventId: event.id,
-          iCalUID: event.iCalUID,
-          etag: event.etag,
-          sequence: event.sequence || 0,
-          summary: event.summary,
-          description: event.description,
-          location: event.location,
-          start: new Date(event.start.dateTime || event.start.date),
-          end: new Date(event.end.dateTime || event.end.date),
-          isAllDay: !!event.start.date,
-          status: event.status || "confirmed",
-          transparency: event.transparency || "opaque",
-          visibility: event.visibility || "default",
-          recurringEventId: event.recurringEventId,
-          originalStartTime: event.originalStartTime ? new Date(event.originalStartTime.dateTime) : null,
-          googleCreatedAt: event.created ? new Date(event.created) : null,
-          googleUpdatedAt: event.updated ? new Date(event.updated) : null,
-        });
-      }
+    const { getCalendar } = await import("@calcom/app-store/_utils/getCalendar");
+    const calendarService = await getCalendar(credential);
+
+    if (!calendarService) {
+      throw new Error("Could not get calendar service");
     }
+
+    await calendarService.fetchAvailabilityAndSetCache?.([subscription.selectedCalendar]);
   }
 }
