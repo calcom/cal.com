@@ -126,7 +126,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       !!bookerLayout.extraDays &&
       dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
     (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
+      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
+    (bookerLayout.layout === BookerLayouts.MONTH_VIEW &&
+      (!dayjs(date).isValid() || dayjs().isSame(dayjs(date), "month")) &&
+      dayjs().isAfter(dayjs().startOf("month").add(2, "week")));
 
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
