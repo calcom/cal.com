@@ -68,12 +68,12 @@ async function postHandler(req: NextRequest) {
         const watchResult = (await calendarService.watchCalendar({
           calendarId: subscription.selectedCalendar.externalId,
           eventTypeIds: [],
-        })) as { id?: string | null; expiration?: string | null } | undefined;
+        })) as { id?: string | null; expiration?: string | null; token?: string | null } | undefined;
 
         if (watchResult?.id && watchResult?.expiration) {
           await subscriptionRepo.updateWatchDetails(subscription.id, {
             googleChannelId: watchResult.id,
-            googleChannelToken: "", // Google doesn't provide token in response
+            googleChannelToken: watchResult.token || "",
             googleChannelExpiration: watchResult.expiration,
           });
         }
