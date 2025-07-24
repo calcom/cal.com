@@ -17,7 +17,6 @@ import type { Ensure } from "@calcom/types/utils";
 import prisma from ".";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
-import { createPBACOrganization } from "./seed-pbac-organization";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
@@ -1353,9 +1352,6 @@ async function main() {
       },
     ],
   });
-
-  // Create PBAC-enabled organization with custom roles
-  await createPBACOrganization();
 }
 
 main()
