@@ -85,6 +85,8 @@ export const AddNewTeamMembersForm = () => {
     logo,
     bio,
     onboardingId,
+    name,
+    slug,
   } = useOnboardingStore();
   const orgCreation = useOrgCreation();
 
@@ -203,7 +205,7 @@ export const AddNewTeamMembersForm = () => {
         )}
       </div>
 
-      <div className="mt-3 mt-6 flex items-center justify-end">
+      <div className="mt-6 flex items-center justify-end">
         <Button
           onClick={() => {
             if (!onboardingId) {
@@ -214,6 +216,8 @@ export const AddNewTeamMembersForm = () => {
               return;
             }
             orgCreation.mutation.mutate({
+              name,
+              slug,
               logo,
               bio,
               teams,
