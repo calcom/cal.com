@@ -293,22 +293,14 @@ export const Timezones = {
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
     // Create host groups first if they exist
-    const groupIdMapping: Record<string, string> = {};
     if (eventType.hostGroups?.length) {
-      for (const group of eventType.hostGroups) {
-        const createdGroup = await prismock.hostGroup.create({
-          data: {
-            id: group.id,
-            name: group.name,
-            eventType: {
-              connect: {
-                id: eventType.id,
-              },
-            },
-          },
-        });
-        groupIdMapping[group.id] = createdGroup.id;
-      }
+      await prismock.hostGroup.createMany({
+        data: eventType.hostGroups.map((group) => ({
+          id: group.id, // Preserve the input ID
+          name: group.name,
+          eventTypeId: eventType.id,
+        })),
+      });
     }
 
     if (!eventType.hosts?.length) continue;
@@ -335,7 +327,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
         group: host.groupId
           ? {
               connect: {
-                id: groupIdMapping[host.groupId] || host.groupId,
+                id: host.groupId,
               },
             }
           : undefined,
