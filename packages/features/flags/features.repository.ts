@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
+import logger from "@calcom/lib/logger";
 import db from "@calcom/prisma";
 
 import type { AppFlags, TeamFeatures } from "./config";
@@ -9,6 +10,8 @@ import type { IFeaturesRepository } from "./features.repository.interface";
 interface CacheOptions {
   ttl: number; // time in ms
 }
+
+const log = logger.getSubLogger({ prefix: ["FeaturesRepository"] });
 
 /**
  * Repository class for managing feature flags and feature access control.
@@ -28,7 +31,13 @@ export class FeaturesRepository implements IFeaturesRepository {
    * @returns Promise<Feature[]> - Array of all features
    */
   public async getAllFeatures() {
-    if (FeaturesRepository.featuresCache && Date.now() < FeaturesRepository.featuresCache.expiry) {
+    if (
+      FeaturesRepository.featuresCache &&
+      Date.now() < FeaturesRepository.featuresCache.expiry &&
+      // Don't use cache in development
+      process.env.NODE_ENV !== "development"
+    ) {
+      log.info("Got cached features from memory");
       return FeaturesRepository.featuresCache.data;
     }
 
