@@ -64,9 +64,14 @@ export async function getLocationGroupedOptions(
 
     if (user?.organizationId) {
       idToSearchObject = {
-        teamId: {
-          in: [user.organizationId],
-        },
+        OR: [
+          {
+            teamId: {
+              in: [user.organizationId],
+            },
+          },
+          idToSearchObject,
+        ],
       };
     }
   }
@@ -119,8 +124,9 @@ export async function getLocationGroupedOptions(
           : app.categories[0] || app.category;
       if (!groupByCategory) groupByCategory = AppCategories.conferencing;
 
-      for (const { teamName } of app.credentials.map((credential) => ({
+      for (const { teamName, credentialId } of app.credentials.map((credential) => ({
         teamName: credential.team?.name,
+        credentialId: credential.id,
       }))) {
         const label = `${app.locationOption.label} ${teamName ? `(${teamName})` : ""}`;
         const option = {
@@ -128,15 +134,13 @@ export async function getLocationGroupedOptions(
           label,
           icon: app.logo,
           slug: app.slug,
-          ...(app.credential
-            ? { credentialId: app.credential.id, teamName: app.credential.team?.name ?? null }
-            : {}),
+          ...(app.credential ? { credentialId: credentialId, teamName: teamName ?? null } : {}),
         };
         if (apps[groupByCategory]) {
-          const existingOption = apps[groupByCategory].find((o) => o.value === option.value);
-          if (!existingOption) {
-            apps[groupByCategory] = [...apps[groupByCategory], option];
-          }
+          // const existingOption = apps[groupByCategory].find((o) => o.value === option.value);
+          // if (!existingOption) {
+          apps[groupByCategory] = [...apps[groupByCategory], option];
+          // }
         } else {
           apps[groupByCategory] = [option];
         }
