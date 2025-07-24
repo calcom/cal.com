@@ -1,3 +1,18 @@
+## 1.0.114
+
+## 1.1.0
+
+### Minor Changes
+
+- [#22246](https://github.com/calcom/cal.com/pull/22246) [`d2bbbf3`](https://github.com/calcom/cal.com/commit/d2bbbf3f45c6d1617e244516b2ebbfd717c6db51) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - This change updates the atoms export file to include type for Schedule in Availability Settings atom
+
+### Patch Changes
+
+- [#22182](https://github.com/calcom/cal.com/pull/22182) [`8b3ff0b`](https://github.com/calcom/cal.com/commit/8b3ff0b789b1cb9417a154dcdb0edd448b2847bb) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - This change ensures that the booking dry run flow never reserves an actual booking slot.
+
+### Patch Changes
+
+- [#22148](https://github.com/calcom/cal.com/pull/22148) [`d27490e`](https://github.com/calcom/cal.com/commit/d27490e6f2438d353dfcf3e793c8886e723307f3) Thanks [@supalarry](https://github.com/supalarry)! - test release
 
 ## 1.0.63
 
