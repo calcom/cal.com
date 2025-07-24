@@ -10,7 +10,7 @@ import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIf
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
-import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
+import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReasonRepository";
 import { RoutingFormResponseDataFactory } from "@calcom/lib/server/service/routingForm/RoutingFormResponseDataFactory";
 import { findFieldValueByIdentifier } from "@calcom/lib/server/service/routingForm/responseData/findFieldValueByIdentifier";
 import { prisma } from "@calcom/prisma";
