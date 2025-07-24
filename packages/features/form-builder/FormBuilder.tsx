@@ -24,7 +24,6 @@ import {
   Input,
   InputField,
   Label,
-  BooleanToggleGroupField,
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -674,26 +673,28 @@ function FieldEditDialog({
                       />
                     )}
 
-                    <Controller
-                      name="required"
-                      control={fieldForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        const isRequired = shouldConsiderRequired
-                          ? shouldConsiderRequired(fieldForm.getValues())
-                          : value;
-                        return (
-                          <BooleanToggleGroupField
-                            data-testid="field-required"
-                            disabled={fieldForm.getValues("editable") === "system"}
-                            value={isRequired}
-                            onValueChange={(val) => {
-                              onChange(val);
-                            }}
-                            label={t("required")}
-                          />
-                        );
-                      }}
-                    />
+                    <div className="mt-6">
+                      <Controller
+                        name="required"
+                        control={fieldForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          const isRequired = shouldConsiderRequired
+                            ? shouldConsiderRequired(fieldForm.getValues())
+                            : value;
+                          return (
+                            <CheckboxField
+                              data-testid="field-required"
+                              disabled={fieldForm.getValues("editable") === "system"}
+                              checked={isRequired}
+                              onChange={(e) => {
+                                onChange(e.target.checked);
+                              }}
+                              description={t("make_field_required")}
+                            />
+                          );
+                        }}
+                      />
+                    </div>
                   </>
                 );
               }
@@ -881,10 +882,12 @@ function VariantFields({
         label={t("identifier")}
       />
 
-      <CheckboxField
-        description={t("disable_input_if_prefilled")}
-        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
-      />
+      <div className="mt-2">
+        <CheckboxField
+          description={t("disable_input_if_prefilled")}
+          {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+        />
+      </div>
 
       <ul
         className={classNames(
@@ -922,23 +925,25 @@ function VariantFields({
                 placeholder={t(appUiFieldConfig?.defaultPlaceholder || "")}
               />
 
-              <Controller
-                name={`${rhfVariantFieldPrefix}.required`}
-                control={fieldForm.control}
-                render={({ field: { onChange } }) => {
-                  return (
-                    <BooleanToggleGroupField
-                      data-testid="field-required"
-                      disabled={!appUiFieldConfig?.canChangeRequirability}
-                      value={f.required}
-                      onValueChange={(val) => {
-                        onChange(val);
-                      }}
-                      label={t("required")}
-                    />
-                  );
-                }}
-              />
+              <div className="mt-6">
+                <Controller
+                  name={`${rhfVariantFieldPrefix}.required`}
+                  control={fieldForm.control}
+                  render={({ field: { onChange } }) => {
+                    return (
+                      <CheckboxField
+                        data-testid="field-required"
+                        disabled={!appUiFieldConfig?.canChangeRequirability}
+                        checked={f.required}
+                        onChange={(e) => {
+                          onChange(e.target.checked);
+                        }}
+                        description={t("make_field_required")}
+                      />
+                    );
+                  }}
+                />
+              </div>
             </li>
           );
         })}
