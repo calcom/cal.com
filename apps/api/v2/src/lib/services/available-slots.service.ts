@@ -8,20 +8,19 @@ import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository"
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { Injectable } from "@nestjs/common";
 
-import { SelectedSlotRepositoryInterface } from "@calcom/lib/server/repository/selectedSlot";
 import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
 
 @Injectable()
 export class AvailableSlotsService extends BaseAvailableSlotsService {
   constructor(
-    private readonly oooRepoDependency: PrismaOOORepository,
-    private readonly scheduleRepoDependency: PrismaScheduleRepository,
-    private readonly teamRepository: PrismaTeamRepository,
-    private readonly routingFormResponseRepository: PrismaRoutingFormResponseRepository,
-    private readonly bookingRepository: PrismaBookingRepository,
-    private readonly selectedSlotRepository: PrismaSelectedSlotRepository,
-    private readonly eventTypeRepository: PrismaEventTypeRepository,
-    private readonly userRepository: PrismaUserRepository
+    oooRepoDependency: PrismaOOORepository,
+    scheduleRepoDependency: PrismaScheduleRepository,
+    teamRepository: PrismaTeamRepository,
+    routingFormResponseRepository: PrismaRoutingFormResponseRepository,
+    bookingRepository: PrismaBookingRepository,
+    selectedSlotRepository: PrismaSelectedSlotRepository,
+    eventTypeRepository: PrismaEventTypeRepository,
+    userRepository: PrismaUserRepository
   ) {
     super({
       oooRepo: oooRepoDependency,
