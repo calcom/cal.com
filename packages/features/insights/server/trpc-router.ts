@@ -1742,7 +1742,7 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = getInsightsRoutingService().configure({
+      const insightsRoutingService = getInsightsRoutingService({
         options: {
           scope: input.scope,
           teamId: input.selectedTeamId,
