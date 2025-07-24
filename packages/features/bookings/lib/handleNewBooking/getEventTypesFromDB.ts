@@ -25,6 +25,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         disableGuests: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
+        disableRescheduling: true,
+        disableCancelling: true,
         users: {
           select: {
             credentials: {

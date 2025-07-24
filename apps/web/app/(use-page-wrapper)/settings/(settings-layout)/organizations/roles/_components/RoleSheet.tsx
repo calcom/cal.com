@@ -7,7 +7,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
-import { PERMISSION_REGISTRY, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  CrudAction,
+  Scope,
+  getPermissionsForScope,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/button";
@@ -51,12 +55,14 @@ interface RoleSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   teamId: number;
+  scope?: Scope;
 }
 
-export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) {
+export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Organization }: RoleSheetProps) {
   const { t } = useLocale();
   const router = useRouter();
   const isEditing = Boolean(role);
+  const isSystemRole = role?.type === "SYSTEM";
   const [searchQuery, setSearchQuery] = useState("");
 
   const defaultValues = useMemo(
@@ -102,23 +108,23 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
   const { isAdvancedMode, permissions, color } = form.watch();
 
   const filteredResources = useMemo(() => {
-    return Object.keys(PERMISSION_REGISTRY).filter((resource) =>
+    const scopedRegistry = getPermissionsForScope(scope);
+    return Object.keys(scopedRegistry).filter((resource) =>
       t(
-        PERMISSION_REGISTRY[resource as Resource][
-          CrudAction.All as keyof (typeof PERMISSION_REGISTRY)[Resource]
-        ]?.i18nKey || ""
+        scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
+          ?.i18nKey || ""
       )
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, t]);
+  }, [searchQuery, t, scope]);
 
   const createMutation = trpc.viewer.pbac.createRole.useMutation({
     onSuccess: async () => {
       showToast(t("role_created_successfully"), "success");
       form.reset();
       onOpenChange(false);
-      await revalidateTeamRoles();
+      await revalidateTeamRoles(teamId);
       router.refresh();
     },
     onError: (error) => {
@@ -130,7 +136,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
     onSuccess: async () => {
       showToast(t("role_updated_successfully"), "success");
       onOpenChange(false);
-      await revalidateTeamRoles();
+      await revalidateTeamRoles(teamId);
       router.refresh();
     },
     onError: (error) => {
@@ -166,7 +172,9 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>{isEditing ? t("edit_role") : t("create_role")}</SheetTitle>
+          <SheetTitle>
+            {isSystemRole ? t("view_role") : isEditing ? t("edit_role") : t("create_role")}
+          </SheetTitle>
         </SheetHeader>
         <Form form={form} handleSubmit={onSubmit}>
           <div className="space-y-4 py-5">
@@ -176,11 +184,13 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                   label={t("role_name")}
                   {...form.register("name")}
                   placeholder={t("role_name_placeholder")}
+                  disabled={isSystemRole}
                 />
               </div>
               <RoleColorPicker
                 value={color}
                 onChange={(value) => form.setValue("color", value, { shouldDirty: true })}
+                disabled={isSystemRole}
               />
             </div>
 
@@ -203,6 +213,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                       placeholder={t("search_permissions")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      disabled={isSystemRole}
                     />
                   </div>
 
@@ -212,6 +223,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                       resource={resource as Resource}
                       selectedPermissions={permissions}
                       onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
+                      disabled={isSystemRole}
                     />
                   ))}
                 </div>
@@ -228,12 +240,13 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
                     </div>
                   </div>
                   <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
-                    {Object.keys(PERMISSION_REGISTRY).map((resource) => (
+                    {Object.keys(getPermissionsForScope(scope)).map((resource) => (
                       <SimplePermissionItem
                         key={resource}
                         resource={resource}
                         permissions={permissions}
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
+                        disabled={isSystemRole}
                       />
                     ))}
                   </div>
@@ -242,18 +255,27 @@ export function RoleSheet({ role, open, onOpenChange, teamId }: RoleSheetProps) 
             </div>
           </div>
 
-          <SheetFooter>
-            <Button
-              type="button"
-              color="secondary"
-              onClick={() => onOpenChange(false)}
-              disabled={createMutation.isPending || updateMutation.isPending}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
-              {isEditing ? t("save") : t("create")}
-            </Button>
-          </SheetFooter>
+          {!isSystemRole && (
+            <SheetFooter>
+              <Button
+                type="button"
+                color="secondary"
+                onClick={() => onOpenChange(false)}
+                disabled={createMutation.isPending || updateMutation.isPending}>
+                {t("cancel")}
+              </Button>
+              <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
+                {isEditing ? t("save") : t("create")}
+              </Button>
+            </SheetFooter>
+          )}
+          {isSystemRole && (
+            <SheetFooter>
+              <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+                {t("close")}
+              </Button>
+            </SheetFooter>
+          )}
         </Form>
       </SheetContent>
     </Sheet>

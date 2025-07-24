@@ -41,6 +41,7 @@ const userSelect = {
   avatarUrl: true,
   username: true,
   id: true,
+  timeZone: true,
 } satisfies Prisma.UserSelect;
 
 const getWhereForfindAllByUpId = async (upId: string, where?: Prisma.MembershipWhereInput) => {
@@ -162,6 +163,21 @@ export class MembershipRepository {
                 hosts: {
                   include: {
                     user: { select: userSelect },
+                  },
+                },
+                team: {
+                  select: {
+                    id: true,
+                    members: {
+                      select: {
+                        user: {
+                          select: {
+                            timeZone: true,
+                          },
+                        },
+                      },
+                      take: 1,
+                    },
                   },
                 },
               },
@@ -343,17 +359,22 @@ export class MembershipRepository {
       },
     });
   }
-  static async findAllAcceptedMemberships(userId: number, tx?: PrismaTransaction) {
+
+  static async findAllAcceptedPublishedTeamMemberships(userId: number, tx?: PrismaTransaction) {
     return (tx ?? prisma).membership.findMany({
       where: {
         userId,
         accepted: true,
+        team: {
+          slug: { not: null },
+        },
       },
       select: {
         teamId: true,
       },
     });
   }
+
   /**
    * Get all team IDs that a user is a member of
    */
