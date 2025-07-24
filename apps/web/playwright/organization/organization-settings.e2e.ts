@@ -1,35 +1,8 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { doOnOrgDomain } from "playwright/lib/testUtils";
-import { v4 as uuid } from "uuid";
+import { doOnOrgDomain, setupOrgMember } from "playwright/lib/testUtils";
 
-import { SchedulingType } from "@calcom/prisma/enums";
-
-import type { CreateUsersFixture } from "../fixtures/users";
 import { test } from "../lib/fixtures";
-
-async function setupOrgMember(users: CreateUsersFixture) {
-  const orgRequestedSlug = `example-${uuid()}`;
-
-  const orgMember = await users.create(undefined, {
-    hasTeam: true,
-    isOrg: true,
-    hasSubteam: true,
-    isOrgVerified: true,
-    isDnsSetup: true,
-    orgRequestedSlug,
-    schedulingType: SchedulingType.ROUND_ROBIN,
-  });
-
-  const { team: org } = await orgMember.getOrgMembership();
-  const { team } = await orgMember.getFirstTeamMembership();
-  const teamEvent = await orgMember.getFirstTeamEvent(team.id);
-  const userEvent = orgMember.eventTypes[0];
-
-  await orgMember.apiLogin();
-
-  return { orgMember, org, team, teamEvent, userEvent };
-}
 
 type TestContext = Awaited<ReturnType<typeof setupOrgMember>>;
 

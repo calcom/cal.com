@@ -13,6 +13,10 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
+import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
@@ -33,6 +37,7 @@ import {
 } from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
+
 type User = {
   id: SessionUser["id"];
   username: SessionUser["username"];
@@ -87,6 +92,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     description: newDescription,
     title: newTitle,
     seatsPerTimeSlot,
+    restrictionScheduleId,
     calVideoSettings,
     ...rest
   } = input;
@@ -127,6 +133,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableRecordingForOrganizer: true,
           disableRecordingForGuests: true,
           enableAutomaticTranscription: true,
+          enableAutomaticRecordingForOrganizer: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
@@ -340,6 +347,45 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
+  const membershipRepo = new MembershipRepository(ctx.prisma);
+
+  if (restrictionScheduleId) {
+    // Verify that the user owns the restriction schedule or is a team member
+    const scheduleRepo = new ScheduleRepository(ctx.prisma);
+    const restrictionSchedule = await scheduleRepo.findScheduleByIdForOwnershipCheck({
+      scheduleId: restrictionScheduleId,
+    });
+    // If the user doesn't own the schedule, check if they're a team member
+    if (restrictionSchedule?.userId !== ctx.user.id) {
+      if (!teamId || !restrictionSchedule) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "The restriction schedule is not owned by you or your team",
+        });
+      }
+      const hasMembership = await membershipRepo.hasMembership({
+        teamId,
+        userId: restrictionSchedule.userId,
+      });
+      if (!hasMembership) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "The restriction schedule is not owned by you or your team",
+        });
+      }
+    }
+
+    data.restrictionSchedule = {
+      connect: {
+        id: restrictionScheduleId,
+      },
+    };
+  } else if (restrictionScheduleId === null || restrictionScheduleId === 0) {
+    data.restrictionSchedule = {
+      disconnect: true,
+    };
+  }
+
   if (users?.length) {
     data.users = {
       set: [],
@@ -349,14 +395,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (teamId && hosts) {
     // check if all hosts can be assigned (memberships that have accepted invite)
-    const memberships =
-      (await ctx.prisma.membership.findMany({
-        where: {
-          teamId,
-          accepted: true,
-        },
-      })) || [];
-    const teamMemberIds = memberships.map((membership) => membership.userId);
+    const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
@@ -455,58 +494,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-  const connectedLinks = await ctx.prisma.hashedLink.findMany({
-    where: {
-      eventTypeId: input.id,
-    },
-    select: {
-      id: true,
-      link: true,
-    },
-  });
-
+  console.log("multiplePrivateLinks", multiplePrivateLinks);
+  // Handle multiple private links using the service
+  const privateLinksRepo = HashedLinkRepository.create();
+  const connectedLinks = await privateLinksRepo.findLinksByEventTypeId(input.id);
+  console.log("connectedLinks", connectedLinks);
   const connectedMultiplePrivateLinks = connectedLinks.map((link) => link.link);
 
-  if (multiplePrivateLinks && multiplePrivateLinks.length > 0) {
-    const multiplePrivateLinksToBeInserted = multiplePrivateLinks.filter(
-      (link) => !connectedMultiplePrivateLinks.includes(link)
-    );
-    const singleLinksToBeDeleted = connectedMultiplePrivateLinks.filter(
-      (link) => !multiplePrivateLinks.includes(link)
-    );
-    if (singleLinksToBeDeleted.length > 0) {
-      await ctx.prisma.hashedLink.deleteMany({
-        where: {
-          eventTypeId: input.id,
-          link: {
-            in: singleLinksToBeDeleted,
-          },
-        },
-      });
-    }
-    if (multiplePrivateLinksToBeInserted.length > 0) {
-      await ctx.prisma.hashedLink.createMany({
-        data: multiplePrivateLinksToBeInserted.map((link) => {
-          return {
-            link: link,
-            eventTypeId: input.id,
-          };
-        }),
-      });
-    }
-  } else {
-    // Delete all the single-use links for this event.
-    if (connectedMultiplePrivateLinks.length > 0) {
-      await ctx.prisma.hashedLink.deleteMany({
-        where: {
-          eventTypeId: input.id,
-          link: {
-            in: connectedMultiplePrivateLinks,
-          },
-        },
-      });
-    }
-  }
+  const privateLinksService = new HashedLinkService();
+  await privateLinksService.handleMultiplePrivateLinks({
+    eventTypeId: input.id,
+    multiplePrivateLinks,
+    connectedMultiplePrivateLinks,
+  });
 
   if (assignAllTeamMembers !== undefined) {
     data.assignAllTeamMembers = assignAllTeamMembers;
@@ -601,10 +601,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  const updatedEventTypeSelect = {
     slug: true,
     schedulingType: true,
-  });
+  } satisfies Prisma.EventTypeSelect;
   let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
   try {
     updatedEventType = await ctx.prisma.eventType.update({

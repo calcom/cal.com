@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { forwardRef } from "react";
 
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
 import type { UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
@@ -11,11 +12,11 @@ import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import type { Availability } from "../AvailabilitySettings";
-import type { CustomClassNames } from "../AvailabilitySettings";
+import type { CustomClassNames, AvailabilitySettingsFormRef } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
-type AvailabilitySettingsPlatformWrapperProps = {
+export type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
@@ -37,24 +38,28 @@ type AvailabilitySettingsPlatformWrapperProps = {
   loadingStateChildren?: ReactNode;
 };
 
-export const AvailabilitySettingsPlatformWrapper = ({
-  id,
-  customClassNames,
-  onDeleteError,
-  onDeleteSuccess,
-  onUpdateError,
-  onUpdateSuccess,
-  disableEditableHeading = false,
-  enableOverrides = false,
-  onBeforeUpdate,
-  onFormStateChange,
-  allowDelete,
-  allowSetToDefault,
-  disableToasts,
-  isDryRun = false,
-  noScheduleChildren,
-  loadingStateChildren,
-}: AvailabilitySettingsPlatformWrapperProps) => {
+export const AvailabilitySettingsPlatformWrapper = forwardRef<
+  AvailabilitySettingsFormRef,
+  AvailabilitySettingsPlatformWrapperProps
+>(function AvailabilitySettingsPlatformWrapper(props, ref) {
+  const {
+    id,
+    customClassNames,
+    onDeleteError,
+    onDeleteSuccess,
+    onUpdateError,
+    onUpdateSuccess,
+    disableEditableHeading = false,
+    enableOverrides = false,
+    onBeforeUpdate,
+    onFormStateChange,
+    allowDelete,
+    allowSetToDefault,
+    disableToasts,
+    isDryRun = false,
+    noScheduleChildren,
+    loadingStateChildren,
+  } = props;
   const { isLoading, data: atomSchedule } = useAtomSchedule(id);
   const { data: me } = useMe();
   const { timeFormat } = me?.data || { timeFormat: null };
@@ -139,6 +144,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   return (
     <AtomsWrapper>
       <AvailabilitySettings
+        ref={ref}
         disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
           if (isDryRun) {
@@ -195,4 +201,4 @@ export const AvailabilitySettingsPlatformWrapper = ({
       />
     </AtomsWrapper>
   );
-};
+});

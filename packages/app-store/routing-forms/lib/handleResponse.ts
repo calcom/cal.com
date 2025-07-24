@@ -7,6 +7,7 @@ import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeam
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import prisma from "@calcom/prisma";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import { TRPCError } from "@trpc/server";
@@ -19,19 +20,23 @@ const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleRes
 
 const _handleResponse = async ({
   response,
+  identifierKeyedResponse,
   form,
   // Unused but probably should be used
   // formFillerId,
   chosenRouteId,
   isPreview,
   queueFormResponse,
+  fetchCrm,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
+  identifierKeyedResponse: Record<string, string | string[]> | null;
   form: TargetRoutingFormForResponse;
   formFillerId: string;
   chosenRouteId: string | null;
   isPreview: boolean;
   queueFormResponse?: boolean;
+  fetchCrm?: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -91,6 +96,7 @@ const _handleResponse = async ({
     let crmContactOwnerEmail: string | null = null;
     let crmContactOwnerRecordType: string | null = null;
     let crmAppSlug: string | null = null;
+    let crmRecordId: string | null = null;
     let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
@@ -103,14 +109,18 @@ const _handleResponse = async ({
       const getRoutedMembers = async () =>
         await Promise.all([
           (async () => {
-            const contactOwnerQuery = await routerGetCrmContactOwnerEmail({
-              attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-              response,
-              action: chosenRoute.action,
-            });
+            const contactOwnerQuery =
+              identifierKeyedResponse && fetchCrm
+                ? await routerGetCrmContactOwnerEmail({
+                    attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+                    identifierKeyedResponse,
+                    action: chosenRoute.action,
+                  })
+                : null;
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
             crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
+            crmRecordId = contactOwnerQuery?.recordId ?? null;
           })(),
           (async () => {
             const teamMembersMatchingAttributeLogicWithResult =
@@ -154,15 +164,16 @@ const _handleResponse = async ({
     }
     let dbFormResponse, queuedFormResponse;
     if (!isPreview) {
+      const formResponseRepo = new RoutingFormResponseRepository(prisma);
       if (queueFormResponse) {
-        queuedFormResponse = await RoutingFormResponseRepository.recordQueuedFormResponse({
+        queuedFormResponse = await formResponseRepo.recordQueuedFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
         });
         dbFormResponse = null;
       } else {
-        dbFormResponse = await RoutingFormResponseRepository.recordFormResponse({
+        dbFormResponse = await formResponseRepo.recordFormResponse({
           formId: form.id,
           response,
           chosenRouteId,
@@ -203,6 +214,7 @@ const _handleResponse = async ({
       crmContactOwnerEmail,
       crmContactOwnerRecordType,
       crmAppSlug,
+      crmRecordId,
       attributeRoutingConfig: chosenRoute
         ? "attributeRoutingConfig" in chosenRoute
           ? chosenRoute.attributeRoutingConfig

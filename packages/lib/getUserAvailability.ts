@@ -26,7 +26,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -345,8 +345,19 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     fallbackSchedule;
   const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
 
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  const bookingLimits =
+    eventType?.bookingLimits &&
+    typeof eventType.bookingLimits === "object" &&
+    Object.keys(eventType.bookingLimits).length > 0
+      ? parseBookingLimit(eventType.bookingLimits)
+      : null;
+
+  const durationLimits =
+    eventType?.durationLimits &&
+    typeof eventType.durationLimits === "object" &&
+    Object.keys(eventType.durationLimits).length > 0
+      ? parseDurationLimit(eventType.durationLimits)
+      : null;
 
   let busyTimesFromLimits: EventBusyDetails[] = [];
 
@@ -699,6 +710,12 @@ type GetUsersAvailabilityProps = {
 };
 
 const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
+  if (users.length >= 50) {
+    const userIds = users.map(({ id }) => id).join(", ");
+    log.warn(
+      `High-load warning: Attempting to fetch availability for ${users.length} users. User IDs: [${userIds}], EventTypeId: [${query.eventTypeId}]`
+    );
+  }
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
