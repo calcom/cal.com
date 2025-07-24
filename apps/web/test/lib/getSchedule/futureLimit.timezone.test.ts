@@ -8,7 +8,6 @@ import type { ScenarioData } from "../../utils/bookingScenario/bookingScenario";
 
 import { describe, expect, vi, test } from "vitest";
 
-import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { PeriodType } from "@calcom/prisma/enums";
 
@@ -68,7 +67,6 @@ vi.mock("@calcom/lib/constants", () => ({
   RESERVED_SUBDOMAINS: ["auth", "docs"],
   ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK: 61,
   SINGLE_ORG_SLUG: "",
-  DEFAULT_GROUP_ID,
 }));
 
 describe("getSchedule", () => {
