@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionsSqlCron"] });
 
-async function postHandler(req: NextRequest) {
+async function getHandler(req: NextRequest) {
   const apiKey = req.headers.get("authorization") || req.nextUrl.searchParams.get("apiKey");
 
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
@@ -102,4 +102,4 @@ async function postHandler(req: NextRequest) {
   }
 }
 
-export const POST = defaultResponderForAppDir(postHandler);
+export const GET = defaultResponderForAppDir(getHandler);
