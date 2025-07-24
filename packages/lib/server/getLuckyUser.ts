@@ -509,9 +509,9 @@ export async function getLuckyUser<
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
   // Early return if only one available user to avoid unnecessary data fetching
-  // if (getLuckyUserParams.availableUsers.length === 1) {
-  //   return getLuckyUserParams.availableUsers[0];
-  // }
+  if (getLuckyUserParams.availableUsers.length === 1) {
+    return getLuckyUserParams.availableUsers[0];
+  }
   const {
     bookingsOfAvailableUsersOfInterval,
     bookingsOfNotAvailableUsersOfInterval,
@@ -571,9 +571,9 @@ export function getLuckyUser_requiresDataToBePreFetched<
   } = getLuckyUserParams;
 
   // Early return if only one user is available
-  // if (availableUsers.length === 1) {
-  //   return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
-  // }
+  if (availableUsers.length === 1) {
+    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
+  }
 
   let usersAndTheirBookingShortfalls: {
     id: number;
