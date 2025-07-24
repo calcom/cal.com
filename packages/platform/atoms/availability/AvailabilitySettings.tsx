@@ -424,7 +424,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           container: cn(customClassNames?.hiddenSwitchClassname?.container),
                           thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
                         }}
-                        disabled={isSaving || schedule.isDefault}
+                        disabled={isSaving || schedule.isDefault || schedule.lockedDefaultAvailability}
                         checked={value}
                         onCheckedChange={(checked) => {
                           onChange(checked);
@@ -611,7 +611,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               className="ml-4 lg:ml-0"
               type="submit"
               form="availability-form"
-              loading={isSaving}>
+              loading={isSaving}
+              disabled={schedule.isDefault && schedule.lockedDefaultAvailability}>
               {t("save")}
             </Button>
             <Button

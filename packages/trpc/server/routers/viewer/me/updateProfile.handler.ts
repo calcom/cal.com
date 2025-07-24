@@ -9,6 +9,7 @@ import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billlin
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
+import { hasLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
@@ -263,29 +264,34 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
-    // on timezone change update timezone of default schedule
-    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    // Check if user has locked default availability before updating default schedule timezone
+    const hasLockedAvailability = await hasLockedDefaultAvailabilityRestriction(user.id);
 
-    if (!user.defaultScheduleId) {
-      // set default schedule if not already set
-      await prisma.user.update({
+    if (!hasLockedAvailability) {
+      // on timezone change update timezone of default schedule
+      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
+      if (!user.defaultScheduleId) {
+        // set default schedule if not already set
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultScheduleId,
+          },
+        });
+      }
+
+      await prisma.schedule.updateMany({
         where: {
-          id: user.id,
+          id: defaultScheduleId,
         },
         data: {
-          defaultScheduleId,
+          timeZone: data.timeZone,
         },
       });
     }
-
-    await prisma.schedule.updateMany({
-      where: {
-        id: defaultScheduleId,
-      },
-      data: {
-        timeZone: data.timeZone,
-      },
-    });
   }
 
   // Notify stripe about the change
