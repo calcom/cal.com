@@ -11,6 +11,7 @@ import { SchedulesAtomsService } from "@/modules/atoms/services/schedules-atom.s
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
@@ -21,6 +22,7 @@ import { Module } from "@nestjs/common";
 @Module({
   imports: [PrismaModule, EventTypesModule_2024_06_14, OrganizationsModule, TeamsEventTypesModule],
   providers: [
+    OrganizationsTeamsRepository,
     EventTypesAtomService,
     ConferencingAtomsService,
     AttributesAtomsService,
