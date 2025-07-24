@@ -1,0 +1,29 @@
+{
+  "name": "@calcom/ai",
+  "version": "1.2.1",
+  "private": true,
+  "author": "Cal.com Inc.",
+  "dependencies": {
+    "@calcom/cal-mcp": "^0.0.6",
+    "@calcom/prisma": "*",
+    "@modelcontextprotocol/sdk": "^1.16.0",
+    "@t3-oss/env-nextjs": "^0.6.1",
+    "mailparser": "^3.6.5",
+    "next": "^13.5.4",
+    "openai": "^4.0.0",
+    "postmark": "^4.0.5",
+    "supports-color": "8.1.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/mailparser": "^3.4.0"
+  },
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -p 3005",
+    "format": "npx prettier . --write",
+    "lint": "eslint . --ext .ts,.js,.tsx,.jsx",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "start": "next start"
+  }
+}
