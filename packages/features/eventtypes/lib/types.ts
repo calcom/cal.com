@@ -227,3 +227,13 @@ export type SelectClassNames = {
   label?: string;
   container?: string;
 };
+
+export type FormValidationResult = {
+  isValid: boolean;
+  errors: Record<string, unknown>;
+};
+
+export interface EventTypePlatformWrapperRef {
+  validateForm: () => Promise<FormValidationResult>;
+  handleFormSubmit: () => void;
+}
