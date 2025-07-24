@@ -140,7 +140,7 @@ const enum ThemeSupport {
 
 type CalcomThemeProps = PropsWithChildren<
   Pick<AppProps, "router"> &
-    Pick<AppProps["pageProps"], "nonce" | "themeBasis"> &
+    Pick<AppProps["pageProps"], "themeBasis"> &
     Pick<AppProps["Component"], "isBookingPage" | "isThemeSupported">
 >;
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -252,7 +252,6 @@ function getThemeProviderProps({
     storageKey,
     forcedTheme,
     themeSupport,
-    nonce: props.nonce,
     enableColorScheme: false,
     enableSystem: themeSupport !== ThemeSupport.None,
     // next-themes doesn't listen to changes on storageKey. So we need to force a re-render when storageKey changes
@@ -281,11 +280,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
     pageProps: {
-      ...restPageProps,
+      ...pageProps,
     },
     ...rest,
   };
@@ -296,7 +293,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
         <TooltipProvider>
           <CalcomThemeProvider
             themeBasis={props.pageProps.themeBasis}
-            nonce={props.pageProps.nonce}
             isThemeSupported={props.Component.isThemeSupported}
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
