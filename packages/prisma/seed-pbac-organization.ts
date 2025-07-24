@@ -75,6 +75,30 @@ export async function createPBACOrganization() {
   console.log("🎉 PBAC organization setup complete!");
   console.log(`Organization URL: ${process.env.NEXT_PUBLIC_WEBAPP_URL}/org/${organization.slug}`);
 
+  // Display created users with their credentials and permissions
+  console.log("\n📋 Created Users - Login Credentials & Permissions:");
+  console.log("=".repeat(80));
+  users.forEach(({ user, role, customRole }) => {
+    const password = getPasswordForUser(user.email);
+    const permissions = getPermissionsForRole(user.email, customRoles);
+
+    console.log(`👤 ${user.name}`);
+    console.log(`   📧 Email: ${user.email}`);
+    console.log(`   🔑 Password: ${password}`);
+    console.log(`   👔 Role: ${role}${customRole ? ` (${customRole})` : ""}`);
+
+    if (permissions.length > 0) {
+      console.log(`   🔐 Permissions:`);
+      permissions.forEach((permission) => {
+        console.log(`      • ${permission.resource}:${permission.action}`);
+      });
+    } else {
+      console.log(`   🔐 Permissions: Full access (Owner role)`);
+    }
+    console.log("");
+  });
+  console.log("=".repeat(80));
+
   return {
     organization,
     customRoles,
@@ -587,6 +611,84 @@ async function createProfile({
   return profile;
 }
 
+/**
+ * Helper function to get password for a user based on their email
+ */
+function getPasswordForUser(email: string): string {
+  const passwordMap: Record<string, string> = {
+    "owner@pbac-demo.com": "pbac-owner-2024!",
+    "events@pbac-demo.com": "events-2024!",
+    "analytics@pbac-demo.com": "analytics-2024!",
+    "coordinator@pbac-demo.com": "coordinator-2024!",
+    "support@pbac-demo.com": "support-2024!",
+  };
+
+  return passwordMap[email] || "unknown";
+}
+
+/**
+ * Helper function to get permissions for a role based on user email
+ */
+function getPermissionsForRole(email: string, customRoles: any): Array<{ resource: string; action: string }> {
+  // Owner has full access, no specific permissions to list
+  if (email === "owner@pbac-demo.com") {
+    return [];
+  }
+
+  // Map email to role and return permissions
+  const rolePermissionMap: Record<string, Array<{ resource: string; action: string }>> = {
+    "events@pbac-demo.com": [
+      { resource: "eventType", action: "create" },
+      { resource: "eventType", action: "read" },
+      { resource: "eventType", action: "update" },
+      { resource: "eventType", action: "delete" },
+      { resource: "booking", action: "read" },
+      { resource: "booking", action: "update" },
+      { resource: "booking", action: "readRecordings" },
+      { resource: "team", action: "read" },
+      { resource: "availability", action: "override" },
+    ],
+    "analytics@pbac-demo.com": [
+      { resource: "insights", action: "read" },
+      { resource: "booking", action: "read" },
+      { resource: "booking", action: "readTeamBookings" },
+      { resource: "booking", action: "readOrgBookings" },
+      { resource: "eventType", action: "read" },
+      { resource: "team", action: "read" },
+      { resource: "organization", action: "read" },
+      { resource: "organization", action: "listMembers" },
+      { resource: "routingForm", action: "read" },
+    ],
+    "coordinator@pbac-demo.com": [
+      { resource: "team", action: "read" },
+      { resource: "team", action: "update" },
+      { resource: "team", action: "invite" },
+      { resource: "team", action: "remove" },
+      { resource: "team", action: "changeMemberRole" },
+      { resource: "organization", action: "read" },
+      { resource: "organization", action: "listMembers" },
+      { resource: "workflow", action: "create" },
+      { resource: "workflow", action: "read" },
+      { resource: "workflow", action: "update" },
+      { resource: "workflow", action: "delete" },
+      { resource: "routingForm", action: "create" },
+      { resource: "routingForm", action: "read" },
+      { resource: "routingForm", action: "update" },
+      { resource: "routingForm", action: "delete" },
+      { resource: "booking", action: "read" },
+      { resource: "eventType", action: "read" },
+    ],
+    "support@pbac-demo.com": [
+      { resource: "booking", action: "read" },
+      { resource: "booking", action: "update" },
+      { resource: "eventType", action: "read" },
+      { resource: "team", action: "read" },
+      { resource: "organization", action: "read" },
+    ],
+  };
+
+  return rolePermissionMap[email] || [];
+}
 // Run the function if this file is executed directly
 if (require.main === module) {
   createPBACOrganization()
