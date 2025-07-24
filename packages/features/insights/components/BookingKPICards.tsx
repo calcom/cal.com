@@ -1,4 +1,6 @@
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -9,17 +11,18 @@ import { KPICard } from "./KPICard";
 
 export const BookingKPICards = () => {
   const { t } = useLocale();
-  const { startDate, endDate, teamId, userId, isAll, memberUserId, eventTypeId } = useInsightsParameters();
+  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { timeZone } = useDataTable();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
     {
+      scope,
+      selectedTeamId,
       startDate,
       endDate,
-      teamId,
+      timeZone: timeZone || CURRENT_TIMEZONE,
       eventTypeId,
       memberUserId,
-      userId,
-      isAll,
     },
     {
       staleTime: 30000,

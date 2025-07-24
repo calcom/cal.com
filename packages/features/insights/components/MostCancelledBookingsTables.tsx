@@ -1,4 +1,6 @@
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
@@ -8,15 +10,18 @@ import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 
 export const MostCancelledBookingsTables = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { timeZone } = useDataTable();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCancelledBookings.useQuery(
     {
+      scope,
+      selectedTeamId,
       startDate,
       endDate,
-      teamId,
+      timeZone: timeZone || CURRENT_TIMEZONE,
       eventTypeId,
-      isAll,
+      memberUserId,
     },
     {
       staleTime: 30000,
@@ -30,7 +35,9 @@ export const MostCancelledBookingsTables = () => {
 
   return (
     <ChartCard title={t("most_cancelled_bookings")}>
-      {!isSuccess || !startDate || !endDate || !teamId ? null : <TotalBookingUsersTable data={data} />}
+      {!isSuccess || !startDate || !endDate || (!selectedTeamId && scope !== "org") ? null : (
+        <TotalBookingUsersTable data={data} />
+      )}
     </ChartCard>
   );
 };
