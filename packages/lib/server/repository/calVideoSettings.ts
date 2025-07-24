@@ -7,6 +7,35 @@ export class CalVideoSettingsRepository {
     });
   }
 
+  static async createCalVideoSettings({
+    eventTypeId,
+    calVideoSettings,
+  }: {
+    eventTypeId: number;
+    calVideoSettings: {
+      disableRecordingForGuests?: boolean | null;
+      disableRecordingForOrganizer?: boolean | null;
+      enableAutomaticTranscription?: boolean | null;
+      enableAutomaticRecordingForOrganizer?: boolean | null;
+      disableTranscriptionForGuests?: boolean | null;
+      disableTranscriptionForOrganizer?: boolean | null;
+      redirectUrlOnExit?: string | null;
+    };
+  }) {
+    return await prisma.calVideoSettings.create({
+      data: {
+        disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
+        disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
+        redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        eventTypeId,
+      },
+    });
+  }
+
   static async createOrUpdateCalVideoSettings({
     eventTypeId,
     calVideoSettings,
@@ -19,6 +48,7 @@ export class CalVideoSettingsRepository {
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
       enableAutomaticTranscription?: boolean | null;
+      enableAutomaticRecordingForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
     };
   }) {
@@ -30,6 +60,7 @@ export class CalVideoSettingsRepository {
         disableRecordingDownloadEmailForGuests:
           calVideoSettings.disableRecordingDownloadEmailForGuests ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
@@ -41,6 +72,7 @@ export class CalVideoSettingsRepository {
         disableRecordingDownloadEmailForGuests:
           calVideoSettings.disableRecordingDownloadEmailForGuests ?? false,
         enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
