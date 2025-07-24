@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Nie udało się zweryfikować klucza licencyjnego",
   "license_key_saved": "Klucz licencyjny został pomyślnie zapisany",
   "timezone_mismatch_tooltip": "Przeglądasz raport na podstawie strefy czasowej swojego profilu ({{userTimezone}}), podczas gdy Twoja przeglądarka jest ustawiona na strefę czasową ({{browserTimezone}})",
+  "reservation_expired": "Rezerwacja wygasła",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

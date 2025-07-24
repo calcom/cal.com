@@ -3359,5 +3359,6 @@
   "license_validation_failed": "라이선스 키 검증에 실패했습니다",
   "license_key_saved": "라이선스 키가 성공적으로 저장되었습니다",
   "timezone_mismatch_tooltip": "프로필 시간대({{userTimezone}})를 기준으로 보고서를 보고 계시지만, 브라우저는 다른 시간대({{browserTimezone}})로 설정되어 있습니다",
+  "reservation_expired": "예약 만료",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

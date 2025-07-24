@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Kunne ikke validere lisenssnøkkelen",
   "license_key_saved": "Lisenssnøkkel lagret",
   "timezone_mismatch_tooltip": "Du ser rapporten basert på tidssonen i profilen din ({{userTimezone}}), mens nettleseren din er satt til tidssonen ({{browserTimezone}})",
+  "reservation_expired": "Reservasjon utløpt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

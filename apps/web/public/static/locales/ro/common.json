@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Validarea cheii de licență a eșuat",
   "license_key_saved": "Cheia de licență a fost salvată cu succes",
   "timezone_mismatch_tooltip": "Vizualizați raportul pe baza fusului orar al profilului dvs. ({{userTimezone}}), în timp ce browserul dvs. este setat pe fusul orar ({{browserTimezone}})",
+  "reservation_expired": "Rezervarea expiră",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

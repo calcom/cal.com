@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Nepodarilo sa overiť licenčný kľúč",
   "license_key_saved": "Licenčný kľúč bol úspešne uložený",
   "timezone_mismatch_tooltip": "Prezeráte si správu na základe časového pásma vášho profilu ({{userTimezone}}), zatiaľ čo váš prehliadač je nastavený na časové pásmo ({{browserTimezone}})",
+  "reservation_expired": "Rezervácia vypršala",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3359,5 +3359,6 @@
   "license_validation_failed": "授權金鑰驗證失敗",
   "license_key_saved": "授權金鑰已成功儲存",
   "timezone_mismatch_tooltip": "您正在根據您的個人資料時區（{{userTimezone}}）查看報告，而您的瀏覽器設置為時區（{{browserTimezone}}）",
+  "reservation_expired": "預訂已過期",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

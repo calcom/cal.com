@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Det gick inte att validera licensnyckeln",
   "license_key_saved": "Licensnyckeln sparades framgångsrikt",
   "timezone_mismatch_tooltip": "Du tittar på rapporten baserat på din profiltidszon ({{userTimezone}}), medan din webbläsare är inställd på tidszonen ({{browserTimezone}})",
+  "reservation_expired": "Bokning utgången",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

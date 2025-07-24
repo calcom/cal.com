@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Ezin izan da lizentzia gakoa balioztatu",
   "license_key_saved": "Lizentzia gakoa ondo gorde da",
   "timezone_mismatch_tooltip": "Txostena zure profileko ordu-zonaren arabera ikusten ari zara ({{userTimezone}}), zure nabigatzailea ordu-zona honetan ezarrita dagoen bitartean ({{browserTimezone}})",
+  "reservation_expired": "Erreserba iraungita",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

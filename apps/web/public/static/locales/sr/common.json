@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Neuspešna validacija licencnog ključa",
   "license_key_saved": "Licencni ključ je uspešno sačuvan",
   "timezone_mismatch_tooltip": "Gledate izveštaj na osnovu vremenske zone vašeg profila ({{userTimezone}}), dok je vaš pretraživač podešen na vremensku zonu ({{browserTimezone}})",
+  "reservation_expired": "Резервација је истекла",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

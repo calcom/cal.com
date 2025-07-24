@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Ověření licenčního klíče selhalo",
   "license_key_saved": "Licenční klíč byl úspěšně uložen",
   "timezone_mismatch_tooltip": "Prohlížíte si report na základě časového pásma vašeho profilu ({{userTimezone}}), zatímco váš prohlížeč je nastaven na časové pásmo ({{browserTimezone}})",
+  "reservation_expired": "Platnost rezervace vypršela",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

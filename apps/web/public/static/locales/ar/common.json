@@ -3359,5 +3359,6 @@
   "license_validation_failed": "فشل التحقق من صحة مفتاح الترخيص",
   "license_key_saved": "تم حفظ مفتاح الترخيص بنجاح",
   "timezone_mismatch_tooltip": "أنت تشاهد التقرير بناءً على المنطقة الزمنية لملفك الشخصي ({{userTimezone}})، بينما متصفحك مضبوط على المنطقة الزمنية ({{browserTimezone}})",
+  "reservation_expired": "انتهت صلاحية الحجز",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

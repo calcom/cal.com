@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Nem sikerült érvényesíteni a licenckulcsot",
   "license_key_saved": "A licenckulcs sikeresen mentve",
   "timezone_mismatch_tooltip": "A jelentést az Ön profiljában beállított időzóna ({{userTimezone}}) alapján tekinti meg, míg a böngészője a következő időzónára van állítva: {{browserTimezone}}",
+  "reservation_expired": "A foglalás lejárt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

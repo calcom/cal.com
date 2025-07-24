@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Lisenssiavaimen vahvistaminen epäonnistui",
   "license_key_saved": "Lisenssiavain tallennettu onnistuneesti",
   "timezone_mismatch_tooltip": "Tarkastelet raporttia profiilisi aikavyöhykkeen ({{userTimezone}}) mukaan, kun taas selaimesi on asetettu aikavyöhykkeelle ({{browserTimezone}})",
+  "reservation_expired": "Varaus vanhentunut",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

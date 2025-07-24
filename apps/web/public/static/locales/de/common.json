@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Validierung des Lizenzschlüssels fehlgeschlagen",
   "license_key_saved": "Lizenzschlüssel erfolgreich gespeichert",
   "timezone_mismatch_tooltip": "Sie sehen den Bericht basierend auf Ihrer Profil-Zeitzone ({{userTimezone}}), während Ihr Browser auf die Zeitzone ({{browserTimezone}}) eingestellt ist",
+  "reservation_expired": "Reservierung abgelaufen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

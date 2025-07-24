@@ -3359,5 +3359,6 @@
   "license_validation_failed": "No s'ha pogut validar la clau de llicència",
   "license_key_saved": "Clau de llicència desada correctament",
   "timezone_mismatch_tooltip": "Esteu veient l'informe basat en la zona horària del vostre perfil ({{userTimezone}}), mentre que el vostre navegador està configurat a la zona horària ({{browserTimezone}})",
+  "reservation_expired": "Reserva caducada",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

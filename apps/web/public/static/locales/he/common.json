@@ -3359,5 +3359,6 @@
   "license_validation_failed": "האימות של מפתח הרישיון נכשל",
   "license_key_saved": "מפתח הרישיון נשמר בהצלחה",
   "timezone_mismatch_tooltip": "אתה צופה בדוח על בסיס אזור הזמן של הפרופיל שלך ({{userTimezone}}), בעוד שהדפדפן שלך מוגדר לאזור זמן ({{browserTimezone}})",
+  "reservation_expired": "הזמנה פגה",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

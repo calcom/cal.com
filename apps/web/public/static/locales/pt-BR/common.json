@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Falha ao validar a chave de licença",
   "license_key_saved": "Chave de licença salva com sucesso",
   "timezone_mismatch_tooltip": "Você está visualizando o relatório com base no fuso horário do seu perfil ({{userTimezone}}), enquanto seu navegador está configurado para o fuso horário ({{browserTimezone}})",
+  "reservation_expired": "Reserva expirada",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

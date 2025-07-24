@@ -3359,5 +3359,6 @@
   "license_validation_failed": "បរាជ័យក្នុងការផ្ទៀងផ្ទាត់សោអាជ្ញាប័ណ្ណ",
   "license_key_saved": "សោអាជ្ញាប័ណ្ណត្រូវបានរក្សាទុកដោយជោគជ័យ",
   "timezone_mismatch_tooltip": "អ្នកកំពុងមើលរបាយការណ៍ដោយផ្អែកលើតំបន់ពេលវេលាប្រវត្តិរូបរបស់អ្នក ({{userTimezone}}) ខណៈពេលដែលកម្មវិធីរុករករបស់អ្នកត្រូវបានកំណត់ទៅតំបន់ពេលវេលា ({{browserTimezone}})",
+  "reservation_expired": "ការកក់បានផុតកំណត់",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

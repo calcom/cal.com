@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Litsentsivõtme valideerimine ebaõnnestus",
   "license_key_saved": "Litsentsivõti salvestati edukalt",
   "timezone_mismatch_tooltip": "Te vaatate aruannet oma profiili ajavööndi ({{userTimezone}}) alusel, samal ajal kui teie brauser on seadistatud ajavööndisse ({{browserTimezone}})",
+  "reservation_expired": "Broneering aegunud",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

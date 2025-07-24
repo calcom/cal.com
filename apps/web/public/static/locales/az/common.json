@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Lisenziya açarının təsdiqlənməsi uğursuz oldu",
   "license_key_saved": "Lisenziya açarı uğurla saxlanıldı",
   "timezone_mismatch_tooltip": "Siz hesabatı profil saat qurşağınıza ({{userTimezone}}) əsasən görürsünüz, brauzeriniz isə başqa saat qurşağına ({{browserTimezone}}) təyin edilib",
+  "reservation_expired": "Rezervasiyanın müddəti bitmişdir",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

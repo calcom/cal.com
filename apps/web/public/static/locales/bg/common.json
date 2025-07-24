@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Неуспешна валидация на лицензионния ключ",
   "license_key_saved": "Лицензионният ключ е успешно записан",
   "timezone_mismatch_tooltip": "Преглеждате отчета според часовата зона на вашия профил ({{userTimezone}}), докато браузърът ви е настроен на часова зона ({{browserTimezone}})",
+  "reservation_expired": "Резервацията е изтекла",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

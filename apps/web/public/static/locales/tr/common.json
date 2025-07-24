@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Lisans anahtarı doğrulanamadı",
   "license_key_saved": "Lisans anahtarı başarıyla kaydedildi",
   "timezone_mismatch_tooltip": "Raporu profil saat diliminize ({{userTimezone}}) göre görüntülüyorsunuz, ancak tarayıcınız ({{browserTimezone}}) saat dilimine ayarlı",
+  "reservation_expired": "Rezervasyon süresi doldu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

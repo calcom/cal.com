@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Échec de la validation de la clé de licence",
   "license_key_saved": "Clé de licence enregistrée avec succès",
   "timezone_mismatch_tooltip": "Vous consultez le rapport selon le fuseau horaire de votre profil ({{userTimezone}}), alors que votre navigateur est configuré sur le fuseau horaire ({{browserTimezone}})",
+  "reservation_expired": "Réservation expirée",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

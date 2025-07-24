@@ -66,5 +66,6 @@
   "meeting_not_joined_question": "nezúčastnili ste sa stretnutia?",
   "reschedule_cta_short": "Preplánujte tu.",
   "you_and_conjunction": "Vy &",
-  "email_survey_triggered_by_workflow": "Tento prieskum bol spustený pracovným postupom v Cal."
+  "email_survey_triggered_by_workflow": "Tento prieskum bol spustený pracovným postupom v Cal.",
+  "reservation_expired": "Rezervácia vypršala"
 }

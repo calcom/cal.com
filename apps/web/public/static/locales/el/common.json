@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Αποτυχία επικύρωσης κλειδιού άδειας",
   "license_key_saved": "Το κλειδί άδειας αποθηκεύτηκε με επιτυχία",
   "timezone_mismatch_tooltip": "Βλέπετε την αναφορά με βάση τη ζώνη ώρας του προφίλ σας ({{userTimezone}}), ενώ ο περιηγητής σας είναι ρυθμισμένος στη ζώνη ώρας ({{browserTimezone}})",
+  "reservation_expired": "Η κράτηση έληξε",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

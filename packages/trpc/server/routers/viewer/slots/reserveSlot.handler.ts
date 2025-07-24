@@ -3,11 +3,15 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { scheduleReservationExpiredTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -29,7 +33,20 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
-    select: { users: { select: { id: true } }, seatsPerTimeSlot: true },
+    select: {
+      users: {
+        select: {
+          id: true,
+        },
+      },
+      teamId: true,
+      team: {
+        select: {
+          parentId: true,
+        },
+      },
+      seatsPerTimeSlot: true,
+    },
   });
 
   if (!eventType) {
@@ -76,12 +93,19 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
 
   if (eventType && shouldReserveSlot && !reservedBySomeoneElse && !_isDryRun) {
     try {
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: eventType?.teamId ?? null },
+          parentId: eventType?.team?.parentId ?? null,
+        },
+      });
+
       await Promise.all(
         // FIXME: In case of team event, users doesn't have assignees, those are in hosts. users just have the creator of the event which is wrong.
         // Also, we must not block all the users' slots, we must use routedTeamMemberIds if set like we do in getSchedule.
         // We could even improve it by identifying the next person being booked now that we have a queue of assignees.
-        eventType.users.map((user) =>
-          prisma.selectedSlots.upsert({
+        eventType.users.map(async (user) => {
+          const slot = await prisma.selectedSlots.upsert({
             where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
             update: {
               slotUtcStartDate,
@@ -98,8 +122,29 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
               releaseAt,
               isSeat: eventType.seatsPerTimeSlot !== null,
             },
-          })
-        )
+          });
+
+          const orgId = await getOrgIdFromMemberOrTeamId({ memberId: user.id, teamId });
+
+          const subscriberOptionsReservations = {
+            userId: user.id,
+            eventTypeId,
+            triggerEvent: WebhookTriggerEvents.RESERVATION_EXPIRED,
+            teamId,
+            orgId,
+          };
+
+          const webhooks = await getWebhooks(subscriberOptionsReservations);
+
+          for (const subscriber of webhooks) {
+            scheduleReservationExpiredTrigger({
+              slot: slot,
+              subscriberUrl: subscriber.subscriberUrl,
+              subscriber,
+              triggerEvent: WebhookTriggerEvents.RESERVATION_EXPIRED,
+            });
+          }
+        })
       );
     } catch {
       throw new TRPCError({

@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Không thể xác thực khóa giấy phép",
   "license_key_saved": "Đã lưu khóa giấy phép thành công",
   "timezone_mismatch_tooltip": "Bạn đang xem báo cáo dựa trên múi giờ hồ sơ của bạn ({{userTimezone}}), trong khi trình duyệt của bạn được đặt theo múi giờ ({{browserTimezone}})",
+  "reservation_expired": "Đặt chỗ đã hết hạn",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Не удалось проверить лицензионный ключ",
   "license_key_saved": "Лицензионный ключ успешно сохранён",
   "timezone_mismatch_tooltip": "Вы просматриваете отчёт в часовом поясе вашего профиля ({{userTimezone}}), в то время как ваш браузер настроен на часовой пояс ({{browserTimezone}})",
+  "reservation_expired": "Бронь истекла",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

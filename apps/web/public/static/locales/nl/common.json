@@ -3359,5 +3359,6 @@
   "license_validation_failed": "Validatie van licentiesleutel mislukt",
   "license_key_saved": "Licentiesleutel succesvol opgeslagen",
   "timezone_mismatch_tooltip": "Je bekijkt het rapport op basis van je profieltijdzone ({{userTimezone}}), terwijl je browser is ingesteld op tijdzone ({{browserTimezone}})",
+  "reservation_expired": "Reservering verlopen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
