@@ -661,88 +661,21 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersWithMostBookingsStats();
+        return await insightsBookingService.getMembersBookingsStats("DESC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
   membersWithLeastBookings: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
-      if (!teamId) {
-        return [];
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+
+      try {
+        return await insightsBookingService.getMembersBookingsStats("ASC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      const user = ctx.user;
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      let { whereCondition: bookingWhere } = r;
-
-      bookingWhere = {
-        ...bookingWhere,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      };
-
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatusDenormalized.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _count: {
-          id: true,
-        },
-        orderBy: {
-          _count: {
-            id: "asc",
-          },
-        },
-        take: 10,
-      });
-
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
-
-      if (userIds.length === 0) {
-        return [];
-      }
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: userSelect,
-      });
-
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-      const result = bookingsFromTeam.map((booking) => ({
-        userId: booking.userId,
-        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        user: userHashMap.get(booking.userId)!,
-        emailMd5: md5(user?.email),
-        count: booking._count.id,
-      }));
-
-      return result;
     }),
   teamListForUser: authedProcedure.query(async ({ ctx }) => {
     const user = ctx.user;

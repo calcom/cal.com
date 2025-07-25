@@ -754,7 +754,7 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getMembersWithMostBookingsStats() {
+  async getMembersBookingsStats(sortOrder: "ASC" | "DESC" = "DESC") {
     const baseConditions = await this.getBaseConditions();
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
@@ -769,7 +769,7 @@ export class InsightsBookingService {
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "userId" IS NOT NULL
       GROUP BY "userId"
-      ORDER BY count DESC
+      ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
     `;
 
