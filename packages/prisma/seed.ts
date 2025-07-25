@@ -342,8 +342,19 @@ async function createOrganizationAndAddMembersAndTeams({
             orgProfile: member.orgProfile,
           };
 
-          await prisma.tempOrgRedirect.create({
-            data: {
+          // Create temp org redirect with upsert to handle duplicates
+          await prisma.tempOrgRedirect.upsert({
+            where: {
+              from_type_fromOrgId: {
+                from: member.memberData.username,
+                type: RedirectType.User,
+                fromOrgId: 0,
+              },
+            },
+            update: {
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+            },
+            create: {
               fromOrgId: 0,
               type: RedirectType.User,
               from: member.memberData.username,
