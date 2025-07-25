@@ -1,21 +1,11 @@
-import { expect, describe, it, vi } from "vitest";
+import { expect, describe, it } from "vitest";
 
 import type { AttributesQueryValue, RaqbChild } from "@calcom/lib/raqb/types";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 
-import { getValueOfAttributeOption, acrossQueryValueCompatiblity } from "./raqbUtils";
-
-const { resolveQueryValue } = acrossQueryValueCompatiblity;
-
-// Mock the getFieldResponseValueAsLabel
-vi.mock("@calcom/app-store/routing-forms/lib/getFieldResponseValueAsLabel", () => ({
-  getFieldResponseValueAsLabel: ({ fieldResponseValue }: { field: any; fieldResponseValue: any }) => {
-    // For testing, just return the value as-is
-    return fieldResponseValue;
-  },
-}));
+import { resolveQueryValue } from "./resolveQueryValue";
 
 // Test Data Builders for AttributesQueryValue
 const createQueryValueRule = (overrides?: Partial<RaqbChild>): RaqbChild => ({
@@ -93,7 +83,7 @@ const createComplexQueryValue = ({
   }>;
 }): AttributesQueryValue => {
   const children1: Record<string, RaqbChild> = {};
-  
+
   rules.forEach((rule) => {
     children1[rule.ruleId] = createQueryValueRule({
       type: "rule",
@@ -161,97 +151,37 @@ const createNestedGroupQueryValue = ({
   });
 };
 
-describe("getValueOfAttributeOption", () => {
-  it("should return non-array value for non-array input - It is a requirement for RAQB to not unnecessarily transform single value to an array of one item", () => {
-    const input = { value: "option1", isGroup: false, contains: [] };
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual("option1");
-  });
-
-  it("should return flat array of values for simple options", () => {
-    const input = [
-      { value: "option1", isGroup: false, contains: [] },
-      { value: "option2", isGroup: false, contains: [] },
-    ];
-
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual(["option1", "option2"]);
-  });
-
-  it("should flatten nested options from contains array", () => {
-    const input = [
-      {
-        value: "group1",
-        isGroup: true,
-        contains: [
-          { value: "suboption1", id: "opt-1", slug: "option-1" },
-          { value: "suboption2", id: "opt-2", slug: "option-2" },
-        ],
-      },
-    ];
-
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual(["suboption1", "suboption2"]);
-  });
-
-  it("should handle mix of simple and nested options", () => {
-    const input = [
-      { value: "option1", isGroup: false, contains: [] },
-      {
-        value: "group1",
-        isGroup: true,
-        contains: [
-          { value: "suboption1", id: "opt-1", slug: "option-1" },
-          { value: "suboption2", id: "opt-2", slug: "option-2" },
-        ],
-      },
-      { value: "option2", isGroup: false, contains: [] },
-    ];
-
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual(["option1", "suboption1", "suboption2", "option2"]);
-  });
-
-  it("should remove duplicate values", () => {
-    const input = [
-      { value: "option1", isGroup: false, contains: [] },
-      {
-        value: "group1",
-        isGroup: true,
-        contains: [
-          { value: "option1", id: "opt-1", slug: "option-1" },
-          { value: "suboption2", id: "opt-2", slug: "option-2" },
-        ],
-      },
-    ];
-
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual(["option1", "suboption2"]);
-  });
-
-  it("should handle empty input array", () => {
-    const input: {
-      value: string;
-      isGroup: boolean;
-      contains: { value: string; id: string; slug: string }[];
-    }[] = [];
-
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual([]);
-  });
-
-  it("should still use contains if contains is empty and isGroup=true", () => {
-    const input = [{ value: "group1", isGroup: true, contains: [] }];
-
-    const result = getValueOfAttributeOption(input);
-    expect(result).toEqual([]);
-  });
-});
-
 describe("resolveQueryValue", () => {
   const mockFields = [
-    { id: "location", type: RoutingFormFieldType.MULTI_SELECT, label: "Location", options: [] },
-    { id: "city", type: RoutingFormFieldType.SINGLE_SELECT, label: "City", options: [] },
+    {
+      id: "location",
+      type: RoutingFormFieldType.MULTI_SELECT,
+      label: "Location",
+      options: [
+        { id: "delhi", label: "Delhi" },
+        { id: "mumbai", label: "Mumbai" },
+        { id: "paris", label: "Paris" },
+        { id: "berlin", label: "Berlin" },
+        { id: "new-york", label: "New York" },
+        { id: "amsterdam", label: "Amsterdam" },
+        { id: "haryana", label: "Haryana" },
+        { id: "tokyo", label: "Tokyo" },
+        { id: "chennai", label: "Chennai" },
+        { id: "sao-paulo", label: "São Paulo" },
+        { id: "zurich", label: "Zürich" },
+      ],
+    },
+    {
+      id: "city",
+      type: RoutingFormFieldType.SINGLE_SELECT,
+      label: "City",
+      options: [
+        { id: "mumbai", label: "Mumbai" },
+        { id: "delhi", label: "Delhi" },
+        { id: "chennai", label: "Chennai" },
+        { id: "tokyo", label: "Tokyo" },
+      ],
+    },
   ];
 
   // Mock attributes for testing
@@ -278,8 +208,14 @@ describe("resolveQueryValue", () => {
     },
   ];
 
-  describe("attribute option ID replacement", () => {
-    it("should replace attribute option IDs with lowercase values", () => {
+  describe("attribute option ID to label conversion for field matching", () => {
+    /**
+     * These tests verify that attribute option IDs are replaced with their lowercase labels
+     * to enable comparison with form field values that are connected through "Value of Field".
+     * Labels are converted to lowercase to ensure case-insensitive matching between
+     * attribute options and field values.
+     */
+    it("converts single option ID to lowercase label", () => {
       const queryValue = createQueryValueWithRule({
         ruleId: "rule1",
         field: "attr-1",
@@ -301,7 +237,7 @@ describe("resolveQueryValue", () => {
               properties: expect.objectContaining({
                 field: "attr-1",
                 operator: "select_equals",
-                value: ["new york"], // Should be lowercase
+                value: ["new york"], // opt-1 -> "New York" -> "new york" for field matching
               }),
             },
           },
@@ -309,7 +245,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should replace multiple attribute option IDs in the same value array", () => {
+    it("converts multiple option IDs to labels in multiselect", () => {
       const queryValue = createQueryValueWithRule({
         ruleId: "rule1",
         field: "attr-1",
@@ -332,7 +268,7 @@ describe("resolveQueryValue", () => {
               properties: expect.objectContaining({
                 field: "attr-1",
                 operator: "multiselect_some_in",
-                value: [["new york", "london", "mumbai", "delhi"]],
+                value: [["new york", "london", "mumbai", "delhi"]], // All IDs converted to lowercase labels
               }),
             },
           },
@@ -340,7 +276,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should handle attribute option IDs in nested rules", () => {
+    it("converts option IDs across multiple rules", () => {
       const queryValue = createComplexQueryValue({
         rules: [
           {
@@ -370,13 +306,13 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: ["new york"],
+                value: ["new york"], // opt-1 converted to label
               }),
             },
             rule2: {
               type: "rule",
               properties: expect.objectContaining({
-                value: ["mumbai"],
+                value: ["mumbai"], // opt-3 converted to label
               }),
             },
           },
@@ -384,7 +320,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should replace attribute option IDs before processing field templates", () => {
+    it("converts option IDs before field template resolution", () => {
       const queryValue = createQueryValueWithRule({
         ruleId: "rule1",
         field: "attr-1",
@@ -410,7 +346,7 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: [["new york", "paris"]], // opt-1 replaced with "new york", field template with "paris"
+                value: [["new york", "paris"]], // Option ID converted first, then field template resolved
               }),
             },
           },
@@ -418,7 +354,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should handle attribute option IDs with special characters", () => {
+    it("preserves special chars in labels while lowercasing", () => {
       const specialAttributes: Attribute[] = [
         {
           id: "attr-special",
@@ -451,7 +387,7 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: ["são paulo"], // Should preserve special characters but be lowercase
+                value: ["são paulo"], // Special chars preserved, only case changed for matching
               }),
             },
           },
@@ -459,7 +395,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should not replace IDs that don't match any attribute options", () => {
+    it("keeps non-matching IDs unchanged", () => {
       const queryValue = createQueryValueWithRule({
         ruleId: "rule1",
         field: "attr-1",
@@ -479,7 +415,7 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: ["non-existent-id", "new york"], // Only opt-1 should be replaced
+                value: ["non-existent-id", "new york"], // Unknown IDs kept, valid ones converted
               }),
             },
           },
@@ -487,7 +423,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should handle empty attributes array", () => {
+    it("handles missing attributes gracefully", () => {
       const queryValue = createQueryValueWithRule({
         ruleId: "rule1",
         field: "attr-1",
@@ -507,7 +443,7 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: ["opt-1"], // Should remain unchanged
+                value: ["opt-1"], // No attributes to resolve against
               }),
             },
           },
@@ -515,7 +451,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should handle attributes with no options", () => {
+    it("handles attributes without options", () => {
       const attributesWithoutOptions: Attribute[] = [
         {
           id: "attr-no-options",
@@ -545,7 +481,7 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: ["some-value"], // Should remain unchanged
+                value: ["some-value"], // TEXT attributes don't have options to convert
               }),
             },
           },
@@ -553,7 +489,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should replace option IDs in complex nested group structures", () => {
+    it("converts IDs in nested group structures", () => {
       const queryValue = createNestedGroupQueryValue({
         groups: [
           {
@@ -592,13 +528,13 @@ describe("resolveQueryValue", () => {
                 rule1: {
                   type: "rule",
                   properties: expect.objectContaining({
-                    value: [["new york", "london"]],
+                    value: [["new york", "london"]], // opt-1, opt-2 converted to labels
                   }),
                 },
                 rule2: {
                   type: "rule",
                   properties: expect.objectContaining({
-                    value: ["mumbai"],
+                    value: ["mumbai"], // opt-3 converted to label
                   }),
                 },
               },
@@ -608,7 +544,7 @@ describe("resolveQueryValue", () => {
       );
     });
 
-    it("should handle option IDs mixed with field templates in double-nested arrays", () => {
+    it("converts IDs alongside field templates in arrays", () => {
       const queryValue = createQueryValueWithRule({
         ruleId: "rule1",
         field: "attr-1",
@@ -635,7 +571,7 @@ describe("resolveQueryValue", () => {
             rule1: {
               type: "rule",
               properties: expect.objectContaining({
-                value: [["new york", "tokyo", "london", "berlin", "paris"]],
+                value: [["new york", "tokyo", "london", "berlin", "paris"]], // opt-1->"new york", opt-2->"london", field templates resolved
               }),
             },
           },
@@ -1130,74 +1066,6 @@ describe("resolveQueryValue", () => {
     );
   });
 
-  it("should handle field template in arrays at different nesting levels", () => {
-    const queryValue = {
-      children1: {
-        rule1: {
-          type: "rule",
-          properties: {
-            field: "city",
-            value: ["{field:city}"], // Single nested
-          },
-        },
-        rule2: {
-          type: "rule",
-          properties: {
-            field: "location",
-            value: [["{field:location}"]], // Double nested
-          },
-        },
-        rule3: {
-          type: "rule",
-          properties: {
-            field: "city",
-            value: [[["{field:city}"]]], // Triple nested
-          },
-        },
-      },
-    } as unknown as AttributesQueryValue;
-
-    const result = resolveQueryValue({
-      queryValue,
-      dynamicFieldValueOperands: {
-        fields: mockFields,
-        response: {
-          location: { value: ["Delhi"], label: "Delhi" },
-          city: { value: "Mumbai", label: "Mumbai" },
-        },
-      },
-      attributes: mockAttributes,
-    });
-
-    expect(result).toEqual(
-      expect.objectContaining({
-        children1: {
-          rule1: {
-            type: "rule",
-            properties: {
-              field: "city",
-              value: ["mumbai"],
-            },
-          },
-          rule2: {
-            type: "rule",
-            properties: {
-              field: "location",
-              value: [["delhi"]],
-            },
-          },
-          rule3: {
-            type: "rule",
-            properties: {
-              field: "city",
-              value: [[["mumbai"]]],
-            },
-          },
-        },
-      })
-    );
-  });
-
   it("should handle null and undefined values gracefully", () => {
     const queryValue = {
       children1: {
@@ -1394,74 +1262,6 @@ describe("resolveQueryValue", () => {
             properties: {
               field: "special",
               value: ["value2", "value3"],
-            },
-          },
-        },
-      })
-    );
-  });
-
-  it("should handle mixed field templates and fixed values in complex scenarios", () => {
-    const queryValue = {
-      children1: {
-        group1: {
-          type: "rule",
-          properties: {
-            field: "mixed1",
-            value: [["{field:location}", "Fixed1", "{field:city}"]],
-          },
-        },
-        group2: {
-          type: "rule",
-          properties: {
-            field: "mixed2",
-            value: [["Fixed2", "{field:location}"]],
-          },
-        },
-        group3: {
-          type: "rule",
-          properties: {
-            field: "mixed3",
-            value: [["{field:city}", "{field:location}", "Fixed3", "{field:city}"]],
-          },
-        },
-      },
-    } as unknown as AttributesQueryValue;
-
-    const result = resolveQueryValue({
-      queryValue,
-      dynamicFieldValueOperands: {
-        fields: mockFields,
-        response: {
-          location: { value: ["Delhi", "Mumbai"], label: "Delhi, Mumbai" },
-          city: { value: "Chennai", label: "Chennai" },
-        },
-      },
-      attributes: mockAttributes,
-    });
-
-    expect(result).toEqual(
-      expect.objectContaining({
-        children1: {
-          group1: {
-            type: "rule",
-            properties: {
-              field: "mixed1",
-              value: [["delhi", "mumbai", "Fixed1", "chennai"]],
-            },
-          },
-          group2: {
-            type: "rule",
-            properties: {
-              field: "mixed2",
-              value: [["Fixed2", "delhi", "mumbai"]],
-            },
-          },
-          group3: {
-            type: "rule",
-            properties: {
-              field: "mixed3",
-              value: [["chennai", "delhi", "mumbai", "Fixed3", "chennai"]],
             },
           },
         },

@@ -4,9 +4,7 @@ import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import logger from "@calcom/lib/logger";
-import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   AttributeOptionValueWithType,
@@ -15,59 +13,11 @@ import type {
 } from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
 
-const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
-
-function getFieldResponseValueAsLabel({
-  field,
-  fieldResponseValue,
-}: {
-  fieldResponseValue: dynamicFieldValueOperandsResponse[keyof dynamicFieldValueOperandsResponse]["value"];
-  field: {
-    type: string;
-    options?: {
-      id: string | null;
-      label: string;
-    }[];
-  };
-}) {
-  if (!field.options) {
-    return fieldResponseValue;
-  }
-
-  const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
-
-  const chosenOptions = valueArray.map((idOrLabel) => {
-    const foundOptionById = field.options?.find((option) => {
-      return option.id === idOrLabel;
-    });
-    if (foundOptionById) {
-      return {
-        label: foundOptionById.label,
-        id: foundOptionById.id,
-      };
-    } else {
-      return {
-        label: idOrLabel.toString(),
-        id: null,
-      };
-    }
-  });
-
-  return chosenOptions.map((option) => option.label);
-}
+import { resolveQueryValue } from "./resolveQueryValue";
+import { caseInsensitive } from "./utils";
 
 function ensureArray(value: string | string[]) {
   return typeof value === "string" ? [value] : value;
-}
-
-function caseInsensitive<T extends string | string[]>(
-  stringOrStringArray: T
-): T extends string[] ? string[] : string {
-  return (
-    stringOrStringArray instanceof Array
-      ? stringOrStringArray.map((string) => string.toLowerCase())
-      : stringOrStringArray.toLowerCase()
-  ) as T extends string[] ? string[] : string;
 }
 
 export const raqbQueryValueUtils = {
@@ -144,61 +94,6 @@ export const buildStateFromQueryValue = ({
   };
 };
 
-/**
- * Replace attribute option Ids with the attribute option label(compatible to be matched with form field value)
- */
-const replaceAttributeOptionIdsWithOptionLabel = ({
-  queryValueString,
-  attributes,
-}: {
-  queryValueString: string;
-  attributes: Attribute[];
-}) => {
-  const allAttributesOptions = attributes.map((attribute) => attribute.options).flat();
-  // Because all attribute option Ids are unique, we can reliably identify them along any number of attribute options of different attributes
-  allAttributesOptions.forEach((attributeOption) => {
-    const attributeOptionId = attributeOption.id;
-    queryValueString = queryValueString.replace(
-      new RegExp(`${attributeOptionId}`, "g"),
-      caseInsensitive(attributeOption.value)
-    );
-  });
-  return queryValueString;
-};
-
-/**
- * Replace {field:<fieldId>} with the field label(compatible to be matched with attribute value)
- */
-const replaceFieldTemplateVariableWithOptionLabel = ({
-  queryValueString,
-  dynamicFieldValueOperands,
-}: {
-  queryValueString: string;
-  dynamicFieldValueOperands?: dynamicFieldValueOperands;
-}) => {
-  if (!dynamicFieldValueOperands) {
-    return queryValueString;
-  }
-  const { fields, response } = dynamicFieldValueOperands;
-  return queryValueString.replace(/{field:([\w-]+)}/g, (match, fieldId: string) => {
-    const field = fields?.find((f) => f.id === fieldId);
-    if (!field) {
-      moduleLogger.debug("field not found", safeStringify({ fieldId }));
-      return match;
-    }
-    const fieldResponseValue = response[fieldId]?.value;
-    if (!fieldResponseValue) {
-      return match;
-    }
-    const responseValueAsLabel = getFieldResponseValueAsLabel({ field, fieldResponseValue });
-    moduleLogger.debug("matchingOptionLabel", safeStringify({ responseValueAsLabel, response, fieldId }));
-    if (responseValueAsLabel instanceof Array && responseValueAsLabel.length > 1) {
-      throw new Error("Array value not supported with 'Value of field'");
-    }
-    return responseValueAsLabel ? caseInsensitive(responseValueAsLabel.toString()) : match;
-  });
-};
-
 export function getValueOfAttributeOption(
   attributeOptions:
     | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
@@ -262,17 +157,13 @@ function getAttributesQueryValue({
     return null;
   }
 
-  const attributesQueryValueCompatibleForMatchingWithFormField: AttributesQueryValue = JSON.parse(
-    replaceFieldTemplateVariableWithOptionLabel({
-      queryValueString: replaceAttributeOptionIdsWithOptionLabel({
-        queryValueString: JSON.stringify(attributesQueryValue),
-        attributes,
-      }),
-      dynamicFieldValueOperands,
-    })
-  );
+  const resolvedQueryValue = resolveQueryValue({
+    queryValue: attributesQueryValue,
+    attributes,
+    dynamicFieldValueOperands,
+  });
 
-  return attributesQueryValueCompatibleForMatchingWithFormField;
+  return resolvedQueryValue;
 }
 
 /**
@@ -329,4 +220,5 @@ export const acrossQueryValueCompatiblity = {
   getAttributesQueryBuilderConfigHavingListofLabels,
   getAttributesQueryValue,
   getAttributesData,
+  resolveQueryValue,
 };
