@@ -577,7 +577,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersCancelledBookingsStats();
+        return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -588,7 +588,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersBookingsStats("DESC");
+        return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -599,7 +599,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersBookingsStats("ASC");
+        return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -795,7 +795,7 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersNoShowHostStats();
+        return await insightsBookingService.getMembersStatsWithCount("noShow", "DESC");
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -804,13 +804,13 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getMembersHighestRatingsStats();
+      return await insightsBookingService.getMembersRatingStats("DESC");
     }),
   membersWithLowestRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getMembersLowestRatingsStats();
+      return await insightsBookingService.getMembersRatingStats("ASC");
     }),
   rawData: userBelongsToTeamProcedure
     .input(

@@ -754,8 +754,18 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getMembersBookingsStats(sortOrder: "ASC" | "DESC" = "DESC") {
+  async getMembersStatsWithCount(
+    type: "all" | "cancelled" | "noShow" = "all",
+    sortOrder: "ASC" | "DESC" = "DESC"
+  ) {
     const baseConditions = await this.getBaseConditions();
+
+    let additionalCondition = Prisma.sql``;
+    if (type === "cancelled") {
+      additionalCondition = Prisma.sql`AND status = 'cancelled'`;
+    } else if (type === "noShow") {
+      additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+    }
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
@@ -767,7 +777,7 @@ export class InsightsBookingService {
         "userId",
         COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "userId" IS NOT NULL
+      WHERE ${baseConditions} AND "userId" IS NOT NULL ${additionalCondition}
       GROUP BY "userId"
       ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
@@ -815,129 +825,7 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getMembersCancelledBookingsStats() {
-    const baseConditions = await this.getBaseConditions();
-
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >`
-      SELECT
-        "userId",
-        COUNT(id)::int as count
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "userId" IS NOT NULL AND status = 'cancelled'
-      GROUP BY "userId"
-      ORDER BY count DESC
-      LIMIT 10
-    `;
-
-    if (bookingsFromTeam.length === 0) {
-      return [];
-    }
-
-    const userIds = bookingsFromTeam.map((booking) => booking.userId);
-
-    const usersFromTeam = await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        avatarUrl: true,
-      },
-    });
-
-    const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-    const result = bookingsFromTeam
-      .map((booking) => {
-        const user = userHashMap.get(booking.userId);
-        if (!user) {
-          return null;
-        }
-
-        return {
-          userId: booking.userId,
-          user,
-          emailMd5: md5(user.email),
-          count: booking.count,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    return result;
-  }
-
-  async getMembersNoShowHostStats() {
-    const baseConditions = await this.getBaseConditions();
-
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >`
-      SELECT 
-        "userId",
-        COUNT(id)::int as count
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "noShowHost" = true
-      GROUP BY "userId"
-      ORDER BY count DESC
-      LIMIT 10
-    `;
-
-    if (bookingsFromTeam.length === 0) {
-      return [];
-    }
-
-    const userIds = bookingsFromTeam.map((booking) => booking.userId);
-
-    const usersFromTeam = await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        avatarUrl: true,
-      },
-    });
-
-    const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-    const result = bookingsFromTeam
-      .map((booking) => {
-        const user = userHashMap.get(booking.userId);
-        if (!user) {
-          return null;
-        }
-
-        return {
-          userId: booking.userId,
-          user,
-          emailMd5: md5(user.email),
-          count: booking.count,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    return result;
-  }
-
-  async getMembersHighestRatingsStats() {
+  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC") {
     const baseConditions = await this.getBaseConditions();
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
@@ -952,68 +840,7 @@ export class InsightsBookingService {
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
       GROUP BY "userId"
-      ORDER BY "averageRating" DESC
-      LIMIT 10
-    `;
-
-    if (bookingsFromTeam.length === 0) {
-      return [];
-    }
-
-    const userIds = bookingsFromTeam.map((booking) => booking.userId);
-
-    const usersFromTeam = await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        avatarUrl: true,
-      },
-    });
-
-    const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-    const result = bookingsFromTeam
-      .map((booking) => {
-        const user = userHashMap.get(booking.userId);
-        if (!user) {
-          return null;
-        }
-
-        return {
-          userId: booking.userId,
-          user,
-          emailMd5: md5(user.email),
-          averageRating: booking.averageRating,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    return result;
-  }
-
-  async getMembersLowestRatingsStats() {
-    const baseConditions = await this.getBaseConditions();
-
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        averageRating: number;
-      }>
-    >`
-      SELECT
-        "userId",
-        AVG("rating")::float as "averageRating"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
-      GROUP BY "userId"
-      ORDER BY "averageRating" ASC
+      ORDER BY "averageRating" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
     `;
 
