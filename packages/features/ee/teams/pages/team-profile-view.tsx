@@ -42,6 +42,7 @@ import {
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
@@ -283,6 +284,14 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();
+
+      if (res?.slug) {
+        await revalidateTeamDataCache({
+          teamSlug: res.slug,
+          orgSlug: team?.parent?.slug ?? null,
+        });
+      }
+
       showToast(t("your_team_updated_successfully"), "success");
     },
   });

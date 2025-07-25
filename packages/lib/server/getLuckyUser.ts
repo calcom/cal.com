@@ -490,7 +490,8 @@ async function getBookingsOfInterval({
   rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) {
-  return await BookingRepository.getAllBookingsForRoundRobin({
+  const bookingRepo = new BookingRepository(prisma);
+  return await bookingRepo.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
     startDate: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),

@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -21,7 +21,7 @@ type GetByViewerOptions = {
   input: TGetEventTypesFromGroupSchema;
 };
 
-type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
 type MappedEventType = Awaited<ReturnType<typeof mapEventType>>;
 
 export const getEventTypesFromGroup = async ({
@@ -47,6 +47,7 @@ export const getEventTypesFromGroup = async ({
     !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
 
   const eventTypes: EventType[] = [];
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
 
   if (shouldListUserEvents || !teamId) {
     const baseQueryConditions = {
@@ -56,7 +57,7 @@ export const getEventTypesFromGroup = async ({
     };
 
     const [nonChildEventTypes, childEventTypes] = await Promise.all([
-      EventTypeRepository.findAllByUpId(
+      eventTypeRepo.findAllByUpId(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -78,7 +79,7 @@ export const getEventTypesFromGroup = async ({
           cursor,
         }
       ),
-      EventTypeRepository.findAllByUpId(
+      eventTypeRepo.findAllByUpId(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -117,7 +118,7 @@ export const getEventTypesFromGroup = async ({
 
   if (teamId) {
     const teamEventTypes =
-      (await EventTypeRepository.findTeamEventTypes({
+      (await eventTypeRepo.findTeamEventTypes({
         teamId,
         parentId,
         userId: ctx.user.id,
