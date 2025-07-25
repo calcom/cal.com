@@ -9,8 +9,7 @@ import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
-import { Input, Label, Select, TextArea } from "@calcom/ui/components/form";
+import { Label, Select, TextArea } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 interface InternalNotePresetsSelectProps {
@@ -121,9 +120,6 @@ export default function CancelBooking(props: Props) {
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
-  const [showVerificationDialog, setShowVerificationDialog] = useState<boolean>(false);
-  const [verificationEmail, setVerificationEmail] = useState<string>("");
-  const [verificationError, setVerificationError] = useState<string>("");
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -170,35 +166,6 @@ export default function CancelBooking(props: Props) {
     } else {
       setLoading(false);
       setError(`${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`);
-    }
-  };
-
-  const verifyAndCancel = () => {
-    if (!currentUserEmail) {
-      setShowVerificationDialog(true);
-      return;
-    }
-
-    handleCancellation();
-  };
-
-  const handleVerification = () => {
-    setVerificationError("");
-    if (!verificationEmail) {
-      setVerificationError(t("email_required"));
-      return;
-    }
-
-    if (
-      booking?.attendees?.some(
-        (attendee) => attendee.email.toLowerCase() === verificationEmail.toLowerCase()
-      ) ||
-      verificationEmail.toLowerCase() === booking?.userEmail?.toLowerCase()
-    ) {
-      setShowVerificationDialog(false);
-      handleCancellation();
-    } else {
-      setVerificationError(t("proceed_with_cancellation_error"));
     }
   };
 
@@ -275,7 +242,7 @@ export default function CancelBooking(props: Props) {
                   props.isHost &&
                   (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
-                onClick={verifyAndCancel}
+                onClick={handleCancellation}
                 loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>
@@ -283,45 +250,6 @@ export default function CancelBooking(props: Props) {
           </div>
         </div>
       )}
-      <Dialog
-        open={showVerificationDialog}
-        onOpenChange={setShowVerificationDialog}
-        data-testid="verify-email-dialog">
-        <DialogContent>
-          <DialogHeader title={t("verify_email")} />
-          <div className="space-y-4 py-4">
-            <p className="text-default text-sm">{t("proceed_with_cancellation_description")}</p>
-            <Input
-              data-testid="verify-email-input"
-              type="email"
-              placeholder={t("email_placeholder")}
-              value={verificationEmail}
-              onChange={(e) => setVerificationEmail(e.target.value)}
-              className="mb-2"
-            />
-            {verificationError && (
-              <p data-testid="verify-email-error" className="text-error text-sm">
-                {verificationError}
-              </p>
-            )}
-            <div className="flex justify-end space-x-2">
-              <Button
-                data-testid="verify-email-cancel-trigger"
-                color="secondary"
-                onClick={() => {
-                  setShowVerificationDialog(false);
-                  setVerificationError("");
-                  setVerificationEmail("");
-                }}>
-                {t("cancel")}
-              </Button>
-              <Button onClick={handleVerification} data-testid="verify-email-trigger">
-                {t("verify")}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

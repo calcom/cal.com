@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
@@ -50,8 +50,10 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogHeader } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
@@ -79,6 +81,10 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
   rating: z.string().optional(),
   noShow: stringToBoolean,
+});
+
+const verificationSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email address"),
 });
 
 const useBrandColors = ({
@@ -149,7 +155,7 @@ export default function Success(props: PageProps) {
   const [is24h, setIs24h] = useState(
     props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
   );
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const isHost = props.isLoggedInUserHost;
 
   const [showUtmParams, setShowUtmParams] = useState(false);
@@ -183,11 +189,16 @@ export default function Success(props: PageProps) {
   const currentUserEmail =
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
+    searchParams?.get("email") ??
     session?.user?.email ??
     undefined;
   const defaultRating = isNaN(parsedRating) ? 3 : parsedRating > 5 ? 5 : parsedRating < 1 ? 1 : parsedRating;
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
+  const [showVerificationDialog, setShowVerificationDialog] = useState<boolean>(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>("");
+  const [verificationError, setVerificationError] = useState<string>("");
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
@@ -409,16 +420,80 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
-  const obfuscate = (value = "", visibleChars = 1) => {
+  const obfuscate = (value: string, visibleChars = 1) => {
     if (!value) return "";
     return value.substring(0, visibleChars) + "•".repeat(Math.max(0, value.length - visibleChars));
   };
 
-  const obfuscateEmail = (email = "") => {
+  const obfuscateEmail = (email: string) => {
     if (!email || !email.includes("@")) return obfuscate(email, 2);
     const [user, domain] = email.split("@");
     return `${obfuscate(user, 2)}@${domain}`;
   };
+
+  const isValidBookingEmail = useCallback(
+    (email: string) => {
+      return (
+        bookingInfo?.attendees?.some((attendee) => attendee.email.toLowerCase() === email.toLowerCase()) ||
+        email.toLowerCase() === bookingInfo?.user?.email.toLowerCase()
+      );
+    },
+    [bookingInfo]
+  );
+
+  useEffect(() => {
+    if (sessionStatus === "loading") return;
+    const emailParam = searchParams.get("email");
+    const needsVerification = !session && (!emailParam || !isValidBookingEmail(emailParam));
+
+    setShowVerificationDialog((prev) => {
+      if (prev === needsVerification) return prev;
+      return needsVerification;
+    });
+  }, [session, isValidBookingEmail]);
+
+  const updateSearchParams = useCallback(
+    async (email: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("email", email);
+      await router.replace(`?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams]
+  );
+
+  const handleVerification = async () => {
+    setVerificationError("");
+
+    const parsed = verificationSchema.safeParse({ email: verificationEmail });
+    if (!parsed.success) {
+      setVerificationError(parsed.error.errors[0].message);
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      if (isValidBookingEmail(verificationEmail)) {
+        await updateSearchParams(verificationEmail);
+        setShowVerificationDialog(false);
+      } else {
+        setVerificationError(t("verification_email_error"));
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const canShowPII = useMemo(() => {
+    if (session) return true;
+
+    const emailParam = searchParams.get("email");
+    if (!emailParam) return false;
+
+    return (
+      bookingInfo?.attendees?.some((attendee) => attendee.email.toLowerCase() === emailParam.toLowerCase()) ||
+      emailParam.toLowerCase() === bookingInfo?.user?.email.toLowerCase()
+    );
+  }, [session, searchParams, bookingInfo]);
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -626,38 +701,39 @@ export default function Success(props: PageProps) {
                                 <div className="mb-3">
                                   <div>
                                     <span data-testid="booking-host-name" className="mr-2">
-                                      {!session
-                                        ? obfuscate(bookingInfo.user.name as string)
-                                        : bookingInfo.user.name}
+                                      {canShowPII
+                                        ? bookingInfo.user.name
+                                        : obfuscate(bookingInfo?.user.name as string)}
                                     </span>
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default" data-testid="booking-host-email">
-                                      {!session
-                                        ? obfuscateEmail(
+                                    <p data-testid="booking-host-email">
+                                      {canShowPII
+                                        ? bookingInfo.userPrimaryEmail || bookingInfo.user.email
+                                        : obfuscateEmail(
                                             bookingInfo.userPrimaryEmail || bookingInfo.user.email
-                                          )
-                                        : bookingInfo.userPrimaryEmail || bookingInfo.user.email}
+                                          )}
                                     </p>
                                   )}
                                 </div>
                               )}
+
                               {bookingInfo?.attendees.map((attendee) => (
                                 <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                                   {attendee.name && (
                                     <p data-testid={`attendee-name-${attendee.name}`}>
-                                      {!session ? obfuscate(attendee.name) : attendee.name}
+                                      {canShowPII ? attendee.name : obfuscate(attendee.name)}
                                     </p>
                                   )}
                                   {attendee.phoneNumber && (
                                     <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {!session ? obfuscate(attendee.phoneNumber) : attendee.phoneNumber}
+                                      {canShowPII ? attendee.phoneNumber : obfuscate(attendee.phoneNumber)}
                                     </p>
                                   )}
                                   {!isSmsCalEmail(attendee.email) && (
                                     <p data-testid={`attendee-email-${attendee.email}`}>
-                                      {!session ? obfuscateEmail(attendee.email) : attendee.email}
+                                      {canShowPII ? attendee.email : obfuscateEmail(attendee.email)}
                                     </p>
                                   )}
                                 </div>
@@ -1155,6 +1231,35 @@ export default function Success(props: PageProps) {
           </div>
         </div>
       </main>
+      <Dialog
+        open={showVerificationDialog}
+        onOpenChange={setShowVerificationDialog}
+        data-testid="verify-email-dialog">
+        <DialogContent>
+          <DialogHeader title="Verify your email" />
+          <div className="space-y-4 py-4">
+            <p className="text-default text-sm">{t("verification_email_dialog_description")}</p>
+            <Input
+              data-testid="verify-email-input"
+              type="email"
+              placeholder="Enter your email"
+              value={verificationEmail}
+              onChange={(e) => setVerificationEmail(e.target.value)}
+              className="mb-2"
+            />
+            {verificationError && (
+              <p data-testid="verify-email-error" className="text-error text-sm">
+                {verificationError}
+              </p>
+            )}
+            <div className="flex justify-end space-x-2">
+              <Button onClick={handleVerification} disabled={isVerifying} data-testid="verify-email-trigger">
+                {t("verify")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <Toaster position="bottom-right" />
     </div>
   );
