@@ -221,7 +221,8 @@ export const EventMeta = ({
                 <span
                   className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
-                  }`}>
+                  }`}
+                  data-testid="event-meta-current-timezone">
                   <TimezoneSelect
                     timeZones={timeZones}
                     menuPosition="absolute"
