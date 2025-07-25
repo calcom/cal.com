@@ -1,5 +1,5 @@
 import type { Person } from "@calcom/types/Calendar";
-import type { JsonObject } from "@calcom/types/JsonObject";
+import type { JsonValue } from "@calcom/types/JsonObject";
 
 function isObjectButNotArray(obj: unknown): obj is Record<string, unknown> {
   return typeof obj === "object" && !Array.isArray(obj);
@@ -30,7 +30,7 @@ interface BaseWebhookPayload {
   title: string;
   eventSlug: string | null;
   description: string | null;
-  customInputs: JsonObject | null;
+  customInputs: JsonValue | null;
   responses: Record<string, Response>;
   userFieldsResponses: Record<string, Response>;
   startTime: string;
