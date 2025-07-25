@@ -123,11 +123,9 @@ This avoids ambiguous filenames like app.ts and improves discoverability in edit
 
 ### Service Files
 
-Service class files must include the Service suffix.
-
-File name should be in PascalCase, matching the exported class.
-
-Keep naming specific — avoid generic names like AppService.ts.
+- Service class files must include the Service suffix.
+- File name should be in PascalCase, matching the exported class.
+- Keep naming specific — avoid generic names like AppService.ts.
 
 **Pattern:**
 
@@ -144,8 +142,9 @@ export class HashedLinkService { ... }
 ```
 
 **Note:**
-New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.
-We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
+
+- New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.
+- We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
 
 ## Developing
 
