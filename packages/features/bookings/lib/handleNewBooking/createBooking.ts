@@ -166,7 +166,7 @@ async function saveBooking(
 
     await prisma.credential.findFirstOrThrow({
       where: {
-        appId: paymentAppData.appId,
+        appId: String(paymentAppData.appId),
         ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
       },
       select: { id: true },
