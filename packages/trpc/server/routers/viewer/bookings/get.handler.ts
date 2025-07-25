@@ -510,6 +510,27 @@ export async function getBookings({
                     .select(["Team.id", "Team.name", "Team.slug"])
                     .whereRef("EventType.teamId", "=", "Team.id")
                 ).as("team"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("users")
+                    .select(["users.id", "users.email"])
+                    .whereRef("users.id", "=", "EventType.userId")
+                    .where("EventType.userId", "is not", null)
+                ).as("users"),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .select((eb) => [
+                      "Host.userId",
+                      jsonObjectFrom(
+                        eb
+                          .selectFrom("users")
+                          .select(["users.id", "users.email"])
+                          .whereRef("Host.userId", "=", "users.id")
+                      ).as("user"),
+                    ])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),
@@ -640,10 +661,32 @@ export async function getBookings({
     })
   );
 
+  const checkIfUserIsHost = (userId?: number | null, booking?: any) => {
+    if (!userId || !booking) return false;
+
+    return (
+      booking.user?.id === userId ||
+      booking.eventType?.users?.some(
+        (eventUser: any) =>
+          eventUser.id === userId &&
+          booking.attendees.some((attendee: any) => attendee.email === eventUser.email)
+      ) ||
+      booking.eventType?.hosts?.some(
+        ({ user: hostUser }: any) =>
+          hostUser.id === userId &&
+          booking.attendees.some((attendee: any) => attendee.email === hostUser.email)
+      )
+    );
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+      // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      if (
+        booking.seatsReferences.length &&
+        !booking.eventType?.seatsShowAttendees &&
+        !checkIfUserIsHost(user.id, booking)
+      ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
 

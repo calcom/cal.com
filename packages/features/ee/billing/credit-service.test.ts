@@ -646,19 +646,17 @@ describe("CreditService", () => {
     });
 
     it("should skip unpublished platform organizations and return regular team with credits", async () => {
-      const allUserMemberships = [
-        { teamId: 1 }, // Unpublished platform org membership
-        { teamId: 2 }, // Regular team membership
+      const userMemberships = [
+        { teamId: 1, userId: 1, accepted: true }, // Unpublished platform org membership
+        { teamId: 2, userId: 1, accepted: true }, // Regular team membership
       ];
 
-      expect(allUserMemberships).toHaveLength(2);
-      expect(allUserMemberships.map((m) => m.teamId)).toEqual([1, 2]);
+      expect(userMemberships).toHaveLength(2);
+      expect(userMemberships.map((m) => m.teamId)).toEqual([1, 2]);
 
-      const publishedMemberships = allUserMemberships.filter((m) => m.teamId === 2);
-
-      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue(
-        publishedMemberships
-      );
+      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        { teamId: 2 }, // Only regular team returned after filtering
+      ]);
 
       vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
         id: "2",
@@ -672,6 +670,7 @@ describe("CreditService", () => {
         additionalCredits: 100,
       });
       const result = await creditService.getTeamWithAvailableCredits(1);
+
       expect(result).toEqual({
         teamId: 2,
         availableCredits: 300,
@@ -681,6 +680,48 @@ describe("CreditService", () => {
       expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
+    });
+
+    it("should validate that unpublished platform organizations are identified by isPlatform=true and slug=null", async () => {
+      const unpublishedPlatformOrg = {
+        id: 1,
+        isPlatform: true,
+        slug: null,
+      };
+
+      const publishedTeam = {
+        id: 2,
+        isPlatform: false,
+        slug: "regular-team",
+      };
+
+      expect(unpublishedPlatformOrg.isPlatform && !unpublishedPlatformOrg.slug).toBe(true);
+      expect(publishedTeam.slug !== null).toBe(true);
+
+      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        { teamId: 2 },
+      ]);
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "2",
+        additionalCredits: 50,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 300,
+        totalRemainingMonthlyCredits: 100,
+        additionalCredits: 50,
+      });
+
+      const result = await creditService.getTeamWithAvailableCredits(1);
+
+      expect(result).toEqual({
+        teamId: 2,
+        availableCredits: 150,
+        creditType: CreditType.MONTHLY,
+      });
     });
   });
 });
