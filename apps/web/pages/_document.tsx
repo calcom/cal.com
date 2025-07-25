@@ -5,6 +5,8 @@ import Document, { Head, Html, Main, NextScript } from "next/document";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
+import { applyTheme } from "./_applyThemeForDocument";
+
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 
 class MyDocument extends Document<Props> {
@@ -47,36 +49,7 @@ class MyDocument extends Document<Props> {
             dangerouslySetInnerHTML={{
               __html: `
               window.calNewLocale = "${newLocale}";
-              (function applyTheme() {
-                try {
-                  const appTheme = localStorage.getItem('app-theme');
-                  if (!appTheme) return;
-
-                  let bookingTheme, username;
-                  for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('booking-theme:')) {
-                      bookingTheme = localStorage.getItem(key);
-                      username = key.split("booking-theme:")[1];
-                      break;
-                    }
-                  }
-
-                  const onReady = () => {
-                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
-
-                    if (document.body) {
-                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
-                    } else {
-                      requestAnimationFrame(onReady);
-                    }
-                  };
-
-                  requestAnimationFrame(onReady);
-                } catch (e) {
-                  console.error('Error applying theme:', e);
-                }
-              })();
+              (${applyTheme.toString()})();
             `,
             }}
           />

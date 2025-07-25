@@ -23,6 +23,7 @@ import {
   DataTableSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -39,7 +40,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
-import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -63,10 +64,22 @@ interface OutOfOfficeEntry {
 }
 
 export default function OutOfOfficeEntriesList() {
+  const { t } = useLocale();
+
   return (
-    <DataTableProvider useSegments={useSegments}>
-      <OutOfOfficeEntriesListContent />
-    </DataTableProvider>
+    <SettingsHeader
+      title={t("out_of_office")}
+      description={t("out_of_office_description")}
+      CTA={
+        <div className="flex gap-2">
+          <OutOfOfficeToggleGroup />
+          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
+        </div>
+      }>
+      <DataTableProvider useSegments={useSegments}>
+        <OutOfOfficeEntriesListContent />
+      </DataTableProvider>
+    </SettingsHeader>
   );
 }
 
