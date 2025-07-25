@@ -147,6 +147,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           destinationCalendar: true,
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
+          disableCancelling: true,
+          disableRescheduling: true,
         },
       });
     } catch (error) {
