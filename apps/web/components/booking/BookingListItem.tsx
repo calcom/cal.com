@@ -347,7 +347,9 @@ function BookingListItem(booking: BookingItemProps) {
   const title = booking.title;
 
   const isCalVideoLocation =
-    !booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "";
+    !booking.location ||
+    booking.location === "integrations:daily" ||
+    (typeof booking.location === "string" && booking.location.trim() === "");
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
