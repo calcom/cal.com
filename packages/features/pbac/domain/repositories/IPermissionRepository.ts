@@ -46,6 +46,11 @@ export interface IPermissionRepository {
   ): Promise<(CrudAction | CustomAction)[]>;
 
   /**
+   * Gets all permissions for a specific resource by role ID
+   */
+  getResourcePermissionsByRoleId(roleId: string, resource: Resource): Promise<(CrudAction | CustomAction)[]>;
+
+  /**
    * Gets all team IDs where the user has a specific permission
    */
   getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]>;
