@@ -61,6 +61,8 @@ export class PermissionCheckService {
       const { membership, orgMembership } = await this.getMembership({ userId, teamId });
       const actions = new Set<CrudAction | CustomAction>();
 
+      console.log({ membership, orgMembership });
+
       // Get team-level permissions
       if (membership?.customRoleId) {
         const teamActions = await this.repository.getResourcePermissionsByRoleId(
@@ -71,12 +73,13 @@ export class PermissionCheckService {
       }
 
       // Get org-level permissions as fallback
-      if (orgMembership?.customRoleId) {
+      if (membership?.team?.parentId && orgMembership?.customRoleId) {
         const orgActions = await this.repository.getResourcePermissionsByRoleId(
           orgMembership.customRoleId,
           resource
         );
         orgActions.forEach((action) => actions.add(action));
+        console.log({ orgActions });
       }
 
       return Array.from(actions).map((action) => PermissionMapper.toPermissionString({ resource, action }));
@@ -240,8 +243,8 @@ export class PermissionCheckService {
       membership = await this.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
     }
 
-    if (membership?.team_parentId) {
-      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team_parentId);
+    if (membership?.team.parentId) {
+      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team.parentId);
     }
 
     return { membership, orgMembership };

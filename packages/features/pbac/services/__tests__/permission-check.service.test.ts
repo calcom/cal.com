@@ -80,6 +80,7 @@ describe("PermissionCheckService", () => {
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
+        team: { parentId: null },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce(null);
       mockRepository.checkRolePermission.mockResolvedValueOnce(true);
@@ -194,6 +195,7 @@ describe("PermissionCheckService", () => {
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
+        team: { parentId: null },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce(null);
       mockRepository.checkRolePermissions.mockResolvedValueOnce(true);
@@ -270,6 +272,7 @@ describe("PermissionCheckService", () => {
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
+        team: { parentId: null },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce(null);
       mockRepository.checkRolePermissions.mockResolvedValueOnce(false);
@@ -404,7 +407,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
-        team_parentId: null,
+        team: { parentId: null },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce(null);
       mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["create", "read"]);
@@ -431,7 +434,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
-        team_parentId: 2,
+        team: { parentId: 2 },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce({
         id: 2,
@@ -474,7 +477,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
-        team_parentId: 2,
+        team: { parentId: 2 },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce({
         id: 2,
@@ -505,7 +508,7 @@ describe("PermissionCheckService", () => {
         teamId: 1,
         userId: 1,
         customRoleId: null,
-        team_parentId: 2,
+        team: { parentId: 2 },
       });
       mockRepository.getOrgMembership.mockResolvedValueOnce({
         id: 2,

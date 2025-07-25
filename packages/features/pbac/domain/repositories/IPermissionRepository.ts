@@ -9,7 +9,9 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
-    team_parentId?: number;
+    team: {
+      parentId: number | null;
+    };
   } | null>;
 
   getMembershipByUserAndTeam(
@@ -20,7 +22,9 @@ export interface IPermissionRepository {
     teamId: number;
     userId: number;
     customRoleId: string | null;
-    team_parentId?: number;
+    team: {
+      parentId: number | null;
+    };
   } | null>;
 
   getOrgMembership(
