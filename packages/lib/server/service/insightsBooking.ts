@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-// Import types from insights events
 import type { DateRange } from "@calcom/features/insights/server/events";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

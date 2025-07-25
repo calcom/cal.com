@@ -485,7 +485,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, timeZone } = input;
 
-      // Calculate timeView and dateRanges in the tRPC router
+      // Calculate timeView and dateRanges
       const timeView = EventsInsights.getTimeView(startDate, endDate);
       const dateRanges = EventsInsights.getDateRanges({
         startDate,
@@ -496,7 +496,6 @@ export const insightsRouter = router({
       });
 
       const insightsBookingService = createInsightsBookingService(ctx, input);
-
       try {
         return await insightsBookingService.getEventTrendsStats({
           timeZone,
