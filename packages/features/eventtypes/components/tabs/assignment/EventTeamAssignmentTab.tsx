@@ -316,6 +316,24 @@ const RoundRobinHosts = ({
     name: "hostGroups",
   });
 
+  const handleWeightsEnabledChange = (active: boolean, onChange: (value: boolean) => void) => {
+    onChange(active);
+    const allHosts = getValues("hosts");
+    const fixedHosts = allHosts.filter((host) => host.isFixed);
+    const rrHosts = allHosts.filter((host) => !host.isFixed);
+    const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
+    // Preserve fixed hosts when updating
+    setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
+  };
+
+  const handleWeightsChange = (hosts: Host[]) => {
+    const allHosts = getValues("hosts");
+    const fixedHosts = allHosts.filter((host) => host.isFixed);
+    const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
+    // Preserve fixed hosts when updating
+    setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
+  };
+
   const handleAddGroup = useCallback(() => {
     const allHosts = getValues("hosts");
     const currentRRHosts = allHosts.filter((host) => !host.isFixed);
@@ -779,24 +797,6 @@ export const EventTeamAssignmentTab = ({
     } else {
       onChange(null);
     }
-  };
-
-  const handleWeightsEnabledChange = (active: boolean, onChange: (value: boolean) => void) => {
-    onChange(active);
-    const allHosts = getValues("hosts");
-    const fixedHosts = allHosts.filter((host) => host.isFixed);
-    const rrHosts = allHosts.filter((host) => !host.isFixed);
-    const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-    // Preserve fixed hosts when updating
-    setValue("hosts", [...fixedHosts, ...sortedRRHosts]);
-  };
-
-  const handleWeightsChange = (hosts: Host[]) => {
-    const allHosts = getValues("hosts");
-    const fixedHosts = allHosts.filter((host) => host.isFixed);
-    const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
-    // Preserve fixed hosts when updating
-    setValue("hosts", [...fixedHosts, ...sortedRRHosts], { shouldDirty: true });
   };
 
   const schedulingType = useWatch({
