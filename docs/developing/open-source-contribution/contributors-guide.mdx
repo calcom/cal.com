@@ -92,8 +92,10 @@ export class MembershipService { ... }
 export class HashedLinkService { ... }
 ```
 
+
 <Note>
-We intentionally avoid using dot-suffixes like *.service.ts or *.repository.ts, which we reserve for special cases like .test.ts, .spec.ts, or .types.ts.
+New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.  
+We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
 </Note>
 
 ## How we use TRPC at cal.com
