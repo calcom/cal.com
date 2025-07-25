@@ -3399,8 +3399,6 @@
   "error_deleting_cache": "Error deleting cache",
   "confirm_delete_cache": "Are you sure you want to delete the cached data? This action cannot be undone.",
   "yes_delete_cache": "Yes, delete cache",
-  "cancellation_reason_settings": "Cancellation Reason Settings",
-  "cancellation_reason_settings_description": "Configure when cancellation reasons are required for your team events",
   "cancellation_reason_settings_updated_successfully": "Cancellation reason settings updated successfully",
   "mandatory_cancellation_reason_for_host": "Require cancellation reason from hosts",
   "mandatory_cancellation_reason_for_host_description": "When enabled, hosts will be required to provide a reason when cancelling events",
