@@ -35,8 +35,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions?.find((option) => paymentOption === option.value) || {
-    label: paymentOptions[0].label,
-    value: paymentOptions[0].value,
+    label: paymentOptions.length > 0 ? paymentOptions[0].label : "",
+    value: paymentOptions.length > 0 ? paymentOptions[0].value : "",
   };
   const seatsEnabled = !!eventType.seatsPerTimeSlot;
   const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
@@ -108,7 +108,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 defaultValue={
                   paymentOptionSelectValue
                     ? { ...paymentOptionSelectValue, label: t(paymentOptionSelectValue.label) }
-                    : { ...paymentOptions[0], label: t(paymentOptions[0].label) }
+                    : paymentOptions.length > 0
+                    ? { ...paymentOptions[0], label: t(paymentOptions[0].label) }
+                    : undefined
                 }
                 options={paymentOptions.map((option) => {
                   return { ...option, label: t(option.label) || option.label };
