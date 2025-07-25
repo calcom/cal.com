@@ -18,6 +18,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
