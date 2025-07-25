@@ -659,6 +659,89 @@ export class InsightsBookingService {
     return result;
   }
 
+  async getPopularEventsStats(): Promise<
+    Array<{
+      eventTypeId: number;
+      eventTypeName: string;
+      count: number;
+    }>
+  > {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromSelected = await this.prisma.$queryRaw<
+      Array<{
+        eventTypeId: number;
+        count: number;
+      }>
+    >`
+      SELECT 
+        "eventTypeId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL
+      GROUP BY "eventTypeId"
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
+
+    if (eventTypeIds.length === 0) {
+      return [];
+    }
+
+    const eventTypesFrom = await this.prisma.eventType.findMany({
+      select: {
+        id: true,
+        title: true,
+        teamId: true,
+        userId: true,
+        slug: true,
+        users: {
+          select: {
+            username: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+      where: {
+        id: {
+          in: eventTypeIds,
+        },
+      },
+    });
+
+    const eventTypeHashMap = new Map(eventTypesFrom.map((eventType) => [eventType.id, eventType]));
+
+    const result = bookingsFromSelected
+      .map((booking) => {
+        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId);
+        if (!eventTypeSelected) {
+          return null;
+        }
+
+        let eventSlug = "";
+        if (eventTypeSelected.userId) {
+          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
+        }
+        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
+          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
+        }
+        return {
+          eventTypeId: booking.eventTypeId,
+          eventTypeName: eventSlug,
+          count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });

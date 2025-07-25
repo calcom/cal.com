@@ -505,135 +505,17 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
-  popularEventTypes: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, startDate, endDate, memberUserId, userId, isAll, eventTypeId } = input;
+  popularEvents: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
-    const user = ctx.user;
-
-    if (userId && user?.id !== userId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    if (!teamId && !userId) {
-      return [];
-    }
-
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    let { whereCondition: bookingWhere } = r;
-
-    bookingWhere = {
-      ...bookingWhere,
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-    };
-
-    const bookingsFromSelected = await ctx.insightsDb.bookingTimeStatusDenormalized.groupBy({
-      by: ["eventTypeId"],
-      where: bookingWhere,
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: "desc",
-        },
-      },
-      take: 10,
-    });
-
-    const eventTypeIds = bookingsFromSelected
-      .filter((booking) => typeof booking.eventTypeId === "number")
-      .map((booking) => booking.eventTypeId);
-
-    const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {
-      id: {
-        in: eventTypeIds as number[],
-      },
-    };
-
-    const eventTypesFrom = await ctx.insightsDb.eventType.findMany({
-      select: {
-        id: true,
-        title: true,
-        teamId: true,
-        userId: true,
-        slug: true,
-        users: {
-          select: {
-            username: true,
-          },
-        },
-        team: {
-          select: {
-            slug: true,
-          },
-        },
-      },
-      where: eventTypeWhereConditional,
-    });
-
-    const eventTypeHashMap: Map<
-      number,
-      Prisma.EventTypeGetPayload<{
-        select: {
-          id: true;
-          title: true;
-          teamId: true;
-          userId: true;
-          slug: true;
-          users: {
-            select: {
-              username: true;
-            };
-          };
-          team: {
-            select: {
-              slug: true;
-            };
-          };
-        };
-      }>
-    > = new Map();
-    eventTypesFrom.forEach((eventType) => {
-      eventTypeHashMap.set(eventType.id, eventType);
-    });
-
-    const result = bookingsFromSelected.map((booking) => {
-      const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId ?? 0);
-      if (!eventTypeSelected) {
-        return {};
+      try {
+        return await insightsBookingService.getPopularEventsStats();
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-
-      let eventSlug = "";
-      if (eventTypeSelected.userId) {
-        eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
-      }
-      if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
-        eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
-      }
-      return {
-        eventTypeId: booking.eventTypeId,
-        eventTypeName: eventSlug,
-        count: booking._count.id,
-      };
-    });
-
-    return result;
-  }),
+    }),
   averageEventDuration: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
