@@ -341,6 +341,194 @@ export class InsightsBookingService {
     });
   }
 
+  async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
+    const baseConditions = await this.getBaseConditions();
+
+    // Get total count first
+    const totalCountResult = await this.prisma.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(*)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    `;
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    // 1. Get booking data from BookingTimeStatusDenormalized
+    const csvData = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        uid: string | null;
+        title: string;
+        createdAt: Date;
+        timeStatus: string;
+        eventTypeId: number | null;
+        eventLength: number;
+        startTime: Date;
+        endTime: Date;
+        paid: boolean;
+        userEmail: string;
+        userUsername: string;
+        rating: number | null;
+        ratingFeedback: string | null;
+        noShowHost: boolean;
+      }>
+    >`
+      SELECT
+        "id",
+        "uid",
+        "title",
+        "createdAt",
+        "timeStatus",
+        "eventTypeId",
+        "eventLength",
+        "startTime",
+        "endTime",
+        "paid",
+        "userEmail",
+        "userUsername",
+        "rating",
+        "ratingFeedback",
+        "noShowHost"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+      ORDER BY "createdAt" DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+
+    if (csvData.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
+
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
+
+    if (uids.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
+
+    // 2. Get all bookings with their attendees and seat references
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            noShow: true,
+          },
+        },
+        seatsReferences: {
+          select: {
+            attendee: {
+              select: {
+                name: true,
+                email: true,
+                noShow: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 3. Create booking map with attendee data (matching original logic)
+    const bookingMap = new Map(
+      bookings.map((booking) => {
+        const attendeeList =
+          booking.seatsReferences.length > 0
+            ? booking.seatsReferences.map((ref) => ref.attendee)
+            : booking.attendees;
+
+        // List all no-show guests (name and email)
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
+
+        const formattedAttendees = attendeeList
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
+
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
+      })
+    );
+
+    // 4. Calculate max attendees for dynamic columns
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    // 5. Create final booking map with attendee fields
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+        }
+
+        return [
+          uid,
+          {
+            noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
+            ...attendeeFields,
+          },
+        ];
+      })
+    );
+
+    // 6. Combine booking data with attendee data
+    const data = csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
+
+      if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
+      return {
+        ...bookingTimeStatus,
+        noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
+      };
+    });
+
+    return { data, total: totalCount };
+  }
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
