@@ -189,10 +189,7 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>
-            {props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}
-            {isRequired ? "" : ` (${t("optional")})`}
-          </Label>
+          <Label>{isRequired ? t("cancellation_reason_required") : t("cancellation_reason_optional")}</Label>
 
           <TextArea
             data-testid="cancel_reason"

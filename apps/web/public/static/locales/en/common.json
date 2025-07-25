@@ -3394,5 +3394,7 @@
   "mandatory_cancellation_reason_for_host_description": "When enabled, hosts will be required to provide a reason when cancelling events",
   "mandatory_cancellation_reason_for_attendee": "Require cancellation reason from attendees",
   "mandatory_cancellation_reason_for_attendee_description": "When enabled, attendees will be required to provide a reason when cancelling events",
+  "cancellation_reason_required": "Reason for cancellation",
+  "cancellation_reason_optional": "Reason for cancellation (optional)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
