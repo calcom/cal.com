@@ -230,6 +230,7 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
             labelClassName="text-sm"
             disabled={hostMutation?.isPending}
             checked={mandatoryCancellationReasonForHost}
+            data-testid="mandatory-cancellation-reason-host-toggle"
             onCheckedChange={(checked) => {
               setMandatoryCancellationReasonForHost(checked);
               hostMutation.mutate({
@@ -246,6 +247,7 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
             labelClassName="text-sm"
             disabled={attendeeMutation?.isPending}
             checked={mandatoryCancellationReasonForAttendee}
+            data-testid="mandatory-cancellation-reason-attendee-toggle"
             onCheckedChange={(checked) => {
               setMandatoryCancellationReasonForAttendee(checked);
               attendeeMutation.mutate({

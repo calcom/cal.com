@@ -762,3 +762,333 @@ test.describe("GTM container", () => {
     expect(scriptContent).toContain("googletagmanager");
   });
 });
+
+test.describe("Team cancellation reason settings", () => {
+  // Test data constants
+  const TEST_ATTENDEE = { name: "Test Attendee", email: "attendee@example.com" };
+  const TEAMMATE_CONFIG = [{ name: "team-member", username: "team-member" }];
+
+  // Setup helper for creating team with event
+  const createTeamAndBookEvent = async (users: any, username: string, name: string) => {
+    const teamEventUser = await users.create(
+      { username, name },
+      { hasTeam: true, teamEventLength: 30, teammates: TEAMMATE_CONFIG }
+    );
+    return { teamEventUser, team: (await teamEventUser.getFirstTeamMembership()).team };
+  };
+
+  test.describe("Settings Management", () => {
+    test("Team admin can toggle cancellation reason settings", async ({ page, users, prisma }) => {
+      // Setup: Create team owner
+      const teamOwner = await users.create(
+        { username: "team-owner", name: "Team Owner" },
+        { hasTeam: true, teammates: TEAMMATE_CONFIG }
+      );
+      const { team } = await teamOwner.getFirstTeamMembership();
+
+      // Verify: Initial database state (host=true, attendee=false by default)
+      const initialTeam = await prisma.team.findUnique({
+        where: { id: team.id },
+        select: {
+          mandatoryCancellationReasonForHost: true,
+          mandatoryCancellationReasonForAttendee: true,
+        },
+      });
+      expect(initialTeam?.mandatoryCancellationReasonForHost).toBe(true);
+      expect(initialTeam?.mandatoryCancellationReasonForAttendee).toBe(false);
+
+      // Action: Navigate to team settings
+      await teamOwner.apiLogin();
+      await page.goto(`/settings/teams/${team.id}/settings`);
+
+      // Action: Toggle host setting (true → false)
+      await Promise.all([
+        page.locator('[data-testid="mandatory-cancellation-reason-host-toggle"]').click(),
+        page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
+      ]);
+
+      // Action: Toggle attendee setting (false → true)
+      await Promise.all([
+        page.locator('[data-testid="mandatory-cancellation-reason-attendee-toggle"]').click(),
+        page.waitForResponse((res) => res.url().includes("/api/trpc/teams/update")),
+      ]);
+
+      // Verify: Database was updated correctly (host=false, attendee=true)
+      const updatedTeam = await prisma.team.findUnique({
+        where: { id: team.id },
+        select: {
+          mandatoryCancellationReasonForHost: true,
+          mandatoryCancellationReasonForAttendee: true,
+        },
+      });
+      expect(updatedTeam?.mandatoryCancellationReasonForHost).toBe(false);
+      expect(updatedTeam?.mandatoryCancellationReasonForAttendee).toBe(true);
+    });
+  });
+
+  test.describe("Host Cancellation Flow", () => {
+    test("Host cancellation requires reason when setting is enabled", async ({ page, users, prisma }) => {
+      // Setup: Create team with event
+      const { teamEventUser, team } = await createTeamAndBookEvent(
+        users,
+        "team-host-req",
+        "Team Host Required"
+      );
+
+      // Setup: Configure host cancellation as required
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { mandatoryCancellationReasonForHost: true },
+      });
+
+      // Action: Book event
+      await page.goto(`/team/${team.slug}`);
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page, TEST_ATTENDEE);
+
+      // Action: Host initiates cancellation
+      await teamEventUser.apiLogin();
+      await page.goto("/bookings/upcoming");
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is required
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+    });
+
+    test("Host cancellation allows optional reason when setting is disabled", async ({
+      page,
+      users,
+      prisma,
+    }) => {
+      // Setup: Create team with event
+      const { teamEventUser, team } = await createTeamAndBookEvent(
+        users,
+        "team-host-opt",
+        "Team Host Optional"
+      );
+
+      // Setup: Configure host cancellation as optional
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { mandatoryCancellationReasonForHost: false },
+      });
+
+      // Action: Book event
+      await page.goto(`/team/${team.slug}`);
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page, TEST_ATTENDEE);
+
+      // Action: Host initiates cancellation
+      await teamEventUser.apiLogin();
+      await page.goto("/bookings/upcoming");
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).waitFor({ state: "visible" });
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is optional
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+    });
+  });
+
+  test.describe("Attendee Cancellation Flow", () => {
+    test("Attendee cancellation requires reason when setting is enabled", async ({ page, users, prisma }) => {
+      // Setup: Create team with event
+      const { teamEventUser, team } = await createTeamAndBookEvent(
+        users,
+        "team-attendee-req",
+        "Team Attendee Required"
+      );
+
+      // Setup: Configure attendee cancellation as required
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { mandatoryCancellationReasonForAttendee: true },
+      });
+
+      // Action: Book event
+      await page.goto(`/team/${team.slug}`);
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page, TEST_ATTENDEE);
+
+      // Wait for success page and extract clean booking URL
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
+
+      const bookingUrl = page.url();
+      const url = new URL(bookingUrl);
+      const cleanBookingUrl = `${url.origin}${url.pathname}`;
+
+      // Action: Attendee initiates cancellation
+      await page.goto(`${cleanBookingUrl}?cancel=true`);
+
+      // Verify: Cancellation reason is required
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+    });
+
+    test("Attendee cancellation allows optional reason when setting is disabled", async ({
+      page,
+      users,
+      prisma,
+    }) => {
+      // Setup: Create team with event
+      const { teamEventUser, team } = await createTeamAndBookEvent(
+        users,
+        "team-attendee-opt",
+        "Team Attendee Optional"
+      );
+
+      // Setup: Configure attendee cancellation as optional
+      await prisma.team.update({
+        where: { id: team.id },
+        data: { mandatoryCancellationReasonForAttendee: false },
+      });
+
+      // Action: Book event
+      await page.goto(`/team/${team.slug}`);
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page, TEST_ATTENDEE);
+
+      // Wait for success page and extract clean booking URL
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
+
+      const bookingUrl = page.url();
+      const url = new URL(bookingUrl);
+      const cleanBookingUrl = `${url.origin}${url.pathname}`;
+
+      // Action: Attendee initiates cancellation
+      await page.goto(`${cleanBookingUrl}?cancel=true`);
+
+      // Verify: Cancellation reason is optional
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+    });
+  });
+
+  test.describe("Combined Scenarios", () => {
+    test("Both host and attendee require cancellation reason when both settings enabled", async ({
+      page,
+      users,
+      prisma,
+    }) => {
+      // Setup: Create team with event
+      const { teamEventUser, team } = await createTeamAndBookEvent(
+        users,
+        "team-both-req",
+        "Team Both Required"
+      );
+
+      // Setup: Configure both cancellation reasons as required
+      await prisma.team.update({
+        where: { id: team.id },
+        data: {
+          mandatoryCancellationReasonForHost: true,
+          mandatoryCancellationReasonForAttendee: true,
+        },
+      });
+
+      // Action: Book event
+      await page.goto(`/team/${team.slug}`);
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page, TEST_ATTENDEE);
+
+      // Wait for success page and extract clean booking URL
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
+
+      const bookingUrl = page.url();
+      const url = new URL(bookingUrl);
+      const cleanBookingUrl = `${url.origin}${url.pathname}`;
+
+      // Test: Attendee cancellation (should be required)
+      await page.goto(`${cleanBookingUrl}?cancel=true`);
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+
+      // Navigate back to test host cancellation
+      await page.goBack();
+
+      // Test: Host cancellation (should be required)
+      await teamEventUser.apiLogin();
+      await page.goto("/bookings/upcoming");
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).waitFor({ state: "visible" });
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is required
+      await expect(page.locator('label:has-text("Reason for cancellation")')).toBeVisible();
+      await expect(page.locator('label:has-text("(optional)")')).toBeHidden();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeDisabled();
+    });
+
+    test("Both host and attendee have optional cancellation reason when both settings disabled", async ({
+      page,
+      users,
+      prisma,
+    }) => {
+      // Setup: Create team with event
+      const { teamEventUser, team } = await createTeamAndBookEvent(
+        users,
+        "team-both-opt",
+        "Team Both Optional"
+      );
+
+      // Setup: Configure both cancellation reasons as optional
+      await prisma.team.update({
+        where: { id: team.id },
+        data: {
+          mandatoryCancellationReasonForHost: false,
+          mandatoryCancellationReasonForAttendee: false,
+        },
+      });
+
+      // Action: Book event
+      await page.goto(`/team/${team.slug}`);
+      await page.click('[data-testid="event-type-link"]');
+      await selectFirstAvailableTimeSlotNextMonth(page);
+      await bookTimeSlot(page, TEST_ATTENDEE);
+
+      // Wait for success page and extract clean booking URL
+      await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+      await page.waitForURL((url: URL) => url.pathname.startsWith("/booking"));
+
+      const bookingUrl = page.url();
+      const url = new URL(bookingUrl);
+      const cleanBookingUrl = `${url.origin}${url.pathname}`;
+
+      // Test: Attendee cancellation (should be optional)
+      await page.goto(`${cleanBookingUrl}?cancel=true`);
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+
+      // Navigate back to test host cancellation
+      await page.goBack();
+
+      // Test: Host cancellation (should be optional)
+      await teamEventUser.apiLogin();
+      await page.goto("/bookings/upcoming");
+      await page.waitForLoadState("domcontentloaded");
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).waitFor({ state: "visible" });
+      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await page.locator('[data-testid="cancel"]').click();
+
+      // Verify: Cancellation reason is optional
+      await expect(page.locator('label:has-text("Reason for cancellation (optional)")')).toBeVisible();
+      await expect(page.locator('[data-testid="confirm_cancel"]')).toBeEnabled();
+    });
+  });
+});
