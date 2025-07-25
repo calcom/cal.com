@@ -313,6 +313,35 @@ export interface IResultTeamList {
 
 const BATCH_SIZE = 1000; // Adjust based on your needs
 
+/**
+ * Helper function to create InsightsBookingService with standardized parameters
+ */
+function createInsightsBookingService(
+  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  input: z.infer<typeof bookingRepositoryBaseInputSchema>,
+  dateTarget: "createdAt" | "startTime" = "createdAt"
+) {
+  const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate } = input;
+
+  return new InsightsBookingService({
+    prisma: ctx.insightsDb,
+    options: {
+      scope,
+      userId: ctx.user.id,
+      orgId: ctx.user.organizationId ?? 0,
+      ...(selectedTeamId && { teamId: selectedTeamId }),
+    },
+    filters: {
+      ...(eventTypeId && { eventTypeId }),
+      ...(memberUserId && { memberUserId }),
+      dateRange: {
+        target: dateTarget,
+        startDate,
+        endDate,
+      },
+    },
+  });
+}
 export const insightsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isAll } = input;
@@ -454,7 +483,7 @@ export const insightsRouter = router({
   eventsTimeline: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate, timeZone } = input;
+      const { startDate, endDate, timeZone } = input;
 
       // Calculate timeView and dateRanges in the tRPC router
       const timeView = EventsInsights.getTimeView(startDate, endDate);
@@ -466,24 +495,7 @@ export const insightsRouter = router({
         weekStart: ctx.user.weekStart,
       });
 
-      const insightsBookingService = new InsightsBookingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(selectedTeamId && { teamId: selectedTeamId }),
-        },
-        filters: {
-          ...(eventTypeId && { eventTypeId }),
-          ...(memberUserId && { memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate,
-            endDate,
-          },
-        },
-      });
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getEventTrendsStats({
@@ -626,26 +638,9 @@ export const insightsRouter = router({
   averageEventDuration: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
+      const { startDate, endDate, timeZone } = input;
 
-      const insightsBookingService = new InsightsBookingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(selectedTeamId && { teamId: selectedTeamId }),
-        },
-        filters: {
-          ...(eventTypeId && { eventTypeId }),
-          ...(memberUserId && { memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate,
-            endDate,
-          },
-        },
-      });
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         const timeView = EventsInsights.getTimeView(startDate, endDate);
@@ -1475,26 +1470,9 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, limit, offset } = input;
+      const { limit, offset } = input;
 
-      const insightsBookingService = new InsightsBookingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(selectedTeamId && { teamId: selectedTeamId }),
-        },
-        filters: {
-          ...(eventTypeId && { eventTypeId }),
-          ...(memberUserId && { memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate,
-            endDate,
-          },
-        },
-      });
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getCsvData({
@@ -1734,26 +1712,8 @@ export const insightsRouter = router({
   bookingsByHourStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
-
-      const insightsBookingService = new InsightsBookingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(selectedTeamId && { teamId: selectedTeamId }),
-        },
-        filters: {
-          ...(eventTypeId && { eventTypeId }),
-          ...(memberUserId && { memberUserId }),
-          dateRange: {
-            target: "startTime",
-            startDate,
-            endDate,
-          },
-        },
-      });
+      const { timeZone } = input;
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
