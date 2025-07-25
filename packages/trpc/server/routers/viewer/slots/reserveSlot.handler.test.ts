@@ -18,6 +18,15 @@ vi.mock("@calcom/lib/server/repository/selectedSlots", () => ({
   })),
 }));
 
+vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
+  default: vi.fn().mockResolvedValue(null),
+  getPublishedOrgIdFromMemberOrTeamId: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
+  default: vi.fn(() => Promise.resolve([])),
+}));
+
 // A tiny helper to build a canned handler context with stubbed Prisma methods.
 const buildContext = () => {
   const prismaStub = {

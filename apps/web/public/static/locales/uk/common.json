@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Прийнятні типи: {{acceptedTypes}}; Максимальний розмір файлу: {{maxSize}}",
   "license_key_saved": "Ліцензійний ключ успішно збережено",
   "timezone_mismatch_tooltip": "Ви переглядаєте звіт на основі часового поясу вашого профілю ({{userTimezone}}), тоді як у вашому браузері встановлено часовий пояс ({{browserTimezone}})",
+  "reservation_expired": "Бронювання закінчилося",
   "failed_bookings_by_field": "Невдалі бронювання за полем",
   "event_type_no_hosts": "До типу події не призначено жодного організатора",
   "cache_status": "Статус кешу",

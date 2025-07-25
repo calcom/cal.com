@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Akceptované typy: {{acceptedTypes}}; Maximálna veľkosť súboru: {{maxSize}}",
   "license_key_saved": "Licenčný kľúč bol úspešne uložený",
   "timezone_mismatch_tooltip": "Prezeráte si správu na základe časového pásma vášho profilu ({{userTimezone}}), zatiaľ čo váš prehliadač je nastavený na časové pásmo ({{browserTimezone}})",
+  "reservation_expired": "Rezervácia vypršala",
   "failed_bookings_by_field": "Neúspešné rezervácie podľa poľa",
   "event_type_no_hosts": "K typu udalosti nie sú priradení žiadni hostitelia",
   "cache_status": "Stav vyrovnávacej pamäte",

@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "الأنواع المقبولة: {{acceptedTypes}}؛ الحد الأقصى لحجم الملف: {{maxSize}}",
   "license_key_saved": "تم حفظ مفتاح الترخيص بنجاح",
   "timezone_mismatch_tooltip": "أنت تشاهد التقرير بناءً على المنطقة الزمنية لملفك الشخصي ({{userTimezone}})، بينما متصفحك مضبوط على المنطقة الزمنية ({{browserTimezone}})",
+  "reservation_expired": "انتهت صلاحية الحجز",
   "failed_bookings_by_field": "الحجوزات الفاشلة حسب الحقل",
   "event_type_no_hosts": "لا يوجد مضيفون معينون لنوع الفعالية",
   "cache_status": "حالة ذاكرة التخزين المؤقت",

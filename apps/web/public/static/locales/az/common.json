@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Qəbul edilən növlər: {{acceptedTypes}}; Maksimum fayl ölçüsü: {{maxSize}}",
   "license_key_saved": "Lisenziya açarı uğurla saxlanıldı",
   "timezone_mismatch_tooltip": "Siz hesabatı profil saat qurşağınıza ({{userTimezone}}) əsasən görürsünüz, brauzeriniz isə başqa saat qurşağına ({{browserTimezone}}) təyin edilib",
+  "reservation_expired": "Rezervasiyanın müddəti bitmişdir",
   "failed_bookings_by_field": "Sahə üzrə Uğursuz Rezervasiyalar",
   "event_type_no_hosts": "Tədbir növünə heç bir ev sahibi təyin edilməyib",
   "cache_status": "Keş Statusu",

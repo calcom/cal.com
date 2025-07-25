@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Godkända typer: {{acceptedTypes}}; Max filstorlek: {{maxSize}}",
   "license_key_saved": "Licensnyckeln sparades framgångsrikt",
   "timezone_mismatch_tooltip": "Du tittar på rapporten baserat på din profiltidszon ({{userTimezone}}), medan din webbläsare är inställd på tidszonen ({{browserTimezone}})",
+  "reservation_expired": "Bokning utgången",
   "failed_bookings_by_field": "Misslyckade bokningar per fält",
   "event_type_no_hosts": "Inga värdar är tilldelade till händelsetypen",
   "cache_status": "Cache-status",

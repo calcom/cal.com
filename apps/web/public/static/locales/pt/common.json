@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Tipos aceitos: {{acceptedTypes}}; Tamanho máximo do arquivo: {{maxSize}}",
   "license_key_saved": "Chave de licença salva com sucesso",
   "timezone_mismatch_tooltip": "Você está visualizando o relatório com base no fuso horário do seu perfil ({{userTimezone}}), enquanto seu navegador está configurado para o fuso horário ({{browserTimezone}})",
+  "reservation_expired": "Reserva expirada",
   "failed_bookings_by_field": "Reservas Falhas por Campo",
   "event_type_no_hosts": "Nenhum anfitrião está atribuído ao tipo de evento",
   "cache_status": "Status do Cache",

@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "接受的类型：{{acceptedTypes}}；最大文件大小：{{maxSize}}",
   "license_key_saved": "许可证密钥已成功保存",
   "timezone_mismatch_tooltip": "您正在根据您的个人资料时区（{{userTimezone}}）查看报告，而您的浏览器设置为时区（{{browserTimezone}}）",
+  "reservation_expired": "预订已过期",
   "failed_bookings_by_field": "按字段分类的失败预订",
   "event_type_no_hosts": "没有主持人分配到此事件类型",
   "cache_status": "缓存状态",

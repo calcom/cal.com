@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Hyväksytyt tyypit: {{acceptedTypes}}; Tiedoston enimmäiskoko: {{maxSize}}",
   "license_key_saved": "Lisenssiavain tallennettu onnistuneesti",
   "timezone_mismatch_tooltip": "Tarkastelet raporttia profiilisi aikavyöhykkeen ({{userTimezone}}) mukaan, kun taas selaimesi on asetettu aikavyöhykkeelle ({{browserTimezone}})",
+  "reservation_expired": "Varaus vanhentunut",
   "failed_bookings_by_field": "Epäonnistuneet varaukset kentittäin",
   "event_type_no_hosts": "Tapahtumatyyppiin ei ole määritetty isäntiä",
   "cache_status": "Välimuistin tila",

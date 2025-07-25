@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Tipuri acceptate: {{acceptedTypes}}; Dimensiunea maximă a fișierului: {{maxSize}}",
   "license_key_saved": "Cheia de licență a fost salvată cu succes",
   "timezone_mismatch_tooltip": "Vizualizați raportul pe baza fusului orar al profilului dvs. ({{userTimezone}}), în timp ce browserul dvs. este setat pe fusul orar ({{browserTimezone}})",
+  "reservation_expired": "Rezervarea expiră",
   "failed_bookings_by_field": "Rezervări eșuate după câmp",
   "event_type_no_hosts": "Nicio gazdă nu este atribuită tipului de eveniment",
   "cache_status": "Starea cache-ului",

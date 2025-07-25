@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Kabul edilen türler: {{acceptedTypes}}; Maksimum dosya boyutu: {{maxSize}}",
   "license_key_saved": "Lisans anahtarı başarıyla kaydedildi",
   "timezone_mismatch_tooltip": "Raporu profil saat diliminize ({{userTimezone}}) göre görüntülüyorsunuz, ancak tarayıcınız ({{browserTimezone}}) saat dilimine ayarlı",
+  "reservation_expired": "Rezervasyon süresi doldu",
   "failed_bookings_by_field": "Alana Göre Başarısız Rezervasyonlar",
   "event_type_no_hosts": "Etkinlik türüne atanmış ev sahibi yok",
   "cache_status": "Önbellek Durumu",

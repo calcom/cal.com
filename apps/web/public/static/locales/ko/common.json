@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "허용되는 유형: {{acceptedTypes}}; 최대 파일 크기: {{maxSize}}",
   "license_key_saved": "라이선스 키가 성공적으로 저장되었습니다",
   "timezone_mismatch_tooltip": "프로필 시간대({{userTimezone}})를 기준으로 보고서를 보고 계시지만, 브라우저는 다른 시간대({{browserTimezone}})로 설정되어 있습니다",
+  "reservation_expired": "예약 만료",
   "failed_bookings_by_field": "필드별 실패한 예약",
   "event_type_no_hosts": "이벤트 유형에 할당된 호스트가 없습니다",
   "cache_status": "캐시 상태",

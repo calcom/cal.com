@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Допустимые типы: {{acceptedTypes}}; Максимальный размер файла: {{maxSize}}",
   "license_key_saved": "Лицензионный ключ успешно сохранён",
   "timezone_mismatch_tooltip": "Вы просматриваете отчёт в часовом поясе вашего профиля ({{userTimezone}}), в то время как ваш браузер настроен на часовой пояс ({{browserTimezone}})",
+  "reservation_expired": "Бронь истекла",
   "failed_bookings_by_field": "Неудачные бронирования по полям",
   "event_type_no_hosts": "К этому типу события не назначены хосты",
   "cache_status": "Статус кэша",

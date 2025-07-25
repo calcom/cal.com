@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Αποδεκτοί τύποι: {{acceptedTypes}}; Μέγιστο μέγεθος αρχείου: {{maxSize}}",
   "license_key_saved": "Το κλειδί άδειας αποθηκεύτηκε με επιτυχία",
   "timezone_mismatch_tooltip": "Βλέπετε την αναφορά με βάση τη ζώνη ώρας του προφίλ σας ({{userTimezone}}), ενώ ο περιηγητής σας είναι ρυθμισμένος στη ζώνη ώρας ({{browserTimezone}})",
+  "reservation_expired": "Η κράτηση έληξε",
   "failed_bookings_by_field": "Αποτυχημένες Κρατήσεις ανά Πεδίο",
   "event_type_no_hosts": "Δεν έχουν ανατεθεί οικοδεσπότες στον τύπο εκδήλωσης",
   "cache_status": "Κατάσταση Προσωρινής Μνήμης",

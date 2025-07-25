@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Akceptowane typy: {{acceptedTypes}}; Maksymalny rozmiar pliku: {{maxSize}}",
   "license_key_saved": "Klucz licencyjny został pomyślnie zapisany",
   "timezone_mismatch_tooltip": "Przeglądasz raport na podstawie strefy czasowej swojego profilu ({{userTimezone}}), podczas gdy Twoja przeglądarka jest ustawiona na strefę czasową ({{browserTimezone}})",
+  "reservation_expired": "Rezerwacja wygasła",
   "failed_bookings_by_field": "Nieudane rezerwacje według pola",
   "event_type_no_hosts": "Do typu wydarzenia nie przypisano hostów",
   "cache_status": "Status pamięci podręcznej",

@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Aksepterte typer: {{acceptedTypes}}; Maks filstørrelse: {{maxSize}}",
   "license_key_saved": "Lisenssnøkkel lagret",
   "timezone_mismatch_tooltip": "Du ser rapporten basert på tidssonen i profilen din ({{userTimezone}}), mens nettleseren din er satt til tidssonen ({{browserTimezone}})",
+  "reservation_expired": "Reservasjon utløpt",
   "failed_bookings_by_field": "Mislykkede bestillinger etter felt",
   "event_type_no_hosts": "Ingen verter er tilordnet arrangementstypen",
   "cache_status": "Bufferstatus",

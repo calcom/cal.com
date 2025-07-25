@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "受け付けるタイプ: {{acceptedTypes}}; 最大ファイルサイズ: {{maxSize}}",
   "license_key_saved": "ライセンスキーが正常に保存されました",
   "timezone_mismatch_tooltip": "あなたはプロフィールのタイムゾーン（{{userTimezone}}）に基づいてレポートを表示していますが、ブラウザのタイムゾーンは（{{browserTimezone}}）に設定されています",
+  "reservation_expired": "予約期限切れ",
   "failed_bookings_by_field": "フィールド別の失敗した予約",
   "event_type_no_hosts": "イベントタイプにホストが割り当てられていません",
   "cache_status": "キャッシュ状態",

@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Akzeptierte Typen: {{acceptedTypes}}; Maximale Dateigröße: {{maxSize}}",
   "license_key_saved": "Lizenzschlüssel erfolgreich gespeichert",
   "timezone_mismatch_tooltip": "Sie sehen den Bericht basierend auf Ihrer Profil-Zeitzone ({{userTimezone}}), während Ihr Browser auf die Zeitzone ({{browserTimezone}}) eingestellt ist",
+  "reservation_expired": "Reservierung abgelaufen",
   "failed_bookings_by_field": "Fehlgeschlagene Buchungen nach Feld",
   "event_type_no_hosts": "Dem Ereignistyp sind keine Gastgeber zugewiesen",
   "cache_status": "Cache-Status",

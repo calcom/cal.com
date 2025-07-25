@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Geaccepteerde types: {{acceptedTypes}}; Max. bestandsgrootte: {{maxSize}}",
   "license_key_saved": "Licentiesleutel succesvol opgeslagen",
   "timezone_mismatch_tooltip": "Je bekijkt het rapport op basis van je profieltijdzone ({{userTimezone}}), terwijl je browser is ingesteld op tijdzone ({{browserTimezone}})",
+  "reservation_expired": "Reservering verlopen",
   "failed_bookings_by_field": "Mislukte boekingen per veld",
   "event_type_no_hosts": "Geen hosts toegewezen aan evenementtype",
   "cache_status": "Cache-status",

@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Tipus acceptats: {{acceptedTypes}}; Mida màxima del fitxer: {{maxSize}}",
   "license_key_saved": "Clau de llicència desada correctament",
   "timezone_mismatch_tooltip": "Esteu veient l'informe basat en la zona horària del vostre perfil ({{userTimezone}}), mentre que el vostre navegador està configurat a la zona horària ({{browserTimezone}})",
+  "reservation_expired": "Reserva caducada",
   "failed_bookings_by_field": "Reserves fallides per camp",
   "event_type_no_hosts": "No hi ha amfitrions assignats al tipus d'esdeveniment",
   "cache_status": "Estat de la memòria cau",

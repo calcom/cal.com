@@ -3390,6 +3390,7 @@
   "file_upload_instructions": "Tipos aceptados: {{acceptedTypes}}; Tamaño máximo de archivo: {{maxSize}}",
   "license_key_saved": "Clave de licencia guardada correctamente",
   "timezone_mismatch_tooltip": "Estás viendo el informe basado en la zona horaria de tu perfil ({{userTimezone}}), mientras que tu navegador está configurado en la zona horaria ({{browserTimezone}})",
+  "reservation_expired": "Reserva vencida",
   "failed_bookings_by_field": "Reservas fallidas por campo",
   "event_type_no_hosts": "No hay anfitriones asignados al tipo de evento",
   "cache_status": "Estado de caché",
