@@ -1,5 +1,3 @@
-import { v4 as uuid } from "uuid";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -35,27 +33,32 @@ export class CalendarSubscriptionService implements ICalendarSubscriptionService
         throw new Error("Could not get calendar service");
       }
 
-      const calendar = await calendarService.authedCalendar();
+      if (!calendarService.watchCalendar) {
+        throw new Error("Calendar service does not support watching calendars");
+      }
 
-      const res = await calendar.events.watch({
+      const watchResult = await calendarService.watchCalendar({
         calendarId,
-        requestBody: {
-          id: uuid(),
-          type: "web_hook",
-          address: GOOGLE_WEBHOOK_URL,
-          token: process.env.GOOGLE_WEBHOOK_TOKEN,
-          params: {
-            ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
-          },
-        },
+        eventTypeIds: [],
       });
 
+      if (watchResult && typeof watchResult === "object") {
+        const result = watchResult as Record<string, unknown>;
+        return {
+          kind: typeof result.kind === "string" ? result.kind : null,
+          id: typeof result.id === "string" ? result.id : null,
+          resourceId: typeof result.resourceId === "string" ? result.resourceId : null,
+          resourceUri: typeof result.resourceUri === "string" ? result.resourceUri : null,
+          expiration: typeof result.expiration === "string" ? result.expiration : null,
+        };
+      }
+
       return {
-        kind: res.data.kind,
-        id: res.data.id,
-        resourceId: res.data.resourceId,
-        resourceUri: res.data.resourceUri,
-        expiration: res.data.expiration,
+        kind: null,
+        id: null,
+        resourceId: null,
+        resourceUri: null,
+        expiration: null,
       };
     } catch (error) {
       log.error(`Failed to watch calendar ${calendarId}`, safeStringify(error));
@@ -73,9 +76,14 @@ export class CalendarSubscriptionService implements ICalendarSubscriptionService
         throw new Error("Could not get calendar service");
       }
 
-      const _calendar = await calendarService.authedCalendar();
-
-      log.info(`Unwatching calendar ${calendarId} - implementation needed for proper channel cleanup`);
+      if (calendarService.unwatchCalendar) {
+        await calendarService.unwatchCalendar({
+          calendarId,
+          eventTypeIds: [],
+        });
+      } else {
+        log.info(`Calendar service does not support unwatching calendars for ${calendarId}`);
+      }
     } catch (error) {
       log.error(`Failed to unwatch calendar ${calendarId}`, safeStringify(error));
       throw error;
