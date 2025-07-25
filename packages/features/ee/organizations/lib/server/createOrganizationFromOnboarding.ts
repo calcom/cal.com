@@ -81,6 +81,7 @@ type OrganizationOnboardingArg = Pick<
   | "teams"
   | "isPlatform"
   | "logo"
+  | "logoUrl"
   | "bio"
   | "stripeCustomerId"
   | "isDomainConfigured"
@@ -423,7 +424,7 @@ async function handleOrganizationCreation({
     pricePerSeat: organizationOnboarding.pricePerSeat,
     isPlatform: false,
     billingPeriod: organizationOnboarding.billingPeriod,
-    logoUrl: organizationOnboarding.logo,
+    logoUrl: organizationOnboarding.logoUrl || organizationOnboarding.logo,
     bio: organizationOnboarding.bio,
   };
 
