@@ -127,7 +127,7 @@ export default function CancelBooking(props: Props) {
   const isCancellationReasonRequired = () => {
     console.log("props.teamCancellationSettings", props.teamCancellationSettings);
     if (!props.teamCancellationSettings) {
-      // Fallback to old behavior if no team settings available
+      // for individual events (mendatory for host, optional for attendee)
       return props.isHost;
     }
 

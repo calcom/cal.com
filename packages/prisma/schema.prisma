@@ -540,7 +540,7 @@ model Team {
   creditBalance                CreditBalance?
   organizationOnboarding       OrganizationOnboarding?
 
-  mandatoryCancellationReasonForHost     Boolean @default(false)
+  mandatoryCancellationReasonForHost     Boolean @default(true)
   mandatoryCancellationReasonForAttendee Boolean @default(false)
 
   // note(Lauris): if a Team has parentId it is a team, if parentId is null it is an organization, but if parentId is null and managedOrganization is set,
