@@ -427,6 +427,33 @@ describe("PermissionCheckService", () => {
       expect(mockRepository.getOrgMembership).not.toHaveBeenCalled();
     });
 
+    it("should return only team permissions when team has no parentId", async () => {
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        customRoleId: "team_role",
+        team: { parentId: null },
+      });
+      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["create", "read", "update"]);
+
+      const result = await service.getResourcePermissions({
+        userId: 1,
+        teamId: 1,
+        resource: Resource.EventType,
+      });
+
+      expect(result).toEqual(["eventType.create", "eventType.read", "eventType.update"]);
+      expect(mockRepository.getMembershipByUserAndTeam).toHaveBeenCalledWith(1, 1);
+      expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenCalledTimes(1);
+      expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenCalledWith(
+        "team_role",
+        Resource.EventType
+      );
+      expect(mockRepository.getOrgMembership).not.toHaveBeenCalled();
+    });
+
     it("should return combined team and org permissions when both exist", async () => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
