@@ -102,7 +102,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ success: true });
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
-    return res.status(400).send({
+    const statusCode = err instanceof HttpCode ? err.statusCode : 500;
+    return res.status(statusCode).send({
       message: err.message,
       stack: IS_PRODUCTION ? undefined : err.stack,
     });

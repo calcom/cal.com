@@ -22,12 +22,15 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 }) => {
   const { t } = useLocale();
   const price = getAppData("price");
-  const currency = getAppData("currency") || currencyOptions[0].value;
+  const currency = getAppData("currency") || (currencyOptions.length > 0 ? currencyOptions[0].value : "");
   const [selectedCurrency, setSelectedCurrency] = useState(
-    currencyOptions.find((c) => c.value === currency) || {
-      label: currencyOptions[0].label,
-      value: currencyOptions[0].value,
-    }
+    currencyOptions.find((c) => c.value === currency) ||
+      (currencyOptions.length > 0
+        ? {
+            label: currencyOptions[0].label,
+            value: currencyOptions[0].value,
+          }
+        : null)
   );
 
   const paymentOption = getAppData("paymentOption");
@@ -44,13 +47,10 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
     if (requirePayment && !getAppData("currency")) {
       setAppData("currency", currencyOptions[0].value);
     }
-  }, []);
+  }, [requirePayment, getAppData, setAppData]);
 
   const disableDecimalPlace = (value: number) => {
-    const nValue = Math.floor(value);
-    const sValue = nValue.toString();
-    const ret = parseInt(sValue);
-    return ret;
+    return Math.floor(value);
   };
 
   return (
@@ -101,8 +101,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
             </div>
 
             <div className="mt-2 w-60">
-              <label className="text-default block text-sm font-medium" htmlFor="currency">
-                Payment option
+              <label className="text-default block text-sm font-medium" htmlFor="paymentOption">
+                {t("payment_option")}
               </label>
               <Select<Option>
                 defaultValue={
