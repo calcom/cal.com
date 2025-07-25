@@ -87,6 +87,41 @@ export class EventTypesController_2024_06_14 {
     };
   }
 
+  @Get("/user")
+  @Permissions([EVENT_TYPE_READ])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Get all event types belonging to the authenticated user" })
+  async getEventTypesForUser(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput_2024_06_14> {
+    const eventTypes = await this.eventTypesService.getUserEventTypes(user.id);
+
+    if (!eventTypes || eventTypes.length === 0) {
+      throw new NotFoundException(`Event types not found`);
+    }
+
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
+      return {
+        ...eventType,
+        bookingFields: Array.isArray(eventType?.bookingFields)
+          ? eventType?.bookingFields
+              .map((field) => {
+                if ("hidden" in field) {
+                  return field.hidden !== true ? field : null;
+                }
+                return field;
+              })
+              .filter((f) => f)
+          : [],
+      };
+    }) as EventTypeOutput_2024_06_14[];
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventTypesWithoutHiddenFields,
+    };
+  }
+
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(ApiAuthGuard)
@@ -117,8 +152,11 @@ export class EventTypesController_2024_06_14 {
     if (!eventTypes || eventTypes.length === 0) {
       throw new NotFoundException(`Event types not found`);
     }
-    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
-    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
+    const eventTypesWithoutHiddenEventTypes = eventTypes.filter((eventType) => !eventType.hidden);
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(
+      eventTypesWithoutHiddenEventTypes
+    );
+    const eventTypesWithoutHiddenFieldsAndHiddenEventTypes = eventTypesFormatted.map((eventType) => {
       return {
         ...eventType,
         bookingFields: Array.isArray(eventType?.bookingFields)
@@ -136,7 +174,7 @@ export class EventTypesController_2024_06_14 {
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypesWithoutHiddenFields,
+      data: eventTypesWithoutHiddenFieldsAndHiddenEventTypes,
     };
   }
 
