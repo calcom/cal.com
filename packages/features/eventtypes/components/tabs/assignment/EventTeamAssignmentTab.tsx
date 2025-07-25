@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { Options } from "react-select";
@@ -327,6 +327,39 @@ const RoundRobinHosts = ({
     name: "hostGroups",
   });
 
+  const handleAddGroup = useCallback(() => {
+    const allHosts = getValues("hosts");
+    const currentRRHosts = allHosts.filter((host) => !host.isFixed);
+    const fixedHosts = allHosts.filter((host) => host.isFixed);
+
+    // If there are already hosts added and no group exists yet, create two groups
+    if (hostGroups?.length === 0 && currentRRHosts.length > 0) {
+      const firstGroup = { id: uuidv4(), name: "" };
+      const secondGroup = { id: uuidv4(), name: "" };
+      const updatedHostGroups = [firstGroup, secondGroup];
+      setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+
+      const updatedRRHosts = currentRRHosts.map((host) => {
+        if (!host.groupId && !host.isFixed) {
+          return { ...host, groupId: firstGroup.id };
+        }
+        return host;
+      });
+      setValue("hosts", [...fixedHosts, ...updatedRRHosts], { shouldDirty: true });
+    } else {
+      // If groups already exist, just add one more group
+      const newGroup = { id: uuidv4(), name: "" };
+      const updatedHostGroups = [...hostGroups, newGroup];
+      setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
+    }
+
+    // Disable 'Add all team members' switch if enabled
+    if (assignAllTeamMembers) {
+      setValue("assignAllTeamMembers", false, { shouldDirty: true });
+      setAssignAllTeamMembers(false);
+    }
+  }, [hostGroups, getValues, setValue, assignAllTeamMembers, setAssignAllTeamMembers]);
+
   const AddMembersWithSwitchComponent = ({
     groupId,
     containerClassName,
@@ -412,51 +445,7 @@ const RoundRobinHosts = ({
               {hostGroups?.length > 0 ? t("round_robin_groups_helper") : t("round_robin_helper")}
             </p>
           </div>
-          <Button
-            color="secondary"
-            size="sm"
-            StartIcon="plus"
-            onClick={() => {
-              const allHosts = getValues("hosts");
-              const currentRRHosts = allHosts.filter((host) => !host.isFixed);
-              const fixedHosts = allHosts.filter((host) => host.isFixed);
-
-              // If there are already hosts added and no group  exists yet, create two groups
-              if (hostGroups?.length === 0 && currentRRHosts.length > 0) {
-                const firstGroup = {
-                  id: uuidv4(),
-                  name: "",
-                };
-                const secondGroup = {
-                  id: uuidv4(),
-                  name: "",
-                };
-                const updatedHostGroups = [firstGroup, secondGroup];
-                setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
-
-                const updatedRRHosts = currentRRHosts.map((host) => {
-                  if (!host.groupId && !host.isFixed) {
-                    return { ...host, groupId: firstGroup.id };
-                  }
-                  return host;
-                });
-                // Preserve fixed hosts when updating
-                setValue("hosts", [...fixedHosts, ...updatedRRHosts], { shouldDirty: true });
-              } else {
-                // If groups already exist, just add one more group
-                const newGroup = {
-                  id: uuidv4(),
-                  name: ``,
-                };
-                const updatedHostGroups = [...hostGroups, newGroup];
-                setValue("hostGroups", updatedHostGroups, { shouldDirty: true });
-              }
-              // Disable 'Add all team members' switch if enabled
-              if (assignAllTeamMembers) {
-                setValue("assignAllTeamMembers", false, { shouldDirty: true });
-                setAssignAllTeamMembers(false);
-              }
-            }}>
+          <Button color="secondary" size="sm" StartIcon="plus" onClick={handleAddGroup}>
             {t("add_group")}
           </Button>
         </div>
