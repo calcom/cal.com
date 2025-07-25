@@ -430,8 +430,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           onChange(checked);
                           bulkUpdateModalProps?.setIsOpen(checked);
                         }}
-                        isDefaultSchedule={schedule.isDefault}
-                        lockedDefaultAvailability={schedule.lockedDefaultAvailability}
                       />
                     )}
                   />
@@ -536,7 +534,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                   thumb: cn(customClassNames?.hiddenSwitchClassname?.thumb),
                                 }}
                                 id="hiddenSwitch"
-                                disabled={isSaving || value}
+                                disabled={
+                                  isSaving ||
+                                  value ||
+                                  schedule.isDefault ||
+                                  schedule.lockedDefaultAvailability
+                                }
                                 checked={value}
                                 onCheckedChange={onChange}
                               />
@@ -717,7 +720,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                         <SelectSkeletonLoader className="mt-1 w-72" />
                       )
                     }
-                    isDisabled={schedule.isDefault && schedule.lockedDefaultAvailability}
                   />
                 </div>
                 {isPlatform ? (
