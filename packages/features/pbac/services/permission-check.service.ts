@@ -61,8 +61,6 @@ export class PermissionCheckService {
       const { membership, orgMembership } = await this.getMembership({ userId, teamId });
       const actions = new Set<CrudAction | CustomAction>();
 
-      console.log({ membership, orgMembership });
-
       // Get team-level permissions
       if (membership?.customRoleId) {
         const teamActions = await this.repository.getResourcePermissionsByRoleId(
@@ -79,7 +77,6 @@ export class PermissionCheckService {
           resource
         );
         orgActions.forEach((action) => actions.add(action));
-        console.log({ orgActions });
       }
 
       return Array.from(actions).map((action) => PermissionMapper.toPermissionString({ resource, action }));
