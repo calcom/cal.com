@@ -6,7 +6,7 @@ import { trpc } from "@calcom/trpc";
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
-import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
+import { TotalUserFeedbackTable } from "./TotalUserFeedbackTable";
 
 export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
@@ -37,7 +37,7 @@ export const MostBookedTeamMembersTable = () => {
 
   return (
     <ChartCard title={t("most_booked_members")}>
-      <TotalBookingUsersTable data={data} />
+      <TotalUserFeedbackTable data={data} />
     </ChartCard>
   );
 };

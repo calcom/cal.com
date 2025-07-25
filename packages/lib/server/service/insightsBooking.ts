@@ -686,7 +686,7 @@ export class InsightsBookingService {
         count: number;
       }>
     >`
-      SELECT 
+      SELECT
         "eventTypeId",
         COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
@@ -763,7 +763,7 @@ export class InsightsBookingService {
         count: number;
       }>
     >`
-      SELECT 
+      SELECT
         "userId",
         COUNT(id)::int as count
       FROM "BookingTimeStatusDenormalized"
@@ -808,6 +808,324 @@ export class InsightsBookingService {
           user,
           emailMd5: md5(user.email),
           count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersCancelledBookingsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        count: number;
+      }>
+    >`
+      SELECT
+        "userId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL AND status = 'cancelled'
+      GROUP BY "userId"
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersNoShowHostStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        count: number;
+      }>
+    >`
+      SELECT 
+        "userId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "noShowHost" = true
+      GROUP BY "userId"
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersHighestRatingsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        averageRating: number;
+      }>
+    >`
+      SELECT
+        "userId",
+        AVG("rating")::float as "averageRating"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
+      GROUP BY "userId"
+      ORDER BY "averageRating" DESC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          averageRating: booking.averageRating,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersLowestRatingsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        averageRating: number;
+      }>
+    >`
+      SELECT
+        "userId",
+        AVG("rating")::float as "averageRating"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
+      GROUP BY "userId"
+      ORDER BY "averageRating" ASC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          averageRating: booking.averageRating,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getRecentRatingsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number | null;
+        rating: number | null;
+        ratingFeedback: string | null;
+      }>
+    >`
+      SELECT
+        "userId",
+        "rating",
+        "ratingFeedback"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "ratingFeedback" IS NOT NULL
+      ORDER BY "endTime" DESC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam
+      .filter((booking) => booking.userId !== null)
+      .map((booking) => booking.userId as number)
+      .filter((userId, index, array) => array.indexOf(userId) === index);
+
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        if (!booking.userId) {
+          return null;
+        }
+
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          rating: booking.rating,
+          feedback: booking.ratingFeedback,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
