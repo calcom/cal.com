@@ -30,7 +30,7 @@ interface BaseWebhookPayload {
   title: string;
   eventSlug: string | null;
   description: string | null;
-  customInputs: JsonObject;
+  customInputs: JsonObject | null;
   responses: Record<string, Response>;
   userFieldsResponses: Record<string, Response>;
   startTime: string;
