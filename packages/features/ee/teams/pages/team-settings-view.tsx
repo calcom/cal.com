@@ -192,6 +192,7 @@ const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
   const [mandatoryCancellationReasonForHost, setMandatoryCancellationReasonForHost] = useState(
     team?.mandatoryCancellationReasonForHost ?? false
   );
+
   const [mandatoryCancellationReasonForAttendee, setMandatoryCancellationReasonForAttendee] = useState(
     team?.mandatoryCancellationReasonForAttendee ?? false
   );
