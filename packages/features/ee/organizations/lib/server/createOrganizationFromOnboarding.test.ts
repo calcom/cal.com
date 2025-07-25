@@ -9,6 +9,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import * as constants from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
+import { uploadLogo } from "@calcom/lib/server/avatar";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
@@ -43,6 +45,14 @@ vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
 
+vi.mock("@calcom/lib/server/avatar", () => ({
+  uploadLogo: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/server/resizeBase64Image", () => ({
+  resizeBase64Image: vi.fn(),
+}));
+
 const mockOrganizationOnboarding = {
   name: "Test Org",
   slug: "test-org",
@@ -59,6 +69,7 @@ const mockOrganizationOnboarding = {
     { id: 2, name: "New Team", isBeingMigrated: false, slug: null },
   ],
   logo: null,
+  logoUrl: null,
   bio: null,
   organizationId: null,
   isDomainConfigured: false,
@@ -496,6 +507,168 @@ describe("createOrganizationFromOnboarding", () => {
 
       expect(organization).toBeDefined();
       expect(owner).toBeDefined();
+    });
+  });
+
+  describe("logo migration", () => {
+    beforeEach(() => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+    });
+
+    it("should process base64 logo data and store logoUrl", async () => {
+      const base64Logo =
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+      const expectedLogoUrl = "https://example.com/avatar/logo.png";
+
+      // Mock the avatar upload functions
+      vi.mocked(resizeBase64Image).mockResolvedValue(base64Logo);
+      vi.mocked(uploadLogo).mockResolvedValue(expectedLogoUrl);
+
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          logo: base64Logo,
+          logoUrl: null,
+        },
+      });
+
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization was created with logoUrl
+      expect(organization).toBeDefined();
+      expect(organization.logoUrl).toBe(expectedLogoUrl);
+
+      // Verify avatar upload functions were called correctly
+      expect(resizeBase64Image).toHaveBeenCalledWith(base64Logo);
+      expect(uploadLogo).toHaveBeenCalledWith({
+        logo: base64Logo,
+        teamId: organization.id,
+      });
+    });
+
+    it("should prefer logoUrl over legacy logo field when both are present", async () => {
+      const base64Logo = "data:image/png;base64,legacy-data";
+      const logoUrl = "https://example.com/avatar/new-logo.png";
+
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          logo: base64Logo,
+          logoUrl: logoUrl,
+        },
+      });
+
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization uses logoUrl instead of legacy logo
+      expect(organization).toBeDefined();
+      expect(organization.logoUrl).toBe(logoUrl);
+
+      // Verify avatar upload functions were NOT called since logoUrl was already provided
+      expect(uploadLogo).not.toHaveBeenCalled();
+      expect(resizeBase64Image).not.toHaveBeenCalled();
+    });
+
+    it("should process base64 logo data even when logoUrl is initially null", async () => {
+      const base64Logo = "data:image/png;base64,legacy-fallback-data";
+      const expectedLogoUrl = "https://example.com/avatar/logo.png";
+
+      // Mock the avatar upload functions
+      vi.mocked(resizeBase64Image).mockResolvedValue(base64Logo);
+      vi.mocked(uploadLogo).mockResolvedValue(expectedLogoUrl);
+
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          logo: base64Logo,
+          logoUrl: null,
+        },
+      });
+
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization processes base64 logo data into logoUrl
+      expect(organization).toBeDefined();
+      expect(organization.logoUrl).toBe(expectedLogoUrl);
+
+      // Verify avatar upload functions were called correctly
+      expect(resizeBase64Image).toHaveBeenCalledWith(base64Logo);
+      expect(uploadLogo).toHaveBeenCalledWith({
+        logo: base64Logo,
+        teamId: organization.id,
+      });
+    });
+
+    it("should handle non-base64 logo data without processing", async () => {
+      const regularUrl = "https://example.com/existing-logo.png";
+
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          logo: regularUrl,
+          logoUrl: null,
+        },
+      });
+
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization uses the URL as-is without processing
+      expect(organization).toBeDefined();
+      expect(organization.logoUrl).toBe(regularUrl);
+
+      // Verify avatar upload functions were NOT called for non-base64 data
+      expect(uploadLogo).not.toHaveBeenCalled();
+      expect(resizeBase64Image).not.toHaveBeenCalled();
+    });
+
+    it("should handle null logo and logoUrl gracefully", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "test@example.com",
+        },
+        organizationOnboarding: {
+          logo: null,
+          logoUrl: null,
+        },
+      });
+
+      const { organization } = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      });
+
+      // Verify organization is created without logo
+      expect(organization).toBeDefined();
+      expect(organization.logoUrl).toBeNull();
+
+      // Verify avatar upload functions were NOT called
+      expect(uploadLogo).not.toHaveBeenCalled();
+      expect(resizeBase64Image).not.toHaveBeenCalled();
     });
   });
 });

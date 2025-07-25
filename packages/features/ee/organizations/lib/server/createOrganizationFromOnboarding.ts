@@ -529,6 +529,31 @@ export const createOrganizationFromOnboarding = async ({
     paymentSubscriptionItemId,
   });
 
+  let processedLogoUrl = organizationOnboarding.logoUrl;
+
+  if (
+    !processedLogoUrl &&
+    organizationOnboarding.logo &&
+    (organizationOnboarding.logo.startsWith("data:image/png;base64,") ||
+      organizationOnboarding.logo.startsWith("data:image/jpeg;base64,") ||
+      organizationOnboarding.logo.startsWith("data:image/jpg;base64,"))
+  ) {
+    const { uploadLogo } = await import("@calcom/lib/server/avatar");
+    const { resizeBase64Image } = await import("@calcom/lib/server/resizeBase64Image");
+    const resizedLogo = await resizeBase64Image(organizationOnboarding.logo);
+    processedLogoUrl = await uploadLogo({
+      logo: resizedLogo,
+      teamId: organization.id,
+    });
+
+    await prisma.team.update({
+      where: { id: organization.id },
+      data: { logoUrl: processedLogoUrl },
+    });
+
+    organization.logoUrl = processedLogoUrl;
+  }
+
   await inviteMembers(invitedMembersSchema.parse(organizationOnboarding.invitedMembers), organization);
 
   await createOrMoveTeamsToOrganization(

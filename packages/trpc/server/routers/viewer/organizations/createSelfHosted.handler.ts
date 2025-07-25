@@ -45,27 +45,11 @@ export const createSelfHostedHandler = async ({ input }: CreateSelfHostedOptions
     });
   }
 
-  let logoUrl = input.logo ?? null;
-
-  if (
-    input.logo &&
-    (input.logo.startsWith("data:image/png;base64,") ||
-      input.logo.startsWith("data:image/jpeg;base64,") ||
-      input.logo.startsWith("data:image/jpg;base64,"))
-  ) {
-    const { uploadLogo } = await import("@calcom/lib/server/avatar");
-    const { resizeBase64Image } = await import("@calcom/lib/server/resizeBase64Image");
-    logoUrl = await uploadLogo({
-      logo: await resizeBase64Image(input.logo),
-      teamId: organizationOnboarding.organizationId || 0,
-    });
-  }
-
   const { organization } = await createOrganizationFromOnboarding({
     organizationOnboarding: {
       id: input.onboardingId,
       logo: input.logo ?? null,
-      logoUrl,
+      logoUrl: null,
       bio: input.bio ?? null,
       invitedMembers: input.invitedMembers ?? [],
       teams: input.teams ?? [],

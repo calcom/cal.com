@@ -140,8 +140,7 @@ export class OrganizationRepository {
         name: orgData.name,
         isOrganization: true,
         slug: orgData.slug,
-        // This is huge and causes issues, we need to have the logic to convert logo to logoUrl and then use that url ehre.
-        // logoUrl: orgData.logoUrl,
+        logoUrl: orgData.logoUrl,
         bio: orgData.bio,
         organizationSettings: {
           create: {
