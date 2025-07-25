@@ -1517,13 +1517,16 @@ export const insightsRouter = router({
         filters: {
           ...(eventTypeId && { eventTypeId }),
           ...(memberUserId && { memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate,
+            endDate,
+          },
         },
       });
 
       try {
         return await insightsBookingService.getCsvData({
-          startDate,
-          endDate,
           limit: limit ?? 100,
           offset: offset ?? 0,
         });

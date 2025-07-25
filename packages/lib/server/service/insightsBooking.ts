@@ -341,22 +341,7 @@ export class InsightsBookingService {
     });
   }
 
-  async getCsvData({
-    startDate,
-    endDate,
-    limit = 100,
-    offset = 0,
-  }: {
-    startDate: string;
-    endDate: string;
-    limit?: number;
-    offset?: number;
-  }) {
-    // Validate date formats
-    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
-      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
-    }
-
+  async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
     const baseConditions = await this.getBaseConditions();
 
     // Get total count first
@@ -364,8 +349,6 @@ export class InsightsBookingService {
       SELECT COUNT(*)::int as count
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-        AND "createdAt" >= ${startDate}::timestamp
-        AND "createdAt" <= ${endDate}::timestamp
     `;
     const totalCount = totalCountResult[0]?.count || 0;
 
@@ -407,8 +390,6 @@ export class InsightsBookingService {
         "noShowHost"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-        AND "createdAt" >= ${startDate}::timestamp
-        AND "createdAt" <= ${endDate}::timestamp
       ORDER BY "createdAt" DESC
       LIMIT ${limit}
       OFFSET ${offset}
