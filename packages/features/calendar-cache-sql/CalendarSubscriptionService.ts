@@ -1,7 +1,12 @@
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { v4 as uuid } from "uuid";
+
+import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type {
+  CredentialForCalendarService,
+  CredentialForCalendarServiceWithEmail,
+} from "@calcom/types/Credential";
 
 import type {
   GoogleChannelProps,
@@ -27,38 +32,47 @@ export class CalendarSubscriptionService implements ICalendarSubscriptionService
     }
 
     try {
-      const calendarService = await getCalendar(credential);
-
-      if (!calendarService) {
-        throw new Error("Could not get calendar service");
+      if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
+        throw new Error("Delegation credential missing required client_email");
       }
 
-      if (!calendarService.watchCalendar) {
-        throw new Error("Calendar service does not support watching calendars");
-      }
+      const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
+        ...credential,
+        delegatedTo: credential.delegatedTo
+          ? {
+              serviceAccountKey: {
+                client_email: credential.delegatedTo.serviceAccountKey.client_email!,
+                client_id: credential.delegatedTo.serviceAccountKey.client_id,
+                private_key: credential.delegatedTo.serviceAccountKey.private_key,
+              },
+            }
+          : null,
+      };
 
-      const watchResult = await calendarService.watchCalendar({
+      const calendarAuth = new CalendarAuth(credentialWithEmail);
+      const calendar = await calendarAuth.getClient();
+
+      log.debug(`Subscribing to calendar ${calendarId}`, safeStringify({ GOOGLE_WEBHOOK_URL }));
+
+      const res = await calendar.events.watch({
         calendarId,
-        eventTypeIds: [],
+        requestBody: {
+          id: uuid(),
+          type: "web_hook",
+          address: GOOGLE_WEBHOOK_URL,
+          token: process.env.GOOGLE_WEBHOOK_TOKEN,
+          params: {
+            ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
+          },
+        },
       });
 
-      if (watchResult && typeof watchResult === "object") {
-        const result = watchResult as Record<string, unknown>;
-        return {
-          kind: typeof result.kind === "string" ? result.kind : null,
-          id: typeof result.id === "string" ? result.id : null,
-          resourceId: typeof result.resourceId === "string" ? result.resourceId : null,
-          resourceUri: typeof result.resourceUri === "string" ? result.resourceUri : null,
-          expiration: typeof result.expiration === "string" ? result.expiration : null,
-        };
-      }
-
       return {
-        kind: null,
-        id: null,
-        resourceId: null,
-        resourceUri: null,
-        expiration: null,
+        kind: res.data.kind || null,
+        id: res.data.id || null,
+        resourceId: res.data.resourceId || null,
+        resourceUri: res.data.resourceUri || null,
+        expiration: res.data.expiration || null,
       };
     } catch (error) {
       log.error(`Failed to watch calendar ${calendarId}`, safeStringify(error));
@@ -70,20 +84,27 @@ export class CalendarSubscriptionService implements ICalendarSubscriptionService
     log.debug("unwatchCalendar", safeStringify({ calendarId }));
 
     try {
-      const calendarService = await getCalendar(credential);
-
-      if (!calendarService) {
-        throw new Error("Could not get calendar service");
+      if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
+        throw new Error("Delegation credential missing required client_email");
       }
 
-      if (calendarService.unwatchCalendar) {
-        await calendarService.unwatchCalendar({
-          calendarId,
-          eventTypeIds: [],
-        });
-      } else {
-        log.info(`Calendar service does not support unwatching calendars for ${calendarId}`);
-      }
+      const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
+        ...credential,
+        delegatedTo: credential.delegatedTo
+          ? {
+              serviceAccountKey: {
+                client_email: credential.delegatedTo.serviceAccountKey.client_email!,
+                client_id: credential.delegatedTo.serviceAccountKey.client_id,
+                private_key: credential.delegatedTo.serviceAccountKey.private_key,
+              },
+            }
+          : null,
+      };
+
+      const calendarAuth = new CalendarAuth(credentialWithEmail);
+      const calendar = await calendarAuth.getClient();
+
+      log.info(`Unwatch calendar ${calendarId} - channel cleanup should be handled by repository layer`);
     } catch (error) {
       log.error(`Failed to unwatch calendar ${calendarId}`, safeStringify(error));
       throw error;
