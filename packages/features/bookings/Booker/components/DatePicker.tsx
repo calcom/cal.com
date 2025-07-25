@@ -137,6 +137,7 @@ export const DatePicker = ({
       slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
+      forceSelectedDate={true}
     />
   );
 };

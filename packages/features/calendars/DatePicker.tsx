@@ -36,6 +36,8 @@ export type DatePickerProps = {
   excludedDates?: string[];
   /** defaults to all, which dates are bookable (inverse of excludedDates) */
   includedDates?: string[];
+  /** Force the selected date to be accepted even if not in includedDates */
+  forceSelectedDate?: boolean;
   /** allows adding classes to the container */
   className?: string;
   /** Shows a small loading spinner next to the month name */
@@ -214,6 +216,12 @@ const Days = ({
     if (selected instanceof Array) {
       return;
     }
+
+    if (props.forceSelectedDate && selected) {
+      props.onChange(dayjs(selected), true);
+      return;
+    }
+
     const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
 
     const isSelectedDateAvailable = selected
