@@ -3387,5 +3387,12 @@
   "error_deleting_cache": "Error deleting cache",
   "confirm_delete_cache": "Are you sure you want to delete the cached data? This action cannot be undone.",
   "yes_delete_cache": "Yes, delete cache",
+  "cancellation_reason_settings": "Cancellation Reason Settings",
+  "cancellation_reason_settings_description": "Configure when cancellation reasons are required for your team events",
+  "cancellation_reason_settings_updated_successfully": "Cancellation reason settings updated successfully",
+  "mandatory_cancellation_reason_for_host": "Require cancellation reason from hosts",
+  "mandatory_cancellation_reason_for_host_description": "When enabled, hosts will be required to provide a reason when cancelling events",
+  "mandatory_cancellation_reason_for_attendee": "Require cancellation reason from attendees",
+  "mandatory_cancellation_reason_for_attendee_description": "When enabled, attendees will be required to provide a reason when cancelling events",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

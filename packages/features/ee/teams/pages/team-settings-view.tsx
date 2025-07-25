@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
@@ -185,6 +185,84 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const CancellationReasonSettingsView = ({ team }: ProfileViewProps) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const [mandatoryCancellationReasonForHost, setMandatoryCancellationReasonForHost] = useState(
+    team?.mandatoryCancellationReasonForHost ?? false
+  );
+  const [mandatoryCancellationReasonForAttendee, setMandatoryCancellationReasonForAttendee] = useState(
+    team?.mandatoryCancellationReasonForAttendee ?? false
+  );
+
+  const hostMutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      showToast(t("cancellation_reason_settings_updated_successfully"), "success");
+    },
+  });
+
+  const attendeeMutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      showToast(t("cancellation_reason_settings_updated_successfully"), "success");
+    },
+  });
+
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+
+  return (
+    <>
+      {isAdmin ? (
+        <div className="mt-6 space-y-6">
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("mandatory_cancellation_reason_for_host")}
+            description={t("mandatory_cancellation_reason_for_host_description")}
+            labelClassName="text-sm"
+            disabled={hostMutation?.isPending}
+            checked={mandatoryCancellationReasonForHost}
+            onCheckedChange={(checked) => {
+              setMandatoryCancellationReasonForHost(checked);
+              hostMutation.mutate({
+                id: team.id,
+                mandatoryCancellationReasonForHost: checked,
+              });
+            }}
+          />
+
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            title={t("mandatory_cancellation_reason_for_attendee")}
+            description={t("mandatory_cancellation_reason_for_attendee_description")}
+            labelClassName="text-sm"
+            disabled={attendeeMutation?.isPending}
+            checked={mandatoryCancellationReasonForAttendee}
+            onCheckedChange={(checked) => {
+              setMandatoryCancellationReasonForAttendee(checked);
+              attendeeMutation.mutate({
+                id: team.id,
+                mandatoryCancellationReasonForAttendee: checked,
+              });
+            }}
+          />
+        </div>
+      ) : (
+        <div className="border-subtle rounded-md border p-5">
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
+        </div>
+      )}
+    </>
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -217,6 +295,7 @@ const TeamSettingsViewWrapper = () => {
     <>
       <BookingLimitsView team={team} />
       <PrivacySettingsView team={team} />
+      <CancellationReasonSettingsView team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinSettings team={team} />
     </>
