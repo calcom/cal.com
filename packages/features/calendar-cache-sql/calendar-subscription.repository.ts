@@ -16,7 +16,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         },
         include: {
           selectedCalendar: {
-            include: {
+            select: {
+              id: true,
+              externalId: true,
+              integration: true,
+              userId: true,
               credential: true,
             },
           },
@@ -36,7 +40,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         },
         include: {
           selectedCalendar: {
-            include: {
+            select: {
+              id: true,
+              externalId: true,
+              integration: true,
+              userId: true,
               credential: true,
             },
           },
@@ -52,7 +60,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     try {
       return await this.prismaClient.calendarSubscription.upsert({
         where: {
-          selectedCalendarId: data.selectedCalendar.connect!.id as string,
+          selectedCalendarId: data.selectedCalendar.connect?.id as string,
         },
         create: data,
         update: {
@@ -85,7 +93,9 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     id: string,
     details: {
       googleChannelId: string;
-      googleChannelToken?: string;
+      googleChannelKind?: string;
+      googleChannelResourceId?: string;
+      googleChannelResourceUri?: string;
       googleChannelExpiration: string;
     }
   ) {
@@ -132,7 +142,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         },
         include: {
           selectedCalendar: {
-            include: {
+            select: {
+              id: true,
+              externalId: true,
+              integration: true,
+              userId: true,
               credential: true,
             },
           },
@@ -144,7 +158,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     }
   }
 
-  async setWatchError(id: string, error: string) {
+  async setWatchError(id: string, _error: string) {
     try {
       await this.prismaClient.calendarSubscription.update({
         where: { id },

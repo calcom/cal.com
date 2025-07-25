@@ -1,13 +1,11 @@
 -- CreateTable
 CREATE TABLE "CalendarSubscription" (
     "id" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "integration" TEXT NOT NULL,
-    "externalId" TEXT NOT NULL,
-    "credentialId" INTEGER,
-    "delegationCredentialId" INTEGER,
+    "selectedCalendarId" TEXT NOT NULL,
     "googleChannelId" TEXT,
-    "googleChannelToken" TEXT,
+    "googleChannelKind" TEXT,
+    "googleChannelResourceId" TEXT,
+    "googleChannelResourceUri" TEXT,
     "googleChannelExpiration" TEXT,
     "nextSyncToken" TEXT,
     "lastFullSync" TIMESTAMP(3),
@@ -48,16 +46,16 @@ CREATE TABLE "CalendarEvent" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "CalendarSubscription_selectedCalendarId_key" ON "CalendarSubscription"("selectedCalendarId");
+
+-- CreateIndex
 CREATE INDEX "CalendarSubscription_googleChannelExpiration_syncErrors_bac_idx" ON "CalendarSubscription"("googleChannelExpiration", "syncErrors", "backoffUntil");
 
 -- CreateIndex
 CREATE INDEX "CalendarSubscription_nextSyncToken_idx" ON "CalendarSubscription"("nextSyncToken");
 
 -- CreateIndex
-CREATE INDEX "CalendarSubscription_userId_integration_idx" ON "CalendarSubscription"("userId", "integration");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CalendarSubscription_userId_integration_externalId_key" ON "CalendarSubscription"("userId", "integration", "externalId");
+CREATE INDEX "CalendarSubscription_selectedCalendarId_idx" ON "CalendarSubscription"("selectedCalendarId");
 
 -- CreateIndex
 CREATE INDEX "CalendarEvent_calendarSubscriptionId_start_end_idx" ON "CalendarEvent"("calendarSubscriptionId", "start", "end");
@@ -78,13 +76,7 @@ CREATE INDEX "CalendarEvent_googleEventId_idx" ON "CalendarEvent"("googleEventId
 CREATE UNIQUE INDEX "CalendarEvent_calendarSubscriptionId_googleEventId_key" ON "CalendarEvent"("calendarSubscriptionId", "googleEventId");
 
 -- AddForeignKey
-ALTER TABLE "CalendarSubscription" ADD CONSTRAINT "CalendarSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CalendarSubscription" ADD CONSTRAINT "CalendarSubscription_credentialId_fkey" FOREIGN KEY ("credentialId") REFERENCES "Credential"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "CalendarSubscription" ADD CONSTRAINT "CalendarSubscription_delegationCredentialId_fkey" FOREIGN KEY ("delegationCredentialId") REFERENCES "Credential"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CalendarSubscription" ADD CONSTRAINT "CalendarSubscription_selectedCalendarId_fkey" FOREIGN KEY ("selectedCalendarId") REFERENCES "SelectedCalendar"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CalendarEvent" ADD CONSTRAINT "CalendarEvent_calendarSubscriptionId_fkey" FOREIGN KEY ("calendarSubscriptionId") REFERENCES "CalendarSubscription"("id") ON DELETE CASCADE ON UPDATE CASCADE;

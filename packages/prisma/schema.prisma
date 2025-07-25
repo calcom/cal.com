@@ -1569,10 +1569,12 @@ model CalendarSubscription {
   selectedCalendarId String @unique
 
   // Webhook subscription details
-  googleChannelId         String?
-  googleChannelToken      String?
-  googleChannelExpiration String?
-  nextSyncToken           String?
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+  nextSyncToken            String?
 
   // Sync management
   lastFullSync  DateTime?
