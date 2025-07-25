@@ -50,6 +50,7 @@ export const getEventTypeById = async ({
     locale: true,
     defaultScheduleId: true,
     isPlatformManaged: true,
+    timeZone: true,
   } satisfies Prisma.UserSelect;
 
   const eventTypeRepo = new EventTypeRepository(prisma);

@@ -112,6 +112,7 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.BookerLimitExceeded:
     case ErrorCode.BookerLimitExceededReschedule:
     case ErrorCode.EventTypeNoHosts:
+    case ErrorCode.RequestBodyInvalid:
     case ErrorCode.ChargeCardFailure:
       return 400;
     // 409 Conflict
