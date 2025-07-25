@@ -44,7 +44,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
-    let selectedSlotRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
     const teammateEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
     let teammateApiKeyString: string;

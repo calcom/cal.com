@@ -7,7 +7,7 @@ export class SelectedSlotRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
-  constructor(private readonly module: TestingModule) {
+  constructor(module: TestingModule) {
     this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
