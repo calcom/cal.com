@@ -7,6 +7,53 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
 
+// Type definition for BookingTimeStatusDenormalized view
+export type BookingTimeStatusDenormalized = z.infer<typeof bookingDataSchema>;
+
+// Helper type for select parameter
+export type BookingSelect = {
+  [K in keyof BookingTimeStatusDenormalized]?: boolean;
+};
+
+// Helper type for selected fields
+export type SelectedFields<T> = T extends undefined
+  ? BookingTimeStatusDenormalized
+  : {
+      [K in keyof T as T[K] extends true ? K : never]: K extends keyof BookingTimeStatusDenormalized
+        ? BookingTimeStatusDenormalized[K]
+        : never;
+    };
+
+export const bookingDataSchema = z
+  .object({
+    id: z.number(),
+    uid: z.string(),
+    eventTypeId: z.number().nullable(),
+    title: z.string(),
+    description: z.string().nullable(),
+    startTime: z.date(),
+    endTime: z.date(),
+    createdAt: z.date(),
+    updatedAt: z.date().nullable(),
+    location: z.string().nullable(),
+    paid: z.boolean(),
+    status: z.string(), // BookingStatus enum
+    rescheduled: z.boolean().nullable(),
+    userId: z.number().nullable(),
+    teamId: z.number().nullable(),
+    eventLength: z.number().nullable(),
+    eventParentId: z.number().nullable(),
+    userEmail: z.string().nullable(),
+    userName: z.string().nullable(),
+    userUsername: z.string().nullable(),
+    ratingFeedback: z.string().nullable(),
+    rating: z.number().nullable(),
+    noShowHost: z.boolean().nullable(),
+    isTeamBooking: z.boolean(),
+    timeStatus: z.string().nullable(),
+  })
+  .strict();
+
 export const insightsBookingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
     scope: z.literal("user"),
@@ -35,17 +82,28 @@ export type InsightsBookingServicePublicOptions = {
 
 export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServiceOptionsSchema>;
 
-export type InsightsBookingServiceFilterOptions = {
-  eventTypeId?: number;
-  memberUserId?: number;
-};
+export type InsightsBookingServiceFilterOptions = z.infer<typeof insightsBookingServiceFilterOptionsSchema>;
+
+export const insightsBookingServiceFilterOptionsSchema = z.object({
+  eventTypeId: z.number().optional(),
+  memberUserId: z.number().optional(),
+  dateRange: z
+    .object({
+      target: z.enum(["createdAt", "startTime"]),
+      startDate: z.string(),
+      endDate: z.string(),
+    })
+    .optional(),
+});
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
+
+const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
 export class InsightsBookingService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
-  private filters?: InsightsBookingServiceFilterOptions;
+  private filters: InsightsBookingServiceFilterOptions | null;
   private cachedAuthConditions?: Prisma.Sql;
   private cachedFilterConditions?: Prisma.Sql | null;
 
@@ -59,26 +117,14 @@ export class InsightsBookingService {
     filters?: InsightsBookingServiceFilterOptions;
   }) {
     this.prisma = prisma;
-    const validation = insightsBookingServiceOptionsSchema.safeParse(options);
-    this.options = validation.success ? validation.data : null;
+    const optionsValidated = insightsBookingServiceOptionsSchema.safeParse(options);
+    this.options = optionsValidated.success ? optionsValidated.data : null;
 
-    this.filters = filters;
+    const filtersValidated = insightsBookingServiceFilterOptionsSchema.safeParse(filters);
+    this.filters = filtersValidated.success ? filtersValidated.data : null;
   }
 
-  async getBookingsByHourStats({
-    startDate,
-    endDate,
-    timeZone,
-  }: {
-    startDate: string;
-    endDate: string;
-    timeZone: string;
-  }) {
-    // Validate date formats
-    if (isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate))) {
-      throw new Error(`Invalid date format: ${startDate} - ${endDate}`);
-    }
-
+  async getBookingsByHourStats({ timeZone }: { timeZone: string }) {
     const baseConditions = await this.getBaseConditions();
 
     const results = await this.prisma.$queryRaw<
@@ -92,8 +138,6 @@ export class InsightsBookingService {
         COUNT(*)::int as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-        AND "startTime" >= ${startDate}::timestamp
-        AND "startTime" <= ${endDate}::timestamp
         AND "status" = 'accepted'
       GROUP BY 1
       ORDER BY 1
@@ -107,6 +151,35 @@ export class InsightsBookingService {
       hour,
       count: resultsMap.get(hour) || 0,
     }));
+  }
+
+  async findAll<TSelect extends BookingSelect | undefined = undefined>({
+    select,
+  }: {
+    select?: TSelect;
+  } = {}): Promise<Array<SelectedFields<TSelect>>> {
+    const baseConditions = await this.getBaseConditions();
+
+    // Build the select clause with validated fields
+    let selectFields = Prisma.sql`*`;
+    if (select) {
+      const keys = Object.keys(select);
+      if (keys.some((key) => !bookingDataKeys.has(key))) {
+        throw new Error("Invalid select keys provided");
+      }
+
+      if (keys.length > 0) {
+        // Use Prisma.sql for each field to ensure proper escaping
+        const sqlFields = keys.map((field) => Prisma.sql`"${Prisma.raw(field)}"`);
+        selectFields = Prisma.join(sqlFields, ", ");
+      }
+    }
+
+    return await this.prisma.$queryRaw<Array<SelectedFields<TSelect>>>`
+      SELECT ${selectFields}
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    `;
   }
 
   async getBaseConditions(): Promise<Prisma.Sql> {
@@ -153,6 +226,23 @@ export class InsightsBookingService {
 
     if (this.filters.memberUserId) {
       conditions.push(Prisma.sql`"userId" = ${this.filters.memberUserId}`);
+    }
+
+    // Use dateRange object for date filtering
+    if (this.filters.dateRange) {
+      const { target, startDate, endDate } = this.filters.dateRange;
+      if (startDate) {
+        if (isNaN(Date.parse(startDate))) {
+          throw new Error(`Invalid date format: ${startDate}`);
+        }
+        conditions.push(Prisma.sql`"${Prisma.raw(target)}" >= ${startDate}::timestamp`);
+      }
+      if (endDate) {
+        if (isNaN(Date.parse(endDate))) {
+          throw new Error(`Invalid date format: ${endDate}`);
+        }
+        conditions.push(Prisma.sql`"${Prisma.raw(target)}" <= ${endDate}::timestamp`);
+      }
     }
 
     if (conditions.length === 0) {

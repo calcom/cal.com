@@ -652,82 +652,79 @@ export const insightsRouter = router({
 
     return result;
   }),
-  averageEventDuration: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, startDate, endDate, memberUserId, userId, eventTypeId, isAll } = input;
+  averageEventDuration: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
 
-    if (userId && ctx.user?.id !== userId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    if (!teamId && !userId) {
-      return [];
-    }
-
-    const { whereCondition: whereConditional } = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    const timeView = EventsInsights.getTimeView(startDate, endDate);
-    const dateRanges = EventsInsights.getDateRanges({
-      startDate,
-      endDate,
-      timeView,
-      timeZone: ctx.user.timeZone,
-      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
-    });
-
-    if (!dateRanges.length) {
-      return [];
-    }
-
-    const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
-
-    const allBookings = await ctx.insightsDb.bookingTimeStatusDenormalized.findMany({
-      select: {
-        eventLength: true,
-        createdAt: true,
-      },
-      where: {
-        ...whereConditional,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
+      const insightsBookingService = new InsightsBookingService({
+        prisma: ctx.insightsDb,
+        options: {
+          scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(selectedTeamId && { teamId: selectedTeamId }),
         },
-      },
-    });
+        filters: {
+          ...(eventTypeId && { eventTypeId }),
+          ...(memberUserId && { memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate,
+            endDate,
+          },
+        },
+      });
 
-    const resultMap = new Map<string, { totalDuration: number; count: number }>();
+      try {
+        const timeView = EventsInsights.getTimeView(startDate, endDate);
+        const dateRanges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeView,
+          timeZone,
+          weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+        });
 
-    // Initialize the map with all date ranges
-    for (const range of dateRanges) {
-      resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
-    }
+        if (!dateRanges.length) {
+          return [];
+        }
 
-    for (const booking of allBookings) {
-      const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
-      if (resultMap.has(periodStart)) {
-        const current = resultMap.get(periodStart)!;
-        current.totalDuration += booking.eventLength || 0;
-        current.count += 1;
+        const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
+
+        const allBookings = await insightsBookingService.findAll({
+          select: {
+            eventLength: true,
+            createdAt: true,
+          },
+        });
+
+        const resultMap = new Map<string, { totalDuration: number; count: number }>();
+
+        // Initialize the map with all date ranges
+        for (const range of dateRanges) {
+          resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
+        }
+
+        for (const booking of allBookings) {
+          const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
+          if (resultMap.has(periodStart)) {
+            const current = resultMap.get(periodStart)!;
+            current.totalDuration += booking.eventLength || 0;
+            current.count += 1;
+          }
+        }
+
+        const result = Array.from(resultMap.entries()).map(([date, { totalDuration, count }]) => ({
+          Date: date,
+          Average: count > 0 ? totalDuration / count : 0,
+        }));
+
+        return result;
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-    }
-
-    const result = Array.from(resultMap.entries()).map(([date, { totalDuration, count }]) => ({
-      Date: date,
-      Average: count > 0 ? totalDuration / count : 0,
-    }));
-
-    return result;
-  }),
+    }),
   membersWithMostCancelledBookings: userBelongsToTeamProcedure
     .input(rawDataInputSchema)
     .query(async ({ ctx, input }) => {
@@ -1776,13 +1773,16 @@ export const insightsRouter = router({
         filters: {
           ...(eventTypeId && { eventTypeId }),
           ...(memberUserId && { memberUserId }),
+          dateRange: {
+            target: "startTime",
+            startDate,
+            endDate,
+          },
         },
       });
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
-          startDate,
-          endDate,
           timeZone,
         });
       } catch (e) {
