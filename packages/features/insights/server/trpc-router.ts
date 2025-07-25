@@ -480,7 +480,7 @@ export const insightsRouter = router({
 
     return result;
   }),
-  eventsTimeline: userBelongsToTeamProcedure
+  eventTrends: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, timeZone } = input;

@@ -9,16 +9,16 @@ import { ChartCard } from "./ChartCard";
 import { LineChart } from "./LineChart";
 import { LoadingInsight } from "./LoadingInsights";
 
-export const BookingStatusLineChart = () => {
+export const EventTrendsChart = () => {
   const { t } = useLocale();
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
   const { timeZone } = useDataTable();
 
   const {
-    data: eventsTimeLine,
+    data: eventTrends,
     isSuccess,
     isPending,
-  } = trpc.viewer.insights.eventsTimeline.useQuery(
+  } = trpc.viewer.insights.eventTrends.useQuery(
     {
       scope,
       selectedTeamId,
@@ -44,7 +44,7 @@ export const BookingStatusLineChart = () => {
     <ChartCard title={t("event_trends")}>
       <LineChart
         className="linechart ml-4 mt-4 h-80 sm:ml-0"
-        data={eventsTimeLine ?? []}
+        data={eventTrends ?? []}
         categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)", "No-Show (Guest)"]}
         index="Month"
         colors={["purple", "green", "blue", "red", "slate", "orange"]}
