@@ -41,6 +41,7 @@ import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -109,7 +110,10 @@ type BookingField = z.infer<typeof fieldSchema>;
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
-    Pick<RouterOutputs["viewer"]["me"]["get"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
+    Pick<
+      RouterOutputs["viewer"]["me"]["get"],
+      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
+    >
   >;
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
@@ -530,6 +534,14 @@ export const EventAdvancedTab = ({
     }
   );
 
+  const userTimeZone = extractHostTimezone({
+    userId: eventType.userId,
+    teamId: eventType.teamId,
+    hosts: eventType.hosts,
+    owner: eventType.owner,
+    team: eventType.team,
+  });
+
   let verifiedSecondaryEmails = [
     {
       label: user?.email || "",
@@ -856,7 +868,12 @@ export const EventAdvancedTab = ({
                 }}>
                 {!isManagedEventType && (
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    <MultiplePrivateLinksController team={team} bookerUrl={eventType.bookerUrl} />
+                    <MultiplePrivateLinksController
+                      team={team}
+                      bookerUrl={eventType.bookerUrl}
+                      setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                      userTimeZone={userTimeZone}
+                    />
                   </div>
                 )}
               </SettingsToggle>
