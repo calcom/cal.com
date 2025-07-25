@@ -451,78 +451,49 @@ export const insightsRouter = router({
 
     return result;
   }),
-  eventsTimeline: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, eventTypeId, memberUserId, isAll, startDate, endDate, userId: selfUserId } = input;
-    if (selfUserId && ctx.user?.id !== selfUserId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+  eventsTimeline: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate, timeZone } = input;
 
-    if (!teamId && !selfUserId) {
-      return [];
-    }
+      // Calculate timeView and dateRanges in the tRPC router
+      const timeView = EventsInsights.getTimeView(startDate, endDate);
+      const dateRanges = EventsInsights.getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone,
+        weekStart: ctx.user.weekStart,
+      });
 
-    const timeView = EventsInsights.getTimeView(startDate, endDate);
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: selfUserId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
+      const insightsBookingService = new InsightsBookingService({
+        prisma: ctx.insightsDb,
+        options: {
+          scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(selectedTeamId && { teamId: selectedTeamId }),
+        },
+        filters: {
+          ...(eventTypeId && { eventTypeId }),
+          ...(memberUserId && { memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate,
+            endDate,
+          },
+        },
+      });
 
-    const { whereCondition: whereConditional } = r;
-
-    const dateRanges = EventsInsights.getDateRanges({
-      startDate,
-      endDate,
-      timeView,
-      timeZone: ctx.user.timeZone,
-      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
-    });
-    if (!dateRanges.length) {
-      return [];
-    }
-
-    // Fetch counts grouped by status for the entire range
-    const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
-      whereConditional,
-      dayjs(startDate),
-      dayjs(endDate),
-      dateRanges,
-      ctx.user.timeZone
-    );
-
-    const result = dateRanges.map(({ formattedDate }) => {
-      const EventData = {
-        Month: formattedDate,
-        Created: 0,
-        Completed: 0,
-        Rescheduled: 0,
-        Cancelled: 0,
-        "No-Show (Host)": 0,
-        "No-Show (Guest)": 0,
-      };
-
-      const countsForDateRange = countsByStatus[formattedDate];
-
-      if (countsForDateRange) {
-        EventData["Created"] = countsForDateRange["_all"] || 0;
-        EventData["Completed"] = countsForDateRange["completed"] || 0;
-        EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
-        EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
-        EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-        EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
+      try {
+        return await insightsBookingService.getEventTrendsStats({
+          timeZone,
+          dateRanges,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      return EventData;
-    });
-
-    return result;
-  }),
+    }),
   popularEventTypes: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, memberUserId, userId, isAll, eventTypeId } = input;
 
