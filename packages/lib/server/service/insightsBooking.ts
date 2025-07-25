@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import md5 from "md5";
 import { z } from "zod";
 
 import type { DateRange } from "@calcom/features/insights/server/events";
@@ -7,6 +8,23 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";
 import { TeamRepository } from "../repository/team";
+
+// Utility function to build user hash map with avatar URL fallback
+export const buildHashMapForUsers = <
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+>(
+  usersFromTeam: T[]
+) => {
+  const userHashMap = new Map<number | null, Omit<T, "avatarUrl"> & { avatarUrl: string }>();
+  usersFromTeam.forEach((user) => {
+    userHashMap.set(user.id, {
+      ...user,
+      // TODO: Use AVATAR_FALLBACK when avatar.png endpoint is fased out
+      avatarUrl: user.avatarUrl || `/${user.username}/avatar.png`,
+    });
+  });
+  return userHashMap;
+};
 
 // Type definition for BookingTimeStatusDenormalized view
 export type BookingTimeStatusDenormalized = z.infer<typeof bookingDataSchema>;
@@ -659,13 +677,7 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getPopularEventsStats(): Promise<
-    Array<{
-      eventTypeId: number;
-      eventTypeName: string;
-      count: number;
-    }>
-  > {
+  async getPopularEventsStats() {
     const baseConditions = await this.getBaseConditions();
 
     const bookingsFromSelected = await this.prisma.$queryRaw<
@@ -734,6 +746,67 @@ export class InsightsBookingService {
         return {
           eventTypeId: booking.eventTypeId,
           eventTypeName: eventSlug,
+          count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersWithMostBookingsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        count: number;
+      }>
+    >`
+      SELECT 
+        "userId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL
+      GROUP BY "userId"
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
           count: booking.count,
         };
       })
