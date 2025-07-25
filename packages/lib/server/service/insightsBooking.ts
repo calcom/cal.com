@@ -960,6 +960,252 @@ export class InsightsBookingService {
     return result;
   }
 
+  async getBookingKPIStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    if (!this.filters?.dateRange) {
+      throw new Error("Date range is required for KPI stats");
+    }
+
+    // Calculate previous period dates
+    const startDate = new Date(this.filters.dateRange.startDate);
+    const endDate = new Date(this.filters.dateRange.endDate);
+    const diffInDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    const previousStartDate = new Date(startDate);
+    previousStartDate.setDate(previousStartDate.getDate() - diffInDays);
+    const previousEndDate = new Date(endDate);
+    previousEndDate.setDate(previousEndDate.getDate() - diffInDays);
+
+    // Create service instance for previous period
+    const previousPeriodService = new InsightsBookingService({
+      prisma: this.prisma,
+      options: this.options,
+      filters: {
+        ...this.filters,
+        dateRange: {
+          target: this.filters.dateRange.target,
+          startDate: previousStartDate.toISOString(),
+          endDate: previousEndDate.toISOString(),
+        },
+      },
+    });
+
+    const previousConditions = await previousPeriodService.getBaseConditions();
+    // Get current period stats
+    const currentStats = await this.prisma.$queryRaw<
+      Array<{
+        total_bookings: bigint;
+        completed_bookings: bigint;
+        rescheduled_bookings: bigint;
+        cancelled_bookings: bigint;
+        no_show_host_bookings: bigint;
+        avg_rating: number | null;
+        total_ratings: bigint;
+        ratings_above_3: bigint;
+        no_show_guests: bigint;
+      }>
+    >`
+      WITH booking_stats AS (
+        SELECT 
+          COUNT(*) as total_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
+          AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
+          COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
+          COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+      ),
+      guest_stats AS (
+        SELECT COUNT(*) as no_show_guests
+        FROM "Attendee" a
+        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
+        WHERE ${baseConditions} AND a."noShow" = true
+      )
+      SELECT 
+        bs.total_bookings,
+        bs.completed_bookings,
+        bs.rescheduled_bookings,
+        bs.cancelled_bookings,
+        bs.no_show_host_bookings,
+        bs.avg_rating,
+        bs.total_ratings,
+        bs.ratings_above_3,
+        gs.no_show_guests
+      FROM booking_stats bs, guest_stats gs
+    `;
+
+    // Get previous period stats
+    const previousStats = await this.prisma.$queryRaw<
+      Array<{
+        total_bookings: bigint;
+        completed_bookings: bigint;
+        rescheduled_bookings: bigint;
+        cancelled_bookings: bigint;
+        no_show_host_bookings: bigint;
+        avg_rating: number | null;
+        total_ratings: bigint;
+        ratings_above_3: bigint;
+        no_show_guests: bigint;
+      }>
+    >`
+      WITH booking_stats AS (
+        SELECT 
+          COUNT(*) as total_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
+          AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
+          COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
+          COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${previousConditions}
+      ),
+      guest_stats AS (
+        SELECT COUNT(*) as no_show_guests
+        FROM "Attendee" a
+        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
+        WHERE ${previousConditions} AND a."noShow" = true
+      )
+      SELECT 
+        bs.total_bookings,
+        bs.completed_bookings,
+        bs.rescheduled_bookings,
+        bs.cancelled_bookings,
+        bs.no_show_host_bookings,
+        bs.avg_rating,
+        bs.total_ratings,
+        bs.ratings_above_3,
+        gs.no_show_guests
+      FROM booking_stats bs, guest_stats gs
+    `;
+    // Convert BigInt values to numbers
+    const currentRaw = currentStats[0];
+    const current = currentRaw
+      ? {
+          total_bookings: Number(currentRaw.total_bookings),
+          completed_bookings: Number(currentRaw.completed_bookings),
+          rescheduled_bookings: Number(currentRaw.rescheduled_bookings),
+          cancelled_bookings: Number(currentRaw.cancelled_bookings),
+          no_show_host_bookings: Number(currentRaw.no_show_host_bookings),
+          avg_rating: currentRaw.avg_rating,
+          total_ratings: Number(currentRaw.total_ratings),
+          ratings_above_3: Number(currentRaw.ratings_above_3),
+          no_show_guests: Number(currentRaw.no_show_guests),
+        }
+      : {
+          total_bookings: 0,
+          completed_bookings: 0,
+          rescheduled_bookings: 0,
+          cancelled_bookings: 0,
+          no_show_host_bookings: 0,
+          avg_rating: 0,
+          total_ratings: 0,
+          ratings_above_3: 0,
+          no_show_guests: 0,
+        };
+
+    const previousRaw = previousStats[0];
+    const previous = previousRaw
+      ? {
+          total_bookings: Number(previousRaw.total_bookings),
+          completed_bookings: Number(previousRaw.completed_bookings),
+          rescheduled_bookings: Number(previousRaw.rescheduled_bookings),
+          cancelled_bookings: Number(previousRaw.cancelled_bookings),
+          no_show_host_bookings: Number(previousRaw.no_show_host_bookings),
+          avg_rating: previousRaw.avg_rating,
+          total_ratings: Number(previousRaw.total_ratings),
+          ratings_above_3: Number(previousRaw.ratings_above_3),
+          no_show_guests: Number(previousRaw.no_show_guests),
+        }
+      : {
+          total_bookings: 0,
+          completed_bookings: 0,
+          rescheduled_bookings: 0,
+          cancelled_bookings: 0,
+          no_show_host_bookings: 0,
+          avg_rating: 0,
+          total_ratings: 0,
+          ratings_above_3: 0,
+          no_show_guests: 0,
+        };
+
+    // Calculate percentages and CSAT
+    const getPercentage = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    const currentCSAT =
+      current.total_ratings > 0 ? (current.ratings_above_3 / current.total_ratings) * 100 : 0;
+    const previousCSAT =
+      previous.total_ratings > 0 ? (previous.ratings_above_3 / previous.total_ratings) * 100 : 0;
+
+    const currentRating = current.avg_rating ? parseFloat(current.avg_rating.toFixed(1)) : 0;
+    const previousRating = previous.avg_rating ? parseFloat(previous.avg_rating.toFixed(1)) : 0;
+
+    // Check if all metrics are zero for empty state
+    const isEmpty =
+      current.total_bookings === 0 &&
+      current.completed_bookings === 0 &&
+      current.rescheduled_bookings === 0 &&
+      current.cancelled_bookings === 0 &&
+      current.no_show_host_bookings === 0 &&
+      current.no_show_guests === 0 &&
+      currentRating === 0;
+
+    if (isEmpty) {
+      return { empty: true };
+    }
+
+    return {
+      empty: false,
+      created: {
+        count: current.total_bookings,
+        deltaPrevious: getPercentage(current.total_bookings, previous.total_bookings),
+      },
+      completed: {
+        count: current.completed_bookings,
+        deltaPrevious: getPercentage(
+          current.total_bookings - current.cancelled_bookings - current.rescheduled_bookings,
+          previous.total_bookings - previous.cancelled_bookings - previous.rescheduled_bookings
+        ),
+      },
+      rescheduled: {
+        count: current.rescheduled_bookings,
+        deltaPrevious: getPercentage(current.rescheduled_bookings, previous.rescheduled_bookings),
+      },
+      cancelled: {
+        count: current.cancelled_bookings,
+        deltaPrevious: getPercentage(current.cancelled_bookings, previous.cancelled_bookings),
+      },
+      no_show: {
+        count: current.no_show_host_bookings,
+        deltaPrevious: getPercentage(current.no_show_host_bookings, previous.no_show_host_bookings),
+      },
+      no_show_guest: {
+        count: current.no_show_guests,
+        deltaPrevious: getPercentage(current.no_show_guests, previous.no_show_guests),
+      },
+      rating: {
+        count: currentRating,
+        deltaPrevious: getPercentage(currentRating, previousRating),
+      },
+      csat: {
+        count: currentCSAT,
+        deltaPrevious: getPercentage(currentCSAT, previousCSAT),
+      },
+      previousRange: {
+        startDate: previousStartDate.toISOString().split("T")[0],
+        endDate: previousEndDate.toISOString().split("T")[0],
+      },
+    };
+  }
+
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
