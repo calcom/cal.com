@@ -443,10 +443,10 @@ describe("PermissionCheckService", () => {
         customRoleId: "org_role",
       });
 
-      // Mock team permissions
+      // Mock team permissions - create implies read
       mockRepository.getResourcePermissionsByRoleId
         .mockResolvedValueOnce(["create", "read"]) // team permissions
-        .mockResolvedValueOnce(["update", "delete"]); // org permissions
+        .mockResolvedValueOnce(["update", "delete", "read"]); // org permissions - update/delete imply read
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -486,10 +486,10 @@ describe("PermissionCheckService", () => {
         customRoleId: "org_role",
       });
 
-      // Mock overlapping permissions
+      // Mock overlapping permissions - both include read, update implies read
       mockRepository.getResourcePermissionsByRoleId
-        .mockResolvedValueOnce(["create", "read"]) // team permissions
-        .mockResolvedValueOnce(["read", "update"]); // org permissions (read overlaps)
+        .mockResolvedValueOnce(["create", "read"]) // team permissions - create implies read
+        .mockResolvedValueOnce(["read", "update"]); // org permissions - update implies read, explicit read
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -517,7 +517,8 @@ describe("PermissionCheckService", () => {
         customRoleId: "org_role",
       });
 
-      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["update", "delete"]);
+      // Update and delete imply read access
+      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["update", "delete", "read"]);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -525,7 +526,7 @@ describe("PermissionCheckService", () => {
         resource: Resource.EventType,
       });
 
-      expect(result).toEqual(["eventType.update", "eventType.delete"]);
+      expect(result).toEqual(["eventType.update", "eventType.delete", "eventType.read"]);
       expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenCalledTimes(1);
       expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenCalledWith(
         "org_role",
@@ -558,6 +559,51 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toEqual([]);
+    });
+
+    it("should enforce correct hierarchy - org permissions should take precedence over team permissions", async () => {
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        customRoleId: "admin_team_role",
+        team: { parentId: 2 },
+      });
+      mockRepository.getOrgMembership.mockResolvedValueOnce({
+        id: 2,
+        teamId: 2,
+        userId: 1,
+        customRoleId: "restricted_org_role",
+      });
+
+      // Team role has broad permissions - CUD actions include read
+      // Org role has restricted permissions (only read)
+      mockRepository.getResourcePermissionsByRoleId
+        .mockResolvedValueOnce(["create", "read", "update"]) // team permissions - CRU
+        .mockResolvedValueOnce(["delete"]); // org permissions - delete only
+
+      const result = await service.getResourcePermissions({
+        userId: 1,
+        teamId: 1,
+        resource: Resource.EventType,
+      });
+
+      // User gets eventType.delete because they have this in the org
+      expect(result).toEqual(["eventType.create", "eventType.read", "eventType.update", "eventType.delete"]);
+
+      // Verify both team and org permissions were fetched
+      expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenCalledTimes(2);
+      expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenNthCalledWith(
+        1,
+        "admin_team_role",
+        Resource.EventType
+      );
+      expect(mockRepository.getResourcePermissionsByRoleId).toHaveBeenNthCalledWith(
+        2,
+        "restricted_org_role",
+        Resource.EventType
+      );
     });
   });
 });
