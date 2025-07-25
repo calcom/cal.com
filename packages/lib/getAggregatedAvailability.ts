@@ -46,15 +46,14 @@ export const getAggregatedAvailability = (
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
     // Group round robin hosts by their groupId
-    const hostsByGroup: Record<string, typeof roundRobinHosts> = {};
-
-    roundRobinHosts.forEach((host) => {
+    const hostsByGroup = roundRobinHosts.reduce((groups, host) => {
       const groupId = host.user?.groupId || DEFAULT_GROUP_ID;
-      if (!hostsByGroup[groupId]) {
-        hostsByGroup[groupId] = [];
+      if (!groups[groupId]) {
+        groups[groupId] = [];
       }
-      hostsByGroup[groupId].push(host);
-    });
+      groups[groupId].push(host);
+      return groups;
+    }, {} as Record<string, typeof roundRobinHosts>);
 
     // at least one host from each group needs to be available
     Object.values(hostsByGroup).forEach((groupHosts) => {
