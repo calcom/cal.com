@@ -4,7 +4,7 @@ export interface ICalendarSubscriptionRepository {
   findBySelectedCalendar(selectedCalendarId: string): Promise<CalendarSubscription | null>;
   findByChannelId(channelId: string): Promise<
     | (CalendarSubscription & {
-        selectedCalendar: { credential: any; externalId: string; integration: string; userId: number };
+        selectedCalendar: { credential: unknown; externalId: string; integration: string; userId: number };
       })
     | null
   >;
@@ -14,7 +14,9 @@ export interface ICalendarSubscriptionRepository {
     id: string,
     details: {
       googleChannelId: string;
-      googleChannelToken?: string;
+      googleChannelKind?: string;
+      googleChannelResourceId?: string;
+      googleChannelResourceUri?: string;
       googleChannelExpiration: string;
     }
   ): Promise<void>;

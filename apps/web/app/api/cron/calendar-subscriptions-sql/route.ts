@@ -2,7 +2,7 @@ import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionService";
 import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/calendar-subscription.repository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
@@ -56,24 +56,42 @@ async function postHandler(req: NextRequest) {
 
     for (const subscription of subscriptionsToWatch) {
       try {
-        if (!subscription.selectedCalendar?.credential) continue;
+        if (!subscription.selectedCalendar?.credential) {
+          log.warn(
+            `Subscription ${subscription.id} has no credential, marking as error to prevent infinite retries`
+          );
+          await subscriptionRepo.setWatchError(
+            subscription.id,
+            "No credential available for calendar subscription"
+          );
+          errorCount++;
+          continue;
+        }
 
         const credentialForCalendarCache = await getCredentialForCalendarCache({
           credentialId: subscription.selectedCalendar.credential.id,
         });
-        const calendarService = await getCalendar(credentialForCalendarCache);
 
-        if (!calendarService?.watchCalendar) continue;
+        if (!credentialForCalendarCache) {
+          log.warn(`No credential found for calendar cache for subscription ${subscription.id}`);
+          await subscriptionRepo.setWatchError(subscription.id, "No credential found for calendar cache");
+          errorCount++;
+          continue;
+        }
 
-        const watchResult = (await calendarService.watchCalendar({
-          calendarId: subscription.selectedCalendar.externalId,
-          eventTypeIds: [],
-        })) as { id?: string | null; expiration?: string | null; token?: string | null } | undefined;
+        const calendarSubscriptionService = new CalendarSubscriptionService();
+
+        const watchResult = await calendarSubscriptionService.watchCalendar(
+          subscription.selectedCalendar.externalId,
+          credentialForCalendarCache
+        );
 
         if (watchResult?.id && watchResult?.expiration) {
           await subscriptionRepo.updateWatchDetails(subscription.id, {
             googleChannelId: watchResult.id,
-            googleChannelToken: watchResult.token || "",
+            googleChannelKind: watchResult.kind || "",
+            googleChannelResourceId: watchResult.resourceId || "",
+            googleChannelResourceUri: watchResult.resourceUri || "",
             googleChannelExpiration: watchResult.expiration,
           });
         }

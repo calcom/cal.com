@@ -26,4 +26,6 @@ export const DI_TOKENS = {
   CALENDAR_EVENT_REPOSITORY_MODULE: Symbol("CalendarEventRepositoryModule"),
   CALENDAR_CACHE_SQL_SERVICE: Symbol("CalendarCacheSqlService"),
   CALENDAR_CACHE_SQL_SERVICE_MODULE: Symbol("CalendarCacheSqlServiceModule"),
+  CALENDAR_SUBSCRIPTION_SERVICE: Symbol("CalendarSubscriptionService"),
+  CALENDAR_SUBSCRIPTION_SERVICE_MODULE: Symbol("CalendarSubscriptionServiceModule"),
 };
