@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -181,14 +181,18 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         data: customInputsData,
       });
     }
+
     if (hashedLink.length > 0) {
-      await prisma.hashedLink.create({
-        data: {
-          link: generateHashedLink(users[0]?.id ?? newEventType.teamId),
-          eventType: {
-            connect: { id: newEventType.id },
-          },
-        },
+      const newHashedLinksData = hashedLink.map((originalLink, index) => ({
+        link: generateHashedLink(
+          `${users[0]?.id ?? newEventType.teamId ?? originalLink.eventTypeId}-${index}`
+        ),
+        eventTypeId: newEventType.id,
+        expiresAt: originalLink.expiresAt,
+        maxUsageCount: originalLink.maxUsageCount,
+      }));
+      await prisma.hashedLink.createMany({
+        data: newHashedLinksData,
       });
     }
 

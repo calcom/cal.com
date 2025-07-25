@@ -100,6 +100,7 @@ export interface BookerProps {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
