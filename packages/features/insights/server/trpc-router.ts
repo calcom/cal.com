@@ -1496,43 +1496,44 @@ export const insightsRouter = router({
 
       return result;
     }),
-  rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, teamId, userId, memberUserId, isAll, limit, offset } = input;
+  rawData: userBelongsToTeamProcedure
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(100).optional(),
+        offset: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, limit, offset } = input;
 
-    const eventTypeList = await getEventTypeList({
-      prisma: ctx.prisma,
-      teamId,
-      userId,
-      isAll,
-      user: {
-        id: ctx.user.id,
-        organizationId: ctx.user.organizationId,
-        isOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-      },
-    });
-
-    // use eventTypeId filter only if it's accessible by this user
-    const eventTypeId = eventTypeList.find((eventType) => eventType.id === input.eventTypeId)?.id;
-
-    const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
-    try {
-      return await EventsInsights.getCsvData({
-        startDate,
-        endDate,
-        teamId,
-        userId,
-        memberUserId,
-        isAll,
-        isOrgAdminOrOwner,
-        eventTypeId,
-        organizationId: ctx.user.organizationId || null,
-        limit,
-        offset,
+      const insightsBookingService = new InsightsBookingService({
+        prisma: ctx.insightsDb,
+        options: {
+          scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(selectedTeamId && { teamId: selectedTeamId }),
+        },
+        filters: {
+          ...(eventTypeId && { eventTypeId }),
+          ...(memberUserId && { memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate,
+            endDate,
+          },
+        },
       });
-    } catch (e) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    }
-  }),
+
+      try {
+        return await insightsBookingService.getCsvData({
+          limit: limit ?? 100,
+          offset: offset ?? 0,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 
   getRoutingFormsForFilters: userBelongsToTeamProcedure
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
