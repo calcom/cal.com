@@ -197,7 +197,7 @@ export default function BillingCredits() {
                 target="_blank"
                 EndIcon="external-link"
                 type="submit"
-                data-testid="buy_credits">
+                data-testid="buy-credits">
                 {t("buy_credits")}
               </Button>
             </div>

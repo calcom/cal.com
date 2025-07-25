@@ -35,7 +35,7 @@ test.describe("Buy Credits E2E Tests", () => {
 });
 
 async function expectBuyCreditsButtonVisibleAndEnabled(page: Page) {
-  const buyCreditsButton = page.getByTestId("buy_credits");
+  const buyCreditsButton = page.getByTestId("buy-credits");
   await expect(buyCreditsButton).toBeVisible();
   await expect(buyCreditsButton).toBeEnabled();
 }
