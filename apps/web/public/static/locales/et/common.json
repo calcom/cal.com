@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Kohtumise algusaeg",
   "members_affected_by_disabling_delegation_credential": "Mõjutatud liikmed",
   "no_members_affected_by_disabling_delegation_credential": "Delegatsiooni mandaadi keelamine ei mõjuta ühtegi liiget",
+  "reservation_expired": "Broneering aegunud",
   "download_expense_log": "Laadi alla kulude logi",
   "error_downloading_expense_log": "Viga kulude logi allalaadimisel",
   "offer_to_reschedule_last_booking": "Paku viimane aktiivne broneering ümber planeerida valitud ajavahemikku",

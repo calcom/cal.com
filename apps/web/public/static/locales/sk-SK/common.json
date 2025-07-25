@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Čas začiatku stretnutia",
   "members_affected_by_disabling_delegation_credential": "Dotknutí členovia",
   "no_members_affected_by_disabling_delegation_credential": "Žiadni členovia nie sú ovplyvnení vypnutím poverenia delegovania",
+  "reservation_expired": "Rezervácia vypršala",
   "download_expense_log": "Stiahnuť záznam výdavkov",
   "error_downloading_expense_log": "Chyba pri sťahovaní záznamu výdavkov",
   "offer_to_reschedule_last_booking": "Ponúknuť zmenu termínu poslednej aktívnej rezervácie na vybraný časový úsek",

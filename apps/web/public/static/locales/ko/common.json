@@ -3349,6 +3349,7 @@
   "meeting_start_time": "미팅 시작 시간",
   "members_affected_by_disabling_delegation_credential": "영향을 받는 멤버",
   "no_members_affected_by_disabling_delegation_credential": "위임 자격 증명 비활성화로 영향을 받는 멤버 없음",
+  "reservation_expired": "예약 만료",
   "download_expense_log": "지출 로그 다운로드",
   "error_downloading_expense_log": "지출 로그 다운로드 중 오류 발생",
   "offer_to_reschedule_last_booking": "선택한 시간대로 마지막 활성 예약 일정 변경 제안",

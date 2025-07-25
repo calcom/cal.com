@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Toplantı Başlangıç Zamanı",
   "members_affected_by_disabling_delegation_credential": "Etkilenen üyeler",
   "no_members_affected_by_disabling_delegation_credential": "Yetkilendirme kimlik bilgisinin devre dışı bırakılmasından etkilenen üye yok",
+  "reservation_expired": "Rezervasyon süresi doldu",
   "download_expense_log": "Gider Kaydını İndir",
   "error_downloading_expense_log": "Gider kaydı indirilirken hata oluştu",
   "offer_to_reschedule_last_booking": "Son aktif rezervasyonu seçilen zaman dilimine yeniden planlamayı teklif et",

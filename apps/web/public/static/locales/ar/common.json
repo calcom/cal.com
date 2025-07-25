@@ -3349,6 +3349,7 @@
   "meeting_start_time": "وقت بدء الاجتماع",
   "members_affected_by_disabling_delegation_credential": "الأعضاء المتأثرون",
   "no_members_affected_by_disabling_delegation_credential": "لا يوجد أعضاء متأثرون بتعطيل بيانات اعتماد التفويض",
+  "reservation_expired": "انتهت صلاحية الحجز",
   "download_expense_log": "تنزيل سجل النفقات",
   "error_downloading_expense_log": "خطأ في تنزيل سجل النفقات",
   "offer_to_reschedule_last_booking": "عرض إعادة جدولة آخر حجز نشط إلى الفترة الزمنية المختارة",

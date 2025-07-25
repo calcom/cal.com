@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Találkozó kezdési ideje",
   "members_affected_by_disabling_delegation_credential": "Érintett tagok",
   "no_members_affected_by_disabling_delegation_credential": "Nincsenek tagok, akiket érintene a delegálási hitelesítő adatok letiltása",
+  "reservation_expired": "A foglalás lejárt",
   "download_expense_log": "Költségnapló letöltése",
   "error_downloading_expense_log": "Hiba történt a költségnapló letöltése közben",
   "offer_to_reschedule_last_booking": "Ajánlja fel az utolsó aktív foglalás átütemezését a választott időpontra",

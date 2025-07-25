@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Horário de início da reunião",
   "members_affected_by_disabling_delegation_credential": "Membros afetados",
   "no_members_affected_by_disabling_delegation_credential": "Nenhum membro afetado pela desativação da credencial de delegação",
+  "reservation_expired": "Reserva expirada",
   "download_expense_log": "Baixar registro de despesas",
   "error_downloading_expense_log": "Erro ao baixar registro de despesas",
   "offer_to_reschedule_last_booking": "Oferecer reagendamento da última reserva ativa para o horário escolhido",

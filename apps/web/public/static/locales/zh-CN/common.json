@@ -3349,6 +3349,7 @@
   "meeting_start_time": "会议开始时间",
   "members_affected_by_disabling_delegation_credential": "受影响的成员",
   "no_members_affected_by_disabling_delegation_credential": "禁用委托凭据未影响任何成员",
+  "reservation_expired": "预订已过期",
   "download_expense_log": "下载费用日志",
   "error_downloading_expense_log": "下载费用日志时出错",
   "offer_to_reschedule_last_booking": "提供将最后一个活动预订重新安排到选定时间段的选项",

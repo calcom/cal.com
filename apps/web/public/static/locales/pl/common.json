@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Czas rozpoczęcia spotkania",
   "members_affected_by_disabling_delegation_credential": "Dotknięci członkowie",
   "no_members_affected_by_disabling_delegation_credential": "Brak członków dotkniętych wyłączeniem poświadczenia delegacji",
+  "reservation_expired": "Rezerwacja wygasła",
   "download_expense_log": "Pobierz dziennik wydatków",
   "error_downloading_expense_log": "Błąd podczas pobierania dziennika wydatków",
   "offer_to_reschedule_last_booking": "Zaproponuj przełożenie ostatniej aktywnej rezerwacji na wybrany przedział czasowy",

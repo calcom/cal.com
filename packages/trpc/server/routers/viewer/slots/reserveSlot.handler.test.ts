@@ -18,18 +18,34 @@ vi.mock("@calcom/lib/server/repository/selectedSlots", () => ({
   })),
 }));
 
+vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
+  default: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@calcom/features/webhooks/lib/scheduleTrigger", () => ({
+  scheduleReservationExpiredTrigger: vi.fn().mockResolvedValue(undefined),
+}));
+
 // A tiny helper to build a canned handler context with stubbed Prisma methods.
 const buildContext = () => {
   const prismaStub = {
     eventType: {
       // Return a minimal event type that will exercise the happy path.
-      findUnique: vi.fn().mockResolvedValue({ users: [{ id: 1 }], seatsPerTimeSlot: null }),
+      findUnique: vi.fn().mockResolvedValue({
+        users: [{ id: 1 }],
+        seatsPerTimeSlot: null,
+        teamId: null,
+        team: { parentId: null },
+      }),
     },
     booking: {
       findFirst: vi.fn().mockResolvedValue(null),
     },
     selectedSlots: {
-      upsert: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockResolvedValue({
+        id: 123,
+        releaseAt: new Date().toISOString(),
+      }),
     },
   } as unknown as any;
 
@@ -72,7 +88,6 @@ describe("reserveSlotHandler cookie settings", () => {
         slotUtcStartDate: new Date().toISOString(),
         slotUtcEndDate: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         eventTypeId: 1,
-        bookingUid: undefined,
         _isDryRun: false,
       },
     });
@@ -92,7 +107,6 @@ describe("reserveSlotHandler cookie settings", () => {
         slotUtcStartDate: new Date().toISOString(),
         slotUtcEndDate: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         eventTypeId: 1,
-        bookingUid: undefined,
         _isDryRun: false,
       },
     });

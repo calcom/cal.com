@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Vreme početka sastanka",
   "members_affected_by_disabling_delegation_credential": "Pogođeni članovi",
   "no_members_affected_by_disabling_delegation_credential": "Nema članova na koje utiče onemogućavanje akreditiva za delegiranje",
+  "reservation_expired": "Резервација је истекла",
   "download_expense_log": "Preuzmite evidenciju troškova",
   "error_downloading_expense_log": "Greška pri preuzimanju evidencije troškova",
   "offer_to_reschedule_last_booking": "Ponudite da se poslednja aktivna rezervacija pomeri na izabrani termin",

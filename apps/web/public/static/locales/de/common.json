@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Beginn des Meetings",
   "members_affected_by_disabling_delegation_credential": "Betroffene Mitglieder",
   "no_members_affected_by_disabling_delegation_credential": "Keine Mitglieder von der Deaktivierung der Delegationsanmeldedaten betroffen",
+  "reservation_expired": "Reservierung abgelaufen",
   "download_expense_log": "Ausgabenprotokoll herunterladen",
   "error_downloading_expense_log": "Fehler beim Herunterladen des Ausgabenprotokolls",
   "offer_to_reschedule_last_booking": "Angebot zur Umbuchung der letzten aktiven Buchung auf den gewählten Zeitraum",

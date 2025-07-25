@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Ώρα έναρξης συνάντησης",
   "members_affected_by_disabling_delegation_credential": "Επηρεαζόμενα μέλη",
   "no_members_affected_by_disabling_delegation_credential": "Κανένα μέλος δεν επηρεάζεται από την απενεργοποίηση των διαπιστευτηρίων εκχώρησης",
+  "reservation_expired": "Η κράτηση έληξε",
   "download_expense_log": "Λήψη αρχείου καταγραφής εξόδων",
   "error_downloading_expense_log": "Σφάλμα κατά τη λήψη του αρχείου καταγραφής εξόδων",
   "offer_to_reschedule_last_booking": "Προσφορά επαναπρογραμματισμού της τελευταίας ενεργής κράτησης στην επιλεγμένη χρονοθυρίδα",

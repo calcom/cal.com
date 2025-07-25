@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Час початку зустрічі",
   "members_affected_by_disabling_delegation_credential": "Користувачі, на яких вплине вимкнення облікових даних делегування",
   "no_members_affected_by_disabling_delegation_credential": "Немає користувачів, на яких вплине вимкнення облікових даних делегування",
+  "reservation_expired": "Бронювання закінчилося",
   "download_expense_log": "Завантажити журнал витрат",
   "error_downloading_expense_log": "Помилка завантаження журналу витрат",
   "offer_to_reschedule_last_booking": "Запропонувати перепланувати останнє активне бронювання на вибраний часовий проміжок",

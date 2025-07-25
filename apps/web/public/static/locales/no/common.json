@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Møtestarttid",
   "members_affected_by_disabling_delegation_credential": "Berørte medlemmer",
   "no_members_affected_by_disabling_delegation_credential": "Ingen medlemmer berørt av deaktivering av delegeringslegitimasjon",
+  "reservation_expired": "Reservasjon utløpt",
   "download_expense_log": "Last ned utgiftslogg",
   "error_downloading_expense_log": "Feil ved nedlasting av utgiftslogg",
   "offer_to_reschedule_last_booking": "Tilby å omplanlegge siste aktive booking til valgt tidsluke",

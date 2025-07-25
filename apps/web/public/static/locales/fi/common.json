@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Tapaamisen alkamisaika",
   "members_affected_by_disabling_delegation_credential": "Vaikutuksen alaiset jäsenet",
   "no_members_affected_by_disabling_delegation_credential": "Valtuutustietojen poistaminen käytöstä ei vaikuta kehenkään jäseneen",
+  "reservation_expired": "Varaus vanhentunut",
   "download_expense_log": "Lataa kuluraportti",
   "error_downloading_expense_log": "Virhe kuluraportin lataamisessa",
   "offer_to_reschedule_last_booking": "Tarjoa viimeisimmän aktiivisen varauksen uudelleenajoittamista valittuun aikaan",

@@ -3349,6 +3349,10 @@
   "meeting_start_time": "Hora d'inici de la reunió",
   "members_affected_by_disabling_delegation_credential": "Membres afectats",
   "no_members_affected_by_disabling_delegation_credential": "Cap membre afectat per la desactivació de la credencial de delegació",
+<<<<<<< HEAD
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "reservation_expired": "Reserva caducada"
+=======
   "download_expense_log": "Descarrega el registre de despeses",
   "error_downloading_expense_log": "Error en descarregar el registre de despeses",
   "offer_to_reschedule_last_booking": "Ofereix reprogramar l'última reserva activa a la franja horària escollida",
@@ -3419,4 +3423,5 @@
   "usage_based_generic_expiration_description": "Aquest enllaç es pot configurar perquè caduqui després d'un nombre determinat de reserves",
   "usage_based_expiration_description_plural": "Aquest enllaç es pot utilitzar per a {{count}} reserves",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+>>>>>>> 9b886036ad2e9177bb8aff1ad4c4826092157b76
 }

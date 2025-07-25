@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Thời gian bắt đầu cuộc họp",
   "members_affected_by_disabling_delegation_credential": "Thành viên bị ảnh hưởng",
   "no_members_affected_by_disabling_delegation_credential": "Không có thành viên nào bị ảnh hưởng bởi việc tắt thông tin ủy quyền",
+  "reservation_expired": "Đặt chỗ đã hết hạn",
   "download_expense_log": "Tải xuống nhật ký chi phí",
   "error_downloading_expense_log": "Lỗi khi tải xuống nhật ký chi phí",
   "offer_to_reschedule_last_booking": "Đề xuất lên lịch lại cuộc hẹn hoạt động cuối cùng vào khung giờ đã chọn",

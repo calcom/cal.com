@@ -3349,6 +3349,7 @@
   "meeting_start_time": "會議開始時間",
   "members_affected_by_disabling_delegation_credential": "受影響的成員",
   "no_members_affected_by_disabling_delegation_credential": "停用委派憑證未影響任何成員",
+  "reservation_expired": "預訂已過期",
   "download_expense_log": "下載費用記錄",
   "error_downloading_expense_log": "下載費用記錄時發生錯誤",
   "offer_to_reschedule_last_booking": "提供重新安排最後一個有效預約至選定的時間段",

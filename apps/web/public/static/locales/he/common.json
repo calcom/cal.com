@@ -3349,6 +3349,7 @@
   "meeting_start_time": "זמן תחילת הפגישה",
   "members_affected_by_disabling_delegation_credential": "חברים מושפעים",
   "no_members_affected_by_disabling_delegation_credential": "אין חברים שמושפעים מביטול אישור האצלה",
+  "reservation_expired": "הזמנה פגה",
   "download_expense_log": "הורד יומן הוצאות",
   "error_downloading_expense_log": "שגיאה בהורדת יומן ההוצאות",
   "offer_to_reschedule_last_booking": "הצע לקבוע מחדש את ההזמנה הפעילה האחרונה לחלון הזמן שנבחר",

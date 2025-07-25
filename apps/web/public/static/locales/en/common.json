@@ -3359,6 +3359,7 @@
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
+  "reservation_expired": "Reservation Expired",
   "routing_funnel": "Routing Funnel",
   "routing_funnel_total_submissions": "Total Submissions",
   "routing_funnel_successful_routings": "Successful Routings",

@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Ora de început a întâlnirii",
   "members_affected_by_disabling_delegation_credential": "Membri afectați",
   "no_members_affected_by_disabling_delegation_credential": "Niciun membru afectat de dezactivarea acreditivului de delegare",
+  "reservation_expired": "Rezervarea expiră",
   "download_expense_log": "Descarcă jurnalul de cheltuieli",
   "error_downloading_expense_log": "Eroare la descărcarea jurnalului de cheltuieli",
   "offer_to_reschedule_last_booking": "Oferiți posibilitatea de a reprograma ultima rezervare activă la intervalul de timp ales",

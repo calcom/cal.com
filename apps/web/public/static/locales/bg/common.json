@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Начален час на срещата",
   "members_affected_by_disabling_delegation_credential": "Засегнати членове",
   "no_members_affected_by_disabling_delegation_credential": "Няма членове, засегнати от деактивирането на пълномощията за делегиране",
+  "reservation_expired": "Резервацията е изтекла",
   "download_expense_log": "Изтеглете регистър на разходите",
   "error_downloading_expense_log": "Грешка при изтегляне на регистъра на разходите",
   "offer_to_reschedule_last_booking": "Предложете пренасрочване на последната активна резервация за избрания времеви интервал",

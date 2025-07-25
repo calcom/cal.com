@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Starttijd van de vergadering",
   "members_affected_by_disabling_delegation_credential": "Getroffen leden",
   "no_members_affected_by_disabling_delegation_credential": "Geen leden getroffen door het uitschakelen van delegatiereferentie",
+  "reservation_expired": "Reservering verlopen",
   "download_expense_log": "Download uitgavenlogboek",
   "error_downloading_expense_log": "Fout bij het downloaden van uitgavenlogboek",
   "offer_to_reschedule_last_booking": "Bied aan om de laatste actieve boeking te verplaatsen naar het gekozen tijdslot",

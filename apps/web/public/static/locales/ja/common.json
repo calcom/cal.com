@@ -3349,6 +3349,7 @@
   "meeting_start_time": "ミーティング開始時間",
   "members_affected_by_disabling_delegation_credential": "影響を受けるメンバー",
   "no_members_affected_by_disabling_delegation_credential": "委任認証情報の無効化による影響を受けるメンバーはいません",
+  "reservation_expired": "予約期限切れ",
   "download_expense_log": "経費ログをダウンロード",
   "error_downloading_expense_log": "経費ログのダウンロード中にエラーが発生しました",
   "offer_to_reschedule_last_booking": "最後のアクティブな予約を選択した時間枠に再スケジュールすることを提案する",

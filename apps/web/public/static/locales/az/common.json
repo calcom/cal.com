@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Görüş başlama vaxtı",
   "members_affected_by_disabling_delegation_credential": "Təsir edilən üzvlər",
   "no_members_affected_by_disabling_delegation_credential": "Nümayəndəlik etimadnaməsinin deaktiv edilməsindən təsirlənən üzv yoxdur",
+  "reservation_expired": "Rezervasiyanın müddəti bitmişdir",
   "download_expense_log": "Xərc jurnalını yüklə",
   "error_downloading_expense_log": "Xərc jurnalını yükləyərkən xəta baş verdi",
   "offer_to_reschedule_last_booking": "Seçilmiş vaxt aralığına son aktiv rezervasiyanı yenidən planlaşdırmağı təklif edin",

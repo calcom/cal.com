@@ -3349,6 +3349,7 @@
   "meeting_start_time": "Bilera hasiera-ordua",
   "members_affected_by_disabling_delegation_credential": "Eragindako kideak",
   "no_members_affected_by_disabling_delegation_credential": "Ez dago kiderik delegazio kredentzialak desgaitzeak eraginda",
+  "reservation_expired": "Erreserba iraungita",
   "download_expense_log": "Deskargatu gastuen erregistroa",
   "error_downloading_expense_log": "Errorea gastuen erregistroa deskargatzean",
   "offer_to_reschedule_last_booking": "Eskaini azken erreserba aktiboa hautatutako denbora-tartean berriz programatzea",
