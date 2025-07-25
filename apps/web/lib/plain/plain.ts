@@ -17,7 +17,7 @@ export const upsertPlainCustomer = async (user: PlainUser) => {
 
   return await plain.upsertCustomer({
     identifier: {
-      externalId: `${user.id}`,
+      emailAddress: email,
     },
     onCreate: {
       fullName,
