@@ -397,6 +397,7 @@ export class BookingRepository {
               select: {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
+                disableRecordingDownloadEmailForGuests: true,
                 enableAutomaticTranscription: true,
                 enableAutomaticRecordingForOrganizer: true,
                 disableTranscriptionForGuests: true,

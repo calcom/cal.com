@@ -165,6 +165,7 @@ export type FormValues = {
   calVideoSettings?: {
     disableRecordingForOrganizer?: boolean;
     disableRecordingForGuests?: boolean;
+    disableRecordingDownloadEmailForGuests?: boolean;
     enableAutomaticTranscription?: boolean;
     enableAutomaticRecordingForOrganizer?: boolean;
     disableTranscriptionForGuests?: boolean;

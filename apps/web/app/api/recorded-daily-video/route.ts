@@ -137,7 +137,7 @@ export async function postHandler(request: NextRequest) {
       }
 
       // send emails to all attendees only when user has team plan
-      await sendDailyVideoRecordingEmails(evt, downloadLink);
+      await sendDailyVideoRecordingEmails(evt, downloadLink, booking.eventType?.calVideoSettings);
 
       return NextResponse.json({ message: "Success" });
     } else if (body.type === "meeting.ended") {
