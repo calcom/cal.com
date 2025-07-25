@@ -226,7 +226,10 @@ export const BookerPlatformWrapper = (
     selectedDate,
   });
 
-  const startTime = customStartTime || calculatedStartTime;
+  const startTime =
+    customStartTime && dayjs(customStartTime).isAfter(dayjs(calculatedStartTime))
+      ? dayjs(customStartTime).toISOString()
+      : calculatedStartTime;
   const endTime = calculatedEndTime;
 
   const [routingParams, setRoutingParams] = useState<{

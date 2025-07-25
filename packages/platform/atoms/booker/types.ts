@@ -83,8 +83,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   isBookingDryRun?: boolean;
   eventMetaChildren?: React.ReactNode;
   onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
-  /** Optional custom start time in ISO string format (e.g., "2022-06-14T00:00:00.000Z"). If not provided, start time will be calculated automatically based on selected date and view settings. */
-  startTime?: string;
+  startTime?: string | Date;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
