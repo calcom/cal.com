@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
+import { hasLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
@@ -40,28 +41,33 @@ async function postHandler(request: NextRequest) {
       },
     });
 
-    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    // Check if user has locked default availability before updating default schedule timezone
+    const hasLockedAvailability = await hasLockedDefaultAvailabilityRestriction(user.id);
 
-    if (!user.defaultScheduleId) {
-      // set default schedule if not already set
-      await prisma.user.update({
+    if (!hasLockedAvailability) {
+      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
+      if (!user.defaultScheduleId) {
+        // set default schedule if not already set
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+          data: {
+            defaultScheduleId,
+          },
+        });
+      }
+
+      await prisma.schedule.updateMany({
         where: {
-          id: user.id,
+          id: defaultScheduleId,
         },
         data: {
-          defaultScheduleId,
+          timeZone: timeZone,
         },
       });
     }
-
-    await prisma.schedule.updateMany({
-      where: {
-        id: defaultScheduleId,
-      },
-      data: {
-        timeZone: timeZone,
-      },
-    });
     timeZonesChanged++;
   };
 
