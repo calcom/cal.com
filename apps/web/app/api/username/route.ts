@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { checkRateLimitWithIPAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -15,6 +16,11 @@ const bodySchema = z.object({
 });
 
 async function postHandler(request: NextRequest) {
+  await checkRateLimitWithIPAndThrowError({
+    req: request,
+    rateLimitingType: "common",
+    identifier: `api.username`,
+  });
   try {
     const body = await request.json();
     const { username, orgSlug } = bodySchema.parse(body);
