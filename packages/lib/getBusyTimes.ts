@@ -1,3 +1,16 @@
+/**
+ * Gets busy time slots from internal bookings and connected external calendars.
+ *
+ * @param credentials - An array of calendar integration credentials (e.g., Google, Outlook).
+ *                      Each credential has a unique `credentialId`, which you can get by calling GET `/v2/credentials`
+ *                      after integrating a calendar via Settings > Integrations.
+ *
+ * @param selectedCalendars - A list of external calendars selected by the user.
+ *                             Each one has an `externalId` that identifies the calendar on the external provider (e.g., Google Calendar ID).
+ *                             You can fetch these via GET `/v2/calendars`.
+ *
+ * Other params are used to customize the time window, buffers, rescheduling, etc.
+ */
 import type { Booking, EventType } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 

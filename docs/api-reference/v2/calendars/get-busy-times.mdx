@@ -1,0 +1,59 @@
+## `getBusyTimes`
+
+Fetches busy time slots from internal bookings and connected external calendars, such as Google Calendar or Outlook, based on the provided credentials and calendar IDs.
+
+This is useful for checking calendar availability to avoid scheduling conflicts in booking systems.
+
+---
+
+### 🧾 Parameters
+
+#### Required
+
+- `credentialId` (string)  
+  The OAuth credential ID used to authenticate with the calendar provider (e.g., Google or Microsoft Outlook).  
+  - You can get this value from `/v2/credentials` after the user integrates their calendar.  
+  - **Example:** `"cred_google_abc123"`
+
+- `externalId` (string)  
+  The ID of the external calendar linked to the credential.  
+  - You can fetch the list of external calendars for a user via `/v2/calendars`.  
+  - This ID is specific to the calendar provider (e.g., a Google Calendar ID).  
+  - **Example:** `"shivraj2805@gmail.com"`
+
+#### Optional
+
+- `start` (ISO 8601 string)  
+  Start date and time of the range you want to query for busy slots.  
+  - Default is the current date and time.  
+  - **Example:** `"2025-07-26T09:00:00Z"`
+
+- `end` (ISO 8601 string)  
+  End date and time of the range.  
+  - Default is 7 days from the current date.  
+  - **Example:** `"2025-07-30T17:00:00Z"`
+
+- `includeInternalBookings` (boolean)  
+  Whether to include Cal.com internal bookings in the busy slots.  
+  - Default: `true`
+
+- `includeExternalCalendars` (boolean)  
+  Whether to include events from connected external calendars.  
+  - Default: `true`
+
+- `bufferTimeBefore` and `bufferTimeAfter` (number, in minutes)  
+  Time buffers added before or after each busy time slot to account for transition/preparation time.
+
+---
+
+### 🧪 Sample Request
+
+```json
+{
+  "credentialId": "cred_google_abc123",
+  "externalId": "shivraj2805@gmail.com",
+  "start": "2025-07-26T09:00:00Z",
+  "end": "2025-07-26T18:00:00Z",
+  "includeInternalBookings": true,
+  "includeExternalCalendars": true
+}
