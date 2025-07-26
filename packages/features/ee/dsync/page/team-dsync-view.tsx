@@ -11,8 +11,14 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import ConfigureDirectorySync from "../components/ConfigureDirectorySync";
 
+interface DirectorySyncTeamViewProps {
+  permissions?: {
+    canEdit: boolean;
+  };
+}
+
 // For Hosted Cal - Team view
-const DirectorySync = () => {
+const DirectorySync = ({ permissions }: DirectorySyncTeamViewProps) => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -34,6 +40,16 @@ const DirectorySync = () => {
 
   if (error) {
     showToast(error.message, "error");
+  }
+
+  const canEdit = permissions?.canEdit ?? false;
+
+  if (!canEdit) {
+    return (
+      <div className="py-5">
+        <span className="text-default text-sm">{t("only_admin_can_manage_directory_sync")}</span>
+      </div>
+    );
   }
 
   return (
