@@ -10,18 +10,14 @@ import { CardInsights } from "./Card";
 
 export const RoutingKPICards = () => {
   const { t } = useLocale();
-  const { teamId, startDate, endDate, userId, memberUserIds, isAll, routingFormId, columnFilters } =
-    useInsightsParameters();
+  const { startDate, endDate, columnFilters, scope, selectedTeamId } = useInsightsParameters();
 
   const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
     {
-      teamId,
       startDate,
       endDate,
-      userId,
-      memberUserIds,
-      isAll,
-      routingFormId,
+      scope,
+      selectedTeamId,
       columnFilters,
     },
     {
