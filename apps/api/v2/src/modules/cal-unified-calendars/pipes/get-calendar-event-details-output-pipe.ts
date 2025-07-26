@@ -172,7 +172,7 @@ export class GoogleCalendarEventOutputPipe
           responseStatus: this.transformAttendeeResponseStatus(organizer.responseStatus),
         });
       });
-    } else {
+    } else if (googleEvent.organizer) {
       hosts.push({
         email: googleEvent.organizer.email,
         name: googleEvent.organizer.displayName,
@@ -196,6 +196,8 @@ export class GoogleCalendarEventOutputPipe
           regionCode: entryPoint.regionCode,
         };
       });
+    } else if (googleEvent.location) {
+      return [{ type: "video", url: googleEvent.location }];
     } else if (googleEvent.hangoutLink) {
       return [{ type: "video", url: googleEvent.hangoutLink }];
     }
