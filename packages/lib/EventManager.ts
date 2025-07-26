@@ -22,6 +22,8 @@ import {
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { BookingReferenceService } from "@calcom/lib/server/service/BookingReferenceService";
+import { EventResultService } from "@calcom/lib/server/service/EventResultService";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -138,6 +140,8 @@ export default class EventManager {
   videoCredentials: CredentialForCalendarService[];
   crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
+  private readonly bookingReferenceService: BookingReferenceService;
+  private readonly eventResultService: EventResultService;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
@@ -173,6 +177,13 @@ export default class EventManager {
     );
 
     this.appOptions = eventTypeAppMetadata;
+
+    this.bookingReferenceService = new BookingReferenceService({
+      logger: log,
+    });
+    this.eventResultService = new EventResultService({
+      logger: log,
+    });
   }
 
   private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
@@ -520,6 +531,39 @@ export default class EventManager {
   }
 
   /**
+   * Handles the creation of new calendar events when no valid calendar event exists for a booking.
+   * This method encapsulates logging, event creation, and reference management.
+   *
+   * @param evt - The calendar event to create
+   * @param booking - The existing booking
+   * @param updatedBookingReferences - Array to update with new calendar references
+   * @returns Promise<{ results: EventResult<Event>[], createdNewCalendarEvents: boolean }>
+   */
+  private async handleMissingCalendarEvents(
+    evt: CalendarEvent,
+    booking: any,
+    updatedBookingReferences: Array<PartialReference>
+  ): Promise<{ results: Array<EventResult<Event>>; createdNewCalendarEvents: boolean }> {
+    log.debug("No valid calendar event found for booking, creating new calendar events");
+    const createdEventsResults = await this.createAllCalendarEvents(evt);
+    const results = [...createdEventsResults];
+
+    // Update booking references with newly created calendar events
+    const calendarReferences = this.eventResultService
+      .extractSuccessfulCalendarResults(createdEventsResults)
+      .map((result) => this.bookingReferenceService.mapToReferenceData(result));
+
+    // Preserve existing non-calendar references and add new calendar references
+    const existingNonCalendarReferences = this.bookingReferenceService.filterNonCalendarReferences(
+      booking.references
+    );
+    updatedBookingReferences.push(...existingNonCalendarReferences, ...calendarReferences);
+    const createdNewCalendarEvents = calendarReferences.length > 0;
+
+    return { results, createdNewCalendarEvents };
+  }
+
+  /**
    * Takes a calendarEvent and a rescheduleUid and updates the event that has the
    * given uid using the data delivered in the given CalendarEvent.
    *
@@ -587,6 +631,7 @@ export default class EventManager {
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
 
     let isDailyVideoRoomExpired = false;
+    let createdNewCalendarEvents = false;
 
     if (evt.location === "integrations:daily") {
       const originalBookingEndTime = new Date(booking.endTime);
@@ -594,9 +639,6 @@ export default class EventManager {
       const now = new Date();
       isDailyVideoRoomExpired = now > roomExpiryTime;
     }
-
-    const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -643,10 +685,18 @@ export default class EventManager {
           const bookingCalendarReference = booking.references.find((reference) =>
             reference.type.includes("_calendar")
           );
-          // There was a case that booking didn't had any reference and we don't want to throw error on function
-          if (bookingCalendarReference) {
-            // Update all calendar events.
+
+          if (bookingCalendarReference && bookingCalendarReference.uid) {
+            // Update existing calendar events
             results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+          } else {
+            const missingCalendarEventsResult = await this.handleMissingCalendarEvents(
+              evt,
+              booking,
+              updatedBookingReferences
+            );
+            results.push(...missingCalendarEventsResult.results);
+            createdNewCalendarEvents = missingCalendarEventsResult.createdNewCalendarEvents;
           }
         }
 
@@ -670,9 +720,18 @@ export default class EventManager {
       });
     }
 
+    const shouldUpdateBookingReferences =
+      !!changedOrganizer ||
+      isLocationChanged ||
+      !!isBookingRequestedReschedule ||
+      isDailyVideoRoomExpired ||
+      createdNewCalendarEvents;
+
     return {
       results,
-      referencesToCreate: shouldUpdateBookingReferences ? updatedBookingReferences : [...booking.references],
+      referencesToCreate: shouldUpdateBookingReferences
+        ? updatedBookingReferences
+        : [...booking.references],
     };
   }
 
