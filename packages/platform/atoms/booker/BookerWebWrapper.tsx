@@ -153,6 +153,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
+    useProgressiveLoading: true,
   });
   const bookings = useBookings({
     event,
@@ -206,7 +207,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   useEffect(() => {
     if (hasSession) onOverlaySwitchStateChange(true);
-  }, [hasSession]);
+  }, [hasSession, onOverlaySwitchStateChange]);
 
   return (
     <BookerComponent
