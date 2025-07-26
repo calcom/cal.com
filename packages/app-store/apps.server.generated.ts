@@ -34,6 +34,7 @@ export const apiHandlers = {
   ga4: import("./ga4/api"),
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
+  googlesheets: import("./googlesheets/api"),
   googlevideo: import("./googlevideo/api"),
   granola: import("./granola/api"),
   "greetmate-ai": import("./greetmate-ai/api"),

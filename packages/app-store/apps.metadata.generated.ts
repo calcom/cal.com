@@ -34,6 +34,7 @@ import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metad
 import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
+import googlesheets_config_json from "./googlesheets/config.json";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import granola_config_json from "./granola/config.json";
 import greetmate_ai_config_json from "./greetmate-ai/config.json";
@@ -141,6 +142,7 @@ export const appStoreMetadata = {
   ga4: ga4_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
+  googlesheets: googlesheets_config_json,
   googlevideo: googlevideo__metadata_ts,
   granola: granola_config_json,
   "greetmate-ai": greetmate_ai_config_json,
