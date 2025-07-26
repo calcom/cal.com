@@ -195,7 +195,7 @@ function getNavigation({
 
   return [
     {
-      name: t("event_setup_tab_title"),
+      name: t("basics"),
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props

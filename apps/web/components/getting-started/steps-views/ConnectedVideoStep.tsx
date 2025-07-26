@@ -81,7 +81,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         disabled={!hasAnyInstalledVideoApps}
         loading={isPageLoading}
         onClick={() => nextStep()}>
-        {t("next_step_text")}
+        {t("set_availability")}
       </Button>
     </>
   );

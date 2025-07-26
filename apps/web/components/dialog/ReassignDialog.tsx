@@ -218,7 +218,7 @@ export const ReassignDialog = ({
                     placeholder={t("search")}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                  <div className="scroll-bar mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
                     {teamMemberOptions.map((member) => (
                       <label
                         key={member.value}

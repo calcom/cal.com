@@ -149,7 +149,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
   const tabsNavigation: VerticalTabItemProps[] = [];
   tabs.includes("setup") &&
     tabsNavigation.push({
-      name: t("event_setup_tab_title"),
+      name: t("basics"),
       onClick: () => onClick("setup"),
       isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
