@@ -103,7 +103,10 @@ const DateOverrideList = ({
               userTimeFormat={userTimeFormat}
               excludedDates={excludedDates}
               workingHours={workingHours}
-              value={item.ranges}
+              value={item.ranges.map((range) => ({
+                start: new Date(range.start),
+                end: new Date(range.end),
+              }))}
               weekStart={weekStart}
               onChange={(ranges) => {
                 // update has very weird side-effects with sorting.
@@ -113,15 +116,13 @@ const DateOverrideList = ({
               }}
               Trigger={
                 <DialogTrigger asChild>
-                  {!isPlatform && (
-                    <Button
-                      tooltip={t("edit")}
-                      className="text-default h-5"
-                      color="minimal"
-                      variant="icon"
-                      StartIcon="pencil"
-                    />
-                  )}
+                  <Button
+                    tooltip={t("edit")}
+                    className="text-default h-5"
+                    color="minimal"
+                    variant="icon"
+                    StartIcon="pencil"
+                  />
                 </DialogTrigger>
               }
             />
