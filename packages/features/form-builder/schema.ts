@@ -293,7 +293,7 @@ export const fieldTypesSchemaMap: Partial<
         response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
-        m: (key: string) => string;
+        m: (key: string, options?: any) => string;
       }) => void;
     }
   >
@@ -380,16 +380,18 @@ export const fieldTypesSchemaMap: Partial<
       const hasExceededMaxLength = value.length > maxLength;
       const hasNotReachedMinLength = value.length < minLength;
       if (hasExceededMaxLength) {
+        const message = m(`max_characters_allowed`, { count: maxLength });
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Max. ${maxLength} characters allowed`),
+          message,
         });
         return;
       }
       if (hasNotReachedMinLength) {
+        const message = m(`min_characters_required`, { count: minLength });
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Min. ${minLength} characters required`),
+          message,
         });
         return;
       }
