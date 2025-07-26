@@ -1,9 +1,10 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
+import dayjs from "@calcom/dayjs";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
@@ -66,7 +67,10 @@ export const BookEventForm = ({
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+    data?: Pick<
+      BookerEvent,
+      "price" | "currency" | "metadata" | "bookingFields" | "locations" | "minimumBookingNotice"
+    > | null;
   };
 }) => {
   const eventType = eventQuery.data;
@@ -81,6 +85,44 @@ export const BookEventForm = ({
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
+
+  const [isMinimumBookingNoticePassed, setIsMinimumBookingNoticePassed] = useState(false);
+
+  useEffect(() => {
+    const minimumBookingNoticeInMinutes = eventType?.minimumBookingNotice || 0;
+    const minimumBookingNoticeInSeconds = minimumBookingNoticeInMinutes * 60;
+
+    if (!timeslot || !minimumBookingNoticeInSeconds) return;
+
+    const currentTime = dayjs();
+    const meetingTime = dayjs(timeslot);
+
+    // how many seconds are left to the meeting
+    const secondsLeftTillMeeting = meetingTime.diff(currentTime, "second");
+
+    // how many seconds are left to make booking (minimumBookingNotice)
+    const secondsLeftToMakeBooking = Math.min(
+      secondsLeftTillMeeting - minimumBookingNoticeInSeconds,
+      dayjs.duration(10, "days").asSeconds() // we limit it to 10 days because of setTimout don't allow more.
+    );
+
+    // disable if minimumBookingNotice already passed
+    if (secondsLeftToMakeBooking <= 0) {
+      setIsMinimumBookingNoticePassed(true);
+      return;
+    }
+
+    // disable when minimumBookingNotice is passed
+    const timeoutId = setTimeout(
+      () => setIsMinimumBookingNoticePassed(true),
+      secondsLeftToMakeBooking * 1000
+    );
+
+    return () => {
+      clearTimeout(timeoutId);
+      setIsMinimumBookingNoticePassed(false);
+    };
+  }, [timeslot, eventType]);
 
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
@@ -239,7 +281,10 @@ export const BookEventForm = ({
                 type="submit"
                 color="primary"
                 disabled={
-                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                  (!!shouldRenderCaptcha && !watchedCfToken) ||
+                  isTimeslotUnavailable ||
+                  confirmButtonDisabled ||
+                  isMinimumBookingNoticePassed
                 }
                 loading={
                   loadingStates.creatingBooking ||
