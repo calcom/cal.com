@@ -43,6 +43,17 @@ vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
 
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
+  };
+});
+
 const mockOrganizationOnboarding = {
   name: "Test Org",
   slug: "test-org",
