@@ -2240,7 +2240,9 @@ model OrganizationOnboarding {
   name               String
   // We don't keep it unique because we don't want self-serve flows to block a slug if it isn't paid for yet.
   slug               String
+  /// @deprecated Use logoUrl instead. This field stores base64 data which is not optimal.
   logo               String?
+  logoUrl            String?
   bio                String?
   isDomainConfigured Boolean @default(false)
 

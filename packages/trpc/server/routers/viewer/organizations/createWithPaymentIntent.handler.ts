@@ -56,6 +56,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     {
       ...input,
       logo: input.logo ?? null,
+      logoUrl: null, // Let createOrganizationFromOnboarding handle logo processing
       bio: input.bio ?? null,
     },
     organizationOnboarding
