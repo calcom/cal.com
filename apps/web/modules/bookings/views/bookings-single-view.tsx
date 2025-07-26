@@ -1243,7 +1243,7 @@ export default function Success(props: PageProps) {
             <Input
               data-testid="verify-email-input"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t("verification_email_input_placeholder")}
               value={verificationEmail}
               onChange={(e) => setVerificationEmail(e.target.value)}
               className="mb-2"
