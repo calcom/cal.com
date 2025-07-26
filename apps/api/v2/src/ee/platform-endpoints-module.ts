@@ -14,6 +14,7 @@ import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.m
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
+import { TeamsUsersModule } from "@/modules/teams/users/teams-users.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
@@ -34,6 +35,7 @@ import { Module } from "@nestjs/common";
     SlotsModule_2024_04_15,
     SlotsModule_2024_09_04,
     TeamsModule,
+    TeamsUsersModule,
     RoutingFormsModule,
   ],
 })
