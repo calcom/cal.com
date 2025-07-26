@@ -8,6 +8,7 @@ import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
+import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import { bookingsProcedure } from "./util";
 
@@ -20,6 +21,7 @@ type BookingsRouterHandlerCache = {
   getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
   find?: typeof import("./find.handler").getHandler;
   getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
+  reportBooking?: typeof import("./reportBooking.handler").reportBookingHandler;
 };
 
 export const bookingsRouter = router({
@@ -98,4 +100,13 @@ export const bookingsRouter = router({
         input,
       });
     }),
+
+  reportBooking: authedProcedure.input(ZReportBookingInputSchema).mutation(async ({ input, ctx }) => {
+    const { reportBookingHandler } = await import("./reportBooking.handler");
+
+    return reportBookingHandler({
+      ctx,
+      input,
+    });
+  }),
 });
