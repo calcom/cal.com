@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
-export class AttributeToUserRepository {
+export class PrismaAttributeToUserRepository {
   static async createManySkipDuplicates(data: Prisma.AttributeToUserCreateManyInput[]) {
     return await prisma.attributeToUser.createMany({ data, skipDuplicates: true });
   }

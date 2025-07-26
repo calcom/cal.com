@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
-export class AttributeOptionRepository {
+export class PrismaAttributeOptionRepository {
   static async findMany({ orgId }: { orgId: number }) {
     return prisma.attributeOption.findMany({
       where: {
