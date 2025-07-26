@@ -36,7 +36,7 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  const calendarAppImportFn = appStore[calendarType!.split("_").join("") as keyof typeof appStore];
 
   if (!calendarAppImportFn) {
     log.warn(`calendar of type ${calendarType} is not implemented`);

@@ -5,6 +5,8 @@ import {
 
 import { beforeEach, afterEach } from "vitest";
 
+import { AppStoreFactory } from "@calcom/app-store/factory";
+
 export function setupAndTeardown() {
   beforeEach(() => {
     // Required to able to generate token in email in some cases
@@ -17,6 +19,7 @@ export function setupAndTeardown() {
 
     // Ensure that Rate Limiting isn't enforced for tests
     delete process.env.UNKEY_ROOT_KEY;
+    AppStoreFactory.reset();
     mockNoTranslations();
     // mockEnableEmailFeature();
     enableEmailFeature();
@@ -29,6 +32,7 @@ export function setupAndTeardown() {
     //@ts-expect-error - It is a readonly variable
     delete process.env.STRIPE_WEBHOOK_SECRET;
     delete process.env.DAILY_API_KEY;
+    AppStoreFactory.reset();
     globalThis.testEmails = [];
     fetchMock.resetMocks();
     // process.env.DAILY_API_KEY = "MOCK_DAILY_API_KEY";
