@@ -6,7 +6,12 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
-import type { PermissionString, Resource } from "../domain/types/permission-registry";
+import type {
+  PermissionString,
+  Resource,
+  CrudAction,
+  CustomAction,
+} from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
 
@@ -53,8 +58,28 @@ export class PermissionCheckService {
         return [];
       }
 
-      const actions = await this.repository.getResourcePermissions(userId, teamId, resource);
-      return actions.map((action) => PermissionMapper.toPermissionString({ resource, action }));
+      const { membership, orgMembership } = await this.getMembership({ userId, teamId });
+      const actions = new Set<CrudAction | CustomAction>();
+
+      // Get team-level permissions
+      if (membership?.customRoleId) {
+        const teamActions = await this.repository.getResourcePermissionsByRoleId(
+          membership.customRoleId,
+          resource
+        );
+        teamActions.forEach((action) => actions.add(action));
+      }
+
+      // Get org-level permissions as fallback
+      if (membership?.team?.parentId && orgMembership?.customRoleId) {
+        const orgActions = await this.repository.getResourcePermissionsByRoleId(
+          orgMembership.customRoleId,
+          resource
+        );
+        orgActions.forEach((action) => actions.add(action));
+      }
+
+      return Array.from(actions).map((action) => PermissionMapper.toPermissionString({ resource, action }));
     } catch (error) {
       this.logger.error(error);
       return [];
@@ -215,8 +240,8 @@ export class PermissionCheckService {
       membership = await this.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
     }
 
-    if (membership?.team_parentId) {
-      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team_parentId);
+    if (membership?.team.parentId) {
+      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team.parentId);
     }
 
     return { membership, orgMembership };

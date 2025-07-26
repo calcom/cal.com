@@ -14,8 +14,9 @@ import PlainChat from "@lib/plain/dynamicProvider";
 type ProvidersProps = {
   isEmbed: boolean;
   children: React.ReactNode;
+  nonce: string | undefined;
 };
-export function Providers({ isEmbed, children }: ProvidersProps) {
+export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
   const pathname = usePathname();
   const isOnboardingPage = pathname?.startsWith("/getting-started");
@@ -23,7 +24,7 @@ export function Providers({ isEmbed, children }: ProvidersProps) {
   return (
     <SessionProvider>
       <TrpcProvider>
-        {!isBookingPage && !isOnboardingPage ? <PlainChat /> : null}
+        {!isBookingPage && !isOnboardingPage ? <PlainChat nonce={nonce} /> : null}
         {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
         {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
         <CacheProvider>
