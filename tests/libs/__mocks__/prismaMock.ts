@@ -3,6 +3,8 @@ import { DeepMockProxy, mockDeep, mockReset } from "vitest-mock-extended";
 
 import type { PrismaClient } from "@calcom/prisma";
 
+const prisma = mockDeep<PrismaClient>() as unknown as DeepMockProxy<PrismaClient>;
+
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
   prisma,
@@ -14,5 +16,4 @@ beforeEach(() => {
   mockReset(prisma);
 });
 
-const prisma = mockDeep<PrismaClient>() as unknown as DeepMockProxy<PrismaClient>;
 export default prisma;

@@ -53,7 +53,7 @@ export type InsightsRoutingServiceFilterOptions = {
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 
-export class InsightsRoutingService {
+export class InsightsRoutingBaseService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsRoutingServiceOptions | null;
   private filters: InsightsRoutingServiceFilterOptions;
