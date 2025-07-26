@@ -99,6 +99,41 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
+    const team = await ctx.prisma.team.findUnique({
+      where: { id: teamId },
+      select: { createdByOAuthClientId: true, parentId: true },
+    });
+    const isPlatformTeam = !!team?.createdByOAuthClientId;
+
+    if (isPlatformTeam) {
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: userId },
+        select: { isPlatformManaged: true },
+      });
+
+      const isOrgAdmin = team.parentId
+        ? await ctx.prisma.membership.findFirst({
+            where: {
+              userId,
+              teamId: team.parentId,
+              accepted: true,
+              OR: [{ role: "ADMIN" }, { role: "OWNER" }],
+            },
+          })
+        : null;
+
+      if (!user?.isPlatformManaged && !isOrgAdmin) {
+        console.warn(
+          `User ${userId} is not a managed user or org admin and cannot create event types for platform team ${teamId}`
+        );
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message:
+            "Only managed users or organization admins/owners can create event types for platform teams",
+        });
+      }
+    }
+
     data.team = {
       connect: {
         id: teamId,
