@@ -1,6 +1,5 @@
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 
 type TimeViewType = "week" | "month" | "year" | "day";
 
@@ -74,90 +73,6 @@ export interface GetDateRangesParams {
 }
 
 class EventsInsights {
-  static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
-    const bookings = await prisma.bookingTimeStatusDenormalized.findMany({
-      where,
-      select: {
-        id: true,
-      },
-    });
-
-    const { _count: totalNoShowGuests } = await prisma.attendee.aggregate({
-      where: {
-        bookingId: {
-          in: bookings.map((booking) => booking.id),
-        },
-        noShow: true,
-      },
-      _count: true,
-    });
-
-    return totalNoShowGuests;
-  };
-
-  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
-    const data = await prisma.bookingTimeStatusDenormalized.groupBy({
-      where,
-      by: ["timeStatus", "noShowHost"],
-      _count: {
-        _all: true,
-      },
-    });
-
-    return data.reduce(
-      (aggregate: { [x: string]: number }, item) => {
-        if (typeof item.timeStatus === "string" && item) {
-          aggregate[item.timeStatus] += item?._count?._all ?? 0;
-          aggregate["_all"] += item?._count?._all ?? 0;
-
-          if (item.noShowHost) {
-            aggregate["noShowHost"] += item?._count?._all ?? 0;
-          }
-        }
-        return aggregate;
-      },
-      {
-        completed: 0,
-        rescheduled: 0,
-        cancelled: 0,
-        noShowHost: 0,
-        _all: 0,
-      }
-    );
-  };
-
-  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
-    return await prisma.bookingTimeStatusDenormalized.aggregate({
-      _avg: {
-        rating: true,
-      },
-      where: {
-        ...whereConditional,
-        rating: {
-          not: null, // Exclude null ratings
-        },
-      },
-    });
-  };
-
-  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
-    const result = await prisma.bookingTimeStatusDenormalized.findMany({
-      where: {
-        ...whereConditional,
-        rating: {
-          not: null,
-        },
-      },
-      select: { rating: true },
-    });
-
-    const totalResponses = result.length;
-    const satisfactoryResponses = result.filter((item) => item.rating && item.rating > 3).length;
-    const csat = totalResponses > 0 ? (satisfactoryResponses / totalResponses) * 100 : 0;
-
-    return csat;
-  };
-
   static getTimeView = (startDate: string, endDate: string) => {
     const diff = dayjs(endDate).diff(dayjs(startDate), "day");
     if (diff > 365) {
@@ -169,20 +84,6 @@ class EventsInsights {
     } else {
       return "day";
     }
-  };
-
-  static getPercentage = (actualMetric: number, previousMetric: number) => {
-    const differenceActualVsPrevious = actualMetric - previousMetric;
-    if (differenceActualVsPrevious === 0) {
-      return 0;
-    }
-    const result = (differenceActualVsPrevious * 100) / previousMetric;
-
-    if (isNaN(result) || !isFinite(result)) {
-      return 0;
-    }
-
-    return result;
   };
 
   static getDateRanges({

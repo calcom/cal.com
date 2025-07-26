@@ -1,22 +1,27 @@
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
-import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
+import { TotalUserFeedbackTable } from "./TotalUserFeedbackTable";
 
 export const LeastBookedTeamMembersTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { timeZone } = useDataTable();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastBookings.useQuery(
     {
+      scope,
+      selectedTeamId,
+      memberUserId,
       startDate,
       endDate,
-      teamId,
+      timeZone: timeZone || CURRENT_TIMEZONE,
       eventTypeId,
-      isAll,
     },
     {
       staleTime: 30000,
@@ -32,7 +37,7 @@ export const LeastBookedTeamMembersTable = () => {
 
   return (
     <ChartCard title={t("least_booked_members")}>
-      <TotalBookingUsersTable data={data} />
+      <TotalUserFeedbackTable data={data} />
     </ChartCard>
   );
 };

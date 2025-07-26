@@ -18,13 +18,17 @@ export const TotalUserFeedbackTable = ({
       }[]
     | undefined;
 }) => {
+  // Filter out items without user data (for compatibility with TotalBookingUsersTable)
+  const filteredData = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
+
   return (
     <div className="overflow-hidden rounded-md">
-      {data && data?.length > 0 ? (
-        data?.map((item) => (
+      {filteredData.length > 0 ? (
+        filteredData.map((item) => (
           <ChartCardItem
-            key={item.userId}
-            count={item.averageRating ? item.averageRating.toFixed(1) : item.count}>
+            key={item.userId || `user-${Math.random()}`}
+            count={item.averageRating ? item.averageRating.toFixed(1) : item.count}
+            className="py-3">
             <div className="flex items-center">
               <Avatar
                 alt={item.user.name || ""}

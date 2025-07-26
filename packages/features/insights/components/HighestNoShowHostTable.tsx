@@ -1,4 +1,6 @@
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
@@ -8,15 +10,18 @@ import { TotalUserFeedbackTable } from "./TotalUserFeedbackTable";
 
 export const HighestNoShowHostTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { timeZone } = useDataTable();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostNoShow.useQuery(
     {
+      scope,
+      selectedTeamId,
+      memberUserId,
       startDate,
       endDate,
-      teamId,
+      timeZone: timeZone || CURRENT_TIMEZONE,
       eventTypeId,
-      isAll,
     },
     {
       staleTime: 30000,
@@ -30,11 +35,9 @@ export const HighestNoShowHostTable = () => {
 
   if (!isSuccess || !data) return null;
 
-  return data && data.length > 0 ? (
+  return (
     <ChartCard title={t("most_no_show_host")}>
       <TotalUserFeedbackTable data={data} />
     </ChartCard>
-  ) : (
-    <></>
   );
 };
