@@ -8,6 +8,7 @@ import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -42,6 +43,7 @@ import {
   GetBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  UpdateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import {
   CreateBookingInput_2024_08_13,
@@ -1968,6 +1970,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const phone = "+37121999999";
 
       let eventTypeWithAllLocationsId: number;
+
       it("can create event type with all locations except google meet", async () => {
         const eventTypeBody: CreateEventTypeInput_2024_06_14 = {
           title: "book using any location",
@@ -2018,292 +2021,503 @@ describe("Bookings Endpoints 2024-08-13", () => {
         eventTypeWithAllLocationsId = createdEventType.id;
       });
 
-      it("can book with cal video location", async () => {
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "integration",
-            integration: "cal-video",
-          },
-        };
+      describe("can book with different locations", () => {
+        it("can book with cal video location", async () => {
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "integration",
+              integration: "cal-video",
+            },
+          };
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
 
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
 
-        if (responseDataIsBooking(createdBooking)) {
-          expect(
-            createdBooking.location?.startsWith("http") || createdBooking.location === "integrations:daily"
-          ).toEqual(true);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
+          if (responseDataIsBooking(createdBooking)) {
+            expect(
+              createdBooking.location?.startsWith("http") || createdBooking.location === "integrations:daily"
+            ).toEqual(true);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        it("can book with address location", async () => {
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "address",
+            },
+          };
+
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
+
+          if (responseDataIsBooking(createdBooking)) {
+            expect(createdBooking.location).toEqual(address);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        it("can book with link location", async () => {
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "link",
+            },
+          };
+
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
+
+          if (responseDataIsBooking(createdBooking)) {
+            expect(createdBooking.location).toEqual(link);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        it("can book with link location", async () => {
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "phone",
+            },
+          };
+
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
+
+          if (responseDataIsBooking(createdBooking)) {
+            expect(createdBooking.location).toEqual(phone);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        it("can book with attendeeAddress location", async () => {
+          const attendeeAddress = "123 Example St, City, Valhalla";
+
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "attendeeAddress",
+              address: attendeeAddress,
+            },
+          };
+
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
+
+          if (responseDataIsBooking(createdBooking)) {
+            expect(createdBooking.location).toEqual(attendeeAddress);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        xit("can book with attendeeAddress location", async () => {
+          const attendeePhone = "+37120993151";
+
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "attendeePhone",
+              phone: attendeePhone,
+            },
+          };
+
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
+
+          if (responseDataIsBooking(createdBooking)) {
+            expect(createdBooking.location).toEqual(attendeePhone);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        it("can book with attendeeDefined location", async () => {
+          const attendeeDefinedLocation = "namek 100";
+
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "attendeeDefined",
+              location: attendeeDefinedLocation,
+            },
+          };
+
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(201);
+
+          const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
+          const createdBooking = bookingResponseBody.data;
+          expect(createdBooking).toHaveProperty("id");
+
+          if (responseDataIsBooking(createdBooking)) {
+            expect(createdBooking.location).toEqual(attendeeDefinedLocation);
+            await bookingsRepositoryFixture.deleteById(createdBooking.id);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
+
+        it("can't book with not location that is not in event type", async () => {
+          const bookingBody: CreateBookingInput_2024_08_13 = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "integration",
+              integration: "google-meet",
+            },
+          };
+
+          await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
+
+        it("can't book with invalid location type", async () => {
+          const bookingBody = {
+            start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
+            eventTypeId: eventTypeWithAllLocationsId,
+            attendee: {
+              name: "Mr Proper",
+              email: "mr_proper@gmail.com",
+              timeZone: "Europe/Rome",
+              language: "it",
+            },
+            location: {
+              type: "blablabala",
+            },
+          };
+
+          await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(400);
+        });
       });
 
-      it("can book with address location", async () => {
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "address",
-          },
-        };
+      describe("Can update booking with different locations", () => {
+        let booking: Booking;
+        let bookingId: number;
+        let bookingUid: string;
+        let eventTypeWithAllLocationsId: number;
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
+        beforeAll(async () => {
+          const eventTypeBody: CreateEventTypeInput_2024_06_14 = {
+            title: "book using any location",
+            slug: "book-using-any-location",
+            lengthInMinutes: 15,
+            locations: [
+              {
+                type: "integration",
+                integration: "cal-video",
+              },
+              {
+                type: "address",
+                address: "123 Main St",
+                public: true,
+              },
+              {
+                type: "link",
+                link: "https://cal.com/join/123456",
+                public: true,
+              },
+              {
+                type: "phone",
+                phone: "+37121999999",
+                public: true,
+              },
+              {
+                type: "attendeeAddress",
+              },
+              {
+                type: "attendeePhone",
+              },
+              {
+                type: "attendeeDefined",
+              },
+            ],
+          };
 
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
+          const eventTypeResponse = await request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .send(eventTypeBody)
+            .expect(201);
+          const eventTypeResponseBody: CreateEventTypeOutput_2024_06_14 = eventTypeResponse.body;
+          const createdEventType = eventTypeResponseBody.data;
 
-        if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location).toEqual(address);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
-      });
+          expect(createdEventType).toHaveProperty("id");
+          expect(createdEventType.locations).toHaveLength(7);
+          expect(createdEventType.locations).toEqual(eventTypeBody.locations);
 
-      it("can book with link location", async () => {
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "link",
-          },
-        };
+          eventTypeWithAllLocationsId = createdEventType.id;
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
+          booking = await bookingsRepositoryFixture.create({
+            uid: `booking-uid-${randomString(10)}`,
+            title: "booking title",
+            startTime: "2048-08-14T09:00:00.000Z",
+            endTime: "2048-08-14T10:00:00.000Z",
+            eventType: {
+              connect: {
+                id: eventTypeWithAllLocationsId,
+              },
+            },
+            status: "ACCEPTED",
+            metadata: {},
+            responses: "null",
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          });
+          bookingUid = booking.uid;
+          bookingId = booking.id;
+        });
 
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
+        it("can update location to type address", async () => {
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "address",
+            },
+          };
 
-        if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location).toEqual(link);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
-      });
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200);
 
-      it("can book with link location", async () => {
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "phone",
-          },
-        };
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(updatedBooking.location).toEqual(address);
+        });
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
+        it("can update location to type link", async () => {
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "link",
+            },
+          };
 
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200);
 
-        if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location).toEqual(phone);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
-      });
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(updatedBooking.location).toEqual(link);
+        });
 
-      it("can book with attendeeAddress location", async () => {
-        const attendeeAddress = "123 Example St, City, Valhalla";
+        it("can update location to type phone", async () => {
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "phone",
+            },
+          };
 
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "attendeeAddress",
-            address: attendeeAddress,
-          },
-        };
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200);
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(updatedBooking.location).toEqual(phone);
+        });
 
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
+        it("can update location to type attendeeAddress", async () => {
+          const attendeeAddress = "123 Example St, City, Valhalla";
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "attendeeAddress",
+              address: attendeeAddress,
+            },
+          };
 
-        if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location).toEqual(attendeeAddress);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
-      });
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200);
 
-      xit("can book with attendeeAddress location", async () => {
-        const attendeePhone = "+37120993151";
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(updatedBooking.location).toEqual(attendeeAddress);
+        });
 
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "attendeePhone",
-            phone: attendeePhone,
-          },
-        };
+        it("can update location to type attendeePhone", async () => {
+          const attendeePhone = "+37120993151";
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "attendeePhone",
+              phone: attendeePhone,
+            },
+          };
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200);
 
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(updatedBooking.location).toEqual(attendeePhone);
+        });
 
-        if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location).toEqual(attendeePhone);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
-      });
+        it("can update location to type attendeeDefined", async () => {
+          const attendeeDefinedLocation = "namek 100";
+          const updatedBookingBody: UpdateBookingInput_2024_08_13 = {
+            location: {
+              type: "attendeeDefined",
+              location: attendeeDefinedLocation,
+            },
+          };
 
-      it("can book with attendeeDefined location", async () => {
-        const attendeeDefinedLocation = "namek 100";
+          const updatedBookingResponse = await request(app.getHttpServer())
+            .patch(`/v2/bookings/${bookingUid}`)
+            .send(updatedBookingBody)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .expect(200);
 
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "attendeeDefined",
-            location: attendeeDefinedLocation,
-          },
-        };
+          const updatedBookingResponseBody: GetBookingOutput_2024_08_13 = updatedBookingResponse.body;
+          const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+          expect(updatedBooking).toHaveProperty("id");
+          expect(updatedBooking.location).toEqual(attendeeDefinedLocation);
+        });
 
-        const bookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
-
-        const bookingResponseBody: CreateBookingOutput_2024_08_13 = bookingResponse.body;
-        const createdBooking = bookingResponseBody.data;
-        expect(createdBooking).toHaveProperty("id");
-
-        if (responseDataIsBooking(createdBooking)) {
-          expect(createdBooking.location).toEqual(attendeeDefinedLocation);
-          await bookingsRepositoryFixture.deleteById(createdBooking.id);
-        } else {
-          throw new Error("Unexpected response data type");
-        }
-      });
-
-      it("can't book with not location that is not in event type", async () => {
-        const bookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "integration",
-            integration: "google-meet",
-          },
-        };
-
-        await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(400);
-      });
-
-      it("can't book with invalid location type", async () => {
-        const bookingBody = {
-          start: new Date(Date.UTC(2040, 0, 9, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithAllLocationsId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: {
-            type: "blablabala",
-          },
-        };
-
-        await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(bookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(400);
+        afterAll(async () => {
+          if (responseDataIsBooking(booking)) {
+            await bookingsRepositoryFixture.deleteById(bookingId);
+          } else {
+            throw new Error("Unexpected response data type");
+          }
+        });
       });
     });
 

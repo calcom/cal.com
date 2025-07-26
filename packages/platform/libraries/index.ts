@@ -3,6 +3,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import { getLocationValuesForDb } from "@calcom/features/bookings/lib/handleNewBooking/getLocationValuesForDb";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import {
   verifyPhoneNumber,
@@ -119,3 +120,4 @@ export type { TFindTeamMembersMatchingAttributeLogicInputSchema } from "@calcom/
 export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
+export { getLocationValuesForDb };

@@ -8,6 +8,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { getPagination } from "@/lib/pagination/pagination";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -24,6 +25,7 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { LocationObject } from "@calcom/lib/location";
 import {
   handleNewRecurringBooking,
   getTranslation,
@@ -37,6 +39,13 @@ import {
   getCalendarLinks,
 } from "@calcom/platform-libraries";
 import { handleNewBooking } from "@calcom/platform-libraries";
+import { enrichUsersWithDelegationCredentials } from "@calcom/platform-libraries/app-store";
+import { getDefaultConferencingAppLocation } from "@calcom/platform-libraries/conferencing";
+import {
+  getLocationValueForDB,
+  getOrgIdFromMemberOrTeamId,
+  getBookingDataLocation,
+} from "@calcom/platform-libraries/locations";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -51,9 +60,11 @@ import {
   GetRecurringSeatedBookingOutput_2024_08_13,
   RescheduleBookingInput,
   CancelBookingInput,
+  UpdateBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
 import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import { EventType, User, Team, Booking } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -95,7 +106,8 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13,
+    private readonly credentialsRepository: CredentialsRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -1017,5 +1029,81 @@ export class BookingsService_2024_08_13 {
       // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
+  }
+
+  async updateBooking(bookingUid: string, body: UpdateBookingInput_2024_08_13) {
+    const existingBooking = await this.bookingsRepository.getByUid(bookingUid);
+    if (!existingBooking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
+    }
+    const { location } = body;
+
+    if (!!location) {
+      return await this.updateBookingLocation(existingBooking, location);
+    }
+
+    return this.getBooking(existingBooking.uid);
+  }
+
+  async updateBookingLocation(existingBooking: Booking, location: BookingInputLocation_2024_08_13) {
+    const bookingUid = existingBooking.uid;
+    let bookingLocation = existingBooking.location ?? "";
+
+    if (!existingBooking.userId) {
+      throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
+    }
+
+    if (!existingBooking.eventTypeId) {
+      throw new NotFoundException(`No event type found for booking with uid=${bookingUid}`);
+    }
+
+    const existingBookingHost = await this.usersRepository.findById(existingBooking.userId);
+
+    if (!existingBookingHost) {
+      throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
+    }
+
+    const existingBookingEventType = await this.eventTypesRepository.getEventTypeById(
+      existingBooking.eventTypeId
+    );
+
+    if (location.type === "organizersDefaultApp") {
+      const existingBookingHostCredentials = await this.credentialsRepository.getAllUserCredentialsById(
+        existingBookingHost.id
+      );
+      const existingBookingUserOrgId = await getOrgIdFromMemberOrTeamId({
+        memberId: existingBooking.userId ?? null,
+        teamId: existingBookingEventType?.teamId,
+      });
+      const enrichedUser = await enrichUsersWithDelegationCredentials({
+        orgId: existingBookingUserOrgId ?? null,
+        users: [
+          {
+            id: existingBookingHost.id,
+            email: existingBookingHost.email,
+            credentials: existingBookingHostCredentials,
+          },
+        ],
+      });
+
+      bookingLocation = getDefaultConferencingAppLocation(
+        existingBookingHost?.metadata,
+        enrichedUser?.[0]?.credentials ?? []
+      );
+    } else {
+      const transformedLocation = this.inputService.transformLocation(location);
+      const locationValue = getBookingDataLocation(transformedLocation);
+      const { bookingLocation: bookingLocationForDB } = getLocationValueForDB(
+        locationValue,
+        existingBookingEventType?.locations as unknown as LocationObject[]
+      );
+      bookingLocation = bookingLocationForDB;
+    }
+
+    const updatedBooking = await this.bookingsRepository.updateBooking(bookingUid, {
+      location: bookingLocation,
+    });
+
+    return this.getBooking(updatedBooking.uid);
   }
 }
