@@ -6,12 +6,12 @@ import {
   type InsightsRoutingServiceFilterOptions,
 } from "./insightsRoutingBase";
 
-export interface IInsightsRoutingService {
+export interface Dependencies {
   prisma: typeof readonlyPrisma;
 }
 
 export class InsightsRoutingService {
-  constructor(private readonly dependencies: IInsightsRoutingService) {}
+  constructor(private readonly deps: Dependencies) {}
 
   create({
     options,
@@ -21,7 +21,7 @@ export class InsightsRoutingService {
     filters: InsightsRoutingServiceFilterOptions;
   }): InsightsRoutingBaseService {
     return new InsightsRoutingBaseService({
-      prisma: this.dependencies.prisma,
+      prisma: this.deps.prisma,
       options,
       filters,
     });
