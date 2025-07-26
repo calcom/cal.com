@@ -9,8 +9,8 @@ import { RetryableError } from "@calcom/lib/crmManager/errors";
 import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";
 import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/lib/server/repository/PrismaRoutingFormResponseRepository";
-import { AssignmentReasonRepository } from "@calcom/lib/server/repository/assignmentReason";
 import { RoutingFormResponseDataFactory } from "@calcom/lib/server/service/routingForm/RoutingFormResponseDataFactory";
 import { findFieldValueByIdentifier } from "@calcom/lib/server/service/routingForm/responseData/findFieldValueByIdentifier";
 import { prisma } from "@calcom/prisma";
@@ -1342,7 +1342,7 @@ export default class SalesforceCRMService implements CRM {
   }
 
   private async getAssignmentReason(bookingId: string) {
-    const assignmentReason = await AssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
+    const assignmentReason = await PrismaAssignmentReasonRepository.findLatestReasonFromBookingUid(bookingId);
     return assignmentReason?.reasonString ?? "";
   }
 

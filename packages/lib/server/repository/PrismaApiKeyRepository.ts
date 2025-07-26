@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-export class ApiKeyRepository {
+export class PrismaApiKeyRepository {
   static async findApiKeysFromUserId({ userId }: { userId: number }) {
     return await prisma.apiKey.findMany({
       where: {
