@@ -566,15 +566,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
-    dateFrom,
-    dateTo,
+    dateFrom: dateFrom.toDate(),
+    dateTo: dateTo.toDate(),
     availability,
     timeZone,
     travelSchedules: isDefaultSchedule
       ? user.travelSchedules.map((schedule) => {
           return {
-            startDate: dayjs(schedule.startDate),
-            endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+            startDate: new Date(schedule.startDate),
+            endDate: schedule.endDate ? new Date(schedule.endDate) : undefined,
             timeZone: schedule.timeZone,
           };
         })
@@ -583,8 +583,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
+    start: new Date(busy.start),
+    end: new Date(busy.end),
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);

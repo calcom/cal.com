@@ -10,11 +10,11 @@ function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
 
   return ranges
     .sort((a, b) => {
-      const startDiff = a.start.valueOf() - b.start.valueOf();
-      return startDiff !== 0 ? startDiff : a.end.valueOf() - b.end.valueOf();
+      const startDiff = a.start.getTime() - b.start.getTime();
+      return startDiff !== 0 ? startDiff : a.end.getTime() - b.end.getTime();
     })
     .filter((range) => {
-      const key = `${range.start.valueOf()}-${range.end.valueOf()}`;
+      const key = `${range.start.getTime()}-${range.end.getTime()}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

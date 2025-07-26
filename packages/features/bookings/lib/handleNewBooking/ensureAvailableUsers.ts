@@ -1,7 +1,6 @@
 import type { Logger } from "tslog";
 
 import dayjs from "@calcom/dayjs";
-import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -19,8 +18,8 @@ import type { BookingType } from "./originalRescheduledBookingUtils";
 import type { IsFixedAwareUser } from "./types";
 
 type DateRange = {
-  start: Dayjs;
-  end: Dayjs;
+  start: Date;
+  end: Date;
 };
 
 const getDateTimeInUtc = (timeInput: string, timeZone?: string) => {
@@ -39,11 +38,16 @@ const hasDateRangeForBooking = (
   endDateTimeUtc: dayjs.Dayjs
 ) => {
   let dateRangeForBooking = false;
+  const startTime = startDateTimeUtc.toDate().getTime();
+  const endTime = endDateTimeUtc.toDate().getTime();
 
   for (const dateRange of dateRanges) {
+    const rangeStart = dateRange.start.getTime();
+    const rangeEnd = dateRange.end.getTime();
+
     if (
-      (startDateTimeUtc.isAfter(dateRange.start) || startDateTimeUtc.isSame(dateRange.start)) &&
-      (endDateTimeUtc.isBefore(dateRange.end) || endDateTimeUtc.isSame(dateRange.end))
+      (startTime > rangeStart || startTime === rangeStart) &&
+      (endTime < rangeEnd || endTime === rangeEnd)
     ) {
       dateRangeForBooking = true;
       break;
@@ -192,9 +196,13 @@ const _ensureAvailableUsers = async (
       const { dateRanges: restrictionRanges } = buildDateRanges({
         availability: restrictionAvailability,
         timeZone: restrictionTimezone,
-        dateFrom: startDateTimeUtc,
-        dateTo: endDateTimeUtc,
-        travelSchedules,
+        dateFrom: startDateTimeUtc.toDate(),
+        dateTo: endDateTimeUtc.toDate(),
+        travelSchedules: travelSchedules.map((schedule) => ({
+          startDate: schedule.startDate.toDate(),
+          endDate: schedule.endDate ? schedule.endDate.toDate() : undefined,
+          timeZone: schedule.timeZone,
+        })),
       });
 
       if (!hasDateRangeForBooking(restrictionRanges, startDateTimeUtc, endDateTimeUtc)) {

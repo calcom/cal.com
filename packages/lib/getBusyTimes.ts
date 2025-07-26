@@ -221,17 +221,24 @@ const _getBusyTimes = async (params: {
     const result = subtract(
       calendarBusyTimes.map((value) => ({
         ...value,
-        end: dayjs(value.end),
-        start: dayjs(value.start),
+        end: new Date(value.end),
+        start: new Date(value.start),
       })),
-      openSeatsDateRanges
+      openSeatsDateRanges.map((range) => ({
+        start: range.start.toDate(),
+        end: range.end.toDate(),
+      }))
     );
 
     busyTimes.push(
       ...result.map((busyTime) => ({
         ...busyTime,
-        start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
-        end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
+        start: dayjs(busyTime.start)
+          .subtract(afterEventBuffer || 0, "minute")
+          .toDate(),
+        end: dayjs(busyTime.end)
+          .add(beforeEventBuffer || 0, "minute")
+          .toDate(),
       }))
     );
 
