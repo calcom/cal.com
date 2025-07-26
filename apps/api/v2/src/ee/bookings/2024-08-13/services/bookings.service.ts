@@ -1,3 +1,4 @@
+import { AUDIT_LOG_EVENT, AuditLogPayload } from "@/ee/audit-logs/lib/audit-log.events";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
@@ -20,6 +21,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
@@ -53,7 +55,7 @@ import {
   CancelBookingInput,
 } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import { Booking, EventType, User, Team } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -95,7 +97,8 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13
+    private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput) {
@@ -383,6 +386,20 @@ export class BookingsService_2024_08_13 {
     );
     if (!databaseBooking) {
       throw new Error(`Booking with id=${booking.bookingId} was not found in the database`);
+    }
+
+    // AUDIT LOG: Only emit an event if the event type belongs to a team.
+    if (eventType.teamId) {
+      this._emitAuditEvent({
+        action: "booking.created",
+        actorId: bookingRequest.userId,
+        teamId: eventType.teamId, // This is now guaranteed to be a number
+        booking: databaseBooking,
+        metadata: {
+          instant: true,
+          bookerEmail: body.attendee.email,
+        },
+      });
     }
 
     return this.outputService.getOutputBooking(databaseBooking);
@@ -1017,5 +1034,31 @@ export class BookingsService_2024_08_13 {
       // It can be made customizable through the API endpoint later.
       t: await getTranslation("en", "common"),
     });
+  }
+
+  private _emitAuditEvent(data: {
+    action: string;
+    actorId: number;
+    teamId: number;
+    booking: Partial<Booking & { uid?: string }>;
+    metadata?: Record<string, unknown>;
+  }) {
+    if (!data.teamId) {
+      return; // Don't log if there's no associated team/org
+    }
+
+    const payload: AuditLogPayload = {
+      action: data.action,
+      actorId: data.actorId,
+      teamId: data.teamId,
+      targetType: "Booking",
+      targetId: String(data.booking.id),
+      metadata: {
+        bookingUid: data.booking.uid,
+        bookingTitle: data.booking.title,
+        ...data.metadata,
+      },
+    };
+    this.eventEmitter.emit(AUDIT_LOG_EVENT, payload);
   }
 }

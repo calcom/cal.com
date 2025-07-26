@@ -18,6 +18,7 @@ import { BullModule } from "@nestjs/bull";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from "@nestjs/core";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 import { seconds, ThrottlerModule } from "@nestjs/throttler";
 import { SentryModule, SentryGlobalFilter } from "@sentry/nestjs/setup";
 
@@ -25,6 +26,7 @@ import { AppController } from "./app.controller";
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     SentryModule.forRoot(),
     ConfigModule.forRoot({
       ignoreEnvFile: true,
