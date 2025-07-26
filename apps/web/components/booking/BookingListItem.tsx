@@ -18,6 +18,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -68,7 +69,9 @@ import {
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number] & {
+  allowManagedEventReassignment?: boolean;
+};
 
 export type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
@@ -413,6 +416,8 @@ function BookingListItem(booking: BookingItemProps) {
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
+          eventTypeSchedulingType={booking.eventType.schedulingType || SchedulingType.ROUND_ROBIN}
+          allowManagedEventReassignment={booking.eventType.allowManagedEventReassignment}
         />
       )}
       <EditLocationDialog
