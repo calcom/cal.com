@@ -230,3 +230,5 @@ export const IS_SMS_CREDITS_ENABLED =
 export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "25", 10);
 
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
+
+export const DEFAULT_GROUP_ID = "default_group_id";
