@@ -36,7 +36,7 @@ export const useOAuthClient = ({
   }, [apiUrl, refreshUrl]);
 
   useEffect(() => {
-    if (!isEmbed && clientId && http.getUrl() && prevClientId !== clientId) {
+    if (clientId && http.getUrl()) {
       try {
         http
           .get<ApiResponse<{ client: string; organizationId: number; name: string }>>(`/provider/${clientId}`)
@@ -55,7 +55,7 @@ export const useOAuthClient = ({
         console.error(err);
       }
     }
-  }, [isEmbed, clientId, onError, prevClientId, onSuccess]);
+  }, [JSON.stringify(clientId), onError, onSuccess]);
 
   return { isInit };
 };
