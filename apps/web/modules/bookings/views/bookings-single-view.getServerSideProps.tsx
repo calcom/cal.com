@@ -218,7 +218,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
-  const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
+  async function getTeamCancellationSettings(teamId: number | null) {
+    if (!teamId) return null;
+    return await prisma.team.findUnique({
+      where: { id: teamId },
+      select: {
+        mandatoryCancellationReasonForHost: true,
+        mandatoryCancellationReasonForAttendee: true,
+      },
+    });
+  }
+
+  const teamId = eventType.team?.id ?? eventType.parent?.teamId ?? null;
+  const internalNotes = await getInternalNotePresets(teamId);
+  const teamCancellationSettings = await getTeamCancellationSettings(teamId);
 
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
@@ -251,6 +264,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       rescheduledToUid,
       isLoggedInUserHost,
       internalNotePresets: internalNotes,
+      teamCancellationSettings,
     },
   };
 }

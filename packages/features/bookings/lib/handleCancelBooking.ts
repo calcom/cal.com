@@ -113,10 +113,28 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
+  // Check if cancellation reason is required based on team settings
+  const isHost = bookingToDelete.userId === userId;
+  let isCancellationReasonRequired = false;
+
+  if (bookingToDelete.eventType?.team) {
+    // Use team settings if available
+    if (isHost) {
+      isCancellationReasonRequired = bookingToDelete.eventType.team.mandatoryCancellationReasonForHost;
+    } else {
+      isCancellationReasonRequired = bookingToDelete.eventType.team.mandatoryCancellationReasonForAttendee;
+    }
+  } else {
+    // Fallback to old behavior for non-team events (hosts require reason)
+    isCancellationReasonRequired = isHost;
+  }
+
+  if (!platformClientId && !cancellationReason?.trim() && isCancellationReasonRequired) {
     throw new HttpError({
       statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
+      message: isHost
+        ? "Cancellation reason is required when you are the host"
+        : "Cancellation reason is required",
     });
   }
 
