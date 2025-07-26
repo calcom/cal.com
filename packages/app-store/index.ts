@@ -42,6 +42,7 @@ const appStore = {
   telegramvideo: createCachedImport(() => import("./telegram")),
   shimmervideo: createCachedImport(() => import("./shimmervideo")),
   hitpay: createCachedImport(() => import("./hitpay")),
+  bigbluebuttonvideo: createCachedImport(() => import("./bigbluebutton")),
 };
 
 function createCachedImport<T>(importFunc: () => Promise<T>): () => Promise<T> {
