@@ -40,6 +40,7 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
+  cancelNoShowTasksForBooking,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -2049,15 +2050,22 @@ async function handler(
     const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
     const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
-    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
+    const deleteWebhookScheduledTriggerPromises: Promise<unknown>[] = [];
     const scheduleTriggerPromises = [];
 
     if (rescheduleUid && originalRescheduledBooking) {
       //delete all scheduled triggers for meeting ended and meeting started of booking
-      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
-        booking: originalRescheduledBooking,
-        isDryRun,
-      });
+      deleteWebhookScheduledTriggerPromises.push(
+        deleteWebhookScheduledTriggers({
+          booking: originalRescheduledBooking,
+          isDryRun,
+        })
+      );
+      deleteWebhookScheduledTriggerPromises.push(
+        cancelNoShowTasksForBooking({
+          bookingUid: originalRescheduledBooking.uid,
+        })
+      );
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
@@ -2090,12 +2098,14 @@ async function handler(
       }
     }
 
-    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
-      loggerWithEventDetails.error(
-        "Error while scheduling or canceling webhook triggers",
-        JSON.stringify({ error })
-      );
-    });
+    await Promise.all([...deleteWebhookScheduledTriggerPromises, ...scheduleTriggerPromises]).catch(
+      (error) => {
+        loggerWithEventDetails.error(
+          "Error while scheduling or canceling webhook triggers",
+          JSON.stringify({ error })
+        );
+      }
+    );
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({
@@ -2198,7 +2208,12 @@ async function handler(
   try {
     if (isConfirmedByDefault) {
       await scheduleNoShowTriggers({
-        booking: { startTime: booking.startTime, id: booking.id, location: booking.location },
+        booking: {
+          startTime: booking.startTime,
+          id: booking.id,
+          location: booking.location,
+          uid: booking.uid,
+        },
         triggerForUser,
         organizerUser: { id: organizerUser.id },
         eventTypeId,
