@@ -450,7 +450,7 @@ export default function Success(props: PageProps) {
       if (prev === needsVerification) return prev;
       return needsVerification;
     });
-  }, [session, isValidBookingEmail]);
+  }, [session, isValidBookingEmail, searchParams, sessionStatus]);
 
   const updateSearchParams = useCallback(
     async (email: string) => {
@@ -489,11 +489,8 @@ export default function Success(props: PageProps) {
     const emailParam = searchParams.get("email");
     if (!emailParam) return false;
 
-    return (
-      bookingInfo?.attendees?.some((attendee) => attendee.email.toLowerCase() === emailParam.toLowerCase()) ||
-      emailParam.toLowerCase() === bookingInfo?.user?.email.toLowerCase()
-    );
-  }, [session, searchParams, bookingInfo]);
+    return isValidBookingEmail(emailParam);
+  }, [session, searchParams, isValidBookingEmail]);
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -964,7 +961,7 @@ export default function Success(props: PageProps) {
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
                               attendees: bookingInfo?.attendees,
-                              userEmail: bookingInfo?.user?.email as string,
+                              userEmail: bookingInfo?.user?.email || "",
                             }}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
@@ -1233,10 +1230,14 @@ export default function Success(props: PageProps) {
       </main>
       <Dialog
         open={showVerificationDialog}
-        onOpenChange={setShowVerificationDialog}
+        onOpenChange={() => {
+          setShowVerificationDialog;
+        }}
         data-testid="verify-email-dialog">
-        <DialogContent>
-          <DialogHeader title="Verify your email" />
+        <DialogContent
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}>
+          <DialogHeader title={t("verify_email")} />
           <div className="space-y-4 py-4">
             <p className="text-default text-sm">{t("verification_email_dialog_description")}</p>
             <Input
