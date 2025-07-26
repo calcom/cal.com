@@ -1,0 +1,19 @@
+{
+  "name": "@calcom/embed-troubleshooter",
+  "version": "1.0.0",
+  "description": "Cal.com Embed Troubleshooter",
+  "main": "dist/troubleshooter.js",
+  "scripts": {
+    "dev": "vite build --watch & vite",
+    "dev:remote": "CAL_ORIGIN=http://app.cal.remote:3000 vite build --watch & CAL_ORIGIN=http://app.cal.remote:3000 vite",
+    "build": "vite build",
+    "build:remote": "CAL_ORIGIN=http://app.cal.remote:3000 vite build",
+    "build:prod": "CAL_ORIGIN=https://app.cal.com vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}
