@@ -1,5 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetAtomSchedulesQueryParams } from "@/modules/atoms/inputs/get-atom-schedules-query-params.input";
+import { GetBusyEventsQueryParams } from "@/modules/atoms/inputs/get-busy-events-query-params.input";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -81,6 +82,23 @@ export class AtomsSchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: updatedSchedule,
+    };
+  }
+  @Get("/busy-events")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @Permissions([SCHEDULE_READ])
+  @ApiOperation({ summary: "Get busy events schedule" })
+  async getBusyEvents(
+    @Query() queryParams: GetBusyEventsQueryParams
+  ): Promise<ApiResponse<FindDetailedScheduleByIdReturnType | null>> {
+    const schedule = await this.schedulesService.getBusyEventsSchedule({
+      ...queryParams,
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: schedule,
     };
   }
 }
