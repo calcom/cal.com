@@ -116,6 +116,7 @@ describe("handleChildrenEventTypes", () => {
         autoTranslateDescriptionEnabled,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -177,6 +178,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -287,6 +289,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -351,6 +354,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         rrSegmentQueryValue,
         useEventLevelSelectedCalendars,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -416,6 +420,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation,
         instantMeetingScheduleId,
         assignRRMembersUsingSegment,
+        showOptimizedSlots,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -440,6 +445,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage: false,
         lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
+        showOptimizedSlots: false,
         workflows: [],
         parentId: 1,
         locations: [],
