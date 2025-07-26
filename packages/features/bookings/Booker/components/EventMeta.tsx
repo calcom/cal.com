@@ -58,6 +58,7 @@ export const EventMeta = ({
   event?: Pick<
     BookerEvent,
     | "lockTimeZoneToggleOnBookingPage"
+    | "lockedTimeZone"
     | "schedule"
     | "seatsPerTimeSlot"
     | "subsetOfUsers"
@@ -112,9 +113,12 @@ export const EventMeta = ({
   );
 
   useEffect(() => {
-    //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
-    if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
-      setTimezone(event.schedule?.timeZone);
+    //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone
+    if (event?.lockTimeZoneToggleOnBookingPage) {
+      const timezone = event.lockedTimeZone || event.schedule?.timeZone;
+      if (timezone) {
+        setTimezone(timezone);
+      }
     }
   }, [event, setTimezone]);
 
@@ -217,7 +221,8 @@ export const EventMeta = ({
                 <span
                   className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
-                  }`}>
+                  }`}
+                  data-testid="event-meta-current-timezone">
                   <TimezoneSelect
                     timeZones={timeZones}
                     menuPosition="absolute"
@@ -230,7 +235,11 @@ export const EventMeta = ({
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
-                    value={event.lockTimeZoneToggleOnBookingPage ? CURRENT_TIMEZONE : timezone}
+                    value={
+                      event.lockTimeZoneToggleOnBookingPage
+                        ? event.lockedTimeZone || CURRENT_TIMEZONE
+                        : timezone
+                    }
                     onChange={({ value }) => {
                       setTimezone(value);
                       setBookerStoreTimezone(value);

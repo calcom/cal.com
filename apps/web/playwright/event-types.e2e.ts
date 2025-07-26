@@ -420,6 +420,33 @@ test.describe("Event Types tests", () => {
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       await expect(offerSeatsToggle).toBeDisabled();
     });
+    test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
+      page,
+      users,
+    }) => {
+      await gotoFirstEventType(page);
+      await expect(page.locator("[data-testid=event-title]")).toBeVisible();
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await page.click("[data-testid=lock-timezone-toggle]");
+      await page.click("[data-testid=timezone-select]");
+      await page.locator('[aria-label="Timezone Select"]').fill("New York");
+      await page.keyboard.press("Enter");
+
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
+      await page.goto("/event-types");
+      const previewLink = await page
+        .locator("[data-testid=preview-link-button]")
+        .first()
+        .getAttribute("href");
+
+      await page.goto(previewLink ?? "");
+      const currentTimezone = page.locator('[data-testid="event-meta-current-timezone"]');
+      await expect(currentTimezone).toBeVisible();
+      await expect(currentTimezone).toHaveClass(/cursor-not-allowed/);
+      await expect(page.getByText("New York")).toBeVisible();
+    });
   });
 
   test.describe("Interface Language Tests", () => {
