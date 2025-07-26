@@ -264,6 +264,57 @@ function getSelectedCalendars({
   return user.userLevelSelectedCalendars;
 }
 
+export async function cleanupOrphanedSelectedCalendars({
+  user,
+  connectedCalendars,
+}: {
+  user: UserWithCalendars;
+  connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
+}) {
+  try {
+    if (connectedCalendars.length === 0) {
+      return;
+    }
+
+    const existingCalendarIds = new Set<string>();
+    connectedCalendars.forEach((integration) => {
+      integration.calendars?.forEach((cal) => {
+        existingCalendarIds.add(cal.externalId);
+      });
+    });
+
+    const userSelectedCalendars = await SelectedCalendarRepository.findMany({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        externalId: true,
+      },
+    });
+
+    const orphanedCalendars = userSelectedCalendars.filter(
+      (selectedCal) => !existingCalendarIds.has(selectedCal.externalId)
+    );
+
+    if (orphanedCalendars.length > 0) {
+      log.info(`Cleaning up orphaned calendar records for user ${user.id}`);
+
+      const orphanedCalendarsId = orphanedCalendars.map((cal) => cal.id);
+
+      await prisma.selectedCalendar.deleteMany({
+        where: {
+          id: {
+            in: orphanedCalendarsId,
+          },
+        },
+      });
+    }
+  } catch (error) {
+    log.warn("Failed to cleanup orphaned selected calendars:", error);
+  }
+}
+
 /**
  * Fetches the calendars for the authenticated user or the event-type if provided
  * It also takes care of updating the destination calendar in some edge cases
@@ -371,6 +422,11 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   const noConflictingNonDelegatedConnectedCalendars = _ensureNoConflictingNonDelegatedConnectedCalendar({
     connectedCalendars,
     loggedInUser: { email: user.email },
+  });
+
+  await cleanupOrphanedSelectedCalendars({
+    user,
+    connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
   });
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
