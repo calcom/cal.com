@@ -610,6 +610,7 @@ model OrganizationSettings {
   allowSEOIndexing                    Boolean    @default(false)
   orgProfileRedirectsToVerifiedDomain Boolean    @default(false)
   disablePhoneOnlySMSNotifications    Boolean    @default(false)
+  disableAutoFillOnBookingPage        Boolean    @default(false)
 }
 
 enum MembershipRole {
