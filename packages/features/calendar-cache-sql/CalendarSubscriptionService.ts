@@ -29,7 +29,7 @@ export class CalendarSubscriptionService implements ICalendarSubscriptionService
         delegatedTo: credential.delegatedTo
           ? {
               serviceAccountKey: {
-                client_email: credential.delegatedTo.serviceAccountKey.client_email,
+                client_email: credential.delegatedTo.serviceAccountKey.client_email!,
                 client_id: credential.delegatedTo.serviceAccountKey.client_id,
                 private_key: credential.delegatedTo.serviceAccountKey.private_key,
               },
@@ -67,7 +67,7 @@ export class CalendarSubscriptionService implements ICalendarSubscriptionService
         delegatedTo: credential.delegatedTo
           ? {
               serviceAccountKey: {
-                client_email: credential.delegatedTo.serviceAccountKey.client_email,
+                client_email: credential.delegatedTo.serviceAccountKey.client_email!,
                 client_id: credential.delegatedTo.serviceAccountKey.client_id,
                 private_key: credential.delegatedTo.serviceAccountKey.private_key,
               },

@@ -1,4 +1,7 @@
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type {
+  CredentialForCalendarService,
+  CredentialForCalendarServiceWithEmail,
+} from "@calcom/types/Credential";
 
 import type { ICalendarEventRepository } from "./calendar-event.repository.interface";
 import type { ICalendarSubscriptionRepository } from "./calendar-subscription.repository.interface";
@@ -38,10 +41,27 @@ export class CalendarCacheSqlService {
       throw new Error("Calendar subscription not found");
     }
 
+    if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
+      throw new Error("Delegation credential missing required client_email");
+    }
+
+    const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
+      ...credential,
+      delegatedTo: credential.delegatedTo
+        ? {
+            serviceAccountKey: {
+              client_email: credential.delegatedTo.serviceAccountKey.client_email!,
+              client_id: credential.delegatedTo.serviceAccountKey.client_id,
+              private_key: credential.delegatedTo.serviceAccountKey.private_key,
+            },
+          }
+        : null,
+    };
+
     const { CalendarCacheService } = await import(
       "@calcom/app-store/googlecalendar/lib/CalendarCacheService"
     );
-    const cacheService = new CalendarCacheService(credential);
+    const cacheService = new CalendarCacheService(credentialWithEmail);
 
     const args = {
       timeMin: new Date().toISOString(),
