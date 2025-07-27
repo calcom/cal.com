@@ -49,6 +49,16 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
+  usernameAliases: z
+    .array(
+      z.object({
+        id: z.number(),
+        username: z.string(),
+        usernamePrimary: z.boolean().optional().default(false),
+        isDeleted: z.boolean().default(false),
+      })
+    )
+    .optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

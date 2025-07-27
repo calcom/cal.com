@@ -46,6 +46,9 @@ import TwoFactor from "@components/auth/TwoFactor";
 import CustomEmailTextField from "@components/settings/CustomEmailTextField";
 import SecondaryEmailConfirmModal from "@components/settings/SecondaryEmailConfirmModal";
 import SecondaryEmailModal from "@components/settings/SecondaryEmailModal";
+import UsernameAliasConfirmModal from "@components/settings/UsernameAliasConfirmModal";
+import UsernameAliasField from "@components/settings/UsernameAliasField";
+import UsernameAliasModal from "@components/settings/UsernameAliasModal";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
@@ -79,6 +82,12 @@ type Email = {
   emailPrimary: boolean;
 };
 
+type UsernameAlias = {
+  id: number;
+  username: string;
+  usernamePrimary?: boolean; // Make this optional since it might not exist in the database
+};
+
 export type FormValues = {
   username: string;
   avatarUrl: string | null;
@@ -86,6 +95,7 @@ export type FormValues = {
   email: string;
   bio: string;
   secondaryEmails: Email[];
+  usernameAliases: UsernameAlias[];
 };
 
 const ProfileView = () => {
@@ -142,6 +152,21 @@ const ProfileView = () => {
     },
   });
 
+  const addUsernameAliasMutation = trpc.viewer.loggedInViewerRouter.addUsernameAlias.useMutation({
+    onSuccess: (res) => {
+      setShowUsernameAliasModalOpen(false);
+      setNewlyAddedUsernameAlias(res?.data?.username);
+      // After adding a new username alias, refresh the data
+      utils.viewer.me.invalidate().then(() => {
+        // Force a re-render to ensure the UI is updated
+        setForceUpdate((prev) => prev + 1);
+      });
+    },
+    onError: (error) => {
+      setUsernameAliasAddErrorMessage(error?.message || "");
+    },
+  });
+
   const resendVerifyEmailMutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
@@ -152,6 +177,11 @@ const ProfileView = () => {
   const [showSecondaryEmailModalOpen, setShowSecondaryEmailModalOpen] = useState(false);
   const [secondaryEmailAddErrorMessage, setSecondaryEmailAddErrorMessage] = useState("");
   const [newlyAddedSecondaryEmail, setNewlyAddedSecondaryEmail] = useState<undefined | string>(undefined);
+
+  const [showUsernameAliasModalOpen, setShowUsernameAliasModalOpen] = useState(false);
+  const [usernameAliasAddErrorMessage, setUsernameAliasAddErrorMessage] = useState("");
+  const [newlyAddedUsernameAlias, setNewlyAddedUsernameAlias] = useState<undefined | string>(undefined);
+  const [forceUpdate, setForceUpdate] = useState(0); // Used to force re-render when needed
 
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
@@ -266,12 +296,13 @@ const ProfileView = () => {
         emailPrimary: false,
       })),
     ],
+    usernameAliases: user.usernameAliases || [],
   };
 
   return (
     <>
       <ProfileForm
-        key={JSON.stringify(defaultValues)}
+        key={`${JSON.stringify(defaultValues)}-${forceUpdate}`}
         defaultValues={defaultValues}
         isPending={updateProfileMutation.isPending}
         isFallbackImg={!user.avatarUrl}
@@ -286,6 +317,7 @@ const ProfileView = () => {
           }
         }}
         handleAddSecondaryEmail={() => setShowSecondaryEmailModalOpen(true)}
+        handleAddUsernameAlias={() => setShowUsernameAliasModalOpen(true)}
         handleResendVerifyEmail={(email) => {
           resendVerifyEmailMutation.mutate({ email });
           showToast(t("email_sent"), "success");
@@ -473,6 +505,37 @@ const ProfileView = () => {
           onCancel={() => setNewlyAddedSecondaryEmail(undefined)}
         />
       )}
+
+      {showUsernameAliasModalOpen && (
+        <UsernameAliasModal
+          isLoading={addUsernameAliasMutation.isPending}
+          errorMessage={usernameAliasAddErrorMessage}
+          handleAddUsernameAlias={(values) => {
+            setUsernameAliasAddErrorMessage("");
+            addUsernameAliasMutation.mutate(values);
+          }}
+          onCancel={() => {
+            setUsernameAliasAddErrorMessage("");
+            setShowUsernameAliasModalOpen(false);
+          }}
+          clearErrorMessage={() => {
+            addUsernameAliasMutation.reset();
+            setUsernameAliasAddErrorMessage("");
+          }}
+        />
+      )}
+      {!!newlyAddedUsernameAlias && (
+        <UsernameAliasConfirmModal
+          username={newlyAddedUsernameAlias}
+          onCancel={() => {
+            setNewlyAddedUsernameAlias(undefined);
+            // Refresh the data after adding a new username alias
+            utils.viewer.me.invalidate().then(() => {
+              setForceUpdate((prev) => prev + 1);
+            });
+          }}
+        />
+      )}
     </>
   );
 };
@@ -483,14 +546,23 @@ type SecondaryEmailApiPayload = {
   isDeleted: boolean;
 };
 
-type ExtendedFormValues = Omit<FormValues, "secondaryEmails"> & {
+type UsernameAliasApiPayload = {
+  id: number;
+  username: string;
+  usernamePrimary?: boolean; // Make this optional since it might not exist in the database
+  isDeleted: boolean;
+};
+
+type ExtendedFormValues = Omit<FormValues, "secondaryEmails" | "usernameAliases"> & {
   secondaryEmails: SecondaryEmailApiPayload[];
+  usernameAliases: UsernameAliasApiPayload[];
 };
 
 const ProfileForm = ({
   defaultValues,
   onSubmit,
   handleAddSecondaryEmail,
+  handleAddUsernameAlias,
   handleResendVerifyEmail,
   handleAccountDisconnect,
   extraField,
@@ -503,6 +575,7 @@ const ProfileForm = ({
   defaultValues: FormValues;
   onSubmit: (values: ExtendedFormValues) => void;
   handleAddSecondaryEmail: () => void;
+  handleAddUsernameAlias: () => void;
   handleResendVerifyEmail: (email: string) => void;
   handleAccountDisconnect: (values: ExtendedFormValues) => void;
   extraField?: React.ReactNode;
@@ -535,6 +608,12 @@ const ProfileForm = ({
         emailPrimary: z.boolean().optional(),
       })
     ),
+    usernameAliases: z.array(
+      z.object({
+        id: z.number(),
+        username: z.string(),
+      })
+    ),
   });
 
   const formMethods = useForm<FormValues>({
@@ -552,8 +631,38 @@ const ProfileForm = ({
     keyName: "itemId",
   });
 
+  const {
+    fields: usernameAliasFields,
+    remove: deleteUsernameAlias,
+    replace: updateAllUsernameAliasFields,
+  } = useFieldArray({
+    control: formMethods.control,
+    name: "usernameAliases",
+    keyName: "itemId",
+  });
+
+  // State to track which username alias is primary
+  const [primaryUsernameAliasId, setPrimaryUsernameAliasId] = useState<number | null>(() => {
+    // If no alias is marked as primary but there are aliases, use the first one
+    const primaryAlias = defaultValues.usernameAliases.find((alias) => alias.usernamePrimary);
+    if (primaryAlias) {
+      return primaryAlias.id;
+    }
+
+    // If there's no primary alias but there are aliases, check if any alias matches the current username
+    const matchingAlias = defaultValues.usernameAliases.find(
+      (alias) => alias.username === defaultValues.username
+    );
+    if (matchingAlias) {
+      return matchingAlias.id;
+    }
+
+    return null;
+  });
+
   const getUpdatedFormValues = (values: FormValues) => {
-    const changedFields = formMethods.formState.dirtyFields?.secondaryEmails || [];
+    const changedEmailFields = formMethods.formState.dirtyFields?.secondaryEmails || [];
+    const changedUsernameAliasFields = formMethods.formState.dirtyFields?.usernameAliases || [];
     const updatedValues: FormValues = {
       ...values,
     };
@@ -569,7 +678,7 @@ const ProfileForm = ({
 
     // We will only send the emails which have already changed
     const updatedEmails: Email[] = [];
-    changedFields.map((field, index) => {
+    changedEmailFields.map((field, index) => {
       // If the email changed and if its only secondary email, we add it for updation, the first
       // item in the list is always primary email
       if (field?.email && updatedValues.secondaryEmails[index]?.id) {
@@ -585,9 +694,35 @@ const ProfileForm = ({
       ...deletedEmails.map((email) => ({ ...email, isDeleted: true })),
     ].map((secondaryEmail) => pick(secondaryEmail, ["id", "email", "isDeleted"]));
 
+    // Handle username aliases
+    const updatedUsernameAliases: UsernameAlias[] = [];
+    changedUsernameAliasFields.map((field, index) => {
+      if (field?.username && updatedValues.usernameAliases[index]?.id) {
+        updatedUsernameAliases.push(updatedValues.usernameAliases[index]);
+      }
+    });
+
+    // If the primary username alias is changed, we will need to update
+    const primaryUsernameAliasIndex = updatedValues.usernameAliases.findIndex(
+      (usernameAlias) => usernameAlias.usernamePrimary
+    );
+    if (primaryUsernameAliasIndex >= 0) {
+      // Add the new updated value as primary username
+      updatedValues.username = updatedValues.usernameAliases[primaryUsernameAliasIndex].username;
+    }
+
+    const deletedUsernameAliases = (user?.usernameAliases || []).filter(
+      (usernameAlias) => !updatedValues.usernameAliases.find((val) => val.id && val.id === usernameAlias.id)
+    );
+    const usernameAliases = [
+      ...updatedUsernameAliases.map((alias) => ({ ...alias, isDeleted: false })),
+      ...deletedUsernameAliases.map((alias) => ({ ...alias, isDeleted: true })),
+    ].map((usernameAlias) => pick(usernameAlias, ["id", "username", "usernamePrimary", "isDeleted"]));
+
     return {
       ...updatedValues,
       secondaryEmails,
+      usernameAliases,
     };
   };
 
@@ -657,6 +792,59 @@ const ProfileForm = ({
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
+          <Label>{t("username_aliases")}</Label>
+          <div className="-mt-2 flex flex-wrap items-start gap-2">
+            <div
+              className={
+                usernameAliasFields.length > 0 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
+              }>
+              {usernameAliasFields.map((field, index) => (
+                <UsernameAliasField
+                  key={field.itemId}
+                  formMethods={formMethods}
+                  formMethodFieldName={
+                    `usernameAliases.${index}.username` as `usernameAliases.${number}.username`
+                  }
+                  errorMessage={get(
+                    formMethods.formState.errors,
+                    `usernameAliases.${index}.username.message`
+                  )}
+                  dataTestId={`profile-form-username-alias-${index}`}
+                  usernamePrimary={primaryUsernameAliasId === field.id}
+                  handleChangePrimary={() => {
+                    setPrimaryUsernameAliasId(field.id);
+
+                    // Also update the main username field
+                    formMethods.setValue("username", field.username, { shouldDirty: true });
+
+                    // Update the fields to reflect the primary status
+                    const fields = usernameAliasFields.map((aliasField) => ({
+                      ...aliasField,
+                      usernamePrimary: aliasField.id === field.id,
+                    }));
+                    updateAllUsernameAliasFields(fields);
+
+                    // Submit the form to save the changes immediately
+                    setTimeout(() => {
+                      formMethods.handleSubmit(handleFormSubmit)();
+                    }, 100);
+                  }}
+                  handleItemDelete={() => deleteUsernameAlias(index)}
+                />
+              ))}
+            </div>
+            <Button
+              color="secondary"
+              StartIcon="plus"
+              className="mt-2"
+              onClick={() => handleAddUsernameAlias()}
+              data-testid="add-username-alias-button">
+              {t("add_alias")}
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
@@ -697,6 +885,7 @@ const ProfileForm = ({
             </Button>
           </div>
         </div>
+
         <div className="mt-6">
           <Label>{t("about")}</Label>
           <Editor

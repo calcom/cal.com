@@ -204,9 +204,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Button color="secondary" StartIcon="plus" className="mt-2 ">
-        {t("add_alias")}
-      </Button>
     </div>
   );
 };

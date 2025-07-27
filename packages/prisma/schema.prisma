@@ -399,6 +399,7 @@ model User {
   movedToProfileId               Int?
   movedToProfile                 Profile?                      @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails                SecondaryEmail[]
+  usernameAliases                UsernameAlias[]
   isPlatformManaged              Boolean                       @default(false)
   OutOfOfficeReasons             OutOfOfficeReason[]
   smsLockState                   SMSLockState                  @default(UNLOCKED)
@@ -1902,6 +1903,18 @@ model SecondaryEmail {
   @@unique([email])
   @@unique([userId, email])
   @@index([userId])
+}
+
+model UsernameAlias {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username        String
+  usernamePrimary Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, username])
+  @@index([username])
 }
 
 // Needed to store tasks that need to be processed by a background worker or Tasker

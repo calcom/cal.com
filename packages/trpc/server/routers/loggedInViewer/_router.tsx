@@ -2,7 +2,7 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
-import { ZAddSecondaryUsernameInputSchema } from "./addSecondaryUsername.schema";
+import { ZAddUsernameAliasInputSchema } from "./addUsernameAlias.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
@@ -17,7 +17,7 @@ type AppsRouterHandlerCache = {
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
-  addSecondaryUsername?: typeof import("./addSecondaryUsername.handler").addSecondaryUsernameHandler;
+  addUsernameAlias?: typeof import("./addUsernameAlias.handler").addUsernameAliasHandler;
   addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
   removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
   markNoShow?: typeof import("./markNoShow.handler").markNoShow;
@@ -55,12 +55,10 @@ export const loggedInViewerRouter = router({
     const { addSecondaryEmailHandler } = await import("./addSecondaryEmail.handler");
     return addSecondaryEmailHandler({ ctx, input });
   }),
-  addSecondaryUsername: authedProcedure
-    .input(ZAddSecondaryUsernameInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const { addSecondaryUsernameHandler } = await import("./addSecondaryUsername.handler");
-      return addSecondaryUsernameHandler({ ctx, input });
-    }),
+  addUsernameAlias: authedProcedure.input(ZAddUsernameAliasInputSchema).mutation(async ({ ctx, input }) => {
+    const { addUsernameAliasHandler } = await import("./addUsernameAlias.handler");
+    return addUsernameAliasHandler({ ctx, input });
+  }),
   addNotificationsSubscription: authedProcedure
     .input(ZAddNotificationsSubscriptionInputSchema)
     .mutation(async ({ ctx, input }) => {
