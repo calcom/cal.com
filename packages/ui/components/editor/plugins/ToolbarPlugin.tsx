@@ -342,63 +342,65 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   };
 
   useEffect(() => {
-    if (!props.firstRender) {
+    let unregisterUpdateListener: (() => void) | null = null;
+
+    const initializeEditor = () => {
       editor.update(() => {
         const root = $getRoot();
-        if (root) {
-          editor.update(() => {
-            const parser = new DOMParser();
-            // Create a new TextNode
-            const dom = parser.parseFromString(props.getText(), "text/html");
-
-            const nodes = $generateNodesFromDOM(editor, dom);
-            const paragraph = $createParagraphNode();
-            root.clear().append(paragraph);
-            paragraph.select();
-            $insertNodes(nodes);
-          });
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.updateTemplate]);
-
-  useEffect(() => {
-    if (props.setFirstRender) {
-      props.setFirstRender(false);
-      editor.update(() => {
         const parser = new DOMParser();
         const dom = parser.parseFromString(props.getText(), "text/html");
-
         const nodes = $generateNodesFromDOM(editor, dom);
 
-        $getRoot().select();
-        try {
-          $insertNodes(nodes);
-        } catch (e: unknown) {
-          // resolves: "topLevelElement is root node at RangeSelection.insertNodes"
-          // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
-          const paragraphNode = $createParagraphNode();
-          nodes.forEach((n) => paragraphNode.append(n));
-          $getRoot().append(paragraphNode);
-        }
+        root.clear();
 
-        editor.registerUpdateListener(({ editorState, prevEditorState }) => {
-          editorState.read(() => {
-            const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-            props.setText(
-              textInHtml.replace(
-                /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
-                "<p class='editor-paragraph'></p>"
-              )
-            );
-          });
-          if (!prevEditorState._selection) editor.blur();
+        if (nodes.length === 0) {
+          const paragraph = $createParagraphNode();
+          root.append(paragraph);
+          paragraph.select();
+        } else {
+          try {
+            root.select();
+            $insertNodes(nodes);
+          } catch (e) {
+            // Fallback: create paragraph and append nodes
+            const paragraph = $createParagraphNode();
+            nodes.forEach((node) => paragraph.append(node));
+            root.append(paragraph);
+          }
+        }
+      });
+    };
+
+    initializeEditor();
+
+    if (!unregisterUpdateListener) {
+      unregisterUpdateListener = editor.registerUpdateListener(({ editorState, prevEditorState }) => {
+        editorState.read(() => {
+          const textInHtml = $generateHtmlFromNodes(editor).replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+          const cleanedHtml = textInHtml.replace(
+            /<p\s+class="editor-paragraph"[^>]*>\s*<br>\s*<\/p>/g,
+            "<p class='editor-paragraph'></p>"
+          );
+
+          props.setText(cleanedHtml);
         });
+
+        if (!prevEditorState._selection) {
+          editor.blur();
+        }
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    if (props.setFirstRender) {
+      props.setFirstRender(false);
+    }
+
+    return () => {
+      if (unregisterUpdateListener) {
+        unregisterUpdateListener();
+      }
+    };
+  }, [props.updateTemplate]);
 
   useEffect(() => {
     return mergeRegister(
