@@ -60,6 +60,10 @@ async function postHandler(request: NextRequest) {
     const eventRepo = new CalendarEventRepository(prisma);
     const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
 
+    if (!credentialForCalendarCache) {
+      return NextResponse.json({ error: "Credential not found" }, { status: 404 });
+    }
+
     await calendarCacheService.processWebhookEvents(channelId, credentialForCalendarCache);
 
     return NextResponse.json({ message: "ok" });
