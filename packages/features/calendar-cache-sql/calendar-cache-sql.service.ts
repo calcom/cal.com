@@ -1,3 +1,5 @@
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
+
 import type { ICalendarEventRepository } from "./calendar-event.repository.interface";
 import type { ICalendarSubscriptionRepository } from "./calendar-subscription.repository.interface";
 
@@ -30,19 +32,23 @@ export class CalendarCacheSqlService {
     });
   }
 
-  async processWebhookEvents(channelId: string, credential: any) {
+  async processWebhookEvents(channelId: string, credential: CredentialForCalendarService) {
     const subscription = await this.subscriptionRepo.findByChannelId(channelId);
     if (!subscription) {
       throw new Error("Calendar subscription not found");
     }
 
-    const { getCalendar } = await import("@calcom/app-store/_utils/getCalendar");
-    const calendarService = await getCalendar(credential);
+    const { CalendarCacheService } = await import(
+      "@calcom/app-store/googlecalendar/lib/CalendarCacheService"
+    );
+    const cacheService = new CalendarCacheService(credential);
 
-    if (!calendarService) {
-      throw new Error("Could not get calendar service");
-    }
+    const args = {
+      timeMin: new Date().toISOString(),
+      timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      items: [{ id: subscription.selectedCalendar.externalId }],
+    };
 
-    await calendarService.fetchAvailabilityAndSetCache?.([subscription.selectedCalendar]);
+    await cacheService.fetchAvailability(args);
   }
 }

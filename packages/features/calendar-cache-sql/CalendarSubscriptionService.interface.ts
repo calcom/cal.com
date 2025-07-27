@@ -13,5 +13,10 @@ export interface ICalendarSubscriptionService {
     calendarId: string,
     credential: CredentialForCalendarService
   ): Promise<GoogleChannelProps | undefined>;
-  unwatchCalendar(calendarId: string, credential: CredentialForCalendarService): Promise<void>;
+  unwatchCalendar(
+    calendarId: string,
+    credential: CredentialForCalendarService,
+    channelId: string,
+    resourceId: string
+  ): Promise<void>;
 }
