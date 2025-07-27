@@ -362,6 +362,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
             root.select();
             $insertNodes(nodes);
           } catch (e) {
+            // resolves: "topLevelElement is root node at RangeSelection.insertNodes"
+            // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
             // Fallback: create paragraph and append nodes
             const paragraph = $createParagraphNode();
             nodes.forEach((node) => paragraph.append(node));
@@ -400,6 +402,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         unregisterUpdateListener();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.updateTemplate]);
 
   useEffect(() => {
