@@ -88,16 +88,71 @@ export default function ImageUploader({
     method: "readAsDataURL",
   });
 
-  const onInputFile = (e: FileEvent<HTMLInputElement>) => {
+  const validateImageFile = async (file: File): Promise<string | null> => {
+    const limit = 5 * 1000000; // max limit 5mb
+    if (file.size > limit) {
+      return t("image_size_limit_exceed");
+    }
+
+    if (!file.type.startsWith("image/")) {
+      return "Only image files are allowed";
+    }
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
+
+      if (
+        uint8Array.length >= 4 &&
+        uint8Array[0] === 0x25 &&
+        uint8Array[1] === 0x50 &&
+        uint8Array[2] === 0x44 &&
+        uint8Array[3] === 0x46
+      ) {
+        return "PDF files cannot be uploaded as images";
+      }
+
+      const isValidImage =
+        (uint8Array.length >= 8 &&
+          uint8Array[0] === 0x89 &&
+          uint8Array[1] === 0x50 &&
+          uint8Array[2] === 0x4e &&
+          uint8Array[3] === 0x47) ||
+        (uint8Array.length >= 3 &&
+          uint8Array[0] === 0xff &&
+          uint8Array[1] === 0xd8 &&
+          uint8Array[2] === 0xff) ||
+        (uint8Array.length >= 6 &&
+          uint8Array[0] === 0x47 &&
+          uint8Array[1] === 0x49 &&
+          uint8Array[2] === 0x46 &&
+          uint8Array[3] === 0x38) ||
+        (uint8Array.length >= 12 &&
+          uint8Array[0] === 0x52 &&
+          uint8Array[1] === 0x49 &&
+          uint8Array[2] === 0x46 &&
+          uint8Array[3] === 0x46);
+
+      if (!isValidImage) {
+        return "Invalid image file format";
+      }
+
+      return null;
+    } catch (error) {
+      return "Failed to validate image file";
+    }
+  };
+
+  const onInputFile = async (e: FileEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) {
       return;
     }
 
-    const limit = 5 * 1000000; // max limit 5mb
     const file = e.target.files[0];
+    const validationError = await validateImageFile(file);
 
-    if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+    if (validationError) {
+      showToast(validationError, "error");
     } else {
       setFile(file);
     }

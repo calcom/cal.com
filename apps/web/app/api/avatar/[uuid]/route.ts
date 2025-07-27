@@ -67,11 +67,25 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
   const decoded = img.toString().replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,", "");
   const imageResp = Buffer.from(decoded, "base64");
 
+  const { validateImageMagicNumbers, getValidatedMimeType } = await import(
+    "@calcom/lib/server/imageValidation"
+  );
+  const validation = validateImageMagicNumbers(imageResp);
+
+  if (!validation.isValid) {
+    const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
+    return NextResponse.redirect(url, 302);
+  }
+
+  const contentType = getValidatedMimeType(imageResp);
+
   return new NextResponse(imageResp, {
     headers: {
-      "Content-Type": "image/png",
+      "Content-Type": contentType,
       "Content-Length": imageResp.length.toString(),
       "Cache-Control": "max-age=86400",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline';",
     },
     status: 200,
   });

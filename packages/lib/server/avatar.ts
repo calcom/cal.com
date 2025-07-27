@@ -3,10 +3,21 @@ import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@calcom/prisma";
 
 import { convertSvgToPng } from "./imageUtils";
+import { validateBase64Image } from "./imageValidation";
 
 export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
+  const validation = validateBase64Image(data);
+  if (!validation.isValid) {
+    throw new Error(`Invalid image file: ${validation.error || "Unknown error"}`);
+  }
+
   const objectKey = uuidv4();
   const processedData = await convertSvgToPng(data);
+
+  const processedValidation = validateBase64Image(processedData);
+  if (!processedValidation.isValid) {
+    throw new Error("Image processing resulted in invalid file");
+  }
 
   await prisma.avatar.upsert({
     where: {
