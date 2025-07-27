@@ -12,7 +12,7 @@
     "@calcom/prisma": "*",
     "@calcom/types": "*",
     "@calcom/ui": "*",
-    "zod": "^3.21.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@calcom/types": "*"

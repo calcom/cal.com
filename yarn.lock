@@ -3375,6 +3375,7 @@ __metadata:
     "@calcom/prisma": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
