@@ -672,12 +672,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                     ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                   }
                   overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                  customClassNames={{
-                    dateOverridesSectionClassName: customClassNames?.dateOverridesSectionClassName,
-                    dateOverridesHeadingClassName: customClassNames?.dateOverridesHeadingClassName,
-                    dateOverridesDescriptionClassName: customClassNames?.dateOverridesDescriptionClassName,
-                    addOverrideButtonClassName: customClassNames?.addOverrideButtonClassName,
-                  }}
                 />
               )}
             </div>
