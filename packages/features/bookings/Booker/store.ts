@@ -83,7 +83,11 @@ export type BookerStore = {
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
-  setSelectedDate: (date: string | null, omitUpdatingParams?: boolean) => void;
+  setSelectedDate: (
+    date: string | null,
+    omitUpdatingParams?: boolean,
+    preventMonthSwitching?: boolean
+  ) => void;
   addToSelectedDate: (days: number) => void;
   /**
    * Multiple Selected Dates and Times
@@ -192,7 +196,11 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
-  setSelectedDate: (selectedDate: string | null, omitUpdatingParams = false) => {
+  setSelectedDate: (
+    selectedDate: string | null,
+    omitUpdatingParams = false,
+    preventMonthSwitching = false
+  ) => {
     // unset selected date
     if (!selectedDate) {
       removeQueryParam("date");
@@ -207,14 +215,13 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     }
 
     // Setting month make sure small calendar in fullscreen layouts also updates.
-    // code was added here: https://github.com/calcom/cal.com/pull/9684/files#r1236983205
-    // month is also correctly changed without this code, so I don't think we need this
-    // if (newSelection.month() !== currentSelection.month()) {
-    //   set({ month: newSelection.format("YYYY-MM") });
-    //   if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
-    //     updateQueryParam("month", newSelection.format("YYYY-MM"));
-    //   }
-    // }
+    // preventMonthSwitching is true in monthly view
+    if (!preventMonthSwitching && newSelection.month() !== currentSelection.month()) {
+      set({ month: newSelection.format("YYYY-MM") });
+      if (!omitUpdatingParams && (!get().isPlatform || get().allowUpdatingUrlParams)) {
+        updateQueryParam("month", newSelection.format("YYYY-MM"));
+      }
+    }
   },
   selectedDatesAndTimes: null,
   setSelectedDatesAndTimes: (selectedDatesAndTimes) => {
