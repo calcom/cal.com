@@ -11,12 +11,10 @@ import {
   Rectangle,
 } from "recharts";
 
-import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
+import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
 import { ChartCard } from "./ChartCard";
 import { LoadingInsight } from "./LoadingInsights";
 
@@ -99,21 +97,13 @@ const CustomTooltip = ({
 
 export const BookingsByHourChart = () => {
   const { t } = useLocale();
-  const { timeZone } = useDataTable();
-  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const insightsBookingParams = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.bookingsByHourStats.useQuery(
+    insightsBookingParams,
     {
-      scope,
-      selectedTeamId,
-      startDate,
-      endDate,
-      eventTypeId,
-      memberUserId,
-      timeZone: timeZone || CURRENT_TIMEZONE,
-    },
-    {
-      staleTime: 30000,
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },

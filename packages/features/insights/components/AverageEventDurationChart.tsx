@@ -1,9 +1,7 @@
-import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
+import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
 import { valueFormatter } from "../lib/valueFormatter";
 import { ChartCard } from "./ChartCard";
 import { LineChart } from "./LineChart";
@@ -11,21 +9,13 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
-  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
-  const { timeZone } = useDataTable();
+  const insightsBookingParams = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
+    insightsBookingParams,
     {
-      scope,
-      selectedTeamId,
-      startDate,
-      endDate,
-      timeZone: timeZone || CURRENT_TIMEZONE,
-      eventTypeId,
-      memberUserId,
-    },
-    {
-      staleTime: 30000,
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
