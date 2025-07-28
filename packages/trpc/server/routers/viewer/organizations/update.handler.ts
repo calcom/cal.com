@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
+import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
@@ -161,32 +162,78 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (
-    input.banner &&
-    (input.banner.startsWith("data:image/png;base64,") ||
+  if (input.banner) {
+    // Validate the banner image data
+    const validation = validateBase64Image(input.banner);
+    if (!validation.isValid) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Invalid banner image: ${validation.error}`,
+      });
+    }
+
+    if (
+      input.banner.startsWith("data:image/png;base64,") ||
       input.banner.startsWith("data:image/jpeg;base64,") ||
-      input.banner.startsWith("data:image/jpg;base64,"))
-  ) {
-    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
-    data.bannerUrl = await uploadLogo({
-      logo: banner,
-      teamId: currentOrgId,
-      isBanner: true,
-    });
+      input.banner.startsWith("data:image/jpg;base64,") ||
+      input.banner.startsWith("data:image/svg+xml;base64,")
+    ) {
+      try {
+        const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
+        data.bannerUrl = await uploadLogo({
+          logo: banner,
+          teamId: currentOrgId,
+          isBanner: true,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error instanceof Error ? error.message : "Failed to upload banner",
+        });
+      }
+    } else {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Unsupported banner format. Please use PNG, JPEG, or SVG.",
+      });
+    }
   } else {
     data.bannerUrl = null;
   }
 
-  if (
-    input.logoUrl &&
-    (input.logoUrl.startsWith("data:image/png;base64,") ||
+  if (input.logoUrl) {
+    // Validate the logo image data
+    const validation = validateBase64Image(input.logoUrl);
+    if (!validation.isValid) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Invalid logo image: ${validation.error}`,
+      });
+    }
+
+    if (
+      input.logoUrl.startsWith("data:image/png;base64,") ||
       input.logoUrl.startsWith("data:image/jpeg;base64,") ||
-      input.logoUrl.startsWith("data:image/jpg;base64,"))
-  ) {
-    data.logoUrl = await uploadLogo({
-      logo: await resizeBase64Image(input.logoUrl),
-      teamId: currentOrgId,
-    });
+      input.logoUrl.startsWith("data:image/jpg;base64,") ||
+      input.logoUrl.startsWith("data:image/svg+xml;base64,")
+    ) {
+      try {
+        data.logoUrl = await uploadLogo({
+          logo: await resizeBase64Image(input.logoUrl),
+          teamId: currentOrgId,
+        });
+      } catch (error) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: error instanceof Error ? error.message : "Failed to upload logo",
+        });
+      }
+    } else {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Unsupported logo format. Please use PNG, JPEG, or SVG.",
+      });
+    }
   }
 
   if (input.slug) {

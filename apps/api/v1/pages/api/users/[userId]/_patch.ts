@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -124,10 +125,26 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   if (avatar) {
-    body.avatarUrl = await uploadAvatar({
-      userId: query.userId,
-      avatar: await (await import("@calcom/lib/server/resizeBase64Image")).resizeBase64Image(avatar),
-    });
+    // Validate the avatar image data
+    const validation = validateBase64Image(avatar);
+    if (!validation.isValid) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `Invalid avatar image: ${validation.error}`,
+      });
+    }
+
+    try {
+      body.avatarUrl = await uploadAvatar({
+        userId: query.userId,
+        avatar: await (await import("@calcom/lib/server/resizeBase64Image")).resizeBase64Image(avatar),
+      });
+    } catch (error) {
+      throw new HttpError({
+        statusCode: 400,
+        message: error instanceof Error ? error.message : "Failed to upload avatar",
+      });
+    }
   }
 
   const data = await prisma.user.update({

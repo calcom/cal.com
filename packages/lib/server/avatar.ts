@@ -3,8 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@calcom/prisma";
 
 import { convertSvgToPng } from "./imageUtils";
+import { validateBase64Image } from "./imageValidation";
 
 export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
+  // Validate the image data before processing
+  const validation = validateBase64Image(data);
+  if (!validation.isValid) {
+    throw new Error(`Invalid image data: ${validation.error}`);
+  }
+
   const objectKey = uuidv4();
   const processedData = await convertSvgToPng(data);
 
@@ -40,6 +47,12 @@ export const uploadLogo = async ({
   logo: string;
   isBanner?: boolean;
 }): Promise<string> => {
+  // Validate the image data before processing
+  const validation = validateBase64Image(data);
+  if (!validation.isValid) {
+    throw new Error(`Invalid image data: ${validation.error}`);
+  }
+
   const objectKey = uuidv4();
   const processedData = await convertSvgToPng(data);
 
