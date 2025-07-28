@@ -1,61 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 type TimeViewType = "week" | "month" | "year" | "day";
-
-type StatusAggregate = {
-  completed: number;
-  rescheduled: number;
-  cancelled: number;
-  noShowHost: number;
-  noShowGuests: number;
-  _all: number;
-  uncompleted: number;
-};
-
-type AggregateResult = {
-  [date: string]: StatusAggregate;
-};
-
-// Recursive function to convert a JSON condition object into SQL
-// Helper type guard function to check if value has 'in' property
-function isInCondition(value: any): value is { in: any[] } {
-  return typeof value === "object" && value !== null && "in" in value && Array.isArray(value.in);
-}
-
-// Helper type guard function to check if value has 'gte' property
-function isGteCondition(value: any): value is { gte: any } {
-  return typeof value === "object" && value !== null && "gte" in value;
-}
-
-// Helper type guard function to check if value has 'lte' property
-function isLteCondition(value: any): value is { lte: any } {
-  return typeof value === "object" && value !== null && "lte" in value;
-}
-
-function buildSqlCondition(condition: any): string {
-  if (Array.isArray(condition.OR)) {
-    return `(${condition.OR.map(buildSqlCondition).join(" OR ")})`;
-  } else if (Array.isArray(condition.AND)) {
-    return `(${condition.AND.map(buildSqlCondition).join(" AND ")})`;
-  } else {
-    const clauses: string[] = [];
-    for (const [key, value] of Object.entries(condition)) {
-      if (isInCondition(value)) {
-        const valuesList = value.in.map((v) => `'${v}'`).join(", ");
-        clauses.push(`"${key}" IN (${valuesList})`);
-      } else if (isGteCondition(value)) {
-        clauses.push(`"${key}" >= '${value.gte}'`);
-      } else if (isLteCondition(value)) {
-        clauses.push(`"${key}" <= '${value.lte}'`);
-      } else {
-        const formattedValue = typeof value === "string" ? `'${value}'` : value;
-        clauses.push(`"${key}" = ${formattedValue}`);
-      }
-    }
-    return clauses.join(" AND ");
-  }
-}
 
 export interface DateRange {
   startDate: string;
@@ -73,6 +20,37 @@ export interface GetDateRangesParams {
 }
 
 class EventsInsights {
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
+    const data = await prisma.bookingTimeStatusDenormalized.groupBy({
+      where,
+      by: ["timeStatus", "noShowHost"],
+      _count: {
+        _all: true,
+      },
+    });
+
+    return data.reduce(
+      (aggregate: { [x: string]: number }, item) => {
+        if (typeof item.timeStatus === "string" && item) {
+          aggregate[item.timeStatus] += item?._count?._all ?? 0;
+          aggregate["_all"] += item?._count?._all ?? 0;
+
+          if (item.noShowHost) {
+            aggregate["noShowHost"] += item?._count?._all ?? 0;
+          }
+        }
+        return aggregate;
+      },
+      {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        _all: 0,
+      }
+    );
+  };
+
   static getTimeView = (startDate: string, endDate: string) => {
     const diff = dayjs(endDate).diff(dayjs(startDate), "day");
     if (diff > 365) {
@@ -260,65 +238,6 @@ class EventsInsights {
         return "";
     }
   }
-
-  static userIsOwnerAdminOfTeam = async ({
-    sessionUserId,
-    teamId,
-  }: {
-    sessionUserId: number;
-    teamId: number;
-  }) => {
-    const isOwnerAdminOfTeam = await prisma.membership.findUnique({
-      where: {
-        userId_teamId: {
-          userId: sessionUserId,
-          teamId,
-        },
-        accepted: true,
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-
-    return !!isOwnerAdminOfTeam;
-  };
-
-  static userIsOwnerAdminOfParentTeam = async ({
-    sessionUserId,
-    teamId,
-  }: {
-    sessionUserId: number;
-    teamId: number;
-  }) => {
-    const team = await prisma.team.findFirst({
-      select: {
-        parentId: true,
-      },
-      where: {
-        id: teamId,
-      },
-    });
-
-    if (!team || team.parentId === null) {
-      return false;
-    }
-
-    const isOwnerAdminOfParentTeam = await prisma.membership.findUnique({
-      where: {
-        userId_teamId: {
-          userId: sessionUserId,
-          teamId: team.parentId,
-        },
-        accepted: true,
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-
-    return !!isOwnerAdminOfParentTeam;
-  };
 }
 
 export { EventsInsights };
