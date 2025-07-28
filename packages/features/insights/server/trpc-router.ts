@@ -342,83 +342,11 @@ function createInsightsBookingService(
   });
 }
 export const insightsRouter = router({
-  bookingKPIStats: userBelongsToTeamProcedure
+  eventsByStatus: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const insightsBookingService = createInsightsBookingService(ctx, input);
-
-      // Get all 8 KPI stats with previous period comparisons using 4 consolidated methods
-      const [created, completed, rescheduled, cancelled, rating, no_show, no_show_guest, csat] =
-        await Promise.all([
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getBookingCountByStatus()
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getBookingCountByStatus("completed")
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getBookingCountByStatus("rescheduled")
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getBookingCountByStatus("cancelled")
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getAverageRating()
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getNoShowCount("host")
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() =>
-            insightsBookingService.getNoShowCount("guest")
-          ),
-          insightsBookingService.calculatePreviousPeriodStats(() => insightsBookingService.getCSATScore()),
-        ]);
-
-      // Check if all metrics are zero for empty state
-      const isEmpty =
-        created.count === 0 &&
-        completed.count === 0 &&
-        rescheduled.count === 0 &&
-        cancelled.count === 0 &&
-        no_show.count === 0 &&
-        no_show_guest.count === 0 &&
-        rating.count === 0;
-
-      if (isEmpty) {
-        return { empty: true };
-      }
-
-      // Calculate previous period date range for display
-      const startDate = new Date(input.startDate);
-      const endDate = new Date(input.endDate);
-      const diffInDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-
-      const previousStartDate = new Date(startDate);
-      previousStartDate.setDate(previousStartDate.getDate() - diffInDays);
-      const previousEndDate = new Date(endDate);
-      previousEndDate.setDate(previousEndDate.getDate() - diffInDays);
-
-      return {
-        empty: false,
-        created,
-        completed,
-        rescheduled,
-        cancelled,
-        rating: {
-          count: Math.round(rating.count * 10) / 10, // Round to 1 decimal place
-          deltaPrevious: rating.deltaPrevious,
-        },
-        no_show,
-        no_show_guest,
-        csat: {
-          count: Math.round(csat.count * 100), // Convert to percentage
-          deltaPrevious: csat.deltaPrevious,
-        },
-        previousRange: {
-          startDate: previousStartDate.toISOString().split("T")[0],
-          endDate: previousEndDate.toISOString().split("T")[0],
-        },
-      };
+      return await insightsBookingService.getBookingKPIStats();
     }),
   eventTrends: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)

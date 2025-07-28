@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
+import md5 from "md5";
 import { z } from "zod";
 
+import type { DateRange } from "@calcom/features/insights/server/events";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -141,266 +143,62 @@ export class InsightsBookingService {
     this.filters = filtersValidated.success ? filtersValidated.data : null;
   }
 
-  // KPI Stats Methods - 4 consolidated methods for BookingKPICards
-  async getBookingCountByStatus(status?: "completed" | "rescheduled" | "cancelled") {
-    const baseConditions = await this.getBaseConditions();
-
-    let statusCondition = Prisma.sql``;
-    if (status === "completed") {
-      statusCondition = Prisma.sql`AND "timeStatus" = 'completed'`;
-    } else if (status === "rescheduled") {
-      statusCondition = Prisma.sql`AND "timeStatus" = 'rescheduled'`;
-    } else if (status === "cancelled") {
-      statusCondition = Prisma.sql`AND "timeStatus" = 'cancelled'`;
-    }
-    // For undefined status, no additional condition (all bookings)
-
-    const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
-      SELECT COUNT(*) as count
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} ${statusCondition}
-    `;
-    return Number(result[0]?.count || 0);
-  }
-
-  async getNoShowCount(type: "host" | "guest") {
-    const baseConditions = await this.getBaseConditions();
-
-    if (type === "host") {
-      const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
-        SELECT COUNT(*) as count
-        FROM "BookingTimeStatusDenormalized"
-        WHERE ${baseConditions} AND "noShowHost" = true
-      `;
-      return Number(result[0]?.count || 0);
-    } else {
-      const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
-        SELECT COUNT(*) as count
-        FROM "Attendee" a
-        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
-        WHERE ${baseConditions} AND a."noShow" = true
-      `;
-      return Number(result[0]?.count || 0);
-    }
-  }
-
-  async getAverageRating() {
-    const baseConditions = await this.getBaseConditions();
-    const result = await this.prisma.$queryRaw<Array<{ avg_rating: number | null }>>`
-      SELECT AVG("rating") as avg_rating
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} AND "rating" IS NOT NULL
-    `;
-    return result[0]?.avg_rating || 0;
-  }
-
-  async getCSATScore() {
-    const baseConditions = await this.getBaseConditions();
-    const result = await this.prisma.$queryRaw<Array<{ total_ratings: bigint; ratings_above_3: bigint }>>`
-      SELECT 
-        COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
-        COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions}
-    `;
-    const stats = result[0];
-    if (!stats || Number(stats.total_ratings) === 0) {
-      return 0;
-    }
-    return Number(stats.ratings_above_3) / Number(stats.total_ratings);
-  }
-
-  // Consolidated methods for other components (not KPI cards)
-  async getMembersStatsWithCount(type: "all" | "cancelled" | "noShow", sortOrder: "ASC" | "DESC") {
-    const baseConditions = await this.getBaseConditions();
-
-    let statusCondition = Prisma.sql``;
-    if (type === "cancelled") {
-      statusCondition = Prisma.sql`AND "timeStatus" = 'cancelled'`;
-    } else if (type === "noShow") {
-      statusCondition = Prisma.sql`AND "noShowHost" = true`;
-    }
-    // For "all", no additional condition needed
-
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: bigint;
-      }>
-    >`
-      SELECT 
-        "userId",
-        COUNT(*) as count
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions} ${statusCondition}
-        AND "userId" IS NOT NULL
-      GROUP BY "userId"
-      ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
-      LIMIT 10
-    `;
-
-    if (results.length === 0) {
-      return [];
-    }
-
-    const userIds = results.map((r) => r.userId);
-    const users = await this.prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { id: true, name: true, email: true, avatarUrl: true },
-    });
-
-    const userMap = new Map(users.map((user) => [user.id, user]));
-
-    return results
-      .map((result) => {
-        const user = userMap.get(result.userId);
-        if (!user) return null;
-        return {
-          userId: result.userId,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            avatarUrl: user.avatarUrl,
-          },
-          count: Number(result.count),
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-  }
-
-  async getMembersRatingStats(sortOrder: "ASC" | "DESC") {
+  async getBookingsByHourStats({ timeZone }: { timeZone: string }) {
     const baseConditions = await this.getBaseConditions();
 
     const results = await this.prisma.$queryRaw<
       Array<{
-        userId: number;
-        averageRating: number;
-        totalRatings: bigint;
+        hour: string;
+        count: number;
       }>
     >`
-      SELECT 
-        "userId",
-        AVG("rating") as "averageRating",
-        COUNT("rating") as "totalRatings"
+      SELECT
+        EXTRACT(HOUR FROM ("startTime" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}))::int as "hour",
+        COUNT(*)::int as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
-        AND "userId" IS NOT NULL
-        AND "rating" IS NOT NULL
-      GROUP BY "userId"
-      HAVING COUNT("rating") >= 1
-      ORDER BY "averageRating" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
-      LIMIT 10
+        AND "status" = 'accepted'
+      GROUP BY 1
+      ORDER BY 1
     `;
 
-    if (results.length === 0) {
-      return [];
-    }
+    // Create a map of results by hour for easy lookup
+    const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
 
-    const userIds = results.map((r) => r.userId);
-    const users = await this.prisma.user.findMany({
-      where: { id: { in: userIds } },
-      select: { id: true, name: true, email: true, avatarUrl: true },
-    });
-
-    const userMap = new Map(users.map((user) => [user.id, user]));
-
-    return results
-      .map((result) => {
-        const user = userMap.get(result.userId);
-        if (!user) return null;
-        return {
-          userId: result.userId,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            avatarUrl: user.avatarUrl,
-          },
-          count: Math.round(result.averageRating * 10) / 10, // Round to 1 decimal place
-          totalRatings: Number(result.totalRatings),
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
+    // Return all 24 hours (0-23), filling with 0 values for missing data
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      count: resultsMap.get(hour) || 0,
+    }));
   }
 
-  async getRecentRatingsStats() {
+  async findAll<TSelect extends BookingSelect | undefined = undefined>({
+    select,
+  }: {
+    select?: TSelect;
+  } = {}): Promise<Array<SelectedFields<TSelect>>> {
     const baseConditions = await this.getBaseConditions();
 
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        rating: number;
-        ratingFeedback: string | null;
-        createdAt: Date;
-        userId: number;
-        eventTypeId: number | null;
-      }>
-    >`
-      SELECT 
-        id,
-        rating,
-        "ratingFeedback",
-        "createdAt",
-        "userId",
-        "eventTypeId"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions}
-        AND "rating" IS NOT NULL
-      ORDER BY "createdAt" DESC
-      LIMIT 10
-    `;
+    // Build the select clause with validated fields
+    let selectFields = Prisma.sql`*`;
+    if (select) {
+      const keys = Object.keys(select);
+      if (keys.some((key) => !bookingDataKeys.has(key))) {
+        throw new Error("Invalid select keys provided");
+      }
 
-    if (results.length === 0) {
-      return [];
+      if (keys.length > 0) {
+        // Use Prisma.sql for each field to ensure proper escaping
+        const sqlFields = keys.map((field) => Prisma.sql`"${Prisma.raw(field)}"`);
+        selectFields = Prisma.join(sqlFields, ", ");
+      }
     }
 
-    const userIds = results.map((r) => r.userId).filter((id): id is number => id !== null);
-    const eventTypeIds = results.map((r) => r.eventTypeId).filter((id): id is number => id !== null);
-
-    const [users, eventTypes] = await Promise.all([
-      this.prisma.user.findMany({
-        where: { id: { in: userIds } },
-        select: { id: true, name: true, email: true, avatarUrl: true },
-      }),
-      eventTypeIds.length > 0
-        ? this.prisma.eventType.findMany({
-            where: { id: { in: eventTypeIds } },
-            select: { id: true, title: true },
-          })
-        : [],
-    ]);
-
-    const userMap = new Map(users.map((user) => [user.id, user]));
-    const eventTypeMap = new Map(eventTypes.map((et) => [et.id, et]));
-
-    return results
-      .map((result) => {
-        const user = userMap.get(result.userId);
-        if (!user) return null;
-
-        const eventType = result.eventTypeId ? eventTypeMap.get(result.eventTypeId) : null;
-
-        return {
-          id: result.id,
-          rating: result.rating,
-          feedback: result.ratingFeedback,
-          createdAt: result.createdAt,
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            avatarUrl: user.avatarUrl,
-          },
-          eventType: eventType
-            ? {
-                id: eventType.id,
-                title: eventType.title,
-              }
-            : null,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
+    return await this.prisma.$queryRaw<Array<SelectedFields<TSelect>>>`
+      SELECT ${selectFields}
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    `;
   }
 
   async getBaseConditions(): Promise<Prisma.Sql> {
@@ -456,21 +254,13 @@ export class InsightsBookingService {
         if (isNaN(Date.parse(startDate))) {
           throw new Error(`Invalid date format: ${startDate}`);
         }
-        conditions.push(
-          target === "createdAt"
-            ? Prisma.sql`"createdAt" >= ${startDate}::timestamp`
-            : Prisma.sql`"startTime" >= ${startDate}::timestamp`
-        );
+        conditions.push(Prisma.sql`"${Prisma.raw(target)}" >= ${startDate}::timestamp`);
       }
       if (endDate) {
         if (isNaN(Date.parse(endDate))) {
           throw new Error(`Invalid date format: ${endDate}`);
         }
-        conditions.push(
-          target === "createdAt"
-            ? Prisma.sql`"createdAt" <= ${endDate}::timestamp`
-            : Prisma.sql`"startTime" <= ${endDate}::timestamp`
-        );
+        conditions.push(Prisma.sql`"${Prisma.raw(target)}" <= ${endDate}::timestamp`);
       }
     }
 
@@ -570,16 +360,612 @@ export class InsightsBookingService {
     });
   }
 
-  // Helper method to calculate previous period stats for any KPI method
-  async calculatePreviousPeriodStats<T>(
-    currentMethod: () => Promise<T>
-  ): Promise<{ count: T; deltaPrevious: number }> {
+  async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
+    const baseConditions = await this.getBaseConditions();
+
+    // Get total count first
+    const totalCountResult = await this.prisma.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(*)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    `;
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    // 1. Get booking data from BookingTimeStatusDenormalized
+    const csvData = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        uid: string | null;
+        title: string;
+        createdAt: Date;
+        timeStatus: string;
+        eventTypeId: number | null;
+        eventLength: number;
+        startTime: Date;
+        endTime: Date;
+        paid: boolean;
+        userEmail: string;
+        userUsername: string;
+        rating: number | null;
+        ratingFeedback: string | null;
+        noShowHost: boolean;
+      }>
+    >`
+      SELECT
+        "id",
+        "uid",
+        "title",
+        "createdAt",
+        "timeStatus",
+        "eventTypeId",
+        "eventLength",
+        "startTime",
+        "endTime",
+        "paid",
+        "userEmail",
+        "userUsername",
+        "rating",
+        "ratingFeedback",
+        "noShowHost"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+      ORDER BY "createdAt" DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+
+    if (csvData.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
+
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
+
+    if (uids.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
+
+    // 2. Get all bookings with their attendees and seat references
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            noShow: true,
+          },
+        },
+        seatsReferences: {
+          select: {
+            attendee: {
+              select: {
+                name: true,
+                email: true,
+                noShow: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 3. Create booking map with attendee data (matching original logic)
+    const bookingMap = new Map(
+      bookings.map((booking) => {
+        const attendeeList =
+          booking.seatsReferences.length > 0
+            ? booking.seatsReferences.map((ref) => ref.attendee)
+            : booking.attendees;
+
+        // List all no-show guests (name and email)
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
+
+        const formattedAttendees = attendeeList
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
+
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
+      })
+    );
+
+    // 4. Calculate max attendees for dynamic columns
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    // 5. Create final booking map with attendee fields
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+        }
+
+        return [
+          uid,
+          {
+            noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
+            ...attendeeFields,
+          },
+        ];
+      })
+    );
+
+    // 6. Combine booking data with attendee data
+    const data = csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
+
+      if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
+      return {
+        ...bookingTimeStatus,
+        noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
+      };
+    });
+
+    return { data, total: totalCount };
+  }
+
+  async getEventTrendsStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        bookingsCount: number;
+        timeStatus: string;
+        noShowHost: boolean;
+        noShowGuests: number;
+      }[]
+    >`
+    SELECT
+      "date",
+      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
+      "timeStatus",
+      "noShowHost"
+    FROM (
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        "a"."noShow" AS "isNoShowGuest",
+        "timeStatus",
+        "noShowHost"
+      FROM
+        "BookingTimeStatusDenormalized"
+      JOIN
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
+      WHERE
+        ${baseConditions}
+    ) AS bookings
+    GROUP BY
+      "date",
+      "timeStatus",
+      "noShowHost"
+    ORDER BY
+      "date"
+  `;
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: {
+      [date: string]: {
+        completed: number;
+        rescheduled: number;
+        cancelled: number;
+        noShowHost: number;
+        noShowGuests: number;
+        _all: number;
+        uncompleted: number;
+      };
+    } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        noShowGuests: 0,
+        _all: 0,
+        uncompleted: 0,
+      };
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      const statusKey = timeStatus as keyof (typeof aggregate)[string];
+
+      // Add to the specific status count
+      if (statusKey in aggregate[formattedDate]) {
+        aggregate[formattedDate][statusKey] += Number(bookingsCount);
+      }
+
+      // Add to the total count (_all)
+      aggregate[formattedDate]["_all"] += Number(bookingsCount);
+
+      // Track no-show host counts separately
+      if (noShowHost) {
+        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
+      }
+
+      // Track no-show guests explicitly
+      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
+    });
+
+    // Transform aggregate data into the expected format
+    const result = dateRanges.map(({ formattedDate }) => {
+      const eventData = {
+        Month: formattedDate,
+        Created: 0,
+        Completed: 0,
+        Rescheduled: 0,
+        Cancelled: 0,
+        "No-Show (Host)": 0,
+        "No-Show (Guest)": 0,
+      };
+
+      const countsForDateRange = aggregate[formattedDate];
+
+      if (countsForDateRange) {
+        eventData["Created"] = countsForDateRange["_all"] || 0;
+        eventData["Completed"] = countsForDateRange["completed"] || 0;
+        eventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+        eventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+        eventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+        eventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
+      }
+      return eventData;
+    });
+
+    return result;
+  }
+
+  async getPopularEventsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromSelected = await this.prisma.$queryRaw<
+      Array<{
+        eventTypeId: number;
+        count: number;
+      }>
+    >`
+      SELECT
+        "eventTypeId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL
+      GROUP BY "eventTypeId"
+      ORDER BY count DESC
+      LIMIT 10
+    `;
+
+    const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
+
+    if (eventTypeIds.length === 0) {
+      return [];
+    }
+
+    const eventTypesFrom = await this.prisma.eventType.findMany({
+      select: {
+        id: true,
+        title: true,
+        teamId: true,
+        userId: true,
+        slug: true,
+        users: {
+          select: {
+            username: true,
+          },
+        },
+        team: {
+          select: {
+            slug: true,
+          },
+        },
+      },
+      where: {
+        id: {
+          in: eventTypeIds,
+        },
+      },
+    });
+
+    const eventTypeHashMap = new Map(eventTypesFrom.map((eventType) => [eventType.id, eventType]));
+
+    const result = bookingsFromSelected
+      .map((booking) => {
+        const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId);
+        if (!eventTypeSelected) {
+          return null;
+        }
+
+        let eventSlug = "";
+        if (eventTypeSelected.userId) {
+          eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
+        }
+        if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
+          eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
+        }
+        return {
+          eventTypeId: booking.eventTypeId,
+          eventTypeName: eventSlug,
+          count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersStatsWithCount(
+    type: "all" | "cancelled" | "noShow" = "all",
+    sortOrder: "ASC" | "DESC" = "DESC"
+  ) {
+    const baseConditions = await this.getBaseConditions();
+
+    let additionalCondition = Prisma.sql``;
+    if (type === "cancelled") {
+      additionalCondition = Prisma.sql`AND status = 'cancelled'`;
+    } else if (type === "noShow") {
+      additionalCondition = Prisma.sql`AND "noShowHost" = true`;
+    }
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        count: number;
+      }>
+    >`
+      SELECT
+        "userId",
+        COUNT(id)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL ${additionalCondition}
+      GROUP BY "userId"
+      ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          count: booking.count,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC") {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        averageRating: number;
+      }>
+    >`
+      SELECT
+        "userId",
+        AVG("rating")::float as "averageRating"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
+      GROUP BY "userId"
+      ORDER BY "averageRating" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam.map((booking) => booking.userId);
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          averageRating: booking.averageRating,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getRecentRatingsStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const bookingsFromTeam = await this.prisma.$queryRaw<
+      Array<{
+        userId: number | null;
+        rating: number | null;
+        ratingFeedback: string | null;
+      }>
+    >`
+      SELECT
+        "userId",
+        "rating",
+        "ratingFeedback"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "ratingFeedback" IS NOT NULL
+      ORDER BY "endTime" DESC
+      LIMIT 10
+    `;
+
+    if (bookingsFromTeam.length === 0) {
+      return [];
+    }
+
+    const userIds = bookingsFromTeam
+      .filter((booking) => booking.userId !== null)
+      .map((booking) => booking.userId as number)
+      .filter((userId, index, array) => array.indexOf(userId) === index);
+
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const usersFromTeam = await this.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+
+    const userHashMap = buildHashMapForUsers(usersFromTeam);
+
+    const result = bookingsFromTeam
+      .map((booking) => {
+        if (!booking.userId) {
+          return null;
+        }
+
+        const user = userHashMap.get(booking.userId);
+        if (!user) {
+          return null;
+        }
+
+        return {
+          userId: booking.userId,
+          user,
+          emailMd5: md5(user.email),
+          rating: booking.rating,
+          feedback: booking.ratingFeedback,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+
+    return result;
+  }
+
+  async getBookingKPIStats() {
+    const baseConditions = await this.getBaseConditions();
+
     if (!this.filters?.dateRange) {
       throw new Error("Date range is required for KPI stats");
     }
-
-    // Get current period value
-    const currentValue = await currentMethod();
 
     // Calculate previous period dates
     const startDate = new Date(this.filters.dateRange.startDate);
@@ -591,44 +977,233 @@ export class InsightsBookingService {
     const previousEndDate = new Date(endDate);
     previousEndDate.setDate(previousEndDate.getDate() - diffInDays);
 
-    // Create temporary filters for previous period
-    const previousFilters = {
-      ...this.filters,
-      dateRange: {
-        target: this.filters.dateRange.target,
-        startDate: previousStartDate.toISOString(),
-        endDate: previousEndDate.toISOString(),
+    // Create service instance for previous period
+    const previousPeriodService = new InsightsBookingService({
+      prisma: this.prisma,
+      options: this.options,
+      filters: {
+        ...this.filters,
+        dateRange: {
+          target: this.filters.dateRange.target,
+          startDate: previousStartDate.toISOString(),
+          endDate: previousEndDate.toISOString(),
+        },
       },
+    });
+
+    const previousConditions = await previousPeriodService.getBaseConditions();
+    // Get current period stats
+    const currentStats = await this.prisma.$queryRaw<
+      Array<{
+        total_bookings: bigint;
+        completed_bookings: bigint;
+        rescheduled_bookings: bigint;
+        cancelled_bookings: bigint;
+        no_show_host_bookings: bigint;
+        avg_rating: number | null;
+        total_ratings: bigint;
+        ratings_above_3: bigint;
+        no_show_guests: bigint;
+      }>
+    >`
+      WITH booking_stats AS (
+        SELECT 
+          COUNT(*) as total_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
+          AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
+          COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
+          COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+      ),
+      guest_stats AS (
+        SELECT COUNT(*) as no_show_guests
+        FROM "Attendee" a
+        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
+        WHERE ${baseConditions} AND a."noShow" = true
+      )
+      SELECT 
+        bs.total_bookings,
+        bs.completed_bookings,
+        bs.rescheduled_bookings,
+        bs.cancelled_bookings,
+        bs.no_show_host_bookings,
+        bs.avg_rating,
+        bs.total_ratings,
+        bs.ratings_above_3,
+        gs.no_show_guests
+      FROM booking_stats bs, guest_stats gs
+    `;
+
+    // Get previous period stats
+    const previousStats = await this.prisma.$queryRaw<
+      Array<{
+        total_bookings: bigint;
+        completed_bookings: bigint;
+        rescheduled_bookings: bigint;
+        cancelled_bookings: bigint;
+        no_show_host_bookings: bigint;
+        avg_rating: number | null;
+        total_ratings: bigint;
+        ratings_above_3: bigint;
+        no_show_guests: bigint;
+      }>
+    >`
+      WITH booking_stats AS (
+        SELECT 
+          COUNT(*) as total_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
+          AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
+          COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
+          COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${previousConditions}
+      ),
+      guest_stats AS (
+        SELECT COUNT(*) as no_show_guests
+        FROM "Attendee" a
+        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
+        WHERE ${previousConditions} AND a."noShow" = true
+      )
+      SELECT 
+        bs.total_bookings,
+        bs.completed_bookings,
+        bs.rescheduled_bookings,
+        bs.cancelled_bookings,
+        bs.no_show_host_bookings,
+        bs.avg_rating,
+        bs.total_ratings,
+        bs.ratings_above_3,
+        gs.no_show_guests
+      FROM booking_stats bs, guest_stats gs
+    `;
+    // Convert BigInt values to numbers
+    const currentRaw = currentStats[0];
+    const current = currentRaw
+      ? {
+          total_bookings: Number(currentRaw.total_bookings),
+          completed_bookings: Number(currentRaw.completed_bookings),
+          rescheduled_bookings: Number(currentRaw.rescheduled_bookings),
+          cancelled_bookings: Number(currentRaw.cancelled_bookings),
+          no_show_host_bookings: Number(currentRaw.no_show_host_bookings),
+          avg_rating: currentRaw.avg_rating,
+          total_ratings: Number(currentRaw.total_ratings),
+          ratings_above_3: Number(currentRaw.ratings_above_3),
+          no_show_guests: Number(currentRaw.no_show_guests),
+        }
+      : {
+          total_bookings: 0,
+          completed_bookings: 0,
+          rescheduled_bookings: 0,
+          cancelled_bookings: 0,
+          no_show_host_bookings: 0,
+          avg_rating: 0,
+          total_ratings: 0,
+          ratings_above_3: 0,
+          no_show_guests: 0,
+        };
+
+    const previousRaw = previousStats[0];
+    const previous = previousRaw
+      ? {
+          total_bookings: Number(previousRaw.total_bookings),
+          completed_bookings: Number(previousRaw.completed_bookings),
+          rescheduled_bookings: Number(previousRaw.rescheduled_bookings),
+          cancelled_bookings: Number(previousRaw.cancelled_bookings),
+          no_show_host_bookings: Number(previousRaw.no_show_host_bookings),
+          avg_rating: previousRaw.avg_rating,
+          total_ratings: Number(previousRaw.total_ratings),
+          ratings_above_3: Number(previousRaw.ratings_above_3),
+          no_show_guests: Number(previousRaw.no_show_guests),
+        }
+      : {
+          total_bookings: 0,
+          completed_bookings: 0,
+          rescheduled_bookings: 0,
+          cancelled_bookings: 0,
+          no_show_host_bookings: 0,
+          avg_rating: 0,
+          total_ratings: 0,
+          ratings_above_3: 0,
+          no_show_guests: 0,
+        };
+
+    // Calculate percentages and CSAT
+    const getPercentage = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
     };
 
-    // Temporarily swap filters
-    const originalFilters = this.filters;
-    this.filters = previousFilters;
-    this.cachedFilterConditions = undefined; // Clear cache
+    const currentCSAT =
+      current.total_ratings > 0 ? (current.ratings_above_3 / current.total_ratings) * 100 : 0;
+    const previousCSAT =
+      previous.total_ratings > 0 ? (previous.ratings_above_3 / previous.total_ratings) * 100 : 0;
 
-    try {
-      const previousValue = await currentMethod();
+    const currentRating = current.avg_rating ? parseFloat(current.avg_rating.toFixed(1)) : 0;
+    const previousRating = previous.avg_rating ? parseFloat(previous.avg_rating.toFixed(1)) : 0;
 
-      // Calculate percentage change
-      const currentNum = typeof currentValue === "number" ? currentValue : 0;
-      const previousNum = typeof previousValue === "number" ? previousValue : 0;
+    // Check if all metrics are zero for empty state
+    const isEmpty =
+      current.total_bookings === 0 &&
+      current.completed_bookings === 0 &&
+      current.rescheduled_bookings === 0 &&
+      current.cancelled_bookings === 0 &&
+      current.no_show_host_bookings === 0 &&
+      current.no_show_guests === 0 &&
+      currentRating === 0;
 
-      let deltaPrevious = 0;
-      if (previousNum > 0) {
-        deltaPrevious = ((currentNum - previousNum) / previousNum) * 100;
-      } else if (currentNum > 0) {
-        deltaPrevious = 100; // 100% increase from 0
-      }
-
-      return {
-        count: currentValue,
-        deltaPrevious: Math.round(deltaPrevious * 100) / 100, // Round to 2 decimal places
-      };
-    } finally {
-      // Restore original filters
-      this.filters = originalFilters;
-      this.cachedFilterConditions = undefined; // Clear cache
+    if (isEmpty) {
+      return { empty: true };
     }
+
+    return {
+      empty: false,
+      created: {
+        count: current.total_bookings,
+        deltaPrevious: getPercentage(current.total_bookings, previous.total_bookings),
+      },
+      completed: {
+        count: current.completed_bookings,
+        deltaPrevious: getPercentage(
+          current.total_bookings - current.cancelled_bookings - current.rescheduled_bookings,
+          previous.total_bookings - previous.cancelled_bookings - previous.rescheduled_bookings
+        ),
+      },
+      rescheduled: {
+        count: current.rescheduled_bookings,
+        deltaPrevious: getPercentage(current.rescheduled_bookings, previous.rescheduled_bookings),
+      },
+      cancelled: {
+        count: current.cancelled_bookings,
+        deltaPrevious: getPercentage(current.cancelled_bookings, previous.cancelled_bookings),
+      },
+      no_show: {
+        count: current.no_show_host_bookings,
+        deltaPrevious: getPercentage(current.no_show_host_bookings, previous.no_show_host_bookings),
+      },
+      no_show_guest: {
+        count: current.no_show_guests,
+        deltaPrevious: getPercentage(current.no_show_guests, previous.no_show_guests),
+      },
+      rating: {
+        count: currentRating,
+        deltaPrevious: getPercentage(currentRating, previousRating),
+      },
+      csat: {
+        count: currentCSAT,
+        deltaPrevious: getPercentage(currentCSAT, previousCSAT),
+      },
+      previousRange: {
+        startDate: previousStartDate.toISOString().split("T")[0],
+        endDate: previousEndDate.toISOString().split("T")[0],
+      },
+    };
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {

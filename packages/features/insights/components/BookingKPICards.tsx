@@ -14,7 +14,7 @@ export const BookingKPICards = () => {
   const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
   const { timeZone } = useDataTable();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingKPIStats.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
     {
       scope,
       selectedTeamId,
