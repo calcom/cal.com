@@ -41,7 +41,7 @@ export type IsFixedAwareUser = User & {
   weight?: number;
   userLevelSelectedCalendars: SelectedCalendar[];
   allSelectedCalendars: SelectedCalendar[];
-  availabilityData: GetUserAvailabilityResult;
+  availabilityData?: GetUserAvailabilityResult;
 };
 
 export type { PaymentAppData };

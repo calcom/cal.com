@@ -266,7 +266,7 @@ export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
 
 export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 
-type GetUserAvailabilityResult = Awaited<ReturnType<typeof _getUserAvailability>>;
+export type GetUserAvailabilityResult = Awaited<ReturnType<typeof _getUserAvailability>>;
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
