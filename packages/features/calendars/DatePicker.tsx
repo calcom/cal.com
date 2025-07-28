@@ -165,12 +165,12 @@ const Days = ({
   let days: (Dayjs | null)[] = [];
 
   const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
+  const totalDays = daysInMonth(browsingDate);
 
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
   if (isSecondWeekOver && !isCompact) {
     const startDay = 8;
     const pad = getPadding(startDay);
-    const totalDays = daysInMonth(browsingDate);
     days = Array(pad).fill(null);
 
     for (let day = startDay; day <= totalDays; day++) {
@@ -190,7 +190,7 @@ const Days = ({
     const pad = getPadding(1);
     days = Array(pad).fill(null);
 
-    for (let day = 1, total = daysInMonth(browsingDate); day <= total; day++) {
+    for (let day = 1; day <= totalDays; day++) {
       days.push(browsingDate.set("date", day));
     }
   }
