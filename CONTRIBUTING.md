@@ -95,6 +95,57 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
   </tr>
 </table>
 
+## File Naming Conventions
+
+To ensure consistency and make files easy to fuzzy-find, we follow the naming conventions below for **services**, **repositories**, and other class-based files.
+
+### Repository Files
+
+- Repository class files must include the `Repository` suffix.
+- If the repository is backed by a specific technology (e.g. Prisma), prefix the filename and class name with it.
+- File name must match the exported class exactly (PascalCase).
+
+**Pattern:**
+
+`Prisma<Entity>Repository.ts`
+
+**Examples:**
+
+```ts
+// File: PrismaAppRepository.ts
+export class PrismaAppRepository { ... }
+
+// File: PrismaMembershipRepository.ts
+export class PrismaMembershipRepository { ... }
+```
+
+This avoids ambiguous filenames like app.ts and improves discoverability in editors.
+
+### Service Files
+
+- Service class files must include the Service suffix.
+- File name should be in PascalCase, matching the exported class.
+- Keep naming specific — avoid generic names like AppService.ts.
+
+**Pattern:**
+
+`<Entity>Service.ts`
+
+**Examples:**
+
+```ts
+// File: MembershipService.ts
+export class MembershipService { ... }
+
+// File: HashedLinkService.ts
+export class HashedLinkService { ... }
+```
+
+**Note:**
+
+- New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.
+- We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
+
 ## Developing
 
 [See README](https://github.com/calcom/cal.com#development)
