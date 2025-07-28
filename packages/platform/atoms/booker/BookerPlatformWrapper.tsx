@@ -172,7 +172,7 @@ export const BookerPlatformWrapper = (
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
 
-  const month = useBookerStore((state) => state.month);
+  const [month] = useBookerStore((state) => [state.month, state.setMonth], shallow);
   const eventSlug = useBookerStore((state) => state.eventSlug);
 
   const { data: session } = useMe();
@@ -208,8 +208,8 @@ export const BookerPlatformWrapper = (
     (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
       dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
     (bookerLayout.layout === BookerLayouts.MONTH_VIEW &&
-      (!dayjs(date).isValid() || dayjs().isSame(dayjs(selectedDate), "month")) &&
-      dayjs().isAfter(dayjs().startOf("month").add(2, "week")));
+      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
+      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
 
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
