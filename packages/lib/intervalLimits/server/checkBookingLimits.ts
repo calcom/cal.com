@@ -15,7 +15,7 @@ export interface ICheckBookingLimitsService {
 export class CheckBookingLimitsService {
   constructor(private readonly dependencies: ICheckBookingLimitsService) {}
 
-  async checkBookingLimits(
+  private async _checkBookingLimits(
     bookingLimits: IntervalLimit,
     eventStartDate: Date,
     eventId: number,
@@ -46,7 +46,9 @@ export class CheckBookingLimitsService {
     }
   }
 
-  async checkBookingLimit({
+  checkBookingLimits = withReporting(this._checkBookingLimits.bind(this), "checkBookingLimits");
+
+  private async _checkBookingLimit({
     eventStartDate,
     eventId,
     key,
@@ -104,23 +106,6 @@ export class CheckBookingLimitsService {
       statusCode: 403,
     });
   }
+
+  checkBookingLimit = withReporting(this._checkBookingLimit.bind(this), "checkBookingLimit");
 }
-
-async function _checkBookingLimits(
-  bookingLimits: IntervalLimit,
-  eventStartDate: Date,
-  eventId: number,
-  rescheduleUid?: string | undefined,
-  timeZone?: string | null,
-  includeManagedEvents?: boolean
-) {
-  throw new Error("Use CheckBookingLimitsService with dependency injection instead");
-}
-
-export const checkBookingLimits = withReporting(_checkBookingLimits, "checkBookingLimits");
-
-async function _checkBookingLimit(params: Parameters<CheckBookingLimitsService["checkBookingLimit"]>[0]) {
-  throw new Error("Use CheckBookingLimitsService with dependency injection instead");
-}
-
-export const checkBookingLimit = withReporting(_checkBookingLimit, "checkBookingLimit");
