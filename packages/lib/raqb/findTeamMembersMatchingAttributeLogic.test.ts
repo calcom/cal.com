@@ -1210,4 +1210,44 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
       expect(troubleshooter).not.toBeUndefined();
     });
   });
+
+  it("should handle non-existent option IDs gracefully", async () => {
+    const LocationAttribute = {
+      id: "location-attr",
+      name: "Location",
+      type: "SINGLE_SELECT" as const,
+      slug: "location",
+      options: [{ id: "ny-opt", value: "New York", slug: "new-york" }],
+    };
+
+    mockAttributesScenario({
+      attributes: [LocationAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [LocationAttribute.id]: "New York" } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: LocationAttribute.id,
+          value: ["non-existent-id"], // Non-existent option ID
+          operator: "select_equals",
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should not match anyone as the option ID doesn't exist
+    expect(result).toEqual([]);
+  });
 });
