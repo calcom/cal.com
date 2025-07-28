@@ -17,6 +17,7 @@ import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/crea
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { FusionAuthOIDCProvider } from "./providers/fusionauth-oidc";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -57,6 +58,18 @@ const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
 const ORGANIZATIONS_AUTOLINK =
   process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
+
+// FusionAuth OIDC Configuration
+const FUSIONAUTH_CLIENT_ID = process.env.FUSIONAUTH_CLIENT_ID;
+const FUSIONAUTH_CLIENT_SECRET = process.env.FUSIONAUTH_CLIENT_SECRET;
+const FUSIONAUTH_ISSUER = process.env.FUSIONAUTH_ISSUER;
+const FUSIONAUTH_LOGIN_ENABLED = process.env.FUSIONAUTH_LOGIN_ENABLED === "true";
+const IS_FUSIONAUTH_LOGIN_ENABLED = !!(
+  FUSIONAUTH_CLIENT_ID &&
+  FUSIONAUTH_CLIENT_SECRET &&
+  FUSIONAUTH_ISSUER &&
+  FUSIONAUTH_LOGIN_ENABLED
+);
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
@@ -264,6 +277,20 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
   );
 }
 
+if (IS_FUSIONAUTH_LOGIN_ENABLED) {
+  const fusionAuthProvider = FusionAuthOIDCProvider({
+    clientId: FUSIONAUTH_CLIENT_ID,
+    clientSecret: FUSIONAUTH_CLIENT_SECRET,
+    issuer: FUSIONAUTH_ISSUER,
+    name: "FusionAuth",
+    enabled: true,
+  });
+
+  if (fusionAuthProvider) {
+    providers.push(fusionAuthProvider);
+  }
+}
+
 if (isSAMLLoginEnabled) {
   providers.push({
     id: "saml",
@@ -416,6 +443,8 @@ const mapIdentityProvider = (providerName: string) => {
     case "saml-idp":
     case "saml":
       return IdentityProvider.SAML;
+    case "fusionauth-oidc":
+      return IdentityProvider.OIDC;
     default:
       return IdentityProvider.GOOGLE;
   }
@@ -604,10 +633,17 @@ export const getOptions = ({
       // user based on those values in order to construct a JWT.
       if (account.type === "oauth") {
         log.debug("callbacks:jwt:accountType:oauth", safeStringify({ account }));
+
+
+
         if (!account.provider || !account.providerAccountId) {
           return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
-        const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
+        const idP = account.provider === "saml"
+          ? IdentityProvider.SAML
+          : account.provider === "fusionauth-oidc"
+          ? IdentityProvider.OIDC
+          : IdentityProvider.GOOGLE;
 
         const existingUser = await prisma.user.findFirst({
           where: {
@@ -621,6 +657,8 @@ export const getOptions = ({
             ],
           },
         });
+
+
 
         if (!existingUser) {
           return await autoMergeIdentities();
@@ -752,6 +790,8 @@ export const getOptions = ({
       } = params;
 
       log.debug("callbacks:signin", safeStringify(params));
+
+
 
       if (account?.provider === "email") {
         return true;

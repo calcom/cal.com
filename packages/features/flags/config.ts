@@ -24,6 +24,7 @@ export type AppFlags = {
   pbac: boolean;
   "restriction-schedule": boolean;
   "team-booking-page-cache": boolean;
+  routing: boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

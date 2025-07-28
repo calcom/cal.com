@@ -44,6 +44,12 @@ interface LoginValues {
 const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4" src="/google-icon-colored.svg" alt="Continue with Google Icon" />
 );
+
+const FusionAuthIcon = () => (
+  <svg className="text-subtle mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+  </svg>
+);
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
   csrfToken,
@@ -52,7 +58,9 @@ export default function Login({
   samlTenantID,
   samlProductID,
   totpEmail,
-}: PageProps) {
+  providers,
+}: // eslint-disable-next-line @typescript-eslint/ban-types
+PageProps & WithNonceProps<{}>) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -96,6 +104,22 @@ export default function Login({
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
   callbackUrl = safeCallbackUrl || "";
+
+  // Filter out credentials and email providers, keep only OAuth providers
+  const oauthProviders = providers ? Object.values(providers).filter(provider =>
+    provider.type === "oauth" && provider.id !== "credentials" && provider.id !== "email"
+  ) : [];
+
+  const getProviderIcon = (providerId: string) => {
+    switch (providerId) {
+      case "google":
+        return <GoogleIcon />;
+                        case "fusionauth-oidc":
+        return <FusionAuthIcon />;
+      default:
+        return null;
+    }
+  };
 
   const LoginFooter = (
     <Link href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
@@ -198,24 +222,25 @@ export default function Login({
           {!twoFactorRequired && (
             <>
               <div className="space-y-3">
-                {isGoogleLoginEnabled && (
+                {oauthProviders.map((provider) => (
                   <Button
+                    key={provider.id}
                     color="primary"
                     className="w-full justify-center"
                     disabled={formState.isSubmitting}
-                    data-testid="google"
-                    CustomStartIcon={<GoogleIcon />}
+                    data-testid={provider.id}
+                    CustomStartIcon={getProviderIcon(provider.id)}
                     onClick={async (e) => {
                       e.preventDefault();
-                      setLastUsed("google");
-                      await signIn("google", {
+                      setLastUsed(provider.id);
+                      await signIn(provider.id, {
                         callbackUrl,
                       });
                     }}>
-                    <span>{t("signin_with_google")}</span>
-                    {lastUsed === "google" && <LastUsed />}
+                    <span>{t(`signin_with_${provider.id}`) || `Sign in with ${provider.name}`}</span>
+                    {lastUsed === provider.id && <LastUsed />}
                   </Button>
-                )}
+                ))}
                 {displaySSOLogin && (
                   <SAMLLogin
                     disabled={formState.isSubmitting}
@@ -225,7 +250,7 @@ export default function Login({
                   />
                 )}
               </div>
-              {(isGoogleLoginEnabled || displaySSOLogin) && (
+              {(oauthProviders.length > 0 || displaySSOLogin) && (
                 <div className="my-8">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
