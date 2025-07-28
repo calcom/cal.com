@@ -7,7 +7,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
-import prisma from "@calcom/prisma";
+import { PrismaPaymentRepository as PaymentRepository } from "@calcom/lib/server/repository/PrismaPaymentRepository";
 
 import appConfig from "../config.json";
 import { btcpayCredentialKeysSchema } from "../lib/btcpayCredentialKeysSchema";
@@ -46,26 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!SUPPORTED_INVOICE_EVENTS.includes(data.type))
       return res.status(200).send({ message: "Webhook received but ignored" });
 
-    const payment = await prisma.payment.findFirst({
-      where: {
-        externalId: data.invoiceId,
-      },
-      select: {
-        id: true,
-        amount: true,
-        success: true,
-        bookingId: true,
-        booking: {
-          select: {
-            user: {
-              select: {
-                credentials: { where: { type: appConfig.type } },
-              },
-            },
-          },
-        },
-      },
-    });
+    const paymentRepository = new PaymentRepository();
+    const payment = await paymentRepository.findByExternalIdIncludeBookingUserCredentials(
+      data.invoiceId,
+      appConfig.type
+    );
     if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.com: payment not found" });
     if (payment.success) return res.status(400).send({ message: "Payment already registered" });
     const key = payment.booking?.user?.credentials?.[0].key;

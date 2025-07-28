@@ -1,7 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import prisma from "@calcom/prisma";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";
 import type { IBTCPaySetupProps } from "./index";
@@ -15,11 +15,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     const session = await getServerSession({ req });
     if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
 
-    const credential = await prisma.credential.findFirst({
-      where: {
-        type: "btcpayserver_payment",
-        userId: session?.user.id,
-      },
+    const credential = await CredentialRepository.findFirstByUserIdAndType({
+      userId: session.user.id,
+      type: "btcpayserver_payment",
     });
 
     let props: IBTCPaySetupProps | undefined;
