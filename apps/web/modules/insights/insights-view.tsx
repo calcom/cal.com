@@ -10,7 +10,7 @@ import {
 import {
   AverageEventDurationChart,
   BookingKPICards,
-  BookingStatusLineChart,
+  EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
   BookingsByHourChart,
@@ -70,7 +70,7 @@ function InsightsPageContent() {
       <div className="my-4 space-y-4">
         <BookingKPICards />
 
-        <BookingStatusLineChart />
+        <EventTrendsChart />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
