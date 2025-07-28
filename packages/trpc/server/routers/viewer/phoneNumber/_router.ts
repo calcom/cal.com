@@ -16,10 +16,14 @@ import { router } from "../../../trpc";
 
 const generatePhoneNumberCheckoutSession = async ({
   userId,
-  eventTypeId,
+  teamId,
+  agentId,
+  workflowId,
 }: {
   userId: number;
-  eventTypeId?: number;
+  teamId?: number;
+  agentId?: string;
+  workflowId?: string;
 }) => {
   const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
@@ -61,13 +65,17 @@ const generatePhoneNumberCheckoutSession = async ({
     },
     metadata: {
       userId: userId.toString(),
-      eventTypeId: eventTypeId?.toString() || "",
+      teamId: teamId?.toString() || "",
+      agentId: agentId || "",
+      workflowId: workflowId || "",
       type: "phone_number_subscription",
     },
     subscription_data: {
       metadata: {
         userId: userId.toString(),
-        eventTypeId: eventTypeId?.toString() || "",
+        teamId: teamId?.toString() || "",
+        agentId: agentId || "",
+        workflowId: workflowId || "",
         type: "phone_number_subscription",
       },
     },
@@ -90,15 +98,24 @@ export const phoneNumberRouter = router({
   }),
 
   buy: authedProcedure
-    .input(z.object({ eventTypeId: z.number().optional() }).optional())
+    .input(
+      z
+        .object({
+          teamId: z.number().optional(),
+          agentId: z.string().optional(),
+          workflowId: z.string().optional(),
+        })
+        .optional()
+    )
     .mutation(async ({ ctx, input }) => {
-      const eventTypeId = input?.eventTypeId;
       const userId = ctx.user.id;
 
       // Generate checkout session for phone number subscription
       const checkoutSession = await generatePhoneNumberCheckoutSession({
         userId,
-        eventTypeId,
+        teamId: input?.teamId,
+        agentId: input?.agentId,
+        workflowId: input?.workflowId,
       });
 
       // If there is a checkout session, return it
@@ -125,6 +142,7 @@ export const phoneNumberRouter = router({
         sipTrunkAuthUsername: z.string().optional(),
         sipTrunkAuthPassword: z.string().optional(),
         nickname: z.string().optional(),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -132,10 +150,10 @@ export const phoneNumberRouter = router({
       const aiService = createDefaultAIPhoneServiceProvider();
 
       const importedPhoneNumber = await aiService.importPhoneNumber({
-        phoneNumber,
-        terminationUri,
-        sipTrunkAuthUsername,
-        sipTrunkAuthPassword,
+        phone_number: phoneNumber,
+        termination_uri: terminationUri,
+        sip_trunk_auth_username: sipTrunkAuthUsername,
+        sip_trunk_auth_password: sipTrunkAuthPassword,
         nickname,
         userId: ctx.user.id,
       });
@@ -220,106 +238,147 @@ export const phoneNumberRouter = router({
     return { message: "Phone number deleted successfully" };
   }),
 
-  assignPhoneNumber: authedProcedure
-    .input(z.object({ eventTypeId: z.number(), phoneNumberId: z.number() }))
+  update: authedProcedure
+    .input(
+      z.object({
+        phoneNumber: z.string(),
+        inboundAgentId: z.string().nullish().default(null),
+        outboundAgentId: z.string().nullish().default(null),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      const { eventTypeId, phoneNumberId } = input;
+      const { phoneNumber, inboundAgentId, outboundAgentId } = input;
 
-      // Get the AI configuration for this event type
-      const { AISelfServeConfigurationRepository } = await import(
-        "@calcom/lib/server/repository/aiSelfServeConfiguration"
-      );
-      const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
-        eventTypeId,
-        userId: ctx.user.id,
-      });
-
-      if (!config || !config.agentId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "AI agent not found for this event type.",
-        });
-      }
-
-      // Get the phone number details
-      const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
+      // Find the phone number and verify ownership
+      const phoneNumberRecord = await prisma.calAiPhoneNumber.findFirst({
         where: {
-          id: phoneNumberId,
+          phoneNumber,
           userId: ctx.user.id,
         },
       });
 
-      if (!phoneNumber) {
+      if (!phoneNumberRecord) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Phone number not found or you don't have permission to use it.",
+          message: "Phone number not found or you don't have permission to update it.",
         });
+      }
+
+      if (inboundAgentId) {
+        const inboundAgent = await prisma.agent.findFirst({
+          where: {
+            retellAgentId: inboundAgentId,
+            OR: [
+              { userId: ctx.user.id },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: ctx.user.id,
+                      accepted: true,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        if (!inboundAgent) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to use the selected inbound agent.",
+          });
+        }
+      }
+
+      if (outboundAgentId) {
+        const outboundAgent = await prisma.agent.findFirst({
+          where: {
+            retellAgentId: outboundAgentId,
+            OR: [
+              { userId: ctx.user.id },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: ctx.user.id,
+                      accepted: true,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        if (!outboundAgent) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You don't have permission to use the selected outbound agent.",
+          });
+        }
       }
 
       const aiService = createDefaultAIPhoneServiceProvider();
 
       try {
-        await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
-          inboundAgentId: config.agentId,
-          outboundAgentId: config.agentId,
-        });
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to assign phone number to agent in AI service.",
-        });
+        await aiService.getPhoneNumber(phoneNumber);
+
+        const retellUpdateData: { inbound_agent_id?: string | null; outbound_agent_id?: string | null } = {};
+
+        if (inboundAgentId !== undefined) {
+          retellUpdateData.inbound_agent_id = inboundAgentId;
+        }
+
+        if (outboundAgentId !== undefined) {
+          retellUpdateData.outbound_agent_id = outboundAgentId;
+        }
+
+        if (Object.keys(retellUpdateData).length > 0) {
+          await aiService.updatePhoneNumber(phoneNumber, retellUpdateData);
+        }
+      } catch (error: any) {
+        // Check if it's a 404 error (phone number not found in Retell)
+        if (error.message?.includes("404") || error.message?.includes("Not Found")) {
+          console.log(`Phone number ${phoneNumber} not found in Retell - updating local database only`);
+        } else {
+          console.error("Failed to update phone number in AI service:", error);
+        }
       }
 
-      // Update the AI configuration to link the phone number
-      const updatedConfig = await AISelfServeConfigurationRepository.updatePhoneNumberAssignment({
-        configId: config.id,
-        yourPhoneNumberId: phoneNumberId,
-      });
+      const updateData: {
+        inboundAgent?: { connect: { retellAgentId: string } } | { disconnect: true };
+        outboundAgent?: { connect: { retellAgentId: string } } | { disconnect: true };
+      } = {};
 
-      return { success: true, config: updatedConfig };
-    }),
-
-  unassignPhoneNumber: authedProcedure
-    .input(z.object({ eventTypeId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const { eventTypeId } = input;
-
-      // Get the AI configuration for this event type
-      const { AISelfServeConfigurationRepository } = await import(
-        "@calcom/lib/server/repository/aiSelfServeConfiguration"
-      );
-      const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
-        eventTypeId,
-        userId: ctx.user.id,
-      });
-
-      if (!config) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "AI configuration not found for this event type.",
-        });
+      if (inboundAgentId !== undefined) {
+        if (inboundAgentId) {
+          updateData.inboundAgent = {
+            connect: { retellAgentId: inboundAgentId },
+          };
+        } else {
+          updateData.inboundAgent = { disconnect: true };
+        }
       }
 
-      if (!config.yourPhoneNumber?.phoneNumber) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Phone number not found for this event type.",
-        });
+      if (outboundAgentId !== undefined) {
+        if (outboundAgentId) {
+          updateData.outboundAgent = {
+            connect: { retellAgentId: outboundAgentId },
+          };
+        } else {
+          updateData.outboundAgent = { disconnect: true };
+        }
       }
 
-      // unassign the phone number from the AI service
-      const aiService = createDefaultAIPhoneServiceProvider();
-      await aiService.updatePhoneNumber(config.yourPhoneNumber.phoneNumber, {
-        inboundAgentId: null,
-        outboundAgentId: null,
+      await prisma.calAiPhoneNumber.update({
+        where: {
+          id: phoneNumberRecord.id,
+        },
+        data: updateData,
       });
 
-      // Update the AI configuration to unlink the phone number
-      const updatedConfig = await AISelfServeConfigurationRepository.updatePhoneNumberAssignment({
-        configId: config.id,
-        yourPhoneNumberId: null,
-      });
-
-      return { success: true, config: updatedConfig };
+      return { message: "Phone number updated successfully" };
     }),
 });

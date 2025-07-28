@@ -1,8 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 
-import { TRPCError } from "@trpc/server";
-
 export const handleCreateSelfServePhoneCall = async ({
   userId,
   eventTypeId,
@@ -17,20 +15,20 @@ export const handleCreateSelfServePhoneCall = async ({
     identifier: `create-self-serve-phone-call:${userId}`,
   });
 
-  const { AISelfServeConfigurationRepository } = await import(
-    "@calcom/lib/server/repository/aiSelfServeConfiguration"
-  );
-  const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
-    eventTypeId: eventTypeId,
-    userId: userId,
-  });
+  // const { AISelfServeConfigurationRepository } = await import(
+  //   "@calcom/lib/server/repository/aiSelfServeConfiguration"
+  // );
+  // const config = await AISelfServeConfigurationRepository.findByEventTypeIdAndUserId({
+  //   eventTypeId: eventTypeId,
+  //   userId: userId,
+  // });
 
-  if (!config || !config.yourPhoneNumber) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "AI not configured for this event type or no phone number is assigned.",
-    });
-  }
+  // if (!config || !config.yourPhoneNumber) {
+  //   throw new TRPCError({
+  //     code: "BAD_REQUEST",
+  //     message: "AI not configured for this event type or no phone number is assigned.",
+  //   });
+  // }
 
   // Use the provider-agnostic AI service
   const aiService = createDefaultAIPhoneServiceProvider();

@@ -1,3 +1,5 @@
+import { RETELL_API_KEY } from "@calcom/lib/constants";
+
 import { AIPhoneServiceProviderType } from "./interfaces/ai-phone-service.interface";
 import type {
   AIPhoneServiceProvider,
@@ -38,7 +40,7 @@ export class AIPhoneServiceRegistry {
    * Create a provider instance using the default provider
    */
   static createDefaultProvider(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider {
-    return this.createProvider(this.defaultProvider, config);
+    return this.createProvider(AIPhoneServiceRegistry.defaultProvider, config);
   }
 
   static setDefaultProvider(type: string): void {
@@ -49,7 +51,7 @@ export class AIPhoneServiceRegistry {
   }
 
   static getDefaultProvider(): string {
-    return this.defaultProvider;
+    return AIPhoneServiceRegistry.defaultProvider;
   }
 
   static getAvailableProviders(): string[] {
@@ -70,7 +72,7 @@ export function createAIPhoneServiceProvider(
   const type = providerType || AIPhoneServiceProviderType.RETELL_AI;
 
   const providerConfig: AIPhoneServiceProviderConfig = {
-    apiKey: process.env.RETELL_AI_KEY || "",
+    apiKey: RETELL_API_KEY || "",
     enableLogging: process.env.NODE_ENV !== "production",
     ...config,
   };

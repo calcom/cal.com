@@ -17,9 +17,18 @@ export class PhoneNumberRepository {
         OR: [{ subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE }, { subscriptionStatus: null }],
       },
       include: {
-        aiSelfServeConfigurations: {
+        inboundAgent: {
           select: {
-            eventTypeId: true,
+            id: true,
+            name: true,
+            retellAgentId: true,
+          },
+        },
+        outboundAgent: {
+          select: {
+            id: true,
+            name: true,
+            retellAgentId: true,
           },
         },
       },
@@ -29,7 +38,6 @@ export class PhoneNumberRepository {
     return await prisma.calAiPhoneNumber.findMany({
       where: {
         userId,
-        aiSelfServeConfigurations: null,
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       },
     });

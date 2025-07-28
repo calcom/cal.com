@@ -34,7 +34,7 @@ import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableT
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null })[];
+  steps: (WorkflowStep & { senderName: string | null; agentId?: string | null })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -228,6 +228,104 @@ function WorkflowPage({
     },
   });
 
+  console.log("form", form.getValues());
+
+  const handleSaveWorkflow = async (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      form.handleSubmit(async (values) => {
+        console.log("values", values);
+        let activeOnIds: number[] = [];
+        let isEmpty = false;
+        let isVerified = true;
+
+        values.steps.forEach((step) => {
+          const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
+
+          const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
+
+          if (isBodyEmpty) {
+            form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+              type: "custom",
+              message: t("fill_this_field"),
+            });
+          }
+
+          if (step.reminderBody) {
+            step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
+              locale: i18n.language,
+              t,
+            });
+          }
+          if (step.emailSubject) {
+            step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
+              locale: i18n.language,
+              t,
+            });
+          }
+          isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+          //check if phone number is verified
+          if (
+            (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
+            !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+          ) {
+            isVerified = false;
+
+            form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+              type: "custom",
+              message: t("not_verified"),
+            });
+          }
+
+          if (
+            step.action === WorkflowActions.EMAIL_ADDRESS &&
+            !verifiedEmails?.find((verifiedEmail) => verifiedEmail === step.sendTo)
+          ) {
+            isVerified = false;
+
+            form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+              type: "custom",
+              message: t("not_verified"),
+            });
+          }
+        });
+
+        if (!isEmpty && isVerified) {
+          if (values.activeOn) {
+            activeOnIds = values.activeOn
+              .filter((option) => option.value !== "all")
+              .map((option) => {
+                return parseInt(option.value, 10);
+              });
+          }
+          updateMutation.mutate(
+            {
+              id: workflowId,
+              name: values.name,
+              activeOn: activeOnIds,
+              steps: values.steps,
+              trigger: values.trigger,
+              time: values.time || null,
+              timeUnit: values.timeUnit || null,
+              isActiveOnAll: values.selectAll || false,
+            },
+            {
+              onSuccess: () => {
+                utils.viewer.workflows.getVerifiedNumbers.invalidate();
+                resolve();
+              },
+              onError: (error) => {
+                reject(error);
+              },
+            }
+          );
+        } else {
+          reject(new Error("Validation failed"));
+        }
+      })();
+    });
+  };
+
   return session.data ? (
     <Shell withoutMain backPath="/workflows">
       <LicenseRequired>
@@ -357,6 +455,7 @@ function WorkflowPage({
                       readOnly={readOnly}
                       isOrg={isOrg}
                       allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                      onSaveWorkflow={handleSaveWorkflow}
                     />
                   </>
                 ) : (

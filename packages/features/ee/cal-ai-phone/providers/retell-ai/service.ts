@@ -1,66 +1,84 @@
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+import type {
+  updateLLMConfigurationParams,
+  AIPhoneServiceCreatePhoneNumberParams,
+  AIPhoneServiceImportPhoneNumberParams,
+} from "../../interfaces/ai-phone-service.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
-import type { TGetRetellLLMSchema, TCreatePhoneSchema } from "../../zod-utils";
 import { RetellAIError } from "./errors";
 import type {
+  RetellLLM,
+  RetellCall,
+  RetellAgent,
+  RetellPhoneNumber,
+  RetellDynamicVariables,
   AIConfigurationSetup,
   AIConfigurationDeletion,
   DeletionResult,
   RetellAIRepository,
+  RetellLLMGeneralTools,
 } from "./types";
 
 export class RetellAIService {
   constructor(private repository: RetellAIRepository) {}
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
+    const generalTools: NonNullable<RetellLLMGeneralTools> = [
+      {
+        type: "end_call",
+        name: "end_call",
+        description: "Hang up the call, triggered only after appointment successfully scheduled.",
+      },
+      ...(config.calApiKey && config.eventTypeId && config.timeZone
+        ? [
+            {
+              type: "check_availability_cal" as const,
+              name: "check_availability",
+              cal_api_key: config.calApiKey,
+              event_type_id: config.eventTypeId,
+              timezone: config.timeZone,
+            },
+            {
+              type: "book_appointment_cal" as const,
+              name: "book_appointment",
+              cal_api_key: config.calApiKey,
+              event_type_id: config.eventTypeId,
+              timezone: config.timeZone,
+            },
+          ]
+        : []),
+    ];
+
+    if (config.generalTools) {
+      generalTools.push(...config.generalTools);
+    }
+
     const llm = await this.repository.createLLM({
-      general_prompt: DEFAULT_PROMPT_VALUE,
-      begin_message: DEFAULT_BEGIN_MESSAGE,
-      general_tools: [
-        {
-          type: "end_call",
-          name: "end_call",
-          description: "Hang up the call, triggered only after appointment successfully scheduled.",
-        },
-        {
-          type: "check_availability_cal",
-          name: "check_availability",
-          cal_api_key: config.calApiKey,
-          event_type_id: config.eventTypeId,
-          timezone: config.timeZone,
-          // event_type_id: 297707,
-        },
-        {
-          type: "book_appointment_cal",
-          name: "book_appointment",
-          cal_api_key: config.calApiKey,
-          event_type_id: config.eventTypeId,
-          // event_type_id: 297707,
-          timezone: config.timeZone,
-        },
-      ],
+      general_prompt: config.generalPrompt || DEFAULT_PROMPT_VALUE,
+      begin_message: config.beginMessage || DEFAULT_BEGIN_MESSAGE,
+      general_tools: generalTools,
     });
 
     const agent = await this.repository.createAgent({
       response_engine: { llm_id: llm.llm_id, type: "retell-llm" },
       agent_name: `agent-${config.eventTypeId}-${Date.now()}`,
+      // Can be configured in the future
       voice_id: "11labs-Adrian",
     });
 
     return { llmId: llm.llm_id, agentId: agent.agent_id };
   }
 
-  async importPhoneNumber(data: {
-    phoneNumber: string;
-    terminationUri: string;
-    sipTrunkAuthUsername?: string;
-    sipTrunkAuthPassword?: string;
-    nickname?: string;
-    userId: number;
-  }) {
+  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<RetellPhoneNumber> {
     const { userId, ...rest } = data;
-    const importedPhoneNumber = await this.repository.importPhoneNumber(rest);
+    const importedPhoneNumber = await this.repository.importPhoneNumber({
+      phone_number: rest.phone_number,
+      termination_uri: rest.termination_uri,
+      sip_trunk_auth_username: rest.sip_trunk_auth_username,
+      sip_trunk_auth_password: rest.sip_trunk_auth_password,
+      nickname: rest.nickname,
+    });
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     await PhoneNumberRepository.createPhoneNumber({
       phoneNumber: importedPhoneNumber.phone_number,
@@ -131,37 +149,84 @@ export class RetellAIService {
   /**
    * Update LLM configuration (for existing configurations)
    */
-  async updateLLMConfiguration(
-    llmId: string,
-    data: { generalPrompt?: string; beginMessage?: string }
-  ): Promise<TGetRetellLLMSchema> {
+  async updateLLMConfiguration(llmId: string, data: updateLLMConfigurationParams): Promise<RetellLLM> {
     return this.repository.updateLLM(llmId, {
-      general_prompt: data.generalPrompt,
-      begin_message: data.beginMessage,
+      general_prompt: data.general_prompt,
+      begin_message: data.begin_message,
+      general_tools: data.general_tools ?? null,
     });
   }
 
-  async getLLMDetails(llmId: string): Promise<TGetRetellLLMSchema> {
+  async getLLMDetails(llmId: string): Promise<RetellLLM> {
     return this.repository.getLLM(llmId);
   }
 
+  async getAgent(agentId: string): Promise<RetellAgent> {
+    return this.repository.getAgent(agentId);
+  }
+
+  async updateAgent(
+    agentId: string,
+    data: {
+      agent_name?: string;
+      voice_id?: string;
+      language?:
+        | "en-US"
+        | "en-IN"
+        | "en-GB"
+        | "en-AU"
+        | "en-NZ"
+        | "de-DE"
+        | "es-ES"
+        | "es-419"
+        | "hi-IN"
+        | "fr-FR"
+        | "fr-CA"
+        | "ja-JP"
+        | "pt-PT"
+        | "pt-BR"
+        | "zh-CN"
+        | "ru-RU"
+        | "it-IT"
+        | "ko-KR"
+        | "nl-NL"
+        | "nl-BE"
+        | "pl-PL"
+        | "tr-TR"
+        | "th-TH"
+        | "vi-VN"
+        | "ro-RO"
+        | "bg-BG"
+        | "ca-ES"
+        | "da-DK"
+        | "fi-FI"
+        | "el-GR"
+        | "hu-HU"
+        | "id-ID"
+        | "no-NO"
+        | "sk-SK"
+        | "sv-SE"
+        | "multi";
+      responsiveness?: number;
+      interruption_sensitivity?: number;
+    }
+  ): Promise<RetellAgent> {
+    return this.repository.updateAgent(agentId, data);
+  }
+
   async createPhoneCall(data: {
-    fromNumber: string;
-    toNumber: string;
-    dynamicVariables?: {
-      name?: string;
-      company?: string;
-      email?: string;
-    };
-  }): Promise<TCreatePhoneSchema> {
+    from_number: string;
+    to_number: string;
+    retell_llm_dynamic_variables?: RetellDynamicVariables;
+  }): Promise<RetellCall> {
     return this.repository.createPhoneCall({
-      from_number: data.fromNumber,
-      to_number: data.toNumber,
-      retell_llm_dynamic_variables: data.dynamicVariables,
+      from_number: data.from_number,
+      to_number: data.to_number,
+      retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
     });
   }
 
-  async createPhoneNumber(data: { area_code?: number; nickname?: string }) {
+  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<RetellPhoneNumber> {
     return this.repository.createPhoneNumber(data);
   }
 
@@ -173,7 +238,7 @@ export class RetellAIService {
     phoneNumber: string;
     userId: number;
     deleteFromDB: boolean;
-  }) {
+  }): Promise<void> {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
 
     const phoneNumberToDelete = await PhoneNumberRepository.findMinimalPhoneNumber({
@@ -192,23 +257,16 @@ export class RetellAIService {
     }
 
     await this.repository.deletePhoneNumber(phoneNumber);
-    // Remove phone number from AI configurations
-    const { AISelfServeConfigurationRepository } = await import(
-      "@calcom/lib/server/repository/aiSelfServeConfiguration"
-    );
-    await AISelfServeConfigurationRepository.removePhoneNumberFromConfigurations({
-      phoneNumberId: phoneNumberToDelete.id,
-    });
   }
 
-  async getPhoneNumber(phoneNumber: string) {
+  async getPhoneNumber(phoneNumber: string): Promise<RetellPhoneNumber> {
     return this.repository.getPhoneNumber(phoneNumber);
   }
 
   async updatePhoneNumber(
     phoneNumber: string,
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
-  ) {
+  ): Promise<RetellPhoneNumber> {
     return this.repository.updatePhoneNumber(phoneNumber, data);
   }
 }

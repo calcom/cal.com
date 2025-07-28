@@ -77,7 +77,7 @@ async function saveToCreditBalance({
 
 async function handlePhoneNumberSubscription(session: any) {
   const userId = session.metadata?.userId ? parseInt(session.metadata.userId, 10) : null;
-  const eventTypeId = session.metadata?.eventTypeId ? parseInt(session.metadata.eventTypeId, 10) : null;
+  const agentId = session.metadata?.agentId || null;
 
   if (!userId || !session.subscription) {
     throw new HttpCode(400, "Missing required data for phone number subscription");
@@ -108,29 +108,47 @@ async function handlePhoneNumberSubscription(session: any) {
     },
   });
 
-  // If eventTypeId is provided, assign agent to the new number
-  if (eventTypeId) {
-    const config = await prisma.aISelfServeConfiguration.findFirst({
-      where: {
-        eventTypeId: eventTypeId,
-        eventType: {
-          userId: userId,
+  // If agentId is provided, link the phone number to the agent
+  if (agentId) {
+    try {
+      const agent = await prisma.agent.findFirst({
+        where: {
+          id: agentId,
+          OR: [
+            { userId: userId },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: userId,
+                    accepted: true,
+                  },
+                },
+              },
+            },
+          ],
         },
-      },
-    });
-
-    if (config?.agentId) {
-      // Assign agent to the new number via Retell API
-      await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
-        inboundAgentId: config.agentId,
-        outboundAgentId: config.agentId,
       });
 
-      // Link the new number to the AI config
-      await prisma.aISelfServeConfiguration.update({
-        where: { id: config.id },
-        data: { yourPhoneNumberId: newNumber.id },
-      });
+      if (agent) {
+        // Assign agent to the new number via Retell API
+        await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
+          outbound_agent_id: agent.retellAgentId,
+        });
+
+        // Link the new number to the agent in our database
+        await prisma.calAiPhoneNumber.update({
+          where: { id: newNumber.id },
+          data: {
+            outboundAgent: {
+              connect: { id: agentId },
+            },
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Failed to link phone number to agent:", error);
+      // Don't fail the webhook if agent linking fails
     }
   }
 

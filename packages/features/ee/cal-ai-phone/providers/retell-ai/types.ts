@@ -1,44 +1,29 @@
-import type {
-  TCreateRetellLLMSchema,
-  TGetRetellLLMSchema,
-  TCreatePhoneSchema,
-  TCreatePhoneNumberResponseSchema,
-  TCreateAgentResponseSchema,
-  TUpdatePhoneNumberResponseSchema,
-  TGetPhoneNumberSchema,
-} from "../../zod-utils";
+import type { Retell } from "retell-sdk";
 
-export interface CreateLLMRequest {
-  general_prompt: string;
-  begin_message: string;
-  general_tools: Array<{
-    type: string;
-    name: string;
-    description?: string;
-    cal_api_key?: string;
-    event_type_id?: number;
-    timezone?: string;
-  }>;
-}
-
-export interface CreateAgentRequest {
-  response_engine: {
-    llm_id: string;
-    type: string;
-  };
-  agent_name: string;
-  voice_id: string;
-}
-
-export interface UpdateLLMRequest {
-  general_prompt?: string;
-  begin_message?: string;
-}
+export type RetellLLM = Retell.LlmResponse;
+export type RetellAgent = Retell.AgentResponse & {
+  response_engine: Retell.AgentCreateParams.ResponseEngineRetellLm;
+};
+export type RetellPhoneNumber = Retell.PhoneNumberResponse;
+export type RetellCall = Retell.PhoneCallResponse;
+export type RetellDynamicVariables = { [key: string]: unknown };
+export type CreateLLMRequest = Retell.LlmCreateParams;
+export type CreatePhoneNumberParams = Retell.PhoneNumberCreateParams;
+export type CreatePhoneCallParams = Retell.CallCreatePhoneCallParams;
+export type UpdatePhoneNumberParams = Retell.PhoneNumberUpdateParams;
+export type ImportPhoneNumberParams = Retell.PhoneNumberImportParams;
+export type RetellLLMGeneralTools = Retell.LlmCreateParams["general_tools"];
+export type CreateAgentRequest = Retell.AgentCreateParams;
+export type UpdateLLMRequest = Retell.LlmUpdateParams;
+export type UpdateAgentRequest = Retell.AgentUpdateParams;
 
 export interface AIConfigurationSetup {
-  calApiKey: string;
-  timeZone: string;
-  eventTypeId: number;
+  calApiKey?: string;
+  timeZone?: string;
+  eventTypeId?: number;
+  generalPrompt?: string;
+  beginMessage?: string;
+  generalTools?: Retell.LlmCreateParams["general_tools"];
 }
 
 export interface AIConfigurationDeletion {
@@ -56,35 +41,25 @@ export interface DeletionResult {
 }
 
 export interface RetellAIRepository {
-  createLLM(data: CreateLLMRequest): Promise<TCreateRetellLLMSchema>;
-  getLLM(llmId: string): Promise<TGetRetellLLMSchema>;
-  updateLLM(llmId: string, data: UpdateLLMRequest): Promise<TGetRetellLLMSchema>;
+  // LLM operations
+  createLLM(data: CreateLLMRequest): Promise<RetellLLM>;
+  getLLM(llmId: string): Promise<RetellLLM>;
+  updateLLM(llmId: string, data: UpdateLLMRequest): Promise<RetellLLM>;
   deleteLLM(llmId: string): Promise<void>;
 
-  createAgent(data: CreateAgentRequest): Promise<TCreateAgentResponseSchema>;
+  // Agent operations
+  createAgent(data: CreateAgentRequest): Promise<RetellAgent>;
+  getAgent(agentId: string): Promise<RetellAgent>;
+  updateAgent(agentId: string, data: UpdateAgentRequest): Promise<RetellAgent>;
   deleteAgent(agentId: string): Promise<void>;
 
-  createPhoneNumber(data: {
-    area_code?: number;
-    nickname?: string;
-  }): Promise<TCreatePhoneNumberResponseSchema>;
-  importPhoneNumber(data: {
-    phoneNumber: string;
-    terminationUri: string;
-    sipTrunkAuthUsername?: string;
-    sipTrunkAuthPassword?: string;
-    nickname?: string;
-  }): Promise<TCreatePhoneNumberResponseSchema>;
+  // Phone number operations
+  createPhoneNumber(data: CreatePhoneNumberParams): Promise<RetellPhoneNumber>;
+  importPhoneNumber(data: ImportPhoneNumberParams): Promise<RetellPhoneNumber>;
   deletePhoneNumber(phoneNumber: string): Promise<void>;
-  getPhoneNumber(phoneNumber: string): Promise<TGetPhoneNumberSchema>;
-  updatePhoneNumber(
-    phoneNumber: string,
-    data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
-  ): Promise<TUpdatePhoneNumberResponseSchema>;
+  getPhoneNumber(phoneNumber: string): Promise<RetellPhoneNumber>;
+  updatePhoneNumber(phoneNumber: string, data: UpdatePhoneNumberParams): Promise<RetellPhoneNumber>;
 
-  createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: any;
-  }): Promise<TCreatePhoneSchema>;
+  // Call operations
+  createPhoneCall(data: CreatePhoneCallParams): Promise<RetellCall>;
 }

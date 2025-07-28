@@ -27,7 +27,7 @@ export {
   RetellAIProvider,
   RetellAIProviderFactory,
   RetellAIService,
-  RetellAIApiClient,
+  RetellSDKClient,
   RetellAIError,
 } from "./providers/retell-ai";
 

@@ -63,32 +63,32 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   return await handler(data);
 };
 
-async function handlePhoneNumberSubscriptionDeleted(subscription: any, phoneNumber: any) {
+async function handlePhoneNumberSubscriptionDeleted(
+  subscription: Data["object"],
+  phoneNumber: { id: number }
+) {
   if (!subscription.id) {
     throw new HttpCode(400, "Subscription ID not found");
   }
 
-  // Mark subscription as cancelled and remove from AI config if linked
-  await prisma.calAiPhoneNumber.update({
-    where: {
-      id: phoneNumber.id,
-    },
-    data: {
-      subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-    },
-  });
+  try {
+    await prisma.calAiPhoneNumber.update({
+      where: {
+        id: phoneNumber.id,
+      },
+      data: {
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        outboundAgent: {
+          disconnect: true,
+        },
+      },
+    });
 
-  // Remove phone number from AI configurations
-  await prisma.aISelfServeConfiguration.updateMany({
-    where: {
-      yourPhoneNumberId: phoneNumber.id,
-    },
-    data: {
-      yourPhoneNumberId: null,
-    },
-  });
-
-  return { success: true, subscriptionId: subscription.id };
+    return { success: true, subscriptionId: subscription.id };
+  } catch (error) {
+    console.error("Failed to update phone number subscription:", error);
+    throw new HttpCode(500, "Failed to update phone number subscription");
+  }
 }
 
 export default stripeWebhookProductHandler({

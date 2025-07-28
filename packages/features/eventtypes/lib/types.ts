@@ -66,18 +66,6 @@ type PhoneCallConfig = {
   schedulerName?: string;
 };
 
-type AISelfServeConfiguration = {
-  eventTypeId: number;
-  yourPhoneNumberId?: number | null;
-  llmId: string;
-  agentId: string;
-  agentTimeZone: string;
-  enabled: boolean;
-  numberToCall?: string;
-  generalPrompt?: string;
-  beginMessage?: string;
-};
-
 export type FormValues = {
   id: number;
   title: string;
@@ -106,7 +94,6 @@ export type FormValues = {
   customReplyToEmail: string | null;
   locations: EventLocation[];
   aiPhoneCallConfig: PhoneCallConfig;
-  aiSelfServeConfiguration: AISelfServeConfiguration;
   customInputs: CustomInputParsed[];
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;

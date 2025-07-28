@@ -1,7 +1,7 @@
 export { RetellAIService } from "./service";
 export { RetellAIProvider } from "./provider";
 export { RetellAIProviderFactory } from "./factory";
-export { RetellAIApiClient } from "./client";
+export { RetellSDKClient } from "./client";
 export { RetellAIError } from "./errors";
 
 export type {

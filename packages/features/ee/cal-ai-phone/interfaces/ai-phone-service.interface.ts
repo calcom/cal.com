@@ -1,8 +1,20 @@
-export interface AIPhoneServiceConfiguration {
-  calApiKey: string;
-  timeZone: string;
-  eventTypeId: number;
-}
+import type {
+  AIConfigurationSetup as RetellAIConfigurationSetup,
+  UpdateLLMRequest as RetellAIUpdateLLMParams,
+  RetellLLM,
+  RetellAgent,
+  RetellCall,
+  CreatePhoneCallParams,
+  RetellPhoneNumber,
+  UpdatePhoneNumberParams as RetellAIUpdatePhoneNumberParams,
+  CreatePhoneNumberParams as RetellAICreatePhoneNumberParams,
+  ImportPhoneNumberParams as RetellAIImportPhoneNumberParams,
+  UpdateAgentRequest as RetellAIUpdateAgentParams,
+} from "../providers/retell-ai/types";
+
+export type AIPhoneServiceConfiguration = RetellAIConfigurationSetup;
+export type updateLLMConfigurationParams = RetellAIUpdateLLMParams;
+export type AIPhoneServiceModel = RetellLLM;
 
 export interface AIPhoneServiceDeletion {
   llmId?: string;
@@ -18,48 +30,23 @@ export interface AIPhoneServiceDeletionResult {
   };
 }
 
-export interface AIPhoneServiceCallData {
-  fromNumber: string;
-  toNumber: string;
-  dynamicVariables?: {
-    name?: string;
-    company?: string;
-    email?: string;
-  };
-}
+export type AIPhoneServiceCallData = CreatePhoneCallParams;
+export type AIPhoneServiceAgent = RetellAgent;
+export type AIPhoneServiceCall = RetellCall;
 
-export interface AIPhoneServiceModel {
-  id: string;
-  generalPrompt?: string;
-  beginMessage?: string;
-  [key: string]: any; // Allow additional provider-specific fields
-}
-
-export interface AIPhoneServiceAgent {
-  id: string;
-  name: string;
-  [key: string]: any; // Allow additional provider-specific fields
-}
-
-export interface AIPhoneServiceCall {
-  id: string;
-  agentId?: string;
-  [key: string]: any; // Allow additional provider-specific fields
-}
-
-export interface AIPhoneServicePhoneNumber {
-  phoneNumber: string;
-  nickname?: string;
-  [key: string]: any; // Allow additional provider-specific fields
-}
-
+export type AIPhoneServicePhoneNumber = RetellPhoneNumber;
+export type AIPhoneServiceUpdatePhoneNumberParams = RetellAIUpdatePhoneNumberParams;
+export type AIPhoneServiceCreatePhoneNumberParams = RetellAICreatePhoneNumberParams;
+export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberParams & { userId: number };
+export type AIPhoneServiceUpdateAgentParams = RetellAIUpdateAgentParams;
+export type AIPhoneServiceGeneralTool = RetellAIConfigurationSetup["generalTools"];
 /**
  * Generic interface for AI phone service providers
  * This interface abstracts away provider-specific details
  */
 export interface AIPhoneServiceProvider {
   /**
-   * Setup AI configuration for a given event type
+   * Setup AI configuration
    */
   setupConfiguration(config: AIPhoneServiceConfiguration): Promise<{
     llmId: string;
@@ -74,15 +61,22 @@ export interface AIPhoneServiceProvider {
   /**
    * Update LLM configuration
    */
-  updateLLMConfiguration(
-    llmId: string,
-    data: { generalPrompt?: string; beginMessage?: string }
-  ): Promise<AIPhoneServiceModel>;
+  updateLLMConfiguration(llmId: string, data: updateLLMConfigurationParams): Promise<AIPhoneServiceModel>;
 
   /**
    * Get LLM details
    */
   getLLMDetails(llmId: string): Promise<AIPhoneServiceModel>;
+
+  /**
+   * Get agent details
+   */
+  getAgent(agentId: string): Promise<AIPhoneServiceAgent>;
+
+  /**
+   * Update agent configuration
+   */
+  updateAgent(agentId: string, data: AIPhoneServiceUpdateAgentParams): Promise<AIPhoneServiceAgent>;
 
   /**
    * Create a phone call
@@ -92,20 +86,12 @@ export interface AIPhoneServiceProvider {
   /**
    * Create a phone number
    */
-  createPhoneNumber(data?: { areaCode?: number; nickname?: string }): Promise<AIPhoneServicePhoneNumber>;
+  createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<AIPhoneServicePhoneNumber>;
 
   /**
    * Delete a phone number
    */
-  deletePhoneNumber({
-    phoneNumber,
-    userId,
-    deleteFromDB,
-  }: {
-    phoneNumber: string;
-    userId: number;
-    deleteFromDB: boolean;
-  }): Promise<void>;
+  deletePhoneNumber(params: { phoneNumber: string; userId: number; deleteFromDB: boolean }): Promise<void>;
 
   /**
    * Get phone number details
@@ -117,35 +103,23 @@ export interface AIPhoneServiceProvider {
    */
   updatePhoneNumber(
     phoneNumber: string,
-    data: { inboundAgentId?: string | null; outboundAgentId?: string | null }
+    data: AIPhoneServiceUpdatePhoneNumberParams
   ): Promise<AIPhoneServicePhoneNumber>;
 
   /**
    * Import a phone number
    */
-  importPhoneNumber(data: {
-    phoneNumber: string;
-    terminationUri: string;
-    sipTrunkAuthUsername?: string;
-    sipTrunkAuthPassword?: string;
-    nickname?: string;
-    userId: number;
-  }): Promise<{
-    phoneNumber: string;
-    inboundAgentId?: string | null;
-    outboundAgentId?: string | null;
-    nickname?: string | null;
-  }>;
+  importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<AIPhoneServicePhoneNumber>;
 }
 
 /**
  * Configuration for AI phone service providers
  */
 export interface AIPhoneServiceProviderConfig {
-  apiKey: string;
+  apiKey?: string;
   baseUrl?: string;
   enableLogging?: boolean;
-  [key: string]: any; // Allow additional provider-specific config
+  logger?: any; // Logger instance
 }
 
 /**

@@ -1,221 +1,234 @@
+import { Retell } from "retell-sdk";
+
+import { RETELL_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import type { fetcher } from "@calcom/lib/retellAIFetcher";
-import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type {
-  TCreateRetellLLMSchema,
-  TGetRetellLLMSchema,
-  TCreatePhoneSchema,
-  TCreatePhoneNumberResponseSchema,
-  TCreateAgentResponseSchema,
-  TUpdatePhoneNumberResponseSchema,
-  TGetPhoneNumberSchema,
-} from "../../zod-utils";
-import {
-  ZCreateRetellLLMSchema,
-  ZGetRetellLLMSchema,
-  ZCreatePhoneSchema,
-  ZCreatePhoneNumberResponseSchema,
-  ZCreateAgentResponseSchema,
-  ZUpdatePhoneNumberResponseSchema,
-  ZGetPhoneNumberSchema,
-} from "../../zod-utils";
-import { RetellAIError } from "./errors";
-import type { CreateLLMRequest, CreateAgentRequest, UpdateLLMRequest, RetellAIRepository } from "./types";
+  RetellAIRepository,
+  CreateLLMRequest,
+  UpdateLLMRequest,
+  CreateAgentRequest,
+  UpdateAgentRequest,
+  RetellAgent,
+  CreatePhoneNumberParams,
+  RetellDynamicVariables,
+  ImportPhoneNumberParams,
+} from "./types";
 
-export class RetellAIApiClient implements RetellAIRepository {
+export class RetellSDKClient implements RetellAIRepository {
+  private client: Retell;
   private logger: ReturnType<typeof logger.getSubLogger>;
 
-  constructor(private httpClient: typeof fetcher, customLogger?: ReturnType<typeof logger.getSubLogger>) {
-    this.logger = customLogger || logger.getSubLogger({ prefix: ["retellAIApiClient:"] });
+  constructor(customLogger?: ReturnType<typeof logger.getSubLogger>) {
+    this.logger = customLogger || logger.getSubLogger({ prefix: ["retellSDKClient:"] });
+
+    if (!RETELL_API_KEY) {
+      throw new Error("RETELL_API_KEY is not configured");
+    }
+
+    this.client = new Retell({
+      apiKey: RETELL_API_KEY,
+    });
   }
 
-  async createLLM(data: CreateLLMRequest): Promise<TCreateRetellLLMSchema> {
-    this.logger.info("Creating LLM", {
-      eventTypeId: data.general_tools.find((t) => t.event_type_id)?.event_type_id,
+  async createLLM(data: CreateLLMRequest) {
+    this.logger.info("Creating LLM via SDK", {
+      eventTypeId: data.general_tools?.find((t) => "event_type_id" in t)?.event_type_id,
     });
+
     try {
-      const response = await this.httpClient("/create-retell-llm", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      const result = ZCreateRetellLLMSchema.parse(response);
-      this.logger.info("LLM created successfully", { llmId: result.llm_id });
-      return result;
+      const response = await this.client.llm.create(data);
+
+      this.logger.info("LLM created successfully", { llmId: response.llm_id });
+      return response;
     } catch (error) {
-      this.logger.error("Failed to create LLM", { error: safeStringify(error) });
-      throw new RetellAIError("Failed to create LLM", "createLLM", error);
+      this.logger.error("Failed to create LLM", { error });
+      throw error;
     }
   }
 
-  async getLLM(llmId: string): Promise<TGetRetellLLMSchema> {
-    this.logger.info("Getting LLM", { llmId });
+  async getLLM(llmId: string) {
+    this.logger.info("Getting LLM via SDK", { llmId });
+
     try {
-      const response = await this.httpClient(`/get-retell-llm/${llmId}`);
-      const result = ZGetRetellLLMSchema.parse(response);
+      const response = await this.client.llm.retrieve(llmId);
       this.logger.info("LLM retrieved successfully", { llmId });
-      return result;
+      return response;
     } catch (error) {
-      this.logger.error("Failed to get LLM", { error: safeStringify(error), llmId });
-      throw new RetellAIError(`Failed to get LLM ${llmId}`, "getLLM", error);
+      this.logger.error("Failed to get LLM", { error, llmId });
+      throw error;
     }
   }
 
-  async updateLLM(llmId: string, data: UpdateLLMRequest): Promise<TGetRetellLLMSchema> {
-    this.logger.info("Updating LLM", {
-      llmId,
-      hasPrompt: !!data.general_prompt,
-      hasBeginMessage: !!data.begin_message,
-    });
+  async updateLLM(llmId: string, data: UpdateLLMRequest) {
     try {
-      const response = await this.httpClient(`/update-retell-llm/${llmId}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
-      const result = ZGetRetellLLMSchema.parse(response);
+      this.logger.info("Updating LLM via SDK", { llmId });
+      console.log("updateLLM", { llmId, general_tools: data?.general_tools });
+
+      const response = await this.client.llm.update(llmId, data);
+
       this.logger.info("LLM updated successfully", { llmId });
-      return result;
+      return response;
     } catch (error) {
-      this.logger.error("Failed to update LLM", { error: safeStringify(error), llmId });
-      throw new RetellAIError(`Failed to update LLM ${llmId}`, "updateLLM", error);
+      this.logger.error("Failed to update LLM", { error, llmId });
+      throw error;
     }
   }
 
-  async deleteLLM(llmId: string): Promise<void> {
-    this.logger.info("Deleting LLM", { llmId });
+  async deleteLLM(llmId: string) {
+    this.logger.info("Deleting LLM via SDK", { llmId });
+
     try {
-      await this.httpClient(`/delete-retell-llm/${llmId}`, {
-        method: "DELETE",
-      });
+      await this.client.llm.delete(llmId);
       this.logger.info("LLM deleted successfully", { llmId });
     } catch (error) {
-      this.logger.error("Failed to delete LLM", { error: safeStringify(error), llmId });
-      throw new RetellAIError(`Failed to delete LLM ${llmId}`, "deleteLLM", error);
+      this.logger.error("Failed to delete LLM", { error, llmId });
+      throw error;
     }
   }
 
-  async createAgent(data: CreateAgentRequest): Promise<TCreateAgentResponseSchema> {
-    this.logger.info("Creating agent", { agentName: data.agent_name, llmId: data.response_engine.llm_id });
+  async createAgent(data: CreateAgentRequest) {
+    this.logger.info("Creating agent via SDK", {
+      agentName: data.agent_name,
+    });
+
     try {
-      const response = await this.httpClient("/create-agent", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-      const result = ZCreateAgentResponseSchema.parse(response);
+      const response = await this.client.agent.create(data);
+
       this.logger.info("Agent created successfully", {
-        agentId: result.agent_id,
+        agentId: response.agent_id,
         agentName: data.agent_name,
       });
-      return result;
+      return response;
     } catch (error) {
       this.logger.error("Failed to create agent", {
-        error: safeStringify(error),
+        error,
         agentName: data.agent_name,
       });
-      throw new RetellAIError("Failed to create agent", "createAgent", error);
+      throw error;
     }
   }
 
-  async deleteAgent(agentId: string): Promise<void> {
-    this.logger.info("Deleting agent", { agentId });
+  async getAgent(agentId: string) {
+    this.logger.info("Getting agent via SDK", { agentId });
+
     try {
-      await this.httpClient(`/delete-agent/${agentId}`, {
-        method: "DELETE",
-      });
+      const response = await this.client.agent.retrieve(agentId);
+      this.logger.info("Agent retrieved successfully", { agentId });
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to get agent", { error, agentId });
+      throw error;
+    }
+  }
+
+  async updateAgent(agentId: string, data: UpdateAgentRequest): Promise<RetellAgent> {
+    this.logger.info("Updating agent via SDK", { agentId });
+
+    try {
+      const response = await this.client.agent.update(agentId, data);
+      this.logger.info("Agent updated successfully", { agentId });
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to update agent", { error, agentId });
+      throw error;
+    }
+  }
+
+  async deleteAgent(agentId: string) {
+    this.logger.info("Deleting agent via SDK", { agentId });
+
+    try {
+      await this.client.agent.delete(agentId);
       this.logger.info("Agent deleted successfully", { agentId });
     } catch (error) {
-      this.logger.error("Failed to delete agent", { error: safeStringify(error), agentId });
-      throw new RetellAIError(`Failed to delete agent ${agentId}`, "deleteAgent", error);
+      this.logger.error("Failed to delete agent", { error, agentId });
+      throw error;
     }
   }
 
-  async createPhoneNumber(data: {
-    area_code?: number;
-    nickname?: string;
-  }): Promise<TCreatePhoneNumberResponseSchema> {
+  async createPhoneNumber(data: CreatePhoneNumberParams) {
     try {
-      const response = await this.httpClient("/create-phone-number", {
-        method: "POST",
-        body: JSON.stringify(data),
+      const response = await this.client.phoneNumber.create({
+        area_code: data.area_code,
+        inbound_agent_id: data.inbound_agent_id,
+        outbound_agent_id: data.outbound_agent_id,
+        nickname: data.nickname,
       });
-      return ZCreatePhoneNumberResponseSchema.parse(response);
+      return response;
     } catch (error) {
-      throw new RetellAIError("Failed to create phone number", "createPhoneNumber", error);
+      this.logger.error("Failed to create phone number", { error });
+      throw error;
     }
   }
 
-  async deletePhoneNumber(phoneNumber: string): Promise<void> {
+  async importPhoneNumber(data: ImportPhoneNumberParams) {
     try {
-      await this.httpClient(`/delete-phone-number/${phoneNumber}`, {
-        method: "DELETE",
+      const response = await this.client.phoneNumber.import({
+        phone_number: data.phone_number,
+        termination_uri: data.termination_uri,
+        sip_trunk_auth_username: data.sip_trunk_auth_username,
+        sip_trunk_auth_password: data.sip_trunk_auth_password,
+        nickname: data.nickname,
       });
+      return response;
     } catch (error) {
-      throw new RetellAIError(`Failed to delete phone number ${phoneNumber}`, "deletePhoneNumber", error);
+      this.logger.error("Failed to import phone number", { error });
+      throw error;
     }
   }
 
-  async getPhoneNumber(phoneNumber: string): Promise<TGetPhoneNumberSchema> {
+  async deletePhoneNumber(phoneNumber: string) {
     try {
-      const response = await this.httpClient(`/get-phone-number/${phoneNumber}`);
-      return ZGetPhoneNumberSchema.parse(response);
+      await this.client.phoneNumber.delete(phoneNumber);
     } catch (error) {
-      throw new RetellAIError(`Failed to get phone number ${phoneNumber}`, "getPhoneNumber", error);
+      this.logger.error("Failed to delete phone number", { error, phoneNumber });
+      throw error;
+    }
+  }
+
+  async getPhoneNumber(phoneNumber: string) {
+    try {
+      const response = await this.client.phoneNumber.retrieve(phoneNumber);
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to get phone number", { error, phoneNumber });
+      throw error;
     }
   }
 
   async updatePhoneNumber(
     phoneNumber: string,
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
-  ): Promise<TUpdatePhoneNumberResponseSchema> {
+  ) {
+    console.log("updatePhoneNumber", { phoneNumber, data });
     try {
-      const response = await this.httpClient(`/update-phone-number/${phoneNumber}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
+      const response = await this.client.phoneNumber.update(phoneNumber, {
+        inbound_agent_id: data.inbound_agent_id,
+        outbound_agent_id: data.outbound_agent_id,
       });
-      return ZUpdatePhoneNumberResponseSchema.parse(response);
+      return response;
     } catch (error) {
-      throw new RetellAIError(`Failed to update phone number ${phoneNumber}`, "updatePhoneNumber", error);
+      this.logger.error("Failed to update phone number", { error, phoneNumber });
+      throw error;
     }
   }
 
   async createPhoneCall(data: {
     from_number: string;
     to_number: string;
-    retell_llm_dynamic_variables?: any;
-  }): Promise<TCreatePhoneSchema> {
+    retell_llm_dynamic_variables?: RetellDynamicVariables;
+  }) {
     try {
-      const response = await this.httpClient("/v2/create-phone-call", {
-        method: "POST",
-        body: JSON.stringify(data),
+      const response = await this.client.call.createPhoneCall({
+        from_number: data.from_number,
+        to_number: data.to_number,
+        retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
       });
-      return ZCreatePhoneSchema.parse(response);
+      return response;
     } catch (error) {
-      throw new RetellAIError("Failed to create phone call", "createPhoneCall", error);
-    }
-  }
-
-  async importPhoneNumber(data: {
-    phoneNumber: string;
-    terminationUri: string;
-    sipTrunkAuthUsername?: string;
-    sipTrunkAuthPassword?: string;
-    nickname?: string | null;
-  }): Promise<TCreatePhoneNumberResponseSchema> {
-    try {
-      const response = await this.httpClient("/import-phone-number", {
-        method: "POST",
-        body: JSON.stringify({
-          phone_number: data.phoneNumber,
-          termination_uri: data.terminationUri,
-          sip_trunk_auth_username: data.sipTrunkAuthUsername,
-          sip_trunk_auth_password: data.sipTrunkAuthPassword,
-          nickname: data.nickname,
-        }),
-      });
-      const result = ZCreatePhoneNumberResponseSchema.parse(response);
-      return result;
-    } catch (error) {
-      throw new RetellAIError("Failed to import phone number", "importPhoneNumber", error);
+      this.logger.error("Failed to create phone call", { error });
+      throw error;
     }
   }
 }

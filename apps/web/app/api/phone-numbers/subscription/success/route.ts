@@ -21,6 +21,8 @@ const checkoutSessionMetadataSchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? Number(val) : undefined)),
+  agentId: z.string().optional(),
+  workflowId: z.string().optional(),
   type: z.literal("phone_number_subscription"),
 });
 
@@ -57,17 +59,67 @@ async function handler(request: NextRequest) {
       phoneNumber = await createPhoneNumber(checkoutSession, checkoutSessionMetadata);
     }
 
-    // If eventTypeId is provided, link it to AI configuration
-    if (checkoutSessionMetadata.eventTypeId && phoneNumber) {
-      await linkPhoneNumberToAgent(
-        phoneNumber.id,
-        checkoutSessionMetadata.eventTypeId,
-        checkoutSessionMetadata.userId
-      );
+    // If agentId is provided, link it to the agent
+    if (checkoutSessionMetadata.agentId && phoneNumber) {
+      try {
+        // Verify the agent exists and user has permission
+        const agent = await prisma.agent.findFirst({
+          where: {
+            id: checkoutSessionMetadata.agentId,
+            OR: [
+              { userId: checkoutSessionMetadata.userId },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: checkoutSessionMetadata.userId,
+                      accepted: true,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        if (agent) {
+          const aiService = createDefaultAIPhoneServiceProvider();
+
+          // Assign agent to the new number via Retell API
+          await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
+            outbound_agent_id: agent.retellAgentId,
+          });
+
+          // Link the new number to the agent in our database
+          await prisma.calAiPhoneNumber.update({
+            where: { id: phoneNumber.id },
+            data: {
+              outboundAgent: {
+                connect: { id: checkoutSessionMetadata.agentId },
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Failed to link phone number to agent:", error);
+        // Don't fail the success page if agent linking fails
+      }
     }
 
-    // Redirect to phone numbers page with success message
-    const successUrl = new URL(`${WEBAPP_URL}/settings/my-account/phone-numbers`);
+    // Redirect based on context
+    let successUrl: URL;
+    if (checkoutSessionMetadata.agentId) {
+      // If this was part of a workflow setup, redirect back to workflow
+      if (checkoutSessionMetadata.workflowId) {
+        successUrl = new URL(`${WEBAPP_URL}/workflows/${checkoutSessionMetadata.workflowId}`);
+      } else {
+        successUrl = new URL(`${WEBAPP_URL}/workflows`);
+      }
+    } else {
+      // Otherwise redirect to phone numbers page
+      successUrl = new URL(`${WEBAPP_URL}/settings/my-account/phone-numbers`);
+    }
+
     successUrl.searchParams.set("success", "true");
     successUrl.searchParams.set("phone_number", phoneNumber?.phoneNumber || "");
 
@@ -165,34 +217,34 @@ async function createPhoneNumber(
 async function linkPhoneNumberToAgent(phoneNumberId: number, eventTypeId: number, userId: number) {
   const aiService = createDefaultAIPhoneServiceProvider();
 
-  const config = await prisma.aISelfServeConfiguration.findFirst({
-    where: {
-      eventTypeId: eventTypeId,
-      eventType: {
-        userId: userId,
-      },
-    },
-  });
+  // const config = await prisma.aISelfServeConfiguration.findFirst({
+  //   where: {
+  //     eventTypeId: eventTypeId,
+  //     eventType: {
+  //       userId: userId,
+  //     },
+  //   },
+  // });
 
-  if (config?.agentId) {
-    const phoneNumber = await prisma.calAiPhoneNumber.findUnique({
-      where: { id: phoneNumberId },
-    });
+  // if (config?.agentId) {
+  //   const phoneNumber = await prisma.calAiPhoneNumber.findUnique({
+  //     where: { id: phoneNumberId },
+  //   });
 
-    if (phoneNumber) {
-      // Assign agent to the new number via Retell API
-      await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
-        inboundAgentId: config.agentId,
-        outboundAgentId: config.agentId,
-      });
+  //   if (phoneNumber) {
+  //     // Assign agent to the new number via Retell API
+  //     await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
+  //       inbound_agent_id: config.agentId,
+  //       outbound_agent_id: config.agentId,
+  //     });
 
-      // Link the new number to the AI config
-      await prisma.aISelfServeConfiguration.update({
-        where: { id: config.id },
-        data: { yourPhoneNumberId: phoneNumberId },
-      });
-    }
-  }
+  //     // Link the new number to the AI config
+  //     await prisma.aISelfServeConfiguration.update({
+  //       where: { id: config.id },
+  //       data: { yourPhoneNumberId: phoneNumberId },
+  //     });
+  //   }
+  // }
 }
 
 export const GET = defaultResponderForAppDir(handler);

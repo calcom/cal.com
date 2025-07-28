@@ -183,7 +183,6 @@ model EventType {
   rrSegmentQueryValue                      Json?
   useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
-  aiSelfServeConfiguration                 AISelfServeConfiguration?
   isRRWeightsEnabled                       Boolean                   @default(false)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?
@@ -383,6 +382,7 @@ model User {
   verifiedNumbers      VerifiedNumber[]
   verifiedEmails       VerifiedEmail[]
   calAiPhoneNumbers    CalAiPhoneNumber[]
+  agents               Agent[]
   hosts                Host[]
   // organizationId is deprecated. Instead, rely on the Profile to search profiles by organizationId and then get user from the profile.
   organizationId       Int?
@@ -532,6 +532,8 @@ model Team {
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
   roles                  Role[] // Added for Role relation
+  calAiPhoneNumbers      CalAiPhoneNumber[]
+  agents                 Agent[]
 
   features TeamFeatures[]
 
@@ -1315,6 +1317,7 @@ enum WorkflowActions {
   EMAIL_ADDRESS
   WHATSAPP_ATTENDEE
   WHATSAPP_NUMBER
+  CAL_AI_PHONE_CALL
 }
 
 model WorkflowStep {
@@ -1333,6 +1336,8 @@ model WorkflowStep {
   numberVerificationPending Boolean            @default(true)
   includeCalendarEvent      Boolean            @default(false)
   verifiedAt                DateTime?
+  agentId                   String?            @unique
+  agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: Cascade)
 
   @@index([workflowId])
 }
@@ -1372,22 +1377,6 @@ model AIPhoneCallConfiguration {
   enabled         Boolean   @default(false)
   beginMessage    String?
   llmId           String?
-
-  @@unique([eventTypeId])
-  @@index([eventTypeId])
-}
-
-model AISelfServeConfiguration {
-  id                Int               @id @default(autoincrement())
-  eventType         EventType         @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId       Int
-  yourPhoneNumber   CalAiPhoneNumber? @relation(fields: [yourPhoneNumberId], references: [id], onDelete: SetNull)
-  yourPhoneNumberId Int?              @unique
-  numberToCall      String?
-  enabled           Boolean           @default(false)
-  agentId           String
-  llmId             String
-  agentTimeZone     String
 
   @@unique([eventTypeId])
   @@index([eventTypeId])
@@ -1486,6 +1475,7 @@ enum WorkflowMethods {
   EMAIL
   SMS
   WHATSAPP
+  AI_PHONE_CALL
 }
 
 model BookingSeat {
@@ -2433,22 +2423,64 @@ model RolePermission {
   @@index([action])
 }
 
-model CalAiPhoneNumber {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  phoneNumber String   @unique
-  provider    String? // e.g. "retell"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// Cal AI Voice Agent
+model Agent {
+  id   String @id @default(uuid())
+  name String
 
-  // Billing fields for $5/month subscription
+  // Either user-owned OR team-owned
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Retell AI agent ID - this is the main reference to Retell's system
+  retellAgentId String @unique
+
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
+  outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
+  workflowStep         WorkflowStep?
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([retellAgentId])
+}
+
+model CalAiPhoneNumber {
+  id Int @id @default(autoincrement())
+
+  // Either user-owned OR team-owned
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  phoneNumber String  @unique
+  provider    String? @default("retell")
+
+  // Retell phone number ID
+  retellPhoneNumberId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   stripeCustomerId     String?
   stripeSubscriptionId String?                        @unique
   subscriptionStatus   PhoneNumberSubscriptionStatus?
 
-  aiSelfServeConfigurations AISelfServeConfiguration?
+  // Agent associations
+  inboundAgentId  String?
+  inboundAgent    Agent?  @relation("InboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+  outboundAgentId String?
+  outboundAgent   Agent?  @relation("OutboundAgent", fields: [outboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([teamId])
   @@index([stripeSubscriptionId])
+  @@index([inboundAgentId])
+  @@index([outboundAgentId])
 }

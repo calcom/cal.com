@@ -22,6 +22,8 @@ import {
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
   getEmailTemplateText,
+  upsertAIAgentCallPhoneNumberFieldForEventTypes,
+  removeAIAgentCallPhoneNumberFieldForEventTypes,
 } from "./util";
 
 type UpdateOptions = {
@@ -369,6 +371,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
       }
 
+      // For AI phone call actions, ensure an agent is configured
+      if (newStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !newStep.agentId) {
+        console.log("AI phone call step missing agentId:", { newStep, oldStep });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "AI phone call actions require an agent to be configured",
+        });
+      }
+
       const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
       await ctx.prisma.workflowStep.update({
@@ -387,6 +398,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
+          agentId: newStep.agentId,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
         },
       });
@@ -437,6 +449,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
+        }
+
+        if (newStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !newStep.agentId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "AI phone call actions require an agent to be configured",
+          });
         }
 
         const {
@@ -570,6 +589,32 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
           s.numberRequired
       ),
+      isOrg,
+    });
+  }
+
+  // Remove or add attendeePhoneNumber field for AI phone call actions
+  const aiPhoneCallStepsNeeded =
+    activeOn.length && steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL);
+
+  await removeAIAgentCallPhoneNumberFieldForEventTypes({
+    activeOnToRemove: removedActiveOnIds,
+    workflowId: id,
+    isOrg,
+    activeOn,
+  });
+
+  if (!aiPhoneCallStepsNeeded) {
+    await removeAIAgentCallPhoneNumberFieldForEventTypes({
+      activeOnToRemove: activeOnWithChildren,
+      workflowId: id,
+      isOrg,
+    });
+  } else {
+    await upsertAIAgentCallPhoneNumberFieldForEventTypes({
+      activeOn: activeOnWithChildren,
+      workflowId: id,
+      isAIAgentCallPhoneNumberRequired: steps.some((s) => s.action === WorkflowActions.CAL_AI_PHONE_CALL),
       isOrg,
     });
   }

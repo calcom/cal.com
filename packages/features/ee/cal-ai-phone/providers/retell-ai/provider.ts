@@ -1,3 +1,4 @@
+// packages/features/ee/cal-ai-phone/providers/retell-ai/provider.ts
 import type {
   AIPhoneServiceProvider,
   AIPhoneServiceConfiguration,
@@ -7,6 +8,12 @@ import type {
   AIPhoneServiceModel,
   AIPhoneServiceCall,
   AIPhoneServicePhoneNumber,
+  AIPhoneServiceAgent,
+  updateLLMConfigurationParams,
+  AIPhoneServiceUpdateAgentParams,
+  AIPhoneServiceCreatePhoneNumberParams,
+  AIPhoneServiceImportPhoneNumberParams,
+  AIPhoneServiceUpdatePhoneNumberParams,
 } from "../../interfaces/ai-phone-service.interface";
 import { RetellAIService } from "./service";
 import type { RetellAIRepository } from "./types";
@@ -26,6 +33,9 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
       calApiKey: config.calApiKey,
       timeZone: config.timeZone,
       eventTypeId: config.eventTypeId,
+      generalPrompt: config.generalPrompt,
+      beginMessage: config.beginMessage,
+      generalTools: config.generalTools,
     });
 
     return {
@@ -52,94 +62,47 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
 
   async updateLLMConfiguration(
     llmId: string,
-    data: { generalPrompt?: string; beginMessage?: string }
+    data: updateLLMConfigurationParams
   ): Promise<AIPhoneServiceModel> {
     const result = await this.service.updateLLMConfiguration(llmId, data);
-
-    return {
-      id: result.llm_id,
-      generalPrompt: result.general_prompt,
-      beginMessage: result.begin_message ?? undefined,
-      // Include additional Retell AI specific fields
-      llmWebsocketUrl: result.llm_websocket_url,
-      generalTools: result.general_tools,
-      inboundDynamicVariablesWebhookUrl: result.inbound_dynamic_variables_webhook_url,
-    };
+    return result;
   }
 
   async getLLMDetails(llmId: string): Promise<AIPhoneServiceModel> {
     const result = await this.service.getLLMDetails(llmId);
+    return result;
+  }
 
-    return {
-      id: result.llm_id,
-      generalPrompt: result.general_prompt,
-      beginMessage: result.begin_message ?? undefined,
-      // Include additional Retell AI specific fields
-      llmWebsocketUrl: result.llm_websocket_url,
-      generalTools: result.general_tools,
-      inboundDynamicVariablesWebhookUrl: result.inbound_dynamic_variables_webhook_url,
-    };
+  async getAgent(agentId: string): Promise<AIPhoneServiceAgent> {
+    const agent = await this.service.getAgent(agentId);
+    return agent;
+  }
+
+  async updateAgent(agentId: string, data: AIPhoneServiceUpdateAgentParams): Promise<AIPhoneServiceAgent> {
+    const agent = await this.service.updateAgent(agentId, data);
+    return agent;
   }
 
   async createPhoneCall(data: AIPhoneServiceCallData): Promise<AIPhoneServiceCall> {
-    const result = await this.service.createPhoneCall({
-      fromNumber: data.fromNumber,
-      toNumber: data.toNumber,
-      dynamicVariables: data.dynamicVariables,
-    });
+    const result = await this.service.createPhoneCall(data);
 
-    return {
-      id: result.call_id,
-      agentId: result.agent_id,
-      callStatus: result.call_status,
-      callType: result.call_type,
-      fromNumber: result.from_number,
-      toNumber: result.to_number,
-      direction: result.direction,
-      callAnalysis: result.call_analysis,
-      recordingUrl: result.recording_url,
-      publicLogUrl: result.public_log_url,
-    };
+    return result;
   }
 
-  async createPhoneNumber(data: {
-    areaCode?: number;
-    nickname?: string;
-  }): Promise<AIPhoneServicePhoneNumber> {
+  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<AIPhoneServicePhoneNumber> {
     const result = await this.service.createPhoneNumber({
-      area_code: data.areaCode,
+      area_code: data.area_code,
       nickname: data.nickname,
+      inbound_agent_id: data.inbound_agent_id,
+      outbound_agent_id: data.outbound_agent_id,
     });
 
-    return {
-      phoneNumber: result.phone_number,
-      nickname: result.nickname,
-      inboundAgentId: result.inbound_agent_id,
-      outboundAgentId: result.outbound_agent_id,
-    };
+    return result;
   }
 
-  async importPhoneNumber(data: {
-    phoneNumber: string;
-    terminationUri: string;
-    sipTrunkAuthUsername?: string;
-    sipTrunkAuthPassword?: string;
-    nickname?: string;
-    userId: number;
-  }): Promise<{
-    phoneNumber: string;
-    inboundAgentId?: string | null;
-    outboundAgentId?: string | null;
-    nickname?: string | null;
-  }> {
+  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<AIPhoneServicePhoneNumber> {
     const result = await this.service.importPhoneNumber(data);
-
-    return {
-      phoneNumber: result.phone_number,
-      inboundAgentId: result.inbound_agent_id,
-      outboundAgentId: result.outbound_agent_id,
-      nickname: result.nickname,
-    };
+    return result;
   }
 
   async deletePhoneNumber({
@@ -156,31 +119,18 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
 
   async getPhoneNumber(phoneNumber: string): Promise<AIPhoneServicePhoneNumber> {
     const result = await this.service.getPhoneNumber(phoneNumber);
-
-    return {
-      phoneNumber: result.phone_number,
-      nickname: result.nickname,
-      // Include additional Retell AI specific fields
-      inboundAgentId: result.inbound_agent_id,
-      outboundAgentId: result.outbound_agent_id,
-    };
+    return result;
   }
 
   async updatePhoneNumber(
     phoneNumber: string,
-    data: { inboundAgentId?: string | null; outboundAgentId?: string | null }
+    data: AIPhoneServiceUpdatePhoneNumberParams
   ): Promise<AIPhoneServicePhoneNumber> {
     const result = await this.service.updatePhoneNumber(phoneNumber, {
-      inbound_agent_id: data.inboundAgentId,
-      outbound_agent_id: data.outboundAgentId,
+      inbound_agent_id: data.inbound_agent_id,
+      outbound_agent_id: data.outbound_agent_id,
     });
 
-    return {
-      phoneNumber: result.phone_number,
-      nickname: result.nickname,
-      // Include additional Retell AI specific fields
-      inboundAgentId: result.inbound_agent_id,
-      outboundAgentId: result.outbound_agent_id,
-    };
+    return result;
   }
 }

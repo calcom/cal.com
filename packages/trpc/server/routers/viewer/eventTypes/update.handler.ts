@@ -85,7 +85,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     offsetStart,
     secondaryEmailId,
     aiPhoneCallConfig,
-    aiSelfServeConfiguration,
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     description: newDescription,
@@ -598,25 +597,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     }
-  }
-
-  if (aiSelfServeConfiguration) {
-    await ctx.prisma.aISelfServeConfiguration.update({
-      where: { eventTypeId: id },
-      data: {
-        ...(typeof aiSelfServeConfiguration.yourPhoneNumberId === null
-          ? { yourPhoneNumber: { disconnect: true } }
-          : !!aiSelfServeConfiguration.yourPhoneNumberId
-          ? { yourPhoneNumber: { connect: { id: aiSelfServeConfiguration.yourPhoneNumberId } } }
-          : {}),
-        ...(aiSelfServeConfiguration.numberToCall
-          ? { numberToCall: aiSelfServeConfiguration.numberToCall }
-          : {}),
-        ...(aiSelfServeConfiguration.agentTimeZone
-          ? { agentTimeZone: aiSelfServeConfiguration.agentTimeZone }
-          : {}),
-      },
-    });
   }
 
   if (calVideoSettings) {

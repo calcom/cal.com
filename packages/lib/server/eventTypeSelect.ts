@@ -54,7 +54,6 @@ export const eventTypeSelect = {
   instantMeetingExpiryTimeOffsetInSeconds: true,
   instantMeetingParameters: true,
   aiPhoneCallConfig: true,
-  aiSelfServeConfiguration: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   rescheduleWithSameRoundRobinHost: true,
