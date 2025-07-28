@@ -83,6 +83,40 @@ const raqbChildren1Schema = z
       }
     });
   });
+
+/**
+ * @example
+ * ```json
+ * {
+    "id": "9b8ba888-0123-4456-b89a-b1984020d699",
+    "type": "group",
+    "children1": {
+        "a8a89bba-89ab-4cde-b012-31984020ebaa": {
+            "type": "rule",
+            "properties": {
+                "field": "88be6104-d350-411d-aa0f-092b2deda257",
+                "operator": "multiselect_some_in",
+                "value": [
+                    [
+                        "{field:0bf77a89-2bd0-4df7-9648-758014ba3189}",
+                        "899c846d-7c02-43dc-9057-c3f8c118d41f"
+                    ]
+                ],
+                "valueSrc": [
+                    "value"
+                ],
+                "valueError": [
+                    null
+                ],
+                  "valueType": [
+                      "multiselect"
+                  ]
+              }
+          }
+      }
+  }
+ * ```
+ */
 export const raqbQueryValueSchema = z.union([
   z.object({
     id: z.string().optional(),
