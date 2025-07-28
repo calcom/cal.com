@@ -3419,7 +3419,7 @@
   "usage_based_generic_expiration_description": "This link can be configured to expire after a set number of bookings",
   "usage_based_expiration_description_plural": "This link can be used for {{count}} bookings",
   "pdf_files_cannot_be_uploaded_as_images": "PDF files cannot be uploaded as images",
-  "only_image_files_are_allowed": "Only image files are allowed",
+  "only_image_files_allowed": "Only image files are allowed",
   "html_files_cannot_be_uploaded_as_images": "HTML files cannot be uploaded as images",
   "script_files_cannot_be_uploaded_as_images": "Script files cannot be uploaded as images",
   "zip_files_cannot_be_uploaded_as_images": "ZIP files cannot be uploaded as images",
