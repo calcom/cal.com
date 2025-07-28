@@ -306,16 +306,22 @@ export class InsightsRoutingBaseService {
     if (!this.options) {
       return NOTHING_CONDITION;
     }
-    const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, this.options.orgId);
-    if (!isOwnerOrAdmin) {
-      return NOTHING_CONDITION;
+
+    const targetId = this.options.orgId || this.options.teamId;
+    const scope = this.options.scope;
+
+    if (targetId && scope !== "user") {
+      const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, targetId);
+      if (!isOwnerOrAdmin) {
+        return NOTHING_CONDITION;
+      }
     }
 
-    if (this.options.scope === "user") {
+    if (scope === "user") {
       return Prisma.sql`"formUserId" = ${this.options.userId} AND "formTeamId" IS NULL`;
-    } else if (this.options.scope === "org") {
+    } else if (scope === "org") {
       return await this.buildOrgAuthorizationCondition(this.options);
-    } else if (this.options.scope === "team") {
+    } else if (scope === "team") {
       return await this.buildTeamAuthorizationCondition(this.options);
     } else {
       return NOTHING_CONDITION;
@@ -346,16 +352,16 @@ export class InsightsRoutingBaseService {
       parentId: options.orgId,
       select: { id: true },
     });
-    if (!childTeamOfOrg) {
+    if (options.orgId && !childTeamOfOrg) {
       return NOTHING_CONDITION;
     }
 
     return Prisma.sql`"formTeamId" = ${options.teamId}`;
   }
 
-  private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+  private async isOrgOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
+    // Check if the user is an owner or admin of the organization or team
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
     return Boolean(
       membership &&
         membership.accepted &&
