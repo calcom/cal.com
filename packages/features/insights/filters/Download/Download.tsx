@@ -1,8 +1,10 @@
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useDataTable } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -22,7 +24,8 @@ const BATCH_SIZE = 100;
 
 const Download = () => {
   const { t } = useLocale();
-  const { startDate, endDate, teamId, userId, eventTypeId, memberUserId, isAll } = useInsightsParameters();
+  const { timeZone } = useDataTable();
+  const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId } = useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
 
@@ -34,13 +37,13 @@ const Download = () => {
   const fetchBatch = async (offset: number): Promise<PaginatedResponse | null> => {
     try {
       const result = await utils.viewer.insights.rawData.fetch({
+        scope,
+        selectedTeamId,
         startDate,
         endDate,
-        teamId,
-        userId,
+        timeZone: timeZone || CURRENT_TIMEZONE,
         eventTypeId,
         memberUserId,
-        isAll,
         limit: BATCH_SIZE,
         offset,
       });
