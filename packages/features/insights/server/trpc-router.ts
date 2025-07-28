@@ -261,7 +261,7 @@ const userSelect = {
   avatarUrl: true,
 };
 
-const emptyResponseEventsByStatus = {
+const emptyResponseBookingKPIStats = {
   empty: true,
   created: {
     count: 0,
@@ -342,11 +342,105 @@ function createInsightsBookingService(
   });
 }
 export const insightsRouter = router({
-  eventsByStatus: userBelongsToTeamProcedure
+  bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getBookingKPIStats();
+      const currentPeriodService = createInsightsBookingService(ctx, input);
+
+      // Get current period stats
+      const currentStats = await currentPeriodService.getBookingStats();
+
+      // Calculate previous period dates and create service for previous period
+      const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
+      const previousPeriodService = createInsightsBookingService(ctx, {
+        ...input,
+        startDate: previousPeriodDates.startDate,
+        endDate: previousPeriodDates.endDate,
+      });
+
+      // Get previous period stats
+      const previousStats = await previousPeriodService.getBookingStats();
+
+      // Helper function to calculate percentage change
+      const getPercentage = (current: number, previous: number): number => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+      };
+
+      // Calculate percentages and CSAT
+      const currentCSAT =
+        currentStats.total_ratings > 0
+          ? (currentStats.ratings_above_3 / currentStats.total_ratings) * 100
+          : 0;
+      const previousCSAT =
+        previousStats.total_ratings > 0
+          ? (previousStats.ratings_above_3 / previousStats.total_ratings) * 100
+          : 0;
+
+      const currentRating = currentStats.avg_rating ? parseFloat(currentStats.avg_rating.toFixed(1)) : 0;
+      const previousRating = previousStats.avg_rating ? parseFloat(previousStats.avg_rating.toFixed(1)) : 0;
+
+      // Check if all metrics are zero for empty state
+      const isEmpty =
+        currentStats.total_bookings === 0 &&
+        currentStats.completed_bookings === 0 &&
+        currentStats.rescheduled_bookings === 0 &&
+        currentStats.cancelled_bookings === 0 &&
+        currentStats.no_show_host_bookings === 0 &&
+        currentStats.no_show_guests === 0 &&
+        currentRating === 0;
+
+      if (isEmpty) {
+        return emptyResponseBookingKPIStats;
+      }
+
+      return {
+        empty: false,
+        created: {
+          count: currentStats.total_bookings,
+          deltaPrevious: getPercentage(currentStats.total_bookings, previousStats.total_bookings),
+        },
+        completed: {
+          count: currentStats.completed_bookings,
+          deltaPrevious: getPercentage(
+            currentStats.total_bookings - currentStats.cancelled_bookings - currentStats.rescheduled_bookings,
+            previousStats.total_bookings -
+              previousStats.cancelled_bookings -
+              previousStats.rescheduled_bookings
+          ),
+        },
+        rescheduled: {
+          count: currentStats.rescheduled_bookings,
+          deltaPrevious: getPercentage(currentStats.rescheduled_bookings, previousStats.rescheduled_bookings),
+        },
+        cancelled: {
+          count: currentStats.cancelled_bookings,
+          deltaPrevious: getPercentage(currentStats.cancelled_bookings, previousStats.cancelled_bookings),
+        },
+        no_show: {
+          count: currentStats.no_show_host_bookings,
+          deltaPrevious: getPercentage(
+            currentStats.no_show_host_bookings,
+            previousStats.no_show_host_bookings
+          ),
+        },
+        no_show_guest: {
+          count: currentStats.no_show_guests,
+          deltaPrevious: getPercentage(currentStats.no_show_guests, previousStats.no_show_guests),
+        },
+        rating: {
+          count: currentRating,
+          deltaPrevious: getPercentage(currentRating, previousRating),
+        },
+        csat: {
+          count: currentCSAT,
+          deltaPrevious: getPercentage(currentCSAT, previousCSAT),
+        },
+        previousRange: {
+          startDate: previousPeriodDates.formattedStartDate,
+          endDate: previousPeriodDates.formattedEndDate,
+        },
+      };
     }),
   eventTrends: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
