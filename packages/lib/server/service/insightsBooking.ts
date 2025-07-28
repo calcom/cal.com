@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import type { DateRange } from "@calcom/features/insights/server/events";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -339,6 +340,323 @@ export class InsightsBookingService {
       if (index === 0) return condition;
       return Prisma.sql`(${acc}) OR (${condition})`;
     });
+  }
+
+  async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
+    const baseConditions = await this.getBaseConditions();
+
+    // Get total count first
+    const totalCountResult = await this.prisma.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(*)::int as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    `;
+    const totalCount = totalCountResult[0]?.count || 0;
+
+    // 1. Get booking data from BookingTimeStatusDenormalized
+    const csvData = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        uid: string | null;
+        title: string;
+        createdAt: Date;
+        timeStatus: string;
+        eventTypeId: number | null;
+        eventLength: number;
+        startTime: Date;
+        endTime: Date;
+        paid: boolean;
+        userEmail: string;
+        userUsername: string;
+        rating: number | null;
+        ratingFeedback: string | null;
+        noShowHost: boolean;
+      }>
+    >`
+      SELECT
+        "id",
+        "uid",
+        "title",
+        "createdAt",
+        "timeStatus",
+        "eventTypeId",
+        "eventLength",
+        "startTime",
+        "endTime",
+        "paid",
+        "userEmail",
+        "userUsername",
+        "rating",
+        "ratingFeedback",
+        "noShowHost"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+      ORDER BY "createdAt" DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+
+    if (csvData.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
+
+    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
+
+    if (uids.length === 0) {
+      return { data: csvData, total: totalCount };
+    }
+
+    // 2. Get all bookings with their attendees and seat references
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        uid: {
+          in: uids,
+        },
+      },
+      select: {
+        uid: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            noShow: true,
+          },
+        },
+        seatsReferences: {
+          select: {
+            attendee: {
+              select: {
+                name: true,
+                email: true,
+                noShow: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 3. Create booking map with attendee data (matching original logic)
+    const bookingMap = new Map(
+      bookings.map((booking) => {
+        const attendeeList =
+          booking.seatsReferences.length > 0
+            ? booking.seatsReferences.map((ref) => ref.attendee)
+            : booking.attendees;
+
+        // List all no-show guests (name and email)
+        const noShowGuests =
+          attendeeList
+            .filter((attendee) => attendee?.noShow)
+            .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+            .filter(Boolean) // remove null values
+            .join("; ") || null;
+        const noShowGuestsCount = attendeeList.filter((attendee) => attendee?.noShow).length;
+
+        const formattedAttendees = attendeeList
+          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null))
+          .filter(Boolean);
+
+        return [booking.uid, { attendeeList: formattedAttendees, noShowGuests, noShowGuestsCount }];
+      })
+    );
+
+    // 4. Calculate max attendees for dynamic columns
+    const maxAttendees = Math.max(
+      ...Array.from(bookingMap.values()).map((data) => data.attendeeList.length),
+      0
+    );
+
+    // 5. Create final booking map with attendee fields
+    const finalBookingMap = new Map(
+      Array.from(bookingMap.entries()).map(([uid, data]) => {
+        const attendeeFields: Record<string, string | null> = {};
+
+        for (let i = 1; i <= maxAttendees; i++) {
+          attendeeFields[`attendee${i}`] = data.attendeeList[i - 1] || null;
+        }
+
+        return [
+          uid,
+          {
+            noShowGuests: data.noShowGuests,
+            noShowGuestsCount: data.noShowGuestsCount,
+            ...attendeeFields,
+          },
+        ];
+      })
+    );
+
+    // 6. Combine booking data with attendee data
+    const data = csvData.map((bookingTimeStatus) => {
+      if (!bookingTimeStatus.uid) {
+        // should not be reached because we filtered above
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
+      const attendeeData = finalBookingMap.get(bookingTimeStatus.uid);
+
+      if (!attendeeData) {
+        const nullAttendeeFields: Record<string, null> = {};
+        for (let i = 1; i <= maxAttendees; i++) {
+          nullAttendeeFields[`attendee${i}`] = null;
+        }
+
+        return {
+          ...bookingTimeStatus,
+          noShowGuests: null,
+          noShowGuestsCount: 0,
+          ...nullAttendeeFields,
+        };
+      }
+
+      return {
+        ...bookingTimeStatus,
+        noShowGuests: attendeeData.noShowGuests,
+        noShowGuestsCount: attendeeData.noShowGuestsCount,
+        ...Object.fromEntries(Object.entries(attendeeData).filter(([key]) => key.startsWith("attendee"))),
+      };
+    });
+
+    return { data, total: totalCount };
+  }
+
+  async getEventTrendsStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        bookingsCount: number;
+        timeStatus: string;
+        noShowHost: boolean;
+        noShowGuests: number;
+      }[]
+    >`
+    SELECT
+      "date",
+      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
+      "timeStatus",
+      "noShowHost"
+    FROM (
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        "a"."noShow" AS "isNoShowGuest",
+        "timeStatus",
+        "noShowHost"
+      FROM
+        "BookingTimeStatusDenormalized"
+      JOIN
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
+      WHERE
+        ${baseConditions}
+    ) AS bookings
+    GROUP BY
+      "date",
+      "timeStatus",
+      "noShowHost"
+    ORDER BY
+      "date"
+  `;
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: {
+      [date: string]: {
+        completed: number;
+        rescheduled: number;
+        cancelled: number;
+        noShowHost: number;
+        noShowGuests: number;
+        _all: number;
+        uncompleted: number;
+      };
+    } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        noShowGuests: 0,
+        _all: 0,
+        uncompleted: 0,
+      };
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      const statusKey = timeStatus as keyof (typeof aggregate)[string];
+
+      // Add to the specific status count
+      if (statusKey in aggregate[formattedDate]) {
+        aggregate[formattedDate][statusKey] += Number(bookingsCount);
+      }
+
+      // Add to the total count (_all)
+      aggregate[formattedDate]["_all"] += Number(bookingsCount);
+
+      // Track no-show host counts separately
+      if (noShowHost) {
+        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
+      }
+
+      // Track no-show guests explicitly
+      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
+    });
+
+    // Transform aggregate data into the expected format
+    const result = dateRanges.map(({ formattedDate }) => {
+      const eventData = {
+        Month: formattedDate,
+        Created: 0,
+        Completed: 0,
+        Rescheduled: 0,
+        Cancelled: 0,
+        "No-Show (Host)": 0,
+        "No-Show (Guest)": 0,
+      };
+
+      const countsForDateRange = aggregate[formattedDate];
+
+      if (countsForDateRange) {
+        eventData["Created"] = countsForDateRange["_all"] || 0;
+        eventData["Completed"] = countsForDateRange["completed"] || 0;
+        eventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+        eventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+        eventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+        eventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
+      }
+      return eventData;
+    });
+
+    return result;
   }
 
   private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {

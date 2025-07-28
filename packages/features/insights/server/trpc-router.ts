@@ -10,8 +10,8 @@ import {
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
 import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
-import { InsightsRoutingService } from "@calcom/lib/server/service/insightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -313,6 +313,35 @@ export interface IResultTeamList {
 
 const BATCH_SIZE = 1000; // Adjust based on your needs
 
+/**
+ * Helper function to create InsightsBookingService with standardized parameters
+ */
+function createInsightsBookingService(
+  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  input: z.infer<typeof bookingRepositoryBaseInputSchema>,
+  dateTarget: "createdAt" | "startTime" = "createdAt"
+) {
+  const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate } = input;
+
+  return new InsightsBookingService({
+    prisma: ctx.insightsDb,
+    options: {
+      scope,
+      userId: ctx.user.id,
+      orgId: ctx.user.organizationId ?? 0,
+      ...(selectedTeamId && { teamId: selectedTeamId }),
+    },
+    filters: {
+      ...(eventTypeId && { eventTypeId }),
+      ...(memberUserId && { memberUserId }),
+      dateRange: {
+        target: dateTarget,
+        startDate,
+        endDate,
+      },
+    },
+  });
+}
 export const insightsRouter = router({
   eventsByStatus: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isAll } = input;
@@ -451,78 +480,31 @@ export const insightsRouter = router({
 
     return result;
   }),
-  eventsTimeline: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, eventTypeId, memberUserId, isAll, startDate, endDate, userId: selfUserId } = input;
-    if (selfUserId && ctx.user?.id !== selfUserId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+  eventTrends: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate, timeZone } = input;
 
-    if (!teamId && !selfUserId) {
-      return [];
-    }
+      // Calculate timeView and dateRanges
+      const timeView = EventsInsights.getTimeView(startDate, endDate);
+      const dateRanges = EventsInsights.getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone,
+        weekStart: ctx.user.weekStart,
+      });
 
-    const timeView = EventsInsights.getTimeView(startDate, endDate);
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: selfUserId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    const { whereCondition: whereConditional } = r;
-
-    const dateRanges = EventsInsights.getDateRanges({
-      startDate,
-      endDate,
-      timeView,
-      timeZone: ctx.user.timeZone,
-      weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
-    });
-    if (!dateRanges.length) {
-      return [];
-    }
-
-    // Fetch counts grouped by status for the entire range
-    const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
-      whereConditional,
-      dayjs(startDate),
-      dayjs(endDate),
-      dateRanges,
-      ctx.user.timeZone
-    );
-
-    const result = dateRanges.map(({ formattedDate }) => {
-      const EventData = {
-        Month: formattedDate,
-        Created: 0,
-        Completed: 0,
-        Rescheduled: 0,
-        Cancelled: 0,
-        "No-Show (Host)": 0,
-        "No-Show (Guest)": 0,
-      };
-
-      const countsForDateRange = countsByStatus[formattedDate];
-
-      if (countsForDateRange) {
-        EventData["Created"] = countsForDateRange["_all"] || 0;
-        EventData["Completed"] = countsForDateRange["completed"] || 0;
-        EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
-        EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
-        EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-        EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      try {
+        return await insightsBookingService.getEventTrendsStats({
+          timeZone,
+          dateRanges,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      return EventData;
-    });
-
-    return result;
-  }),
+    }),
   popularEventTypes: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
     const { teamId, startDate, endDate, memberUserId, userId, isAll, eventTypeId } = input;
 
@@ -655,26 +637,9 @@ export const insightsRouter = router({
   averageEventDuration: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
+      const { startDate, endDate, timeZone } = input;
 
-      const insightsBookingService = new InsightsBookingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(selectedTeamId && { teamId: selectedTeamId }),
-        },
-        filters: {
-          ...(eventTypeId && { eventTypeId }),
-          ...(memberUserId && { memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate,
-            endDate,
-          },
-        },
-      });
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         const timeView = EventsInsights.getTimeView(startDate, endDate);
@@ -1496,43 +1461,27 @@ export const insightsRouter = router({
 
       return result;
     }),
-  rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, teamId, userId, memberUserId, isAll, limit, offset } = input;
+  rawData: userBelongsToTeamProcedure
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(100).optional(),
+        offset: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { limit, offset } = input;
 
-    const eventTypeList = await getEventTypeList({
-      prisma: ctx.prisma,
-      teamId,
-      userId,
-      isAll,
-      user: {
-        id: ctx.user.id,
-        organizationId: ctx.user.organizationId,
-        isOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-      },
-    });
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
-    // use eventTypeId filter only if it's accessible by this user
-    const eventTypeId = eventTypeList.find((eventType) => eventType.id === input.eventTypeId)?.id;
-
-    const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
-    try {
-      return await EventsInsights.getCsvData({
-        startDate,
-        endDate,
-        teamId,
-        userId,
-        memberUserId,
-        isAll,
-        isOrgAdminOrOwner,
-        eventTypeId,
-        organizationId: ctx.user.organizationId || null,
-        limit,
-        offset,
-      });
-    } catch (e) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    }
-  }),
+      try {
+        return await insightsBookingService.getCsvData({
+          limit: limit ?? 100,
+          offset: offset ?? 0,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 
   getRoutingFormsForFilters: userBelongsToTeamProcedure
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
@@ -1739,8 +1688,7 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = new InsightsRoutingService({
-        prisma: ctx.insightsDb,
+      const insightsRoutingService = getInsightsRoutingService({
         options: {
           scope: input.scope,
           teamId: input.selectedTeamId,
@@ -1762,26 +1710,8 @@ export const insightsRouter = router({
   bookingsByHourStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { scope, selectedTeamId, startDate, endDate, eventTypeId, memberUserId, timeZone } = input;
-
-      const insightsBookingService = new InsightsBookingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(selectedTeamId && { teamId: selectedTeamId }),
-        },
-        filters: {
-          ...(eventTypeId && { eventTypeId }),
-          ...(memberUserId && { memberUserId }),
-          dateRange: {
-            target: "startTime",
-            startDate,
-            endDate,
-          },
-        },
-      });
+      const { timeZone } = input;
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
