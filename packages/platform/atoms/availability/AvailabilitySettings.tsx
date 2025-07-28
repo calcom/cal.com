@@ -73,6 +73,17 @@ export type CustomClassNames = {
     thumb?: string;
   };
   deleteButtonClassname?: string;
+  saveButtonClassName?: string;
+  mobileMenuButtonClassName?: string;
+  sidebarClassName?: string;
+  sidebarHeaderClassName?: string;
+  sidebarNameInputClassName?: string;
+  troubleshooterSectionClassName?: string;
+  troubleshooterButtonClassName?: string;
+  dateOverridesSectionClassName?: string;
+  dateOverridesHeadingClassName?: string;
+  dateOverridesDescriptionClassName?: string;
+  addOverrideButtonClassName?: string;
 };
 
 export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
@@ -455,9 +466,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   <div
                     className={classNames(
                       "bg-default fixed right-0 z-20 flex h-screen w-80 flex-col space-y-2 overflow-x-hidden rounded-md px-2 pb-3 transition-transform",
-                      openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
+                      openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0",
+                      customClassNames?.sidebarClassName
                     )}>
-                    <div className="flex flex-row items-center pt-16">
+                    <div
+                      className={cn(
+                        "flex flex-row items-center pt-16",
+                        customClassNames?.sidebarHeaderClassName
+                      )}>
                       <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                       <p className="-ml-2">{t("availability_settings")}</p>
                       {allowDelete && (
@@ -481,7 +497,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                         name="name"
                         render={({ field }) => (
                           <input
-                            className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
+                            className={cn(
+                              "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
+                              customClassNames?.sidebarNameInputClassName
+                            )}
                             {...field}
                           />
                         )}
@@ -550,7 +569,11 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                         {!isPlatform && (
                           <>
                             <hr className="border-subtle my-7" />
-                            <div className="rounded-md md:block">
+                            <div
+                              className={cn(
+                                "rounded-md md:block",
+                                customClassNames?.troubleshooterSectionClassName
+                              )}>
                               <Skeleton
                                 as="h3"
                                 className="mb-0 inline-block text-sm font-medium"
@@ -562,6 +585,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                                   as={Button}
                                   href="/availability/troubleshoot"
                                   color="secondary"
+                                  className={customClassNames?.troubleshooterButtonClassName}
                                   waitForTranslation={!isPlatform}>
                                   {t("launch_troubleshooter")}
                                 </Skeleton>
@@ -578,14 +602,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             <div className="border-default border-l-2" />
             <Button
               ref={saveButtonRef}
-              className="ml-4 lg:ml-0"
+              className={cn("ml-4 lg:ml-0", customClassNames?.saveButtonClassName)}
               type="submit"
               form="availability-form"
               loading={isSaving}>
               {t("save")}
             </Button>
             <Button
-              className="ml-3 sm:hidden"
+              className={cn("ml-3 sm:hidden", customClassNames?.mobileMenuButtonClassName)}
               StartIcon="ellipsis-vertical"
               variant="icon"
               color="secondary"
@@ -648,6 +672,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                     ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                   }
                   overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                  customClassNames={{
+                    dateOverridesSectionClassName: customClassNames?.dateOverridesSectionClassName,
+                    dateOverridesHeadingClassName: customClassNames?.dateOverridesHeadingClassName,
+                    dateOverridesDescriptionClassName: customClassNames?.dateOverridesDescriptionClassName,
+                    addOverrideButtonClassName: customClassNames?.addOverrideButtonClassName,
+                  }}
                 />
               )}
             </div>
@@ -682,7 +712,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 ) : (
                   <>
                     <hr className="border-subtle my-6 mr-8" />
-                    <div className="rounded-md">
+                    <div className={cn("rounded-md", customClassNames?.troubleshooterSectionClassName)}>
                       <Skeleton
                         as="h3"
                         className="mb-0 inline-block text-sm font-medium"
@@ -694,6 +724,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           as={Button}
                           href="/availability/troubleshoot"
                           color="secondary"
+                          className={customClassNames?.troubleshooterButtonClassName}
                           waitForTranslation={!isPlatform}>
                           {t("launch_troubleshooter")}
                         </Skeleton>
