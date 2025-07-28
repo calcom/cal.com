@@ -5,7 +5,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  getFacetedUniqueValues,
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
@@ -27,6 +26,7 @@ import {
   useDataTable,
   useFetchMoreOnBottomReached,
   useColumnFilters,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -152,6 +152,17 @@ interface Props {
   team: NonNullable<RouterOutputs["viewer"]["teams"]["get"]>;
   isOrgAdminOrOwner: boolean | undefined;
   setShowMemberInvitationModal: Dispatch<SetStateAction<boolean>>;
+  facetedTeamValues?: {
+    roles: { id: string; name: string }[];
+    teams: RouterOutputs["viewer"]["teams"]["get"][];
+    attributes: {
+      id: string;
+      name: string;
+      options: {
+        value: string;
+      }[];
+    }[];
+  };
 }
 
 export default function MemberList(props: Props) {
@@ -163,6 +174,7 @@ export default function MemberList(props: Props) {
 }
 
 function MemberListContent(props: Props) {
+  const { facetedTeamValues } = props;
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
@@ -364,7 +376,9 @@ function MemberListContent(props: Props) {
         header: "Role",
         size: 100,
         cell: ({ row, table }) => {
-          const { role, accepted } = row.original;
+          const { role, accepted, customRole } = row.original;
+          const roleName = customRole?.name || role;
+          const roleIdentifier = customRole?.id || role;
           return (
             <div className="flex h-full flex-wrap items-center gap-2">
               {!accepted && (
@@ -382,22 +396,25 @@ function MemberListContent(props: Props) {
                 data-testid="member-role"
                 variant={role === "MEMBER" ? "gray" : "blue"}
                 onClick={() => {
-                  table.getColumn("role")?.setFilterValue([role]);
+                  table.getColumn("role")?.setFilterValue([roleIdentifier]);
                 }}>
-                {role}
+                {roleName}
               </Badge>
             </div>
           );
         },
         filterFn: (rows, id, filterValue) => {
           const { data } = filterValue;
+          const { role, accepted, customRole } = rows.original;
+          const roleIdentifier = customRole?.id || role;
+
           if (data.includes("PENDING")) {
-            if (data.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || data.includes(rows.getValue(id));
+            if (data.length === 1) return !accepted;
+            else return !accepted || data.includes(roleIdentifier);
           }
 
-          // Show only the selected roles
-          return data.includes(rows.getValue(id));
+          // Show only the selected roles (check both traditional role and custom role ID)
+          return data.includes(roleIdentifier);
         },
       },
       {
@@ -644,7 +661,23 @@ function MemberListContent(props: Props) {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedUniqueValues: (_, columnId) => () => {
+      if (facetedTeamValues) {
+        switch (columnId) {
+          case "role":
+            // Include both traditional roles and PBAC custom roles
+            const allRoles = facetedTeamValues.roles.map((role) => ({
+              label: role.name,
+              value: role.id,
+            }));
+
+            return convertFacetedValuesToMap(allRoles);
+          default:
+            return new Map();
+        }
+      }
+      return new Map();
+    },
     getRowId: (row) => `${row.id}`,
   });
 

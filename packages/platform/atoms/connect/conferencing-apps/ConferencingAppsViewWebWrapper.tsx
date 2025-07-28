@@ -12,12 +12,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
-type ConferencingAppsViewWebWrapperProps = {
-  title: string;
-  description: string;
-  add: string;
-};
-
 export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
@@ -176,11 +170,17 @@ const useDisconnectIntegrationModalController = () => {
   };
 };
 
-export const ConferencingAppsViewWebWrapper = ({
-  title,
-  description,
-  add,
-}: ConferencingAppsViewWebWrapperProps) => {
+const AddConferencingButton = () => {
+  const { t } = useLocale();
+
+  return (
+    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
+      {t("add")}
+    </Button>
+  );
+};
+
+export const ConferencingAppsViewWebWrapper = () => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -204,20 +204,12 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
-  const AddConferencingButton = () => {
-    return (
-      <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
-        {add}
-      </Button>
-    );
-  };
-
   const disconnectIntegrationModalCtrl = useDisconnectIntegrationModalController();
 
   return (
     <SettingsHeader
-      title={title}
-      description={description}
+      title={t("conferencing")}
+      description={t("conferencing_description")}
       CTA={<AddConferencingButton />}
       borderInShellHeader={true}>
       <>
