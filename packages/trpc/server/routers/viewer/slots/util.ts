@@ -597,7 +597,6 @@ export class AvailableSlotsService {
 
           if (unit === "year") {
             try {
-              // TODO: DI checkBookingLimit
               await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                 eventStartDate: periodStart.toDate(),
                 limitingNumber: limit,

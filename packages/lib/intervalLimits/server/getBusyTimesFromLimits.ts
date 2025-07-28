@@ -1,6 +1,6 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
 import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
 import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
@@ -113,8 +113,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
       // special handling of yearly limits to improve performance
       if (unit === "year") {
         try {
-          const availableSlotsService = getAvailableSlotsService();
-          await availableSlotsService.dependencies.checkBookingLimitsService.checkBookingLimit({
+          const checkBookingLimitsService = getCheckBookingLimitsService();
+          await checkBookingLimitsService.checkBookingLimit({
             eventStartDate: periodStart.toDate(),
             limitingNumber: limit,
             eventId: eventTypeId,

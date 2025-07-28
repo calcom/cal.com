@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -14,6 +14,8 @@ type InputProps = {
   reqBodyRescheduleUid?: string;
 };
 
+const checkBookingLimitsService = getCheckBookingLimitsService();
+
 const _checkBookingAndDurationLimits = async ({
   eventType,
   reqBodyStart,
@@ -25,8 +27,7 @@ const _checkBookingAndDurationLimits = async ({
   ) {
     const startAsDate = dayjs(reqBodyStart).toDate();
     if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
-      const availableSlotsService = getAvailableSlotsService();
-      await availableSlotsService.dependencies.checkBookingLimitsService.checkBookingLimits(
+      await checkBookingLimitsService.checkBookingLimits(
         eventType.bookingLimits as IntervalLimit,
         startAsDate,
         eventType.id,
