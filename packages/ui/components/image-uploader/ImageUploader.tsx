@@ -98,6 +98,7 @@ export default function ImageUploader({
     // Validate the file - toast will be shown automatically if invalid
     const isValid = await validateImageFile(file, t);
     if (!isValid) {
+      e.target.value = "";
       return;
     }
 
