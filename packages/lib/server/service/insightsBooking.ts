@@ -265,7 +265,7 @@ export class InsightsBookingService {
     const scope = this.options.scope;
 
     if (targetId && scope !== "user") {
-      const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, targetId);
+      const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, targetId);
       if (!isOwnerOrAdmin) {
         return NOTHING_CONDITION;
       }
@@ -664,7 +664,7 @@ export class InsightsBookingService {
     return result;
   }
 
-  private async isOrgOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
+  private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
     // Check if the user is an owner or admin of the organization or team
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
     return Boolean(
