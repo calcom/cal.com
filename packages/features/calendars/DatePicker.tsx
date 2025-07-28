@@ -224,29 +224,25 @@ const Days = ({
 
   const daysToRenderForTheMonth = days.map((day) => {
     if (!day) return { day: null, disabled: true };
+
     const dateKey = yyyymmdd(day);
-    const oooInfo = slots && slots?.[dateKey] ? slots?.[dateKey]?.find((slot) => slot.away) : null;
+    const daySlots = slots?.[dateKey] || [];
+    const oooInfo = daySlots.find((slot) => slot.away) || null;
+
+    const isNextMonth = day.month() !== browsingDate.month();
+    const isFirstDayOfNextMonth = isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
+
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
 
-    // Check if this day is from the next month
-    const isNextMonth = day.month() !== browsingDate.month();
-
-    // Check if this is the first day of the next month (only in end-of-month UI)
-    const isFirstDayOfNextMonth = isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
-
-    // Check if the date has available slots (not just if it's in includedDates)
-    const hasAvailableSlots = slots && slots[dateKey] && slots[dateKey].some((slot) => !slot.away);
-
-    const isOOOAllDay = !!(slots && slots[dateKey] && slots[dateKey].every((slot) => slot.away));
+    const hasAvailableSlots = daySlots.some((slot) => !slot.away);
+    const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
-    // For next month days, check if they have available slots directly
-    // For current month days, use the normal includedDates logic
-    const disabled = away ? !oooInfo?.toUser : (isNextMonth ? !hasAvailableSlots : !included) || excluded;
+    const disabled = away ? !oooInfo?.toUser : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
-      day: day,
+      day,
       disabled,
       away,
       emoji: oooInfo?.emoji,
