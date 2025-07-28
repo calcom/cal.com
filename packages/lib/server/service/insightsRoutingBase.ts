@@ -307,8 +307,8 @@ export class InsightsRoutingBaseService {
       return NOTHING_CONDITION;
     }
 
-    const targetId = this.options.orgId || this.options.teamId;
     const scope = this.options.scope;
+    const targetId = this.options.orgId || (scope === "team" ? this.options.teamId : undefined);
 
     if (targetId && scope !== "user") {
       const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, targetId);
