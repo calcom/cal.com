@@ -29,6 +29,11 @@ export default function BTCPaySetup(props: IBTCPaySetupProps) {
   return <BTCPaySetupPage {...props} />;
 }
 
+enum BTCPayOAuthError {
+  Declined = "declined",
+  Unknown = "unknown",
+}
+
 function BTCPaySetupCallback() {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useCompatSearchParams();
@@ -45,7 +50,7 @@ function BTCPaySetupCallback() {
     const error = searchParams?.get("error");
 
     if (!code) {
-      setError("declined");
+      setError(BTCPayOAuthError.Declined);
     }
     if (error) {
       setError(error);

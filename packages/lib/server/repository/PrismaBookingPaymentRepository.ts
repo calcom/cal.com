@@ -4,18 +4,16 @@ import prisma from "@calcom/prisma";
 import type {
   IBookingPaymentRepository,
   BookingPaymentWithCredentials,
+  CreatePaymentData,
 } from "./BookingPaymentRepository.interface";
 
 export class PrismaBookingPaymentRepository implements IBookingPaymentRepository {
   constructor(private readonly prismaClient: PrismaClient = prisma) {}
 
-  async findByExternalIdIncludeBookingUserCredentialsOfType({
-    externalId,
-    credentialType,
-  }: {
-    externalId: string;
-    credentialType: string;
-  }): Promise<BookingPaymentWithCredentials | null> {
+  async findByExternalIdIncludeBookingUserCredentials(
+    externalId: string,
+    credentialType: string
+  ): Promise<BookingPaymentWithCredentials | null> {
     return await this.prismaClient.payment.findFirst({
       where: {
         externalId,
@@ -39,5 +37,12 @@ export class PrismaBookingPaymentRepository implements IBookingPaymentRepository
         },
       },
     });
+  }
+
+  async createPaymentRecord(data: CreatePaymentData) {
+    const createdPayment = await this.prismaClient.payment.create({
+      data,
+    });
+    return createdPayment;
   }
 }

@@ -14,6 +14,17 @@ import { btcpayCredentialKeysSchema } from "../lib/btcpayCredentialKeysSchema";
 
 export const config = { api: { bodyParser: false } };
 
+function verifyBTCPaySignature(rawBody: Buffer, expectedSignature: string, webhookSecret: string): string {
+  const hmac = crypto.createHmac("sha256", webhookSecret);
+  hmac.update(rawBody);
+  const computedSignature = hmac.digest("hex");
+  const hexRegex = /^[0-9a-fA-F]+$/;
+  if (!hexRegex.test(computedSignature) || !hexRegex.test(expectedSignature)) {
+    throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
+  }
+  return computedSignature;
+}
+
 const btcpayWebhookSchema = z.object({
   deliveryId: z.string(),
   webhookId: z.string(),
@@ -47,10 +58,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).send({ message: "Webhook received but ignored" });
 
     const bookingPaymentRepository = new BookingPaymentRepository();
-    const payment = await bookingPaymentRepository.findByExternalIdIncludeBookingUserCredentialsOfType({
-      externalId: data.invoiceId,
-      credentialType: appConfig.type,
-    });
+    const payment = await bookingPaymentRepository.findByExternalIdIncludeBookingUserCredentials(
+      data.invoiceId,
+      appConfig.type
+    );
     if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.com: payment not found" });
     if (payment.success) return res.status(400).send({ message: "Payment already registered" });
     const key = payment.booking?.user?.credentials?.[0].key;
@@ -64,15 +75,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (storeId !== data.storeId)
       throw new HttpCode({ statusCode: 400, message: "Cal.com: Store ID mismatch" });
 
-    const hmac = crypto.createHmac("sha256", webhookSecret);
-    hmac.update(rawBody);
-    const computedSignature = hmac.digest("hex");
     const expectedSignature = signature.split("=")[1];
-
-    const hexRegex = /^[0-9a-fA-F]+$/;
-    if (!hexRegex.test(computedSignature) || !hexRegex.test(expectedSignature)) {
-      throw new HttpCode({ statusCode: 400, message: "signature mismatch" });
-    }
+    const computedSignature = verifyBTCPaySignature(rawBody, expectedSignature, webhookSecret);
 
     if (computedSignature.length !== expectedSignature.length) {
       throw new HttpCode({ statusCode: 400, message: "signature mismatch" });

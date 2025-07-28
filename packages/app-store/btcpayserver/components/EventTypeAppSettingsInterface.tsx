@@ -63,9 +63,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
             <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
                 label={t("price")}
-                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
+                className="text-black"
                 addOnClassname="h-[38px]"
-                step="1"
                 min="1"
                 type="number"
                 required

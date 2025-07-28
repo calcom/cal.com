@@ -14,9 +14,24 @@ export interface BookingPaymentWithCredentials {
   } | null;
 }
 
+export interface CreatePaymentData {
+  uid: string;
+  app: { connect: { slug: string } };
+  booking: { connect: { id: string } };
+  amount: number;
+  fee: number;
+  externalId: string;
+  refunded: boolean;
+  success: boolean;
+  currency: string;
+  data: Record<string, any>;
+}
+
 export interface IBookingPaymentRepository {
-  findByExternalIdIncludeBookingUserCredentialsOfType(params: {
-    externalId: string;
-    credentialType: string;
-  }): Promise<BookingPaymentWithCredentials | null>;
+  findByExternalIdIncludeBookingUserCredentials(
+    externalId: string,
+    credentialType: string
+  ): Promise<BookingPaymentWithCredentials | null>;
+
+  createPaymentRecord(data: CreatePaymentData): Promise<any>;
 }

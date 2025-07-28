@@ -5,6 +5,8 @@ import type z from "zod";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { IBookingPaymentRepository } from "@calcom/lib/server/repository/BookingPaymentRepository.interface";
+import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -36,14 +38,19 @@ interface BTCPayInvoice {
 
 export class PaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof btcpayCredentialKeysSchema> | null;
+  private bookingPaymentRepository: IBookingPaymentRepository;
 
-  constructor(credentials: { key: Prisma.JsonValue }) {
+  constructor(
+    credentials: { key: Prisma.JsonValue },
+    bookingPaymentRepository: IBookingPaymentRepository = new PrismaBookingPaymentRepository()
+  ) {
     const keyParsing = btcpayCredentialKeysSchema.safeParse(credentials.key);
     if (keyParsing.success) {
       this.credentials = keyParsing.data;
     } else {
       this.credentials = null;
     }
+    this.bookingPaymentRepository = bookingPaymentRepository;
   }
 
   private async BTCPayApiCall(endpoint: string, options: RequestInit = {}) {
@@ -116,28 +123,26 @@ export class PaymentService implements IAbstractPaymentService {
         { method: "POST", body: JSON.stringify(invoiceRequest) }
       )) as BTCPayInvoice;
 
-      const paymentData = await prisma.payment.create({
-        data: {
-          uid,
-          app: { connect: { slug: appConfig.slug } },
-          booking: { connect: { id: bookingId } },
-          amount: payment.amount,
-          externalId: invoiceResponse.id,
-          currency: payment.currency,
-          data: Object.assign(
-            {},
-            {
-              invoice: {
-                ...invoiceResponse,
-                isPaid: false,
-                attendee: { name: bookerName, email: bookerEmail },
-              },
-            }
-          ) as unknown as Prisma.InputJsonValue,
-          fee: 0,
-          refunded: false,
-          success: false,
-        },
+      const paymentData = await this.bookingPaymentRepository.createPaymentRecord({
+        uid,
+        app: { connect: { slug: appConfig.slug } },
+        booking: { connect: { id: bookingId } },
+        amount: payment.amount,
+        externalId: invoiceResponse.id,
+        currency: payment.currency,
+        fee: 0,
+        success: false,
+        refunded: false,
+        data: Object.assign(
+          {},
+          {
+            invoice: {
+              ...invoiceResponse,
+              isPaid: false,
+              attendee: { name: bookerName, email: bookerEmail },
+            },
+          }
+        ),
       });
       if (!paymentData) throw new Error("Failed to store Payment data");
       return paymentData;
