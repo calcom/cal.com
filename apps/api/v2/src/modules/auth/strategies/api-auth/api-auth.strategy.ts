@@ -1,4 +1,4 @@
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
 import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
@@ -226,7 +226,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       );
     }
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
-    const apiKeyHash = hashAPIKey(strippedApiKey);
+    const apiKeyHash = sha256Hash(strippedApiKey);
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {
       throw new UnauthorizedException("ApiAuthStrategy - api key - Your api key is not valid");
