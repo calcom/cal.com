@@ -837,4 +837,32 @@ export class BookingRepository {
       },
     });
   }
+
+  async countBookingsByEventTypeAndDateRange({
+    eventTypeId,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    eventTypeId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }) {
+    return await this.prismaClient.booking.count({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        eventTypeId,
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+        uid: {
+          not: excludedUid,
+        },
+      },
+    });
+  }
 }
