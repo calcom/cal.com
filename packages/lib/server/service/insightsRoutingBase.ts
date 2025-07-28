@@ -10,7 +10,7 @@ import {
   isNumberFilterValue,
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
-import type { DateRange } from "@calcom/features/insights/server/events";
+import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 

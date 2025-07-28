@@ -18,7 +18,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { EventsInsights, type GetDateRangesParams } from "./events";
+import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
@@ -448,8 +448,8 @@ export const insightsRouter = router({
       const { startDate, endDate, timeZone } = input;
 
       // Calculate timeView and dateRanges
-      const timeView = EventsInsights.getTimeView(startDate, endDate);
-      const dateRanges = EventsInsights.getDateRanges({
+      const timeView = getTimeView(startDate, endDate);
+      const dateRanges = getDateRanges({
         startDate,
         endDate,
         timeView,
@@ -486,8 +486,8 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        const timeView = EventsInsights.getTimeView(startDate, endDate);
-        const dateRanges = EventsInsights.getDateRanges({
+        const timeView = getTimeView(startDate, endDate);
+        const dateRanges = getDateRanges({
           startDate,
           endDate,
           timeView,
@@ -994,8 +994,8 @@ export const insightsRouter = router({
   getRoutingFunnelData: userBelongsToTeamProcedure
     .input(routingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const timeView = EventsInsights.getTimeView(input.startDate, input.endDate);
-      const dateRanges = EventsInsights.getDateRanges({
+      const timeView = getTimeView(input.startDate, input.endDate);
+      const dateRanges = getDateRanges({
         startDate: input.startDate,
         endDate: input.endDate,
         timeZone: ctx.user.timeZone,

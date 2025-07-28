@@ -3,7 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import type { DateRange } from "@calcom/features/insights/server/events";
+import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
