@@ -11,7 +11,7 @@ import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import type { LocationObject } from "@calcom/lib/location";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
@@ -50,6 +50,7 @@ export const getEventTypeById = async ({
     locale: true,
     defaultScheduleId: true,
     isPlatformManaged: true,
+    timeZone: true,
   } satisfies Prisma.UserSelect;
 
   const eventTypeRepo = new EventTypeRepository(prisma);

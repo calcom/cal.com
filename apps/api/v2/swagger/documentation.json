@@ -15705,6 +15705,10 @@
           "redirectUrlOnExit": {
             "type": "object",
             "description": "URL to which participants are redirected when they exit the call"
+          },
+          "enableAutomaticRecordingForOrganizer": {
+            "type": "boolean",
+            "description": "If true, enables the automatic recording for the event when organizer joins the call"
           }
         }
       },
@@ -25010,7 +25014,7 @@
             "example": 123
           },
           "routing": {
-            "description": "The routing information.",
+            "description": "The routing information that could be passed as is to the booking API.",
             "example": {
               "eventTypeId": 123,
               "routing": {

@@ -1061,10 +1061,15 @@ model RateLimit {
 }
 
 model HashedLink {
-  id          Int       @id @default(autoincrement())
-  link        String    @unique()
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
+  id            Int       @id @default(autoincrement())
+  link          String    @unique
+  eventTypeId   Int
+  eventType     EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  expiresAt     DateTime?
+  maxUsageCount Int       @default(1)
+  usageCount    Int       @default(0)
+
+  @@index([eventTypeId])
 }
 
 model Account {
@@ -1715,6 +1720,8 @@ model CalendarCache {
   key          String
   value        Json
   expiresAt    DateTime
+  // Provide an initial value for legacy rows and future raw inserts
+  updatedAt    DateTime    @default(now()) @updatedAt
   credentialId Int
   userId       Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
