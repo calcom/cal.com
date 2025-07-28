@@ -169,25 +169,20 @@ const Days = ({
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
   if (isSecondWeekOver && !isCompact) {
     const startDay = 8;
-    const totalDays = daysInMonth(browsingDate);
     const pad = getPadding(startDay);
+    const totalDays = daysInMonth(browsingDate);
     days = Array(pad).fill(null);
 
     for (let day = startDay; day <= totalDays; day++) {
       days.push(browsingDate.set("date", day));
     }
 
-    // Calculate how many days we need to add to complete the current row and add one more week
-    const currentTotalDays = days.length;
-    const currentRow = Math.floor(currentTotalDays / 7);
-    const daysInCurrentRow = currentTotalDays % 7;
-    const daysToCompleteCurrentRow = daysInCurrentRow > 0 ? 7 - daysInCurrentRow : 0;
-    const daysForNextWeek = 7; // One full week
-    const totalExtraDays = daysToCompleteCurrentRow + daysForNextWeek;
+    const remainingInRow = days.length % 7;
+    const extraDays = (remainingInRow > 0 ? 7 - remainingInRow : 0) + 7;
     const nextMonth = browsingDate.add(1, "month");
 
     // Add days starting from day 1 of next month
-    for (let i = 0; i < totalExtraDays; i++) {
+    for (let i = 0; i < extraDays; i++) {
       days.push(nextMonth.set("date", 1 + i));
     }
   } else {

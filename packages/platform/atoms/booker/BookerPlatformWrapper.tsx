@@ -172,7 +172,7 @@ export const BookerPlatformWrapper = (
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
 
-  const [month] = useBookerStore((state) => [state.month, state.setMonth], shallow);
+  const month = useBookerStore((state) => state.month);
   const eventSlug = useBookerStore((state) => state.eventSlug);
 
   const { data: session } = useMe();
