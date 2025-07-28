@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import md5 from "md5";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/features/insights/server/events";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -1039,20 +1040,18 @@ export class InsightsBookingService {
       throw new Error("Date range is required for calculating previous period");
     }
 
-    const startDate = new Date(this.filters.dateRange.startDate);
-    const endDate = new Date(this.filters.dateRange.endDate);
-    const diffInDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const startDate = dayjs(this.filters.dateRange.startDate);
+    const endDate = dayjs(this.filters.dateRange.endDate);
+    const startTimeEndTimeDiff = endDate.diff(startDate, "day");
 
-    const previousStartDate = new Date(startDate);
-    previousStartDate.setDate(previousStartDate.getDate() - diffInDays);
-    const previousEndDate = new Date(endDate);
-    previousEndDate.setDate(previousEndDate.getDate() - diffInDays);
+    const lastPeriodStartDate = startDate.subtract(startTimeEndTimeDiff, "day");
+    const lastPeriodEndDate = endDate.subtract(startTimeEndTimeDiff, "day");
 
     return {
-      startDate: previousStartDate.toISOString(),
-      endDate: previousEndDate.toISOString(),
-      formattedStartDate: previousStartDate.toISOString().split("T")[0],
-      formattedEndDate: previousEndDate.toISOString().split("T")[0],
+      startDate: lastPeriodStartDate.toISOString(),
+      endDate: lastPeriodEndDate.toISOString(),
+      formattedStartDate: lastPeriodStartDate.format("YYYY-MM-DD"),
+      formattedEndDate: lastPeriodEndDate.format("YYYY-MM-DD"),
     };
   }
 

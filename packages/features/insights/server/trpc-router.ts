@@ -401,7 +401,8 @@ export const insightsRouter = router({
           deltaPrevious: getPercentage(currentStats.total_bookings, previousStats.total_bookings),
         },
         completed: {
-          count: currentStats.completed_bookings,
+          count:
+            currentStats.total_bookings - currentStats.cancelled_bookings - currentStats.rescheduled_bookings,
           deltaPrevious: getPercentage(
             currentStats.total_bookings - currentStats.cancelled_bookings - currentStats.rescheduled_bookings,
             previousStats.total_bookings -
