@@ -74,7 +74,10 @@ export const DatePicker = ({
   scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
-  const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
+  const [month, selectedDate, layout] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.layout],
+    shallow
+  );
 
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
@@ -97,6 +100,9 @@ export const DatePicker = ({
     isLoading: isLoading ?? true,
   });
   moveToNextMonthOnNoAvailability();
+
+  // Determine if this is a compact sidebar view based on layout
+  const isCompact = layout !== "month_view";
 
   const periodData: PeriodData = {
     ...{
@@ -137,6 +143,7 @@ export const DatePicker = ({
       slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
+      isCompact={isCompact}
     />
   );
 };

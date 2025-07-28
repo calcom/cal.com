@@ -57,6 +57,8 @@ export type DatePickerProps = {
     }[]
   >;
   periodData?: PeriodData;
+  // Whether this is a compact sidebar view or main monthly view
+  isCompact?: boolean;
 };
 
 const Day = ({
@@ -132,6 +134,7 @@ const Days = ({
   customClassName,
   isBookingInPast,
   periodData,
+  isCompact,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -146,6 +149,7 @@ const Days = ({
   scrollToTimeSlots?: () => void;
   isBookingInPast: boolean;
   periodData: PeriodData;
+  isCompact?: boolean;
 }) => {
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
@@ -160,7 +164,8 @@ const Days = ({
 
   const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
 
-  if (isSecondWeekOver) {
+  // Only apply end-of-month logic for main monthly view (not compact sidebar)
+  if (isSecondWeekOver && !isCompact) {
     const startDay = 8;
     const totalDays = daysInMonth(browsingDate);
     const pad = getPadding(startDay);
@@ -184,6 +189,7 @@ const Days = ({
       days.push(nextMonth.set("date", 1 + i));
     }
   } else {
+    // Traditional calendar grid logic for compact sidebar or early in month
     const pad = getPadding(1);
     days = Array(pad).fill(null);
 
@@ -339,6 +345,7 @@ const DatePicker = ({
     periodDays: null,
     periodType: "UNLIMITED",
   },
+  isCompact,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -448,6 +455,7 @@ const DatePicker = ({
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
           periodData={periodData}
+          isCompact={isCompact}
         />
       </div>
     </div>
