@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 // Helper to inject the troubleshooter script
 async function injectTroubleshooter(page) {
-  await page.addScriptTag({ path: "./troubleshooter.js" });
+  await page.addScriptTag({ path: "./dist/troubleshooter.js" });
   await page.waitForFunction(() => window.__calEmbedTroubleshooter !== undefined);
 }
 
@@ -349,5 +349,74 @@ test.describe("Cal.com Embed Troubleshooter", () => {
 
     await securitySection.locator(".cal-diagnostic-header").click();
     await expect(securitySection).toContainText("CSP may block Cal.com resources");
+  });
+
+  test("should detect CSS visibility issues", async ({ page }) => {
+    await setupTestPage(page);
+
+    // Create an iframe with visibility issues
+    await page.evaluate(() => {
+      // Add a Cal.com iframe
+      const iframe = document.createElement("iframe");
+      iframe.src = "https://cal.com/embed";
+      iframe.name = "cal-embed-test";
+      iframe.className = "cal-embed";
+      iframe.style.display = "none"; // Visibility issue
+      document.body.appendChild(iframe);
+
+      // Add CSS rule targeting .cal-embed
+      const style = document.createElement("style");
+      style.textContent = ".cal-embed { width: 0; height: 0; }";
+      document.head.appendChild(style);
+
+      // Add another iframe with zero dimensions
+      const iframe2 = document.createElement("iframe");
+      iframe2.src = "https://app.cal.com/booking";
+      iframe2.name = "cal-embed-booking";
+      iframe2.style.width = "0px";
+      iframe2.style.height = "0px";
+      document.body.appendChild(iframe2);
+    });
+
+    await injectTroubleshooter(page);
+    await page.waitForSelector(".cal-diagnostic-section");
+
+    // Find the CSS & Visibility section
+    const visibilitySection = page.locator(".cal-diagnostic-section", { hasText: "CSS & Visibility" });
+    await expect(visibilitySection.locator(".cal-status-warning")).toBeVisible();
+
+    await visibilitySection.locator(".cal-diagnostic-header").click();
+    
+    // Check for specific visibility issues
+    await expect(visibilitySection).toContainText("display: none");
+    await expect(visibilitySection).toContainText("width: 0");
+    await expect(visibilitySection).toContainText("height: 0");
+    await expect(visibilitySection).toContainText("Found CSS rules targeting .cal-embed");
+  });
+
+  test("should detect parent element visibility issues", async ({ page }) => {
+    await setupTestPage(page);
+
+    // Create an iframe inside a hidden parent
+    await page.evaluate(() => {
+      const parent = document.createElement("div");
+      parent.style.display = "none";
+      
+      const iframe = document.createElement("iframe");
+      iframe.src = "https://cal.com/embed";
+      iframe.name = "cal-embed-hidden-parent";
+      parent.appendChild(iframe);
+      
+      document.body.appendChild(parent);
+    });
+
+    await injectTroubleshooter(page);
+    await page.waitForSelector(".cal-diagnostic-section");
+
+    const visibilitySection = page.locator(".cal-diagnostic-section", { hasText: "CSS & Visibility" });
+    await expect(visibilitySection.locator(".cal-status-warning")).toBeVisible();
+
+    await visibilitySection.locator(".cal-diagnostic-header").click();
+    await expect(visibilitySection).toContainText("parent has display: none");
   });
 });

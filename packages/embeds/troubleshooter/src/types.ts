@@ -34,6 +34,7 @@ export interface DiagnosticResults {
   errors: DiagnosticSection;
   configuration: DiagnosticSection;
   security: DiagnosticSection;
+  visibility: DiagnosticSection;
   recommendations: DiagnosticSection;
 }
 

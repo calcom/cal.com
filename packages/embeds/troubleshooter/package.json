@@ -5,6 +5,7 @@
   "main": "dist/troubleshooter.js",
   "scripts": {
     "dev": "vite build --watch & vite",
+    "dev:expose": "vite build --watch & vite --host 0.0.0.0",
     "dev:remote": "CAL_ORIGIN=http://app.cal.remote:3000 vite build --watch & CAL_ORIGIN=http://app.cal.remote:3000 vite",
     "build": "vite build",
     "build:remote": "CAL_ORIGIN=http://app.cal.remote:3000 vite build",

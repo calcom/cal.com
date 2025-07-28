@@ -9,7 +9,7 @@ export const styles = `
     border: 2px solid #374151;
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    z-index: 999999;
+    z-index: 2147483647;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 14px;
     line-height: 1.5;
@@ -17,6 +17,36 @@ export const styles = `
     overflow: hidden;
     display: flex;
     flex-direction: column;
+  }
+  
+  #cal-troubleshooter-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    background: #111827;
+    color: white;
+    border: 2px solid #374151;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 2147483646; /* One less than troubleshooter to ensure proper stacking */
+    transition: all 0.2s ease;
+  }
+  
+  #cal-troubleshooter-toggle:hover {
+    background: #1f2937;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  #cal-troubleshooter-toggle:active {
+    transform: scale(0.95);
   }
   
   #cal-troubleshooter * {
