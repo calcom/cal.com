@@ -237,6 +237,9 @@ const Days = ({
     // Check if this day is from the next month
     const isNextMonth = day.month() !== browsingDate.month();
 
+    // Check if this is the first day of the next month (only in end-of-month UI)
+    const isFirstDayOfNextMonth = isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
+
     // Check if the date has available slots (not just if it's in includedDates)
     const hasAvailableSlots = slots && slots[dateKey] && slots[dateKey].some((slot) => !slot.away);
 
@@ -252,6 +255,7 @@ const Days = ({
       disabled,
       away,
       emoji: oooInfo?.emoji,
+      isFirstDayOfNextMonth,
     };
   });
 
@@ -289,7 +293,7 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji }, idx) => (
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
         <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
           {day === null ? (
             <div key={`e-${idx}`} />
@@ -301,22 +305,36 @@ const Days = ({
               <SkeletonText className="h-8 w-9" />
             </button>
           ) : (
-            <DayComponent
-              customClassName={{
-                dayContainer: customClassName?.datePickerDate,
-                dayActive: customClassName?.datePickerDateActive,
-              }}
-              date={day}
-              onClick={() => {
-                props.onChange(day);
-                props?.scrollToTimeSlots?.();
-              }}
-              disabled={disabled}
-              active={isActive(day)}
-              away={away}
-              emoji={emoji}
-              showMonthTooltip={isSecondWeekOver && !isCompact}
-            />
+            <>
+              <DayComponent
+                customClassName={{
+                  dayContainer: customClassName?.datePickerDate,
+                  dayActive: customClassName?.datePickerDateActive,
+                }}
+                date={day}
+                onClick={() => {
+                  props.onChange(day);
+                  props?.scrollToTimeSlots?.();
+                }}
+                disabled={disabled}
+                active={isActive(day)}
+                away={away}
+                emoji={emoji}
+                showMonthTooltip={isSecondWeekOver && !isCompact}
+                isFirstDayOfNextMonth={isFirstDayOfNextMonth}
+              />
+              {isFirstDayOfNextMonth && (
+                <span className="w-full bg-white">
+                  <span
+                    className={classNames(
+                      "absolute left-0 top-0 z-10 flex h-4 items-center justify-center rounded px-1 text-[12px] font-semibold",
+                      isActive(day) ? "text-white" : "text-gray-900"
+                    )}>
+                    {day.format("MMM").toUpperCase()}
+                  </span>
+                </span>
+              )}
+            </>
           )}
         </div>
       ))}
