@@ -2,6 +2,7 @@
  These styles are applied to the entire page, so the selectors need to be specific
 */
 .cal-embed {
+  display: block !important;
   border: 0px;
   min-height: 300px;
   margin: 0 auto;
