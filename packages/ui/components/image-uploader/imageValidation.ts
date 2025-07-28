@@ -34,7 +34,7 @@ export const validateImageFile = async (file: File, t: (key: string) => string):
 
     // Check for HTML content
     if (
-      uint8Array.length >= 9 &&
+      uint8Array.length >= 10 &&
       uint8Array[0] === 0x3c &&
       uint8Array[1] === 0x21 &&
       uint8Array[2] === 0x44 &&
@@ -43,7 +43,8 @@ export const validateImageFile = async (file: File, t: (key: string) => string):
       uint8Array[5] === 0x54 &&
       uint8Array[6] === 0x59 &&
       uint8Array[7] === 0x50 &&
-      uint8Array[8] === 0x45
+      uint8Array[8] === 0x45 &&
+      uint8Array[9] === 0x20
     ) {
       showToast(t("html_files_cannot_be_uploaded_as_images"), "error");
       return false;
