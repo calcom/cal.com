@@ -91,7 +91,10 @@ export const CheckedTeamSelect = ({
         onChange={handleSelectChange}
         isMulti
         className={customClassNames?.hostsSelect?.select}
-        innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
+        innerClassNames={{
+          ...customClassNames?.hostsSelect?.innerClassNames,
+          control: "rounded-md",
+        }}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
