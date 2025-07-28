@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { checkDurationLimits } from "@calcom/lib/intervalLimits/server/checkDurationLimits";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
@@ -14,36 +14,42 @@ type InputProps = {
   reqBodyRescheduleUid?: string;
 };
 
-const checkBookingLimitsService = getCheckBookingLimitsService();
+export interface ICheckBookingAndDurationLimitsService {
+  checkBookingLimitsService: CheckBookingLimitsService;
+}
 
-const _checkBookingAndDurationLimits = async ({
-  eventType,
-  reqBodyStart,
-  reqBodyRescheduleUid,
-}: InputProps) => {
-  if (
-    Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
-    Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
-  ) {
-    const startAsDate = dayjs(reqBodyStart).toDate();
-    if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
-      await checkBookingLimitsService.checkBookingLimits(
-        eventType.bookingLimits as IntervalLimit,
-        startAsDate,
-        eventType.id,
-        reqBodyRescheduleUid,
-        eventType.schedule?.timeZone
-      );
-    }
-    if (eventType.durationLimits) {
-      await checkDurationLimits(
-        eventType.durationLimits as IntervalLimit,
-        startAsDate,
-        eventType.id,
-        reqBodyRescheduleUid
-      );
+export class CheckBookingAndDurationLimitsService {
+  constructor(private readonly dependencies: ICheckBookingAndDurationLimitsService) {}
+
+  async checkBookingAndDurationLimits({ eventType, reqBodyStart, reqBodyRescheduleUid }: InputProps) {
+    if (
+      Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
+      Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
+    ) {
+      const startAsDate = dayjs(reqBodyStart).toDate();
+      if (eventType.bookingLimits && Object.keys(eventType.bookingLimits).length > 0) {
+        await this.dependencies.checkBookingLimitsService.checkBookingLimits(
+          eventType.bookingLimits as IntervalLimit,
+          startAsDate,
+          eventType.id,
+          reqBodyRescheduleUid,
+          eventType.schedule?.timeZone
+        );
+      }
+      if (eventType.durationLimits) {
+        await checkDurationLimits(
+          eventType.durationLimits as IntervalLimit,
+          startAsDate,
+          eventType.id,
+          reqBodyRescheduleUid
+        );
+      }
     }
   }
+}
+
+const _checkBookingAndDurationLimits = async (props: InputProps) => {
+  throw new Error("Use CheckBookingAndDurationLimitsService with dependency injection instead");
 };
 
 export const checkBookingAndDurationLimits = withReporting(

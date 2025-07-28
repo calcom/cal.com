@@ -24,4 +24,6 @@ export const DI_TOKENS = {
   INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
   CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
+  CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),
+  CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE_MODULE: Symbol("CheckBookingAndDurationLimitsServiceModule"),
 };
