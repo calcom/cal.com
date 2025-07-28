@@ -21,7 +21,7 @@ interface EventData {
   length: number;
 }
 
-const returnNullValue = { email: null, recordType: null, crmAppSlug: null };
+const returnNullValue = { email: null, recordType: null, crmAppSlug: null, recordId: null };
 
 async function findUserByEmailWhoIsAHostOfEventType({
   email,
@@ -57,7 +57,7 @@ async function getAttributeRoutingConfig(
   if ("route" in data) {
     return data.route.attributeRoutingConfig ?? null;
   }
-  const { routingFormResponseId, eventTypeId } = data;
+  const { routingFormResponseId } = data;
 
   const routingFormResponseQuery = await prisma.app_RoutingForms_FormResponse.findUnique({
     where: {
@@ -117,7 +117,12 @@ function getEnabledRoutingFormAppSlugFromQuery(query: ParsedUrlQuery) {
 async function getOwnerEmailFromCrm(
   eventData: EventData,
   email: string
-): Promise<{ email: string | null; recordType: string | null; crmAppSlug: string | null }> {
+): Promise<{
+  email: string | null;
+  recordType: string | null;
+  crmAppSlug: string | null;
+  recordId: string | null;
+}> {
   const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(email, eventData.metadata);
 
   if (!crmContactOwner?.email) return returnNullValue;
@@ -159,7 +164,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   attributeRoutingConfig: AttributeRoutingConfig | null;
   crmAppSlug: string;
 }) {
-  const nullReturnValue = { email: null, skipContactOwner: false, recordType: "" };
+  const nullReturnValue = { email: null, skipContactOwner: false, recordType: "", recordId: "" };
 
   if (!attributeRoutingConfig) return nullReturnValue;
 
@@ -171,7 +176,11 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   const appHandler = appBookingFormHandler[crmAppSlug];
   if (!appHandler) return nullReturnValue;
 
-  const { email: userEmail, recordType } = await appHandler(bookerEmail, attributeRoutingConfig, eventTypeId);
+  const {
+    email: userEmail,
+    recordType,
+    recordId,
+  } = await appHandler(bookerEmail, attributeRoutingConfig, eventTypeId);
 
   if (!userEmail) return nullReturnValue;
 
@@ -180,7 +189,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
 
   if (!userQuery) return nullReturnValue;
 
-  return { ...nullReturnValue, email: userEmail, recordType };
+  return { ...nullReturnValue, email: userEmail, recordType, recordId };
 }
 
 async function getTeamMemberEmailForResponseOrContact({
@@ -198,7 +207,12 @@ async function getTeamMemberEmailForResponseOrContact({
    */
   chosenRoute?: LocalRoute;
   crmAppSlug?: string;
-}) {
+}): Promise<{
+  email: string | null;
+  recordType: string | null;
+  crmAppSlug: string | null;
+  recordId: string | null;
+}> {
   const eventTypeId = eventData.id;
   if (eventData.schedulingType !== SchedulingType.ROUND_ROBIN) return returnNullValue;
 
@@ -215,15 +229,17 @@ async function getTeamMemberEmailForResponseOrContact({
       safeStringify({ attributeRoutingConfigGetterData, crmAppSlug })
     );
     const attributeRoutingConfig = await getAttributeRoutingConfig(attributeRoutingConfigGetterData);
-    const { email, skipContactOwner, recordType } = await getTeamMemberEmailUsingRoutingFormHandler({
-      bookerEmail,
-      eventTypeId,
-      attributeRoutingConfig,
-      crmAppSlug,
-    });
+    const { email, skipContactOwner, recordType, recordId } = await getTeamMemberEmailUsingRoutingFormHandler(
+      {
+        bookerEmail,
+        eventTypeId,
+        attributeRoutingConfig,
+        crmAppSlug,
+      }
+    );
 
     if (skipContactOwner) return returnNullValue;
-    if (email) return { email, recordType, crmAppSlug };
+    if (email) return { email, recordType, crmAppSlug, recordId };
   } else {
     log.debug("Getting the contact owner email from CRM");
     return await getOwnerEmailFromCrm(eventData, bookerEmail);
@@ -240,7 +256,12 @@ export async function getTeamMemberEmailForResponseOrContactUsingUrlQuery({
   query: ParsedUrlQuery;
   eventData: EventData;
   chosenRoute?: LocalRoute;
-}) {
+}): Promise<{
+  email: string | null;
+  recordType: string | null;
+  crmAppSlug: string | null;
+  recordId: string | null;
+}> {
   // Without email no lookup is possible
   if (!query.email || typeof query.email !== "string") {
     return returnNullValue;

@@ -96,7 +96,7 @@ const getInitialProps = async () => {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
-  const nonce = h.get("x-csp") ?? "";
+  const nonce = h.get("x-csp-nonce") ?? "";
 
   const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
@@ -151,7 +151,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
 
-        <Providers isEmbed={isEmbed}>
+        <Providers isEmbed={isEmbed} nonce={nonce}>
           <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
             {children}
           </AppRouterI18nProvider>
