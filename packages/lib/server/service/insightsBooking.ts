@@ -185,9 +185,7 @@ export class InsightsBookingService {
 
   async getBaseConditions(): Promise<Prisma.Sql> {
     const authConditions = await this.getAuthorizationConditions();
-    console.log("------ authConditions", authConditions);
     const filterConditions = await this.getFilterConditions();
-    console.log("------ filterConditions", filterConditions);
 
     if (authConditions && filterConditions) {
       return Prisma.sql`((${authConditions}) AND (${filterConditions}))`;
@@ -349,7 +347,6 @@ export class InsightsBookingService {
 
   async getCsvData({ limit = 100, offset = 0 }: { limit?: number; offset?: number }) {
     const baseConditions = await this.getBaseConditions();
-    console.log("------ base conditions", baseConditions);
 
     // Get total count first
     const totalCountResult = await this.prisma.$queryRaw<[{ count: number }]>`
