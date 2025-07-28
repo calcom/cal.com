@@ -3308,7 +3308,6 @@
   "error_creating_role": "Error creating role",
   "error_updating_role": "Error updating role",
   "pbac_desc_create_roles": "Create roles",
-  "pbac_desc_manage_roles": "Manage roles",
   "pbac_resource_attributes": "Attributes",
   "pbac_desc_view_organization_attributes": "View organization attributes",
   "pbac_desc_update_organization_attributes": "Update organization attributes",
