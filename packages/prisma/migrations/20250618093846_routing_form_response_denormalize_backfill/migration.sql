@@ -4,7 +4,7 @@ DECLARE
     start_id INTEGER := 1;      -- Starting ID
     end_id INTEGER;             -- Will be set dynamically
     current_id INTEGER;
-    sleep_interval FLOAT := 1;  -- Sleep duration in seconds
+
     processed_count INTEGER := 0;
     chunk_updated_count INTEGER := 0;
     total_count INTEGER;
@@ -190,8 +190,6 @@ BEGIN
         
         RAISE NOTICE 'Chunk processed: IDs %-% (updated/inserted: % records, total updated: %)', 
             current_id, current_id + chunk_size - 1, chunk_updated_count, processed_count;
-        
-        PERFORM pg_sleep(sleep_interval);  -- Add delay between chunks
     END LOOP;
     
     RAISE NOTICE 'Migration completed: processed up to ID % (total updated/inserted: % records out of % total records)', 
