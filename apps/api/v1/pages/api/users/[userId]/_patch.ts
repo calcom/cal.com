@@ -4,6 +4,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { validateBase64Image } from "@calcom/lib/server/imageValidation";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -137,7 +138,7 @@ export async function patchHandler(req: NextApiRequest) {
     try {
       body.avatarUrl = await uploadAvatar({
         userId: query.userId,
-        avatar: await (await import("@calcom/lib/server/resizeBase64Image")).resizeBase64Image(avatar),
+        avatar: await resizeBase64Image(avatar),
       });
     } catch (error) {
       throw new HttpError({
