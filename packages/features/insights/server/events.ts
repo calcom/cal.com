@@ -1,7 +1,6 @@
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 type TimeViewType = "week" | "month" | "year" | "day";
 
@@ -75,99 +74,6 @@ export interface GetDateRangesParams {
 }
 
 class EventsInsights {
-  static countGroupedByStatusForRanges = async (
-    whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
-    startDate: Dayjs,
-    endDate: Dayjs,
-    dateRanges: DateRange[],
-    timeZone: string
-  ): Promise<AggregateResult> => {
-    const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
-    const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
-    const whereClause = buildSqlCondition(whereConditional);
-
-    const data = await prisma.$queryRaw<
-      {
-        date: Date;
-        bookingsCount: number;
-        timeStatus: string;
-        noShowHost: boolean;
-        noShowGuests: number;
-      }[]
-    >`
-    SELECT
-      "date",
-      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
-      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
-      "timeStatus",
-      "noShowHost"
-    FROM (
-      SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
-        "a"."noShow" AS "isNoShowGuest",
-        "timeStatus",
-        "noShowHost"
-      FROM
-        "BookingTimeStatusDenormalized"
-      JOIN
-        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
-      WHERE
-        "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
-        AND ${Prisma.raw(whereClause)}
-    ) AS bookings
-    GROUP BY
-      "date",
-      "timeStatus",
-      "noShowHost"
-    ORDER BY
-      "date";
-  `;
-
-    const aggregate: AggregateResult = {};
-
-    // Initialize all date ranges with zero counts
-    dateRanges.forEach(({ formattedDate }) => {
-      aggregate[formattedDate] = {
-        completed: 0,
-        rescheduled: 0,
-        cancelled: 0,
-        noShowHost: 0,
-        noShowGuests: 0,
-        _all: 0,
-        uncompleted: 0,
-      };
-    });
-
-    // Process the raw data
-    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
-      // Find which date range this date belongs to
-      const dateRange = dateRanges.find((range) =>
-        dayjs(date).isBetween(range.startDate, range.endDate, null, "[]")
-      );
-
-      if (!dateRange) return;
-
-      const formattedDate = dateRange.formattedDate;
-      const statusKey = timeStatus as keyof StatusAggregate;
-
-      // Add to the specific status count
-      aggregate[formattedDate][statusKey] += Number(bookingsCount);
-
-      // Add to the total count (_all)
-      aggregate[formattedDate]["_all"] += Number(bookingsCount);
-
-      // Track no-show host counts separately
-      if (noShowHost) {
-        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
-      }
-
-      // Track no-show guests explicitly
-      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
-    });
-
-    return aggregate;
-  };
-
   static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
     const bookings = await prisma.bookingTimeStatusDenormalized.findMany({
       where,
