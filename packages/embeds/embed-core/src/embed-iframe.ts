@@ -579,6 +579,10 @@ function main() {
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
 
+  // Initialize with color-scheme: unset and transparent background to prevent opaque background issues
+  document.documentElement.style.colorScheme = "unset";
+  document.body.style.background = "transparent";
+
   embedStore.uiConfig = {
     // TODO: Add theme as well here
     colorScheme: url.searchParams.get("ui.color-scheme"),
@@ -677,7 +681,8 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
   if (!colorScheme) {
     return;
   }
-  document.documentElement.style.colorScheme = colorScheme;
+  document.documentElement.style.colorScheme = colorScheme || "unset";
+  document.body.style.background = "transparent";
 }
 
 /**
