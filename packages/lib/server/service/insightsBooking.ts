@@ -262,7 +262,8 @@ export class InsightsBookingService {
       return NOTHING_CONDITION;
     }
     const scope = this.options.scope;
-    const targetId = this.options.orgId || (scope === "team" ? this.options.teamId : undefined);
+    const targetId =
+      scope === "org" ? this.options.orgId : scope === "team" ? this.options.teamId : undefined;
 
     if (targetId && scope !== "user") {
       const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, targetId);
