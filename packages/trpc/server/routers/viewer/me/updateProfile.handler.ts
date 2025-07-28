@@ -163,28 +163,15 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
 
-    // Additional check for supported base64 formats (after validation)
-    if (
-      input.avatarUrl.startsWith("data:image/png;base64,") ||
-      input.avatarUrl.startsWith("data:image/jpeg;base64,") ||
-      input.avatarUrl.startsWith("data:image/jpg;base64,") ||
-      input.avatarUrl.startsWith("data:image/svg+xml;base64,")
-    ) {
-      try {
-        data.avatarUrl = await uploadAvatar({
-          avatar: await resizeBase64Image(input.avatarUrl),
-          userId: user.id,
-        });
-      } catch (error) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: error instanceof Error ? error.message : "Failed to upload avatar",
-        });
-      }
-    } else {
+    try {
+      data.avatarUrl = await uploadAvatar({
+        avatar: await resizeBase64Image(input.avatarUrl),
+        userId: user.id,
+      });
+    } catch (error) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Unsupported image format. Please use PNG, JPEG, or SVG.",
+        message: error instanceof Error ? error.message : "Failed to upload avatar",
       });
     }
   }
