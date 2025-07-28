@@ -321,7 +321,6 @@ const Days = ({
                 away={away}
                 emoji={emoji}
                 showMonthTooltip={isSecondWeekOver && !isCompact}
-                isFirstDayOfNextMonth={isFirstDayOfNextMonth}
               />
               {isFirstDayOfNextMonth && (
                 <span className="w-full bg-white">
