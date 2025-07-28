@@ -10,15 +10,17 @@ import {
 import {
   AverageEventDurationChart,
   BookingKPICards,
-  BookingStatusLineChart,
+  EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
+  BookingsByHourChart,
   LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
   MostCancelledBookingsTables,
   PopularEventsTable,
   RecentFeedbackTable,
+  TimezoneBadge,
 } from "@calcom/features/insights/components";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
@@ -62,30 +64,43 @@ function InsightsPageContent() {
         <div className="grow" />
         <Download />
         <DateRangeFilter column={createdAtColumn} />
+        <TimezoneBadge />
       </div>
 
       <div className="my-4 space-y-4">
         <BookingKPICards />
 
-        <BookingStatusLineChart />
+        <EventTrendsChart />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <PopularEventsTable />
-          <AverageEventDurationChart />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <BookingsByHourChart />
+          </div>
+          <div className="sm:col-span-2">
+            <AverageEventDurationChart />
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
+          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
-        </div>
-        <RecentFeedbackTable />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <HighestNoShowHostTable />
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
         </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <RecentFeedbackTable />
+          </div>
+        </div>
+
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
           <a

@@ -315,17 +315,20 @@ export default function Success(props: PageProps) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       if (isAttendee) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
           host,
           attendee,
+          interpolation: { escapeValue: false },
         });
       }
       return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
         host,
         attendee,
+        interpolation: { escapeValue: false },
       });
     }
     return t(`emailed_host_and_attendee${titleSuffix}`);
@@ -555,6 +558,14 @@ export default function Success(props: PageProps) {
                             <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
+                        {isCancelled && bookingInfo?.cancelledBy && (
+                          <>
+                            <div className="font-medium">{t("cancelled_by")}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                            </div>
+                          </>
+                        )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
@@ -610,7 +621,7 @@ export default function Success(props: PageProps) {
                                     <Badge variant="blue">{t("Host")}</Badge>
                                   </div>
                                   {!bookingInfo.eventType?.hideOrganizerEmail && (
-                                    <p className="text-default">
+                                    <p className="text-default" data-testid="booking-host-email">
                                       {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
                                     </p>
                                   )}

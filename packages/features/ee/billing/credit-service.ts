@@ -130,6 +130,9 @@ export class CreditService {
       });
   }
 
+  /*
+    also returns true if team has no available credits but limitReachedAt is not yet set
+  */
   async hasAvailableCredits({ userId, teamId }: { userId?: number | null; teamId?: number | null }) {
     return await prisma.$transaction(async (tx) => {
       if (!IS_SMS_CREDITS_ENABLED) return true;
@@ -160,12 +163,14 @@ export class CreditService {
           );
           return true;
         }
+        // limtReachedAt is set and still no available credits
+        return false;
       }
 
       if (userId) {
         const teamWithAvailableCredits = await this._getTeamWithAvailableCredits({ userId, tx });
 
-        if (teamWithAvailableCredits && teamWithAvailableCredits?.availableCredits > 0) return true;
+        if (teamWithAvailableCredits && !teamWithAvailableCredits.limitReached) return true;
 
         const userCredits = await this._getAllCredits({ userId, tx });
 
@@ -182,10 +187,13 @@ export class CreditService {
     });
   }
 
+  /*
+    If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
+  */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
-    const memberships = await MembershipRepository.findAllAcceptedMemberships(userId, tx);
+    const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
 
-    if (memberships.length === 0) {
+    if (!memberships || memberships.length === 0) {
       return null;
     }
 
@@ -226,6 +234,7 @@ export class CreditService {
       teamId: memberships[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
+      limitReached: true,
     };
   }
 
@@ -523,7 +532,8 @@ export class CreditService {
   }
 
   async getMonthlyCredits(teamId: number) {
-    const team = await TeamRepository.findTeamWithMembers(teamId);
+    const teamRepo = new TeamRepository(prisma);
+    const team = await teamRepo.findTeamWithMembers(teamId);
 
     if (!team) return 0;
 

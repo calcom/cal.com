@@ -1,9 +1,6 @@
-import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
-
-import type { RawDataInput } from "./raw-data.schema";
+import type { Prisma } from "@calcom/prisma/client";
 
 type TimeViewType = "week" | "month" | "year" | "day";
 
@@ -65,6 +62,7 @@ export interface DateRange {
   startDate: string;
   endDate: string;
   formattedDate: string;
+  formattedDateFull: string;
 }
 
 export interface GetDateRangesParams {
@@ -72,103 +70,10 @@ export interface GetDateRangesParams {
   endDate: string;
   timeZone: string;
   timeView: "day" | "week" | "month" | "year";
-  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+  weekStart: "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | string;
 }
 
 class EventsInsights {
-  static countGroupedByStatusForRanges = async (
-    whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput,
-    startDate: Dayjs,
-    endDate: Dayjs,
-    dateRanges: DateRange[],
-    timeZone: string
-  ): Promise<AggregateResult> => {
-    const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD HH:mm:ss");
-    const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD HH:mm:ss");
-    const whereClause = buildSqlCondition(whereConditional);
-
-    const data = await prisma.$queryRaw<
-      {
-        date: Date;
-        bookingsCount: number;
-        timeStatus: string;
-        noShowHost: boolean;
-        noShowGuests: number;
-      }[]
-    >`
-    SELECT
-      "date",
-      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
-      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
-      "timeStatus",
-      "noShowHost"
-    FROM (
-      SELECT
-        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
-        "a"."noShow" AS "isNoShowGuest",
-        "timeStatus",
-        "noShowHost"
-      FROM
-        "BookingTimeStatusDenormalized"
-      JOIN
-        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
-      WHERE
-        "createdAt" BETWEEN ${formattedStartDate}::timestamp AND ${formattedEndDate}::timestamp
-        AND ${Prisma.raw(whereClause)}
-    ) AS bookings
-    GROUP BY
-      "date",
-      "timeStatus",
-      "noShowHost"
-    ORDER BY
-      "date";
-  `;
-
-    const aggregate: AggregateResult = {};
-
-    // Initialize all date ranges with zero counts
-    dateRanges.forEach(({ formattedDate }) => {
-      aggregate[formattedDate] = {
-        completed: 0,
-        rescheduled: 0,
-        cancelled: 0,
-        noShowHost: 0,
-        noShowGuests: 0,
-        _all: 0,
-        uncompleted: 0,
-      };
-    });
-
-    // Process the raw data
-    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
-      // Find which date range this date belongs to
-      const dateRange = dateRanges.find((range) =>
-        dayjs(date).isBetween(range.startDate, range.endDate, null, "[]")
-      );
-
-      if (!dateRange) return;
-
-      const formattedDate = dateRange.formattedDate;
-      const statusKey = timeStatus as keyof StatusAggregate;
-
-      // Add to the specific status count
-      aggregate[formattedDate][statusKey] += Number(bookingsCount);
-
-      // Add to the total count (_all)
-      aggregate[formattedDate]["_all"] += Number(bookingsCount);
-
-      // Track no-show host counts separately
-      if (noShowHost) {
-        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
-      }
-
-      // Track no-show guests explicitly
-      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
-    });
-
-    return aggregate;
-  };
-
   static getTotalNoShowGuests = async (where: Prisma.BookingTimeStatusDenormalizedWhereInput) => {
     const bookings = await prisma.bookingTimeStatusDenormalized.findMany({
       where,
@@ -330,6 +235,13 @@ class EventsInsights {
             wholeStart: startDate,
             wholeEnd: endDate,
           }),
+          formattedDateFull: this.formatPeriodFull({
+            start: currentStartDate,
+            end: currentEndDate,
+            timeView,
+            wholeStart: startDate,
+            wholeEnd: endDate,
+          }),
         });
         break;
       }
@@ -338,6 +250,13 @@ class EventsInsights {
         startDate: currentStartDate.toISOString(),
         endDate: currentEndDate.toISOString(),
         formattedDate: this.formatPeriod({
+          start: currentStartDate,
+          end: currentEndDate,
+          timeView,
+          wholeStart: startDate,
+          wholeEnd: endDate,
+        }),
+        formattedDateFull: this.formatPeriodFull({
           start: currentStartDate,
           end: currentEndDate,
           timeView,
@@ -401,267 +320,45 @@ class EventsInsights {
     }
   }
 
-  static getCsvData = async (
-    props: RawDataInput & {
-      organizationId: number | null;
-      isOrgAdminOrOwner: boolean | null;
+  static formatPeriodFull({
+    start,
+    end,
+    timeView,
+    wholeStart,
+    wholeEnd,
+  }: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+    timeView: TimeViewType;
+    wholeStart: dayjs.Dayjs;
+    wholeEnd: dayjs.Dayjs;
+  }): string {
+    const omitYear = wholeStart.year() === wholeEnd.year();
+
+    switch (timeView) {
+      case "day":
+        return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
+      case "week":
+        const startFormat = "MMM D";
+        const endFormat = "MMM D";
+
+        if (start.format("YYYY") !== end.format("YYYY")) {
+          return `${start.format(`${startFormat}, YYYY`)} - ${end.format(`${endFormat}, YYYY`)}`;
+        }
+
+        if (omitYear) {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}`;
+        } else {
+          return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
+        }
+      case "month":
+        return omitYear ? start.format("MMM") : start.format("MMM YYYY");
+      case "year":
+        return start.format("YYYY");
+      default:
+        return "";
     }
-  ) => {
-    // Obtain the where conditional
-    const whereConditional = await this.obtainWhereConditionalForDownload(props);
-    const limit = props.limit ?? 100; // Default batch size
-    const offset = props.offset ?? 0;
-
-    const totalCountPromise = prisma.bookingTimeStatusDenormalized.count({
-      where: whereConditional,
-    });
-
-    const csvDataPromise = prisma.bookingTimeStatusDenormalized.findMany({
-      select: {
-        id: true,
-        uid: true,
-        title: true,
-        createdAt: true,
-        timeStatus: true,
-        eventTypeId: true,
-        eventLength: true,
-        startTime: true,
-        endTime: true,
-        paid: true,
-        userEmail: true,
-        userUsername: true,
-        rating: true,
-        ratingFeedback: true,
-        noShowHost: true,
-      },
-      where: whereConditional,
-      skip: offset,
-      take: limit,
-    });
-
-    const [totalCount, csvData] = await Promise.all([totalCountPromise, csvDataPromise]);
-
-    const uids = csvData.filter((b) => b.uid !== null).map((b) => b.uid as string);
-
-    if (uids.length === 0) {
-      return { data: csvData, total: totalCount };
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where: {
-        uid: {
-          in: uids,
-        },
-      },
-      select: {
-        uid: true,
-        attendees: {
-          select: {
-            name: true,
-            email: true,
-            noShow: true,
-          },
-        },
-        seatsReferences: {
-          select: {
-            attendee: {
-              select: {
-                name: true,
-                email: true,
-                noShow: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const bookingMap = new Map(
-      bookings.map((booking) => {
-        const attendeeList =
-          booking.seatsReferences.length > 0
-            ? booking.seatsReferences.map((ref) => ref.attendee)
-            : booking.attendees;
-
-        const formattedAttendees = attendeeList
-          .slice(0, 3)
-          .map((attendee) => (attendee ? `${attendee.name} (${attendee.email})` : null));
-
-        return [
-          booking.uid,
-          {
-            noShowGuest: attendeeList[0]?.noShow || false,
-            attendee1: formattedAttendees[0] || null,
-            attendee2: formattedAttendees[1] || null,
-            attendee3: formattedAttendees[2] || null,
-          },
-        ];
-      })
-    );
-
-    const data = csvData.map((bookingTimeStatus) => {
-      if (!bookingTimeStatus.uid) {
-        // should not be reached because we filtered above
-        return {
-          ...bookingTimeStatus,
-          noShowGuest: false,
-          attendee1: null,
-          attendee2: null,
-          attendee3: null,
-        };
-      }
-
-      const attendeeData = bookingMap.get(bookingTimeStatus.uid);
-
-      if (!attendeeData) {
-        return {
-          ...bookingTimeStatus,
-          noShowGuest: false,
-          attendee1: null,
-          attendee2: null,
-          attendee3: null,
-        };
-      }
-
-      return {
-        ...bookingTimeStatus,
-        noShowGuest: attendeeData.noShowGuest,
-        attendee1: attendeeData.attendee1,
-        attendee2: attendeeData.attendee2,
-        attendee3: attendeeData.attendee3,
-      };
-    });
-
-    return { data, total: totalCount };
-  };
-
-  /*
-   * This is meant to be used for all functions inside insights router,
-   * but it's currently used only for CSV download.
-   * Ideally we should have a view that have all of this data
-   * The order where will be from the most specific to the least specific
-   * starting from the top will be:
-   * - memberUserId
-   * - eventTypeId
-   * - userId
-   * - teamId
-   * Generics will be:
-   * - isAll
-   * - startDate
-   * - endDate
-   * @param props
-   * @returns
-   */
-  static obtainWhereConditionalForDownload = async (
-    props: RawDataInput & { organizationId: number | null; isOrgAdminOrOwner: boolean | null }
-  ) => {
-    const {
-      startDate,
-      endDate,
-      teamId,
-      userId,
-      memberUserId,
-      isAll,
-      eventTypeId,
-      organizationId,
-      isOrgAdminOrOwner,
-    } = props;
-
-    // Obtain the where conditional
-    let whereConditional: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
-
-    if (startDate && endDate) {
-      whereConditional.createdAt = {
-        gte: dayjs(startDate).toISOString(),
-        lte: dayjs(endDate).toISOString(),
-      };
-    }
-
-    if (eventTypeId) {
-      whereConditional["eventTypeId"] = eventTypeId;
-    }
-    if (memberUserId) {
-      whereConditional["userId"] = memberUserId;
-    }
-    if (userId) {
-      whereConditional["teamId"] = null;
-      whereConditional["userId"] = userId;
-    }
-
-    if (isAll && isOrgAdminOrOwner && organizationId) {
-      const teamsFromOrg = await prisma.team.findMany({
-        where: {
-          parentId: organizationId,
-        },
-        select: {
-          id: true,
-        },
-      });
-      if (teamsFromOrg.length === 0) {
-        return {};
-      }
-      const teamIds: number[] = [organizationId, ...teamsFromOrg.map((t) => t.id)];
-      const usersFromOrg = await prisma.membership.findMany({
-        where: {
-          teamId: {
-            in: teamIds,
-          },
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
-      const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-      whereConditional = {
-        ...whereConditional,
-        OR: [
-          {
-            userId: {
-              in: userIdsFromOrg,
-            },
-            isTeamBooking: false,
-          },
-          {
-            teamId: {
-              in: teamIds,
-            },
-            isTeamBooking: true,
-          },
-        ],
-      };
-    }
-
-    if (teamId && !isAll) {
-      const usersFromTeam = await prisma.membership.findMany({
-        where: {
-          teamId: teamId,
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
-      const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-      whereConditional = {
-        ...whereConditional,
-        OR: [
-          {
-            teamId,
-            isTeamBooking: true,
-          },
-          {
-            userId: {
-              in: userIdsFromTeam,
-            },
-            isTeamBooking: false,
-          },
-        ],
-      };
-    }
-
-    return whereConditional;
-  };
+  }
 
   static userIsOwnerAdminOfTeam = async ({
     sessionUserId,

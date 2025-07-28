@@ -23,6 +23,7 @@ import {
   DataTableSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -39,7 +40,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
-import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -63,10 +64,22 @@ interface OutOfOfficeEntry {
 }
 
 export default function OutOfOfficeEntriesList() {
+  const { t } = useLocale();
+
   return (
-    <DataTableProvider useSegments={useSegments}>
-      <OutOfOfficeEntriesListContent />
-    </DataTableProvider>
+    <SettingsHeader
+      title={t("out_of_office")}
+      description={t("out_of_office_description")}
+      CTA={
+        <div className="flex gap-2">
+          <OutOfOfficeToggleGroup />
+          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
+        </div>
+      }>
+      <DataTableProvider useSegments={useSegments}>
+        <OutOfOfficeEntriesListContent />
+      </DataTableProvider>
+    </SettingsHeader>
   );
 }
 
@@ -382,9 +395,11 @@ function OutOfOfficeEntriesListContent() {
                       <div className="w-12" />
                     </div>
                     <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
-                      <Icon name="clock" size={28} />
+                      <Icon name="clock" size={28} className="text-black" />
                       <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
-                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>
+                      <span className="absolute right-4 top-3 font-sans text-sm font-extrabold text-black">
+                        z
+                      </span>
                     </div>
                   </div>
                 </div>
