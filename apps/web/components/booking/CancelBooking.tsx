@@ -125,17 +125,13 @@ export default function CancelBooking(props: Props) {
 
   // Determine if cancellation reason is required based on team settings
   const isCancellationReasonRequired = () => {
-    console.log("props.teamCancellationSettings", props.teamCancellationSettings);
     if (!props.teamCancellationSettings) {
-      // for individual events (mendatory for host, optional for attendee)
       return props.isHost;
     }
 
-    if (props.isHost) {
-      return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
-    } else {
-      return props.teamCancellationSettings.mandatoryCancellationReasonForAttendee;
-    }
+    if (props.isHost) return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
+
+    return props.teamCancellationSettings.mandatoryCancellationReasonForAttendee;
   };
 
   const isRequired = isCancellationReasonRequired();

@@ -11,6 +11,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
@@ -218,20 +219,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
-  async function getTeamCancellationSettings(teamId: number | null) {
-    if (!teamId) return null;
-    return await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        mandatoryCancellationReasonForHost: true,
-        mandatoryCancellationReasonForAttendee: true,
-      },
-    });
-  }
-
   const teamId = eventType.team?.id ?? eventType.parent?.teamId ?? null;
   const internalNotes = await getInternalNotePresets(teamId);
-  const teamCancellationSettings = await getTeamCancellationSettings(teamId);
+
+  const teamRepo = new TeamRepository(prisma);
+  const teamCancellationSettings = await teamRepo.getCancellationReasonSettings(teamId);
 
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
