@@ -43,6 +43,7 @@
     "./components/organization-banner": "./components/organization-banner/index.ts",
     "./components/pagination": "./components/pagination/index.ts",
     "./components/popover": "./components/popover/index.ts",
+    "./components/progress-bar": "./components/progress-bar/index.ts",
     "./components/radio": "./components/radio/index.ts",
     "./components/scrollable": "./components/scrollable/index.ts",
     "./components/sheet": "./components/sheet/index.ts",
