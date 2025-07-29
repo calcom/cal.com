@@ -86,6 +86,17 @@ export class CalendarsController {
     private readonly calendarsRepository: CalendarsRepository
   ) {}
 
+  private decodeHtmlEntities(str: string | null): string | null {
+    if (!str) return str;
+
+    return str
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+  }
+
   @Post("/ics-feed/save")
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -210,7 +221,7 @@ export class CalendarsController {
       const parsedState = calendarStateSchema.parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
-        redir: stateParams.get("redir") || undefined,
+        redir: this.decodeHtmlEntities(stateParams.get("redir")) || undefined,
         isDryRun: stateParams.get("isDryRun"),
       });
 
