@@ -61,7 +61,7 @@ export class CalendarCacheSqlService {
     const { CalendarCacheService } = await import(
       "@calcom/app-store/googlecalendar/lib/CalendarCacheService"
     );
-    const cacheService = new CalendarCacheService(credentialWithEmail);
+    const cacheService = new CalendarCacheService(credentialWithEmail, this.subscriptionRepo, this.eventRepo);
 
     const args = {
       timeMin: new Date().toISOString(),

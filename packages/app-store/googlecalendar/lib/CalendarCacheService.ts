@@ -1,7 +1,7 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 
-import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
-import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
+import type { ICalendarEventRepository } from "@calcom/features/calendar-cache-sql/calendar-event.repository.interface";
+import type { ICalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/calendar-subscription.repository.interface";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
@@ -11,13 +11,27 @@ import { CalendarAuth } from "./CalendarAuth";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheService"] });
 
+export interface FreeBusyArgs {
+  timeMin: string;
+  timeMax: string;
+  items?: { id: string }[];
+}
+
 export class CalendarCacheService {
   private auth: CalendarAuth;
   private credential: CredentialForCalendarServiceWithEmail;
+  private subscriptionRepo: ICalendarSubscriptionRepository;
+  private eventRepo: ICalendarEventRepository;
 
-  constructor(credential: CredentialForCalendarServiceWithEmail) {
+  constructor(
+    credential: CredentialForCalendarServiceWithEmail,
+    subscriptionRepo: ICalendarSubscriptionRepository,
+    eventRepo: ICalendarEventRepository
+  ) {
     this.credential = credential;
     this.auth = new CalendarAuth(credential);
+    this.subscriptionRepo = subscriptionRepo;
+    this.eventRepo = eventRepo;
   }
 
   public async getClient(): Promise<calendar_v3.Calendar> {
@@ -39,38 +53,49 @@ export class CalendarCacheService {
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     if (shouldServeCache === false) return await this.fetchAvailability(args);
 
-    const { CalendarCache } = await import("@calcom/features/calendar-cache/calendar-cache");
-    const calendarCache = await CalendarCache.init(null);
-    const cached = await calendarCache.getCachedAvailability({
-      credentialId: this.credential.id,
-      userId: this.credential.userId,
-      args: {
-        timeMin: getTimeMin(args.timeMin),
-        timeMax: getTimeMax(args.timeMax),
-        items: args.items,
-      },
-    });
-
-    if (cached) {
-      log.debug("[Cache Hit] Returning cached freebusy result", safeStringify({ cached, args }));
-      return cached as calendar_v3.Schema$FreeBusyResponse;
+    const calendarId = args.items?.[0]?.id;
+    if (!calendarId) {
+      log.debug("No calendar ID provided, fetching live data");
+      return await this.fetchAvailability(args);
     }
 
-    log.debug("[Cache Miss] Fetching availability from Google Calendar", safeStringify({ args }));
-    const result = await this.fetchAvailability(args);
-    await this.setAvailabilityInCache(args, result);
-    return result;
+    const subscription = await this.subscriptionRepo.findBySelectedCalendar(calendarId);
+    if (!subscription) {
+      log.debug("[Cache Miss] No subscription found, fetching live data", safeStringify({ calendarId }));
+      return await this.fetchAvailability(args);
+    }
+
+    const start = new Date(args.timeMin);
+    const end = new Date(args.timeMax);
+    const cachedEvents = await this.eventRepo.getEventsForAvailability(subscription.id, start, end);
+
+    if (cachedEvents && cachedEvents.length > 0) {
+      log.debug(
+        "[SQL Cache Hit] Returning cached events from SQL",
+        safeStringify({ cachedEvents: cachedEvents.length, args })
+      );
+
+      const freeBusyResponse: calendar_v3.Schema$FreeBusyResponse = {
+        calendars: {
+          [calendarId]: {
+            busy: cachedEvents.map((event) => ({
+              start: event.start.toISOString(),
+              end: event.end.toISOString(),
+            })),
+          },
+        },
+      };
+      return freeBusyResponse;
+    }
+
+    log.debug("[SQL Cache Miss] No cached events found, fetching live data", safeStringify({ args }));
+    return await this.fetchAvailability(args);
   }
 
   async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
-    log.debug("setAvailabilityInCache", safeStringify({ args, data }));
-    const { CalendarCache } = await import("@calcom/features/calendar-cache/calendar-cache");
-    const calendarCache = await CalendarCache.init(null);
-    await calendarCache.upsertCachedAvailability({
-      credentialId: this.credential.id,
-      userId: this.credential.userId,
-      args,
-      value: JSON.parse(JSON.stringify(data)),
-    });
+    log.debug(
+      "setAvailabilityInCache - SQL cache handles this through webhook events",
+      safeStringify({ args })
+    );
   }
 }
