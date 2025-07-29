@@ -21,7 +21,12 @@ export interface ICheckBookingAndDurationLimitsService {
 export class CheckBookingAndDurationLimitsService {
   constructor(private readonly dependencies: ICheckBookingAndDurationLimitsService) {}
 
-  async checkBookingAndDurationLimits({ eventType, reqBodyStart, reqBodyRescheduleUid }: InputProps) {
+  checkBookingAndDurationLimits = withReporting(
+    this._checkBookingAndDurationLimits.bind(this),
+    "checkBookingAndDurationLimits"
+  );
+
+  async _checkBookingAndDurationLimits({ eventType, reqBodyStart, reqBodyRescheduleUid }: InputProps) {
     if (
       Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
       Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -47,12 +52,3 @@ export class CheckBookingAndDurationLimitsService {
     }
   }
 }
-
-const _checkBookingAndDurationLimits = async (props: InputProps) => {
-  throw new Error("Use CheckBookingAndDurationLimitsService with dependency injection instead");
-};
-
-export const checkBookingAndDurationLimits = withReporting(
-  _checkBookingAndDurationLimits,
-  "checkBookingAndDurationLimits"
-);
