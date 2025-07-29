@@ -515,7 +515,9 @@ function BookingListItem(booking: BookingItemProps) {
                   </div>
                   {!isPending && (
                     <div>
-                      {(provider?.label || locationToDisplay?.startsWith("https://")) &&
+                      {(provider?.label ||
+                        (typeof locationToDisplay === "string" &&
+                          locationToDisplay?.startsWith("https://"))) &&
                         locationToDisplay.startsWith("http") && (
                           <a
                             href={locationToDisplay}
