@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
@@ -13,10 +14,7 @@ const COLOR = {
   AVERAGE: "#3b82f6",
 };
 
-interface AverageEventDurationData {
-  Date: string;
-  Average: number;
-}
+type AverageEventDurationData = RouterOutputs["viewer"]["insights"]["averageEventDuration"][number];
 
 // Custom duration formatter that shows hours and minutes
 const formatDuration = (minutes: number) => {
@@ -104,7 +102,7 @@ export const AverageEventDurationChart = () => {
                 className="text-xs opacity-50"
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(value) => formatDuration(value, t)}
+                tickFormatter={formatDuration}
               />
               <Tooltip content={<CustomTooltip />} />
               <Line
