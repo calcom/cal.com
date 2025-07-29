@@ -13,7 +13,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 const ONE_MONTH_IN_MS = 30 * 24 * 60 * 60 * 1000;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/webhook/google-calendar`;
+const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/webhook/google-calendar-sql`;
 
 export interface GoogleChannelProps {
   kind?: string | null;
