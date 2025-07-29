@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -99,6 +100,28 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
+  redisClient: IRedisService;
+}
+
+function withSlotsCache(
+  redisClient: IRedisService,
+  func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>,
+  ts: number
+) {
+  return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
+    const cacheKey = `${ts}:${JSON.stringify(args.input)}`;
+    const cachedResult = await redisClient.get<IGetAvailableSlots>(cacheKey);
+    if (cachedResult) {
+      log.info("[CACHE HIT] Available slots", { cacheKey });
+      return cachedResult;
+    }
+    const result = await func(args);
+    // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
+    // this is to already start responding to the client.
+    redisClient.set(cacheKey, result, { ttl: 2000 }); // Cache for 2 seconds
+    log.info("[CACHE MISS] Available slots", { cacheKey });
+    return result;
+  };
 }
 
 export class AvailableSlotsService {
@@ -883,7 +906,10 @@ export class AvailableSlotsService {
     "getRegularOrDynamicEventType"
   );
 
-  getAvailableSlots = withReporting(this._getAvailableSlots.bind(this), "getAvailableSlots");
+  getAvailableSlots = withReporting(
+    withSlotsCache(this.dependencies.redisClient, this._getAvailableSlots.bind(this), Date.now()),
+    "getAvailableSlots"
+  );
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {

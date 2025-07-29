@@ -17,9 +17,16 @@ export class RedisService implements IRedisService {
     return this.redis.del(key);
   }
 
-  async set<TData>(key: string, value: TData): Promise<"OK" | TData | null> {
-    // Implementation for setting value in Redis
-    return this.redis.set(key, value);
+  async set<TData>(key: string, value: TData, opts?: { ttl?: number }): Promise<"OK" | TData | null> {
+    return this.redis.set(
+      key,
+      value,
+      opts?.ttl
+        ? {
+            px: opts.ttl,
+          }
+        : undefined
+    );
   }
 
   async expire(key: string, seconds: number): Promise<0 | 1> {

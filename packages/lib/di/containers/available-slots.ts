@@ -1,5 +1,6 @@
 import { createContainer } from "@evyweb/ioctopus";
 
+import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -15,6 +16,7 @@ import { teamRepositoryModule } from "../modules/team";
 import { userRepositoryModule } from "../modules/user";
 
 const container = createContainer();
+container.load(DI_TOKENS.REDIS_CLIENT, redisModule);
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(DI_TOKENS.OOO_REPOSITORY_MODULE, oooRepositoryModule);
 container.load(DI_TOKENS.SCHEDULE_REPOSITORY_MODULE, scheduleRepositoryModule);

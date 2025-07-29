@@ -1,7 +1,7 @@
 export interface IRedisService {
   get: <TData>(key: string) => Promise<TData | null>;
 
-  set: <TData>(key: string, value: TData) => Promise<"OK" | TData | null>;
+  set: <TData>(key: string, value: TData, opts?: { ttl?: number }) => Promise<"OK" | TData | null>;
 
   expire: (key: string, seconds: number) => Promise<0 | 1>;
 
