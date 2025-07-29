@@ -14,6 +14,7 @@ export enum CrudAction {
   Read = "read",
   Update = "update",
   Delete = "delete",
+  Manage = "manage",
 }
 
 export enum CustomAction {
@@ -138,6 +139,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_roles",
     },
+    [CrudAction.Manage]: {
+      description: "Manage roles on all sub-teams",
+      category: "role",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_roles",
+      scope: [Scope.Organization], // Only organizations should have "Manage" permissions
+    },
   },
   [Resource.EventType]: {
     _resource: {
@@ -166,6 +174,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "event",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_event_types",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage event types",
+      category: "event",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_event_types",
+      scope: [Scope.Organization], // Only organizations should have "Manage" permissions
     },
   },
   [Resource.Team]: {
@@ -214,6 +229,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "team",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage team members",
+      category: "team",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_team_members",
+      scope: [Scope.Organization], // Only organizations should have "Manage" permissions
     },
   },
   [Resource.Organization]: {
@@ -312,6 +334,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "booking",
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_update_bookings",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage bookings",
+      category: "booking",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_bookings",
+      scope: [Scope.Organization], // Only organizations should have "Manage" permissions
     },
   },
   [Resource.Insights]: {
