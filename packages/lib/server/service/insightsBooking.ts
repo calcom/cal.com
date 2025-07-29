@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import type { DateRange } from "@calcom/features/insights/server/events";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -260,16 +261,22 @@ export class InsightsBookingService {
     if (!this.options) {
       return NOTHING_CONDITION;
     }
-    const isOwnerOrAdmin = await this.isOrgOwnerOrAdmin(this.options.userId, this.options.orgId);
-    if (!isOwnerOrAdmin) {
-      return NOTHING_CONDITION;
+    const scope = this.options.scope;
+    const targetId =
+      scope === "org" ? this.options.orgId : scope === "team" ? this.options.teamId : undefined;
+
+    if (targetId && scope !== "user") {
+      const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, targetId);
+      if (!isOwnerOrAdmin) {
+        return NOTHING_CONDITION;
+      }
     }
 
-    if (this.options.scope === "user") {
+    if (scope === "user") {
       return Prisma.sql`("userId" = ${this.options.userId}) AND ("teamId" IS NULL)`;
-    } else if (this.options.scope === "org") {
+    } else if (scope === "org") {
       return await this.buildOrgAuthorizationCondition(this.options);
-    } else if (this.options.scope === "team") {
+    } else if (scope === "team") {
       return await this.buildTeamAuthorizationCondition(this.options);
     } else {
       return NOTHING_CONDITION;
@@ -317,7 +324,7 @@ export class InsightsBookingService {
       parentId: options.orgId,
       select: { id: true },
     });
-    if (!childTeamOfOrg) {
+    if (options.orgId && !childTeamOfOrg) {
       return NOTHING_CONDITION;
     }
 
@@ -529,9 +536,138 @@ export class InsightsBookingService {
 
     return { data, total: totalCount };
   }
-  private async isOrgOwnerOrAdmin(userId: number, orgId: number): Promise<boolean> {
-    // Check if the user is an owner or admin of the organization
-    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: orgId });
+
+  async getEventTrendsStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        bookingsCount: number;
+        timeStatus: string;
+        noShowHost: boolean;
+        noShowGuests: number;
+      }[]
+    >`
+    SELECT
+      "date",
+      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+      CAST(COUNT(CASE WHEN "isNoShowGuest" = true THEN 1 END) AS INTEGER) AS "noShowGuests",
+      "timeStatus",
+      "noShowHost"
+    FROM (
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        "a"."noShow" AS "isNoShowGuest",
+        "timeStatus",
+        "noShowHost"
+      FROM
+        "BookingTimeStatusDenormalized"
+      JOIN
+        "Attendee" "a" ON "a"."bookingId" = "BookingTimeStatusDenormalized"."id"
+      WHERE
+        ${baseConditions}
+    ) AS bookings
+    GROUP BY
+      "date",
+      "timeStatus",
+      "noShowHost"
+    ORDER BY
+      "date"
+  `;
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: {
+      [date: string]: {
+        completed: number;
+        rescheduled: number;
+        cancelled: number;
+        noShowHost: number;
+        noShowGuests: number;
+        _all: number;
+        uncompleted: number;
+      };
+    } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        noShowHost: 0,
+        noShowGuests: 0,
+        _all: 0,
+        uncompleted: 0,
+      };
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      const statusKey = timeStatus as keyof (typeof aggregate)[string];
+
+      // Add to the specific status count
+      if (statusKey in aggregate[formattedDate]) {
+        aggregate[formattedDate][statusKey] += Number(bookingsCount);
+      }
+
+      // Add to the total count (_all)
+      aggregate[formattedDate]["_all"] += Number(bookingsCount);
+
+      // Track no-show host counts separately
+      if (noShowHost) {
+        aggregate[formattedDate]["noShowHost"] += Number(bookingsCount);
+      }
+
+      // Track no-show guests explicitly
+      aggregate[formattedDate]["noShowGuests"] += noShowGuests;
+    });
+
+    // Transform aggregate data into the expected format
+    const result = dateRanges.map(({ formattedDate }) => {
+      const eventData = {
+        Month: formattedDate,
+        Created: 0,
+        Completed: 0,
+        Rescheduled: 0,
+        Cancelled: 0,
+        "No-Show (Host)": 0,
+        "No-Show (Guest)": 0,
+      };
+
+      const countsForDateRange = aggregate[formattedDate];
+
+      if (countsForDateRange) {
+        eventData["Created"] = countsForDateRange["_all"] || 0;
+        eventData["Completed"] = countsForDateRange["completed"] || 0;
+        eventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
+        eventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
+        eventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+        eventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
+      }
+      return eventData;
+    });
+
+    return result;
+  }
+
+  private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
+    // Check if the user is an owner or admin of the organization or team
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
     return Boolean(
       membership &&
         membership.accepted &&

@@ -4,7 +4,12 @@ import type { EventType, User, WorkflowReminder, WorkflowStep, Prisma } from "@c
 import { WorkflowMethods } from "@calcom/prisma/enums";
 
 type PartialWorkflowStep =
-  | (Partial<WorkflowStep> & { workflow: { userId?: number; teamId?: number } })
+  | (Partial<WorkflowStep> & {
+      workflow: {
+        userId?: number;
+        teamId?: number;
+      };
+    })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -218,4 +223,36 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
   const unscheduledReminders = (await getWorkflowReminders(whereFilter, select)) as PartialWorkflowReminder[];
 
   return unscheduledReminders;
+}
+
+export function getWorkflowRecipientEmail({
+  action,
+  organizerEmail,
+  attendeeEmail,
+  sendToEmail,
+}: {
+  action: string;
+  organizerEmail?: string;
+  attendeeEmail?: string;
+  sendToEmail?: string | null;
+}): string | null {
+  // const action = reminder.workflowStep.action;
+
+  switch (action) {
+    case "EMAIL_ADDRESS":
+      return sendToEmail || null;
+    case "EMAIL_HOST":
+      return organizerEmail || null;
+    case "EMAIL_ATTENDEE":
+      return attendeeEmail || null;
+    case "SMS_ATTENDEE":
+      return attendeeEmail || null;
+    case "WHATSAPP_ATTENDEE":
+      return attendeeEmail || null;
+    case "SMS_NUMBER":
+    case "WHATSAPP_NUMBER":
+      return null;
+    default:
+      return null;
+  }
 }
