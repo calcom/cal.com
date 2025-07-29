@@ -2,6 +2,18 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { POST } from "../../../../apps/web/app/api/webhook/google-calendar-sql/route";
 
+vi.mock("next/server", () => ({
+  NextResponse: {
+    json: vi.fn().mockImplementation((data, init) => {
+      const response = new Response(JSON.stringify(data), {
+        status: init?.status || 200,
+        headers: { "Content-Type": "application/json" },
+      });
+      return response;
+    }),
+  },
+}));
+
 vi.mock("@calcom/prisma", () => ({
   default: {
     calendarSubscription: {
@@ -30,13 +42,41 @@ vi.mock("@calcom/features/calendar-cache-sql/calendar-subscription.repository", 
 }));
 
 vi.mock("@calcom/lib/delegationCredential/server", () => ({
-  getCredentialForCalendarCache: vi.fn().mockResolvedValue({ id: 1 }),
+  getCredentialForCalendarCache: vi.fn().mockResolvedValue({
+    id: 1,
+    key: {
+      access_token: "mock-access-token",
+      refresh_token: "mock-refresh-token",
+      scope: "https://www.googleapis.com/auth/calendar",
+      token_type: "Bearer",
+      expiry_date: Date.now() + 3600000,
+    },
+    delegatedTo: {
+      serviceAccountKey: {
+        client_email: "test@example.com",
+        client_id: "mock-client-id",
+        private_key: "mock-private-key",
+      },
+    },
+  }),
 }));
 
 vi.mock("../../../packages/app-store/_utils/getCalendar", () => ({
   getCalendar: vi.fn().mockResolvedValue({
     fetchAvailabilityAndSetCache: vi.fn().mockResolvedValue(undefined),
   }),
+}));
+
+vi.mock("@calcom/app-store/googlecalendar/lib/CalendarCacheService", () => ({
+  CalendarCacheService: vi.fn().mockImplementation(() => ({
+    fetchAvailability: vi.fn().mockResolvedValue({
+      calendars: {},
+      groups: {},
+      kind: "calendar#freeBusy",
+      timeMin: new Date().toISOString(),
+      timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    }),
+  })),
 }));
 
 describe("Google Calendar SQL Webhook Integration", () => {
@@ -55,7 +95,8 @@ describe("Google Calendar SQL Webhook Integration", () => {
       },
     });
 
-    const response = await POST(request as any);
+    const params = Promise.resolve({});
+    const response = await POST(request as any, { params });
     const result = await response.json();
 
     expect(response.status).toBe(200);
@@ -72,7 +113,12 @@ describe("Google Calendar SQL Webhook Integration", () => {
       },
     });
 
-    await expect(POST(request as any)).rejects.toThrow("Invalid API key");
+    const params = Promise.resolve({});
+    const response = await POST(request as any, { params });
+    const result = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(result.message).toBe("Invalid API key");
   });
 
   it("should handle missing channel ID", async () => {
@@ -84,6 +130,11 @@ describe("Google Calendar SQL Webhook Integration", () => {
       },
     });
 
-    await expect(POST(request as any)).rejects.toThrow("Missing Channel ID");
+    const params = Promise.resolve({});
+    const response = await POST(request as any, { params });
+    const result = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(result.message).toBe("Missing Channel ID");
   });
 });

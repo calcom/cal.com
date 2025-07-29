@@ -1,4 +1,3 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -10,9 +9,11 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
+import { defaultResponderForAppDir } from "../../../api/defaultResponderForAppDir";
+
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSqlWebhook"] });
 
-async function postHandler(request: NextRequest) {
+async function postHandler(request: NextRequest, { params }: { params: Promise<any> }) {
   const channelToken = request.headers.get("x-goog-channel-token");
   const channelId = request.headers.get("x-goog-channel-id");
 
