@@ -657,8 +657,9 @@ export class InsightsBookingService {
     });
 
     // Transform aggregate data into the expected format
-    const result = dateRanges.map(({ formattedDate }) => {
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
       const eventData = {
+        formattedDateFull: formattedDateFull,
         Month: formattedDate,
         Created: 0,
         Completed: 0,

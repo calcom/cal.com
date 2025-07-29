@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { valueFormatter } from "../../lib/valueFormatter";
@@ -28,15 +29,7 @@ export const legend = [
   { label: "No-Show (Guest)", color: COLOR.NO_SHOW_GUEST },
 ];
 
-interface EventTrendsData {
-  Month: string;
-  Created: number;
-  Completed: number;
-  Rescheduled: number;
-  Cancelled: number;
-  "No-Show (Host)": number;
-  "No-Show (Guest)": number;
-}
+type EventTrendsData = RouterOutputs["viewer"]["insights"]["eventTrends"][number];
 
 // Custom Tooltip component
 const CustomTooltip = ({
@@ -60,7 +53,7 @@ const CustomTooltip = ({
 
   return (
     <div className="bg-default text-inverted border-subtle rounded-lg border p-3 shadow-lg">
-      <p className="text-default font-medium">{label}</p>
+      <p className="text-default font-medium">{payload[0].payload.formattedDateFull}</p>
       {payload.map((entry, index: number) => (
         <p key={index} style={{ color: entry.color }}>
           {entry.name}: {valueFormatter ? valueFormatter(entry.value) : entry.value}
