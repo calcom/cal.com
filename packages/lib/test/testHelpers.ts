@@ -2,6 +2,7 @@ import prismock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { faker } from "@faker-js/faker";
 import type { Booking, EventType, User, Credential } from "@prisma/client";
+import { vi, expect } from "vitest";
 
 import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -144,7 +145,7 @@ class EventTypeScenarioBuilder {
 export const createTestUser = async (userData: Partial<User> = {}): Promise<User> => {
   const defaultUser = {
     email: faker.internet.email(),
-    name: faker.person.fullName(),
+    name: faker.name.fullName(),
     username: faker.internet.userName(),
     timeZone: "UTC",
     weekStart: "SUNDAY",
@@ -181,7 +182,7 @@ export const createTestEventType = async (eventTypeData: Partial<EventType> = {}
 };
 
 export const createTestBooking = async (bookingData: Partial<Booking> = {}): Promise<Booking> => {
-  const uid = faker.string.uuid();
+  const uid = faker.datatype.uuid();
   const defaultBooking = {
     uid,
     title: faker.lorem.words(3),
@@ -205,7 +206,7 @@ export const createTestBooking = async (bookingData: Partial<Booking> = {}): Pro
 export const createTestCredential = async (credentialData: Partial<Credential> = {}): Promise<Credential> => {
   const defaultCredential = {
     type: "google_calendar",
-    key: { access_token: faker.string.alphanumeric(32) },
+    key: { access_token: faker.random.alphaNumeric(32) },
     invalid: false,
     ...credentialData,
   };
@@ -217,11 +218,11 @@ export const createTestCredential = async (credentialData: Partial<Credential> =
 
 export const createMockCalendarService = (overrides = {}) => ({
   createEvent: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     url: faker.internet.url(),
   }),
   updateEvent: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     url: faker.internet.url(),
   }),
   deleteEvent: vi.fn().mockResolvedValue(true),
@@ -232,12 +233,12 @@ export const createMockCalendarService = (overrides = {}) => ({
 
 export const createMockVideoService = (overrides = {}) => ({
   createMeeting: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     url: faker.internet.url(),
     password: faker.internet.password(),
   }),
   updateMeeting: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     url: faker.internet.url(),
   }),
   deleteMeeting: vi.fn().mockResolvedValue(true),
@@ -246,30 +247,30 @@ export const createMockVideoService = (overrides = {}) => ({
 
 export const createMockPaymentService = (overrides = {}) => ({
   create: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     url: faker.internet.url(),
-    amount: faker.number.int({ min: 1000, max: 10000 }),
+    amount: faker.datatype.number({ min: 1000, max: 10000 }),
   }),
   update: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     status: "succeeded",
   }),
   refund: vi.fn().mockResolvedValue({
-    id: faker.string.uuid(),
+    id: faker.datatype.uuid(),
     status: "succeeded",
   }),
   ...overrides,
 });
 
 export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEvent => {
-  const uid = faker.string.uuid();
+  const uid = faker.datatype.uuid();
   return {
     uid,
     type: "meeting",
     title: faker.lorem.words(3),
     startTime: faker.date.future().toISOString(),
     endTime: faker.date.future().toISOString(),
-    location: faker.location.city(),
+    location: faker.address.city(),
     description: faker.lorem.paragraph(),
     attendees: [],
     customInputs: {},
@@ -281,11 +282,11 @@ export const buildCalendarEvent = (event?: Partial<CalendarEvent>): CalendarEven
 
 export const buildPerson = (person?: Partial<Person>): Person => {
   return {
-    name: faker.person.fullName(),
+    name: faker.name.fullName(),
     email: faker.internet.email(),
     timeZone: "UTC",
     username: faker.internet.userName(),
-    id: faker.number.int(),
+    id: faker.datatype.number(),
     language: {
       locale: "en",
       translate: ((key: string) => key) as any,
@@ -298,7 +299,7 @@ export const expectBookingInDatabase = async (bookingData: {
   uid: string;
   status?: BookingStatus;
   eventTypeId?: number;
-}) => {
+}): Promise<Booking | null> => {
   const booking = await prismock.booking.findUnique({
     where: { uid: bookingData.uid },
   });
@@ -314,7 +315,10 @@ export const expectBookingInDatabase = async (bookingData: {
   return booking;
 };
 
-export const expectUserInDatabase = async (userData: { email: string; name?: string }) => {
+export const expectUserInDatabase = async (userData: {
+  email: string;
+  name?: string;
+}): Promise<User | null> => {
   const user = await prismock.user.findUnique({
     where: { email: userData.email },
   });
