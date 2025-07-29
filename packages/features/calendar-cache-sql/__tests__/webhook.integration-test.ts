@@ -28,7 +28,7 @@ vi.mock("@calcom/features/flags/features.repository", () => ({
   })),
 }));
 
-vi.mock("@calcom/features/calendar-cache-sql/calendar-subscription.repository", () => ({
+vi.mock("@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository", () => ({
   CalendarSubscriptionRepository: vi.fn().mockImplementation(() => ({
     findByChannelId: vi.fn().mockResolvedValue({
       id: "subscription-id",

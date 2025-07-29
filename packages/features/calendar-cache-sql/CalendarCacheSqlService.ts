@@ -3,8 +3,8 @@ import type {
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
 
-import type { ICalendarEventRepository } from "./calendar-event.repository.interface";
-import type { ICalendarSubscriptionRepository } from "./calendar-subscription.repository.interface";
+import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
+import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
 export class CalendarCacheSqlService {
   constructor(

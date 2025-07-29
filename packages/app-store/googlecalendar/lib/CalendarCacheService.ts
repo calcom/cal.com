@@ -1,7 +1,7 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 
+import type { ICalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository.interface";
 import type { ICalendarEventRepository } from "@calcom/features/calendar-cache-sql/calendar-event.repository.interface";
-import type { ICalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/calendar-subscription.repository.interface";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";

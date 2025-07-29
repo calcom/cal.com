@@ -1,8 +1,8 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { CalendarEventRepository } from "../calendar-event.repository";
+import { CalendarEventRepository } from "./CalendarEventRepository";
 
 describe("CalendarEventRepository", () => {
   let repository: CalendarEventRepository;

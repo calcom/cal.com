@@ -3,7 +3,7 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { ICalendarSubscriptionRepository } from "./calendar-subscription.repository.interface";
+import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
 export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
   constructor(private prismaClient: PrismaClient) {}

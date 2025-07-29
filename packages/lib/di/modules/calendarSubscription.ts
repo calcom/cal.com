@@ -1,6 +1,6 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/calendar-subscription.repository";
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
 export const calendarSubscriptionRepositoryModule = createModule();

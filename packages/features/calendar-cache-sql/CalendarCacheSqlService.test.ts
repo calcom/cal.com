@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import { CalendarCacheSqlService } from "./CalendarCacheSqlService";
+import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 import type { ICalendarEventRepository } from "./calendar-event.repository.interface";
-import type { ICalendarSubscriptionRepository } from "./calendar-subscription.repository.interface";
 
 describe("CalendarCacheSqlService", () => {
   let service: CalendarCacheSqlService;
