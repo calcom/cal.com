@@ -6,6 +6,7 @@ import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.rep
 import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
+import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 
 import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
@@ -20,7 +21,8 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     bookingRepository: PrismaBookingRepository,
     selectedSlotRepository: PrismaSelectedSlotRepository,
     eventTypeRepository: PrismaEventTypeRepository,
-    userRepository: PrismaUserRepository
+    userRepository: PrismaUserRepository,
+    redisService: RedisService
   ) {
     super({
       oooRepo: oooRepoDependency,
@@ -31,6 +33,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       selectedSlotRepo: selectedSlotRepository,
       eventTypeRepo: eventTypeRepository,
       userRepo: userRepository,
+      redisClient: redisService,
     });
   }
 }

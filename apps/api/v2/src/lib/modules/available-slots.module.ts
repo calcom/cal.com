@@ -8,6 +8,7 @@ import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository"
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisService } from "@/modules/redis/redis.service";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -21,6 +22,7 @@ import { Module } from "@nestjs/common";
     PrismaEventTypeRepository,
     PrismaRoutingFormResponseRepository,
     PrismaTeamRepository,
+    RedisService,
     AvailableSlotsService,
   ],
   exports: [AvailableSlotsService],
