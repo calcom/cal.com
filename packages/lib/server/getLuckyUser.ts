@@ -631,20 +631,6 @@ async function fetchAllDataNeededForCalculations<
     weight?: number | null;
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
-  // if (getLuckyUserParams.availableUsers.length === 1) {
-  //   // Return empty data for all expected return values, or minimal data for the single user
-  //   return {
-  //     bookingsOfAvailableUsersOfInterval: [],
-  //     bookingsOfNotAvailableUsersOfInterval: [],
-  //     allRRHostsBookingsOfInterval: [],
-  //     allRRHostsCreatedInInterval: [],
-  //     organizersWithLastCreated: [],
-  //     attributeWeights: [],
-  //     virtualQueuesData: null,
-  //     oooData: [],
-  //   };
-  // }
-
   const startTime = performance.now();
 
   const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
