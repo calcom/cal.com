@@ -3,7 +3,7 @@ import { Flex, Text, Metric, BadgeDelta } from "@tremor/react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { calculateDeltaType, colors, valueFormatter } from "../../lib";
+import { calculateDeltaType, colors, valueFormatter } from "../lib";
 
 export const KPICard = ({
   title,

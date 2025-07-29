@@ -7,19 +7,21 @@ import {
   ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
-import { AverageEventDurationChart } from "@calcom/features/insights/components/booking/AverageEventDurationChart";
-import { BookingKPICards } from "@calcom/features/insights/components/booking/BookingKPICards";
-import { BookingsByHourChart } from "@calcom/features/insights/components/booking/BookingsByHourChart";
-import { EventTrendsChart } from "@calcom/features/insights/components/booking/EventTrendsChart";
-import { HighestNoShowHostTable } from "@calcom/features/insights/components/booking/HighestNoShowHostTable";
-import { HighestRatedMembersTable } from "@calcom/features/insights/components/booking/HighestRatedMembersTable";
-import { LeastBookedTeamMembersTable } from "@calcom/features/insights/components/booking/LeastBookedTeamMembersTable";
-import { LowestRatedMembersTable } from "@calcom/features/insights/components/booking/LowestRatedMembersTable";
-import { MostBookedTeamMembersTable } from "@calcom/features/insights/components/booking/MostBookedTeamMembersTable";
-import { MostCancelledBookingsTables } from "@calcom/features/insights/components/booking/MostCancelledBookingsTables";
-import { PopularEventsTable } from "@calcom/features/insights/components/booking/PopularEventsTable";
-import { RecentFeedbackTable } from "@calcom/features/insights/components/booking/RecentFeedbackTable";
-import { TimezoneBadge } from "@calcom/features/insights/components/booking/TimezoneBadge";
+import {
+  AverageEventDurationChart,
+  BookingKPICards,
+  BookingsByHourChart,
+  EventTrendsChart,
+  HighestNoShowHostTable,
+  HighestRatedMembersTable,
+  LeastBookedTeamMembersTable,
+  LowestRatedMembersTable,
+  MostBookedTeamMembersTable,
+  MostCancelledBookingsTables,
+  PopularEventsTable,
+  RecentFeedbackTable,
+  TimezoneBadge,
+} from "@calcom/features/insights/components/booking";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
