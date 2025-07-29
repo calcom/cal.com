@@ -371,14 +371,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
       }
 
-      // For AI phone call actions, ensure an agent is configured
-      if (newStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !newStep.agentId) {
-        console.log("AI phone call step missing agentId:", { newStep, oldStep });
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "AI phone call actions require an agent to be configured",
-        });
-      }
+      // Note: AI phone call actions can be saved without an agent initially
+      // The agent will be created and linked in a separate step
 
       const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
@@ -451,12 +445,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
 
-        if (newStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !newStep.agentId) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "AI phone call actions require an agent to be configured",
-          });
-        }
+        // Note: AI phone call actions can be saved without an agent initially
+        // The agent will be created and linked in a separate step
 
         const {
           id: _stepId,

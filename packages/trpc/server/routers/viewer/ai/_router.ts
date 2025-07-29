@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import type { RetellLLMGeneralTools } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
+import { getLlmId } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -120,8 +121,6 @@ export const aiRouter = router({
         user: agent.user,
       }));
 
-      console.log("formattedAgents", formattedAgents);
-
       return {
         totalCount: formattedAgents.length,
         filtered: formattedAgents,
@@ -129,7 +128,6 @@ export const aiRouter = router({
     }),
 
   get: authedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-    console.log("get agent", input.id);
     const agent = await prisma.agent.findFirst({
       where: {
         id: input.id,
@@ -181,14 +179,15 @@ export const aiRouter = router({
 
     const retellAgent = await aiService.getAgent(agent.retellAgentId);
 
-    if (!retellAgent.response_engine?.llm_id) {
+    const llmId = getLlmId(retellAgent);
+    if (!llmId) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Agent does not have an LLM configured.",
       });
     }
 
-    const llmDetails = await aiService.getLLMDetails(retellAgent.response_engine.llm_id);
+    const llmDetails = await aiService.getLLMDetails(llmId);
 
     return {
       id: agent.id,
@@ -258,7 +257,6 @@ export const aiRouter = router({
 
       const aiService = createDefaultAIPhoneServiceProvider();
 
-      // First create LLM if prompt/message provided
       const llmConfig = await aiService.setupConfiguration({
         calApiKey: undefined,
         timeZone: ctx.user.timeZone,
@@ -268,7 +266,6 @@ export const aiRouter = router({
         generalTools: retellConfig.generalTools as RetellLLMGeneralTools,
       });
 
-      // Create agent in database
       const agent = await prisma.agent.create({
         data: {
           name: agentName,
@@ -350,25 +347,20 @@ export const aiRouter = router({
         });
       }
 
-      // Update Retell if any Retell fields are provided
       if (Object.keys(retellUpdates).length > 0) {
         const aiService = createDefaultAIPhoneServiceProvider();
 
-        // Get current agent from Retell to find LLM ID
         const retellAgent = await aiService.getAgent(agent.retellAgentId);
 
-        if (
-          retellAgent.response_engine?.llm_id &&
-          (retellUpdates.generalPrompt || retellUpdates.beginMessage)
-        ) {
-          await aiService.updateLLMConfiguration(retellAgent.response_engine.llm_id, {
+        const llmId = getLlmId(retellAgent);
+        if (llmId && (retellUpdates.generalPrompt || retellUpdates.beginMessage)) {
+          await aiService.updateLLMConfiguration(llmId, {
             general_prompt: retellUpdates.generalPrompt,
             begin_message: retellUpdates.beginMessage,
             general_tools: retellUpdates.generalTools as RetellLLMGeneralTools,
           });
         }
 
-        // Update other agent properties if needed
         if (retellUpdates.voiceId) {
           await aiService.updateAgent(agent.retellAgentId, {
             voice_id: retellUpdates.voiceId,
@@ -380,7 +372,6 @@ export const aiRouter = router({
     }),
 
   delete: authedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
-    // Get agent and verify permissions
     const agent = await prisma.agent.findFirst({
       where: {
         id: input.id,
@@ -410,7 +401,6 @@ export const aiRouter = router({
       });
     }
 
-    // Delete from Retell
     const aiService = createDefaultAIPhoneServiceProvider();
 
     try {
@@ -420,7 +410,7 @@ export const aiRouter = router({
       // Delete agent and LLM from Retell
       await aiService.deleteConfiguration({
         agentId: agent.retellAgentId,
-        llmId: retellAgent.response_engine?.llm_id,
+        llmId: getLlmId(retellAgent),
       });
     } catch (error) {
       console.error("Failed to delete from Retell:", error);
@@ -443,7 +433,14 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Get agent and verify permissions
+      const toNumber = input.phoneNumber;
+      if (!toNumber) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No phone number provided for test call.",
+        });
+      }
+
       const agent = await prisma.agent.findFirst({
         where: {
           id: input.agentId,
@@ -470,12 +467,6 @@ export const aiRouter = router({
         },
       });
 
-      console.log("agent", agent);
-
-      // return { message: "test" };
-
-      const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
-
       if (!agent) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -483,13 +474,7 @@ export const aiRouter = router({
         });
       }
 
-      const toNumber = input.phoneNumber;
-      if (!toNumber) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No phone number provided for test call.",
-        });
-      }
+      const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
 
       if (!agentPhoneNumber) {
         throw new TRPCError({

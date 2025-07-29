@@ -1,16 +1,7 @@
-import { z } from "zod";
-
-import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-// Zod schema for phone number fields in booking responses
-const phoneNumberFieldsSchema = z.object({
-  [CAL_AI_AGENT_PHONE_NUMBER_FIELD]: z.string().optional(),
-  attendeePhoneNumber: z.string().optional(),
-});
 
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
@@ -79,6 +70,7 @@ export async function executeAIPhoneCall(payload: string) {
     }
 
     // Check rate limits
+    // TODO: add better rate limiting for AI phone calls
     if (data.userId) {
       await checkRateLimitAndThrowError({
         rateLimitingType: "core",
@@ -86,7 +78,6 @@ export async function executeAIPhoneCall(payload: string) {
       });
     }
 
-    // Get booking details for dynamic variables
     const booking = workflowReminder.booking;
     if (!booking) {
       logger.warn(`No booking found for workflow reminder ${data.workflowReminderId}`);
@@ -99,53 +90,9 @@ export async function executeAIPhoneCall(payload: string) {
       attendees: booking.attendees,
     });
 
-    // Use the correct phone number logic - access from booking responses using proper Zod schema
-    const phoneNumberFields = booking.responses
-      ? phoneNumberFieldsSchema.safeParse(booking.responses)
-      : { success: false, data: {} };
-    let attendeePhoneNumber: string | undefined;
+    const numberToCall = data.toNumber;
 
-    // Handle nested response structure where phone numbers are stored as objects
-    if (booking.responses) {
-      // Check for attendeePhoneNumber in the nested structure
-      const attendeePhoneResponse = booking.responses.attendeePhoneNumber;
-      if (
-        attendeePhoneResponse &&
-        typeof attendeePhoneResponse === "object" &&
-        "value" in attendeePhoneResponse
-      ) {
-        attendeePhoneNumber = attendeePhoneResponse.value as string;
-      }
-
-      // Check for aiAgentCallPhoneNumber in the nested structure
-      const aiAgentPhoneResponse = booking.responses[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-      if (
-        !attendeePhoneNumber &&
-        aiAgentPhoneResponse &&
-        typeof aiAgentPhoneResponse === "object" &&
-        "value" in aiAgentPhoneResponse
-      ) {
-        attendeePhoneNumber = aiAgentPhoneResponse.value as string;
-      }
-    }
-
-    // Fallback to the original Zod schema parsing
-    if (!attendeePhoneNumber && phoneNumberFields.success && phoneNumberFields.data) {
-      const data = phoneNumberFields.data as z.infer<typeof phoneNumberFieldsSchema>;
-      attendeePhoneNumber = data.attendeePhoneNumber || (data as any)[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-    }
-
-    const finalPhoneNumber = attendeePhoneNumber || data.toNumber; // Fallback to the provided toNumber
-
-    console.log("Phone number extraction in task:", {
-      bookingResponses: booking.responses,
-      phoneNumberFields,
-      attendeePhoneNumber,
-      finalPhoneNumber,
-      CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-    });
-
-    if (!finalPhoneNumber) {
+    if (!numberToCall) {
       logger.warn(`No phone number found for attendee in booking ${booking.uid}`);
       throw new Error("No phone number found for attendee");
     }
@@ -166,14 +113,14 @@ export async function executeAIPhoneCall(payload: string) {
 
     console.log("Creating AI phone call with:", {
       from_number: data.fromNumber,
-      to_number: finalPhoneNumber,
+      to_number: numberToCall,
       dynamicVariables,
     });
 
     const call = await aiService.createPhoneCall({
       from_number: data.fromNumber,
-      to_number: finalPhoneNumber,
-      dynamicVariables,
+      to_number: numberToCall,
+      retell_llm_dynamic_variables: dynamicVariables,
     });
 
     console.log("AI phone call created successfully:", call);
@@ -191,7 +138,7 @@ export async function executeAIPhoneCall(payload: string) {
       callId: call.call_id,
       agentId: data.agentId,
       fromNumber: data.fromNumber,
-      toNumber: finalPhoneNumber,
+      toNumber: numberToCall,
       bookingUid: data.bookingUid,
     });
 

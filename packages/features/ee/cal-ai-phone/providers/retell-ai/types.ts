@@ -1,12 +1,51 @@
 import type { Retell } from "retell-sdk";
 
 export type RetellLLM = Retell.LlmResponse;
-export type RetellAgent = Retell.AgentResponse & {
-  response_engine: Retell.AgentCreateParams.ResponseEngineRetellLm;
-};
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
 export type RetellCall = Retell.PhoneCallResponse;
 export type RetellDynamicVariables = { [key: string]: unknown };
+
+// Use the SDK's AgentResponse directly - no type assertions needed!
+export type RetellAgent = Retell.AgentResponse;
+
+// Specific agent types for type narrowing
+export type RetellAgentWithRetellLm = Retell.AgentResponse & {
+  response_engine: Retell.AgentResponse.ResponseEngineRetellLm;
+};
+
+export type RetellAgentWithCustomLm = Retell.AgentResponse & {
+  response_engine: Retell.AgentResponse.ResponseEngineCustomLm;
+};
+
+export type RetellAgentWithConversationFlow = Retell.AgentResponse & {
+  response_engine: Retell.AgentResponse.ResponseEngineConversationFlow;
+};
+
+// Type guards for safe access to response engine properties
+export function isRetellLmAgent(agent: RetellAgent): agent is RetellAgentWithRetellLm {
+  return agent.response_engine.type === "retell-llm";
+}
+
+export function isCustomLmAgent(agent: RetellAgent): agent is RetellAgentWithCustomLm {
+  return agent.response_engine.type === "custom-llm";
+}
+
+export function isConversationFlowAgent(agent: RetellAgent): agent is RetellAgentWithConversationFlow {
+  return agent.response_engine.type === "conversation-flow";
+}
+
+// Utility function to safely access llm_id (only available for retell-llm agents)
+export function getLlmId(agent: RetellAgent): string | null {
+  if (isRetellLmAgent(agent)) {
+    return agent.response_engine.llm_id;
+  }
+  return null;
+}
+
+// Legacy type alias for backward compatibility
+export type LegacyRetellAgent = RetellAgentWithRetellLm;
+
+// Request/response types
 export type CreateLLMRequest = Retell.LlmCreateParams;
 export type CreatePhoneNumberParams = Retell.PhoneNumberCreateParams;
 export type CreatePhoneCallParams = Retell.CallCreatePhoneCallParams;

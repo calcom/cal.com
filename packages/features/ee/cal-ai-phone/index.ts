@@ -44,9 +44,6 @@ export type {
 // Legacy exports for backward compatibility
 export { RetellAIService as LegacyRetellAIService } from "./retellAIService";
 
-// Provider-agnostic utilities
-export { handleCreateSelfServePhoneCall } from "./handleCreateSelfServePhoneCall";
-
 // Other exports
 export { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE, PROMPT_TEMPLATES } from "./promptTemplates";
 export { getTemplateFieldsSchema } from "./getTemplateFieldsSchema";

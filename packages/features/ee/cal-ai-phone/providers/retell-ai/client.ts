@@ -87,7 +87,7 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async createAgent(data: CreateAgentRequest) {
+  async createAgent(data: CreateAgentRequest): Promise<RetellAgent> {
     this.logger.info("Creating agent via SDK", {
       agentName: data.agent_name,
     });
@@ -99,6 +99,7 @@ export class RetellSDKClient implements RetellAIRepository {
         agentId: response.agent_id,
         agentName: data.agent_name,
       });
+
       return response;
     } catch (error) {
       this.logger.error("Failed to create agent", {
@@ -109,12 +110,13 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async getAgent(agentId: string) {
+  async getAgent(agentId: string): Promise<RetellAgent> {
     this.logger.info("Getting agent via SDK", { agentId });
 
     try {
       const response = await this.client.agent.retrieve(agentId);
       this.logger.info("Agent retrieved successfully", { agentId });
+
       return response;
     } catch (error) {
       this.logger.error("Failed to get agent", { error, agentId });
@@ -128,6 +130,7 @@ export class RetellSDKClient implements RetellAIRepository {
     try {
       const response = await this.client.agent.update(agentId, data);
       this.logger.info("Agent updated successfully", { agentId });
+
       return response;
     } catch (error) {
       this.logger.error("Failed to update agent", { error, agentId });

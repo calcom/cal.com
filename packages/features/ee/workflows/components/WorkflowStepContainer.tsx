@@ -297,25 +297,33 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    const template = getTemplateBodyForAction({
-      action,
-      locale: i18n.language,
-      t,
-      template: step.template ?? WorkflowTemplates.REMINDER,
-      timeFormat,
-    });
-    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+
+    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
+    if (!isCalAIAction(action)) {
+      const template = getTemplateBodyForAction({
+        action,
+        locale: i18n.language,
+        t,
+        template: step.template ?? WorkflowTemplates.REMINDER,
+        timeFormat,
+      });
+      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+    }
   }
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const subjectTemplate = emailReminderTemplate({
-      isEditingMode: true,
-      locale: i18n.language,
-      t,
-      action: form.getValues(`steps.${step.stepNumber - 1}.action`),
-      timeFormat,
-    }).emailSubject;
-    form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
+    if (!isCalAIAction(action)) {
+      const subjectTemplate = emailReminderTemplate({
+        isEditingMode: true,
+        locale: i18n.language,
+        t,
+        action: action,
+        timeFormat,
+      }).emailSubject;
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
+    }
   }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
@@ -663,6 +671,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsSenderIsNeeded(false);
                               setIsEmailAddressNeeded(false);
                               setIsEmailSubjectNeeded(false);
+                              form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, null);
+                              form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, null);
+                              form.setValue(`steps.${step.stepNumber - 1}.sender`, null);
                             } else {
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIsNeeded(false);

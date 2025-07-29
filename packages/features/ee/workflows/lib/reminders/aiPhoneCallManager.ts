@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import tasker from "@calcom/features/tasker";
@@ -13,11 +11,27 @@ import type { ExtendedCalendarEvent } from "./reminderScheduler";
 
 type timeUnitLowerCase = "day" | "hour" | "minute";
 
-// Zod schema for phone number fields in booking responses
-const phoneNumberFieldsSchema = z.object({
-  [CAL_AI_AGENT_PHONE_NUMBER_FIELD]: z.string().optional(),
-  attendeePhoneNumber: z.string().optional(),
-});
+function extractPhoneNumber(responses: ExtendedCalendarEvent["responses"]): string | undefined {
+  if (!responses) return undefined;
+
+  // Priority 1: CAL_AI_AGENT_PHONE_NUMBER_FIELD first
+  const aiAgentPhoneResponse = responses[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
+  if (aiAgentPhoneResponse && typeof aiAgentPhoneResponse === "object" && "value" in aiAgentPhoneResponse) {
+    return aiAgentPhoneResponse.value as string;
+  }
+
+  // Priority 2: attendeePhoneNumber as fallback
+  const attendeePhoneResponse = responses.attendeePhoneNumber;
+  if (
+    attendeePhoneResponse &&
+    typeof attendeePhoneResponse === "object" &&
+    "value" in attendeePhoneResponse
+  ) {
+    return attendeePhoneResponse.value as string;
+  }
+
+  return undefined;
+}
 
 interface ScheduleAIPhoneCallArgs {
   evt: ExtendedCalendarEvent;
@@ -26,7 +40,7 @@ interface ScheduleAIPhoneCallArgs {
     time: number | null;
     timeUnit: TimeUnit | null;
   };
-  workflowStepId: number;
+  workflowStepId: number | undefined;
   userId: number | null;
   teamId: number | null;
   seatReferenceUid?: string;
@@ -36,8 +50,8 @@ interface ScheduleAIPhoneCallArgs {
 export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid, verifiedAt } = args;
 
-  if (!verifiedAt) {
-    logger.warn(`Workflow step ${workflowStepId} not yet verified`);
+  if (!verifiedAt || !workflowStepId) {
+    logger.warn(`Workflow step ${workflowStepId} not yet verified or not found`);
     return;
   }
 
@@ -66,8 +80,6 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     logger.warn(`No outbound phone number configured for agent ${workflowStep.agent.id}`);
     return;
   }
-
-  console.log("workflowStep", JSON.stringify(workflowStep, null, 2));
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -105,7 +117,6 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   });
 
   if (!shouldExecuteImmediately) {
-    // Schedule for future execution
     try {
       // Create a workflow reminder record
       const workflowReminder = await prisma.workflowReminder.create({
@@ -119,45 +130,10 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         },
       });
 
-      // Get the phone number from booking responses using proper Zod schema
-      const phoneNumberFields = evt.responses
-        ? phoneNumberFieldsSchema.safeParse(evt.responses)
-        : { success: false, data: {} };
-      let attendeePhoneNumber: string | undefined;
-
-      // Handle nested response structure where phone numbers are stored as objects
-      if (evt.responses) {
-        // Check for attendeePhoneNumber in the nested structure
-        const attendeePhoneResponse = evt.responses.attendeePhoneNumber;
-        if (
-          attendeePhoneResponse &&
-          typeof attendeePhoneResponse === "object" &&
-          "value" in attendeePhoneResponse
-        ) {
-          attendeePhoneNumber = attendeePhoneResponse.value as string;
-        }
-
-        // Check for aiAgentCallPhoneNumber in the nested structure
-        const aiAgentPhoneResponse = evt.responses[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-        if (
-          !attendeePhoneNumber &&
-          aiAgentPhoneResponse &&
-          typeof aiAgentPhoneResponse === "object" &&
-          "value" in aiAgentPhoneResponse
-        ) {
-          attendeePhoneNumber = aiAgentPhoneResponse.value as string;
-        }
-      }
-
-      // Fallback to the original Zod schema parsing
-      if (!attendeePhoneNumber && phoneNumberFields.success && phoneNumberFields.data) {
-        const data = phoneNumberFields.data as z.infer<typeof phoneNumberFieldsSchema>;
-        attendeePhoneNumber = data.attendeePhoneNumber || (data as any)[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-      }
+      const attendeePhoneNumber = extractPhoneNumber(evt.responses);
 
       console.log("Phone number extraction:", {
         responses: evt.responses,
-        phoneNumberFields,
         attendeePhoneNumber,
         CAL_AI_AGENT_PHONE_NUMBER_FIELD,
         responsesKeys: evt.responses ? Object.keys(evt.responses) : [],
@@ -207,45 +183,10 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         },
       });
 
-      // Get the phone number from booking responses using proper Zod schema
-      const phoneNumberFields = evt.responses
-        ? phoneNumberFieldsSchema.safeParse(evt.responses)
-        : { success: false, data: {} };
-      let attendeePhoneNumber: string | undefined;
-
-      // Handle nested response structure where phone numbers are stored as objects
-      if (evt.responses) {
-        // Check for attendeePhoneNumber in the nested structure
-        const attendeePhoneResponse = evt.responses.attendeePhoneNumber;
-        if (
-          attendeePhoneResponse &&
-          typeof attendeePhoneResponse === "object" &&
-          "value" in attendeePhoneResponse
-        ) {
-          attendeePhoneNumber = attendeePhoneResponse.value as string;
-        }
-
-        // Check for aiAgentCallPhoneNumber in the nested structure
-        const aiAgentPhoneResponse = evt.responses[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-        if (
-          !attendeePhoneNumber &&
-          aiAgentPhoneResponse &&
-          typeof aiAgentPhoneResponse === "object" &&
-          "value" in aiAgentPhoneResponse
-        ) {
-          attendeePhoneNumber = aiAgentPhoneResponse.value as string;
-        }
-      }
-
-      // Fallback to the original Zod schema parsing
-      if (!attendeePhoneNumber && phoneNumberFields.success && phoneNumberFields.data) {
-        const data = phoneNumberFields.data as z.infer<typeof phoneNumberFieldsSchema>;
-        attendeePhoneNumber = data.attendeePhoneNumber || (data as any)[CAL_AI_AGENT_PHONE_NUMBER_FIELD];
-      }
+      const attendeePhoneNumber = extractPhoneNumber(evt.responses);
 
       console.log("Phone number extraction (immediate):", {
         responses: evt.responses,
-        phoneNumberFields,
         attendeePhoneNumber,
         CAL_AI_AGENT_PHONE_NUMBER_FIELD,
         responsesKeys: evt.responses ? Object.keys(evt.responses) : [],
