@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import { CalendarCacheSqlService } from "./CalendarCacheSqlService";
+import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
-import type { ICalendarEventRepository } from "./calendar-event.repository.interface";
 
 describe("CalendarCacheSqlService", () => {
   let service: CalendarCacheSqlService;
@@ -111,6 +111,87 @@ describe("CalendarCacheSqlService", () => {
       });
 
       expect(result).toEqual(mockSubscription);
+    });
+  });
+
+  describe("processWebhookEvents", () => {
+    it("should handle cancelled events by updating their status", async () => {
+      const mockSubscription = {
+        id: "subscription-id",
+        selectedCalendar: {
+          externalId: "test@example.com",
+        },
+        nextSyncToken: "sync-token",
+      };
+
+      const mockCredential = {
+        id: 1,
+        key: {
+          access_token: "mock-token",
+        },
+      };
+
+      // Mock the Google Calendar service
+      const mockCalendar = {
+        events: {
+          list: vi.fn().mockResolvedValue({
+            data: {
+              items: [
+                {
+                  id: "cancelled-event-id",
+                  status: "cancelled",
+                  start: { dateTime: "2024-01-01T10:00:00Z" },
+                  end: { dateTime: "2024-01-01T11:00:00Z" },
+                  summary: "Cancelled Event",
+                },
+                {
+                  id: "active-event-id",
+                  status: "confirmed",
+                  start: { dateTime: "2024-01-01T14:00:00Z" },
+                  end: { dateTime: "2024-01-01T15:00:00Z" },
+                  summary: "Active Event",
+                },
+              ],
+              nextSyncToken: "new-sync-token",
+            },
+          }),
+        },
+      };
+
+      const mockGoogleCalendarService = {
+        authedCalendar: vi.fn().mockResolvedValue(mockCalendar),
+      };
+
+      // Mock the import
+      vi.doMock("@calcom/app-store/googlecalendar/lib/CalendarService", () => ({
+        default: vi.fn().mockImplementation(() => mockGoogleCalendarService),
+      }));
+
+      vi.mocked(mockSubscriptionRepo.findByChannelId).mockResolvedValue(mockSubscription as any);
+      vi.mocked(mockSubscriptionRepo.updateSyncToken).mockResolvedValue(undefined);
+      vi.mocked(mockEventRepo.upsertEvent).mockResolvedValue({} as any);
+
+      await service.processWebhookEvents("channel-id", mockCredential as any);
+
+      // Verify that upsertEvent was called for both events, including the cancelled one
+      expect(mockEventRepo.upsertEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          googleEventId: "cancelled-event-id",
+          summary: "Cancelled Event",
+          status: "cancelled",
+        })
+      );
+
+      expect(mockEventRepo.upsertEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          googleEventId: "active-event-id",
+          summary: "Active Event",
+          status: "confirmed",
+        })
+      );
+
+      // Verify that sync token was updated
+      expect(mockSubscriptionRepo.updateSyncToken).toHaveBeenCalledWith("subscription-id", "new-sync-token");
     });
   });
 });

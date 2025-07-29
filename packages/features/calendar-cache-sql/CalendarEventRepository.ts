@@ -36,6 +36,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
           calendarSubscriptionId,
           status: { not: "cancelled" },
           transparency: "opaque",
+          end: { gt: new Date() }, // Only include events that haven't ended yet
           OR: [
             {
               start: { gte: start, lt: end },
@@ -76,6 +77,30 @@ export class CalendarEventRepository implements ICalendarEventRepository {
   async bulkUpsertEvents(events: Prisma.CalendarEventCreateInput[]) {
     try {
       await Promise.all(events.map((event) => this.upsertEvent(event)));
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async cleanupOldEvents() {
+    try {
+      // Delete cancelled events that have ended more than 24 hours ago
+      const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      await this.prismaClient.calendarEvent.deleteMany({
+        where: {
+          OR: [
+            {
+              status: "cancelled",
+              end: { lt: cutoffDate },
+            },
+            {
+              end: { lt: new Date() }, // Delete any past events (regardless of status)
+            },
+          ],
+        },
+      });
     } catch (err) {
       captureException(err);
       throw err;

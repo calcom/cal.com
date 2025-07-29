@@ -5,4 +5,5 @@ export interface ICalendarEventRepository {
   getEventsForAvailability(calendarSubscriptionId: string, start: Date, end: Date): Promise<CalendarEvent[]>;
   deleteEvent(calendarSubscriptionId: string, googleEventId: string): Promise<void>;
   bulkUpsertEvents(events: Prisma.CalendarEventCreateInput[]): Promise<void>;
+  cleanupOldEvents(): Promise<void>;
 }
