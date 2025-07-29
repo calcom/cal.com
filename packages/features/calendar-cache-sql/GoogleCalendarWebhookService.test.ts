@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { GoogleCalendarWebhookService } from "../GoogleCalendarWebhookService";
-import type { WebhookRequest } from "../GoogleCalendarWebhookService";
+import { GoogleCalendarWebhookService } from "./GoogleCalendarWebhookService";
+import type { WebhookRequest } from "./GoogleCalendarWebhookService";
 
 describe("GoogleCalendarWebhookService", () => {
   const mockSubscriptionRepo = {
