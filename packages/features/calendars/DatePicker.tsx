@@ -69,6 +69,7 @@ const Day = ({
   emoji,
   customClassName,
   showMonthTooltip,
+  isFirstDayOfNextMonth,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -80,6 +81,7 @@ const Day = ({
     dayActive?: string;
   };
   showMonthTooltip?: boolean;
+  isFirstDayOfNextMonth?: boolean;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
@@ -119,7 +121,22 @@ const Day = ({
     </button>
   );
 
-  return showMonthTooltip ? <Tooltip content={date.format("MMMM")}>{buttonContent}</Tooltip> : buttonContent;
+  const content = showMonthTooltip ? (
+    <Tooltip content={date.format("MMMM")}>{buttonContent}</Tooltip>
+  ) : (
+    buttonContent
+  );
+
+  return (
+    <>
+      {isFirstDayOfNextMonth && (
+        <div className="bg-emphasis text-emphasis absolute top-0 z-10 mx-auto w-fit rounded-md px-1 py-1 text-xs font-medium uppercase tracking-wide">
+          {date.format("MMM")}
+        </div>
+      )}
+      {content}
+    </>
+  );
 };
 
 const Days = ({
@@ -312,18 +329,8 @@ const Days = ({
                 away={away}
                 emoji={emoji}
                 showMonthTooltip={isSecondWeekOver && !isCompact}
+                isFirstDayOfNextMonth={isFirstDayOfNextMonth}
               />
-              {isFirstDayOfNextMonth && (
-                <span className="w-full bg-white">
-                  <span
-                    className={classNames(
-                      "absolute left-0 top-0 z-10 flex h-4 items-center justify-center rounded px-1 text-[12px] font-semibold",
-                      isActive(day) ? "text-white" : "text-gray-900"
-                    )}>
-                    {day.format("MMM").toUpperCase()}
-                  </span>
-                </span>
-              )}
             </>
           )}
         </div>
