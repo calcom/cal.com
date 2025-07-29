@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/CalendarCacheSqlService";
 import { CalendarEventRepository } from "@calcom/features/calendar-cache-sql/CalendarEventRepository";
 import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
 import { GoogleCalendarWebhookService } from "@calcom/features/calendar-cache-sql/GoogleCalendarWebhookService";
@@ -17,11 +18,13 @@ async function postHandler(request: NextRequest, { params }: { params: Promise<a
   const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
   const eventRepo = new CalendarEventRepository(prisma);
   const featuresRepo = new FeaturesRepository();
+  const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
 
   const webhookService = new GoogleCalendarWebhookService({
     subscriptionRepo,
     eventRepo,
     featuresRepo,
+    calendarCacheService,
     getCredentialForCalendarCache,
     webhookToken: process.env.GOOGLE_WEBHOOK_TOKEN || "",
     logger: log,

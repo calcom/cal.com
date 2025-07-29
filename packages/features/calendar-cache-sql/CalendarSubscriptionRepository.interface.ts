@@ -1,10 +1,15 @@
-import type { Prisma, CalendarSubscription } from "@prisma/client";
+import type { Prisma, CalendarSubscription, Credential } from "@prisma/client";
 
 export interface ICalendarSubscriptionRepository {
   findBySelectedCalendar(selectedCalendarId: string): Promise<CalendarSubscription | null>;
   findByChannelId(channelId: string): Promise<
     | (CalendarSubscription & {
-        selectedCalendar: { credential: unknown; externalId: string; integration: string; userId: number };
+        selectedCalendar: {
+          credential: Credential | null;
+          externalId: string;
+          integration: string;
+          userId: number;
+        };
       })
     | null
   >;

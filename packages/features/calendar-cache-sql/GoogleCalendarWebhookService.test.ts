@@ -1,21 +1,47 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
+
+import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
+import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 import { GoogleCalendarWebhookService } from "./GoogleCalendarWebhookService";
 import type { WebhookRequest } from "./GoogleCalendarWebhookService";
 
+class MockCalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
+  findByChannelId = vi.fn();
+  findBySelectedCalendar = vi.fn();
+  upsert = vi.fn();
+  updateSyncToken = vi.fn();
+  updateWatchDetails = vi.fn();
+  getSubscriptionsToWatch = vi.fn();
+  setWatchError = vi.fn();
+  clearWatchError = vi.fn();
+}
+
+class MockCalendarEventRepository implements ICalendarEventRepository {
+  getEventsForAvailability = vi.fn();
+  upsertEvent = vi.fn();
+  deleteEvent = vi.fn();
+  bulkUpsertEvents = vi.fn();
+}
+
+class MockFeaturesRepository implements IFeaturesRepository {
+  checkIfFeatureIsEnabledGlobally = vi.fn();
+  checkIfUserHasFeature = vi.fn();
+  checkIfTeamHasFeature = vi.fn();
+}
+
+class MockCalendarCacheService {
+  processWebhookEvents = vi.fn();
+  getAvailability = vi.fn();
+  ensureSubscription = vi.fn();
+}
+
 describe("GoogleCalendarWebhookService", () => {
-  const mockSubscriptionRepo = {
-    findByChannelId: vi.fn(),
-  };
-
-  const mockEventRepo = {
-    getEventsForAvailability: vi.fn(),
-  };
-
-  const mockFeaturesRepo = {
-    checkIfFeatureIsEnabledGlobally: vi.fn(),
-  };
-
+  const mockSubscriptionRepo = new MockCalendarSubscriptionRepository();
+  const mockEventRepo = new MockCalendarEventRepository();
+  const mockFeaturesRepo = new MockFeaturesRepository();
+  const mockCalendarCacheService = new MockCalendarCacheService();
   const mockGetCredentialForCalendarCache = vi.fn();
 
   const mockLogger = {
@@ -24,14 +50,11 @@ describe("GoogleCalendarWebhookService", () => {
     error: vi.fn(),
   };
 
-  const mockCalendarCacheService = {
-    processWebhookEvents: vi.fn(),
-  };
-
   const dependencies = {
     subscriptionRepo: mockSubscriptionRepo,
     eventRepo: mockEventRepo,
     featuresRepo: mockFeaturesRepo,
+    calendarCacheService: mockCalendarCacheService as any,
     getCredentialForCalendarCache: mockGetCredentialForCalendarCache,
     webhookToken: "test-token",
     logger: mockLogger,

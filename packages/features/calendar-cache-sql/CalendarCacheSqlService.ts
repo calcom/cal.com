@@ -83,9 +83,7 @@ export class CalendarCacheSqlService {
 
     // Update the syncToken for next sync
     if (eventsResponse.data.nextSyncToken) {
-      await this.subscriptionRepo.update(subscription.id, {
-        nextSyncToken: eventsResponse.data.nextSyncToken,
-      });
+      await this.subscriptionRepo.updateSyncToken(subscription.id, eventsResponse.data.nextSyncToken);
     }
 
     // Process and save each event
@@ -105,7 +103,7 @@ export class CalendarCacheSqlService {
           ? new Date(event.end.date)
           : new Date();
 
-        const isAllDay = !event.start?.dateTime && event.start?.date;
+        const isAllDay = !event.start?.dateTime && !!event.start?.date;
 
         await this.eventRepo.upsertEvent({
           calendarSubscription: { connect: { id: subscription.id } },

@@ -1,6 +1,7 @@
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import type { CalendarCacheSqlService } from "./CalendarCacheSqlService";
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
@@ -20,6 +21,7 @@ export interface WebhookServiceDependencies {
   subscriptionRepo: ICalendarSubscriptionRepository;
   eventRepo: ICalendarEventRepository;
   featuresRepo: IFeaturesRepository;
+  calendarCacheService: CalendarCacheSqlService;
   getCredentialForCalendarCache: (params: {
     credentialId: number;
   }) => Promise<CredentialForCalendarService | null>;
@@ -93,6 +95,10 @@ export class GoogleCalendarWebhookService {
       }
 
       // Get credential for calendar cache
+      if (!subscription.selectedCalendar.credential) {
+        throw new Error("No credential found for calendar subscription");
+      }
+
       const credentialForCalendarCache = await this.dependencies.getCredentialForCalendarCache({
         credentialId: subscription.selectedCalendar.credential.id,
       });
@@ -105,13 +111,10 @@ export class GoogleCalendarWebhookService {
       }
 
       // Process webhook events
-      const { CalendarCacheSqlService } = await import("./CalendarCacheSqlService");
-      const calendarCacheService = new CalendarCacheSqlService(
-        this.dependencies.subscriptionRepo,
-        this.dependencies.eventRepo
+      await this.dependencies.calendarCacheService.processWebhookEvents(
+        channelId,
+        credentialForCalendarCache
       );
-
-      await calendarCacheService.processWebhookEvents(channelId, credentialForCalendarCache);
 
       return {
         status: 200,
