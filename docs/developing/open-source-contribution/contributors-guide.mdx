@@ -44,6 +44,60 @@ You can look at [turbo.json](https://github.com/calcom/cal.com/blob/main/turbo.j
 - The public API related codebase can be found in the [/apps/api](https://github.com/calcom/cal.com/tree/main/apps/api) folder from the root.
 - The Cal.ai related codebase can be found in the [/apps/ai](https://github.com/calcom/cal.com/tree/main/apps/ai) folder from the root
 
+## File Naming Conventions
+
+To ensure consistency and make files easy to fuzzy-find, we follow the naming conventions below for **services**, **repositories**, and other class-based files.
+
+### Repository Files
+
+- Repository class files must include the `Repository` suffix.
+- If the repository is backed by a specific technology (e.g. Prisma), prefix the filename and class name with it.
+- File name must match the exported class exactly (PascalCase).
+
+**Pattern:**
+
+Prisma`<Entity>`Repository.ts
+
+**Examples:**
+
+```js
+// File: PrismaAppRepository.ts
+export class PrismaAppRepository { ... }
+
+// File: PrismaMembershipRepository.ts
+export class PrismaMembershipRepository { ... }
+```
+
+
+This avoids ambiguous filenames like app.ts and improves discoverability in editors.
+
+### Service Files
+Service class files must include the Service suffix.
+
+File name should be in PascalCase, matching the exported class.
+
+Keep naming specific — avoid generic names like AppService.ts.
+
+**Pattern:**
+
+`<Entity>`Service.ts
+
+**Examples:**
+
+```js
+// File: MembershipService.ts
+export class MembershipService { ... }
+
+// File: HashedLinkService.ts
+export class HashedLinkService { ... }
+```
+
+
+<Note>
+New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.  
+We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
+</Note>
+
 ## How we use TRPC at cal.com
 
 Cal.com makes use of the TRPC calls for CRUD operations on the database by utilizing the [useQuery()](https://trpc.io/docs/client/react/useQuery) & [useMutation()](https://trpc.io/docs/client/react/useMutation) hooks. These are essentially wrappers around @tanstack/react-query and you can learn more about them here, respectively: [queries](https://tanstack.com/query/v4/docs/react/guides/queries), [mutations](https://tanstack.com/query/v4/docs/react/guides/mutations).

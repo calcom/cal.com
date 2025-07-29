@@ -10,7 +10,8 @@ import {
 import {
   AverageEventDurationChart,
   BookingKPICards,
-  BookingStatusLineChart,
+  BookingsByHourChart,
+  EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
   LeastBookedTeamMembersTable,
@@ -20,7 +21,7 @@ import {
   PopularEventsTable,
   RecentFeedbackTable,
   TimezoneBadge,
-} from "@calcom/features/insights/components";
+} from "@calcom/features/insights/components/booking";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
@@ -69,25 +70,37 @@ function InsightsPageContent() {
       <div className="my-4 space-y-4">
         <BookingKPICards />
 
-        <BookingStatusLineChart />
+        <EventTrendsChart />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <PopularEventsTable />
-          <AverageEventDurationChart />
-        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <BookingsByHourChart />
+          </div>
+          <div className="sm:col-span-2">
+            <AverageEventDurationChart />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
+          </div>
           <MostBookedTeamMembersTable />
           <LeastBookedTeamMembersTable />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <MostCancelledBookingsTables />
           <HighestNoShowHostTable />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
             <RecentFeedbackTable />
           </div>
         </div>
+
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
           <a

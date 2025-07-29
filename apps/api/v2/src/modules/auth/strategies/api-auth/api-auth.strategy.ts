@@ -9,31 +9,19 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { TokensService } from "@/modules/tokens/tokens.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
-import * as jwt from "jsonwebtoken";
 import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import type { AllowedAuthMethod } from "../../decorators/api-auth-guard-only-allow.decorator";
-
-interface OAuthTokenPayload {
-  userId?: number;
-  teamId?: number;
-  scope: string[];
-  token_type: string;
-}
 
 export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 export type ApiAuthGuardRequest = Request & {
@@ -54,6 +42,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly config: ConfigService,
     private readonly oauthFlowService: OAuthFlowService,
     private readonly tokensRepository: TokensRepository,
+    private readonly tokensService: TokensService,
     private readonly userRepository: UsersRepository,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
@@ -325,20 +314,8 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     token: string,
     request: ApiAuthGuardRequest
   ): Promise<{ success: true; data: UserWithProfile } | { success: false }> {
-    // Removed requiredScopes parameter
-    const encryptionKey = this.config.get<string>("CALENDSO_ENCRYPTION_KEY");
-    if (!encryptionKey) {
-      throw new InternalServerErrorException("CALENDSO_ENCRYPTION_KEY environment variable is not set.");
-    }
-
-    let decodedToken: OAuthTokenPayload;
-    try {
-      decodedToken = jwt.verify(token, encryptionKey) as OAuthTokenPayload;
-    } catch (e) {
-      return { success: false };
-    }
-
-    if (!decodedToken || decodedToken.token_type !== "Access Token") {
+    const decodedToken = this.tokensService.getDecodedThirdPartyAccessToken(token);
+    if (!decodedToken) {
       return { success: false };
     }
 

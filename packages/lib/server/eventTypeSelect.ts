@@ -19,6 +19,11 @@ export const eventTypeSelect = {
   autoTranslateDescriptionEnabled: true,
   position: true,
   offsetStart: true,
+  owner: {
+    select: {
+      timeZone: true,
+    },
+  },
   profileId: true,
   eventName: true,
   parentId: true,
@@ -29,6 +34,7 @@ export const eventTypeSelect = {
   periodDays: true,
   periodCountCalendarDays: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresBookerEmailVerification: true,
   disableGuests: true,
   disableCancelling: true,
