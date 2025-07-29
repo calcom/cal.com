@@ -1,10 +1,8 @@
 import { GoogleCalendarEventResponse } from "@/modules/cal-unified-calendars/pipes/get-calendar-event-details-output-pipe";
-import { PipeTransform, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 
 import {
   UpdateUnifiedCalendarEventInput,
-  UpdateCalendarEventAttendee,
-  UpdateCalendarEventHost,
   UpdateDateTimeWithZone,
 } from "../inputs/update-unified-calendar-event.input";
 import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event";
@@ -88,7 +86,7 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
     }
 
     if (inputHosts && inputHosts.length > 0) {
-      finalAttendees = this.replaceHostsWithUpdatedOnes(finalAttendees, inputHosts, fetchedEvent);
+      finalAttendees = this.replaceHostsWithUpdatedOnes(finalAttendees, inputHosts);
     }
 
     return finalAttendees;
@@ -151,25 +149,25 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
 
   private replaceHostsWithUpdatedOnes(
     attendees: GoogleCalendarAttendee[],
-    inputHosts: NonNullable<UpdateUnifiedCalendarEventInput["hosts"]>,
-    fetchedEvent?: GoogleCalendarEventResponse | null
+    inputHosts: NonNullable<UpdateUnifiedCalendarEventInput["hosts"]>
   ): GoogleCalendarAttendee[] {
-    const nonOrganizerAttendees = attendees.filter((attendee) => !attendee.organizer);
+    const updatedAttendees = attendees.map((attendee) => {
+      if (attendee.organizer) {
+        const hostUpdate = inputHosts.find(
+          (host) => host.email.toLowerCase() === attendee.email.toLowerCase()
+        );
 
-    const transformedHosts = inputHosts.map((host) => {
-      const existingHost = fetchedEvent?.attendees?.find(
-        (attendee) => attendee.organizer && attendee.email.toLowerCase() === host.email.toLowerCase()
-      );
-
-      return {
-        email: existingHost?.email || host.email,
-        displayName: existingHost?.displayName || host.email,
-        responseStatus: this.transformResponseStatus(host.responseStatus),
-        organizer: true,
-      };
+        if (hostUpdate) {
+          return {
+            ...attendee,
+            responseStatus: this.transformResponseStatus(hostUpdate.responseStatus),
+          };
+        }
+      }
+      return attendee;
     });
 
-    return [...nonOrganizerAttendees, ...transformedHosts];
+    return updatedAttendees;
   }
 
   private transformResponseStatus(responseStatus?: CalendarEventResponseStatus | null): string {
