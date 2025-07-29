@@ -317,25 +317,23 @@ const Days = ({
               <SkeletonText className="h-8 w-9" />
             </button>
           ) : (
-            <>
-              <DayComponent
-                customClassName={{
-                  dayContainer: customClassName?.datePickerDate,
-                  dayActive: customClassName?.datePickerDateActive,
-                }}
-                date={day}
-                onClick={() => {
-                  props.onChange(day);
-                  props?.scrollToTimeSlots?.();
-                }}
-                disabled={disabled}
-                active={isActive(day)}
-                away={away}
-                emoji={emoji}
-                showMonthTooltip={isSecondWeekOver && !isCompact}
-                isFirstDayOfNextMonth={isFirstDayOfNextMonth}
-              />
-            </>
+            <DayComponent
+              customClassName={{
+                dayContainer: customClassName?.datePickerDate,
+                dayActive: customClassName?.datePickerDateActive,
+              }}
+              date={day}
+              onClick={() => {
+                props.onChange(day);
+                props?.scrollToTimeSlots?.();
+              }}
+              disabled={disabled}
+              active={isActive(day)}
+              away={away}
+              emoji={emoji}
+              showMonthTooltip={isSecondWeekOver && !isCompact}
+              isFirstDayOfNextMonth={isFirstDayOfNextMonth}
+            />
           )}
         </div>
       ))}
