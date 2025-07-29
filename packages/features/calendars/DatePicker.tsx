@@ -130,7 +130,7 @@ const Day = ({
   return (
     <>
       {isFirstDayOfNextMonth && (
-        <div className="bg-emphasis text-emphasis absolute top-0 z-10 mx-auto w-fit rounded-md px-1 py-1 text-xs font-medium uppercase tracking-wide">
+        <div className="text-emphasis absolute top-0 z-10 mx-auto w-fit rounded-md px-1 py-1 text-xs font-medium uppercase tracking-wide">
           {date.format("MMM")}
         </div>
       )}
