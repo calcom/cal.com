@@ -55,7 +55,7 @@ describe("deleteCredential", () => {
         },
       ]);
 
-      await AppRepository.seedApp("zoomvideo");
+      await PrismaAppRepository.seedApp("zoomvideo");
 
       await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
@@ -86,7 +86,7 @@ describe("deleteCredential", () => {
         },
       ]);
 
-      await AppRepository.seedApp("googlecalendar");
+      await PrismaAppRepository.seedApp("googlecalendar");
 
       const credential = await setupCredential({
         userId: user.id,
