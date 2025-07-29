@@ -3391,6 +3391,7 @@
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "failed_bookings_by_field": "Failed Bookings By Field",
+  "failed_bookings": "Failed bookings",
   "event_type_no_hosts": "No hosts are assigned to event type",
   "cache_status": "Cache Status",
   "cache_last_updated": "Last updated: {{timestamp}}",
