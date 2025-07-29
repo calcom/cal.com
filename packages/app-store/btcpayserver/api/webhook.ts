@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       appConfig.type
     );
     if (!payment) throw new HttpCode({ statusCode: 404, message: "Cal.com: payment not found" });
-    if (payment.success) return res.status(400).send({ message: "Payment already registered" });
+    if (payment.success) return res.status(200).send({ message: "Payment already registered" });
     const key = payment.booking?.user?.credentials?.[0].key;
     if (!key) throw new HttpCode({ statusCode: 404, message: "Cal.com: credentials not found" });
 
