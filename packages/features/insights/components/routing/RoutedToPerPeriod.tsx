@@ -23,8 +23,8 @@ import {
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard } from "./ChartCard";
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {
   teamId?: number;

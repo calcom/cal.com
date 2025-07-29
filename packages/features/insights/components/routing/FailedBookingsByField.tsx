@@ -4,9 +4,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard } from "./ChartCard";
-import { BarList } from "./tremor/BarList";
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { ChartCard } from "../ChartCard";
+import { BarList } from "../tremor/BarList";
 
 interface FormCardProps {
   formName: string;

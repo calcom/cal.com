@@ -1,16 +1,16 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
-import { ChartCard } from "./ChartCard";
-import { LoadingInsight } from "./LoadingInsights";
-import { TotalUserFeedbackTable } from "./TotalUserFeedbackTable";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
+import { LoadingInsight } from "../LoadingInsights";
+import { TotalUserFeedbackTable } from "../TotalUserFeedbackTable";
 
-export const MostCancelledBookingsTables = () => {
+export const LeastBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostCancelledBookings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithLeastBookings.useQuery(
     insightsBookingParams,
     {
       staleTime: 180000,
@@ -26,7 +26,7 @@ export const MostCancelledBookingsTables = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <ChartCard title={t("most_cancelled_bookings")}>
+    <ChartCard title={t("least_booked_members")}>
       <TotalUserFeedbackTable data={data} />
     </ChartCard>
   );

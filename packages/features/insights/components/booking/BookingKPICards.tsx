@@ -3,9 +3,9 @@ import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
-import { ChartCard } from "./ChartCard";
-import { KPICard } from "./KPICard";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
+import { KPICard } from "../KPICard";
 
 export const BookingKPICards = () => {
   const { t } = useLocale();

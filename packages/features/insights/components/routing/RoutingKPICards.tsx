@@ -4,9 +4,9 @@ import { Flex, Text, Metric } from "@tremor/react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { valueFormatter } from "../lib";
-import { CardInsights } from "./Card";
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { valueFormatter } from "../../lib";
+import { CardInsights } from "../Card";
 
 export const RoutingKPICards = () => {
   const { t } = useLocale();

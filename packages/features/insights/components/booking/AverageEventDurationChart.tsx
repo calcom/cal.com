@@ -1,11 +1,11 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
-import { valueFormatter } from "../lib/valueFormatter";
-import { ChartCard } from "./ChartCard";
-import { LineChart } from "./LineChart";
-import { LoadingInsight } from "./LoadingInsights";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { valueFormatter } from "../../lib/valueFormatter";
+import { ChartCard } from "../ChartCard";
+import { LineChart } from "../LineChart";
+import { LoadingInsight } from "../LoadingInsights";
 
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();

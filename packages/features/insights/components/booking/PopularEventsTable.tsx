@@ -1,9 +1,9 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
-import { ChartCard, ChartCardItem } from "./ChartCard";
-import { LoadingInsight } from "./LoadingInsights";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard, ChartCardItem } from "../ChartCard";
+import { LoadingInsight } from "../LoadingInsights";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();

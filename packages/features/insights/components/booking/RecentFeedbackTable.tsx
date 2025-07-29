@@ -1,10 +1,10 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsBookingParameters } from "../hooks/useInsightsBookingParameters";
-import { ChartCard } from "./ChartCard";
-import { FeedbackTable } from "./FeedbackTable";
-import { LoadingInsight } from "./LoadingInsights";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
+import { FeedbackTable } from "../FeedbackTable";
+import { LoadingInsight } from "../LoadingInsights";
 
 export const RecentFeedbackTable = () => {
   const { t } = useLocale();
