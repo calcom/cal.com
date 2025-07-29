@@ -4,7 +4,7 @@ import { trpc } from "@calcom/trpc";
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
-import { TotalUserFeedbackTable } from "../TotalUserFeedbackTable";
+import { UserStatsTable } from "../UserStatsTable";
 
 export const MostCancelledBookingsTables = () => {
   const { t } = useLocale();
@@ -27,7 +27,7 @@ export const MostCancelledBookingsTables = () => {
 
   return (
     <ChartCard title={t("most_cancelled_bookings")}>
-      <TotalUserFeedbackTable data={data} />
+      <UserStatsTable data={data} />
     </ChartCard>
   );
 };

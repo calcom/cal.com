@@ -4,7 +4,7 @@ import { trpc } from "@calcom/trpc";
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
-import { TotalUserFeedbackTable } from "../TotalUserFeedbackTable";
+import { UserStatsTable } from "../UserStatsTable";
 
 export const HighestNoShowHostTable = () => {
   const { t } = useLocale();
@@ -27,7 +27,7 @@ export const HighestNoShowHostTable = () => {
 
   return (
     <ChartCard title={t("most_no_show_host")}>
-      <TotalUserFeedbackTable data={data} />
+      <UserStatsTable data={data} />
     </ChartCard>
   );
 };

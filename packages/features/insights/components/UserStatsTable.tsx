@@ -1,10 +1,11 @@
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui/components/avatar";
 
 import { ChartCardItem } from "./ChartCard";
 
-export const TotalUserFeedbackTable = ({
+export const UserStatsTable = ({
   data,
 }: {
   data:
@@ -18,7 +19,9 @@ export const TotalUserFeedbackTable = ({
       }[]
     | undefined;
 }) => {
-  // Filter out items without user data (for compatibility with TotalBookingUsersTable)
+  const { t } = useLocale();
+
+  // Filter out items without user data
   const filteredData = data && data?.length > 0 ? data?.filter((item) => !!item.user) : [];
 
   return (
@@ -43,7 +46,7 @@ export const TotalUserFeedbackTable = ({
         ))
       ) : (
         <div className="flex h-60 text-center">
-          <p className="m-auto text-sm font-light">No data found</p>
+          <p className="m-auto text-sm font-light">{t("no_data_yet")}</p>
         </div>
       )}
     </div>
