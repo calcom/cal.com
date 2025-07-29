@@ -85,6 +85,29 @@ export function processWorkingHours(
       continue;
     }
 
+    // Check for overlapping ranges with the same end time
+    let foundOverlapping = false;
+    for (const [keyStr, existingRange] of Object.entries(results)) {
+      const key = Number(keyStr);
+      if (
+        existingRange.end.valueOf() === endResult.valueOf() &&
+        startResult.valueOf() <= existingRange.end.valueOf() &&
+        endResult.valueOf() >= existingRange.start.valueOf()
+      ) {
+        // Merge by taking the earliest start time and keeping the same end time
+        results[key] = {
+          start: dayjs.min(existingRange.start, startResult),
+          end: endResult,
+        };
+        foundOverlapping = true;
+        break;
+      }
+    }
+
+    if (foundOverlapping) {
+      continue;
+    }
+
     if (results[startResult.valueOf()]) {
       // if a result already exists, we merge the end time
       results[endResult.valueOf()] = {
