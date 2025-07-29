@@ -3418,5 +3418,6 @@
   "usage_based_expiration_description": "This link can be used for {{count}} booking",
   "usage_based_generic_expiration_description": "This link can be configured to expire after a set number of bookings",
   "usage_based_expiration_description_plural": "This link can be used for {{count}} bookings",
+  "stats": "Stats",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
