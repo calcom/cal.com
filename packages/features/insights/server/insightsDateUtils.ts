@@ -132,7 +132,7 @@ export const formatPeriod = ({
   const omitYear = wholeStart.year() === wholeEnd.year();
 
   switch (timeView) {
-    case "day":
+    case "day": {
       const shouldShowMonth = wholeStart.isSame(start, "day") || start.date() === 1;
 
       if (shouldShowMonth) {
@@ -140,7 +140,8 @@ export const formatPeriod = ({
       } else {
         return omitYear ? start.format("D") : start.format("D, YYYY");
       }
-    case "week":
+    }
+    case "week": {
       const startFormat = "MMM D";
       let endFormat = "MMM D";
       if (start.format("MMM") === end.format("MMM")) {
@@ -156,10 +157,13 @@ export const formatPeriod = ({
       } else {
         return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
       }
-    case "month":
+    }
+    case "month": {
       return omitYear ? start.format("MMM") : start.format("MMM YYYY");
-    case "year":
+    }
+    case "year": {
       return start.format("YYYY");
+    }
     default:
       return "";
   }
@@ -181,9 +185,10 @@ export const formatPeriodFull = ({
   const omitYear = wholeStart.year() === wholeEnd.year();
 
   switch (timeView) {
-    case "day":
+    case "day": {
       return omitYear ? start.format("MMM D") : start.format("MMM D, YYYY");
-    case "week":
+    }
+    case "week": {
       const startFormat = "MMM D";
       const endFormat = "MMM D";
 
@@ -196,10 +201,13 @@ export const formatPeriodFull = ({
       } else {
         return `${start.format(startFormat)} - ${end.format(endFormat)}, ${end.format("YYYY")}`;
       }
-    case "month":
+    }
+    case "month": {
       return omitYear ? start.format("MMM") : start.format("MMM YYYY");
-    case "year":
+    }
+    case "year": {
       return start.format("YYYY");
+    }
     default:
       return "";
   }
