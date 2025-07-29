@@ -83,11 +83,11 @@ export type BookerStore = {
    * Date selected by user (exact day). Format is YYYY-MM-DD.
    */
   selectedDate: string | null;
-  setSelectedDate: (params: {
-    date: string | null;
-    omitUpdatingParams?: boolean;
-    preventMonthSwitching?: boolean;
-  }) => void;
+  setSelectedDate: (
+    date: string | null,
+    omitUpdatingParams?: boolean,
+    preventMonthSwitching?: boolean
+  ) => void;
   addToSelectedDate: (days: number) => void;
   /**
    * Multiple Selected Dates and Times
@@ -196,7 +196,11 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     return set({ layout });
   },
   selectedDate: getQueryParam("date") || null,
-  setSelectedDate: ({ date: selectedDate, omitUpdatingParams = false, preventMonthSwitching = false }) => {
+  setSelectedDate: (
+    selectedDate: string | null,
+    omitUpdatingParams = false,
+    preventMonthSwitching = false
+  ) => {
     // unset selected date
     if (!selectedDate) {
       removeQueryParam("date");
@@ -269,7 +273,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     if (!get().isPlatform || get().allowUpdatingUrlParams) {
       updateQueryParam("month", month ?? "");
     }
-    get().setSelectedDate({ date: null });
+    get().setSelectedDate(null);
   },
   dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
   setDayCount: (dayCount: number | null) => {

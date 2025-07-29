@@ -416,7 +416,7 @@ export const BookerPlatformWrapper = (
     [props.selectedDate]
   );
   useEffect(() => {
-    setSelectedDate({ date: selectedDateProp, omitUpdatingParams: true });
+    setSelectedDate(selectedDateProp, true);
   }, [selectedDateProp]);
 
   useEffect(() => {
@@ -424,7 +424,7 @@ export const BookerPlatformWrapper = (
     return () => {
       slots.handleRemoveSlot();
       setBookerState("loading");
-      setSelectedDate({ date: null });
+      setSelectedDate(null);
       setSelectedTimeslot(null);
       setSelectedDuration(null);
       setOrg(null);
