@@ -86,17 +86,6 @@ export class CalendarsController {
     private readonly calendarsRepository: CalendarsRepository
   ) {}
 
-  private decodeHtmlEntities(str: string | null): string | null {
-    if (!str) return str;
-
-    return str
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
-  }
-
   @Post("/ics-feed/save")
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -212,16 +201,17 @@ export class CalendarsController {
     let stateObj: CalendarState;
 
     try {
-      // First try to parse as JSON
-      stateObj = JSON.parse(state) as CalendarState;
+      // First try to parse as JSON, but URL-decode first in case OAuth provider encoded it
+      const decodedState = decodeURIComponent(state);
+      stateObj = JSON.parse(decodedState) as CalendarState;
     } catch (e) {
-      // If JSON parsing fails, try URL params
+      // If JSON parsing fails, try URL params as fallback
       const stateParams = new URLSearchParams(state);
 
       const parsedState = calendarStateSchema.parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
-        redir: this.decodeHtmlEntities(stateParams.get("redir")) || undefined,
+        redir: stateParams.get("redir") || undefined,
         isDryRun: stateParams.get("isDryRun"),
       });
 
