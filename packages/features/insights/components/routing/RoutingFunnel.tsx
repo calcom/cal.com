@@ -5,7 +5,7 @@ import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsigh
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { ChartCard } from "./ChartCard";
+import { ChartCard } from "../ChartCard";
 import { RoutingFunnelContent, legend } from "./RoutingFunnelContent";
 import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
 

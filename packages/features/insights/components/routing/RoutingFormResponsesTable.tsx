@@ -18,12 +18,12 @@ import {
 } from "@calcom/features/data-table";
 import { trpc } from "@calcom/trpc";
 
-import { RoutingFormResponsesDownload } from "../filters/Download";
-import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
-import { useInsightsColumns } from "../hooks/useInsightsColumns";
-import { useInsightsFacetedUniqueValues } from "../hooks/useInsightsFacetedUniqueValues";
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import type { RoutingFormTableRow } from "../lib/types";
+import { RoutingFormResponsesDownload } from "../../filters/Download";
+import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";
+import { useInsightsColumns } from "../../hooks/useInsightsColumns";
+import { useInsightsFacetedUniqueValues } from "../../hooks/useInsightsFacetedUniqueValues";
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;

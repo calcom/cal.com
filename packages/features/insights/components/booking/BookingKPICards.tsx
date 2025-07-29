@@ -1,28 +1,23 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard } from "./ChartCard";
-import { KPICard } from "./KPICard";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
+import { KPICard } from "../KPICard";
 
 export const BookingKPICards = () => {
   const { t } = useLocale();
-  const { startDate, endDate, teamId, userId, isAll, memberUserId, eventTypeId } = useInsightsParameters();
+  const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.bookingKPIStats.useQuery(
+    insightsBookingParams,
     {
-      startDate,
-      endDate,
-      teamId,
-      eventTypeId,
-      memberUserId,
-      userId,
-      isAll,
-    },
-    {
-      staleTime: 30000,
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
