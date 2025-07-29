@@ -10,10 +10,10 @@ import {
 import {
   AverageEventDurationChart,
   BookingKPICards,
+  BookingsByHourChart,
   EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
-  BookingsByHourChart,
   LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
   MostBookedTeamMembersTable,
@@ -21,7 +21,7 @@ import {
   PopularEventsTable,
   RecentFeedbackTable,
   TimezoneBadge,
-} from "@calcom/features/insights/components";
+} from "@calcom/features/insights/components/booking";
 import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";

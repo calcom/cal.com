@@ -1,3 +1,5 @@
+"use client";
+
 import { Flex, Text, Metric, BadgeDelta } from "@tremor/react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
