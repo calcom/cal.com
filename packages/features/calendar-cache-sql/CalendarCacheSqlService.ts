@@ -58,17 +58,80 @@ export class CalendarCacheSqlService {
         : null,
     };
 
-    const { CalendarCacheService } = await import(
-      "@calcom/app-store/googlecalendar/lib/CalendarCacheService"
+    // Import Google Calendar service to fetch events
+    const { default: GoogleCalendarService } = await import(
+      "@calcom/app-store/googlecalendar/lib/CalendarService"
     );
-    const cacheService = new CalendarCacheService(credentialWithEmail, this.subscriptionRepo, this.eventRepo);
 
-    const args = {
-      timeMin: new Date().toISOString(),
-      timeMax: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      items: [{ id: subscription.selectedCalendar.externalId }],
-    };
+    const calendarService = new GoogleCalendarService(credentialWithEmail);
+    const calendar = await calendarService.authedCalendar();
 
-    await cacheService.fetchAvailability(args);
+    const calendarId = subscription.selectedCalendar.externalId;
+    const now = new Date();
+    const timeMin = now.toISOString();
+    const timeMax = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Fetch events using events.list with syncToken if available
+    const eventsResponse = await calendar.events.list({
+      calendarId,
+      timeMin,
+      timeMax,
+      singleEvents: true,
+      orderBy: "startTime",
+      syncToken: subscription.nextSyncToken || undefined,
+    });
+
+    // Update the syncToken for next sync
+    if (eventsResponse.data.nextSyncToken) {
+      await this.subscriptionRepo.update(subscription.id, {
+        nextSyncToken: eventsResponse.data.nextSyncToken,
+      });
+    }
+
+    // Process and save each event
+    if (eventsResponse.data.items) {
+      for (const event of eventsResponse.data.items) {
+        if (!event.id) continue;
+
+        const start = event.start?.dateTime
+          ? new Date(event.start.dateTime)
+          : event.start?.date
+          ? new Date(event.start.date)
+          : new Date();
+
+        const end = event.end?.dateTime
+          ? new Date(event.end.dateTime)
+          : event.end?.date
+          ? new Date(event.end.date)
+          : new Date();
+
+        const isAllDay = !event.start?.dateTime && event.start?.date;
+
+        await this.eventRepo.upsertEvent({
+          calendarSubscription: { connect: { id: subscription.id } },
+          googleEventId: event.id,
+          iCalUID: event.iCalUID || null,
+          etag: event.etag || "",
+          sequence: event.sequence || 0,
+          summary: event.summary || null,
+          description: event.description || null,
+          location: event.location || null,
+          start,
+          end,
+          isAllDay,
+          status: event.status || "confirmed",
+          transparency: event.transparency || "opaque",
+          visibility: event.visibility || "default",
+          recurringEventId: event.recurringEventId || null,
+          originalStartTime: event.originalStartTime?.dateTime
+            ? new Date(event.originalStartTime.dateTime)
+            : event.originalStartTime?.date
+            ? new Date(event.originalStartTime.date)
+            : null,
+          googleCreatedAt: event.created ? new Date(event.created) : null,
+          googleUpdatedAt: event.updated ? new Date(event.updated) : null,
+        });
+      }
+    }
   }
 }
