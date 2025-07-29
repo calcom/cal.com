@@ -91,8 +91,6 @@ describe("OrganizationPaymentService", () => {
 
   describe("createPaymentIntent", () => {
     const baseInput = {
-      name: "Test Org",
-      slug: "test-org",
       bio: "BIO",
       logo: "LOGO",
       teams: [{ id: 1, isBeingMigrated: true, name: "Team 1", slug: "team1" }],
@@ -135,8 +133,6 @@ describe("OrganizationPaymentService", () => {
       expect(updateCall.where).toEqual({ id: "onboard-id-1" });
       const { updatedAt, ...data } = updateCall.data;
       expect(data).toEqual({
-        name: "Test Org",
-        slug: "test-org",
         bio: "BIO",
         logo: "LOGO",
         teams: [
@@ -185,8 +181,6 @@ describe("OrganizationPaymentService", () => {
       expect(updateCall.where).toEqual({ id: "onboard-id-1" });
       const { updatedAt, ...data } = updateCall.data;
       expect(data).toEqual({
-        name: "Test Org",
-        slug: "test-org",
         bio: "BIO",
         logo: "LOGO",
         teams: [
@@ -236,8 +230,6 @@ describe("OrganizationPaymentService", () => {
         expect(updateCall.where).toEqual({ id: "onboard-id-1" });
         const { updatedAt, ...data } = updateCall.data;
         expect(data).toEqual({
-          name: "Test Org",
-          slug: "test-org",
           bio: "BIO",
           logo: "LOGO",
           teams: [
@@ -267,8 +259,6 @@ describe("OrganizationPaymentService", () => {
         expect(updateCall.where).toEqual({ id: "onboard-id-1" });
         const { updatedAt, ...data } = updateCall.data;
         expect(data).toEqual({
-          name: "Test Org",
-          slug: "test-org",
           bio: "BIO",
           logo: "LOGO",
           teams: [

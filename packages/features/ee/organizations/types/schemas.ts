@@ -4,8 +4,6 @@ import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@ca
 
 // Base user schema - fields that any user can set
 export const createOrganizationSchema = z.object({
-  name: z.string(),
-  slug: z.string(),
   language: z.string().optional(),
   logo: z.string().nullish(),
   bio: z.string().nullish(),

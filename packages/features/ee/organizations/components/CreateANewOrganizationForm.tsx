@@ -58,18 +58,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
   const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
   const { useOnboardingStore, isBillingEnabled } = useOnboarding({ step: "start" });
-  const {
-    slug,
-    setSlug,
-    setName,
-    name,
-    orgOwnerEmail,
-    billingPeriod,
-    pricePerSeat,
-    seats,
-    onboardingId,
-    reset,
-  } = useOnboardingStore();
+  const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
+    useOnboardingStore();
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -132,11 +122,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         id="createOrg"
         handleSubmit={async (v) => {
           if (!needToCreateOnboarding) {
-            // Allow updating the slug and name for an already existing onboarding
-            // We don't want to allow changing the orgOwnerEmail and pricing things as that might be configured by the Cal.com admin already
-            // In UI orgOwnerEmail and pricing things are not editable anyway
-            setSlug(v.slug);
-            setName(v.name);
             router.push("/settings/organizations/new/about");
           } else if (!intentToCreateOrgMutation.isPending) {
             setServerErrorMessage(null);

@@ -21,8 +21,6 @@ import { OrganizationPermissionService } from "./OrganizationPermissionService";
 type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
 type CreatePaymentIntentInput = {
-  name: string;
-  slug: string;
   logo: string | null;
   bio: string | null;
   teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
@@ -289,7 +287,7 @@ export class OrganizationPaymentService {
   ) {
     log.debug("createPaymentIntent", safeStringify(input));
 
-    const { teams: _teams, invitedMembers, logo, bio, name } = input;
+    const { teams: _teams, invitedMembers, logo, bio } = input;
 
     const teams = _teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
     const teamIds = teams.filter((team) => team.id > 0).map((team) => team.id);
@@ -372,8 +370,6 @@ export class OrganizationPaymentService {
       invitedMembers: invitedMembers,
       teams,
       stripeCustomerId,
-      slug,
-      name,
       ...updatedConfig,
     });
 
