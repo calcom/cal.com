@@ -1,35 +1,16 @@
 import type { IncomingMessage } from "http";
 import { dir } from "i18next";
-import type { NextPageContext } from "next";
 import type { DocumentContext, DocumentProps } from "next/document";
 import Document, { Head, Html, Main, NextScript } from "next/document";
-import { z } from "zod";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
-
-import { csp } from "@lib/csp";
 
 import { applyTheme } from "./_applyThemeForDocument";
 
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
-function setHeader(ctx: NextPageContext, name: string, value: string) {
-  try {
-    ctx.res?.setHeader(name, value);
-  } catch (e) {
-    // Getting "Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client" when revalidate calendar cache
-    console.log(`Error setting header ${name}=${value} for ${ctx.asPath || "unknown asPath"}`, e);
-  }
-}
+
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
-    const { nonce } = csp(ctx.req || null, ctx.res || null);
-    if (!process.env.CSP_POLICY) {
-      setHeader(ctx, "x-csp", "not-opted-in");
-    } else if (!ctx.res?.getHeader("x-csp")) {
-      // If x-csp not set by gSSP, then it's initialPropsOnly
-      setHeader(ctx, "x-csp", "initialPropsOnly");
-    }
-
     const getLocaleModule = ctx.req ? await import("@calcom/features/auth/lib/getLocale") : null;
 
     const newLocale =
@@ -48,7 +29,7 @@ class MyDocument extends Document<Props> {
       !isEmbedSnippetGeneratorPath;
     const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, embedColorScheme, nonce, ...initialProps, newLocale };
+    return { isEmbed, embedColorScheme, ...initialProps, newLocale };
   }
 
   render() {
@@ -56,17 +37,13 @@ class MyDocument extends Document<Props> {
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
-    const nonceParsed = z.string().safeParse(this.props.nonce);
-    const nonce = nonceParsed.success ? nonceParsed.data : "";
-
     return (
       <Html
         lang={newLocale}
         dir={newDir}
         style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
-        <Head nonce={nonce}>
+        <Head>
           <script
-            nonce={nonce}
             id="newLocale"
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
@@ -108,7 +85,7 @@ class MyDocument extends Document<Props> {
               : {}
           }>
           <Main />
-          <NextScript nonce={nonce} />
+          <NextScript />
         </body>
       </Html>
     );

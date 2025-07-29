@@ -6,8 +6,8 @@ export const DI_TOKENS = {
   OOO_REPOSITORY_MODULE: Symbol("OOORepositoryModule"),
   SCHEDULE_REPOSITORY: Symbol("ScheduleRepository"),
   SCHEDULE_REPOSITORY_MODULE: Symbol("ScheduleRepositoryModule"),
-  SELECTED_SLOTS_REPOSITORY: Symbol("SelectedSlotsRepository"),
-  SELECTED_SLOTS_REPOSITORY_MODULE: Symbol("SelectedSlotsRepositoryModule"),
+  SELECTED_SLOT_REPOSITORY: Symbol("SelectedSlotRepository"),
+  SELECTED_SLOT_REPOSITORY_MODULE: Symbol("SelectedSlotRepositoryModule"),
   TEAM_REPOSITORY: Symbol("TeamRepository"),
   TEAM_REPOSITORY_MODULE: Symbol("TeamRepositoryModule"),
   USER_REPOSITORY: Symbol("UserRepository"),
@@ -28,4 +28,6 @@ export const DI_TOKENS = {
   CALENDAR_CACHE_SQL_SERVICE_MODULE: Symbol("CalendarCacheSqlServiceModule"),
   CALENDAR_SUBSCRIPTION_SERVICE: Symbol("CalendarSubscriptionService"),
   CALENDAR_SUBSCRIPTION_SERVICE_MODULE: Symbol("CalendarSubscriptionServiceModule"),
+  INSIGHTS_ROUTING_SERVICE: Symbol("InsightsRoutingService"),
+  INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
 };
