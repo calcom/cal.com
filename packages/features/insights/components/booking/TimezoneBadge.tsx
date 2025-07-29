@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 
 import { useDataTable } from "@calcom/features/data-table";

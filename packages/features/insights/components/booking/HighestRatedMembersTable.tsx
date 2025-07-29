@@ -1,25 +1,22 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard } from "./ChartCard";
-import { LoadingInsight } from "./LoadingInsights";
-import { TotalUserFeedbackTable } from "./TotalUserFeedbackTable";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
+import { LoadingInsight } from "../LoadingInsights";
+import { UserStatsTable } from "../UserStatsTable";
 
 export const HighestRatedMembersTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const insightsBookingParams = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithHighestRatings.useQuery(
+    insightsBookingParams,
     {
-      startDate,
-      endDate,
-      teamId,
-      eventTypeId,
-      isAll,
-    },
-    {
-      staleTime: 30000,
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
@@ -32,7 +29,7 @@ export const HighestRatedMembersTable = () => {
 
   return data && data.length > 0 ? (
     <ChartCard title={t("highest_rated")}>
-      <TotalUserFeedbackTable data={data} />
+      <UserStatsTable data={data} />
     </ChartCard>
   ) : (
     <></>

@@ -1,3 +1,5 @@
+"use client";
+
 import type { TFunction } from "i18next";
 import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
@@ -23,8 +25,8 @@ import {
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard } from "./ChartCard";
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {
   teamId?: number;

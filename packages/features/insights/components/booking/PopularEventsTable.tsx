@@ -1,31 +1,23 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard, ChartCardItem } from "./ChartCard";
-import { LoadingInsight } from "./LoadingInsights";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard, ChartCardItem } from "../ChartCard";
+import { LoadingInsight } from "../LoadingInsights";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const insightsBookingParams = useInsightsBookingParameters();
 
-  const { data, isSuccess, isPending } = trpc.viewer.insights.popularEventTypes.useQuery(
-    {
-      startDate,
-      endDate,
-      teamId,
-      userId,
-      eventTypeId,
-      memberUserId,
-      isAll,
+  const { data, isSuccess, isPending } = trpc.viewer.insights.popularEvents.useQuery(insightsBookingParams, {
+    staleTime: 180000,
+    refetchOnWindowFocus: false,
+    trpc: {
+      context: { skipBatch: true },
     },
-    {
-      staleTime: 30000,
-      trpc: {
-        context: { skipBatch: true },
-      },
-    }
-  );
+  });
 
   if (isPending) return <LoadingInsight />;
 

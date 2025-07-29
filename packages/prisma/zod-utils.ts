@@ -672,6 +672,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   maxActiveBookingsPerBooker: true,
   maxActiveBookingPerBookerOfferReschedule: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,

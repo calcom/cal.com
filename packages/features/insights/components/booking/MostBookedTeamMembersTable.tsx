@@ -1,25 +1,22 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { ChartCard } from "./ChartCard";
-import { LoadingInsight } from "./LoadingInsights";
-import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
+import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
+import { LoadingInsight } from "../LoadingInsights";
+import { UserStatsTable } from "../UserStatsTable";
 
 export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const insightsBookingParams = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostBookings.useQuery(
+    insightsBookingParams,
     {
-      startDate,
-      endDate,
-      teamId,
-      eventTypeId,
-      isAll,
-    },
-    {
-      staleTime: 30000,
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
       trpc: {
         context: { skipBatch: true },
       },
@@ -32,7 +29,7 @@ export const MostBookedTeamMembersTable = () => {
 
   return (
     <ChartCard title={t("most_booked_members")}>
-      <TotalBookingUsersTable data={data} />
+      <UserStatsTable data={data} />
     </ChartCard>
   );
 };
