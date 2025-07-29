@@ -7,7 +7,6 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { IBookingPaymentRepository } from "@calcom/lib/server/repository/BookingPaymentRepository.interface";
 import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
-import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -86,27 +85,26 @@ export class PaymentService implements IAbstractPaymentService {
     username: string | null,
     bookerName: string,
     paymentOption: PaymentOption,
-    bookerEmail: string
+    bookerEmail: string,
+    bookerPhoneNumber?: string | null,
+    eventTitle?: string,
+    bookingTitle?: string
   ) {
     try {
-      const booking = await prisma.booking.findFirst({
-        where: { id: bookingId },
-        select: { title: true },
-      });
-      if (!booking || !this.credentials?.storeId) {
-        throw new Error("BTCPay server: Booking or store ID not found");
+      if (!this.credentials?.storeId) {
+        throw new Error("BTCPay server: Store ID not found");
       }
 
       const uid = uuidv4();
       const invoiceRequest = {
         metadata: {
           orderId: `cal-booking-${bookingId}`,
-          itemDesc: booking.title || `Booking #${bookingId}`,
+          itemDesc: bookingTitle || `Booking #${bookingId}`,
           appId: "cal.com",
           referenceId: uid,
           customerName: bookerName,
           customerEmail: bookerEmail,
-          bookingDescription: booking.title || `Booking with ${bookerName}`,
+          bookingDescription: bookingTitle || `Booking with ${bookerName}`,
         },
         checkout: {
           buyerEmail: bookerEmail,
