@@ -10,7 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
-import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
+import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -306,11 +306,31 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           <h3>{t("what")}:</h3>
           <p>{booking.title}</p>
           <h3>{t("invitee_timezone")}:</h3>
-          <p>{booking.user?.timeZone}</p>
+          <p>{booking.attendees[0]?.timeZone || booking.user?.timeZone}</p>
           <h3>{t("when")}:</h3>
           <p suppressHydrationWarning={true}>
-            {formatToLocalizedDate(startTime)} <br />
-            {formatToLocalizedTime(startTime)}
+            {formatToLocalizedDate(
+              startTime,
+              undefined,
+              "long",
+              booking.attendees[0]?.timeZone || booking.user?.timeZone
+            )}{" "}
+            <br />
+            {formatToLocalizedTime(
+              startTime,
+              undefined,
+              "short",
+              undefined,
+              booking.attendees[0]?.timeZone || booking.user?.timeZone
+            )}
+            <br />
+            <span className="text-gray-400">
+              {formatToLocalizedTimezone(
+                startTime,
+                undefined,
+                booking.attendees[0]?.timeZone || booking.user?.timeZone
+              )}
+            </span>
           </p>
           <h3>{t("time_left")}</h3>
           <ProgressBar
