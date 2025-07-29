@@ -1484,7 +1484,7 @@ describe("get interval times", () => {
   });
 });
 
-it("returns the single user immediately if only one user is available", async () => {
+it("returns the single user correctly whether early return optimization is present or not", async () => {
   const singleUser = buildUser({
     id: 42,
     username: "singleuser",
@@ -1499,18 +1499,19 @@ it("returns the single user immediately if only one user is available", async ()
   const spyPrismaHost = vi.spyOn(prismaMock.host, "findMany");
   const spyPrismaBooking = vi.spyOn(prismaMock.booking, "findMany");
 
-  await expect(
-    getLuckyUser({
-      availableUsers: [singleUser],
-      eventType: {
-        id: 1,
-        isRRWeightsEnabled: false,
-        team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
-      },
-      allRRHosts: [],
-      routingFormResponse: null,
-    })
-  ).resolves.toStrictEqual(singleUser);
+  const result = await getLuckyUser({
+    availableUsers: [singleUser],
+    eventType: {
+      id: 1,
+      isRRWeightsEnabled: false,
+      team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+    },
+    allRRHosts: [],
+    routingFormResponse: null,
+  });
+
+  // The function should always return the single user, regardless of optimization
+  expect(result).toStrictEqual(singleUser);
 
   // Ensure no unnecessary data fetching occurred
   expect(spyCalendar).not.toHaveBeenCalled();

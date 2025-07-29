@@ -509,9 +509,9 @@ export async function getLuckyUser<
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
   // Early return if only one available user to avoid unnecessary data fetching
-  // if (getLuckyUserParams.availableUsers.length === 1) {
-  //   return getLuckyUserParams.availableUsers[0];
-  // }
+  if (getLuckyUserParams.availableUsers.length === 1) {
+    return getLuckyUserParams.availableUsers[0];
+  }
   const {
     bookingsOfAvailableUsersOfInterval,
     bookingsOfNotAvailableUsersOfInterval,
@@ -571,9 +571,9 @@ export function getLuckyUser_requiresDataToBePreFetched<
   } = getLuckyUserParams;
 
   // Early return if only one user is available
-  // if (availableUsers.length === 1) {
-  //   return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
-  // }
+  if (availableUsers.length === 1) {
+    return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
+  }
 
   let usersAndTheirBookingShortfalls: {
     id: number;
@@ -631,25 +631,20 @@ async function fetchAllDataNeededForCalculations<
     weight?: number | null;
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
-  if (getLuckyUserParams.availableUsers.length === 1) {
-    // Return empty data for all expected return values, or minimal data for the single user
-    return {
-      bookingsOfAvailableUsersOfInterval: [],
-      bookingsOfNotAvailableUsersOfInterval: [],
-      allRRHostsBookingsOfInterval: [],
-      allRRHostsCreatedInInterval: [],
-      organizersWithLastCreated: [],
-      attributeWeights: [],
-      virtualQueuesData: null,
-      oooData: [],
-    };
-  }
-  // Fallback: If this line is ever reached with a single user, throw a clear error
-  if (getLuckyUserParams.availableUsers.length === 1) {
-    throw new Error(
-      "fetchAllDataNeededForCalculations: Early return for single user missing. This should never happen."
-    );
-  }
+  // if (getLuckyUserParams.availableUsers.length === 1) {
+  //   // Return empty data for all expected return values, or minimal data for the single user
+  //   return {
+  //     bookingsOfAvailableUsersOfInterval: [],
+  //     bookingsOfNotAvailableUsersOfInterval: [],
+  //     allRRHostsBookingsOfInterval: [],
+  //     allRRHostsCreatedInInterval: [],
+  //     organizersWithLastCreated: [],
+  //     attributeWeights: [],
+  //     virtualQueuesData: null,
+  //     oooData: [],
+  //   };
+  // }
+
   const startTime = performance.now();
 
   const { availableUsers, allRRHosts, eventType, meetingStartTime } = getLuckyUserParams;
