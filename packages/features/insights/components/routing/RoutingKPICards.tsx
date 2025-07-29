@@ -1,3 +1,5 @@
+"use client";
+
 import { Grid } from "@tremor/react";
 import { Flex, Text, Metric } from "@tremor/react";
 

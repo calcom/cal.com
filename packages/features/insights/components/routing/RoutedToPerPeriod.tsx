@@ -1,3 +1,5 @@
+"use client";
+
 import type { TFunction } from "i18next";
 import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";

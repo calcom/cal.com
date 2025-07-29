@@ -1,3 +1,5 @@
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
