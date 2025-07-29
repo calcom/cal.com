@@ -800,7 +800,7 @@ describe("EventsInsights", () => {
 
     describe("Month View", () => {
       it("should format month without year when wholeStart and wholeEnd are same year", () => {
-        const result = EventsInsights.formatPeriod({
+        const result = formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-01-31"),
           timeView: "month",
@@ -811,7 +811,7 @@ describe("EventsInsights", () => {
       });
 
       it("should format month with year when wholeStart and wholeEnd are different years", () => {
-        const result = EventsInsights.formatPeriod({
+        const result = formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-01-31"),
           timeView: "month",
@@ -824,7 +824,7 @@ describe("EventsInsights", () => {
 
     describe("Year View", () => {
       it("should format year regardless of wholeStart and wholeEnd values", () => {
-        const resultWithSameYear = EventsInsights.formatPeriod({
+        const resultWithSameYear = formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-12-31"),
           timeView: "year",
@@ -833,7 +833,7 @@ describe("EventsInsights", () => {
         });
         expect(resultWithSameYear).toBe("2024");
 
-        const resultWithDifferentYears = EventsInsights.formatPeriod({
+        const resultWithDifferentYears = formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-12-31"),
           timeView: "year",
@@ -846,7 +846,7 @@ describe("EventsInsights", () => {
 
     describe("Invalid View", () => {
       it("should return empty string for invalid timeView", () => {
-        const result = EventsInsights.formatPeriod({
+        const result = formatPeriod({
           start: dayjs("2024-01-01"),
           end: dayjs("2024-01-01"),
           timeView: "invalid" as any,
