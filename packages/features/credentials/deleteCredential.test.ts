@@ -8,7 +8,7 @@ import { describe, test, expect, beforeEach } from "vitest";
 import { AppRepository } from "@calcom/lib/server/repository/app";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 

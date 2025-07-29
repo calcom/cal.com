@@ -68,6 +68,7 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -378,6 +379,7 @@ export type PlatformParams = {
 };
 
 export type BookingHandlerInput = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bookingData: Record<string, any>;
   userId?: number;
   // These used to come from headers but now we're passing them as params
@@ -597,6 +599,7 @@ async function handler(
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+  const crmRecordId: string | undefined = reqBody.crmRecordId ?? undefined;
 
   let routingFormResponse = null;
 
@@ -1127,6 +1130,8 @@ async function handler(
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
+      disableRescheduling: eventType.disableRescheduling ?? false,
+      disableCancelling: eventType.disableCancelling ?? false,
     })
     .withOrganizer({
       id: organizerUser.id,
@@ -1397,6 +1402,7 @@ async function handler(
             teamMemberEmail: contactOwnerEmail,
             recordType: reqBody.crmOwnerRecordType,
             routingFormResponseId,
+            recordId: crmRecordId,
           });
         } else if (routingFormResponseId && teamId) {
           assignmentReason = await AssignmentReasonRecorder.routingFormRoute({
@@ -2112,15 +2118,20 @@ async function handler(
   }
 
   try {
+    const hashedLinkService = new HashedLinkService();
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await prisma.hashedLink.delete({
-        where: {
-          link: reqBody.hashedLink as string,
-        },
-      });
+      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
+
+    // Handle repository errors and convert to HttpErrors
+    if (error instanceof Error) {
+      throw new HttpError({ statusCode: 410, message: error.message });
+    }
+
+    // For unexpected errors, provide a generic message
+    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });

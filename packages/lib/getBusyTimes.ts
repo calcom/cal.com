@@ -192,6 +192,9 @@ const _getBusyTimes = async (params: {
         endConnectedCalendarsGet - startConnectedCalendarsGet
       } ms for user ${username}`,
       JSON.stringify({
+        eventTypeId,
+        startTimeDate,
+        endTimeDate,
         calendarBusyTimes,
       })
     );
