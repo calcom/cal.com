@@ -9,8 +9,8 @@ import {
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { getInsightsBookingService } from "@calcom/lib/di/containers/insights-booking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
-import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -312,50 +312,49 @@ export interface IResultTeamList {
 
 const BATCH_SIZE = 1000; // Adjust based on your needs
 
-/**
- * Helper function to create InsightsBookingService with standardized parameters
- */
-function createInsightsBookingService(
-  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
-  input: z.infer<typeof bookingRepositoryBaseInputSchema>,
-  dateTarget: "createdAt" | "startTime" = "createdAt"
-) {
-  const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate } = input;
-
-  return new InsightsBookingService({
-    prisma: ctx.insightsDb,
-    options: {
-      scope,
-      userId: ctx.user.id,
-      orgId: ctx.user.organizationId ?? 0,
-      ...(selectedTeamId && { teamId: selectedTeamId }),
-    },
-    filters: {
-      ...(eventTypeId && { eventTypeId }),
-      ...(memberUserId && { memberUserId }),
-      dateRange: {
-        target: dateTarget,
-        startDate,
-        endDate,
-      },
-    },
-  });
-}
 export const insightsRouter = router({
   bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const currentPeriodService = createInsightsBookingService(ctx, input);
+      const currentPeriodService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       // Get current period stats
       const currentStats = await currentPeriodService.getBookingStats();
 
       // Calculate previous period dates and create service for previous period
       const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
-      const previousPeriodService = createInsightsBookingService(ctx, {
-        ...input,
-        startDate: previousPeriodDates.startDate,
-        endDate: previousPeriodDates.endDate,
+      const previousPeriodService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: previousPeriodDates.startDate,
+            endDate: previousPeriodDates.endDate,
+          },
+        },
       });
 
       // Get previous period stats
@@ -457,7 +456,23 @@ export const insightsRouter = router({
         weekStart: ctx.user.weekStart,
       });
 
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
       try {
         return await insightsBookingService.getEventTrendsStats({
           timeZone,
@@ -470,7 +485,23 @@ export const insightsRouter = router({
   popularEvents: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getPopularEventsStats();
@@ -483,7 +514,23 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, timeZone } = input;
 
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         const timeView = getTimeView(startDate, endDate);
@@ -537,7 +584,23 @@ export const insightsRouter = router({
   membersWithMostCancelledBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
@@ -548,7 +611,23 @@ export const insightsRouter = router({
   membersWithMostBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
@@ -559,7 +638,23 @@ export const insightsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
@@ -749,13 +844,45 @@ export const insightsRouter = router({
   recentRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
       return await insightsBookingService.getRecentRatingsStats();
     }),
   membersWithMostNoShow: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ input, ctx }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getMembersStatsWithCount("noShow", "DESC");
@@ -766,13 +893,45 @@ export const insightsRouter = router({
   membersWithHighestRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
       return await insightsBookingService.getMembersRatingStats("DESC");
     }),
   membersWithLowestRatings: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
       return await insightsBookingService.getMembersRatingStats("ASC");
     }),
   rawData: userBelongsToTeamProcedure
@@ -785,7 +944,23 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { limit, offset } = input;
 
-      const insightsBookingService = createInsightsBookingService(ctx, input);
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "createdAt",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getCsvData({
@@ -1025,7 +1200,23 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { timeZone } = input;
-      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+      const insightsBookingService = getInsightsBookingService({
+        options: {
+          scope: input.scope,
+          userId: ctx.user.id,
+          orgId: ctx.user.organizationId ?? 0,
+          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
+        },
+        filters: {
+          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
+          ...(input.memberUserId && { memberUserId: input.memberUserId }),
+          dateRange: {
+            target: "startTime",
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        },
+      });
 
       try {
         return await insightsBookingService.getBookingsByHourStats({

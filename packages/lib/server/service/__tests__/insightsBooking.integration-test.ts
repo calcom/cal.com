@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsBookingService } from "../../service/insightsBooking";
+import { InsightsBookingBaseService } from "../insightsBookingBase";
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 
@@ -201,7 +201,7 @@ async function createTestData({
 describe("InsightsBookingService Integration Tests", () => {
   describe("Authorization Conditions", () => {
     it("should return NOTHING for invalid options", async () => {
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: null as any,
       });
@@ -232,7 +232,7 @@ describe("InsightsBookingService Integration Tests", () => {
         },
       });
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "org",
@@ -260,7 +260,7 @@ describe("InsightsBookingService Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "user",
@@ -281,7 +281,7 @@ describe("InsightsBookingService Integration Tests", () => {
         orgRole: MembershipRole.OWNER,
       });
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "team",
@@ -318,7 +318,7 @@ describe("InsightsBookingService Integration Tests", () => {
       const team2 = testData.additionalTeams[0]; // First additional team
       const team3 = testData.additionalTeams[1]; // Second additional team
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "org",
@@ -350,7 +350,7 @@ describe("InsightsBookingService Integration Tests", () => {
     it("should return null when no filters are provided", async () => {
       const testData = await createTestData();
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "user",
@@ -368,7 +368,7 @@ describe("InsightsBookingService Integration Tests", () => {
     it("should build eventTypeId filter conditions", async () => {
       const testData = await createTestData();
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "user",
@@ -391,7 +391,7 @@ describe("InsightsBookingService Integration Tests", () => {
     it("should build memberUserId filter conditions", async () => {
       const testData = await createTestData();
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "user",
@@ -412,7 +412,7 @@ describe("InsightsBookingService Integration Tests", () => {
     it("should combine multiple filter conditions", async () => {
       const testData = await createTestData();
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "user",
@@ -465,7 +465,7 @@ describe("InsightsBookingService Integration Tests", () => {
         },
       });
 
-      const service = new InsightsBookingService({
+      const service = new InsightsBookingBaseService({
         prisma,
         options: {
           scope: "user",
