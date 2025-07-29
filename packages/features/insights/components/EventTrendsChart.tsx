@@ -1,4 +1,6 @@
+import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
@@ -7,22 +9,24 @@ import { ChartCard } from "./ChartCard";
 import { LineChart } from "./LineChart";
 import { LoadingInsight } from "./LoadingInsights";
 
-export const BookingStatusLineChart = () => {
+export const EventTrendsChart = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { scope, selectedTeamId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+  const { timeZone } = useDataTable();
 
   const {
-    data: eventsTimeLine,
+    data: eventTrends,
     isSuccess,
     isPending,
-  } = trpc.viewer.insights.eventsTimeline.useQuery(
+  } = trpc.viewer.insights.eventTrends.useQuery(
     {
+      scope,
+      selectedTeamId,
       startDate,
       endDate,
-      teamId,
+      timeZone: timeZone || CURRENT_TIMEZONE,
       eventTypeId,
-      userId,
-      isAll,
+      memberUserId,
     },
     {
       staleTime: 30000,
@@ -40,7 +44,7 @@ export const BookingStatusLineChart = () => {
     <ChartCard title={t("event_trends")}>
       <LineChart
         className="linechart ml-4 mt-4 h-80 sm:ml-0"
-        data={eventsTimeLine ?? []}
+        data={eventTrends ?? []}
         categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)", "No-Show (Guest)"]}
         index="Month"
         colors={["purple", "green", "blue", "red", "slate", "orange"]}

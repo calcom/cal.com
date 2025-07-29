@@ -71,6 +71,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       create: {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
       },
     };
@@ -89,7 +93,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     if (
       !isSystemAdmin &&
-      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
+      !isOrgAdmin &&
+      (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))
     ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
