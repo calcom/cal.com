@@ -25,7 +25,6 @@ export default function PayPalSetup() {
       router.push("/event-types");
     },
     onError: (error) => {
-      console.log(error);
       showToast(error.message, "error");
     },
   });
