@@ -150,7 +150,7 @@ export const insightsRouter = router({
 Add your new method to the `InsightsBookingBaseService` class:
 
 ```typescript
-// packages/lib/server/service/insightsBookingBase.ts
+// packages/lib/server/service/InsightsBookingBaseService.ts
 export class InsightsBookingBaseService {
   // ... existing methods
 

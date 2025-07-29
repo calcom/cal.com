@@ -1,7 +1,7 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import type { IInsightsBookingService } from "@calcom/lib/server/service/insightsBookingDI";
-import { InsightsBookingService } from "@calcom/lib/server/service/insightsBookingDI";
+import type { IInsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
+import { InsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
 
 import { DI_TOKENS } from "../tokens";
 

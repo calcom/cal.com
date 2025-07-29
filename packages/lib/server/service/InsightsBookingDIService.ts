@@ -4,7 +4,7 @@ import {
   InsightsBookingBaseService,
   type InsightsBookingServicePublicOptions,
   type InsightsBookingServiceFilterOptions,
-} from "./insightsBookingBase";
+} from "./InsightsBookingBaseService";
 
 export interface IInsightsBookingService {
   prisma: typeof readonlyPrisma;

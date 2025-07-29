@@ -5,8 +5,8 @@ import type {
   InsightsBookingServicePublicOptions,
   InsightsBookingServiceFilterOptions,
   InsightsBookingBaseService,
-} from "@calcom/lib/server/service/insightsBookingBase";
-import type { InsightsBookingService } from "@calcom/lib/server/service/insightsBookingDI";
+} from "@calcom/lib/server/service/InsightsBookingBaseService";
+import type { InsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import { insightsBookingModule } from "../modules/insights-booking";
