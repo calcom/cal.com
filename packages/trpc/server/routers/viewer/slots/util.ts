@@ -103,6 +103,35 @@ export interface IAvailableSlotsService {
   redisClient: IRedisService;
 }
 
+async function getWithTimeout<TData>(
+  fn: (key: string, opts: { signal: AbortSignal }) => Promise<TData | null>,
+  key: string,
+  timeout: number
+): Promise<{ data: TData | null; success: boolean }> {
+  const startTime = process.hrtime();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  return await fn(key, { signal: controller.signal })
+    .then((data) => {
+      return { data, success: true };
+    })
+    .catch((err: unknown) => {
+      if (err instanceof Error && err.name === "AbortError") {
+        const endTime = process.hrtime(startTime);
+        const elapsedTime = endTime[0] * 1000 + endTime[1] / 1e6; // Convert to milliseconds
+        console.warn("[FAIL] Cache request timed out", { timeout, elapsedTime });
+      } else {
+        console.error("[FAIL] Cache request failed", { error: err, key });
+        throw err;
+      }
+      return { data: null, success: false };
+    })
+    .finally(() => {
+      clearTimeout(timeoutId);
+    });
+}
+
 function withSlotsCache(
   redisClient: IRedisService,
   func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>,
@@ -110,7 +139,15 @@ function withSlotsCache(
 ) {
   return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
     const cacheKey = `${ts}:${JSON.stringify(args.input)}`;
-    const cachedResult = await redisClient.get<IGetAvailableSlots>(cacheKey);
+    const { data: cachedResult, success } = await getWithTimeout<IGetAvailableSlots>(
+      redisClient.get.bind(redisClient),
+      cacheKey,
+      2000
+    );
+    if (!success) {
+      // If the cache request fails, we proceed to call the function directly
+      return await func(args);
+    }
     if (cachedResult) {
       log.info("[CACHE HIT] Available slots", { cacheKey });
       return cachedResult;

@@ -10,7 +10,7 @@ export class RedisService implements IRedisService {
   }
 
   async get<TData>(key: string): Promise<TData | null> {
-    return this.redis.get(key);
+    return await this.redis.get(key);
   }
 
   async del(key: string): Promise<number> {
