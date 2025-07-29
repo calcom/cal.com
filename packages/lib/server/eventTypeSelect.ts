@@ -19,6 +19,11 @@ export const eventTypeSelect = {
   autoTranslateDescriptionEnabled: true,
   position: true,
   offsetStart: true,
+  owner: {
+    select: {
+      timeZone: true,
+    },
+  },
   profileId: true,
   eventName: true,
   parentId: true,

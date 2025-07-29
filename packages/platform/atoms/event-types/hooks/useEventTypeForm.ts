@@ -73,7 +73,11 @@ export const useEventTypeForm = ({
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      multiplePrivateLinks: eventType.hashedLink.map((link) => link.link),
+      multiplePrivateLinks: eventType.hashedLink.map((link) => ({
+        link: link.link,
+        expiresAt: link.expiresAt,
+        maxUsageCount: link.maxUsageCount,
+      })),
       eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
@@ -196,16 +200,6 @@ export const useEventTypeForm = ({
 
   // Watch all form values to trigger onFormStateChange on any change
   const watchedValues = form.watch();
-
-  useEffect(() => {
-    if (onFormStateChange) {
-      onFormStateChange({
-        isDirty: isFormDirty,
-        dirtyFields: dirtyFields as Partial<FormValues>,
-        values: watchedValues,
-      });
-    }
-  }, [isFormDirty, watchedValues, onFormStateChange]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -421,6 +415,16 @@ export const useEventTypeForm = ({
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };
+
+  useEffect(() => {
+    if (onFormStateChange) {
+      onFormStateChange({
+        isDirty: isFormDirty,
+        dirtyFields: dirtyFields as Partial<FormValues>,
+        values: watchedValues,
+      });
+    }
+  }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
 
   return { form, handleSubmit };
 };

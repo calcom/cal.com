@@ -19,6 +19,17 @@ import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
+
+const hashedLinkSelect = {
+  select: {
+    id: true,
+    link: true,
+    expiresAt: true,
+    maxUsageCount: true,
+    usageCount: true,
+  },
+};
+
 type NotSupportedProps = "locations";
 type IEventType = Ensure<
   Partial<
@@ -50,6 +61,7 @@ const userSelect = {
   avatarUrl: true,
   username: true,
   id: true,
+  timeZone: true,
 } satisfies Prisma.UserSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
@@ -159,7 +171,7 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
       users: { select: userSelect },
       children: {
         include: {
@@ -169,6 +181,21 @@ export class EventTypeRepository {
       hosts: {
         include: {
           user: { select: userSelect },
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
         },
       },
     };
@@ -274,7 +301,7 @@ export class EventTypeRepository {
     const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
     };
 
     log.debug(
@@ -381,11 +408,12 @@ export class EventTypeRepository {
       avatarUrl: true,
       username: true,
       id: true,
+      timeZone: true,
     } satisfies Prisma.UserSelect;
 
     const select = {
       ...eventTypeSelect,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
       users: { select: userSelect, take: 5 },
       children: {
         include: {
@@ -397,6 +425,21 @@ export class EventTypeRepository {
           user: { select: userSelect },
         },
         take: 5,
+      },
+      team: {
+        select: {
+          id: true,
+          members: {
+            select: {
+              user: {
+                select: {
+                  timeZone: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
       },
     };
 
@@ -478,6 +521,7 @@ export class EventTypeRepository {
       locale: true,
       defaultScheduleId: true,
       isPlatformManaged: true,
+      timeZone: true,
     } satisfies Prisma.UserSelect;
 
     const CompleteEventTypeSelect = {
@@ -528,7 +572,7 @@ export class EventTypeRepository {
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
-      hashedLink: true,
+      hashedLink: hashedLinkSelect,
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
@@ -552,6 +596,7 @@ export class EventTypeRepository {
       owner: {
         select: {
           id: true,
+          timeZone: true,
         },
       },
       parent: {
@@ -627,6 +672,11 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
         },
       },
       userId: true,
@@ -743,6 +793,282 @@ export class EventTypeRepository {
           },
           {
             id,
+          },
+        ],
+      },
+      select: CompleteEventTypeSelect,
+    });
+  }
+
+  async findByIdForOrgAdmin({ id, organizationId }: { id: number; organizationId: number }) {
+    const userSelect = {
+      name: true,
+      avatarUrl: true,
+      username: true,
+      id: true,
+      email: true,
+      locale: true,
+      defaultScheduleId: true,
+      isPlatformManaged: true,
+      timeZone: true,
+    } satisfies Prisma.UserSelect;
+
+    const CompleteEventTypeSelect = {
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      interfaceLanguage: true,
+      length: true,
+      isInstantEvent: true,
+      instantMeetingExpiryTimeOffsetInSeconds: true,
+      instantMeetingParameters: true,
+      aiPhoneCallConfig: true,
+      offsetStart: true,
+      hidden: true,
+      locations: true,
+      eventName: true,
+      customInputs: true,
+      timeZone: true,
+      periodType: true,
+      metadata: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      lockTimeZoneToggleOnBookingPage: true,
+      requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
+      canSendCalVideoTranscriptionEmails: true,
+      requiresConfirmationWillBlockSlot: true,
+      requiresBookerEmailVerification: true,
+      autoTranslateDescriptionEnabled: true,
+      fieldTranslations: {
+        select: {
+          translatedText: true,
+          targetLocale: true,
+          field: true,
+        },
+      },
+      recurringEvent: true,
+      hideCalendarNotes: true,
+      hideCalendarEventDetails: true,
+      disableGuests: true,
+      disableCancelling: true,
+      disableRescheduling: true,
+      allowReschedulingCancelledBookings: true,
+      minimumBookingNotice: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
+      slotInterval: true,
+      hashedLink: hashedLinkSelect,
+      eventTypeColor: true,
+      bookingLimits: true,
+      onlyShowFirstAvailableSlot: true,
+      durationLimits: true,
+      maxActiveBookingsPerBooker: true,
+      maxActiveBookingPerBookerOfferReschedule: true,
+      assignAllTeamMembers: true,
+      allowReschedulingPastBookings: true,
+      hideOrganizerEmail: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
+      isRRWeightsEnabled: true,
+      rescheduleWithSameRoundRobinHost: true,
+      successRedirectUrl: true,
+      forwardParamsSuccessRedirect: true,
+      currency: true,
+      bookingFields: true,
+      useEventTypeDestinationCalendarEmail: true,
+      customReplyToEmail: true,
+      owner: {
+        select: {
+          id: true,
+          timeZone: true,
+        },
+      },
+      parent: {
+        select: {
+          id: true,
+          teamId: true,
+        },
+      },
+      teamId: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          parentId: true,
+          rrTimestampBasis: true,
+          parent: {
+            select: {
+              slug: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                },
+              },
+            },
+          },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      restrictionScheduleId: true,
+      useBookerTimezone: true,
+      users: {
+        select: userSelect,
+      },
+      schedulingType: true,
+      schedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      instantMeetingSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      restrictionSchedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      hosts: {
+        select: {
+          isFixed: true,
+          userId: true,
+          priority: true,
+          weight: true,
+          scheduleId: true,
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
+        },
+      },
+      userId: true,
+      price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              avatarUrl: true,
+              name: true,
+              username: true,
+              email: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
+      destinationCalendar: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
+      webhooks: {
+        select: {
+          id: true,
+          subscriberUrl: true,
+          payloadTemplate: true,
+          active: true,
+          eventTriggers: true,
+          secret: true,
+          eventTypeId: true,
+        },
+      },
+      workflows: {
+        include: {
+          workflow: {
+            select: {
+              name: true,
+              id: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+              userId: true,
+              teamId: true,
+              team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
+      secondaryEmailId: true,
+      maxLeadThreshold: true,
+      includeNoShowInRRCalculation: true,
+      useEventLevelSelectedCalendars: true,
+      calVideoSettings: {
+        select: {
+          disableRecordingForGuests: true,
+          disableRecordingForOrganizer: true,
+          enableAutomaticTranscription: true,
+          enableAutomaticRecordingForOrganizer: true,
+          disableTranscriptionForGuests: true,
+          disableTranscriptionForOrganizer: true,
+          redirectUrlOnExit: true,
+        },
+      },
+    } satisfies Prisma.EventTypeSelect;
+
+    const orgUserEventTypeQuery = {
+      AND: [{ userId: { not: null } }, { owner: { profiles: { some: { organizationId } } } }],
+    };
+    const orgTeamEventTypeQuery = {
+      AND: [{ teamId: { not: null } }, { team: { parentId: organizationId } }],
+    };
+
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        AND: [
+          { id },
+          {
+            OR: [orgUserEventTypeQuery, orgTeamEventTypeQuery],
           },
         ],
       },

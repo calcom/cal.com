@@ -1,35 +1,13 @@
-import type { Prisma } from "@prisma/client";
-
 import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
-type WhereCondition = {
-  slotUtcStartDate?: Date | string;
-  slotUtcEndDate?: Date | string;
-  eventTypeId?: number;
-  uid?: string | { not: string };
-  releaseAt?: { gt: Date };
-};
+import type { ISelectedSlotRepository } from "./ISelectedSlotRepository";
+import type { TimeSlot } from "./ISelectedSlotRepository";
 
-export type FindManyArgs = {
-  where?: WhereCondition & {
-    OR?: WhereCondition[];
-  };
-  select?: Prisma.SelectedSlotsSelect;
-};
-
-export type TimeSlot = {
-  utcStartIso: string;
-  utcEndIso: string;
-};
-
-export class SelectedSlotsRepository {
+export class PrismaSelectedSlotRepository implements ISelectedSlotRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async findMany({ where, select }: FindManyArgs) {
-    return await this.prismaClient.selectedSlots.findMany({ where, select });
-  }
-
-  async findFirst({ where }: { where: Prisma.SelectedSlotsWhereInput }) {
+  private async findFirst({ where }: { where: Prisma.SelectedSlotsWhereInput }) {
     return await this.prismaClient.selectedSlots.findFirst({
       where,
     });
@@ -56,7 +34,7 @@ export class SelectedSlotsRepository {
   }
 
   async findManyReservedByOthers(slots: TimeSlot[], eventTypeId: number, uid: string) {
-    return await this.findMany({
+    return await this.prismaClient.selectedSlots.findMany({
       where: {
         OR: slots.map((slot) => ({
           slotUtcStartDate: slot.utcStartIso,
