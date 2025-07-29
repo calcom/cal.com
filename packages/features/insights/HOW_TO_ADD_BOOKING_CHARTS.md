@@ -103,7 +103,7 @@ export default function InsightsPage() {
 
 ## Step 4: Create tRPC Handler
 
-Add the tRPC endpoint in the insights router using the `getInsightsBookingService()` DI container:
+Add the tRPC endpoint in the insights router using the `getInsightsBookingService()` DI container function:
 
 ```typescript
 // packages/features/insights/server/trpc-router.ts
@@ -118,23 +118,8 @@ export const insightsRouter = router({
   myNewChartData: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsBookingService = getInsightsBookingService({
-        options: {
-          scope: input.scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
-        },
-        filters: {
-          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
-          ...(input.memberUserId && { memberUserId: input.memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        },
-      });
+      // `createInsightsBookingService` is defined at the root level in this file
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
         return await insightsBookingService.getMyNewChartData();
