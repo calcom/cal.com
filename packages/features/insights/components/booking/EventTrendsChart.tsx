@@ -1,13 +1,74 @@
 "use client";
 
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { valueFormatter } from "../../lib/valueFormatter";
 import { ChartCard } from "../ChartCard";
-import { LineChart } from "../LineChart";
 import { LoadingInsight } from "../LoadingInsights";
+
+const COLOR = {
+  CREATED: "#a855f7",
+  COMPLETED: "#22c55e",
+  RESCHEDULED: "#3b82f6",
+  CANCELLED: "#ef4444",
+  NO_SHOW_HOST: "#64748b",
+  NO_SHOW_GUEST: "#f97316",
+};
+
+export const legend = [
+  { label: "Created", color: COLOR.CREATED },
+  { label: "Completed", color: COLOR.COMPLETED },
+  { label: "Rescheduled", color: COLOR.RESCHEDULED },
+  { label: "Cancelled", color: COLOR.CANCELLED },
+  { label: "No-Show (Host)", color: COLOR.NO_SHOW_HOST },
+  { label: "No-Show (Guest)", color: COLOR.NO_SHOW_GUEST },
+];
+
+interface EventTrendsData {
+  Month: string;
+  Created: number;
+  Completed: number;
+  Rescheduled: number;
+  Cancelled: number;
+  "No-Show (Host)": number;
+  "No-Show (Guest)": number;
+}
+
+// Custom Tooltip component
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{
+    value: number;
+    dataKey: string;
+    name: string;
+    color: string;
+    payload: EventTrendsData;
+  }>;
+  label?: string;
+}) => {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div className="bg-default text-inverted border-subtle rounded-lg border p-3 shadow-lg">
+      <p className="text-default font-medium">{label}</p>
+      {payload.map((entry, index: number) => (
+        <p key={index} style={{ color: entry.color }}>
+          {entry.name}: {valueFormatter ? valueFormatter(entry.value) : entry.value}
+        </p>
+      ))}
+    </div>
+  );
+};
 
 export const EventTrendsChart = () => {
   const { t } = useLocale();
@@ -29,16 +90,54 @@ export const EventTrendsChart = () => {
 
   if (!isSuccess) return null;
 
+  const categories = [
+    "Created",
+    "Completed",
+    "Rescheduled",
+    "Cancelled",
+    "No-Show (Host)",
+    "No-Show (Guest)",
+  ];
+  const colors = [
+    COLOR.CREATED,
+    COLOR.COMPLETED,
+    COLOR.RESCHEDULED,
+    COLOR.CANCELLED,
+    COLOR.NO_SHOW_HOST,
+    COLOR.NO_SHOW_GUEST,
+  ];
+
   return (
-    <ChartCard title={t("event_trends")}>
-      <LineChart
-        className="linechart ml-4 mt-4 h-80 sm:ml-0"
-        data={eventTrends ?? []}
-        categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)", "No-Show (Guest)"]}
-        index="Month"
-        colors={["purple", "green", "blue", "red", "slate", "orange"]}
-        valueFormatter={valueFormatter}
-      />
+    <ChartCard title={t("event_trends")} legend={legend}>
+      <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={eventTrends ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="Month" className="text-xs" axisLine={false} tickLine={false} />
+            <YAxis
+              allowDecimals={false}
+              className="text-xs opacity-50"
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={valueFormatter}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            {categories.map((category, idx) => (
+              <Line
+                key={category}
+                type="linear"
+                dataKey={category}
+                name={category}
+                stroke={colors[idx]}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                animationDuration={1000}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </ChartCard>
   );
 };

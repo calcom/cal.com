@@ -80,13 +80,13 @@ function Legend({ items, size = "default" }: { items: LegendItem[]; size?: Legen
       {items.map((item, index) => (
         <Fragment key={item.label}>
           <div
-            className="relative flex items-center gap-2 rounded-md px-1.5 py-1"
+            className="relative flex items-center gap-2 rounded-md px-1.5 py-0.5"
             style={{ backgroundColor: `${item.color}33` }}>
             <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
             <Tooltip content={item.label}>
               <p
                 className={classNames(
-                  "text-default truncate text-sm font-medium leading-none",
+                  "text-default truncate py-0.5 text-sm font-medium leading-none",
                   size === "sm" ? "w-16" : ""
                 )}>
                 {item.label}
