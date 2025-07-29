@@ -201,6 +201,7 @@ export type LocationObject = {
   address?: string;
   displayLocationPublicly?: boolean;
   credentialId?: number;
+  customLabel?: string;
 } & Partial<
   Record<
     "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
@@ -458,6 +459,11 @@ export const getTranslatedLocation = (
   t: TFunction
 ) => {
   if (!eventLocationType) return null;
+
+  if (location.customLabel && location.customLabel.trim()) {
+    return location.customLabel;
+  }
+
   const locationKey = z.string().default("").parse(locationKeyToString(location));
   const translatedLocation = location.type.startsWith("integrations:")
     ? eventLocationType.label

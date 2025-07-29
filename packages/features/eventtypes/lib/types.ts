@@ -51,6 +51,7 @@ type EventLocation = {
   hostDefault?: string;
   credentialId?: number;
   teamName?: string;
+  customLabel?: string;
 };
 
 type PhoneCallConfig = {

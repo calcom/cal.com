@@ -15,7 +15,6 @@ import type {
   CheckboxClassNames,
   FormValues,
 } from "@calcom/features/eventtypes/lib/types";
-import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type {
   LocationSelectCustomClassNames,
   SingleValueLocationOption,
@@ -27,9 +26,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
+import { CheckboxField } from "@calcom/ui/components/form";
+import { SettingsToggle, Input, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -521,6 +519,34 @@ const Locations: React.FC<LocationsProps> = ({
                       }}
                       informationIconText={t("display_location_info_badge")}
                     />
+                  </div>
+                </div>
+              )}
+              {(field.type === "conferencing" || field.type === "link") && (
+                <div className="mt-2 space-y-2">
+                  <div className="w-full">
+                    <div className="flex gap-2">
+                      <div className="flex items-center justify-center">
+                        <Icon name="tags" className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1">
+                        <TextField
+                          label={t("custom_location_label")}
+                          placeholder={t("custom_location_label_placeholder")}
+                          value={field.customLabel || ""}
+                          onChange={(e) => {
+                            const fieldValues = getValues("locations")[index];
+                            updateLocationField(index, {
+                              ...fieldValues,
+                              customLabel: e.target.value || undefined,
+                            });
+                          }}
+                          disabled={disableLocationProp}
+                          data-testid={`custom-label-${index}`}
+                        />
+                        <p className="text-subtle mt-1 text-sm">{t("custom_location_label_description")}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
