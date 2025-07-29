@@ -9476,48 +9476,6 @@
         ]
       }
     },
-    "/v2/event-types/user": {
-      "get": {
-        "operationId": "EventTypesController_2024_06_14_getEventTypesForUser",
-        "summary": "Get all event types belonging to the authenticated user",
-        "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2024-06-14",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2024-06-14"
-            }
-          },
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetEventTypesOutput_2024_06_14"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event Types"
-        ]
-      }
-    },
     "/v2/event-types/{eventTypeId}": {
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypeById",
@@ -17720,29 +17678,6 @@
           "data"
         ]
       },
-      "GetEventTypesOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "enum": [
-              "success",
-              "error"
-            ],
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "GetEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -17761,6 +17696,29 @@
                 "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
               }
             ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetEventTypesOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success",
+              "error"
+            ],
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+            }
           }
         },
         "required": [
