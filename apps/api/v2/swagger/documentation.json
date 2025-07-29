@@ -8510,7 +8510,7 @@
         ]
       }
     },
-    "/v2/calendars/{calendar}/event/{eventUid}": {
+    "/v2/calendars/{calendar}/events/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
         "summary": "Get meeting details from calendar",
