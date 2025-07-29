@@ -72,7 +72,8 @@ export class RedisService implements OnModuleDestroy {
     }
     try {
       return this.redis.del(key);
-    } catch {
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis del failed: ${err.message}`);
       return 0;
     }
   }
