@@ -7,7 +7,7 @@ import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsRoutingService } from "../../service/insightsRouting";
+import { InsightsRoutingBaseService as InsightsRoutingService } from "../../service/insightsRoutingBase";
 
 // SQL condition constants for testing
 const NOTHING_CONDITION = Prisma.sql`1=0`;
@@ -554,7 +554,7 @@ describe("InsightsRoutingService Integration Tests", () => {
 
       const results = await service.getBaseConditions();
       expect(results).toEqual(
-        Prisma.sql`("formUserId" = ${testData.user.id} AND "formTeamId" IS NULL) AND (${dateCondition})`
+        Prisma.sql`(("formUserId" = ${testData.user.id} AND "formTeamId" IS NULL) AND (${dateCondition}))`
       );
 
       await testData.cleanup();

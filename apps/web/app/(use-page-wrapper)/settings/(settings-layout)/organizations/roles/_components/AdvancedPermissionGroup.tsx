@@ -54,6 +54,12 @@ export function AdvancedPermissionGroup({
     }
   };
 
+  const handleCheckedChange = (checked: boolean | string) => {
+    if (!disabled) {
+      onChange(toggleResourcePermissionLevel(resource, checked ? "all" : "none", selectedPermissions));
+    }
+  };
+
   // Helper function to check if read permission is auto-enabled
   const isReadAutoEnabled = (action: string) => {
     if (action === CrudAction.Read) return false;
@@ -68,25 +74,38 @@ export function AdvancedPermissionGroup({
       <button
         type="button"
         className="flex cursor-pointer items-center justify-between gap-1.5 p-4"
-        onClick={() => setIsExpanded(!isExpanded)}>
-        <Icon
-          name={isAllResources ? "chevron-right" : "chevron-down"}
-          className={classNames(
-            "h-4 w-4 transition-transform",
-            isExpanded && !isAllResources ? "rotate-180" : ""
-          )}
-        />
+        onClick={(e) => {
+          // Only toggle expansion if clicking on the button itself, not child elements
+          if (e.target === e.currentTarget) {
+            setIsExpanded(!isExpanded);
+          }
+        }}>
+        <div className="flex items-center gap-1.5" onClick={() => setIsExpanded(!isExpanded)}>
+          <Icon
+            name="chevron-right"
+            className={classNames(
+              "h-4 w-4 transition-transform",
+              isExpanded && !isAllResources ? "rotate-90" : ""
+            )}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <Checkbox
             checked={isAllSelected}
-            onCheckedChange={() => handleToggleAll}
+            onCheckedChange={handleCheckedChange}
             onClick={handleToggleAll}
             disabled={disabled}
           />
-          <span className="text-default text-sm font-medium leading-none">
+          <span
+            className="text-default cursor-pointer text-sm font-medium leading-none"
+            onClick={() => setIsExpanded(!isExpanded)}>
             {t(resourceConfig._resource?.i18nKey || "")}
           </span>
-          <span className="text-muted text-sm font-medium leading-none">{t("all_permissions")}</span>
+          <span
+            className="text-muted cursor-pointer text-sm font-medium leading-none"
+            onClick={() => setIsExpanded(!isExpanded)}>
+            {t("all_permissions")}
+          </span>
         </div>
       </button>
       {isExpanded && !isAllResources && (

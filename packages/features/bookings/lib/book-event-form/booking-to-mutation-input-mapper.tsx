@@ -27,6 +27,7 @@ export type BookingOptions = {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   orgSlug?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
   isDryRunProp?: boolean;
@@ -49,6 +50,7 @@ export const mapBookingToMutationInput = ({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  crmRecordId,
   orgSlug,
   routingFormSearchParams,
   isDryRunProp,
@@ -86,6 +88,7 @@ export const mapBookingToMutationInput = ({
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
+    crmRecordId,
     orgSlug,
     routedTeamMemberIds,
     routingFormResponseId,

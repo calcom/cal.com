@@ -2519,7 +2519,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.258"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.268"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3566,13 +3566,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.258":
-  version: 0.0.258
-  resolution: "@calcom/platform-libraries@npm:0.0.258"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.268":
+  version: 0.0.268
+  resolution: "@calcom/platform-libraries@npm:0.0.268"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: ca522eee904921d4a2f285ba6ed195118a6d68c76fb454d826574d1f5487e8d3d7e41915c968ad0eff6bb01730578ee414069684c7a395b0c19b910f136bffb7
+  checksum: d361c067dd33e3807c3ba965b3582eadaeec2ef1e2a3114c68e0c2ab1d7149fcca2c72ce00f8f3f341bdf3caeca578898d3345d8615c58da3a66e541e62d2ca5
   languageName: node
   linkType: hard
 
@@ -4060,6 +4060,7 @@ __metadata:
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
     "@tanstack/react-query": ^5.17.15
+    "@team-plain/typescript-sdk": ^5.9.0
     "@testing-library/react": ^13.3.0
     "@tremor/react": ^2.11.0
     "@types/accept-language-parser": 1.5.2
@@ -16749,6 +16750,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@team-plain/typescript-sdk@npm:^5.9.0":
+  version: 5.9.0
+  resolution: "@team-plain/typescript-sdk@npm:5.9.0"
+  dependencies:
+    "@graphql-typed-document-node/core": ^3.2.0
+    ajv: ^8.12.0
+    ajv-formats: ^2.1.1
+    graphql: ^16.6.0
+    lodash.get: ^4.4.2
+    zod: 3.22.4
+  checksum: a1eb9a7f65096d232337d081a1b56a51fc5a4cd39877debf29c0eed5ee9140aaf0f148f65681257bfe804076bff93a049d46b0cae940844c4e20e9528a6a8782
+  languageName: node
+  linkType: hard
+
 "@tediousjs/connection-string@npm:^0.5.0":
   version: 0.5.0
   resolution: "@tediousjs/connection-string@npm:0.5.0"
@@ -19869,6 +19884,18 @@ __metadata:
     require-from-string: ^2.0.2
     uri-js: ^4.2.2
   checksum: 5e0ff226806763be73e93dd7805b634f6f5921e3e90ca04acdf8db81eed9d8d3f0d4c5f1213047f45ebbf8047ffe0c840fa1ef2ec42c3a644899f69aa72b5bef
+  languageName: node
+  linkType: hard
+
+"ajv@npm:^8.12.0":
+  version: 8.17.1
+  resolution: "ajv@npm:8.17.1"
+  dependencies:
+    fast-deep-equal: ^3.1.3
+    fast-uri: ^3.0.1
+    json-schema-traverse: ^1.0.0
+    require-from-string: ^2.0.2
+  checksum: 1797bf242cfffbaf3b870d13565bd1716b73f214bb7ada9a497063aada210200da36e3ed40237285f3255acc4feeae91b1fb183625331bad27da95973f7253d9
   languageName: node
   linkType: hard
 
@@ -27225,6 +27252,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-uri@npm:^3.0.1":
+  version: 3.0.6
+  resolution: "fast-uri@npm:3.0.6"
+  checksum: 7161ba2a7944778d679ba8e5f00d6a2bb479a2142df0982f541d67be6c979b17808f7edbb0ce78161c85035974bde3fa52b5137df31da46c0828cb629ba67c4e
+  languageName: node
+  linkType: hard
+
 "fast-xml-parser@npm:4.4.1":
   version: 4.4.1
   resolution: "fast-xml-parser@npm:4.4.1"
@@ -29056,6 +29090,13 @@ __metadata:
   version: 16.5.0
   resolution: "graphql@npm:16.5.0"
   checksum: a82a926d085818934d04fdf303a269af170e79de943678bd2726370a96194f9454ade9d6d76c2de69afbd7b9f0b4f8061619baecbbddbe82125860e675ac219e
+  languageName: node
+  linkType: hard
+
+"graphql@npm:^16.6.0":
+  version: 16.11.0
+  resolution: "graphql@npm:16.11.0"
+  checksum: 65bc206edbe980f2759a8e4cf324873f75a66ab48263961472716e50127ae446739be20f926bb7f036a8d199bd4de072f684fd147c285bd6ba965d98cebb6200
   languageName: node
   linkType: hard
 
@@ -48077,7 +48118,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.20.2, zod@npm:^3.22.4":
+"zod@npm:3.22.4, zod@npm:^3.20.2, zod@npm:^3.22.4":
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
