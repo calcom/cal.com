@@ -1,7 +1,7 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { prisma } from "@calcom/prisma";
 
-export class AppRepository {
+export class PrismaAppRepository {
   static async seedApp(dirName: string, keys?: any) {
     const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
 
