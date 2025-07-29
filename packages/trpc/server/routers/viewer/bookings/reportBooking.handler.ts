@@ -23,10 +23,21 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     where: {
       id: bookingId,
     },
-    include: {
-      attendees: true,
+    select: {
+      id: true,
+      userId: true,
+      uid: true,
+      startTime: true,
+      status: true,
+      recurringEventId: true,
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
       eventType: {
-        include: {
+        select: {
+          teamId: true,
           team: {
             select: {
               id: true,
@@ -39,6 +50,9 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       reports: {
         where: {
           reportedById: user.id,
+        },
+        select: {
+          id: true,
         },
       },
     },
@@ -104,7 +118,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   }
 
   // Create reports for all relevant bookings
-  const bookingReports = await prisma.bookingReport.createMany({
+  await prisma.bookingReport.createMany({
     data: reportedBookingIds.map((id) => ({
       bookingId: id,
       reportedById: user.id,

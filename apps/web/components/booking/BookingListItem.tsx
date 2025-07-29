@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -402,8 +402,13 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
 
-  const hasBeenReported =
-    booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
+  const hasBeenReported = useMemo(() => {
+    if ("hasBeenReportedByUser" in booking && typeof booking.hasBeenReportedByUser === "number") {
+      return booking.hasBeenReportedByUser > 0;
+    }
+
+    return booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
+  }, [booking]);
 
   const createReportAction = (hasBeenReported: boolean, onClick: () => void): ActionType => {
     return hasBeenReported
