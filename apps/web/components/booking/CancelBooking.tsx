@@ -123,7 +123,6 @@ export default function CancelBooking(props: Props) {
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
 
-  // Determine if cancellation reason is required based on team settings
   const isCancellationReasonRequired = () => {
     if (!props.teamCancellationSettings) {
       return props.isHost;
