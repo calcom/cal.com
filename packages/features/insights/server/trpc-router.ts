@@ -316,7 +316,7 @@ const BATCH_SIZE = 1000; // Adjust based on your needs
  * Helper function to create InsightsBookingService with standardized parameters
  */
 function createInsightsBookingService(
-  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
   dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
@@ -345,45 +345,17 @@ export const insightsRouter = router({
   bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const currentPeriodService = getInsightsBookingService({
-        options: {
-          scope: input.scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
-        },
-        filters: {
-          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
-          ...(input.memberUserId && { memberUserId: input.memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        },
-      });
+      const currentPeriodService = createInsightsBookingService(ctx, input);
 
       // Get current period stats
       const currentStats = await currentPeriodService.getBookingStats();
 
       // Calculate previous period dates and create service for previous period
       const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
-      const previousPeriodService = getInsightsBookingService({
-        options: {
-          scope: input.scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
-        },
-        filters: {
-          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
-          ...(input.memberUserId && { memberUserId: input.memberUserId }),
-          dateRange: {
-            target: "createdAt",
-            startDate: previousPeriodDates.startDate,
-            endDate: previousPeriodDates.endDate,
-          },
-        },
+      const previousPeriodService = createInsightsBookingService(ctx, {
+        ...input,
+        startDate: previousPeriodDates.startDate,
+        endDate: previousPeriodDates.endDate,
       });
 
       // Get previous period stats
@@ -1053,23 +1025,7 @@ export const insightsRouter = router({
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
       const { timeZone } = input;
-      const insightsBookingService = getInsightsBookingService({
-        options: {
-          scope: input.scope,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId ?? 0,
-          ...(input.selectedTeamId && { teamId: input.selectedTeamId }),
-        },
-        filters: {
-          ...(input.eventTypeId && { eventTypeId: input.eventTypeId }),
-          ...(input.memberUserId && { memberUserId: input.memberUserId }),
-          dateRange: {
-            target: "startTime",
-            startDate: input.startDate,
-            endDate: input.endDate,
-          },
-        },
-      });
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
 
       try {
         return await insightsBookingService.getBookingsByHourStats({
