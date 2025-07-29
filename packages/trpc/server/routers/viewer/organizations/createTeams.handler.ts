@@ -137,12 +137,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   return { duplicatedSlugs };
 };
 
-class NoUserError extends TRPCError {
-  constructor() {
-    super({ code: "BAD_REQUEST", message: "no_user" });
-  }
-}
-
 class NotAuthorizedError extends TRPCError {
   constructor() {
     super({ code: "FORBIDDEN", message: "not_authorized" });
@@ -214,10 +208,12 @@ async function moveTeam({
   });
 
   if (!team) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Team with id: ${teamId} not found`,
+    log.warn(`Team with id: ${teamId} not found. Skipping migration.`, {
+      teamId,
+      orgId: org.id,
+      orgSlug: org.slug,
     });
+    return;
   }
 
   if (team.parent?.isPlatform) {
