@@ -26,6 +26,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
@@ -114,19 +115,29 @@ async function handler(input: CancelBookingInput) {
   }
 
   // Check if cancellation reason is required based on team settings
-  const isHost = bookingToDelete.userId === userId;
-  let isCancellationReasonRequired = false;
+  const isHost = userId ? determineIfUserIsHost(bookingToDelete, userId) : false;
+  const isCancellationReasonRequired = getCancellationReasonRequirement(bookingToDelete, isHost);
 
-  if (bookingToDelete.eventType?.team) {
-    // Use team settings if available
-    if (isHost) {
-      isCancellationReasonRequired = bookingToDelete.eventType.team.mandatoryCancellationReasonForHost;
-    } else {
-      isCancellationReasonRequired = bookingToDelete.eventType.team.mandatoryCancellationReasonForAttendee;
+  function determineIfUserIsHost(booking: typeof bookingToDelete, userId: number): boolean {
+    const schedulingType = booking.eventType?.schedulingType;
+
+    if (schedulingType === SchedulingType.COLLECTIVE) {
+      return booking.eventType?.hosts.some((host) => host.user.id === userId) ?? false;
     }
-  } else {
+
+    return booking.userId === userId;
+  }
+
+  function getCancellationReasonRequirement(booking: typeof bookingToDelete, isHost: boolean): boolean {
+    const team = booking.eventType?.team;
+
+    if (team) {
+      // Use team settings if available
+      return isHost ? team.mandatoryCancellationReasonForHost : team.mandatoryCancellationReasonForAttendee;
+    }
+
     // Fallback to old behavior for non-team events (hosts require reason)
-    isCancellationReasonRequired = isHost;
+    return isHost;
   }
 
   if (!platformClientId && !cancellationReason?.trim() && isCancellationReasonRequired) {
