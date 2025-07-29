@@ -685,6 +685,39 @@ describe("buildDateRanges", () => {
       end: dayjs.utc("2023-06-13T23:00:00Z").tz(timeZone),
     });
   });
+  it("should not lose earlier time slots when overlapping ranges have the same end time", () => {
+    const items = [
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 6, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 10, 0)),
+      },
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 8, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 10, 0)),
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-12T00:00:00Z");
+    const dateTo = dayjs("2023-06-13T00:00:00Z");
+    const timeZone = "UTC";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-12T06:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-12T10:00:00Z").tz(timeZone),
+    });
+  });
 });
 
 describe("subtract", () => {
