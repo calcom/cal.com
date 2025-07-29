@@ -865,6 +865,7 @@ export class EventTypeRepository {
       eventTypeColor: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
+      showOptimizedSlots: true,
       durationLimits: true,
       maxActiveBookingsPerBooker: true,
       maxActiveBookingPerBookerOfferReschedule: true,
