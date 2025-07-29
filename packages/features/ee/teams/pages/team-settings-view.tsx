@@ -206,6 +206,7 @@ const AvailabilityLockView = ({ team }: ProfileViewProps) => {
         <div className="mt-6">
           <SettingsToggle
             toggleSwitchAtTheEnd={true}
+            labelClassName="text-sm"
             title={t("lock_default_availability")}
             description={t("lock_default_availability_description")}
             checked={team?.lockDefaultAvailability ?? false}
