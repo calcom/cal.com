@@ -46,6 +46,8 @@ export function processWorkingHours(
   }
 ) {
   const utcDateTo = dateTo.utc();
+  let endTimeToKeyMap: Map<number, number[]> | undefined;
+
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
 
@@ -85,12 +87,27 @@ export function processWorkingHours(
       continue;
     }
 
-    // Check for overlapping ranges with the same end time
+    const endTimeKey = endResult.valueOf();
+
+    // Create a map of end times to range keys for O(1) lookup
+    if (!endTimeToKeyMap) {
+      endTimeToKeyMap = new Map<number, number[]>();
+      for (const [key, range] of Object.entries(results)) {
+        const endTime = range.end.valueOf();
+        if (!endTimeToKeyMap.has(endTime)) {
+          endTimeToKeyMap.set(endTime, []);
+        }
+        endTimeToKeyMap.get(endTime)!.push(Number(key));
+      }
+    }
+
+    // Check for overlapping ranges with the same end time using O(1) lookup
+    const keysWithSameEndTime = endTimeToKeyMap.get(endTimeKey) || [];
     let foundOverlapping = false;
-    for (const [keyStr, existingRange] of Object.entries(results)) {
-      const key = Number(keyStr);
+
+    for (const key of keysWithSameEndTime) {
+      const existingRange = results[key];
       if (
-        existingRange.end.valueOf() === endResult.valueOf() &&
         startResult.valueOf() <= existingRange.end.valueOf() &&
         endResult.valueOf() >= existingRange.start.valueOf()
       ) {
@@ -110,18 +127,46 @@ export function processWorkingHours(
 
     if (results[startResult.valueOf()]) {
       // if a result already exists, we merge the end time
-      results[endResult.valueOf()] = {
-        start: results[startResult.valueOf()].start,
-        end: dayjs.max(results[startResult.valueOf()].end, endResult),
+      const oldKey = startResult.valueOf();
+      const newKey = endResult.valueOf();
+
+      results[newKey] = {
+        start: results[oldKey].start,
+        end: dayjs.max(results[oldKey].end, endResult),
       };
-      delete results[startResult.valueOf()]; // delete the previous end time
+
+      if (endTimeToKeyMap) {
+        const oldEndTime = results[oldKey].end.valueOf();
+        const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+        const filteredKeys = oldKeys.filter((k) => k !== oldKey);
+        if (filteredKeys.length === 0) {
+          endTimeToKeyMap.delete(oldEndTime);
+        } else {
+          endTimeToKeyMap.set(oldEndTime, filteredKeys);
+        }
+
+        if (!endTimeToKeyMap.has(endTimeKey)) {
+          endTimeToKeyMap.set(endTimeKey, []);
+        }
+        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+      }
+
+      delete results[oldKey]; // delete the previous end time
       continue;
     }
     // otherwise we create a new result
-    results[endResult.valueOf()] = {
+    const newKey = endResult.valueOf();
+    results[newKey] = {
       start: startResult,
       end: endResult,
     };
+
+    if (endTimeToKeyMap) {
+      if (!endTimeToKeyMap.has(endTimeKey)) {
+        endTimeToKeyMap.set(endTimeKey, []);
+      }
+      endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+    }
   }
 
   return results;
