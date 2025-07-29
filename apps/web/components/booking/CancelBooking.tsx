@@ -124,9 +124,7 @@ export default function CancelBooking(props: Props) {
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
 
   const isCancellationReasonRequired = () => {
-    if (!props.teamCancellationSettings) {
-      return props.isHost;
-    }
+    if (!props.teamCancellationSettings) return props.isHost;
 
     if (props.isHost) return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
 
