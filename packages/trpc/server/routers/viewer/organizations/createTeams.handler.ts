@@ -321,12 +321,12 @@ async function addTeamRedirect({
 }) {
   logger.info(`Adding redirect for team: ${oldTeamSlug} -> ${teamSlug}`);
   if (!oldTeamSlug) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No oldSlug for team. Not adding the redirect",
-    });
+    // This can happen for unpublished teams that don't have a slug yet
+    logger.warn(`No oldSlug for team. Not adding the redirect`);
+    return;
   }
   if (!teamSlug) {
+    // This should not happen as org onboarding ensures teams have slugs
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "No slug for team. Not adding the redirect",
