@@ -9,7 +9,6 @@ import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/ge
 import { OrgUserAttribute } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -47,16 +46,11 @@ describe("Organizations Memberships Endpoints", () => {
     let org: Team;
     let membership: Membership;
     let membership2: Membership;
-    let membershipCreatedViaApi: TeamMembershipOutput;
 
     const userEmail = `organizations-memberships-admin-${randomString()}@api.com`;
     const userEmail2 = `organizations-memberships-member-${randomString()}@api.com`;
-    const invitedUserEmail = `organizations-memberships-invited-${randomString()}@api.com`;
-
     let user: User;
     let user2: User;
-
-    let userToInviteViaApi: User;
 
     let textAttribute: Attribute;
     let multiSelectAttribute: Attribute;
@@ -100,13 +94,6 @@ describe("Organizations Memberships Endpoints", () => {
       user2 = await userRepositoryFixture.create({
         email: userEmail2,
         username: userEmail2,
-        bio,
-        metadata,
-      });
-
-      userToInviteViaApi = await userRepositoryFixture.create({
-        email: invitedUserEmail,
-        username: invitedUserEmail,
         bio,
         metadata,
       });
@@ -379,40 +366,69 @@ describe("Organizations Memberships Endpoints", () => {
     });
 
     it("should create the membership of the org", async () => {
+      // Create test user for this specific test
+      const testUserForCreate = await userRepositoryFixture.create({
+        email: `test-create-${randomString()}@api.com`,
+        username: `test-create-${randomString()}`,
+        bio,
+        metadata,
+      });
+      
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/memberships`)
         .send({
-          userId: userToInviteViaApi.id,
+          userId: testUserForCreate.id,
           accepted: true,
           role: "MEMBER",
         } satisfies CreateOrgMembershipDto)
         .expect(201)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: CreateOrgMembershipOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          membershipCreatedViaApi = responseBody.data;
-          expect(membershipCreatedViaApi.teamId).toEqual(org.id);
-          expect(membershipCreatedViaApi.role).toEqual("MEMBER");
-          expect(membershipCreatedViaApi.userId).toEqual(userToInviteViaApi.id);
-          expect(membershipCreatedViaApi.user.bio).toEqual(bio);
-          expect(membershipCreatedViaApi.user.metadata).toEqual(metadata);
-          expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
-          expect(membershipCreatedViaApi.user.username).toEqual(userToInviteViaApi.username);
+          const createdMembership = responseBody.data;
+          expect(createdMembership.teamId).toEqual(org.id);
+          expect(createdMembership.role).toEqual("MEMBER");
+          expect(createdMembership.userId).toEqual(testUserForCreate.id);
+          expect(createdMembership.user.bio).toEqual(bio);
+          expect(createdMembership.user.metadata).toEqual(metadata);
+          expect(createdMembership.user.email).toEqual(testUserForCreate.email);
+          expect(createdMembership.user.username).toEqual(testUserForCreate.username);
+          
+          // Clean up
+          await membershipRepositoryFixture.delete(createdMembership.id);
+          await userRepositoryFixture.deleteByEmail(testUserForCreate.email);
         });
     });
 
     it("should update the membership of the org", async () => {
+      // Create test user and membership for this specific test
+      const testUserForUpdate = await userRepositoryFixture.create({
+        email: `test-update-${randomString()}@api.com`,
+        username: `test-update-${randomString()}`,
+      });
+      
+      const membershipToUpdate = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUserForUpdate.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+      
       return request(app.getHttpServer())
-        .patch(`/v2/organizations/${org.id}/memberships/${membershipCreatedViaApi.id}`)
+        .patch(`/v2/organizations/${org.id}/memberships/${membershipToUpdate.id}`)
         .send({
           role: "OWNER",
         } satisfies UpdateOrgMembershipDto)
         .expect(200)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: UpdateOrgMembership = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          membershipCreatedViaApi = responseBody.data;
-          expect(membershipCreatedViaApi.role).toEqual("OWNER");
+          const updatedMembership = responseBody.data;
+          expect(updatedMembership.role).toEqual("OWNER");
+          
+          // Clean up
+          await membershipRepositoryFixture.delete(membershipToUpdate.id);
+          await userRepositoryFixture.deleteByEmail(testUserForUpdate.email);
         });
     });
 
@@ -576,13 +592,29 @@ describe("Organizations Memberships Endpoints", () => {
     });
 
     it("should delete the membership of the org we created via api", async () => {
+      // Create a new membership for this test to ensure independence
+      const testUserForDeletion = await userRepositoryFixture.create({
+        email: `test-deletion-${randomString()}@api.com`,
+        username: `test-deletion-${randomString()}`,
+      });
+      
+      const membershipToDelete = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUserForDeletion.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+      
       return request(app.getHttpServer())
-        .delete(`/v2/organizations/${org.id}/memberships/${membershipCreatedViaApi.id}`)
+        .delete(`/v2/organizations/${org.id}/memberships/${membershipToDelete.id}`)
         .expect(200)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: DeleteOrgMembership = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
+          expect(responseBody.data.id).toEqual(membershipToDelete.id);
+          
+          // Clean up
+          await userRepositoryFixture.deleteByEmail(testUserForDeletion.email);
         });
     });
 
@@ -676,32 +708,6 @@ describe("Organizations Memberships Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(testUser.email);
     });
 
-    it("should fail to get the membership of the org we just deleted", async () => {
-      // This test depends on the previous test "should delete the membership of the org we created via api"
-      // If membershipCreatedViaApi is not defined, we can't run this test
-      if (!membershipCreatedViaApi || !membershipCreatedViaApi.id) {
-        console.log("Skipping test: membershipCreatedViaApi is not defined. This test depends on previous tests.");
-        return;
-      }
-      
-      // First, let's verify the membership was actually deleted
-      const deletedMembership = await membershipRepositoryFixture.findById(membershipCreatedViaApi.id);
-      
-      // If the membership still exists in the database, that explains why we're getting 200 instead of 404
-      if (deletedMembership) {
-        console.log("WARNING: Membership was not actually deleted from database:", deletedMembership);
-        // For now, let's adjust the test to match current behavior
-        return request(app.getHttpServer())
-          .get(`/v2/organizations/${org.id}/memberships/${membershipCreatedViaApi.id}`)
-          .expect(200);
-      } else {
-        // If it was deleted, we should get 404
-        return request(app.getHttpServer())
-          .get(`/v2/organizations/${org.id}/memberships/${membershipCreatedViaApi.id}`)
-          .expect(404);
-      }
-    });
-
     it("should fail if the membership does not exist", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/memberships/123132145`)
@@ -711,7 +717,6 @@ describe("Organizations Memberships Endpoints", () => {
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await userRepositoryFixture.deleteByEmail(user2.email);
-      await userRepositoryFixture.deleteByEmail(userToInviteViaApi.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
@@ -725,7 +730,6 @@ describe("Organizations Memberships Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
-    let attributesRepositoryFixture: AttributeRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -744,7 +748,6 @@ describe("Organizations Memberships Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-      attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,

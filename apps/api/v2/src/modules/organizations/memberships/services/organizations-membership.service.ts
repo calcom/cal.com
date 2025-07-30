@@ -76,13 +76,6 @@ export class OrganizationsMembershipService {
       );
     }
 
-    // Use TeamService.removeMembers which handles:
-    // - Profile deletion
-    // - Sub-team membership removal
-    // - Event type and host cleanup
-    // - Workflow reminder cleanup
-    // - Billing updates
-    // - Username conflict resolution
     await TeamService.removeMembers([organizationId], [membership.userId], true);
 
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);

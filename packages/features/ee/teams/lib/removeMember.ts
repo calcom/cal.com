@@ -69,16 +69,6 @@ const removeMember = async ({
 
   if (isOrg) {
     log.debug("Removing a member from the organization");
-    // Deleting membership from all child teams
-    // Delete all sub-team memberships where this team is the organization
-    await prisma.membership.deleteMany({
-      where: {
-        team: {
-          parentId: teamId,
-        },
-        userId: membership.userId,
-      },
-    });
 
     const userToDeleteMembershipOf = foundUser;
 
@@ -93,6 +83,7 @@ const removeMember = async ({
     ) {
       log.debug("Cleaning up tempOrgRedirect for user", userToDeleteMembershipOf.username);
 
+      // deleteMany won't crash if no records are found
       await prisma.tempOrgRedirect.deleteMany({
         where: {
           from: userToDeleteMembershipOf.username,
@@ -100,19 +91,10 @@ const removeMember = async ({
       });
     }
 
+    const newUsername = foundUser.username != null ? `${foundUser.username}-${foundUser.id}` : null;
+
     await prisma.$transaction([
-      prisma.user.update({
-        where: { id: membership.userId },
-        data: { 
-          organizationId: null,
-          // Update username to avoid conflicts with users outside organizations
-          username: foundUser.username ? `${foundUser.username}-${membership.userId}` : null
-        },
-      }),
-      ProfileRepository.delete({
-        userId: membership.userId,
-        organizationId: team.id,
-      }),
+      // Remove user from all sub-teams event type hosts
       prisma.host.deleteMany({
         where: {
           userId: memberId,
@@ -123,26 +105,71 @@ const removeMember = async ({
           },
         },
       }),
-    ]);
-  }
-
-  // Deleted managed event types from this team from this member
-  await prisma.eventType.deleteMany({
-    where: { parent: { teamId: teamId }, userId: membership.userId },
-  });
-
-  // If removing from organization, also delete managed child events in sub-teams
-  if (isOrg) {
-    await prisma.eventType.deleteMany({
-      where: {
+      // Delete managed child events in sub-teams
+      prisma.eventType.deleteMany({
+        where: {
+          userId: membership.userId,
+          parent: {
+            team: {
+              parentId: teamId,
+            },
+          },
+        },
+      }),
+      // Remove organizationId from the user
+      prisma.user.update({
+        where: { id: membership.userId },
+        data: {
+          organizationId: null,
+          // Update username to avoid conflicts with users outside organizations
+          username: newUsername,
+        },
+      }),
+      // Delete the profile of the user from the organization
+      ProfileRepository.delete({
         userId: membership.userId,
-        parent: {
+        organizationId: team.id,
+      }),
+      // Delete all sub-team memberships where this team is the organization
+      prisma.membership.deleteMany({
+        where: {
           team: {
             parentId: teamId,
           },
+          userId: membership.userId,
         },
-      },
-    });
+      }),
+      // Delete the membership of the user from the organization
+      prisma.membership.delete({
+        where: {
+          userId_teamId: { userId: memberId, teamId: teamId },
+        },
+      }),
+    ]);
+  } else {
+    log.debug("Removing a member from a team");
+
+    await prisma.$transaction([
+      // Remove user from all team event types' hosts
+      prisma.host.deleteMany({
+        where: {
+          userId: memberId,
+          eventType: {
+            teamId: teamId,
+          },
+        },
+      }),
+      // Deleted managed event types from this team for this member
+      prisma.eventType.deleteMany({
+        where: { parent: { teamId: teamId }, userId: membership.userId },
+      }),
+      // Delete the membership of the user from the team
+      prisma.membership.delete({
+        where: {
+          userId_teamId: { userId: memberId, teamId: teamId },
+        },
+      }),
+    ]);
   }
 
   await deleteWorkfowRemindersOfRemovedMember(team, memberId, isOrg);

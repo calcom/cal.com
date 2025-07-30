@@ -2,6 +2,7 @@ import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/cr
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { TeamService } from "@calcom/platform-libraries";
 
 @Injectable()
 export class TeamsMembershipsService {
@@ -41,10 +42,20 @@ export class TeamsMembershipsService {
   }
 
   async deleteTeamMembership(teamId: number, membershipId: number) {
-    const teamMembership = await this.teamsMembershipsRepository.deleteTeamMembershipById(
-      teamId,
-      membershipId
-    );
+    // First get the membership to get the userId
+    const teamMembership = await this.teamsMembershipsRepository.findTeamMembership(teamId, membershipId);
+    
+    if (!teamMembership) {
+      throw new NotFoundException(`Membership with id ${membershipId} not found in team ${teamId}`);
+    }
+
+    // Use TeamService.removeMembers which handles:
+    // - Event type and host cleanup
+    // - Workflow reminder cleanup  
+    // - Billing updates
+    // - Membership deletion
+    await TeamService.removeMembers([teamId], [teamMembership.userId], false);
+
     return teamMembership;
   }
 }
