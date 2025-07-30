@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -166,8 +167,10 @@ const teamSelect = {
 } satisfies Prisma.TeamSelect;
 
 export class TeamRepository {
-  static async findById({ id }: { id: number }) {
-    const team = await prisma.team.findUnique({
+  constructor(private prismaClient: PrismaClient) {}
+
+  async findById({ id }: { id: number }) {
+    const team = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
@@ -179,14 +182,14 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  static async findAllByParentId({
+  async findAllByParentId({
     parentId,
     select = teamSelect,
   }: {
     parentId: number;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findMany({
+    return await this.prismaClient.team.findMany({
       where: {
         parentId,
       },
@@ -194,7 +197,7 @@ export class TeamRepository {
     });
   }
 
-  static async findByIdAndParentId({
+  async findByIdAndParentId({
     id,
     parentId,
     select = teamSelect,
@@ -203,7 +206,7 @@ export class TeamRepository {
     parentId: number;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findFirst({
+    return await this.prismaClient.team.findFirst({
       where: {
         id,
         parentId,
@@ -212,7 +215,7 @@ export class TeamRepository {
     });
   }
 
-  static async findFirstBySlugAndParentSlug({
+  async findFirstBySlugAndParentSlug({
     slug,
     parentSlug,
     select = teamSelect,
@@ -221,7 +224,7 @@ export class TeamRepository {
     parentSlug: string | null;
     select?: Prisma.TeamSelect;
   }) {
-    return await prisma.team.findFirst({
+    return await this.prismaClient.team.findFirst({
       where: {
         slug,
         parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
@@ -230,8 +233,8 @@ export class TeamRepository {
     });
   }
 
-  static async deleteById({ id }: { id: number }) {
-    const deletedTeam = await prisma.$transaction(async (tx) => {
+  async deleteById({ id }: { id: number }) {
+    const deletedTeam = await this.prismaClient.$transaction(async (tx) => {
       await tx.eventType.deleteMany({
         where: {
           teamId: id,
@@ -258,8 +261,8 @@ export class TeamRepository {
     return deletedTeam;
   }
 
-  static async findTeamWithMembers(teamId: number) {
-    return await prisma.team.findUnique({
+  async findTeamWithMembers(teamId: number) {
+    return await this.prismaClient.team.findUnique({
       where: { id: teamId },
       select: {
         members: {
@@ -275,8 +278,8 @@ export class TeamRepository {
     });
   }
 
-  static async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
-    const memberships = await prisma.membership.findMany({
+  async findTeamsByUserId({ userId, includeOrgs }: { userId: number; includeOrgs?: boolean }) {
+    const memberships = await this.prismaClient.membership.findMany({
       where: {
         // Show all the teams this user belongs to regardless of the team being part of the user's org or not
         // We don't want to restrict in the listing here. If we need to restrict a situation where a user is part of the org along with being part of a non-org team, we should do that instead of filtering out from here
@@ -317,8 +320,8 @@ export class TeamRepository {
       }));
   }
 
-  static async findTeamWithOrganizationSettings(teamId: number) {
-    return await prisma.team.findUnique({
+  async findTeamWithOrganizationSettings(teamId: number) {
+    return await this.prismaClient.team.findUnique({
       where: { id: teamId },
       select: {
         parent: {

@@ -26,7 +26,7 @@ import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from 
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-type BookerWebWrapperAtomProps = BookerProps & {
+export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
@@ -64,7 +64,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
-
   useInitializeBookerStore({
     ...props,
     eventId: props.entity.eventTypeId ?? event?.data?.id,

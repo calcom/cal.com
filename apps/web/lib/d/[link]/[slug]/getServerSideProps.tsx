@@ -6,9 +6,11 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
@@ -25,43 +27,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
-  const hashedLink = await prisma.hashedLink.findUnique({
-    where: {
-      link,
-    },
-    select: {
-      eventTypeId: true,
-      eventType: {
-        select: {
-          users: {
-            select: {
-              username: true,
-              profiles: {
-                select: {
-                  id: true,
-                  organizationId: true,
-                  username: true,
-                },
-              },
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              slug: true,
-              hideBranding: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
   let name: string;
   let hideBranding = false;
 
@@ -69,9 +34,22 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     notFound: true,
   } as const;
 
+  // Use centralized validation logic to avoid duplication
+  const hashedLinkService = new HashedLinkService();
+  try {
+    await hashedLinkService.validate(link);
+  } catch (error) {
+    // Link is expired, invalid, or doesn't exist
+    return notFound;
+  }
+
+  // If validation passes, fetch the complete data needed for rendering
+  const hashedLink = await hashedLinkService.findLinkWithDetails(link);
+
   if (!hashedLink) {
     return notFound;
   }
+
   const username = hashedLink.eventType.users[0]?.username;
   const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
 
@@ -101,7 +79,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
     name = profileUsername || username;
 
-    const [user] = await UserRepository.findUsersByUsername({
+    const userRepo = new UserRepository(prisma);
+    const [user] = await userRepo.findUsersByUsername({
       usernameList: [name],
       orgSlug: org,
     });
@@ -138,8 +117,20 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return notFound;
   }
 
+  // Check if team has API v2 feature flag enabled (same logic as team pages)
+  let useApiV2 = false;
+  if (isTeamEvent && hashedLink.eventType.team?.id) {
+    const featureRepo = new FeaturesRepository();
+    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
+      hashedLink.eventType.team.id,
+      "use-api-v2-for-team-slots"
+    );
+    useApiV2 = teamHasApiV2Route;
+  }
+
   return {
     props: {
+      useApiV2,
       eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
@@ -155,7 +146,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
-      hashedLink: link,
+      hashedLink: hashedLink?.link,
     },
   };
 }

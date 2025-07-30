@@ -1,3 +1,5 @@
+"use client";
+
 // Tremor BarList [v0.1.1]
 import React from "react";
 

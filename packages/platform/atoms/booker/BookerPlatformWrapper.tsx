@@ -158,6 +158,7 @@ export const BookerPlatformWrapper = (
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
+    crmRecordId: props.crmRecordId,
     eventId: event?.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
@@ -353,7 +354,7 @@ export const BookerPlatformWrapper = (
     onReserveSlotError: props.onReserveSlotError,
     onDeleteSlotSuccess: props.onDeleteSlotSuccess,
     onDeleteSlotError: props.onDeleteSlotError,
-    isBookingDryRun: routingParams?.isBookingDryRun,
+    isBookingDryRun: props.isBookingDryRun ? props.isBookingDryRun : routingParams?.isBookingDryRun,
     handleSlotReservation,
   });
 
@@ -393,6 +394,7 @@ export const BookerPlatformWrapper = (
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
     routingFormSearchParams,
+    isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
   });
 
   const onOverlaySwitchStateChange = useCallback(

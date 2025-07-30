@@ -77,7 +77,8 @@ async function _checkBookingLimit({
     let bookingsInPeriod;
 
     if (teamId && user) {
-      bookingsInPeriod = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+      const bookingRepo = new BookingRepository(prisma);
+      bookingsInPeriod = await bookingRepo.getAllAcceptedTeamBookingsOfUser({
         user: { id: user.id, email: user.email },
         teamId,
         startDate: startDate,

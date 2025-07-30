@@ -190,9 +190,20 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
-  private getRoutingFormData(routing: { teamMemberIds?: number[]; responseId?: number; teamMemberEmail?: string; skipContactOwner?: boolean; crmAppSlug?: string; crmOwnerRecordType?: string } | undefined) {
+  private getRoutingFormData(
+    routing:
+      | {
+          teamMemberIds?: number[];
+          responseId?: number;
+          teamMemberEmail?: string;
+          skipContactOwner?: boolean;
+          crmAppSlug?: string;
+          crmOwnerRecordType?: string;
+        }
+      | undefined
+  ) {
     if (!routing) return null;
-    
+
     return {
       routedTeamMemberIds: routing.teamMemberIds,
       routingFormResponseId: routing.responseId,
