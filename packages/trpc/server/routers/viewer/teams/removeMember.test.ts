@@ -1,7 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Bring this test back with the correct setup (no illegal imports)
 import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+
+import {
+  createOrganization,
+  getOrganizer,
+  createBookingScenario,
+  getScenarioData,
+  TestData,
+  Timezones,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import { describe, test, expect } from "vitest";
 
@@ -10,7 +16,7 @@ import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../types";
 import removeMember from "./removeMember.handler";
 
-describe.skip("removeMember", () => {
+describe("removeMember", () => {
   describe("should remove a member from a team", () => {
     test(`1) Should remove a member from a team
           2) Should remove the member from hosts
@@ -162,6 +168,94 @@ describe.skip("removeMember", () => {
       });
 
       expect(remainingHostsCount).toBe(1);
+    });
+
+    test("Should update username to format ${username}-${userId} when removing user from organization", async () => {
+      const org = await createOrganization({
+        name: "Test Org",
+        slug: "testorg",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        organizationId: org.id,
+        schedules: [TestData.schedules.IstWorkHours],
+        teams: [
+          {
+            membership: {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+            },
+            team: {
+              id: org.id,
+              name: "Test Org",
+              slug: "testorg",
+            },
+          },
+        ],
+      });
+
+      const memberToRemove = {
+        name: "Member To Remove",
+        username: "member-to-remove",
+        timeZone: Timezones["+5:30"],
+        defaultScheduleId: null,
+        email: "member-to-remove@example.com",
+        id: 102,
+        organizationId: org.id,
+        schedules: [TestData.schedules.IstEveningShift],
+        teams: [
+          {
+            membership: {
+              accepted: true,
+              role: MembershipRole.MEMBER,
+            },
+            team: {
+              id: org.id,
+              name: "Test Org",
+              slug: "testorg",
+            },
+          },
+        ],
+      };
+
+      await createBookingScenario(
+        getScenarioData(
+          {
+            eventTypes: [],
+            organizer,
+            usersApartFromOrganizer: [memberToRemove],
+            apps: [TestData.apps["daily-video"]],
+          },
+          org
+        )
+      );
+
+      const ctx = {
+        user: {
+          id: organizer.id,
+          name: organizer.name,
+        } as NonNullable<TrpcSessionUser>,
+      };
+
+      await removeMember({
+        ctx,
+        input: {
+          teamIds: [org.id],
+          memberIds: [102],
+          isOrg: true,
+        },
+      });
+
+      const updatedUser = await prismaMock.user.findUnique({
+        where: { id: 102 },
+        select: { username: true, organizationId: true },
+      });
+
+      expect(updatedUser?.username).toBe("member-to-remove-102");
+      expect(updatedUser?.organizationId).toBe(null);
     });
   });
 });
