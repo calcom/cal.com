@@ -6,9 +6,9 @@ import dayjs from "@calcom/dayjs";
 import { getAggregatedAvailability } from "./getAggregatedAvailability";
 
 // Helper to check if a time range overlaps with availability
-const isAvailable = (availability: { start: Dayjs; end: Dayjs }[], range: { start: Dayjs; end: Dayjs }) => {
+const isAvailable = (availability: { start: Date; end: Date }[], range: { start: Dayjs; end: Dayjs }) => {
   return availability.some(({ start, end }) => {
-    return start <= range.start && end >= range.end;
+    return start.getTime() <= range.start.toDate().getTime() && end.getTime() >= range.end.toDate().getTime();
   });
 };
 
@@ -19,16 +19,28 @@ describe("getAggregatedAvailability", () => {
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:20:00.000Z") },
-          { start: dayjs("2025-01-23T16:10:00.000Z"), end: dayjs("2025-01-23T16:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:20:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T16:10:00.000Z").toDate(),
+            end: dayjs("2025-01-23T16:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:15:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
-          { start: dayjs("2025-01-23T13:20:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:15:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T13:20:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
@@ -55,14 +67,20 @@ describe("getAggregatedAvailability", () => {
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-27T14:00:00.000Z"), end: dayjs("2025-01-27T04:30-05:00") },
+          {
+            start: dayjs("2025-01-27T14:00:00.000Z").toDate(),
+            end: dayjs("2025-01-27T04:30-05:00").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-27T14:00:00.000Z"), end: dayjs("2025-01-27T14:45:00.000Z") },
+          {
+            start: dayjs("2025-01-27T14:00:00.000Z").toDate(),
+            end: dayjs("2025-01-27T14:45:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
@@ -72,12 +90,12 @@ describe("getAggregatedAvailability", () => {
 
     expect(result).toEqual([
       {
-        start: dayjs("2025-01-27T14:00:00.000Z"),
-        end: dayjs("2025-01-27T09:30:00.000Z"),
+        start: dayjs("2025-01-27T14:00:00.000Z").toDate(),
+        end: dayjs("2025-01-27T09:30:00.000Z").toDate(),
       },
       {
-        start: dayjs("2025-01-27T14:00:00.000Z"),
-        end: dayjs("2025-01-27T14:45:00.000Z"),
+        start: dayjs("2025-01-27T14:00:00.000Z").toDate(),
+        end: dayjs("2025-01-27T14:45:00.000Z").toDate(),
       },
     ]);
   });
@@ -88,16 +106,28 @@ describe("getAggregatedAvailability", () => {
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:20:00.000Z") },
-          { start: dayjs("2025-01-23T16:10:00.000Z"), end: dayjs("2025-01-23T16:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:20:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T16:10:00.000Z").toDate(),
+            end: dayjs("2025-01-23T16:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: true },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:15:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
-          { start: dayjs("2025-01-23T13:20:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:15:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T13:20:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: true },
       },
@@ -111,8 +141,8 @@ describe("getAggregatedAvailability", () => {
 
     expect(isAvailable(result, timeRangeToCheckBusy)).toBe(false);
 
-    expect(result[0].start.format()).toEqual(dayjs("2025-01-23T11:15:00.000Z").format());
-    expect(result[0].end.format()).toEqual(dayjs("2025-01-23T11:20:00.000Z").format());
+    expect(result[0].start.toISOString()).toEqual(dayjs("2025-01-23T11:15:00.000Z").toISOString());
+    expect(result[0].end.toISOString()).toEqual(dayjs("2025-01-23T11:20:00.000Z").toISOString());
   });
 
   // Combines rr hosts and fixed hosts, both fixed and one of the rr hosts has to be available for the whole period
@@ -125,34 +155,64 @@ describe("getAggregatedAvailability", () => {
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
-          { start: dayjs("2025-01-23T12:30:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
-          { start: dayjs("2025-01-23T13:15:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
-          { start: dayjs("2025-01-23T16:10:00.000Z"), end: dayjs("2025-01-23T16:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T12:30:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:00:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T13:15:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T16:10:00.000Z").toDate(),
+            end: dayjs("2025-01-23T16:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: true },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
-          { start: dayjs("2025-01-23T12:30:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
-          { start: dayjs("2025-01-23T13:15:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
-          { start: dayjs("2025-01-23T13:20:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T12:30:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:00:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T13:15:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T13:20:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: true },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T12:30:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
+          {
+            start: dayjs("2025-01-23T12:30:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:00:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
@@ -166,10 +226,10 @@ describe("getAggregatedAvailability", () => {
 
     expect(isAvailable(result, timeRangeToCheckAvailable)).toBe(true);
 
-    expect(result[0].start.format()).toEqual(dayjs("2025-01-23T11:00:00.000Z").format());
-    expect(result[0].end.format()).toEqual(dayjs("2025-01-23T11:30:00.000Z").format());
-    expect(result[1].start.format()).toEqual(dayjs("2025-01-23T12:30:00.000Z").format());
-    expect(result[1].end.format()).toEqual(dayjs("2025-01-23T13:00:00.000Z").format());
+    expect(result[0].start.toISOString()).toEqual(dayjs("2025-01-23T11:00:00.000Z").toISOString());
+    expect(result[0].end.toISOString()).toEqual(dayjs("2025-01-23T11:30:00.000Z").toISOString());
+    expect(result[1].start.toISOString()).toEqual(dayjs("2025-01-23T12:30:00.000Z").toISOString());
+    expect(result[1].end.toISOString()).toEqual(dayjs("2025-01-23T13:00:00.000Z").toISOString());
   });
 
   it("does not duplicate slots when multiple rr-hosts offer the same availability", () => {
@@ -177,24 +237,42 @@ describe("getAggregatedAvailability", () => {
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
-          { start: dayjs("2025-01-23T12:30:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
-          { start: dayjs("2025-01-23T13:15:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
-          { start: dayjs("2025-01-23T16:10:00.000Z"), end: dayjs("2025-01-23T16:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T12:30:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:00:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T13:15:00.000Z").toDate(),
+            end: dayjs("2025-01-23T13:30:00.000Z").toDate(),
+          },
+          {
+            start: dayjs("2025-01-23T16:10:00.000Z").toDate(),
+            end: dayjs("2025-01-23T16:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: true },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
       {
         dateRanges: [],
         oooExcludedDateRanges: [
-          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+          {
+            start: dayjs("2025-01-23T11:00:00.000Z").toDate(),
+            end: dayjs("2025-01-23T11:30:00.000Z").toDate(),
+          },
         ],
         user: { isFixed: false },
       },
