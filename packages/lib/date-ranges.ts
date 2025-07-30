@@ -41,51 +41,51 @@ export function processWorkingHours({
   dateTo: Dayjs;
   travelSchedules: TravelSchedule[];
 }) {
+  const results: DateRange[] = [];
+  const processedDates = new Set<string>();
+  const fromOffset = dateFrom.startOf("day").utcOffset();
   const utcDateTo = dateTo.utc();
-  const results = [];
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
-    const fromOffset = dateFrom.startOf("day").utcOffset();
-
+    // Determine which timezone applies on this absolute day.
     const adjustedTimezone = getAdjustedTimezone(date, timeZone, travelSchedules);
-
+    // Calculate the local midnight for this absolute date in the adjusted timezone.
     const offset = date.tz(adjustedTimezone).utcOffset();
-
-    // it always has to be start of the day (midnight) even when DST changes
     const dateInTz = date.add(fromOffset - offset, "minutes").tz(adjustedTimezone);
-    if (!item.days.includes(dateInTz.day())) {
+    const dateString = dateInTz.format("YYYY-MM-DD");
+    // Skip duplicate local days (e.g. DST fall-back repeats a local date).
+    if (processedDates.has(dateString)) {
       continue;
     }
-
-    let start = dateInTz
+    processedDates.add(dateString);
+    const dayOfWeek = dateInTz.day();
+    if (!item.days.includes(dayOfWeek)) {
+      continue;
+    }
+    const itemDateStartOfDayUtc = dayjs.utc(dateString);
+    let start = itemDateStartOfDayUtc
       .add(item.startTime.getUTCHours(), "hours")
-      .add(item.startTime.getUTCMinutes(), "minutes");
-
-    let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
-
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
-
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
-
+      .add(item.startTime.getUTCMinutes(), "minutes")
+      .tz(adjustedTimezone, true);
+    let end: Dayjs;
+    if (item.endTime.getUTCHours() === 23 && item.endTime.getUTCMinutes() === 59) {
+      // treat as up to but not including next midnight
+      end = itemDateStartOfDayUtc.add(1, "day").tz(adjustedTimezone, true);
+    } else {
+      end = itemDateStartOfDayUtc
+        .add(item.endTime.getUTCHours(), "hours")
+        .add(item.endTime.getUTCMinutes(), "minutes")
+        .tz(adjustedTimezone, true);
+    }
     const startResult = dayjs.max(start, dateFrom);
     let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));
-
     // INFO: We only allow users to set availability up to 11:59PM which ends up not making them available
     // up to midnight.
     if (endResult.hour() === 23 && endResult.minute() === 59) {
       endResult = endResult.add(1, "minute");
     }
-
-    if (endResult.isBefore(startResult)) {
-      // if an event ends before start, it's not a result.
-      continue;
+    if (endResult.isAfter(startResult)) {
+      results.push({ start: startResult, end: endResult });
     }
-
-    results.push({
-      start: startResult,
-      end: endResult,
-    });
   }
   return results;
 }
