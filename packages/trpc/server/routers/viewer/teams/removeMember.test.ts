@@ -170,7 +170,7 @@ describe("removeMember", () => {
       expect(remainingHostsCount).toBe(1);
     });
 
-    test("Should update username to format ${username}-${userId} when removing user from organization", async () => {
+    test("Should prevent unique constraint violation when removing user with duplicate username", async () => {
       const org = await createOrganization({
         name: "Test Org",
         slug: "testorg",
@@ -197,9 +197,23 @@ describe("removeMember", () => {
         ],
       });
 
+      // Create a user with organizationId=null and username "duplicate-user"
+      const userWithNullOrg = {
+        name: "User With Null Org",
+        username: "duplicate-user",
+        timeZone: Timezones["+5:30"],
+        defaultScheduleId: null,
+        email: "user-null-org@example.com",
+        id: 103,
+        organizationId: null,
+        schedules: [TestData.schedules.IstWorkHours],
+        teams: [],
+      };
+
+      // Create a user with organizationId=org.id and same username "duplicate-user"
       const memberToRemove = {
         name: "Member To Remove",
-        username: "member-to-remove",
+        username: "duplicate-user", // Same username as userWithNullOrg
         timeZone: Timezones["+5:30"],
         defaultScheduleId: null,
         email: "member-to-remove@example.com",
@@ -226,7 +240,7 @@ describe("removeMember", () => {
           {
             eventTypes: [],
             organizer,
-            usersApartFromOrganizer: [memberToRemove],
+            usersApartFromOrganizer: [userWithNullOrg, memberToRemove],
             apps: [TestData.apps["daily-video"]],
           },
           org
@@ -240,22 +254,32 @@ describe("removeMember", () => {
         } as NonNullable<TrpcSessionUser>,
       };
 
-      await removeMember({
-        ctx,
-        input: {
-          teamIds: [org.id],
-          memberIds: [102],
-          isOrg: true,
-        },
-      });
+      await expect(
+        removeMember({
+          ctx,
+          input: {
+            teamIds: [org.id],
+            memberIds: [102],
+            isOrg: true,
+          },
+        })
+      ).resolves.not.toThrow();
 
       const updatedUser = await prismaMock.user.findUnique({
         where: { id: 102 },
         select: { username: true, organizationId: true },
       });
 
-      expect(updatedUser?.username).toBe("member-to-remove-102");
+      expect(updatedUser?.username).toBe("duplicate-user-102");
       expect(updatedUser?.organizationId).toBe(null);
+
+      const userWithNullOrgAfter = await prismaMock.user.findUnique({
+        where: { id: 103 },
+        select: { username: true, organizationId: true },
+      });
+
+      expect(userWithNullOrgAfter?.username).toBe("duplicate-user");
+      expect(userWithNullOrgAfter?.organizationId).toBe(null);
     });
   });
 });
