@@ -967,6 +967,7 @@ describe("Event types Endpoints", () => {
         calVideoSettings: {
           disableRecordingForGuests: true,
           disableRecordingForOrganizer: true,
+          enableAutomaticRecordingForOrganizer: true,
         },
         bookingFields: [
           nameBookingField,
@@ -1095,6 +1096,9 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(
             body.calVideoSettings?.disableRecordingForOrganizer
           );
+          expect(updatedEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(
+            body.calVideoSettings?.enableAutomaticRecordingForOrganizer
+          );
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -1115,6 +1119,7 @@ describe("Event types Endpoints", () => {
           eventType.lockTimeZoneToggleOnBookingPage = updatedEventType.lockTimeZoneToggleOnBookingPage;
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
+          eventType.calVideoSettings = updatedEventType.calVideoSettings;
         });
     });
 
@@ -1871,6 +1876,7 @@ describe("Event types Endpoints", () => {
           calVideoSettings: {
             disableRecordingForGuests: true,
             disableRecordingForOrganizer: true,
+            enableAutomaticRecordingForOrganizer: true,
           },
           locations: [
             {
@@ -1893,6 +1899,7 @@ describe("Event types Endpoints", () => {
             expect(createdEventType.locations).toEqual(body.locations);
             expect(createdEventType.calVideoSettings?.disableRecordingForGuests).toEqual(true);
             expect(createdEventType.calVideoSettings?.disableRecordingForOrganizer).toEqual(true);
+            expect(createdEventType.calVideoSettings?.enableAutomaticRecordingForOrganizer).toEqual(true);
             firstCreatedEventType = responseBody.data;
           });
       });

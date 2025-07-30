@@ -347,7 +347,9 @@ function BookingListItem(booking: BookingItemProps) {
   const title = booking.title;
 
   const isCalVideoLocation =
-    !booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "";
+    !booking.location ||
+    booking.location === "integrations:daily" ||
+    (typeof booking.location === "string" && booking.location.trim() === "");
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
@@ -513,7 +515,9 @@ function BookingListItem(booking: BookingItemProps) {
                   </div>
                   {!isPending && (
                     <div>
-                      {(provider?.label || locationToDisplay?.startsWith("https://")) &&
+                      {(provider?.label ||
+                        (typeof locationToDisplay === "string" &&
+                          locationToDisplay?.startsWith("https://"))) &&
                         locationToDisplay.startsWith("http") && (
                           <a
                             href={locationToDisplay}
