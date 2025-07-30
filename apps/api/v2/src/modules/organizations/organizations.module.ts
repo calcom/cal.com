@@ -59,13 +59,10 @@ import { OrganizationsWebhooksController } from "@/modules/organizations/webhook
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { ProfilesModule } from "@/modules/profiles/profiles.module";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
@@ -89,7 +86,6 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
-    ProfilesModule,
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsStripeModule,
@@ -145,8 +141,6 @@ import { Module } from "@nestjs/common";
     TeamWorkflowsService,
     WorkflowsInputService,
     WorkflowsOutputService,
-    TeamsEventTypesRepository,
-    ProfilesRepository,
   ],
   exports: [
     OrganizationsService,

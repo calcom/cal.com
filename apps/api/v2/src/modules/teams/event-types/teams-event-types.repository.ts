@@ -144,33 +144,6 @@ export class TeamsEventTypesRepository {
     });
   }
 
-  async deleteUserManagedSubTeamsEventTypes(userId: number, organizationId: number) {
-    // Delete child events where the parent event type belongs to a sub-team of the organization
-    return this.dbWrite.prisma.eventType.deleteMany({
-      where: {
-        userId,
-        parent: {
-          team: {
-            parentId: organizationId,
-          },
-        },
-      },
-    });
-  }
-
-  async removeUserFromSubTeamsEventTypesHosts(userId: number, teamId: number) {
-    return this.dbWrite.prisma.host.deleteMany({
-      where: {
-        userId,
-        eventType: {
-          team: {
-            parentId: teamId,
-          },
-        },
-      },
-    });
-  }
-
   async removeUserFromTeamEventTypesHosts(userId: number, teamId: number) {
     return this.dbWrite.prisma.host.deleteMany({
       where: {
