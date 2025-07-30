@@ -169,25 +169,25 @@ describe("CalendarCacheSqlService", () => {
 
       vi.mocked(mockSubscriptionRepo.findByChannelId).mockResolvedValue(mockSubscription as any);
       vi.mocked(mockSubscriptionRepo.updateSyncToken).mockResolvedValue(undefined);
-      vi.mocked(mockEventRepo.upsertEvent).mockResolvedValue({} as any);
+      vi.mocked(mockEventRepo.bulkUpsertEvents).mockResolvedValue(undefined);
 
       await service.processWebhookEvents("channel-id", mockCredential as any);
 
-      // Verify that upsertEvent was called for both events, including the cancelled one
-      expect(mockEventRepo.upsertEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          googleEventId: "cancelled-event-id",
-          summary: "Cancelled Event",
-          status: "cancelled",
-        })
-      );
-
-      expect(mockEventRepo.upsertEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          googleEventId: "active-event-id",
-          summary: "Active Event",
-          status: "confirmed",
-        })
+      // Verify that bulkUpsertEvents was called with both events
+      expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            googleEventId: "cancelled-event-id",
+            summary: "Cancelled Event",
+            status: "cancelled",
+          }),
+          expect.objectContaining({
+            googleEventId: "active-event-id",
+            summary: "Active Event",
+            status: "confirmed",
+          }),
+        ]),
+        "subscription-id"
       );
 
       // Verify that sync token was updated
