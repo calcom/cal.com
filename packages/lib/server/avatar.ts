@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@calcom/prisma";
 
 import { convertSvgToPng } from "./imageUtils";
-import { validateBase64Image } from "./imageValidation";
+import { validateBase64Image } from "./imageValidationConstants";
 
 export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
   const validation = validateBase64Image(data);

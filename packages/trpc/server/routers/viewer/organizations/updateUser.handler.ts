@@ -6,7 +6,7 @@ import { RoleManagementError } from "@calcom/features/pbac/domain/errors/role-ma
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
-import { validateBase64Image } from "@calcom/lib/server/imageValidation";
+import { validateBase64Image } from "@calcom/lib/server/imageValidationConstants";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";

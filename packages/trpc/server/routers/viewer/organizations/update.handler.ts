@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { validateBase64Image } from "@calcom/lib/server/imageValidation";
+import { validateBase64Image } from "@calcom/lib/server/imageValidationConstants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
