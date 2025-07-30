@@ -587,8 +587,20 @@ describe("Organizations Memberships Endpoints", () => {
     });
 
     it("should remove user from hosts of sub-team event types when deleting org membership", async () => {
-      // This test demonstrates a bug in the V2 API where hosts are not removed from 
-      // sub-team event types when a user is removed from an organization
+      // Create a new user for this test to avoid conflicts with other tests
+      const testUserEmail = `test-host-removal-${randomString()}@api.com`;
+      const testUser = await userRepositoryFixture.create({
+        email: testUserEmail,
+        username: testUserEmail,
+      });
+      
+      // First, create a membership for the user in the organization
+      const userMembership = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
       
       // Create a sub-team under the organization
       const subTeam = await teamsRepositoryFixture.create({
@@ -614,14 +626,14 @@ describe("Organizations Memberships Endpoints", () => {
       // Add the user as a member of the sub-team
       await membershipRepositoryFixture.create({
         role: "MEMBER",
-        user: { connect: { id: userToInviteViaApi.id } },
+        user: { connect: { id: testUser.id } },
         team: { connect: { id: subTeam.id } },
       });
       
       // Add the user as a host to the sub-team event type
       await hostsRepositoryFixture.create({
         user: {
-          connect: { id: userToInviteViaApi.id }
+          connect: { id: testUser.id }
         },
         eventType: {
           connect: { id: subTeamEventType.id }
@@ -630,26 +642,18 @@ describe("Organizations Memberships Endpoints", () => {
       
       // Verify the user is a host before deletion
       let hosts = await hostsRepositoryFixture.getEventTypeHosts(subTeamEventType.id);
-      expect(hosts.some(h => h.userId === userToInviteViaApi.id)).toBe(true);
-      
-      // First, create a membership for the user in the organization
-      const userMembership = await membershipRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: userToInviteViaApi.id } },
-        team: { connect: { id: org.id } },
-        accepted: true,
-      });
+      expect(hosts.some(h => h.userId === testUser.id)).toBe(true);
       
       // Create a profile for the user in the organization
       await profileRepositoryFixture.create({
-        uid: `profile-uid-${userToInviteViaApi.id}`,
-        username: `user-${userToInviteViaApi.id}`,
+        uid: `profile-uid-${testUser.id}`,
+        username: `user-${testUser.id}`,
         organization: { connect: { id: org.id } },
-        user: { connect: { id: userToInviteViaApi.id } },
+        user: { connect: { id: testUser.id } },
       });
       
       // Verify profile exists before deletion
-      let profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, userToInviteViaApi.id);
+      let profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, testUser.id);
       expect(profile).toBeTruthy();
       
       // Delete the user's organization membership
@@ -660,15 +664,16 @@ describe("Organizations Memberships Endpoints", () => {
       expect(deleteResponse.body.status).toEqual(SUCCESS_STATUS);
       
       // Verify that the user's profile has been deleted
-      profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, userToInviteViaApi.id);
+      profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, testUser.id);
       expect(profile).toBeNull();
       
       // Verify the user is removed from sub-team event type hosts
       hosts = await hostsRepositoryFixture.getEventTypeHosts(subTeamEventType.id);
-      expect(hosts.some(h => h.userId === userToInviteViaApi.id)).toBe(false);
+      expect(hosts.some(h => h.userId === testUser.id)).toBe(false);
       
       // Clean up
       await teamsRepositoryFixture.delete(subTeam.id);
+      await userRepositoryFixture.deleteByEmail(testUser.email);
     });
 
     it("should fail to get the membership of the org we just deleted", async () => {
