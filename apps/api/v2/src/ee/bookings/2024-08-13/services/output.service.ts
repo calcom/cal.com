@@ -101,9 +101,10 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToUid = databaseBooking.rescheduled
-      ? await this.getRescheduledToUid(databaseBooking.uid)
-      : undefined;
+    const [rescheduledToUid, rescheduledByEmail] = databaseBooking.rescheduled
+      ? await this.getRescheduledToInfo(databaseBooking.uid)
+      : [undefined, undefined];
+
 
     const booking = {
       id: databaseBooking.id,
@@ -142,6 +143,7 @@ export class OutputBookingsService_2024_08_13 {
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
       rescheduledToUid,
+      rescheduledByEmail,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -151,10 +153,11 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  async getRescheduledToUid(bookingUid: string) {
+  async getRescheduledToInfo(bookingUid: string): Promise<[string | undefined, string | undefined]> {
     const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
-    return rescheduledTo?.uid;
+    return [rescheduledTo?.uid, rescheduledTo?.rescheduledBy];
   }
+
 
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
@@ -269,9 +272,9 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToUid = databaseBooking.rescheduled
-      ? await this.getRescheduledToUid(databaseBooking.uid)
-      : undefined;
+    const [rescheduledToUid, rescheduledByEmail] = databaseBooking.rescheduled
+      ? await this.getRescheduledToInfo(databaseBooking.uid)
+      : [undefined, undefined];
 
     const booking = {
       id: databaseBooking.id,
@@ -299,6 +302,7 @@ export class OutputBookingsService_2024_08_13 {
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
       rescheduledToUid,
+      rescheduledByEmail,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
