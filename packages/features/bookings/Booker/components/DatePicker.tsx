@@ -86,7 +86,7 @@ export const DatePicker = ({
 
   const onMonthChange = (date: Dayjs) => {
     setMonth(date.format("YYYY-MM"));
-    setSelectedDate(date.format("YYYY-MM-DD"));
+    setSelectedDate({ date: date.format("YYYY-MM-DD") });
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
@@ -132,11 +132,11 @@ export const DatePicker = ({
       className={classNames?.datePickerContainer}
       isLoading={isLoading}
       onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
-        setSelectedDate(
-          date === null ? date : date.format("YYYY-MM-DD"),
+        setSelectedDate({
+          date: date === null ? date : date.format("YYYY-MM-DD"),
           omitUpdatingParams,
-          !isCompact // Prevent month switching when in monthly view
-        );
+          preventMonthSwitching: !isCompact, // Prevent month switching when in monthly view
+        });
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
