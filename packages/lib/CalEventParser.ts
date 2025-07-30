@@ -32,11 +32,11 @@ export const getWhen = (
 };
 
 export const sanitizeText = (input: string | null | undefined): string => {
-  const text = input || ""; // Explicitly handle null/undefined as empty string
+  const text = input || "";
   const processed = markdownToSafeHTML(text);
   const stripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
   const result = breakUrl(stripped);
-  return result;
+  return result.trim();
 };
 
 const breakUrl = (input: string): string => {
@@ -230,11 +230,8 @@ export const getManageLink = (
   }
 
   const uid = getUid(calEvent);
-  const rescheduledBy = encodeURIComponent(calEvent.organizer.email);
-  return {
-    href: `https://cal.com/reschedule/${uid}?rescheduledBy=${rescheduledBy}`,
-    text: t("reschedule"),
-  };
+  const baseUrl = calEvent.bookerUrl ?? WEBAPP_URL;
+  return `${t("reschedule")}: ${baseUrl}/booking/${uid}?changes=true`;
 };
 
 export const getPlatformCancelLink = (
