@@ -106,7 +106,12 @@ async function handler(input: CancelBookingInput) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
+  const isHost =
+    (cancelledBy && bookingToDelete.user?.email === cancelledBy) ||
+    (userId !== -1 && bookingToDelete.userId === userId);
+
+  // Exempt hosts from disableCancelling restriction
+  if (bookingToDelete.eventType?.disableCancelling && !isHost) {
     throw new HttpError({
       statusCode: 400,
       message: "This event type does not allow cancellations",
