@@ -154,7 +154,7 @@ describe("Tests for DatePicker Component", () => {
 
       // Should show next month days (February days when browsing January)
       // In end-of-month view, the first day of next month gets a month label
-      const febLabel = queryByText("FEB");
+      const febLabel = queryByText("Feb");
       expect(febLabel).toBeTruthy();
 
       vi.useRealTimers();
