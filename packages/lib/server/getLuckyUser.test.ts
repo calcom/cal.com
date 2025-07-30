@@ -55,7 +55,7 @@ it("can find lucky user with maximize availability", async () => {
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
   // TODO: we may be able to use native prisma generics somehow?
@@ -107,7 +107,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
   // TODO: we may be able to use native prisma generics somehow?
@@ -289,7 +289,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -392,7 +392,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -500,7 +500,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -600,7 +600,7 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
       {
@@ -820,7 +820,7 @@ describe("maximize availability and weights", () => {
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     // TODO: we may be able to use native prisma generics somehow?
@@ -1282,7 +1282,7 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     prismaMock.user.findMany.mockResolvedValue(users);
