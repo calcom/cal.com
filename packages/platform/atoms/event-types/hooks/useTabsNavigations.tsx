@@ -199,7 +199,7 @@ function getNavigation({
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-      "data-testid": `event_setup_tab_title`,
+      "data-testid": `basics`,
     },
     {
       name: t("event_limit_tab_title"),

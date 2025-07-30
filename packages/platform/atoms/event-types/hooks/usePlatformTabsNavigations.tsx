@@ -155,7 +155,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       href: `${url}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
-      "data-testid": `event_setup_tab_title`,
+      "data-testid": `basics`,
     });
   tabs.includes("limits") &&
     tabsNavigation.push({
