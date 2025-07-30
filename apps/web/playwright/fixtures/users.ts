@@ -220,10 +220,19 @@ const createTeamAndAddUser = async (
         ],
       }
     : undefined;
+
+  console.log("DEBUG: createTeamAndAddUser - scenario.isOrg:", scenario.isOrg);
+  console.log("DEBUG: createTeamAndAddUser - orgProfiles:", JSON.stringify(data.orgProfiles, null, 2));
+
   data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
+  console.log("DEBUG: createTeamAndAddUser - creating team with data:", JSON.stringify(data, null, 2));
   const team = await prisma.team.create({
     data,
   });
+  console.log(
+    "DEBUG: createTeamAndAddUser - created team:",
+    JSON.stringify({ id: team.id, name: team.name, isOrganization: team.isOrganization }, null, 2)
+  );
 
   const { role = MembershipRole.OWNER, id: userId } = user;
   await prisma.membership.create({
@@ -704,6 +713,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       return membership;
     },
     getOrgMembership: async () => {
+      console.log("DEBUG: getOrgMembership - searching for membership for userId:", user.id);
       const membership = await prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
@@ -720,6 +730,21 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
           },
         },
       });
+      console.log(
+        "DEBUG: getOrgMembership - found membership:",
+        JSON.stringify(
+          {
+            id: membership?.id,
+            userId: membership?.userId,
+            teamId: membership?.teamId,
+            role: membership?.role,
+            teamName: membership?.team?.name,
+            teamIsOrg: membership?.team?.isOrganization,
+          },
+          null,
+          2
+        )
+      );
       if (!membership) {
         return membership;
       }
