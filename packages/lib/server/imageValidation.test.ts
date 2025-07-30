@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
 import { FILE_SIGNATURES } from "@calcom/lib/imageValidationConstants";
-import { validateBase64Image } from "@calcom/lib/imageValidationConstants";
+import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 
 describe("validateBase64Image", () => {
   const createBase64Data = (bytes: number[], mimeType = "image/png") => {
