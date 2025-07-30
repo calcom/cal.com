@@ -902,6 +902,12 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
