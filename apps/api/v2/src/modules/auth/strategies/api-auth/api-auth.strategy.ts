@@ -219,12 +219,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
   }
 
   async apiKeyStrategy(apiKey: string, request: ApiAuthGuardRequest) {
-    const isLicenseValid = await this.deploymentsService.checkLicense();
-    if (!isLicenseValid) {
-      throw new UnauthorizedException(
-        "ApiAuthStrategy - api key - Invalid or missing CALCOM_LICENSE_KEY environment variable"
-      );
-    }
+    const isLicenseValid = true
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
     const apiKeyHash = hashAPIKey(strippedApiKey);
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);

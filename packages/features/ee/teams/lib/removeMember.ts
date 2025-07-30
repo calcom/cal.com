@@ -17,26 +17,20 @@ const removeMember = async ({
   teamId: number;
   isOrg: boolean;
 }) => {
-  const [membership] = await prisma.$transaction([
-    prisma.membership.delete({
-      where: {
-        userId_teamId: { userId: memberId, teamId: teamId },
-      },
-      include: {
-        user: true,
-        team: true,
-      },
-    }),
-    // remove user as host from team events associated with this membership
-    prisma.host.deleteMany({
-      where: {
-        userId: memberId,
-        eventType: {
-          teamId: teamId,
-        },
-      },
-    }),
-  ]);
+  // First get the membership to ensure it exists
+  const membership = await prisma.membership.findUnique({
+    where: {
+      userId_teamId: { userId: memberId, teamId: teamId },
+    },
+    include: {
+      user: true,
+      team: true,
+    },
+  });
+
+  if (!membership) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Membership not found" });
+  }
 
   const team = await prisma.team.findUnique({
     where: { id: teamId },
@@ -109,7 +103,11 @@ const removeMember = async ({
     await prisma.$transaction([
       prisma.user.update({
         where: { id: membership.userId },
-        data: { organizationId: null },
+        data: { 
+          organizationId: null,
+          // Update username to avoid conflicts with users outside organizations
+          username: foundUser.username ? `${foundUser.username}-${membership.userId}` : null
+        },
       }),
       ProfileRepository.delete({
         userId: membership.userId,
@@ -132,6 +130,20 @@ const removeMember = async ({
   await prisma.eventType.deleteMany({
     where: { parent: { teamId: teamId }, userId: membership.userId },
   });
+
+  // If removing from organization, also delete managed child events in sub-teams
+  if (isOrg) {
+    await prisma.eventType.deleteMany({
+      where: {
+        userId: membership.userId,
+        parent: {
+          team: {
+            parentId: teamId,
+          },
+        },
+      },
+    });
+  }
 
   await deleteWorkfowRemindersOfRemovedMember(team, memberId, isOrg);
 
