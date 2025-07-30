@@ -211,7 +211,7 @@ export class CalendarsController {
       const parsedState = calendarStateSchema.parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
-        redir: stateParams.get("redir") || undefined,
+        redir: stateParams.get("redir") ? decodeURIComponent(stateParams.get("redir")!) : undefined,
         isDryRun: stateParams.get("isDryRun"),
       });
 
