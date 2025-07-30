@@ -220,7 +220,6 @@ const createTeamAndAddUser = async (
         ],
       }
     : undefined;
-
   data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
   const team = await prisma.team.create({
     data,
@@ -705,7 +704,6 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
       return membership;
     },
     getOrgMembership: async () => {
-      console.log("DEBUG: getOrgMembership - searching for membership for userId:", user.id);
       const membership = await prisma.membership.findFirstOrThrow({
         where: {
           userId: user.id,
@@ -990,6 +988,9 @@ export async function apiLogin(
     data,
   });
   expect(response.status()).toBe(200);
+
+  await page.context().request.get("/api/auth/session");
+
   return response;
 }
 

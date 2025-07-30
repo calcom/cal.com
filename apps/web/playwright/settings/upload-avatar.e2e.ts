@@ -135,17 +135,6 @@ test.describe("Organization Logo", async () => {
     const { team: org } = await owner.getOrgMembership();
 
     await owner.apiLogin();
-
-    await page.waitForFunction(
-      () => {
-        return fetch("/api/auth/session")
-          .then((res) => res.json())
-          .then((session) => session?.user?.org?.id)
-          .catch(() => false);
-      },
-      { timeout: 10000 }
-    );
-
     await page.goto("/settings/organizations/profile");
 
     let objectKey: string;
