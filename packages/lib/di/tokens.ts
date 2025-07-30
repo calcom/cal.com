@@ -22,4 +22,8 @@ export const DI_TOKENS = {
   AVAILABLE_SLOTS_SERVICE_MODULE: Symbol("AvailableSlotsModule"),
   INSIGHTS_ROUTING_SERVICE: Symbol("InsightsRoutingService"),
   INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
+  FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
+  FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
+  CACHE_SERVICE: Symbol("CacheService"),
+  CACHE_SERVICE_MODULE: Symbol("CacheServiceModule"),
 };
