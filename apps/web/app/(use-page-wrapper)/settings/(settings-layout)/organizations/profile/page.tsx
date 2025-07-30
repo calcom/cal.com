@@ -7,6 +7,7 @@ import LegacyPage from "@calcom/features/ee/organizations/pages/settings/profile
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -25,7 +26,7 @@ const Page = async () => {
   const t = await getTranslate();
 
   const orgRole = session?.user.profile?.organization.members?.find(
-    (member) => member.userId === session?.user.id
+    (member: Membership) => member.userId === session?.user.id
   )?.role;
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !orgRole) {
