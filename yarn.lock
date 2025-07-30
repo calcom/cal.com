@@ -2783,6 +2783,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/btcpayserver@workspace:packages/app-store/btcpayserver":
+  version: 0.0.0-use.local
+  resolution: "@calcom/btcpayserver@workspace:packages/app-store/btcpayserver"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar":
   version: 0.0.0-use.local
   resolution: "@calcom/caldavcalendar@workspace:packages/app-store/caldavcalendar"
