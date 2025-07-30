@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { showToast } from "../toast";
 import { validateImageFile } from "./imageValidation";
 
-const mockShowToast = vi.fn();
-
 vi.mock("../toast", () => ({
-  showToast: mockShowToast,
+  showToast: vi.fn(),
 }));
+
+const mockShowToast = vi.mocked(showToast);
 
 describe("validateImageFile", () => {
   const mockT = vi.fn((key: string) => key);
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockShowToast.mockClear();
   });
 
   const createMockFile = (bytes: number[], name = "test.png", type = "image/png", size?: number) => {

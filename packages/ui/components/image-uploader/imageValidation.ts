@@ -1,6 +1,9 @@
+import {
+  FILE_SIGNATURES,
+  matchesSignature,
+  MAX_IMAGE_FILE_SIZE,
+} from "../../../lib/imageValidationConstants";
 import { showToast } from "../toast";
-
-const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
  * Enhanced browser-compatible image validation with magic number checking
@@ -21,94 +24,46 @@ export const validateImageFile = async (file: File, t: (key: string) => string):
     const buffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(buffer);
 
-    if (
-      uint8Array.length >= 4 &&
-      uint8Array[0] === 0x25 &&
-      uint8Array[1] === 0x50 &&
-      uint8Array[2] === 0x44 &&
-      uint8Array[3] === 0x46
-    ) {
+    if (uint8Array.length === 0) {
+      showToast(t("invalid_image_file_format"), "error");
+      return false;
+    }
+
+    if (matchesSignature(uint8Array, FILE_SIGNATURES.PDF)) {
       showToast(t("pdf_files_cannot_be_uploaded_as_images"), "error");
       return false;
     }
 
-    if (
-      uint8Array.length >= 10 &&
-      uint8Array[0] === 0x3c &&
-      uint8Array[1] === 0x21 &&
-      uint8Array[2] === 0x44 &&
-      uint8Array[3] === 0x4f &&
-      uint8Array[4] === 0x43 &&
-      uint8Array[5] === 0x54 &&
-      uint8Array[6] === 0x59 &&
-      uint8Array[7] === 0x50 &&
-      uint8Array[8] === 0x45 &&
-      uint8Array[9] === 0x20
-    ) {
+    if (matchesSignature(uint8Array, FILE_SIGNATURES.HTML)) {
       showToast(t("html_files_cannot_be_uploaded_as_images"), "error");
       return false;
     }
 
-    if (
-      uint8Array.length >= 7 &&
-      uint8Array[0] === 0x3c &&
-      uint8Array[1] === 0x73 &&
-      uint8Array[2] === 0x63 &&
-      uint8Array[3] === 0x72 &&
-      uint8Array[4] === 0x69 &&
-      uint8Array[5] === 0x70 &&
-      uint8Array[6] === 0x74
-    ) {
+    if (matchesSignature(uint8Array, FILE_SIGNATURES.SCRIPT_TAG)) {
       showToast(t("script_files_cannot_be_uploaded_as_images"), "error");
       return false;
     }
 
-    if (
-      uint8Array.length >= 4 &&
-      uint8Array[0] === 0x50 &&
-      uint8Array[1] === 0x4b &&
-      uint8Array[2] === 0x03 &&
-      uint8Array[3] === 0x04
-    ) {
+    if (matchesSignature(uint8Array, FILE_SIGNATURES.ZIP)) {
       showToast(t("zip_files_cannot_be_uploaded_as_images"), "error");
       return false;
     }
 
-    if (uint8Array.length >= 2 && uint8Array[0] === 0x4d && uint8Array[1] === 0x5a) {
+    if (matchesSignature(uint8Array, FILE_SIGNATURES.EXECUTABLE)) {
       showToast(t("executable_files_cannot_be_uploaded_as_images"), "error");
       return false;
     }
 
     const isValidImage =
-      (uint8Array.length >= 8 &&
-        uint8Array[0] === 0x89 &&
-        uint8Array[1] === 0x50 &&
-        uint8Array[2] === 0x4e &&
-        uint8Array[3] === 0x47) ||
-      (uint8Array.length >= 3 &&
-        uint8Array[0] === 0xff &&
-        uint8Array[1] === 0xd8 &&
-        uint8Array[2] === 0xff) ||
-      (uint8Array.length >= 6 &&
-        uint8Array[0] === 0x47 &&
-        uint8Array[1] === 0x49 &&
-        uint8Array[2] === 0x46 &&
-        uint8Array[3] === 0x38) ||
-      (uint8Array.length >= 12 &&
-        uint8Array[0] === 0x52 &&
-        uint8Array[1] === 0x49 &&
-        uint8Array[2] === 0x46 &&
-        uint8Array[3] === 0x46 &&
-        uint8Array[8] === 0x57 &&
-        uint8Array[9] === 0x45 &&
-        uint8Array[10] === 0x42 &&
-        uint8Array[11] === 0x50) ||
-      (uint8Array.length >= 2 && uint8Array[0] === 0x42 && uint8Array[1] === 0x4d) ||
-      (uint8Array.length >= 4 &&
-        uint8Array[0] === 0x00 &&
-        uint8Array[1] === 0x00 &&
-        uint8Array[2] === 0x01 &&
-        uint8Array[3] === 0x00);
+      matchesSignature(uint8Array, FILE_SIGNATURES.PNG) ||
+      matchesSignature(uint8Array, FILE_SIGNATURES.JPEG_FF_D8_FF) ||
+      matchesSignature(uint8Array, FILE_SIGNATURES.GIF87a) ||
+      matchesSignature(uint8Array, FILE_SIGNATURES.GIF89a) ||
+      matchesSignature(uint8Array, FILE_SIGNATURES.BMP) ||
+      matchesSignature(uint8Array, FILE_SIGNATURES.ICO) ||
+      (matchesSignature(uint8Array, FILE_SIGNATURES.WEBP) &&
+        uint8Array.length >= 12 &&
+        matchesSignature(uint8Array.slice(8), FILE_SIGNATURES.WEBP_SIGNATURE));
 
     if (!isValidImage) {
       showToast(t("invalid_image_file_format"), "error");

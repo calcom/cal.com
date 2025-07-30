@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import { FILE_SIGNATURES } from "../imageValidationConstants";
 import { validateBase64Image } from "./imageValidation";
 
 describe("validateBase64Image", () => {
@@ -10,7 +11,7 @@ describe("validateBase64Image", () => {
 
   describe("Valid image formats", () => {
     it("should validate PNG images", () => {
-      const pngBytes = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...Array(10).fill(0)];
+      const pngBytes = [...FILE_SIGNATURES.PNG, ...Array(10).fill(0)];
       const base64Data = createBase64Data(pngBytes);
 
       const result = validateBase64Image(base64Data);
@@ -21,7 +22,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should validate JPEG images", () => {
-      const jpegBytes = [0xff, 0xd8, 0xff, 0xe0, ...Array(10).fill(0)];
+      const jpegBytes = [...FILE_SIGNATURES.JPEG_FF_D8_FF, 0xe0, ...Array(10).fill(0)];
       const base64Data = createBase64Data(jpegBytes, "image/jpeg");
 
       const result = validateBase64Image(base64Data);
@@ -31,7 +32,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should validate GIF87a images", () => {
-      const gifBytes = [0x47, 0x49, 0x46, 0x38, 0x37, 0x61, ...Array(10).fill(0)];
+      const gifBytes = [...FILE_SIGNATURES.GIF87a, ...Array(10).fill(0)];
       const base64Data = createBase64Data(gifBytes, "image/gif");
 
       const result = validateBase64Image(base64Data);
@@ -41,7 +42,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should validate GIF89a images", () => {
-      const gifBytes = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, ...Array(10).fill(0)];
+      const gifBytes = [...FILE_SIGNATURES.GIF89a, ...Array(10).fill(0)];
       const base64Data = createBase64Data(gifBytes, "image/gif");
 
       const result = validateBase64Image(base64Data);
@@ -52,18 +53,12 @@ describe("validateBase64Image", () => {
 
     it("should validate WEBP images", () => {
       const webpBytes = [
-        0x52,
-        0x49,
-        0x46,
-        0x46,
+        ...FILE_SIGNATURES.WEBP,
         0x00,
         0x00,
         0x00,
         0x00,
-        0x57,
-        0x45,
-        0x42,
-        0x50,
+        ...FILE_SIGNATURES.WEBP_SIGNATURE,
         ...Array(10).fill(0),
       ];
       const base64Data = createBase64Data(webpBytes, "image/webp");
@@ -75,7 +70,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should validate BMP images", () => {
-      const bmpBytes = [0x42, 0x4d, ...Array(10).fill(0)];
+      const bmpBytes = [...FILE_SIGNATURES.BMP, ...Array(10).fill(0)];
       const base64Data = createBase64Data(bmpBytes, "image/bmp");
 
       const result = validateBase64Image(base64Data);
@@ -85,7 +80,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should validate ICO images", () => {
-      const icoBytes = [0x00, 0x00, 0x01, 0x00, ...Array(10).fill(0)];
+      const icoBytes = [...FILE_SIGNATURES.ICO, ...Array(10).fill(0)];
       const base64Data = createBase64Data(icoBytes, "image/x-icon");
 
       const result = validateBase64Image(base64Data);
@@ -120,7 +115,7 @@ describe("validateBase64Image", () => {
 
   describe("Dangerous file types", () => {
     it("should reject PDF files", () => {
-      const pdfBytes = [0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34];
+      const pdfBytes = [...FILE_SIGNATURES.PDF, 0x2d, 0x31, 0x2e, 0x34];
       const base64Data = createBase64Data(pdfBytes);
 
       const result = validateBase64Image(base64Data);
@@ -131,7 +126,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should reject HTML files with DOCTYPE", () => {
-      const htmlBytes = [0x3c, 0x21, 0x44, 0x4f, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20];
+      const htmlBytes = [...FILE_SIGNATURES.HTML];
       const base64Data = createBase64Data(htmlBytes);
 
       const result = validateBase64Image(base64Data);
@@ -142,7 +137,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should reject HTML files with <html> tag", () => {
-      const htmlBytes = [0x3c, 0x68, 0x74, 0x6d, 0x6c, 0x3e];
+      const htmlBytes = [...FILE_SIGNATURES.HTML_TAG, 0x3e];
       const base64Data = createBase64Data(htmlBytes);
 
       const result = validateBase64Image(base64Data);
@@ -153,7 +148,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should reject script files", () => {
-      const scriptBytes = [0x3c, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74];
+      const scriptBytes = [...FILE_SIGNATURES.SCRIPT_TAG];
       const base64Data = createBase64Data(scriptBytes);
 
       const result = validateBase64Image(base64Data);
@@ -164,7 +159,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should reject ZIP files", () => {
-      const zipBytes = [0x50, 0x4b, 0x03, 0x04];
+      const zipBytes = [...FILE_SIGNATURES.ZIP];
       const base64Data = createBase64Data(zipBytes);
 
       const result = validateBase64Image(base64Data);
@@ -175,7 +170,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should reject executable files", () => {
-      const exeBytes = [0x4d, 0x5a];
+      const exeBytes = [...FILE_SIGNATURES.EXECUTABLE];
       const base64Data = createBase64Data(exeBytes);
 
       const result = validateBase64Image(base64Data);
@@ -239,7 +234,7 @@ describe("validateBase64Image", () => {
       const result = validateBase64Image(base64Data);
 
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe("Unrecognized image format or invalid file");
+      expect(result.error).toBe("Invalid base64 format");
     });
 
     it("should handle unrecognized file format", () => {
@@ -276,7 +271,7 @@ describe("validateBase64Image", () => {
     });
 
     it("should handle base64 data without proper data URL prefix", () => {
-      const pngBytes = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+      const pngBytes = [...FILE_SIGNATURES.PNG];
       const buffer = Buffer.from(pngBytes);
       const base64Data = buffer.toString("base64");
 
