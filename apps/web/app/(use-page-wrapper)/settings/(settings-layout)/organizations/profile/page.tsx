@@ -24,13 +24,13 @@ const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const t = await getTranslate();
 
-  if (!session?.user.id || !session?.user.org) {
+  if (!session?.user.id || !session?.user.profile?.organizationId) {
     return redirect("/settings/profile");
   }
 
   const { canRead, canEdit, canDelete } = await getResourcePermissions({
     userId: session.user.id,
-    teamId: session?.user.org.id,
+    teamId: session?.user.profile?.organizationId,
     resource: Resource.Organization,
     userRole: session.user.org.role,
     fallbackRoles: {
