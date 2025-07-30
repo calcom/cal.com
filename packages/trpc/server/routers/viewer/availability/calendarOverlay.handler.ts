@@ -98,6 +98,8 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     });
   }
 
+  const calendarBusyTimes = calendarBusyTimesQuery.data;
+
   // Convert to users timezone
 
   const userTimeZone = input.loggedInUsersTz;
