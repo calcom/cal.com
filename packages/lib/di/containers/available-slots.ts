@@ -18,7 +18,7 @@ const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(DI_TOKENS.OOO_REPOSITORY_MODULE, oooRepositoryModule);
 container.load(DI_TOKENS.SCHEDULE_REPOSITORY_MODULE, scheduleRepositoryModule);
-container.load(DI_TOKENS.SELECTED_SLOTS_REPOSITORY_MODULE, selectedSlotsRepositoryModule);
+container.load(DI_TOKENS.SELECTED_SLOT_REPOSITORY_MODULE, selectedSlotsRepositoryModule);
 container.load(DI_TOKENS.TEAM_REPOSITORY_MODULE, teamRepositoryModule);
 container.load(DI_TOKENS.USER_REPOSITORY_MODULE, userRepositoryModule);
 container.load(DI_TOKENS.BOOKING_REPOSITORY_MODULE, bookingRepositoryModule);
