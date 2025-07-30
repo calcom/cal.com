@@ -21,13 +21,18 @@ async function postHandler(request: NextRequest) {
 
   try {
     log.info("Starting calendar cache SQL cleanup cron job");
+    const featuresRepo = new FeaturesRepository();
+    // Check if cleanup feature is enabled globally
+    const isCleanupEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-cleanup");
+    if (!isCleanupEnabled) {
+      log.debug("Calendar cache SQL cleanup not enabled globally");
+      return NextResponse.json({ success: false, message: "Cleanup not enabled globally" });
+    }
 
     const eventRepo = new CalendarEventRepository(prisma);
-    const featuresRepo = new FeaturesRepository();
 
     const cleanupService = new CalendarCacheSqlCleanupService({
       eventRepo,
-      featuresRepo,
       logger: log,
     });
 
