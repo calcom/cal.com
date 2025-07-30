@@ -11,7 +11,10 @@ export type BookingAuditData = {
     meetingTime?: string;
     totalReschedules?: number;
     attendeeCountChange?: number;
-    rescheduleReason?: string;
+    cancellationReason?: string;
+    rejectionReason?: string;
+    assignmentReason?: string;
+    reassignmentReason?: string;
   };
   attendee?: {
     id?: string;
