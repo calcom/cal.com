@@ -24,7 +24,11 @@ const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const t = await getTranslate();
 
-  if (!session?.user.id || !session?.user.profile?.organizationId) {
+  const orgRole = session?.user.profile?.organization.members?.find(
+    (member) => member.userId === session?.user.id
+  )?.role;
+
+  if (!session?.user.id || !session?.user.profile?.organizationId || !orgRole) {
     return redirect("/settings/profile");
   }
 
@@ -32,7 +36,7 @@ const Page = async () => {
     userId: session.user.id,
     teamId: session?.user.profile?.organizationId,
     resource: Resource.Organization,
-    userRole: session.user.org.role,
+    userRole: orgRole,
     fallbackRoles: {
       read: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
