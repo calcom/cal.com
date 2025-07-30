@@ -413,7 +413,7 @@ export class BookingAuditService {
   // ============== NO-SHOW TRACKING ==============
 
   /**
-   * Creates an audit record when host no-show status is updated
+   * Creates an audit record when host no-show status is updated by Attendee
    */
   async onHostNoShowUpdated(
     bookingId: string,
@@ -426,14 +426,14 @@ export class BookingAuditService {
       type: "RECORD_UPDATED",
       action: "HOST_NO_SHOW_UPDATED",
       data: {
-        actor: { type: "User" },
+        actor: { type: "Attendee" },
         ...data,
       },
     });
   }
 
   /**
-   * Creates an audit record when attendee no-show status is updated
+   * Creates an audit record when attendee no-show status is updated by User
    */
   async onAttendeeNoShowUpdated(
     bookingId: string,
@@ -455,7 +455,7 @@ export class BookingAuditService {
   // ============== SYSTEM ACTIONS ==============
 
   /**
-   * Creates an audit record for system-initiated actions
+   * Creates an audit record for system-initiated actions (A catch all for system actions)
    */
   async onSystemAction(
     bookingId: string,
