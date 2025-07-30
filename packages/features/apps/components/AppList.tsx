@@ -77,10 +77,13 @@ export const AppList = ({
     };
   }) => {
     const appSlug = item?.slug;
+
+    const credentialIdToCompare = item.credentialOwner?.credentialId || item.userCredentialIds[0];
+
     const appIsDefault =
       (appSlug === defaultConferencingApp?.appSlug &&
         (defaultConferencingApp?.credentialId
-          ? defaultConferencingApp.credentialId === item.credentialOwner?.credentialId
+          ? defaultConferencingApp.credentialId === credentialIdToCompare
           : true)) ||
       (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
     return (
@@ -92,7 +95,11 @@ export const AppList = ({
         isDefault={appIsDefault}
         shouldHighlight
         slug={item.slug}
-        invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
+        invalidCredential={
+          item.invalidCredentialIds.length > 0
+            ? item.invalidCredentialIds.find((id) => id === credentialIdToCompare)
+            : false
+        }
         credentialOwner={item?.credentialOwner}
         actions={
           !item.credentialOwner?.readOnly ? (
@@ -128,7 +135,7 @@ export const AppList = ({
                     </DropdownMenuItem>
                   )}
                   <ConnectOrDisconnectIntegrationMenuItem
-                    credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
+                    credentialId={credentialIdToCompare}
                     type={item.type}
                     app={item.slug}
                     isGlobal={item.isGlobal}
