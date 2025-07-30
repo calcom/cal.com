@@ -121,8 +121,14 @@ async function handler(input: CancelBookingInput) {
   function determineIfUserIsHost(booking: typeof bookingToDelete, userId: number): boolean {
     const schedulingType = booking.eventType?.schedulingType;
 
-    if (schedulingType === SchedulingType.COLLECTIVE) {
-      return booking.eventType?.hosts.some((host) => host.user.id === userId) ?? false;
+    if (schedulingType === SchedulingType.COLLECTIVE || schedulingType === SchedulingType.ROUND_ROBIN) {
+      if (userId === booking.user?.id) return true;
+
+      const hostsFromAttendeesList = booking.eventType?.hosts.filter((host) =>
+        booking.attendees.find((attendee) => attendee.email === host.user.email)
+      );
+
+      return hostsFromAttendeesList?.some((host) => host.user.id === userId) ?? false;
     }
 
     return booking.userId === userId;
