@@ -410,7 +410,7 @@ export const aiRouter = router({
       // Delete agent and LLM from Retell
       await aiService.deleteConfiguration({
         agentId: agent.retellAgentId,
-        llmId: getLlmId(retellAgent),
+        llmId: getLlmId(retellAgent) || undefined,
       });
     } catch (error) {
       console.error("Failed to delete from Retell:", error);

@@ -130,7 +130,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         },
       });
 
-      const attendeePhoneNumber = extractPhoneNumber(evt.responses);
+      let attendeePhoneNumber = extractPhoneNumber(evt.responses);
 
       console.log("Phone number extraction:", {
         responses: evt.responses,
@@ -183,7 +183,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         },
       });
 
-      const attendeePhoneNumber = extractPhoneNumber(evt.responses);
+      let attendeePhoneNumber = extractPhoneNumber(evt.responses);
 
       console.log("Phone number extraction (immediate):", {
         responses: evt.responses,
