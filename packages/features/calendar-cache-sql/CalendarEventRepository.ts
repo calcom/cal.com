@@ -23,8 +23,8 @@ export class CalendarEventRepository implements ICalendarEventRepository {
           },
         },
         create: {
-          calendarSubscription: { connect: { id: subscriptionId } },
           ...data,
+          calendarSubscription: { connect: { id: subscriptionId } },
           etag: data.etag || "",
         },
         update: {
