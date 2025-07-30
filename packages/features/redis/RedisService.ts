@@ -6,11 +6,13 @@ export class RedisService implements IRedisService {
   private redis: Redis;
 
   constructor() {
-    this.redis = Redis.fromEnv();
+    this.redis = Redis.fromEnv({
+      signal: () => AbortSignal.timeout(2000), // Set a default timeout for requests
+    });
   }
 
   async get<TData>(key: string): Promise<TData | null> {
-    return await this.redis.get(key);
+    return this.redis.get(key);
   }
 
   async del(key: string): Promise<number> {
