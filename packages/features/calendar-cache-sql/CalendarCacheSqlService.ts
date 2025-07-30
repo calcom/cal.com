@@ -6,26 +6,6 @@ import type {
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
-interface CalendarEventData {
-  googleEventId: string;
-  iCalUID?: string | null;
-  etag?: string;
-  sequence?: number;
-  summary?: string | null;
-  description?: string | null;
-  location?: string | null;
-  start: Date;
-  end: Date;
-  isAllDay: boolean;
-  status?: string;
-  transparency?: string;
-  visibility?: string;
-  recurringEventId?: string | null;
-  originalStartTime?: Date | null;
-  googleCreatedAt?: Date | null;
-  googleUpdatedAt?: Date | null;
-}
-
 export class CalendarCacheSqlService {
   constructor(
     private subscriptionRepo: ICalendarSubscriptionRepository,
@@ -47,12 +27,6 @@ export class CalendarCacheSqlService {
       title: event.summary || "Busy",
       source: "calendar-cache-sql",
     }));
-  }
-
-  async ensureSubscription(selectedCalendarId: string) {
-    return await this.subscriptionRepo.upsert({
-      selectedCalendar: { connect: { id: selectedCalendarId } },
-    });
   }
 
   async processWebhookEvents(channelId: string, credential: CredentialForCalendarService) {

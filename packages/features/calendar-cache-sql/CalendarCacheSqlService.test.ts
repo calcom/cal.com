@@ -93,27 +93,6 @@ describe("CalendarCacheSqlService", () => {
     });
   });
 
-  describe("ensureSubscription", () => {
-    it("should create or update subscription", async () => {
-      const mockSubscription = {
-        id: "subscription-id",
-        userId: 1,
-        integration: "google_calendar",
-        externalId: "test@example.com",
-      };
-
-      vi.mocked(mockSubscriptionRepo.upsert).mockResolvedValue(mockSubscription as any);
-
-      const result = await service.ensureSubscription("selected-calendar-id");
-
-      expect(mockSubscriptionRepo.upsert).toHaveBeenCalledWith({
-        selectedCalendar: { connect: { id: "selected-calendar-id" } },
-      });
-
-      expect(result).toEqual(mockSubscription);
-    });
-  });
-
   describe("processWebhookEvents", () => {
     it("should handle cancelled events by updating their status", async () => {
       const mockSubscription = {
