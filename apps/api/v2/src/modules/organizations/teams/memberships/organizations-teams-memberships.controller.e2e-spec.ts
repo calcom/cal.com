@@ -12,6 +12,7 @@ import { Test } from "@nestjs/testing";
 import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -33,6 +34,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
+    let hostsRepositoryFixture: HostsRepositoryFixture;
 
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
@@ -76,6 +78,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
 
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -405,6 +408,82 @@ describe("Organizations Teams Memberships Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
         });
+    });
+
+    it.only("should remove user from hosts of team event types when deleting team membership", async () => {
+      // Create a brand new user for this test
+      const testUser = await userRepositoryFixture.create({
+        email: `test-profile-delete-${randomString()}@api.com`,
+        username: `test-profile-delete-${randomString()}`,
+      });
+      
+      // Create org membership for the test user
+      const orgMembership = await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+      
+      // Verify org membership was created
+      expect(orgMembership).toBeDefined();
+      expect(orgMembership.userId).toBe(testUser.id);
+      expect(orgMembership.teamId).toBe(org.id);
+      
+      // Create a profile for the user in the organization (required for user to be considered part of org)
+      await profileRepositoryFixture.create({
+        uid: `profile-uid-${testUser.id}`,
+        username: `user-${testUser.id}`,
+        organization: { connect: { id: org.id } },
+        user: { connect: { id: testUser.id } },
+      });
+      
+      // Create team membership for the test user
+      const teamMembershipResponse = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships`)
+        .send({
+          userId: testUser.id,
+          accepted: true,
+          role: "MEMBER",
+        } satisfies CreateOrgTeamMembershipDto)
+        .expect(201);
+      
+      const teamMembership = teamMembershipResponse.body.data;
+      
+      // Verify profile exists before deletion
+      let profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, testUser.id);
+      expect(profile).toBeTruthy();
+      
+      // Verify user is in hosts before deletion
+      const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(orgTeam.id);
+      let hasHost = false;
+      for (const eventType of teamEventTypes || []) {
+        const hosts = await hostsRepositoryFixture.getEventTypeHosts(eventType.id);
+        if (hosts.find((host) => host.userId === testUser.id)) {
+          hasHost = true;
+          break;
+        }
+      }
+      expect(hasHost).toBe(true);
+      
+      // Delete the team membership
+      await request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${teamMembership.id}`)
+        .expect(200);
+      
+      // Verify that the user's profile still exists (user is still part of org, just not the team)
+      profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, testUser.id);
+      expect(profile).toBeTruthy();
+      
+      // Verify user is removed from hosts
+      for (const eventType of teamEventTypes || []) {
+        const hosts = await hostsRepositoryFixture.getEventTypeHosts(eventType.id);
+        const userHost = hosts.find((host) => host.userId === testUser.id);
+        expect(userHost).toBeUndefined();
+      }
+      
+      // Clean up
+      await userRepositoryFixture.deleteByEmail(testUser.email);
     });
 
     it("should fail to get the membership of the org's team we just deleted", async () => {

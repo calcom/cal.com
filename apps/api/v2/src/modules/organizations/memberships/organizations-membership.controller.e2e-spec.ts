@@ -18,8 +18,12 @@ import { Test } from "@nestjs/testing";
 import { Attribute, AttributeOption, User } from "@prisma/client";
 import * as request from "supertest";
 import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -35,6 +39,10 @@ describe("Organizations Memberships Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
     let attributesRepositoryFixture: AttributeRepositoryFixture;
+    let teamsRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let hostsRepositoryFixture: HostsRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -78,6 +86,10 @@ describe("Organizations Memberships Endpoints", () => {
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
+      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -404,6 +416,165 @@ describe("Organizations Memberships Endpoints", () => {
         });
     });
 
+    it("should delete user's managed child events when deleting org membership", async () => {
+      // Create a sub-team under the organization
+      const subTeam = await teamsRepositoryFixture.create({
+        name: `SubTeam-child-events-${randomString()}`,
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+      
+      // Create a parent event type for the sub-team
+      const parentEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: subTeam.id },
+        },
+        title: "Parent Event Type",
+        slug: "parent-event-type",
+        length: 30,
+        assignAllTeamMembers: false,
+        bookingFields: [],
+        locations: [],
+      });
+      
+      // Create a user for this test
+      const testUser = await userRepositoryFixture.create({
+        email: `test-child-events-${randomString()}@api.com`,
+        username: `test-child-events-${randomString()}`,
+      });
+      
+      // Add the user as a member of the organization
+      const userOrgMembership = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+      
+      // Create profile for the user
+      await profileRepositoryFixture.create({
+        uid: `profile-uid-${testUser.id}`,
+        username: testUser.username || `test-child-events-${randomString()}`,
+        organization: { connect: { id: org.id } },
+        user: { connect: { id: testUser.id } },
+      });
+      
+      // Add the user as a member of the sub-team
+      await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: subTeam.id } },
+      });
+      
+      // Create a managed child event type for the user
+      const childEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        title: "Child Event Type",
+        slug: `child-event-${randomString()}`,
+        length: 30,
+        owner: { connect: { id: testUser.id } },
+        parent: { connect: { id: parentEventType.id } },
+        bookingFields: [],
+        locations: [],
+      });
+      
+      // Verify the child event exists before deletion
+      let childEvent = await eventTypesRepositoryFixture.findById(childEventType.id);
+      expect(childEvent).toBeTruthy();
+      expect(childEvent?.userId).toBe(testUser.id);
+      expect(childEvent?.parentId).toBe(parentEventType.id);
+      
+      // Delete the user's organization membership
+      const deleteResponse = await request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/memberships/${userOrgMembership.id}`)
+        .expect(200);
+      
+      expect(deleteResponse.body.status).toEqual(SUCCESS_STATUS);
+      
+      // Verify the child event has been deleted
+      childEvent = await eventTypesRepositoryFixture.findById(childEventType.id);
+      expect(childEvent).toBeNull();
+      
+      // Clean up
+      await userRepositoryFixture.deleteByEmail(testUser.email);
+      await teamsRepositoryFixture.delete(subTeam.id);
+    });
+
+    it("should delete user's sub-team memberships when deleting org membership", async () => {
+      // Create sub-teams under the organization
+      const subTeam1 = await teamsRepositoryFixture.create({
+        name: `SubTeam1-membership-${randomString()}`,
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+      
+      const subTeam2 = await teamsRepositoryFixture.create({
+        name: `SubTeam2-membership-${randomString()}`,
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+      
+      // Create a user for this test
+      const testUser = await userRepositoryFixture.create({
+        email: `test-subteam-memberships-${randomString()}@api.com`,
+        username: `test-subteam-memberships-${randomString()}`,
+      });
+      
+      // Add the user as a member of the organization
+      const userOrgMembership = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+      
+      // Create profile for the user
+      await profileRepositoryFixture.create({
+        uid: `profile-uid-sub-${testUser.id}`,
+        username: testUser.username || `test-subteam-memberships-${randomString()}`,
+        organization: { connect: { id: org.id } },
+        user: { connect: { id: testUser.id } },
+      });
+      
+      // Add the user as a member of both sub-teams
+      const subTeam1Membership = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: subTeam1.id } },
+      });
+      
+      const subTeam2Membership = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: testUser.id } },
+        team: { connect: { id: subTeam2.id } },
+      });
+      
+      // Verify memberships exist before deletion
+      let membership1 = await membershipRepositoryFixture.findById(subTeam1Membership.id);
+      let membership2 = await membershipRepositoryFixture.findById(subTeam2Membership.id);
+      expect(membership1).toBeTruthy();
+      expect(membership2).toBeTruthy();
+      
+      // Delete the user's organization membership
+      const deleteResponse = await request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/memberships/${userOrgMembership.id}`)
+        .expect(200);
+      
+      expect(deleteResponse.body.status).toEqual(SUCCESS_STATUS);
+      
+      // Verify the sub-team memberships have been deleted
+      membership1 = await membershipRepositoryFixture.findById(subTeam1Membership.id);
+      membership2 = await membershipRepositoryFixture.findById(subTeam2Membership.id);
+      expect(membership1).toBeNull();
+      expect(membership2).toBeNull();
+      
+      // Clean up
+      await userRepositoryFixture.deleteByEmail(testUser.email);
+      await teamsRepositoryFixture.delete(subTeam1.id);
+      await teamsRepositoryFixture.delete(subTeam2.id);
+    });
+
     it("should delete the membership of the org we created via api", async () => {
       return request(app.getHttpServer())
         .delete(`/v2/organizations/${org.id}/memberships/${membershipCreatedViaApi.id}`)
@@ -413,6 +584,91 @@ describe("Organizations Memberships Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
         });
+    });
+
+    it("should remove user from hosts of sub-team event types when deleting org membership", async () => {
+      // This test demonstrates a bug in the V2 API where hosts are not removed from 
+      // sub-team event types when a user is removed from an organization
+      
+      // Create a sub-team under the organization
+      const subTeam = await teamsRepositoryFixture.create({
+        name: `SubTeam-${randomString()}`,
+        isOrganization: false,
+        parent: { connect: { id: org.id } }, // This makes it a sub-team of the organization
+      });
+      
+      // Create an event type for the sub-team
+      const subTeamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: subTeam.id },
+        },
+        title: "Sub-team Event Type",
+        slug: "sub-team-event-type",
+        length: 30,
+        assignAllTeamMembers: false,
+        bookingFields: [],
+        locations: [],
+      });
+      
+      // Add the user as a member of the sub-team
+      await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: userToInviteViaApi.id } },
+        team: { connect: { id: subTeam.id } },
+      });
+      
+      // Add the user as a host to the sub-team event type
+      await hostsRepositoryFixture.create({
+        user: {
+          connect: { id: userToInviteViaApi.id }
+        },
+        eventType: {
+          connect: { id: subTeamEventType.id }
+        }
+      });
+      
+      // Verify the user is a host before deletion
+      let hosts = await hostsRepositoryFixture.getEventTypeHosts(subTeamEventType.id);
+      expect(hosts.some(h => h.userId === userToInviteViaApi.id)).toBe(true);
+      
+      // First, create a membership for the user in the organization
+      const userMembership = await membershipRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: userToInviteViaApi.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+      
+      // Create a profile for the user in the organization
+      await profileRepositoryFixture.create({
+        uid: `profile-uid-${userToInviteViaApi.id}`,
+        username: `user-${userToInviteViaApi.id}`,
+        organization: { connect: { id: org.id } },
+        user: { connect: { id: userToInviteViaApi.id } },
+      });
+      
+      // Verify profile exists before deletion
+      let profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, userToInviteViaApi.id);
+      expect(profile).toBeTruthy();
+      
+      // Delete the user's organization membership
+      const deleteResponse = await request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/memberships/${userMembership.id}`)
+        .expect(200);
+      
+      expect(deleteResponse.body.status).toEqual(SUCCESS_STATUS);
+      
+      // Verify that the user's profile has been deleted
+      profile = await profileRepositoryFixture.findByOrgIdUserId(org.id, userToInviteViaApi.id);
+      expect(profile).toBeNull();
+      
+      // Verify the user is removed from sub-team event type hosts
+      hosts = await hostsRepositoryFixture.getEventTypeHosts(subTeamEventType.id);
+      expect(hosts.some(h => h.userId === userToInviteViaApi.id)).toBe(false);
+      
+      // Clean up
+      await teamsRepositoryFixture.delete(subTeam.id);
     });
 
     it("should fail to get the membership of the org we just deleted", async () => {
@@ -445,6 +701,10 @@ describe("Organizations Memberships Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
     let attributesRepositoryFixture: AttributeRepositoryFixture;
+    let teamsRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let hostsRepositoryFixture: HostsRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -464,6 +724,10 @@ describe("Organizations Memberships Endpoints", () => {
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
+      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,

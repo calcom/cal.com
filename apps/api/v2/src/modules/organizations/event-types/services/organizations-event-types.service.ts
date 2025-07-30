@@ -6,6 +6,7 @@ import {
 } from "@/modules/organizations/event-types/services/input.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -23,7 +24,8 @@ export class OrganizationsEventTypesService {
     private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
     private readonly teamsEventTypesService: TeamsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
   async createOrganizationTeamEventType(

@@ -1,12 +1,16 @@
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsService {
   constructor(
-    private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository
+    private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository,
+    private readonly teamsEventTypesService: TeamsEventTypesService,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
 
   async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
@@ -63,6 +67,10 @@ export class OrganizationsTeamsMembershipsService {
       teamId,
       membershipId
     );
+    await this.teamsEventTypesService.deleteUserTeamEventTypesAndHosts(teamMembership.userId, teamId);
+    await this.teamsEventTypesRepository.deleteUserManagedTeamEventTypes(teamMembership.userId, teamId);
+    await this.teamsEventTypesRepository.removeUserFromTeamEventTypesHosts(teamMembership.userId, teamId);
+
     return teamMembership;
   }
 }

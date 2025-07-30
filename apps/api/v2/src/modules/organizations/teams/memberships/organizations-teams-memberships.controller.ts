@@ -127,8 +127,6 @@ export class OrganizationsTeamsMembershipsController {
       membershipId
     );
 
-    await this.teamsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
-
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),

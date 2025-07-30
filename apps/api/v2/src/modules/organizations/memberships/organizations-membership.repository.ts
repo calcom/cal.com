@@ -119,4 +119,15 @@ export class OrganizationsMembershipRepository {
       take,
     });
   }
+
+  async deleteUserSubTeamMemberships(userId: number, organizationId: number) {
+    return this.dbWrite.prisma.membership.deleteMany({
+      where: {
+        userId,
+        team: {
+          parentId: organizationId,
+        },
+      },
+    });
+  }
 }

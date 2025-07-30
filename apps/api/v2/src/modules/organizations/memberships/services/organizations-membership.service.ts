@@ -1,15 +1,19 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 import { OrganizationsMembershipOutputService } from "./organizations-membership-output.service";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 
 @Injectable()
 export class OrganizationsMembershipService {
   constructor(
     private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
-    private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService
+    private readonly organizationsMembershipOutputService: OrganizationsMembershipOutputService,
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
+    private readonly profilesRepository: ProfilesRepository
   ) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
@@ -66,6 +70,14 @@ export class OrganizationsMembershipService {
       organizationId,
       membershipId
     );
+    // Delete user's memberships from all sub-teams
+    await this.organizationsMembershipRepository.deleteUserSubTeamMemberships(membership.userId, organizationId);
+    // Delete user's managed child events in sub-teams
+    await this.teamsEventTypesRepository.deleteUserManagedSubTeamsEventTypes(membership.userId, organizationId);
+    // Remove user from hosts of sub-team event types
+    await this.teamsEventTypesRepository.removeUserFromSubTeamsEventTypesHosts(membership.userId, organizationId);
+    // Delete user's profile
+    await this.profilesRepository.deleteProfile(membership.userId, organizationId);
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }
 
