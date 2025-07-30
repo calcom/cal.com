@@ -68,6 +68,7 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -657,6 +658,7 @@ async function handler(
 
   let luckyUserResponse;
   let isFirstSeat = true;
+  let availableUsers: IsFixedAwareUser[] = [];
 
   if (eventType.seatsPerTimeSlot) {
     const booking = await prisma.booking.findFirst({
@@ -756,7 +758,6 @@ async function handler(
     }
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
-      let availableUsers: IsFixedAwareUser[] = [];
       try {
         availableUsers = await ensureAvailableUsers(
           { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
@@ -1390,6 +1391,12 @@ async function handler(
       if (booking?.userId) {
         const usersRepository = new UsersRepository();
         await usersRepository.updateLastActiveAt(booking.userId);
+        const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
+
+        logger.info(`Booking created`, {
+          bookingUid: booking.uid,
+          availabilitySnapshot: organizerUserAvailability?.availabilityData,
+        });
       }
 
       // If it's a round robin event, record the reason for the host assignment
@@ -2117,15 +2124,20 @@ async function handler(
   }
 
   try {
+    const hashedLinkService = new HashedLinkService();
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await prisma.hashedLink.delete({
-        where: {
-          link: reqBody.hashedLink as string,
-        },
-      });
+      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
+
+    // Handle repository errors and convert to HttpErrors
+    if (error instanceof Error) {
+      throw new HttpError({ statusCode: 410, message: error.message });
+    }
+
+    // For unexpected errors, provide a generic message
+    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
