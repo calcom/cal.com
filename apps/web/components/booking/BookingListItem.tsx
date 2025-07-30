@@ -83,6 +83,28 @@ export type BookingItemProps = BookingItem & {
   isToday: boolean;
 };
 
+// Utility function to check if a booking has been reported by the current user
+// This handles both individual bookings and recurring series reporting
+const checkIfBookingReported = (booking: BookingItemProps): boolean => {
+  // Try to access the computed field from backend that considers recurring series
+  const hasBeenReportedByUserField = (booking as any).hasBeenReportedByUser;
+
+  // Handle both string and number types (backend might return either)
+  if (hasBeenReportedByUserField !== undefined && hasBeenReportedByUserField !== null) {
+    const numericValue =
+      typeof hasBeenReportedByUserField === "string"
+        ? parseInt(hasBeenReportedByUserField, 10)
+        : hasBeenReportedByUserField;
+
+    if (!isNaN(numericValue)) {
+      return numericValue > 0;
+    }
+  }
+
+  // Fallback to checking individual booking reports
+  return booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
+};
+
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
 type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
@@ -91,7 +113,6 @@ type TeamEventBooking = Omit<ParsedBooking, "eventType"> & {
 type ReroutableBooking = Ensure<TeamEventBooking, "routedFromRoutingFormReponse">;
 
 function buildParsedBooking(booking: BookingItemProps) {
-  // The way we fetch bookings there could be eventType object even without an eventType, but id confirms its existence
   const bookingEventType = booking.eventType.id
     ? (booking.eventType as Ensure<
         typeof booking.eventType,
@@ -403,11 +424,7 @@ function BookingListItem(booking: BookingItemProps) {
   })) as ActionType[];
 
   const hasBeenReported = useMemo(() => {
-    if ("hasBeenReportedByUser" in booking && typeof booking.hasBeenReportedByUser === "number") {
-      return booking.hasBeenReportedByUser > 0;
-    }
-
-    return booking.reports?.some((report) => report.reportedById === booking.loggedInUser.userId) || false;
+    return checkIfBookingReported(booking);
   }, [booking]);
 
   const createReportAction = (hasBeenReported: boolean, onClick: () => void): ActionType => {
@@ -432,12 +449,11 @@ function BookingListItem(booking: BookingItemProps) {
   const shouldShowReportInThreeDotsMenu =
     shouldShowEditActions(actionContext) && !shouldShowIndividualReportButton;
 
-  if (shouldShowReportInThreeDotsMenu) {
-    const reportAction: ActionType = createReportAction(hasBeenReported, () => setIsReportDialogOpen(true));
-    afterEventActions.push(reportAction);
-  }
-
   const individualReportAction: ActionType | null = shouldShowIndividualReportButton
+    ? createReportAction(hasBeenReported, () => setIsReportDialogOpen(true))
+    : null;
+
+  const reportActionForMenu: ActionType | null = shouldShowReportInThreeDotsMenu
     ? createReportAction(hasBeenReported, () => setIsReportDialogOpen(true))
     : null;
 
@@ -742,6 +758,22 @@ function BookingListItem(booking: BookingItemProps) {
                         {cancelEventAction.label}
                       </DropdownItem>
                     </DropdownMenuItem>
+                    {reportActionForMenu && (
+                      <DropdownMenuItem
+                        className="rounded-lg"
+                        key={reportActionForMenu.id}
+                        disabled={reportActionForMenu.disabled}>
+                        <DropdownItem
+                          type="button"
+                          StartIcon={reportActionForMenu.icon}
+                          onClick={reportActionForMenu.onClick}
+                          disabled={reportActionForMenu.disabled}
+                          data-testid={reportActionForMenu.id}
+                          className={reportActionForMenu.disabled ? "text-muted" : undefined}>
+                          {reportActionForMenu.label}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenuPortal>
               </Dropdown>
@@ -787,8 +819,11 @@ function BookingListItem(booking: BookingItemProps) {
         bookingTitle={booking.title}
         isUpcoming={isUpcoming}
         isCancelled={isCancelled}
-        onSuccess={() => {
-          utils.viewer.bookings.invalidate();
+        onSuccess={async () => {
+          // Invalidate all booking queries to ensure UI reflects the changes
+          await utils.viewer.bookings.invalidate();
+          // Also invalidate any cached booking data
+          await utils.invalidate();
         }}
       />
 
@@ -834,11 +869,18 @@ const BookingItemBadges = ({
           </Badge>
         </Tooltip>
       )}
-      {booking.reports && booking.reports.length > 0 && (
-        <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
-          {t("reported")}
-        </Badge>
-      )}
+      {(() => {
+        // Check if this booking or any booking in the recurring series has been reported
+        const hasAnyReport = checkIfBookingReported(booking);
+
+        return (
+          hasAnyReport && (
+            <Badge variant="red" className="ltr:mr-2 rtl:ml-2">
+              {t("reported")}
+            </Badge>
+          )
+        );
+      })()}
       {booking.eventType?.team && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
           {booking.eventType.team.name}
