@@ -441,7 +441,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       workingHours: [],
       dateOverrides: [],
       currentSeats: [],
-      datesOutOfOffice: [],
+      datesOutOfOffice: undefined,
     };
   }
 
