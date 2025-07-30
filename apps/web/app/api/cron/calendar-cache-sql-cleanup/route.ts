@@ -23,7 +23,7 @@ async function postHandler(request: NextRequest) {
     log.info("Starting calendar cache SQL cleanup cron job");
 
     const eventRepo = new CalendarEventRepository(prisma);
-    const featuresRepo = new FeaturesRepository(prisma);
+    const featuresRepo = new FeaturesRepository();
 
     const cleanupService = new CalendarCacheSqlCleanupService({
       eventRepo,
