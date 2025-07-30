@@ -518,15 +518,6 @@ export const getOptions = ({
         const belongsToActiveTeam = checkIfUserBelongsToActiveTeam(existingUser);
         const { teams: _teams, ...existingUserWithoutTeamsField } = existingUser;
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
-        console.log(
-          "DEBUG: autoMergeIdentities - existingUser:",
-          JSON.stringify(
-            { id: existingUser.id, email: existingUser.email, username: existingUser.username },
-            null,
-            2
-          )
-        );
-        console.log("DEBUG: autoMergeIdentities - allProfiles:", JSON.stringify(allProfiles, null, 2));
         log.debug(
           "callbacks:jwt:autoMergeIdentities",
           safeStringify({
@@ -534,16 +525,12 @@ export const getOptions = ({
           })
         );
         const { upId } = determineProfile({ profiles: allProfiles, token });
-        console.log("DEBUG: autoMergeIdentities - determined upId:", upId);
-
         const profile = await ProfileRepository.findByUpId(upId);
-        console.log("DEBUG: autoMergeIdentities - found profile:", JSON.stringify(profile, null, 2));
         if (!profile) {
           throw new Error("Profile not found");
         }
 
         const profileOrg = profile?.organization;
-        console.log("DEBUG: autoMergeIdentities - profileOrg:", JSON.stringify(profileOrg, null, 2));
         let orgRole: MembershipRole | undefined;
         // Get users role of org
         if (profileOrg) {
@@ -570,13 +557,7 @@ export const getOptions = ({
           // platform org user don't need profiles nor domains
           org:
             profileOrg && !profileOrg.isPlatform
-              ? (console.log("DEBUG: autoMergeIdentities - setting org in token:", {
-                  id: profileOrg.id,
-                  name: profileOrg.name,
-                  slug: profileOrg.slug,
-                  role: orgRole,
-                }),
-                {
+              ? {
                   id: profileOrg.id,
                   name: profileOrg.name,
                   slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
@@ -584,16 +565,8 @@ export const getOptions = ({
                   fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
                   domainSuffix: subdomainSuffix(),
                   role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
-                })
-              : (console.log(
-                  "DEBUG: autoMergeIdentities - org is null - profileOrg exists:",
-                  !!profileOrg,
-                  "isPlatform:",
-                  profileOrg?.isPlatform,
-                  "orgRole:",
-                  orgRole
-                ),
-                null),
+                }
+              : null,
         } as JWT;
       };
       if (!user) {
@@ -739,7 +712,6 @@ export const getOptions = ({
       return token;
     },
     async session({ session, token, user }) {
-      console.log("DEBUG: session callback - token.org:", JSON.stringify(token?.org, null, 2));
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const deploymentRepo = new DeploymentRepository(prisma);
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
@@ -763,10 +735,6 @@ export const getOptions = ({
           locale: token.locale,
         },
       };
-      console.log(
-        "DEBUG: session callback - final session.user.org:",
-        JSON.stringify(calendsoSession.user.org, null, 2)
-      );
       return calendsoSession;
     },
     async signIn(params) {
@@ -1110,28 +1078,16 @@ const determineProfile = ({
   token: JWT;
   profiles: { id: number | null; upId: string }[];
 }) => {
-  console.log("DEBUG: determineProfile - input profiles:", JSON.stringify(profiles, null, 2));
-  console.log(
-    "DEBUG: determineProfile - token.upId:",
-    token.upId,
-    "ENABLE_PROFILE_SWITCHER:",
-    ENABLE_PROFILE_SWITCHER
-  );
-
   // If profile switcher is disabled, we can only show the first profile.
   if (!ENABLE_PROFILE_SWITCHER) {
-    console.log("DEBUG: determineProfile - profile switcher disabled, returning first profile:", profiles[0]);
     return profiles[0];
   }
 
   if (token.upId) {
     // Otherwise use what's in the token
-    const result = { profileId: token.profileId, upId: token.upId as string };
-    console.log("DEBUG: determineProfile - using token upId:", result);
-    return result;
+    return { profileId: token.profileId, upId: token.upId as string };
   }
 
   // If there is just one profile it has to be the one we want to log into.
-  console.log("DEBUG: determineProfile - returning first profile:", profiles[0]);
   return profiles[0];
 };
