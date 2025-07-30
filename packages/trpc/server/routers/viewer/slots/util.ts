@@ -7,13 +7,13 @@ import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getCacheService } from "@calcom/lib/di/containers/cache";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type {
@@ -99,6 +99,7 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
+  cacheService: CacheService;
 }
 
 export class AvailableSlotsService {
@@ -910,8 +911,10 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const cacheService = getCacheService();
-    const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
+    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
+      _shouldServeCache,
+      eventType.team?.id
+    );
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
