@@ -34,7 +34,6 @@ class MockFeaturesRepository implements IFeaturesRepository {
 class MockCalendarCacheService {
   processWebhookEvents = vi.fn();
   getAvailability = vi.fn();
-  ensureSubscription = vi.fn();
 }
 
 describe("GoogleCalendarWebhookService", () => {
