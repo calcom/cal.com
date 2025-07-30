@@ -1,6 +1,6 @@
 import prisma from "@calcom/prisma";
 
-export class AttributeRepository {
+export class PrismaAttributeRepository {
   static async findManyByNamesAndOrgIdIncludeOptions({
     attributeNames,
     orgId,
