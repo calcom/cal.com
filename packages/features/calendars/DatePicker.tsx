@@ -132,9 +132,15 @@ const Day = ({
       {isFirstDayOfNextMonth && (
         <div
           className={classNames(
-            "absolute top-0 z-10 mx-auto w-fit rounded-md px-1 py-1 text-xs font-medium uppercase leading-3 tracking-wide",
-            active ? "text-white" : "text-emphasis"
-          )}>
+            "absolute top-0 z-10 mx-auto w-fit rounded-full font-semibold uppercase tracking-wide",
+            active ? "text-white" : "text-default",
+            disabled && "bg-emphasis"
+          )}
+          style={{
+            fontSize: "10px",
+            lineHeight: "13px",
+            padding: disabled ? "0 3px" : "3px 3px 3px 4px",
+          }}>
           {date.format("MMM")}
         </div>
       )}
