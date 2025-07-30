@@ -1,6 +1,6 @@
 import { captureException } from "@sentry/nextjs";
 
-import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, PrismaClient } from "@calcom/prisma";
 
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 
