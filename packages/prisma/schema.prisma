@@ -2411,3 +2411,50 @@ model RolePermission {
   // TODO: come back to this with indexs.
   @@index([action])
 }
+
+enum BookingAuditType {
+  RECORD_CREATED
+  RECORD_UPDATED
+  RECORD_DELETED
+}
+
+enum BookingAuditAction {
+  // Status changes
+  CANCELLED     @map("cancelled")
+  ACCEPTED      @map("accepted")
+  REJECTED      @map("rejected")
+  PENDING       @map("pending")
+  AWAITING_HOST @map("awaiting_host")
+  RESCHEDULED   @map("rescheduled")
+
+  // Attendee management
+  ATTENDEE_ADDED   @map("attendee_added")
+  ATTENDEE_REMOVED @map("attendee_removed")
+
+  // Cancellation/Rejection/Assignment reasons
+  CANCELLATION_REASON_UPDATED @map("cancellation_reason_updated")
+  REJECTION_REASON_UPDATED    @map("rejection_reason_updated")
+  ASSIGNMENT_REASON_UPDATED   @map("assignment_reason_updated")
+  REASSIGNMENT_REASON_UPDATED @map("reassignment_reason_updated")
+
+  // Meeting details
+  LOCATION_CHANGED    @map("location_changed")
+  MEETING_URL_UPDATED @map("meeting_url_updated")
+
+  // No-show tracking
+  HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")
+  ATTENDEE_NO_SHOW_UPDATED @map("attendee_no_show_updated")
+
+  // Rescheduling
+  RESCHEDULE_REQUESTED @map("reschedule_requested")
+}
+
+model BookingAudit {
+  id        String              @id @default(uuid())
+  bookingId String
+  userId    String?
+  type      BookingAuditType
+  action    BookingAuditAction?
+  timestamp DateTime            @default(now())
+  data      Json?
+}
