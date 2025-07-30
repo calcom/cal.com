@@ -47,11 +47,9 @@ async function handler(req: NextRequest, { params }: { params: Promise<Params> }
       },
     });
 
-    // Validate the stored image data for security
     const validation = validateBase64Image(data);
     if (!validation.isValid) {
       console.error(`Invalid image data found in database for objectKey ${objectKey}: ${validation.error}`);
-      // Redirect to fallback instead of serving potentially dangerous content
       const url = new URL(AVATAR_FALLBACK, WEBAPP_URL).toString();
       return NextResponse.redirect(url, 302);
     }

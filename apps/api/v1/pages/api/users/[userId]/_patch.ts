@@ -126,7 +126,6 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   if (avatar) {
-    // Validate the avatar image data
     const validation = validateBase64Image(avatar);
     if (!validation.isValid) {
       throw new HttpError({

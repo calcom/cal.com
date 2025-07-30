@@ -23,7 +23,6 @@ export async function updateProfilePhotoGoogle(oAuth2Client: OAuth2Client, userI
       avatarUrl.startsWith("data:image/jpeg;base64,") ||
       avatarUrl.startsWith("data:image/jpg;base64,")
     ) {
-      // Validate the image data
       const validation = validateBase64Image(avatarUrl);
       if (!validation.isValid) {
         logger.error(`Invalid avatar image from Google OAuth: ${validation.error}`);

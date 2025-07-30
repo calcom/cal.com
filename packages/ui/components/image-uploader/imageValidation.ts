@@ -1,3 +1,5 @@
+import { MAX_IMAGE_FILE_SIZE } from "@calcom/lib/constants";
+
 import { showToast } from "../toast";
 
 /**
@@ -5,8 +7,7 @@ import { showToast } from "../toast";
  * This function performs comprehensive validation and shows toast messages directly
  */
 export const validateImageFile = async (file: File, t: (key: string) => string): Promise<boolean> => {
-  const limit = 5 * 1000000; // max limit 5mb
-  if (file.size > limit) {
+  if (file.size > MAX_IMAGE_FILE_SIZE) {
     showToast(t("image_size_limit_exceed"), "error");
     return false;
   }

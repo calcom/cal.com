@@ -163,7 +163,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   };
 
   if (input.banner) {
-    // Validate the banner image data
     const validation = validateBase64Image(input.banner);
     if (!validation.isValid) {
       throw new TRPCError({
@@ -202,7 +201,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.logoUrl) {
-    // Validate the logo image data
     const validation = validateBase64Image(input.logoUrl);
     if (!validation.isValid) {
       throw new TRPCError({
@@ -242,12 +240,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
       !prevOrganisation.slug
     ) {
-      // Save it on the metadata so we can use it later
       data.metadata = mergeMetadata({ requestedSlug: input.slug });
     } else {
       data.slug = input.slug;
       data.metadata = mergeMetadata({
-        // If we save slug, we don't need the requestedSlug anymore
         requestedSlug: undefined,
         ...input.metadata,
       });

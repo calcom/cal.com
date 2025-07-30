@@ -152,9 +152,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
   }
 
-  // if defined AND a base 64 string, upload and update the avatar URL
   if (input.avatarUrl) {
-    // Comprehensive validation using magic numbers
     const validation = validateBase64Image(input.avatarUrl);
     if (!validation.isValid) {
       throw new TRPCError({
