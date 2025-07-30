@@ -748,7 +748,7 @@ test.describe("Text area min and max characters text", () => {
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewUserEventType(page, { eventTitle });
     await page.waitForSelector('[data-testid="event-title"]');
-    await expect(page.getByTestId("vertical-tab-basics")).toContainText("Event Setup"); //fix the race condition
+    await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics"); //fix the race condition
     await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
