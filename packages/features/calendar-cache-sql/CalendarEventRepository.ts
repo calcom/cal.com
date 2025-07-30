@@ -1,23 +1,31 @@
-import type { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
+import type { ICalendarEventRepository, CalendarEventData } from "./CalendarEventRepository.interface";
 
 export class CalendarEventRepository implements ICalendarEventRepository {
   constructor(private prismaClient: PrismaClient) {}
 
-  async upsertEvent(data: Prisma.CalendarEventCreateInput) {
+  async upsertEvent(
+    data: CalendarEventData,
+    subscriptionId: string,
+    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+  ) {
     try {
-      return await this.prismaClient.calendarEvent.upsert({
+      const client = tx || this.prismaClient;
+      return await client.calendarEvent.upsert({
         where: {
           calendarSubscriptionId_googleEventId: {
-            calendarSubscriptionId: data.calendarSubscription.connect!.id as string,
+            calendarSubscriptionId: subscriptionId,
             googleEventId: data.googleEventId,
           },
         },
-        create: data,
+        create: {
+          calendarSubscription: { connect: { id: subscriptionId } },
+          ...data,
+          etag: data.etag || "",
+        },
         update: {
           ...data,
           updatedAt: new Date(),
@@ -74,9 +82,14 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     }
   }
 
-  async bulkUpsertEvents(events: Prisma.CalendarEventCreateInput[]) {
+  async bulkUpsertEvents(events: CalendarEventData[], subscriptionId: string) {
     try {
-      await Promise.all(events.map((event) => this.upsertEvent(event)));
+      if (events.length === 0) return;
+
+      return await this.prismaClient.$transaction(async (tx) => {
+        const operations = events.map((event) => this.upsertEvent(event, subscriptionId, tx));
+        await Promise.all(operations);
+      });
     } catch (err) {
       captureException(err);
       throw err;
