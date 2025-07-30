@@ -27,7 +27,6 @@ export class RouterController {
   ): Promise<void | (ApiResponse<unknown> & { redirect: boolean })> {
     const params = Object.fromEntries(new URLSearchParams(body ?? {}));
     const routedUrlData = await getRoutedUrl({ req: request, query: { ...params, form: formId } });
-
     if (routedUrlData?.notFound) {
       throw new NotFoundException("Route not found. Please check the provided form parameter.");
     }
@@ -37,6 +36,13 @@ export class RouterController {
     }
 
     if (routedUrlData?.props) {
+      if (routedUrlData.props.errorMessage) {
+        return {
+          status: "error",
+          error: { code: "ROUTING_ERROR", message: routedUrlData.props.errorMessage },
+          redirect: false,
+        };
+      }
       return { status: "success", data: { message: routedUrlData.props.message ?? "" }, redirect: false };
     }
 
@@ -54,6 +60,7 @@ export class RouterController {
     ) {
       return this.handleRedirectWithContactOwner(routingUrl, routingSearchParams);
     }
+    console.log("handleRedirect Regular called", { destination });
 
     return { status: "success", data: destination, redirect: true };
   }
@@ -62,6 +69,7 @@ export class RouterController {
     routingUrl: URL,
     routingSearchParams: URLSearchParams
   ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
+    console.log("handleRedirectWithContactOwner called", { routingUrl, routingSearchParams });
     const pathNameParams = routingUrl.pathname.split("/");
     const eventTypeSlug = pathNameParams[pathNameParams.length - 1];
     const teamId = Number(routingSearchParams.get("cal.teamId"));

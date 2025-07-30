@@ -13,6 +13,7 @@ import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
+import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -154,10 +155,11 @@ const BookerComponent = ({
   } = calendars;
 
   const scrolledToTimeslotsOnce = useRef(false);
+
   const scrollToTimeSlots = () => {
-    if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Conditional within !isEmbed condition
-      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isMobile && !scrolledToTimeslotsOnce.current && timeslotsRef.current) {
+      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
+      scrollIntoViewSmooth(timeslotsRef.current, isEmbed);
       scrolledToTimeslotsOnce.current = true;
     }
   };
@@ -408,6 +410,7 @@ const BookerComponent = ({
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3">
                       <DatePicker
+                        classNames={customClassNames?.datePickerCustomClassNames}
                         event={event}
                         slots={schedule?.data?.slots}
                         isLoading={schedule.isPending}
@@ -435,14 +438,7 @@ const BookerComponent = ({
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
               <DatePicker
-                classNames={{
-                  datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
-                  datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
-                  datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
-                  datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
-                  datePickerDatesActive: customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
-                  datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
-                }}
+                classNames={customClassNames?.datePickerCustomClassNames}
                 event={event}
                 slots={schedule?.data?.slots}
                 isLoading={schedule.isPending}

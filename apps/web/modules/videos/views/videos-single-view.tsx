@@ -21,7 +21,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
+import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -37,6 +37,7 @@ export default function JoinCall(props: PageProps) {
     overrideName,
     showRecordingButton,
     enableAutomaticTranscription,
+    enableAutomaticRecordingForOrganizer,
     showTranscriptionButton,
     rediectAttendeeToOnExit,
   } = props;
@@ -116,8 +117,9 @@ export default function JoinCall(props: PageProps) {
       <div
         className="mx-auto hidden sm:block"
         style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-        <CalAiTranscribe
+        <CalVideoPremiumFeatures
           showRecordingButton={showRecordingButton}
+          enableAutomaticRecordingForOrganizer={enableAutomaticRecordingForOrganizer}
           enableAutomaticTranscription={enableAutomaticTranscription}
           showTranscriptionButton={showTranscriptionButton}
         />

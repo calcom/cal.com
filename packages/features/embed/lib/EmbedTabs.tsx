@@ -59,7 +59,7 @@ export const tabs = [
               embedType === "inline"
                 ? `<div style="width:${getDimension(previewState.inline.width)};height:${getDimension(
                     previewState.inline.height
-                  )};overflow:scroll" id="my-cal-inline"></div>\n`
+                  )};overflow:scroll" id="my-cal-inline-${namespace}"></div>\n`
                 : ""
             }<script type="text/javascript">
   ${embedSnippetString}

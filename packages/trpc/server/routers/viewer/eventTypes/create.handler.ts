@@ -3,7 +3,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
@@ -71,6 +71,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       create: {
         disableRecordingForGuests: calVideoSettings.disableRecordingForGuests ?? false,
         disableRecordingForOrganizer: calVideoSettings.disableRecordingForOrganizer ?? false,
+        enableAutomaticTranscription: calVideoSettings.enableAutomaticTranscription ?? false,
+        enableAutomaticRecordingForOrganizer: calVideoSettings.enableAutomaticRecordingForOrganizer ?? false,
+        disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
+        disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
       },
     };
@@ -89,7 +93,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     if (
       !isSystemAdmin &&
-      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
+      !isOrgAdmin &&
+      (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role))
     ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -126,7 +131,8 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const profile = ctx.user.profile;
   try {
-    const eventType = await EventTypeRepository.create({
+    const eventTypeRepo = new EventTypeRepository(ctx.prisma);
+    const eventType = await eventTypeRepo.create({
       ...data,
       profileId: profile.id,
     });

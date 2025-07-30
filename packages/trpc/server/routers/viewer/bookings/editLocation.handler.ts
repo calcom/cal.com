@@ -248,7 +248,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 
-  const organizer = await UserRepository.findByIdOrThrow({ id: booking.userId || 0 });
+  const organizer = await new UserRepository(prisma).findByIdOrThrow({ id: booking.userId || 0 });
 
   const newLocationInEvtFormat = await getLocationInEvtFormatOrThrow({
     location: newLocation,
