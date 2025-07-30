@@ -20,4 +20,6 @@ export const DI_TOKENS = {
   ROUTING_FORM_RESPONSE_REPOSITORY_MODULE: Symbol("RoutingFormResponseRepositoryModule"),
   AVAILABLE_SLOTS_SERVICE: Symbol("AvailableSlotsService"),
   AVAILABLE_SLOTS_SERVICE_MODULE: Symbol("AvailableSlotsModule"),
+  INSIGHTS_ROUTING_SERVICE: Symbol("InsightsRoutingService"),
+  INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
 };
