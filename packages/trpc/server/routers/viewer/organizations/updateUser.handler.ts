@@ -6,7 +6,7 @@ import { RoleManagementError } from "@calcom/features/pbac/domain/errors/role-ma
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
-import { validateBase64Image } from "@calcom/lib/server/imageValidationConstants";
+import { validateBase64Image } from "@calcom/lib/server/imageValidation";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -118,7 +118,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   };
 
   if (input.avatar) {
-    // Comprehensive validation using magic numbers
     const validation = validateBase64Image(input.avatar);
     if (!validation.isValid) {
       throw new TRPCError({
@@ -127,7 +126,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       });
     }
 
-    // Additional check for supported base64 formats (after validation)
     if (
       input.avatar.startsWith("data:image/png;base64,") ||
       input.avatar.startsWith("data:image/jpeg;base64,") ||
