@@ -25,7 +25,6 @@ export const availabilityUserSelect = {
       id: true,
     },
   },
-  availability: true,
   selectedCalendars: true,
   travelSchedules: true,
 } satisfies Prisma.UserSelect;

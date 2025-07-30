@@ -245,7 +245,6 @@ type UserPayload = Prisma.UserGetPayload<{
     allowDynamicBooking: true;
     credentials: true;
     destinationCalendar: true;
-    availability: true;
     selectedCalendars: true;
     schedules: true;
     avatarUrl: true;
@@ -296,7 +295,6 @@ export const buildUser = <T extends Partial<UserPayload>>(
     username: faker.internet.userName(),
     id: 0,
     allowDynamicBooking: true,
-    availability: [],
     avatarUrl: "",
     backupCodes: null,
     bio: null,

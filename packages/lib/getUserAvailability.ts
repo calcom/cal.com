@@ -125,14 +125,6 @@ const _getEventType = async (id: number) => {
           timeZone: true,
         },
       },
-      availability: {
-        select: {
-          startTime: true,
-          endTime: true,
-          days: true,
-          date: true,
-        },
-      },
     },
   });
   if (!eventType) {
@@ -453,15 +445,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })}`
   );
 
-  if (
-    !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
-  ) {
+  if (!schedule?.availability) {
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
-  const availability = (
-    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-  ).map((a) => ({
+  const availability = schedule.availability.map((a) => ({
     ...a,
     userId: user.id,
   }));
