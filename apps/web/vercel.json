@@ -5,6 +5,10 @@
       "schedule": "0 5 * * *"
     },
     {
+      "path": "/api/cron/calendar-cache-sql-cleanup",
+      "schedule": "0 6 * * *"
+    },
+    {
       "path": "/api/tasks/cron",
       "schedule": "* * * * *"
     },
