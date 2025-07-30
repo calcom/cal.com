@@ -221,7 +221,7 @@ const createTeamAndAddUser = async (
       }
     : undefined;
 
-  console.log("DEBUG: createTeamAndAddUser - scenario.isOrg:", scenario.isOrg);
+  console.log("DEBUG: createTeamAndAddUser - isOrg:", isOrg);
   console.log("DEBUG: createTeamAndAddUser - orgProfiles:", JSON.stringify(data.orgProfiles, null, 2));
 
   data.parent = organizationId ? { connect: { id: organizationId } } : undefined;
