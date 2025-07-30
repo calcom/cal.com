@@ -9,6 +9,10 @@
       "schedule": "0 6 * * *"
     },
     {
+      "path": "/api/cron/calendar-subscriptions",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/tasks/cron",
       "schedule": "* * * * *"
     },

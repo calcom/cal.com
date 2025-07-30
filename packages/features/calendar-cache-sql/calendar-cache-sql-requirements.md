@@ -350,7 +350,7 @@ packages/features/calendar-cache-sql/
 
 ```
 apps/web/app/api/
-├── cron/calendar-subscriptions-sql/route.ts      # Cron job for subscriptions
+├── cron/calendar-subscriptions/route.ts      # Cron job for subscriptions
 ├── cron/calendar-cache-sql-cleanup/route.ts     # Cron job for cleanup (NEW)
 └── webhook/google-calendar-sql/route.ts          # Webhook handler
 ```
