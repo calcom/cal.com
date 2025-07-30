@@ -707,13 +707,16 @@ describe("maximize availability and weights", () => {
     ];
 
     CalendarManagerMock.getBusyCalendarTimes
-      .mockResolvedValueOnce([
-        {
-          start: dayjs().utc().startOf("month").toDate(),
-          end: dayjs().utc().startOf("month").add(3, "day").toDate(),
-          timeZone: "UTC",
-        },
-      ])
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            start: dayjs().utc().startOf("month").toDate(),
+            end: dayjs().utc().startOf("month").add(3, "day").toDate(),
+            timeZone: "UTC",
+          },
+        ],
+      })
       .mockResolvedValue([]);
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
