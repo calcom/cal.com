@@ -276,10 +276,10 @@ export const getBusyCalendarTimes = async (
       );
     }
   } catch (e) {
-    log.warn(safeStringify(e));
-    return [{ start: startDate, stop: endDate, source: "error-placeholder" }];
+    log.warn("Error getting busy calendar times", safeStringify(e));
+    return { success: false, data: [{ start: startDate, stop: endDate, source: "error-placeholder" }] };
   }
-  return results.reduce((acc, availability) => acc.concat(availability), []);
+  return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
 };
 
 export const createEvent = async (
