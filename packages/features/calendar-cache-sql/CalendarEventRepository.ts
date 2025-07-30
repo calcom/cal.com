@@ -2,13 +2,13 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { ICalendarEventRepository, CalendarEventData } from "./CalendarEventRepository.interface";
+import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 
 export class CalendarEventRepository implements ICalendarEventRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   async upsertEvent(
-    data: CalendarEventData,
+    data: Prisma.CalendarEventCreateInput,
     subscriptionId: string,
     tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
   ) {
@@ -82,7 +82,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     }
   }
 
-  async bulkUpsertEvents(events: CalendarEventData[], subscriptionId: string) {
+  async bulkUpsertEvents(events: Prisma.CalendarEventCreateInput[], subscriptionId: string) {
     try {
       if (events.length === 0) return;
 
