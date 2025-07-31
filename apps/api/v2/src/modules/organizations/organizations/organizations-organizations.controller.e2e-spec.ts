@@ -1,7 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { getEnv } from "@/env";
-import { hashAPIKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, stripApiKey } from "@/lib/api-key";
 import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
@@ -283,7 +283,7 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managedOrgApiKeys?.length).toEqual(1);
         expect(managedOrgApiKeys?.[0]?.id).toBeDefined();
         const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
-        const hashedApiKey = `${hashAPIKey(stripApiKey(managedOrg?.apiKey, apiKeyPrefix))}`;
+        const hashedApiKey = `${sha256Hash(stripApiKey(managedOrg?.apiKey, apiKeyPrefix))}`;
         expect(managedOrgApiKeys?.[0]?.hashedKey).toEqual(hashedApiKey);
         const expectedExpiresAt = DateTime.fromJSDate(newDate).setZone("utc").plus({ days: 30 }).toJSDate();
         expect(managedOrgApiKeys?.[0]?.expiresAt).toEqual(expectedExpiresAt);
@@ -484,7 +484,7 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managedOrgApiKeys?.length).toEqual(1);
         expect(managedOrgApiKeys?.[0]?.id).toBeDefined();
         const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
-        const hashedApiKey = `${hashAPIKey(stripApiKey(newApiKey, apiKeyPrefix))}`;
+        const hashedApiKey = `${sha256Hash(stripApiKey(newApiKey, apiKeyPrefix))}`;
         expect(managedOrgApiKeys?.[0]?.hashedKey).toEqual(hashedApiKey);
         const expectedExpiresAt = DateTime.fromJSDate(newDate).setZone("utc").plus({ days: 60 }).toJSDate();
         expect(managedOrgApiKeys?.[0]?.expiresAt).toEqual(expectedExpiresAt);
