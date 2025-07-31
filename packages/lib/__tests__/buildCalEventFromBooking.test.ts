@@ -53,6 +53,7 @@ const createBooking = (overrides = {}) => ({
   destinationCalendar: null,
   user: null,
   iCalSequence: 0,
+  iCalUID: "icaluid",
   ...overrides,
 });
 
@@ -139,6 +140,8 @@ describe("buildCalEventFromBooking", () => {
       userPrimaryEmail: null,
       attendees: [],
       eventType: null,
+      iCalUID: "icaluid",
+      iCalSequence: 0,
     });
 
     const organizer = createOrganizer({ name: null, locale: null });
@@ -177,6 +180,7 @@ describe("buildCalEventFromBooking", () => {
       customReplyToEmail: undefined,
       hideOrganizerEmail: undefined,
       iCalSequence: 0,
+      iCalUID: "icaluid",
     });
 
     // @ts-expect-error - locale is set in mock
@@ -199,6 +203,8 @@ describe("buildCalEventFromBooking", () => {
           credentialId: 1,
         },
       },
+      iCalUID: "icaluid",
+      iCalSequence: 0,
     });
 
     const organizer = createOrganizer();
