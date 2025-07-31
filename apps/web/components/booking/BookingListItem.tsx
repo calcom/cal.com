@@ -251,9 +251,6 @@ function BookingListItem(booking: BookingItemProps) {
     showPendingPayment: paymentAppData.enabled && booking.payment.length && !booking.paid,
     cardCharged,
     attendeeList,
-    
-      ,
-    t,
   } as BookingActionContext;
 
   const basePendingActions = getPendingActions(actionContext);
