@@ -13,10 +13,8 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { SchedulingType, BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
