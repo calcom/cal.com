@@ -150,8 +150,7 @@ export class RoleManagementFactory {
   private permissionCheckService: PermissionCheckService;
 
   private constructor() {
-    this.featuresRepository = new FeaturesRepository();
-    this.roleService = new RoleService();
+    (this.featuresRepository = new FeaturesRepository(prisma)), (this.roleService = new RoleService());
     this.permissionCheckService = new PermissionCheckService();
   }
 
