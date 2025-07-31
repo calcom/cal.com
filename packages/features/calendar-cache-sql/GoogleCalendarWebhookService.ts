@@ -32,20 +32,10 @@ export interface WebhookServiceDependencies {
 export class GoogleCalendarWebhookService {
   constructor(private dependencies: WebhookServiceDependencies) {}
 
-  async processWebhook(request: WebhookRequest): Promise<WebhookResponse> {
-    const { headers } = request;
+  async processWebhook(channelId: string): Promise<WebhookResponse> {
     const { logger } = this.dependencies;
-    const channelId = headers["x-goog-channel-id"];
 
     logger.debug("Processing webhook", { channelId });
-
-    // Validate channel ID
-    if (typeof channelId !== "string") {
-      return {
-        status: 403,
-        body: { message: "Missing Channel ID" },
-      };
-    }
 
     try {
       // Find subscription by channel ID

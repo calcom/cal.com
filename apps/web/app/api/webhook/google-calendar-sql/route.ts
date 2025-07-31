@@ -43,13 +43,13 @@ async function postHandler(request: NextRequest, { params }: { params: Promise<a
     logger: log,
   });
 
-  const webhookRequest = {
-    headers: {
-      "x-goog-channel-id": request.headers.get("x-goog-channel-id") || undefined,
-    },
-  };
+  const channelId = request.headers.get("x-goog-channel-id");
+  if (!channelId) {
+    log.debug("Missing Channel ID");
+    return NextResponse.json({ message: "Missing Channel ID" }, { status: 403 });
+  }
 
-  const response = await webhookService.processWebhook(webhookRequest);
+  const response = await webhookService.processWebhook(channelId);
 
   return NextResponse.json(response.body, { status: response.status });
 }
