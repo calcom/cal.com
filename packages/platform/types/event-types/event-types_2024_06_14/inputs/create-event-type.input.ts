@@ -145,6 +145,13 @@ export class CalVideoSettings {
     description: "URL to which participants are redirected when they exit the call",
   })
   redirectUrlOnExit?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    description: "If true, enables the automatic recording for the event when organizer joins the call",
+  })
+  enableAutomaticRecordingForOrganizer?: boolean;
 }
 
 class BaseCreateEventTypeInput {
