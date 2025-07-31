@@ -4,9 +4,10 @@ import { sortBy } from "lodash";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/CalendarCacheSqlService";
+import { CalendarCacheReadService } from "@calcom/features/calendar-cache-sql/CalendarCacheReadService";
 import { CalendarEventRepository } from "@calcom/features/calendar-cache-sql/CalendarEventRepository";
 import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
+import { SelectedCalendarRepository } from "@calcom/features/calendar-cache-sql/SelectedCalendarRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -273,120 +274,21 @@ export const getBusyCalendarTimes = async (
         selectedCalendars
       );
     } else {
-      const featuresRepo = new FeaturesRepository();
-      const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
+      const calendarCacheReadService = new CalendarCacheReadService({
+        featuresRepo: new FeaturesRepository(),
+        subscriptionRepo: new CalendarSubscriptionRepository(prisma),
+        eventRepo: new CalendarEventRepository(prisma),
+        selectedCalendarRepo: new SelectedCalendarRepository(prisma),
+        getCalendarsEvents,
+      });
 
-      if (isSqlReadEnabled) {
-        const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
-        const eventRepo = new CalendarEventRepository(prisma);
-        const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
-
-        const fullSelectedCalendars = await prisma.selectedCalendar.findMany({
-          where: {
-            OR: selectedCalendars.map((sc) => ({
-              userId: sc.userId,
-              integration: sc.integration,
-              externalId: sc.externalId,
-              credentialId: sc.credentialId,
-            })),
-          },
-          select: {
-            id: true,
-            userId: true,
-            integration: true,
-            externalId: true,
-            credentialId: true,
-          },
-        });
-
-        const credentialsWithSubscription: CredentialForCalendarService[] = [];
-        const credentialsWithoutSubscription: CredentialForCalendarService[] = [];
-
-        for (const credential of deduplicatedCredentials) {
-          const credentialSelectedCalendars = fullSelectedCalendars.filter(
-            (sc) => sc.credentialId === credential.id
-          );
-
-          let hasAnySubscription = false;
-
-          for (const fullSelectedCalendar of credentialSelectedCalendars) {
-            try {
-              const subscription = await subscriptionRepo.findBySelectedCalendar(fullSelectedCalendar.id);
-              if (subscription) {
-                hasAnySubscription = true;
-                break;
-              }
-            } catch (error) {
-              log.warn(
-                `Failed to check CalendarSubscription for selectedCalendar ${fullSelectedCalendar.id}:`,
-                error
-              );
-            }
-          }
-
-          if (hasAnySubscription) {
-            credentialsWithSubscription.push(credential);
-          } else {
-            credentialsWithoutSubscription.push(credential);
-          }
-        }
-
-        const sqlCacheResults: EventBusyDate[][] = [];
-        for (const credential of credentialsWithSubscription) {
-          const credentialSelectedCalendars = fullSelectedCalendars.filter(
-            (sc) => sc.credentialId === credential.id
-          );
-
-          const credentialResults: EventBusyDate[] = [];
-
-          for (const fullSelectedCalendar of credentialSelectedCalendars) {
-            try {
-              const subscription = await subscriptionRepo.findBySelectedCalendar(fullSelectedCalendar.id);
-              if (subscription) {
-                const events = await calendarCacheService.getAvailability(
-                  fullSelectedCalendar.id,
-                  new Date(startDate),
-                  new Date(endDate)
-                );
-                credentialResults.push(
-                  ...events.map((event) => ({
-                    start: event.start,
-                    end: event.end,
-                    source: event.source,
-                  }))
-                );
-              }
-            } catch (error) {
-              log.warn(`Failed to get SQL cache for selectedCalendar ${fullSelectedCalendar.id}:`, error);
-            }
-          }
-
-          sqlCacheResults.push(credentialResults);
-        }
-
-        let googleCalendarResults: EventBusyDate[][] = [];
-        if (credentialsWithoutSubscription.length > 0) {
-          googleCalendarResults = await getCalendarsEvents(
-            credentialsWithoutSubscription,
-            startDate,
-            endDate,
-            selectedCalendars.filter((sc) =>
-              credentialsWithoutSubscription.some((cred) => cred.id === sc.credentialId)
-            ),
-            shouldServeCache
-          );
-        }
-
-        results = [...sqlCacheResults, ...googleCalendarResults];
-      } else {
-        results = await getCalendarsEvents(
-          deduplicatedCredentials,
-          startDate,
-          endDate,
-          selectedCalendars,
-          shouldServeCache
-        );
-      }
+      results = await calendarCacheReadService.getBusyCalendarTimes(
+        deduplicatedCredentials,
+        startDate,
+        endDate,
+        selectedCalendars,
+        shouldServeCache
+      );
     }
   } catch (e) {
     log.warn(safeStringify(e));
