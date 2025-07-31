@@ -159,14 +159,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
             },
           },
         },
-        availability: {
-          select: {
-            date: true,
-            startTime: true,
-            endTime: true,
-            days: true,
-          },
-        },
         secondaryEmailId: true,
         secondaryEmail: {
           select: {

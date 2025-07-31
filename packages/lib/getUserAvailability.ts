@@ -15,7 +15,6 @@ import { getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -123,14 +122,6 @@ const _getEventType = async (id: number) => {
             },
           },
           timeZone: true,
-        },
-      },
-      availability: {
-        select: {
-          startTime: true,
-          endTime: true,
-          days: true,
-          date: true,
         },
       },
     },
@@ -468,15 +459,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })}`
   );
 
-  if (
-    !(schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability))
-  ) {
-    throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
-  }
-
-  const availability = (
-    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-  ).map((a) => ({
+  const availability = schedule.availability.map((a) => ({
     ...a,
     userId: user.id,
   }));
