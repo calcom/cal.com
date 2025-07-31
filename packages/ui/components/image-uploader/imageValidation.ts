@@ -1,16 +1,16 @@
-import {
-  FILE_SIGNATURES,
-  matchesSignature,
-  MAX_IMAGE_FILE_SIZE,
-} from "../../../lib/imageValidationConstants";
+import { FILE_SIGNATURES, matchesSignature } from "../../../lib/imageValidationConstants";
 import { showToast } from "../toast";
 
 /**
  * Enhanced browser-compatible image validation with magic number checking
  * This function performs comprehensive validation and shows toast messages directly
  */
-export const validateImageFile = async (file: File, t: (key: string) => string): Promise<boolean> => {
-  if (file.size > MAX_IMAGE_FILE_SIZE) {
+export const validateImageFile = async (
+  file: File,
+  t: (key: string) => string,
+  maxFileSize: number = 5 * 1024 * 1024 // Default 5MB
+): Promise<boolean> => {
+  if (file.size > maxFileSize) {
     showToast(t("image_size_limit_exceed"), "error");
     return false;
   }

@@ -34,7 +34,7 @@ describe("validateImageFile", () => {
   };
 
   describe("File size validation", () => {
-    it("should reject files larger than MAX_IMAGE_FILE_SIZE", async () => {
+    it("should reject files larger than maxFileSize", async () => {
       const largeFile = createMockFile([0x89, 0x50, 0x4e, 0x47], "large.png", "image/png", 6 * 1024 * 1024);
 
       const result = await validateImageFile(largeFile, mockT);
@@ -55,6 +55,16 @@ describe("validateImageFile", () => {
 
       expect(result).toBe(true);
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it("should respect custom maxFileSize parameter", async () => {
+      const customMaxSize = 2 * 1024 * 1024; // 2MB
+      const largeFile = createMockFile([0x89, 0x50, 0x4e, 0x47], "large.png", "image/png", 3 * 1024 * 1024);
+
+      const result = await validateImageFile(largeFile, mockT, customMaxSize);
+
+      expect(result).toBe(false);
+      expect(mockShowToast).toHaveBeenCalledWith("image_size_limit_exceed", "error");
     });
   });
 
