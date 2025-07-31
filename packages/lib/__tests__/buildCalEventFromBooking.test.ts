@@ -52,6 +52,7 @@ const createBooking = (overrides = {}) => ({
   },
   destinationCalendar: null,
   user: null,
+  iCalSequence: 0,
   ...overrides,
 });
 
@@ -121,6 +122,9 @@ describe("buildCalEventFromBooking", () => {
       destinationCalendar: [],
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: true,
+      customReplyToEmail: undefined,
+      hideOrganizerEmail: undefined,
+      iCalSequence: 0,
     });
 
     expect(parseRecurringEvent).toHaveBeenCalledWith(booking.eventType?.recurringEvent);
@@ -170,6 +174,9 @@ describe("buildCalEventFromBooking", () => {
       destinationCalendar: [],
       seatsPerTimeSlot: undefined,
       seatsShowAttendees: undefined,
+      customReplyToEmail: undefined,
+      hideOrganizerEmail: undefined,
+      iCalSequence: 0,
     });
 
     // @ts-expect-error - locale is set in mock

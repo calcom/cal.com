@@ -103,6 +103,7 @@ async function updateBookingLocationInDb({
     },
     data: {
       location: evt.location,
+      iCalSequence: evt.iCalSequence || 0,
       metadata: {
         ...(typeof booking.metadata === "object" && booking.metadata),
         ...bookingMetadataUpdate,
@@ -261,6 +262,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     organizer,
     location: newLocationInEvtFormat,
     conferenceCredentialId,
+    iCalSequence: (booking.iCalSequence || 0) + 1,
   });
 
   const eventManager = new EventManager({
