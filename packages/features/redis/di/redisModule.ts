@@ -8,11 +8,9 @@ import { RedisService } from "../RedisService";
 const redisModule = createModule();
 
 redisModule.bind(DI_TOKENS.REDIS_CLIENT).toFactory(() => {
-  if (process.env.NODE_ENV === "test") return new NoopRedisService();
-  try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
     return new RedisService();
-  } catch (error) {}
-  // or fall back to a noop service if Redis is not available
+  }
   return new NoopRedisService();
 }, "singleton");
 

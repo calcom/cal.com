@@ -6,8 +6,12 @@ export class RedisService implements IRedisService {
   private redis: Redis;
 
   constructor() {
+    // Ensure we throw an Error to mimick old behavior
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      throw new Error("Attempted to initialize Upstash Redis client without url or token.");
+    }
     this.redis = Redis.fromEnv({
-      signal: () => AbortSignal.timeout(2000), // Set a default timeout for requests
+      signal: () => AbortSignal.timeout(2000),
     });
   }
 
