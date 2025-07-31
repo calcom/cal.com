@@ -251,21 +251,11 @@ export const getBusyCalendarTimes = async (
   }
 
   // const months = getMonths(dateFrom, dateTo);
+  // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+  const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+  // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+  const endDate = dayjs(dateTo).add(14, "hours").format();
   try {
-    // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
-    const startDate = dayjs(dateFrom).subtract(11, "hours").format();
-    // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-    const endDate = dayjs(dateTo).add(14, "hours").format();
-
-    log.debug(
-      "getBusyCalendarTimes manipulated dates",
-      safeStringify({
-        newStartDate: startDate,
-        newEndDate: endDate,
-        oldStartDate: dateFrom,
-        oldEndDate: dateTo,
-      })
-    );
     if (includeTimeZone) {
       results = await getCalendarsEventsWithTimezones(
         deduplicatedCredentials,
@@ -303,9 +293,13 @@ export const getBusyCalendarTimes = async (
       }
     }
   } catch (e) {
-    log.warn(safeStringify(e));
+    log.warn(`Error getting calendar availability`, {
+      selectedCalendarIds: selectedCalendars.map((calendar) => calendar.externalId),
+      error: safeStringify(e),
+    });
+    return { success: false, data: [{ start: startDate, end: endDate, source: "error-placeholder" }] };
   }
-  return results.reduce((acc, availability) => acc.concat(availability), []);
+  return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
 };
 
 export const createEvent = async (
