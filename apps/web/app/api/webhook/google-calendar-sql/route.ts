@@ -20,13 +20,26 @@ async function postHandler(request: NextRequest, { params }: { params: Promise<a
   const featuresRepo = new FeaturesRepository();
   const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
 
+  const isSqlWriteEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-write");
+  if (!isSqlWriteEnabled) {
+    log.debug("SQL cache write not enabled globally");
+    return NextResponse.json({ success: false, message: "SQL cache write not enabled globally" });
+  }
+
+  // Validate webhook token
+  const webhookToken = process.env.GOOGLE_WEBHOOK_TOKEN || "";
+  const channelToken = request.headers.get("x-goog-channel-token");
+
+  if (channelToken !== webhookToken) {
+    log.debug("Invalid webhook token", { channelToken });
+    return NextResponse.json({ message: "Invalid API key" }, { status: 403 });
+  }
+
   const webhookService = new GoogleCalendarWebhookService({
     subscriptionRepo,
     eventRepo,
-    featuresRepo,
     calendarCacheService,
     getCredentialForCalendarCache,
-    webhookToken: process.env.GOOGLE_WEBHOOK_TOKEN || "",
     logger: log,
   });
 

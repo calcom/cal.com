@@ -1,4 +1,3 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { CalendarCacheSqlService } from "./CalendarCacheSqlService";
@@ -20,12 +19,10 @@ export interface WebhookResponse {
 export interface WebhookServiceDependencies {
   subscriptionRepo: ICalendarSubscriptionRepository;
   eventRepo: ICalendarEventRepository;
-  featuresRepo: IFeaturesRepository;
   calendarCacheService: CalendarCacheSqlService;
   getCredentialForCalendarCache: (params: {
     credentialId: number;
   }) => Promise<CredentialForCalendarService | null>;
-  webhookToken: string;
   logger: {
     debug: (message: string, data?: any) => void;
     info: (message: string, data?: any) => void;
@@ -38,20 +35,12 @@ export class GoogleCalendarWebhookService {
 
   async processWebhook(request: WebhookRequest): Promise<WebhookResponse> {
     const { headers } = request;
-    const { logger, webhookToken } = this.dependencies;
+    const { logger } = this.dependencies;
 
     const channelToken = headers["x-goog-channel-token"];
     const channelId = headers["x-goog-channel-id"];
 
     logger.debug("Processing webhook", { channelToken, channelId });
-
-    // Validate webhook token
-    if (channelToken !== webhookToken) {
-      return {
-        status: 403,
-        body: { message: "Invalid API key" },
-      };
-    }
 
     // Validate channel ID
     if (typeof channelId !== "string") {
@@ -62,19 +51,6 @@ export class GoogleCalendarWebhookService {
     }
 
     try {
-      // Check if SQL cache write is enabled globally
-      const isSqlWriteEnabled = await this.dependencies.featuresRepo.checkIfFeatureIsEnabledGlobally(
-        "calendar-cache-sql-write"
-      );
-
-      if (!isSqlWriteEnabled) {
-        logger.debug("SQL cache write not enabled globally");
-        return {
-          status: 200,
-          body: { message: "ok" },
-        };
-      }
-
       // Find subscription by channel ID
       const subscription = await this.dependencies.subscriptionRepo.findByChannelId(channelId);
       if (!subscription) {
