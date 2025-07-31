@@ -144,7 +144,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                           />
                         )}
                       />
-                      {true && (
+                      {isOrgAdminOrOwner && (
                         <Controller
                           name="includePersonalEventsInLimits"
                           render={({ field: { value, onChange } }) => (
