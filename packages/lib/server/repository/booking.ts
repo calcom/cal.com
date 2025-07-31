@@ -398,6 +398,7 @@ export class BookingRepository {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
                 enableAutomaticTranscription: true,
+                enableAutomaticRecordingForOrganizer: true,
                 disableTranscriptionForGuests: true,
                 disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
@@ -833,6 +834,34 @@ export class BookingRepository {
         attendees: true,
         references: true,
         user: true,
+      },
+    });
+  }
+
+  async countBookingsByEventTypeAndDateRange({
+    eventTypeId,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    eventTypeId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }) {
+    return await this.prismaClient.booking.count({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        eventTypeId,
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+        uid: {
+          not: excludedUid,
+        },
       },
     });
   }

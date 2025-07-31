@@ -26,7 +26,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -266,7 +266,7 @@ export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
 
 export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 
-type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
+export type GetUserAvailabilityResult = Awaited<ReturnType<typeof _getUserAvailability>>;
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
@@ -345,8 +345,19 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     fallbackSchedule;
   const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
 
-  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-  const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  const bookingLimits =
+    eventType?.bookingLimits &&
+    typeof eventType.bookingLimits === "object" &&
+    Object.keys(eventType.bookingLimits).length > 0
+      ? parseBookingLimit(eventType.bookingLimits)
+      : null;
+
+  const durationLimits =
+    eventType?.durationLimits &&
+    typeof eventType.durationLimits === "object" &&
+    Object.keys(eventType.durationLimits).length > 0
+      ? parseDurationLimit(eventType.durationLimits)
+      : null;
 
   let busyTimesFromLimits: EventBusyDetails[] = [];
 
@@ -400,24 +411,39 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
 
-  const busyTimes = await getBusyTimes({
-    credentials: user.credentials,
-    startTime: getBusyTimesStart,
-    endTime: getBusyTimesEnd,
-    eventTypeId,
-    userId: user.id,
-    userEmail: user.email,
-    username: `${user.username}`,
-    beforeEventBuffer,
-    afterEventBuffer,
-    selectedCalendars,
-    seatedEvent: !!eventType?.seatsPerTimeSlot,
-    rescheduleUid: initialData?.rescheduleUid || null,
-    duration,
-    currentBookings: initialData?.currentBookings,
-    bypassBusyCalendarTimes,
-    shouldServeCache,
-  });
+  let busyTimes = [];
+  try {
+    busyTimes = await getBusyTimes({
+      credentials: user.credentials,
+      startTime: getBusyTimesStart,
+      endTime: getBusyTimesEnd,
+      eventTypeId,
+      userId: user.id,
+      userEmail: user.email,
+      username: `${user.username}`,
+      beforeEventBuffer,
+      afterEventBuffer,
+      selectedCalendars,
+      seatedEvent: !!eventType?.seatsPerTimeSlot,
+      rescheduleUid: initialData?.rescheduleUid || null,
+      duration,
+      currentBookings: initialData?.currentBookings,
+      bypassBusyCalendarTimes,
+      shouldServeCache,
+    });
+  } catch (error) {
+    log.error(`Error fetching busy times for user ${username}:`, error);
+    return {
+      busy: [],
+      timeZone,
+      dateRanges: [],
+      oooExcludedDateRanges: [],
+      workingHours: [],
+      dateOverrides: [],
+      currentSeats: [],
+      datesOutOfOffice: undefined,
+    };
+  }
 
   const detailedBusyTimes: EventBusyDetails[] = [
     ...busyTimes.map((a) => ({

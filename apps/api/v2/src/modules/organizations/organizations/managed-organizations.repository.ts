@@ -3,7 +3,6 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
-import { SkipTakePagination } from "@calcom/platform-types";
 import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()

@@ -288,7 +288,7 @@ if (only === "all" || only === "inline-routing-form") {
   ]);
 }
 
-if (only === "all" || only === "hideEventTypeDetails") {
+if (only === "all" || only === "ns:hideEventTypeDetails") {
   const identifier = "hideEventTypeDetails";
   Cal("init", identifier, {
     debug: true,
@@ -690,6 +690,40 @@ if (only === "all" || only === "ns:routingFormWithoutPrerender") {
   Cal.ns.routingFormWithoutPrerender("on", {
     action: "*",
     callback,
+  });
+}
+
+if (only === "all" || only === "ns:containerScrollToTimeslot") {
+  Cal("init", "containerScrollToTimeslot", {
+    debug: true,
+    origin,
+  });
+  Cal.ns.containerScrollToTimeslot("inline", {
+    elementOrSelector: "#cal-booking-place-containerScrollToTimeslot .place",
+    calLink: "free/30min",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-containerScrollToTimeslot-iframe",
+      },
+      "flag.coep": "true",
+    },
+  });
+}
+
+if (only === "all" || only === "ns:windowScrollToTimeslot") {
+  Cal("init", "windowScrollToTimeslot", {
+    debug: true,
+    origin,
+  });
+  Cal.ns.windowScrollToTimeslot("inline", {
+    elementOrSelector: "#cal-booking-place-windowScrollToTimeslot .place",
+    calLink: "free/30min",
+    config: {
+      iframeAttrs: {
+        id: "cal-booking-place-windowScrollToTimeslot-iframe",
+      },
+      "flag.coep": "true",
+    },
   });
 }
 

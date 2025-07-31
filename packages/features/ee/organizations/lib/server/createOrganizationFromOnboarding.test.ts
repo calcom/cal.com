@@ -348,6 +348,34 @@ describe("createOrganizationFromOnboarding", () => {
       );
     });
 
+    it("should invite members with isDirectUserAction set to false", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          username: "org-owner",
+          email: "owner@example.com",
+        },
+      });
+
+      // Call createOrganizationFromOnboarding
+      const result = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "sub_123",
+        paymentSubscriptionItemId: "si_123",
+      });
+
+      // Verify inviteMembersWithNoInviterPermissionCheck was called with isDirectUserAction: false
+      expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teamId: result.organization.id,
+          invitations: [
+            { usernameOrEmail: "member1@example.com", role: MembershipRole.MEMBER },
+            { usernameOrEmail: "member2@example.com", role: MembershipRole.MEMBER },
+          ],
+          isDirectUserAction: false,
+        })
+      );
+    });
+
     it("should update stripe customer ID for existing user", async () => {
       const { user: existingUser, organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
         user: {

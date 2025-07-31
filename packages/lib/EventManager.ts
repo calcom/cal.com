@@ -549,6 +549,7 @@ export default class EventManager {
         userId: true,
         attendees: true,
         location: true,
+        endTime: true,
         references: {
           where: {
             deleted: null,
@@ -584,8 +585,18 @@ export default class EventManager {
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
+
+    let isDailyVideoRoomExpired = false;
+
+    if (evt.location === "integrations:daily") {
+      const originalBookingEndTime = new Date(booking.endTime);
+      const roomExpiryTime = new Date(originalBookingEndTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      isDailyVideoRoomExpired = now > roomExpiryTime;
+    }
+
     const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule;
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -609,7 +620,7 @@ export default class EventManager {
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        if (isLocationChanged || isBookingRequestedReschedule) {
+        if (isLocationChanged || isBookingRequestedReschedule || isDailyVideoRoomExpired) {
           const updatedLocation = await this.updateLocation(evt, booking);
           results.push(...updatedLocation.results);
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);

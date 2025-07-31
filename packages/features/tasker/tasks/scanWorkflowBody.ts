@@ -115,9 +115,7 @@ export async function scanWorkflowBody(payload: string) {
           // Return early if spam is detected
           return;
         }
-        log.warn(
-          `For whitelisted user, workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`
-        );
+        log.warn(`For whitelisted user, workflow step ${workflowStep.id} marked as spam`);
       }
 
       await prisma.workflowStep.update({

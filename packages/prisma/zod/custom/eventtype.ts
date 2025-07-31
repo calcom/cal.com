@@ -7,9 +7,13 @@ import { MIN_EVENT_DURATION_MINUTES, MAX_EVENT_DURATION_MINUTES } from "@calcom/
 
 const calVideoSettingsSchema = z
   .object({
-    disableRecordingForGuests: z.boolean().optional().nullable(),
-    disableRecordingForOrganizer: z.boolean().optional().nullable(),
-    redirectUrlOnExit: z.string().url().optional().nullable(),
+    disableRecordingForGuests: z.boolean().nullish(),
+    disableRecordingForOrganizer: z.boolean().nullish(),
+    redirectUrlOnExit: z.string().url().nullish(),
+    enableAutomaticRecordingForOrganizer: z.boolean().nullish(),
+    enableAutomaticTranscription: z.boolean().nullish(),
+    disableTranscriptionForGuests: z.boolean().nullish(),
+    disableTranscriptionForOrganizer: z.boolean().nullish(),
   })
   .optional()
   .nullable();

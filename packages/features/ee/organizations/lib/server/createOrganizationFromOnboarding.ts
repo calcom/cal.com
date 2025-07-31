@@ -305,6 +305,7 @@ async function inviteMembers(invitedMembers: InvitedMember[], organization: Team
       usernameOrEmail: member.email,
       role: MembershipRole.MEMBER,
     })),
+    isDirectUserAction: false,
   });
 }
 
@@ -548,8 +549,17 @@ export const createOrganizationFromOnboarding = async ({
     } catch (error) {
       // Almost always the reason would be that the organization's slug conflicts with a team's slug
       // The owner might not have chosen the conflicting team for migration - Can be confirmed by checking `teams` column in the database.
-      log.error("RecoverableError: Error while setting slug for organization", safeStringify(error));
-      throw new Error("Unable to set slug for organization");
+      log.error(
+        "RecoverableError: Error while setting slug for organization",
+        safeStringify(error),
+        safeStringify({
+          attemptedSlug: organizationOnboarding.slug,
+          organizationId: organization.id,
+        })
+      );
+      throw new Error(
+        `Unable to set slug '${organizationOnboarding.slug}' for organization ${organization.id}`
+      );
     }
   }
 

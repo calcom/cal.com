@@ -179,6 +179,23 @@ export class PermissionRepository implements IPermissionRepository {
     return teamPermissions.map((p) => p.action as CrudAction | CustomAction);
   }
 
+  async getResourcePermissionsByRoleId(
+    roleId: string,
+    resource: Resource
+  ): Promise<(CrudAction | CustomAction)[]> {
+    const permissions = await this.client.rolePermission.findMany({
+      where: {
+        roleId,
+        OR: [{ resource }, { resource: Resource.All }],
+      },
+      select: {
+        action: true,
+        resource: true,
+      },
+    });
+    return permissions.map((p) => p.action as CrudAction | CustomAction);
+  }
+
   async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
     return this.getTeamIdsWithPermissions(userId, [permission]);
   }

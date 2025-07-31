@@ -77,6 +77,7 @@ const initalColumnVisibility = {
   teams: true,
   createdAt: false,
   updatedAt: false,
+  twoFactorEnabled: false,
   actions: true,
 };
 
@@ -415,6 +416,26 @@ function UserListTableContent({ org, attributes, teams, facetedTeamValues }: Use
           },
         },
         cell: ({ row }) => <div>{row.original.updatedAt || ""}</div>,
+      },
+      {
+        id: "twoFactorEnabled",
+        accessorKey: "twoFactorEnabled",
+        header: t("2fa"),
+        enableHiding: adminOrOwner,
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 80,
+        cell: ({ row }) => {
+          const { twoFactorEnabled } = row.original;
+          if (!adminOrOwner || twoFactorEnabled === undefined) {
+            return null;
+          }
+          return (
+            <Badge variant={twoFactorEnabled ? "green" : "gray"}>
+              {twoFactorEnabled ? t("enabled") : t("disabled")}
+            </Badge>
+          );
+        },
       },
       {
         id: "actions",

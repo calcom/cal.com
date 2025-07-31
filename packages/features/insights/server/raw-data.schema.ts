@@ -61,3 +61,21 @@ export const routingFormResponsesInputSchema = z.object({
   offset: z.number().optional(),
   limit: z.number().max(100).optional(),
 }) satisfies z.ZodType<RoutingFormResponsesInput>;
+
+export const routingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+});
+
+export const bookingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  timeZone: z.string(),
+  eventTypeId: z.coerce.number().optional().nullable(),
+  memberUserId: z.coerce.number().optional().nullable(),
+});

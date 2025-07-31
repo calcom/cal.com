@@ -67,7 +67,15 @@ describe("RoleService", () => {
         teamId: roleData.teamId,
         color: "#000000",
         type: RoleType.CUSTOM,
-        permissions: [{ id: "perm-1", resource: "eventType", action: "create" }],
+        permissions: [
+          {
+            id: "perm-1",
+            resource: "eventType",
+            action: "create",
+            roleId: "new-role",
+            createdAt: new Date(),
+          },
+        ],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -213,6 +221,53 @@ describe("RoleService", () => {
         name: undefined,
       });
       expect(result).toBeDefined();
+    });
+
+    it("should properly remove multiple permissions when changing from all to none", async () => {
+      const roleId = "role-id";
+      const permissions = [] as PermissionString[]; // Setting to none
+      const existingPermissions = [
+        { id: "1", roleId, resource: "eventType", action: "create" },
+        { id: "2", roleId, resource: "eventType", action: "read" },
+        { id: "3", roleId, resource: "eventType", action: "update" },
+        { id: "4", roleId, resource: "eventType", action: "delete" },
+      ];
+
+      const permissionChanges = {
+        toAdd: [],
+        toRemove: [
+          { id: "1", roleId, resource: "eventType", action: "create" },
+          { id: "2", roleId, resource: "eventType", action: "read" },
+          { id: "3", roleId, resource: "eventType", action: "update" },
+          { id: "4", roleId, resource: "eventType", action: "delete" },
+        ],
+      };
+
+      const role: Role = {
+        id: roleId,
+        name: "Test Role",
+        teamId: 1,
+        type: RoleType.CUSTOM,
+        color: "#000000",
+        permissions: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockRepository.findById.mockResolvedValueOnce(role);
+      mockRepository.getPermissions.mockResolvedValueOnce(existingPermissions);
+      mockPermissionDiffService.calculateDiff.mockReturnValueOnce(permissionChanges);
+      mockRepository.update.mockResolvedValueOnce(role);
+
+      const result = await service.update({ roleId, permissions });
+
+      expect(mockPermissionDiffService.calculateDiff).toHaveBeenCalledWith(permissions, existingPermissions);
+      expect(mockRepository.update).toHaveBeenCalledWith(roleId, permissionChanges, {
+        color: undefined,
+        name: undefined,
+      });
+      expect(result).toBeDefined();
+      expect(result.permissions).toHaveLength(0);
     });
 
     it("should throw error if role does not exist", async () => {

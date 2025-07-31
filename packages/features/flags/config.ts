@@ -23,6 +23,7 @@ export type AppFlags = {
   "use-api-v2-for-team-slots": boolean;
   pbac: boolean;
   "restriction-schedule": boolean;
+  "team-booking-page-cache": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

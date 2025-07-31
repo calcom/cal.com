@@ -62,6 +62,7 @@ export const useHandleBookEvent = ({
   const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
   const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
   const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
+  const crmRecordId = useBookerStore((state) => state.crmRecordId);
   const handleError = (err: any) => {
     const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
@@ -108,6 +109,7 @@ export const useHandleBookEvent = ({
         teamMemberEmail,
         crmOwnerRecordType,
         crmAppSlug,
+        crmRecordId,
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,

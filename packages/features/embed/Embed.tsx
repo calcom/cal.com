@@ -359,11 +359,11 @@ const EmailEmbed = ({
             <DatePicker
               isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
-                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+                setSelectedDate({ date: date === null ? date : date.format("YYYY-MM-DD") });
               }}
               onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
-                setSelectedDate(date.format("YYYY-MM-DD"));
+                setSelectedDate({ date: date.format("YYYY-MM-DD") });
               }}
               includedDates={nonEmptyScheduleDays}
               locale={i18n.language}

@@ -158,6 +158,7 @@ export const BookerPlatformWrapper = (
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
+    crmRecordId: props.crmRecordId,
     eventId: event?.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
@@ -205,7 +206,10 @@ export const BookerPlatformWrapper = (
       !!bookerLayout.extraDays &&
       dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
     (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
+      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
+    (bookerLayout.layout === BookerLayouts.MONTH_VIEW &&
+      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
+      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
 
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
@@ -412,7 +416,7 @@ export const BookerPlatformWrapper = (
     [props.selectedDate]
   );
   useEffect(() => {
-    setSelectedDate(selectedDateProp, true);
+    setSelectedDate({ date: selectedDateProp, omitUpdatingParams: true });
   }, [selectedDateProp]);
 
   useEffect(() => {
@@ -420,7 +424,7 @@ export const BookerPlatformWrapper = (
     return () => {
       slots.handleRemoveSlot();
       setBookerState("loading");
-      setSelectedDate(null);
+      setSelectedDate({ date: null });
       setSelectedTimeslot(null);
       setSelectedDuration(null);
       setOrg(null);

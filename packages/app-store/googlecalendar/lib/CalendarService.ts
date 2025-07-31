@@ -1019,6 +1019,9 @@ export default class GoogleCalendarService implements Calendar {
       const data = await this.fetchAvailability(parsedArgs);
       await this.setAvailabilityInCache(parsedArgs, data);
     }
+
+    // Update SelectedCalendar.updatedAt for all calendars under this credential
+    await SelectedCalendarRepository.updateManyByCredentialId(this.credential.id, {});
   }
 
   async createSelectedCalendar(

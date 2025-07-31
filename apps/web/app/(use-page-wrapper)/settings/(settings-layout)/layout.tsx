@@ -6,6 +6,9 @@ import React from "react";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { TeamFeatures } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
+import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -23,6 +26,15 @@ const getTeamFeatures = unstable_cache(
   }
 );
 
+const getCachedResourcePermissions = unstable_cache(
+  async (userId: number, teamId: number, resource: Resource) => {
+    const permissionService = new PermissionCheckService();
+    return permissionService.getResourcePermissions({ userId, teamId, resource });
+  },
+  ["resource-permissions"],
+  { revalidate: 120 }
+);
+
 export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
@@ -31,20 +43,30 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
   }
 
   let teamFeatures: Record<number, TeamFeatures> | null = null;
+  let canViewRoles = false;
   const orgId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
+
   // For now we only grab organization features but it would be nice to fetch these on the server side for specific team feature flags
   if (orgId) {
-    const features = await getTeamFeatures(orgId);
+    const [features, rolePermissions] = await Promise.all([
+      getTeamFeatures(orgId),
+      getCachedResourcePermissions(userId, orgId, Resource.Role),
+    ]);
+
     if (features) {
       teamFeatures = {
         [orgId]: features,
       };
+
+      // Check if user has permission to read roles
+      const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
+      canViewRoles = roleActions[CrudAction.Read] ?? false;
     }
   }
 
   return (
     <>
-      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures ?? {}} />
+      <SettingsLayoutAppDirClient {...props} teamFeatures={teamFeatures ?? {}} canViewRoles={canViewRoles} />
     </>
   );
 }

@@ -687,4 +687,26 @@ describe("CalendarEventBuilder", () => {
     expect(event.title).toBe("Updated Event");
     expect(event.type).toBe("existing-type");
   });
+
+  it("should propagate disableCancelling and disableRescheduling", () => {
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+        additionalNotes: "Some notes",
+      })
+      .withEventType({
+        slug: "test-slug",
+        description: "Test description",
+        id: 123,
+        disableCancelling: true,
+        disableRescheduling: true,
+      })
+      .build();
+
+    expect(event.disableCancelling).toBe(true);
+    expect(event.disableRescheduling).toBe(true);
+  });
 });

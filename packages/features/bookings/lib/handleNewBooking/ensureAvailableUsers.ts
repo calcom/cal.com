@@ -99,6 +99,7 @@ const _ensureAvailableUsers = async (
       afterEventBuffer: eventType.afterEventBuffer,
       bypassBusyCalendarTimes: false,
       shouldServeCache,
+      withSource: true,
     },
     initialData: {
       eventType,
@@ -210,7 +211,8 @@ const _ensureAvailableUsers = async (
     }
   }
 
-  usersAvailability.forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+  usersAvailability.forEach((userAvailability, index) => {
+    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = userAvailability;
     const user = eventType.users[index];
 
     loggerWithEventDetails.debug(
@@ -220,7 +222,7 @@ const _ensureAvailableUsers = async (
 
     if (!dateRanges.length) {
       loggerWithEventDetails.error(
-        `User does not have availability at this time.`,
+        `User ${user.id} does not have availability at this time.`,
         piiFreeInputDataForLogging
       );
       return;
@@ -239,7 +241,7 @@ const _ensureAvailableUsers = async (
         eventLength: duration,
       });
       if (!foundConflict) {
-        availableUsers.push(user);
+        availableUsers.push({ ...user, availabilityData: userAvailability });
       }
     } catch (error) {
       loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);

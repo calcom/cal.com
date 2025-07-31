@@ -3,6 +3,7 @@ import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
@@ -53,7 +54,8 @@ export class EventTypesAtomService {
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: TeamsEventTypesService
+    private readonly teamEventTypeService: TeamsEventTypesService,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
   ) {}
 
   private async getTeamSlug(teamId: number): Promise<string> {
@@ -88,16 +90,16 @@ export class EventTypesAtomService {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    if (eventType?.team?.id) {
-      await this.checkTeamOwnsEventType(user.id, eventType.eventType.id, eventType.team.id);
-    } else {
-      this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
+    if (!isUserOrganizationAdmin) {
+      if (eventType?.team?.id) {
+        await this.checkTeamOwnsEventType(user.id, eventType.eventType.id, eventType.team.id);
+      } else {
+        this.eventTypeService.checkUserOwnsEventType(user.id, eventType.eventType);
+      }
     }
 
     // note (Lauris): don't show platform owner as one of the people that can be assigned to managed team event type
-    const onlyManagedTeamMembers = eventType.teamMembers.filter(
-      (user) => user.isPlatformManaged && user.membership === "MEMBER"
-    );
+    const onlyManagedTeamMembers = eventType.teamMembers.filter((user) => user.isPlatformManaged);
     eventType.teamMembers = onlyManagedTeamMembers;
 
     return eventType;
@@ -117,7 +119,8 @@ export class EventTypesAtomService {
     user: UserWithProfile,
     teamId: number
   ) {
-    await this.checkCanUpdateTeamEventType(user.id, eventTypeId, teamId, body.scheduleId);
+    await this.checkCanUpdateTeamEventType(user, eventTypeId, teamId, body.scheduleId);
+
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
     const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
 
@@ -177,14 +180,31 @@ export class EventTypesAtomService {
   }
 
   async checkCanUpdateTeamEventType(
-    userId: number,
+    user: UserWithProfile,
     eventTypeId: number,
     teamId: number,
     scheduleId: number | null | undefined
   ) {
-    await this.checkTeamOwnsEventType(userId, eventTypeId, teamId);
+    const organizationId = this.usersService.getUserMainOrgId(user);
+
+    if (organizationId) {
+      const isUserOrganizationAdmin = await this.membershipsRepository.isUserOrganizationAdmin(
+        user.id,
+        organizationId
+      );
+
+      if (isUserOrganizationAdmin) {
+        const orgTeam = await this.organizationsTeamsRepository.findOrgTeam(organizationId, teamId);
+        if (orgTeam) {
+          await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
+          return;
+        }
+      }
+    }
+
+    await this.checkTeamOwnsEventType(user.id, eventTypeId, teamId);
     await this.teamEventTypeService.validateEventTypeExists(teamId, eventTypeId);
-    await this.eventTypeService.checkUserOwnsSchedule(userId, scheduleId);
+    await this.eventTypeService.checkUserOwnsSchedule(user.id, scheduleId);
   }
 
   async checkTeamOwnsEventType(userId: number, eventTypeId: number, teamId: number) {

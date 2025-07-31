@@ -192,7 +192,12 @@ export default function BillingCredits() {
               </div>
             </div>
             <div className="mt-auto">
-              <Button color="primary" target="_blank" EndIcon="external-link" type="submit">
+              <Button
+                color="primary"
+                target="_blank"
+                EndIcon="external-link"
+                type="submit"
+                data-testid="buy-credits">
                 {t("buy_credits")}
               </Button>
             </div>

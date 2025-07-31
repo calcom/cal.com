@@ -7,6 +7,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 
+import PlainContactForm from "./PlainContactForm";
+
 declare global {
   interface Window {
     Plain?: {
@@ -78,7 +80,7 @@ interface PlainChatConfig {
 }
 
 const PlainChat = IS_PLAIN_CHAT_ENABLED
-  ? () => {
+  ? ({ nonce }: { nonce: string | undefined }) => {
       const [config, setConfig] = useState<PlainChatConfig | null>(null);
       const [isSmallScreen, setIsSmallScreen] = useState(false);
       const { data: session } = useSession();
@@ -231,16 +233,14 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
             },
           };
 
-          if (isPaidUser) {
-            plainChatConfig.chatButtons.push({
-              icon: "chat",
-              text: "Ask a question",
-              threadDetails: {
-                labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                tierIdentifier: { externalId: data.userTier },
-              },
-            });
-          }
+          plainChatConfig.chatButtons.push({
+            icon: "chat",
+            text: "Ask a question",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+              tierIdentifier: { externalId: data.userTier },
+            },
+          });
 
           if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
             window.__PLAIN_CONFIG__ = plainChatConfig;
@@ -286,17 +286,25 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
         }
       `;
 
-      if (!isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
+      if (!isAppDomain || isSmallScreen || typeof window === "undefined") return null;
+
+      if (!isPaidUser) {
+        return <PlainContactForm />;
+      }
+
+      if (!config) return null;
 
       return (
         <>
           <Script
+            nonce={nonce}
             id="plain-chat"
             src="https://chat.cdn-plain.com/index.js"
             strategy="afterInteractive"
             onLoad={() => window.plainScriptLoaded?.()}
           />
           <Script
+            nonce={nonce}
             id="plain-chat-init"
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{ __html: plainChatScript }}

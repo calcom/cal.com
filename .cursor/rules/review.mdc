@@ -1,5 +1,13 @@
 # Review Instructions
 
+## File Naming Conventions
+
+- **Repository Files**: Must include `Repository` suffix, prefix with technology if applicable (e.g., `PrismaAppRepository.ts`), use PascalCase matching exported class
+- **Service Files**: Must include `Service` suffix, use PascalCase matching exported class, avoid generic names (e.g., `MembershipService.ts`)
+- **New files**: Avoid dot-suffixes like `.service.ts` or `.repository.ts`; reserve `.test.ts`, `.spec.ts`, `.types.ts` for their specific purposes
+
+## Code Quality
+
 - Prefer early returns. It is recommended to throw/return early so we can ensure null-checks and prevent further nesting.
 - Prefer Composition over Prop Drilling. Instead of relying on prop drilling, let's try to take advantage of react children feature.
 - For Prisma queries:
@@ -19,3 +27,10 @@
   - "summary" fields do not end with a period
   - "summary" fields are written in proper American english
 - When changes to API v2 or v1 are made, ensure there are no breaking changes on existing endpoints. Instead, there needs to be a newly versioned endpoint with the updated functionality but the old one must remain functional
+- For large pull requests (>500 lines changed or >10 files touched), advise splitting into smaller, focused PRs:
+  - Split by feature boundaries: separate different features or user stories
+  - Split by layer/component: frontend changes, backend changes, database migrations, and tests in separate PRs
+  - Split by dependency chain: create PRs that can be merged sequentially
+  - Split by file/module: group related file changes together
+  - Suggested pattern: Database migrations → Backend logic → Frontend components → Integration tests
+  - Benefits: easier review, faster feedback, reduced conflicts, easier rollback, better history
