@@ -21,7 +21,8 @@ export class CheckBookingLimitsService {
     eventId: number,
     rescheduleUid?: string | undefined,
     timeZone?: string | null,
-    includeManagedEvents?: boolean
+    includeManagedEvents?: boolean,
+    includePersonalEvents?: boolean
   ) {
     const parsedBookingLimits = parseBookingLimit(bookingLimits);
     if (!parsedBookingLimits) return false;
@@ -36,6 +37,7 @@ export class CheckBookingLimitsService {
         timeZone,
         rescheduleUid,
         includeManagedEvents,
+        includePersonalEvents,
       })
     );
 
@@ -58,6 +60,7 @@ export class CheckBookingLimitsService {
     teamId,
     user,
     includeManagedEvents = false,
+    includePersonalEvents = false,
   }: {
     eventStartDate: Date;
     eventId?: number;
@@ -68,6 +71,7 @@ export class CheckBookingLimitsService {
     teamId?: number;
     user?: { id: number; email: string };
     includeManagedEvents?: boolean;
+    includePersonalEvents?: boolean;
   }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
 
@@ -89,6 +93,7 @@ export class CheckBookingLimitsService {
         shouldReturnCount: true,
         excludedUid: rescheduleUid,
         includeManagedEvents,
+        includePersonalEvents,
       });
     } else {
       bookingsInPeriod = await this.dependencies.bookingRepo.countBookingsByEventTypeAndDateRange({
