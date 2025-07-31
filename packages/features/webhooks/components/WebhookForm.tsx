@@ -503,18 +503,18 @@ const WebhookForm = (props: {
                     name="customPayloadTemplate"
                     rows={8}
                     value={value || ""}
-                    placeholder="{}"
+                    placeholder={`{\n\n}`}
                     onChange={(e) =>
                       formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true })
                     }
                   />
 
                   <Button type="button" color="secondary" onClick={() => setShowVariables(!showVariables)}>
-                    {showVariables ? "Hide Variables" : "Show Available Variables"}
+                    {showVariables ? t("Hide Variables") : t("Show Available Variables")}
                   </Button>
 
                   {showVariables && (
-                    <div className="max-h-80 overflow-y-auto rounded-md border border-zinc-600 p-3">
+                    <div className="border-muted max-h-80 overflow-y-auto rounded-md border p-3">
                       {WEBHOOK_VARIABLES.map(({ category, variables }) => (
                         <div key={category} className="mb-4">
                           <h4 className="mb-2 text-sm font-medium">{category}</h4>
@@ -522,7 +522,7 @@ const WebhookForm = (props: {
                             {variables.map(({ name, variable, description }) => (
                               <div
                                 key={name}
-                                className="cursor-pointer rounded bg-black p-2 text-sm transition-colors hover:bg-zinc-800"
+                                className="hover:bg-muted  cursor-pointer rounded p-2 text-sm transition-colors"
                                 onClick={() => {
                                   const currentValue = formMethods.getValues("payloadTemplate") || "{}";
                                   const updatedValue = insertVariableIntoTemplate(
@@ -535,8 +535,8 @@ const WebhookForm = (props: {
                                   });
                                 }}>
                                 <div className="font-mono text-white">{variable}</div>
-                                <div className="text-xs text-gray-500">{description}</div>
-                                <div className="mt-1 text-xs text-gray-500">Click to add to template</div>
+                                <div className="text-muted mt-1 text-xs">{description}</div>
+                                <div className="text-muted mt-1 text-xs">{t("Click to add to template")}</div>
                               </div>
                             ))}
                           </div>
