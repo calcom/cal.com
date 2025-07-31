@@ -126,6 +126,7 @@ describe("buildCalEventFromBooking", () => {
       customReplyToEmail: undefined,
       hideOrganizerEmail: undefined,
       iCalSequence: 0,
+      iCalUID: booking.iCalUID,
     });
 
     expect(parseRecurringEvent).toHaveBeenCalledWith(booking.eventType?.recurringEvent);
