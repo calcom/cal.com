@@ -2664,6 +2664,72 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses/from-queued/{queuedResponseId}": {
+      "post": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_createRoutingFormResponseFromQueued",
+        "summary": "Create routing form response from queued response",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "queuedResponseId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoutingFormResponseFromQueuedInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoutingFormResponseFromQueuedOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Routing forms"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/routing-forms/{routingFormId}/responses/{responseId}": {
       "patch": {
         "operationId": "OrganizationsRoutingFormsResponsesController_updateRoutingFormResponse",
