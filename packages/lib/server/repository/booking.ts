@@ -869,23 +869,4 @@ export class BookingRepository {
       },
     });
   }
-
-  async updateBookingLocation({
-    bookingId,
-    location,
-    iCalSequence,
-  }: {
-    bookingId: number;
-    location: string;
-  }) {
-    return await this.prismaClient.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        location,
-        iCalSequence,
-      },
-    });
-  }
 }
