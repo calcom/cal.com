@@ -67,6 +67,35 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     }
   }
 
+  async getEventsForAvailabilityBatch(subscriptionIds: string[], start: Date, end: Date) {
+    try {
+      return await this.prismaClient.calendarEvent.findMany({
+        where: {
+          calendarSubscriptionId: { in: subscriptionIds },
+          status: { not: "cancelled" },
+          transparency: "opaque",
+          end: { gt: new Date() }, // Only include events that haven't ended yet
+          OR: [
+            {
+              start: { gte: start, lt: end },
+            },
+            {
+              end: { gt: start, lte: end },
+            },
+            {
+              start: { lt: start },
+              end: { gt: end },
+            },
+          ],
+        },
+        orderBy: { start: "asc" },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
   async deleteEvent(calendarSubscriptionId: string, googleEventId: string) {
     try {
       await this.prismaClient.calendarEvent.delete({

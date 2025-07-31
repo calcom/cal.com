@@ -32,6 +32,36 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     }
   }
 
+  async findByCredentialId(credentialId: number) {
+    try {
+      return await this.prismaClient.calendarSubscription.findFirst({
+        where: {
+          selectedCalendar: {
+            credentialId,
+          },
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async findBySelectedCalendarIds(selectedCalendarIds: string[]) {
+    try {
+      return await this.prismaClient.calendarSubscription.findMany({
+        where: {
+          selectedCalendarId: {
+            in: selectedCalendarIds,
+          },
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
   async findByChannelId(channelId: string) {
     try {
       return await this.prismaClient.calendarSubscription.findFirst({

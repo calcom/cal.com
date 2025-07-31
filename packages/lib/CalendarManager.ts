@@ -4,11 +4,6 @@ import { sortBy } from "lodash";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import { CalendarCacheReadService } from "@calcom/features/calendar-cache-sql/CalendarCacheReadService";
-import { CalendarEventRepository } from "@calcom/features/calendar-cache-sql/CalendarEventRepository";
-import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
-import { SelectedCalendarRepository } from "@calcom/features/calendar-cache-sql/SelectedCalendarRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
@@ -18,7 +13,6 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
 import type {
   CalendarEvent,
   CalendarServiceEvent,
@@ -264,33 +258,13 @@ export const getBusyCalendarTimes = async (
         selectedCalendars
       );
     } else {
-      const featuresRepo = new FeaturesRepository();
-      const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
-
-      if (isSqlReadEnabled) {
-        const calendarCacheReadService = new CalendarCacheReadService({
-          subscriptionRepo: new CalendarSubscriptionRepository(prisma),
-          eventRepo: new CalendarEventRepository(prisma),
-          selectedCalendarRepo: new SelectedCalendarRepository(prisma),
-          getCalendarsEvents,
-        });
-
-        results = await calendarCacheReadService.getBusyCalendarTimes(
-          deduplicatedCredentials,
-          startDate,
-          endDate,
-          selectedCalendars,
-          shouldServeCache
-        );
-      } else {
-        results = await getCalendarsEvents(
-          deduplicatedCredentials,
-          startDate,
-          endDate,
-          selectedCalendars,
-          shouldServeCache
-        );
-      }
+      results = await getCalendarsEvents(
+        deduplicatedCredentials,
+        startDate,
+        endDate,
+        selectedCalendars,
+        shouldServeCache
+      );
     }
   } catch (e) {
     log.warn(`Error getting calendar availability`, {
