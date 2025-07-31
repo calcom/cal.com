@@ -28,21 +28,26 @@ function getAdjustedTimezone(date: Dayjs, timeZone: string, travelSchedules: Tra
   return adjustedTimezone;
 }
 
-export function processWorkingHours({
-  item,
-  timeZone,
-  dateFrom,
-  dateTo,
-  travelSchedules,
-}: {
-  item: WorkingHours;
-  timeZone: string;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
-  travelSchedules: TravelSchedule[];
-}) {
+// reducer
+export function processWorkingHours(
+  results: Record<number, DateRange>,
+  {
+    item,
+    timeZone,
+    dateFrom,
+    dateTo,
+    travelSchedules,
+  }: {
+    item: WorkingHours;
+    timeZone: string;
+    dateFrom: Dayjs;
+    dateTo: Dayjs;
+    travelSchedules: TravelSchedule[];
+  }
+) {
   const utcDateTo = dateTo.utc();
-  const results = [];
+  let endTimeToKeyMap: Map<number, number[]> | undefined;
+
   for (let date = dateFrom.startOf("day"); utcDateTo.isAfter(date); date = date.add(1, "day")) {
     const fromOffset = dateFrom.startOf("day").utcOffset();
 
@@ -82,11 +87,88 @@ export function processWorkingHours({
       continue;
     }
 
-    results.push({
+    const endTimeKey = endResult.valueOf();
+
+    // Create a map of end times to range keys for O(1) lookup
+    if (!endTimeToKeyMap) {
+      endTimeToKeyMap = new Map<number, number[]>();
+      for (const [key, range] of Object.entries(results)) {
+        const endTime = range.end.valueOf();
+        if (!endTimeToKeyMap.has(endTime)) {
+          endTimeToKeyMap.set(endTime, []);
+        }
+        endTimeToKeyMap.get(endTime)!.push(Number(key));
+      }
+    }
+
+    // Check for overlapping ranges with the same end time using O(1) lookup
+    const keysWithSameEndTime = endTimeToKeyMap.get(endTimeKey) || [];
+    let foundOverlapping = false;
+
+    for (const key of keysWithSameEndTime) {
+      const existingRange = results[key];
+      if (
+        startResult.valueOf() <= existingRange.end.valueOf() &&
+        endResult.valueOf() >= existingRange.start.valueOf()
+      ) {
+        // Merge by taking the earliest start time and keeping the same end time
+        results[key] = {
+          start: dayjs.min(existingRange.start, startResult),
+          end: endResult,
+        };
+        foundOverlapping = true;
+        break;
+      }
+    }
+
+    if (foundOverlapping) {
+      continue;
+    }
+
+    if (results[startResult.valueOf()]) {
+      // if a result already exists, we merge the end time
+      const oldKey = startResult.valueOf();
+      const newKey = endResult.valueOf();
+
+      results[newKey] = {
+        start: results[oldKey].start,
+        end: dayjs.max(results[oldKey].end, endResult),
+      };
+
+      if (endTimeToKeyMap) {
+        const oldEndTime = results[oldKey].end.valueOf();
+        const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+        const filteredKeys = oldKeys.filter((k) => k !== oldKey);
+        if (filteredKeys.length === 0) {
+          endTimeToKeyMap.delete(oldEndTime);
+        } else {
+          endTimeToKeyMap.set(oldEndTime, filteredKeys);
+        }
+
+        if (!endTimeToKeyMap.has(endTimeKey)) {
+          endTimeToKeyMap.set(endTimeKey, []);
+        }
+        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+      }
+
+      delete results[oldKey]; // delete the previous end time
+      continue;
+    }
+    // otherwise we create a new result
+    const newKey = endResult.valueOf();
+    results[newKey] = {
       start: startResult,
       end: endResult,
-    });
+    };
+
+    if (endTimeToKeyMap) {
+      if (!endTimeToKeyMap.has(endTimeKey)) {
+        endTimeToKeyMap.set(endTimeKey, []);
+      }
+      endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+    }
   }
+
   return results;
 }
 
@@ -157,25 +239,40 @@ export function buildDateRanges({
   outOfOffice?: IOutOfOfficeData;
 }): { dateRanges: DateRange[]; oooExcludedDateRanges: DateRange[] } {
   const dateFromOrganizerTZ = dateFrom.tz(timeZone);
-  const groupedWorkingHours = groupByDate(
-    availability.reduce((processed: DateRange[], item) => {
-      if ("days" in item) {
-        processed = processed.concat(
-          processWorkingHours({ item, timeZone, dateFrom: dateFromOrganizerTZ, dateTo, travelSchedules })
-        );
-      }
-      return processed;
-    }, [])
-  );
-  const OOOdates = outOfOffice
-    ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs.utc(outOfOffice), timeZone))
-    : [];
 
-  const groupedOOO = groupByDate(OOOdates);
+  const groupedWorkingHours = groupByDate(
+    Object.values(
+      availability.reduce((processed: Record<number, DateRange>, item) => {
+        if (!("days" in item)) {
+          return processed;
+        }
+
+        processed = processWorkingHours(processed, {
+          item,
+          timeZone,
+          dateFrom: dateFromOrganizerTZ,
+          dateTo,
+          travelSchedules,
+        });
+
+        return processed;
+      }, {})
+    )
+  );
+
+  const groupedOOO = groupByDate(
+    outOfOffice
+      ? Object.keys(outOfOffice).map((outOfOffice) => processOOO(dayjs.utc(outOfOffice), timeZone))
+      : []
+  );
 
   const groupedDateOverrides = groupByDate(
-    availability.reduce((processed: DateRange[], item) => {
-      if ("date" in item && !!item.date) {
+    Object.values(
+      availability.reduce((processed: Record<number, DateRange>, item) => {
+        // early return if item is not a date override
+        if (!("date" in item && !!item.date)) {
+          return processed;
+        }
         const itemDateAsUtc = dayjs.utc(item.date);
         // TODO: Remove the .subtract(1, "day") and .add(1, "day") part and
         // refactor this to actually work with correct dates.
@@ -190,11 +287,26 @@ export function buildDateRanges({
             "[]"
           )
         ) {
-          processed.push(processDateOverride({ item, itemDateAsUtc, timeZone, travelSchedules }));
+          // unlike working hours, date overrides are always one. No loop per day.
+          const newProcessedDateOverride = processDateOverride({
+            item,
+            itemDateAsUtc,
+            timeZone,
+            travelSchedules,
+          });
+          if (processed[newProcessedDateOverride.start.valueOf()]) {
+            // if a result already exists, we merge the end time
+            processed[newProcessedDateOverride.start.valueOf()].end = dayjs.max(
+              processed[newProcessedDateOverride.start.valueOf()].end,
+              newProcessedDateOverride.end
+            );
+            return processed;
+          }
+          processed[newProcessedDateOverride.end.valueOf()] = newProcessedDateOverride;
         }
-      }
-      return processed;
-    }, [])
+        return processed;
+      }, {})
+    )
   );
 
   const dateRanges = Object.values({
