@@ -3,8 +3,12 @@ import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-me
 import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 
-// Mock the module
-jest.mock("@calcom/platform-libraries");
+// Mock the module with inline implementation
+jest.mock("@calcom/platform-libraries", () => ({
+  TeamService: {
+    removeMembers: jest.fn(),
+  },
+}));
 
 // Get the mocked functions
 import { TeamService } from "@calcom/platform-libraries";
