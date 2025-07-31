@@ -9,6 +9,7 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -165,14 +166,7 @@ function FormCard({
   );
 }
 
-type RoutedToTableRow = {
-  id: number;
-  name: string;
-  avatarUrl: string | null;
-  stats: { [key: string]: number };
-  performance: "above_average" | "at_average" | "below_average" | "median" | "no_data";
-  totalBookings: number;
-};
+type RoutedToTableRow = RouterOutputs["viewer"]["insights"]["routedToPerPeriod"]["users"]["data"][number];
 
 const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TFunction) => {
   switch (performance) {

@@ -38,16 +38,13 @@ export function RoutingFormResponsesTable() {
   const { isAll, teamId, userId, memberUserIds, routingFormId, startDate, endDate, columnFilters } =
     useInsightsParameters();
 
-  const {
-    data: headers,
-    isLoading: isHeadersLoading,
-    isSuccess: isHeadersSuccess,
-  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
-    userId,
-    teamId,
-    isAll,
-    routingFormId,
-  });
+  const { data: headers, isSuccess: isHeadersSuccess } =
+    trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
+      userId,
+      teamId,
+      isAll,
+      routingFormId,
+    });
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
@@ -108,10 +105,6 @@ export function RoutingFormResponsesTable() {
       updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
     }
   }, [table, getInsightsFacetedUniqueValues, routingFormId]);
-
-  if (isHeadersLoading && !headers) {
-    return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
-  }
 
   return (
     <>

@@ -2,25 +2,14 @@
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { User } from "@calcom/prisma/client";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 
 import { ChartCardItem } from "./ChartCard";
 
-export const UserStatsTable = ({
-  data,
-}: {
-  data:
-    | {
-        userId: number | null;
-        user: Pick<User, "avatarUrl" | "name">;
-        emailMd5?: string;
-        count?: number;
-        averageRating?: number | null;
-        username?: string;
-      }[]
-    | undefined;
-}) => {
+type UserStatsData = RouterOutputs["viewer"]["insights"]["membersWithMostBookings"];
+
+export const UserStatsTable = ({ data }: { data: UserStatsData }) => {
   const { t } = useLocale();
 
   // Filter out items without user data

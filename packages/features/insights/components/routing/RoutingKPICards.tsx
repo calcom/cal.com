@@ -1,14 +1,13 @@
 "use client";
 
-import { Grid } from "@tremor/react";
-import { Flex, Text, Metric } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 import { valueFormatter } from "../../lib";
-import { CardInsights } from "../Card";
+import { ChartCard } from "../ChartCard";
 
 export const RoutingKPICards = () => {
   const { t } = useLocale();
@@ -61,35 +60,46 @@ export const RoutingKPICards = () => {
   }
 
   return (
-    <>
-      <Grid numColsSm={1} numColsLg={3} className="mt-4 gap-x-4 gap-y-4">
+    <ChartCard title={t("stats")}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {categories.map((item) => (
-          <CardInsights key={item.title}>
-            <Text className="text-default">{item.title}</Text>
-            <Flex className="items-baseline justify-start space-x-3 truncate">
-              <Metric className="text-emphasis">{valueFormatter(data[item.index])}</Metric>
-            </Flex>
-          </CardInsights>
+          <div
+            key={item.title}
+            className={classNames(
+              "border-muted border-b p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
+            )}>
+            <div className="text-default text-sm">{item.title}</div>
+            <div className="flex items-baseline justify-start space-x-3 truncate">
+              <div className="text-emphasis text-2xl font-semibold">{valueFormatter(data[item.index])}</div>
+            </div>
+          </div>
         ))}
-      </Grid>
-    </>
+      </div>
+    </ChartCard>
   );
 };
 
 const LoadingKPICards = (props: { categories: { title: string; index: string }[] }) => {
+  const { t } = useLocale();
   const { categories } = props;
   return (
-    <Grid numColsSm={2} numColsLg={4} className="mt-4 gap-x-4 gap-y-4">
-      {categories.map((item) => (
-        <CardInsights key={item.title}>
-          <div className="animate-pulse">
-            <div className="h-4 w-24 rounded bg-gray-200" />
-            <div className="mt-4 flex items-baseline space-x-3">
-              <div className="h-8 w-16 rounded bg-gray-200" />
+    <ChartCard title={t("stats")}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {categories.map((item) => (
+          <div
+            key={item.title}
+            className={classNames(
+              "border-muted border-b p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
+            )}>
+            <div>
+              <SkeletonText className="mt-1 h-5 w-32" />
+            </div>
+            <div>
+              <SkeletonText className="h-6 w-12" />
             </div>
           </div>
-        </CardInsights>
-      ))}
-    </Grid>
+        ))}
+      </div>
+    </ChartCard>
   );
 };
