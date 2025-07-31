@@ -529,22 +529,35 @@ const Locations: React.FC<LocationsProps> = ({
                       <div className="flex items-center justify-center">
                         <Icon name="tags" className="h-4 w-4" />
                       </div>
-                      <div className="flex-1">
-                        <TextField
-                          label={t("custom_location_label")}
-                          placeholder={t("custom_location_label_placeholder")}
-                          value={field.customLabel || ""}
-                          onChange={(e) => {
-                            const fieldValues = getValues("locations")[index];
-                            updateLocationField(index, {
-                              ...fieldValues,
-                              customLabel: e.target.value || undefined,
-                            });
-                          }}
-                          disabled={disableLocationProp}
-                          data-testid={`custom-label-${index}`}
+                      <div className="flex-1 space-y-3">
+                        <Controller
+                          name={`locations.${index}.customLabel`}
+                          defaultValue={field.customLabel || ""}
+                          render={({ field: { onChange, value } }) => (
+                            <TextField
+                              label={t("custom_location_label")}
+                              placeholder={t("custom_location_label_placeholder")}
+                              value={value}
+                              onChange={onChange}
+                              disabled={disableLocationProp}
+                              data-testid={`custom-label-${index}`}
+                            />
+                          )}
                         />
-                        <p className="text-subtle mt-1 text-sm">{t("custom_location_label_description")}</p>
+                        <Controller
+                          name={`locations.${index}.useCustomLabel`}
+                          defaultValue={!!field.useCustomLabel}
+                          render={({ field: { onChange, value } }) => (
+                            <SettingsToggle
+                              title={t("use_custom_label")}
+                              description={t("use_custom_label_description")}
+                              checked={value}
+                              onCheckedChange={onChange}
+                              disabled={disableLocationProp}
+                              data-testid={`use-custom-label-${index}`}
+                            />
+                          )}
+                        />
                       </div>
                     </div>
                   </div>

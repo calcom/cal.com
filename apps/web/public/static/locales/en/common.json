@@ -2041,6 +2041,8 @@
   "custom_location_label": "Custom label",
   "custom_location_label_placeholder": "Enter custom label for this location",
   "custom_location_label_description": "This label will be shown to attendees instead of the default location name",
+  "use_custom_label": "Use custom label",
+  "use_custom_label_description": "Show custom label instead of the actual link to attendees",
   "booking_questions_title": "Booking questions",
   "booking_questions_description": "Customize the questions asked on the booking page",
   "add_a_booking_question": "Add a question",

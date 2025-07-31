@@ -202,6 +202,7 @@ export type LocationObject = {
   displayLocationPublicly?: boolean;
   credentialId?: number;
   customLabel?: string;
+  useCustomLabel?: boolean;
 } & Partial<
   Record<
     "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
@@ -460,7 +461,7 @@ export const getTranslatedLocation = (
 ) => {
   if (!eventLocationType) return null;
 
-  if (location.customLabel && location.customLabel.trim()) {
+  if (location.useCustomLabel && location.customLabel && location.customLabel.trim()) {
     return location.customLabel;
   }
 

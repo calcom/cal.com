@@ -52,6 +52,7 @@ type EventLocation = {
   credentialId?: number;
   teamName?: string;
   customLabel?: string;
+  useCustomLabel?: boolean;
 };
 
 type PhoneCallConfig = {
