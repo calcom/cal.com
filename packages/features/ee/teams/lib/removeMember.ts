@@ -109,10 +109,7 @@ const removeMember = async ({
     await prisma.$transaction([
       prisma.user.update({
         where: { id: membership.userId },
-        data: {
-          organizationId: null,
-          username: `${foundUser.username}-${foundUser.id}`,
-        },
+        data: { organizationId: null },
       }),
       ProfileRepository.delete({
         userId: membership.userId,
