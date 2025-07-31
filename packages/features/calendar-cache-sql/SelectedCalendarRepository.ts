@@ -6,16 +6,8 @@ import type { ISelectedCalendarRepository } from "./SelectedCalendarRepository.i
 export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async findManyBySelectedCalendars(selectedCalendars: SelectedCalendar[]): Promise<
-    Array<{
-      id: string;
-      userId: number;
-      integration: string;
-      externalId: string;
-      credentialId: number | null;
-    }>
-  > {
-    return await this.prisma.selectedCalendar.findMany({
+  async findManyBySelectedCalendars(selectedCalendars: SelectedCalendar[]) {
+    const result = await this.prisma.selectedCalendar.findMany({
       where: {
         OR: selectedCalendars.map((sc) => ({
           userId: sc.userId,
@@ -32,5 +24,13 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
         credentialId: true,
       },
     });
+
+    return result.map((item) => ({
+      id: item.id,
+      userId: item.userId,
+      integration: item.integration,
+      externalId: item.externalId,
+      credentialId: item.credentialId,
+    }));
   }
 }

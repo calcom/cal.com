@@ -1,4 +1,3 @@
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
@@ -13,7 +12,6 @@ import type { ISelectedCalendarRepository } from "./SelectedCalendarRepository.i
 const log = logger.getSubLogger({ prefix: ["CalendarCacheReadService"] });
 
 export interface CalendarCacheReadServiceDependencies {
-  featuresRepo: IFeaturesRepository;
   subscriptionRepo: ICalendarSubscriptionRepository;
   eventRepo: ICalendarEventRepository;
   selectedCalendarRepo: ISelectedCalendarRepository;
@@ -36,16 +34,9 @@ export class CalendarCacheReadService implements ICalendarCacheReadService {
     selectedCalendars: SelectedCalendar[],
     shouldServeCache?: boolean
   ): Promise<EventBusyDate[][]> {
-    const { featuresRepo, subscriptionRepo, eventRepo, selectedCalendarRepo, getCalendarsEvents } =
-      this.dependencies;
+    const { subscriptionRepo, eventRepo, selectedCalendarRepo, getCalendarsEvents } = this.dependencies;
 
     try {
-      const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
-
-      if (!isSqlReadEnabled) {
-        return await getCalendarsEvents(credentials, startDate, endDate, selectedCalendars, shouldServeCache);
-      }
-
       const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
 
       const fullSelectedCalendars = await selectedCalendarRepo.findManyBySelectedCalendars(selectedCalendars);
@@ -55,7 +46,7 @@ export class CalendarCacheReadService implements ICalendarCacheReadService {
 
       for (const credential of credentials) {
         const credentialSelectedCalendars = fullSelectedCalendars.filter(
-          (sc) => sc.credentialId === credential.id
+          (sc) => sc.credentialId !== null && sc.credentialId === credential.id
         );
 
         let hasAnySubscription = false;
@@ -85,7 +76,7 @@ export class CalendarCacheReadService implements ICalendarCacheReadService {
       const sqlCacheResults: EventBusyDate[][] = [];
       for (const credential of credentialsWithSubscription) {
         const credentialSelectedCalendars = fullSelectedCalendars.filter(
-          (sc) => sc.credentialId === credential.id
+          (sc) => sc.credentialId !== null && sc.credentialId === credential.id
         );
 
         const credentialResults: EventBusyDate[] = [];
@@ -121,8 +112,10 @@ export class CalendarCacheReadService implements ICalendarCacheReadService {
           credentialsWithoutSubscription,
           startDate,
           endDate,
-          selectedCalendars.filter((sc) =>
-            credentialsWithoutSubscription.some((cred) => cred.id === sc.credentialId)
+          selectedCalendars.filter(
+            (sc) =>
+              sc.credentialId !== null &&
+              credentialsWithoutSubscription.some((cred) => cred.id === sc.credentialId)
           ),
           shouldServeCache
         );

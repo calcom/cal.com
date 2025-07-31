@@ -274,21 +274,33 @@ export const getBusyCalendarTimes = async (
         selectedCalendars
       );
     } else {
-      const calendarCacheReadService = new CalendarCacheReadService({
-        featuresRepo: new FeaturesRepository(),
-        subscriptionRepo: new CalendarSubscriptionRepository(prisma),
-        eventRepo: new CalendarEventRepository(prisma),
-        selectedCalendarRepo: new SelectedCalendarRepository(prisma),
-        getCalendarsEvents,
-      });
+      const featuresRepo = new FeaturesRepository();
+      const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
 
-      results = await calendarCacheReadService.getBusyCalendarTimes(
-        deduplicatedCredentials,
-        startDate,
-        endDate,
-        selectedCalendars,
-        shouldServeCache
-      );
+      if (isSqlReadEnabled) {
+        const calendarCacheReadService = new CalendarCacheReadService({
+          subscriptionRepo: new CalendarSubscriptionRepository(prisma),
+          eventRepo: new CalendarEventRepository(prisma),
+          selectedCalendarRepo: new SelectedCalendarRepository(prisma),
+          getCalendarsEvents,
+        });
+
+        results = await calendarCacheReadService.getBusyCalendarTimes(
+          deduplicatedCredentials,
+          startDate,
+          endDate,
+          selectedCalendars,
+          shouldServeCache
+        );
+      } else {
+        results = await getCalendarsEvents(
+          deduplicatedCredentials,
+          startDate,
+          endDate,
+          selectedCalendars,
+          shouldServeCache
+        );
+      }
     }
   } catch (e) {
     log.warn(safeStringify(e));
