@@ -225,6 +225,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
           disableImpersonation: true,
           completedOnboarding: true,
           lastActiveAt: true,
+          ...(ctx.user.organization.isOrgAdmin && { twoFactorEnabled: true }),
           teams: {
             select: {
               team: {
@@ -311,6 +312,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               .toLowerCase()
           : null,
         avatarUrl: user.avatarUrl,
+        ...(ctx.user.organization.isOrgAdmin && { twoFactorEnabled: user.twoFactorEnabled }),
         teams: user.teams
           .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
           .map((team) => {
