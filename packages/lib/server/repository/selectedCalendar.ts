@@ -437,12 +437,6 @@ export class SelectedCalendarRepository {
   }
 
   static async getNextBatchForSqlCache(limit = 100) {
-    // Get IDs of selected calendars that already have subscriptions
-    const existingSubscriptionIds = await prisma.calendarSubscription.findMany({
-      select: { selectedCalendarId: true },
-    });
-    const excludeIds = existingSubscriptionIds.map((sub) => sub.selectedCalendarId);
-
     const nextBatch = await prisma.selectedCalendar.findMany({
       take: limit,
       where: {
@@ -461,11 +455,7 @@ export class SelectedCalendarRepository {
         },
         integration: "google_calendar",
         eventTypeId: null,
-        NOT: {
-          id: {
-            in: excludeIds,
-          },
-        },
+        calendarSubscription: null, // Only get selected calendars that don't have a subscription
       },
     });
     return nextBatch;
