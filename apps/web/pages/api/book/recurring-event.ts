@@ -4,8 +4,9 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { BOTID_USE_IN_BOOKER } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
-import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
+import { checkBotId } from "@calcom/lib/server/checkBotId";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
@@ -28,11 +29,8 @@ type RequestMeta = {
 async function handler(req: NextApiRequest & RequestMeta) {
   const userIp = getIP(req);
 
-  if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
-    await checkCfTurnstileToken({
-      token: req.body[0]["cfToken"] as string,
-      remoteIp: userIp,
-    });
+  if (BOTID_USE_IN_BOOKER === "1") {
+    await checkBotId();
   }
 
   await checkRateLimitAndThrowError({
