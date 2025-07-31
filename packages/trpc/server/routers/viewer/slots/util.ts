@@ -526,6 +526,7 @@ export class AvailableSlotsService {
       endDate: limitDateTo.toDate(),
       excludedUid: rescheduleUid,
       includeManagedEvents,
+      includePersonalEvents,
     });
 
     const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
@@ -793,6 +794,7 @@ export class AvailableSlotsService {
         endTime,
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
+        teamForBookingLimits.includePersonalEventsInLimits,
         usersWithCredentials[0]?.timeZone || "UTC",
         input.rescheduleUid || undefined
       );

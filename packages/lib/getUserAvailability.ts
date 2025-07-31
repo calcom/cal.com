@@ -70,6 +70,7 @@ const _getEventType = async (id: number) => {
               id: true,
               bookingLimits: true,
               includeManagedEventsInLimits: true,
+              includePersonalEventsInLimits: true,
             },
           },
         },
@@ -79,6 +80,7 @@ const _getEventType = async (id: number) => {
           id: true,
           bookingLimits: true,
           includeManagedEventsInLimits: true,
+          includePersonalEventsInLimits: true,
         },
       },
       hosts: {
@@ -187,6 +189,7 @@ export type GetUserAvailabilityInitialData = {
     id: number;
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
+    includePersonalEventsInLimits: boolean;
   } | null;
 };
 
@@ -381,7 +384,10 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const teamForBookingLimits =
     initialData?.teamForBookingLimits ??
     eventType?.team ??
-    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+    (eventType?.parent?.team?.includeManagedEventsInLimits ||
+    eventType?.parent?.team?.includePersonalEventsInLimits
+      ? eventType?.parent?.team
+      : null);
 
   const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
@@ -398,7 +404,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       dateTo.tz(timeZone),
       teamForBookingLimits.id,
       teamForBookingLimits.includeManagedEventsInLimits,
-      teamForBookingLimits.includePersonalEventsInLimits ?? false,
+      teamForBookingLimits.includePersonalEventsInLimits,
       timeZone,
       initialData?.rescheduleUid ?? undefined
     );
