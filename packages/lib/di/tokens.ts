@@ -26,4 +26,8 @@ export const DI_TOKENS = {
   FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
   CACHE_SERVICE: Symbol("CacheService"),
   CACHE_SERVICE_MODULE: Symbol("CacheServiceModule"),
+  CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
+  CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
+  CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),
+  CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE_MODULE: Symbol("CheckBookingAndDurationLimitsServiceModule"),
 };

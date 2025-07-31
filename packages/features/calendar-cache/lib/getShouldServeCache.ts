@@ -13,9 +13,3 @@ export class CacheService {
     return await this.dependencies.featuresRepository.checkIfTeamHasFeature(teamId, "calendar-cache-serve");
   }
 }
-
-const _getShouldServeCache = async (shouldServeCache?: boolean | undefined, teamId?: number) => {
-  throw new Error("Use CacheService with dependency injection instead");
-};
-
-export const getShouldServeCache = _getShouldServeCache;

@@ -29,7 +29,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
@@ -100,10 +100,11 @@ export interface IAvailableSlotsService {
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
   cacheService: CacheService;
+  checkBookingLimitsService: CheckBookingLimitsService;
 }
 
 export class AvailableSlotsService {
-  constructor(private readonly dependencies: IAvailableSlotsService) {}
+  constructor(public readonly dependencies: IAvailableSlotsService) {}
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -398,8 +399,7 @@ export class AvailableSlotsService {
 
             if (unit === "year") {
               try {
-                // TODO: DI checkBookingLimit
-                await checkBookingLimit({
+                await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                   eventStartDate: periodStart.toDate(),
                   limitingNumber: limit,
                   eventId: eventType.id,
@@ -598,8 +598,7 @@ export class AvailableSlotsService {
 
           if (unit === "year") {
             try {
-              // TODO: DI checkBookingLimit
-              await checkBookingLimit({
+              await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                 eventStartDate: periodStart.toDate(),
                 limitingNumber: limit,
                 key,

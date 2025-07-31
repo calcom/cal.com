@@ -1,6 +1,6 @@
 {
   "name": "@calcom/platform-libraries",
-  "version": "0.0.0",
+  "version": "9.9.9",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -73,6 +73,11 @@
       "import": "./dist/repositories.js",
       "require": "./dist/repositories.cjs",
       "types": "./dist/repositories.d.ts"
+    },
+    "./bookings": {
+      "import": "./dist/bookings.js",
+      "require": "./dist/bookings.cjs",
+      "types": "./dist/bookings.d.ts"
     }
   },
   "typesVersions": {
@@ -100,6 +105,9 @@
       ],
       "repositories": [
         "dist/repositories.d.ts"
+      ],
+      "bookings": [
+        "dist/bookings.d.ts"
       ]
     }
   }
