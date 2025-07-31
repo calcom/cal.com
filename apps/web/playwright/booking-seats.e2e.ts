@@ -347,10 +347,11 @@ test.describe("Reschedule for booking with seats", () => {
         id: bookingWithEventType?.eventTypeId || -1,
       },
     });
-
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
 
     // Now attendees should be displayed
     const foundSecondAttendee = await page.locator('p[data-testid="attendee-email-second+seats@cal.com"]');

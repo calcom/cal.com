@@ -417,7 +417,8 @@ test.describe("Reschedule Tests", async () => {
     });
 
     await page.goto(`/reschedule/${booking.uid}`);
-
+    await page.locator('[data-testid="verify-email-input"]').fill(user.email);
+    await page.locator('[data-testid="verify-email-trigger"]').click();
     expect(page.url()).not.toContain("rescheduleUid");
     await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
   });
