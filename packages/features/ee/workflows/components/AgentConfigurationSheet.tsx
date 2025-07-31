@@ -1,0 +1,1032 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js";
+import { useState, useRef, useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogHeader, DialogFooter as BaseDialogFooter } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Dialog as UIDialog } from "@calcom/ui/components/dialog";
+import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calcom/ui/components/dropdown";
+import { AddVariablesDropdown } from "@calcom/ui/components/editor";
+import { ToggleGroup, Switch } from "@calcom/ui/components/form";
+import { Label, TextArea, Input, TextField, Form } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetBody,
+  SheetFooter,
+} from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
+
+import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
+import { TestAgentDialog } from "./TestAgentDialog";
+
+const agentSchema = z.object({
+  generalPrompt: z.string().min(1, "General prompt is required"),
+  beginMessage: z.string().min(1, "Begin message is required"),
+  numberToCall: z.string().optional(),
+  generalTools: z
+    .array(
+      z.object({
+        type: z.string(),
+        name: z.string(),
+        description: z.string().nullish().default(null),
+        cal_api_key: z.string().nullish().default(null),
+        event_type_id: z.number().nullish().default(null),
+        timezone: z.string().nullish().default(null),
+      })
+    )
+    .optional(),
+});
+
+const phoneNumberFormSchema = z.object({
+  phoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
+  terminationUri: z.string().min(1, "Termination URI is required"),
+  sipTrunkAuthUsername: z.string().optional(),
+  sipTrunkAuthPassword: z.string().optional(),
+  nickname: z.string().optional(),
+});
+
+type AgentFormValues = z.infer<typeof agentSchema>;
+type PhoneNumberFormValues = z.infer<typeof phoneNumberFormSchema>;
+type RetellData = RouterOutputs["viewer"]["ai"]["get"]["retellData"];
+
+type ToolDraft = {
+  type: string;
+  name: string;
+  description: string | null;
+  cal_api_key: string | null;
+  event_type_id: number | null;
+  timezone: string;
+};
+
+type AgentConfigurationSheetProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  agentId?: string | null;
+  agentData?: RouterOutputs["viewer"]["ai"]["get"];
+  onUpdate: (data: AgentFormValues) => void;
+  readOnly?: boolean;
+  teamId?: number;
+  workflowId?: string;
+  workflowStepId?: number;
+};
+
+export function AgentConfigurationSheet({
+  open,
+  onOpenChange,
+  agentId,
+  agentData,
+  onUpdate,
+  readOnly = false,
+  teamId,
+  workflowId,
+  workflowStepId,
+}: AgentConfigurationSheetProps) {
+  const { t } = useLocale();
+
+  const utils = trpc.useUtils();
+  const [activeTab, setActiveTab] = useState<"prompt" | "phoneNumber">("prompt");
+  const [isBuyDialogOpen, setIsBuyDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [showAdvancedFields, setShowAdvancedFields] = useState(false);
+  const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [cancellingNumberId, setCancellingNumberId] = useState<number | null>(null);
+  const [numberToDelete, setNumberToDelete] = useState<string | null>(null);
+  // const [toolDialogOpen, setToolDialogOpen] = useState(false);
+  // const [editingToolIndex, setEditingToolIndex] = useState<number | null>(null);
+  // const [toolDraft, setToolDraft] = useState<ToolDraft | null>(null);
+
+  const generalPromptRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const agentForm = useForm<AgentFormValues>({
+    resolver: zodResolver(agentSchema),
+    defaultValues: {
+      generalPrompt: "",
+      beginMessage: "",
+      numberToCall: "",
+      generalTools: [],
+    },
+  });
+
+  useEffect(() => {
+    if (agentData?.retellData) {
+      const retellData = agentData.retellData;
+      agentForm.reset({
+        generalPrompt: retellData.generalPrompt || "",
+        beginMessage: retellData.beginMessage || "",
+        numberToCall: "",
+        generalTools: retellData.generalTools || [],
+      });
+    }
+  }, [agentData, agentForm]);
+
+  const phoneNumberForm = useForm<PhoneNumberFormValues>({
+    resolver: zodResolver(phoneNumberFormSchema),
+    defaultValues: {
+      phoneNumber: "",
+      terminationUri: "",
+      sipTrunkAuthUsername: "",
+      sipTrunkAuthPassword: "",
+      nickname: "",
+    },
+  });
+
+  // const {
+  //   fields: toolFields,
+  //   append: appendTool,
+  //   remove: removeTool,
+  //   update: updateTool,
+  // } = useFieldArray({
+  //   control: agentForm.control,
+  //   name: "generalTools",
+  // });
+
+  const buyNumberMutation = trpc.viewer.phoneNumber.buy.useMutation({
+    onSuccess: async (data: { checkoutUrl?: string; message?: string; phoneNumber?: any }) => {
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else if (data.phoneNumber) {
+        showToast(t("phone_number_purchased_successfully"), "success");
+        await utils.viewer.phoneNumber.list.invalidate();
+        await utils.viewer.me.get.invalidate();
+        setIsBuyDialogOpen(false);
+        if (agentId) {
+          utils.viewer.ai.get.invalidate({ id: agentId });
+        }
+      } else {
+        showToast(data.message || "Something went wrong", "error");
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
+    onSuccess: async (data: any) => {
+      showToast("Phone number imported and linked to agent successfully", "success");
+      setIsImportDialogOpen(false);
+      phoneNumberForm.reset();
+
+      // Refetch all relevant data
+      await utils.viewer.phoneNumber.list.invalidate();
+      await utils.viewer.me.get.invalidate();
+      if (agentId) {
+        await utils.viewer.ai.get.invalidate({ id: agentId });
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const cancelSubscriptionMutation = trpc.viewer.phoneNumber.cancel.useMutation({
+    onSuccess: async (data: { message?: string }) => {
+      showToast(data.message || "Phone number subscription cancelled successfully", "success");
+      setCancellingNumberId(null);
+
+      await utils.viewer.phoneNumber.list.invalidate();
+      await utils.viewer.me.get.invalidate();
+      if (agentId) {
+        await utils.viewer.ai.get.invalidate({ id: agentId });
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+      setCancellingNumberId(null);
+    },
+  });
+
+  const deletePhoneNumberMutation = trpc.viewer.phoneNumber.delete.useMutation({
+    onSuccess: async () => {
+      showToast("Phone number deleted successfully", "success");
+      setNumberToDelete(null);
+
+      await utils.viewer.phoneNumber.list.invalidate();
+      if (agentId) {
+        await utils.viewer.ai.get.invalidate({ id: agentId });
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+      setNumberToDelete(null);
+    },
+  });
+
+  // Track when we're refetching agent data
+  const agentQuery = trpc.viewer.ai.get.useQuery(
+    { id: agentId! },
+    {
+      enabled: !!agentId,
+      // Don't show as loading on initial fetch since we have agentData prop
+      refetchOnMount: false,
+    }
+  );
+
+  // Add agent update mutation for proper loading states
+  const updateAgentMutation = trpc.viewer.ai.update.useMutation({
+    onSuccess: () => {
+      if (agentId) {
+        agentQuery.refetch();
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const handleAgentUpdate = async (data: AgentFormValues) => {
+    if (!agentId) return;
+
+    await updateAgentMutation.mutateAsync({
+      id: agentId,
+      ...data,
+    });
+
+    // Also call the original onUpdate prop if provided
+    onUpdate(data);
+  };
+
+  // const openAddToolDialog = () => {
+  //   setEditingToolIndex(null);
+  //   setToolDraft({
+  //     type: "check_availability_cal",
+  //     name: "",
+  //     description: "",
+  //     cal_api_key: null,
+  //     event_type_id: null,
+  //     timezone: "",
+  //   });
+  //   setToolDialogOpen(true);
+  // };
+
+  // const openEditToolDialog = (idx: number) => {
+  //   const tool = toolFields[idx];
+  //   if (tool) {
+  //     setEditingToolIndex(idx);
+  //     setToolDraft({ ...tool });
+  //     setToolDialogOpen(true);
+  //   }
+  // };
+
+  // const handleToolDialogSave = () => {
+  //   if (!toolDraft?.name || !toolDraft?.type) return;
+
+  //   if (toolDraft.type === "check_availability_cal" || toolDraft.type === "book_appointment_cal") {
+  //     if (!toolDraft.cal_api_key) {
+  //       showToast(t("API Key is required for Cal.com tools"), "error");
+  //       return;
+  //     }
+  //     if (!toolDraft.event_type_id) {
+  //       showToast(t("Event Type ID is required for Cal.com tools"), "error");
+  //       return;
+  //     }
+  //     if (!toolDraft.timezone) {
+  //       showToast(t("Timezone is required for Cal.com tools"), "error");
+  //       return;
+  //     }
+  //   }
+
+  //   if (editingToolIndex !== null) {
+  //     updateTool(editingToolIndex, toolDraft);
+  //   } else {
+  //     appendTool(toolDraft);
+  //   }
+  //   setToolDialogOpen(false);
+  //   setToolDraft(null);
+  //   setEditingToolIndex(null);
+  // };
+
+  // const handleToolDelete = (idx: number) => {
+  //   removeTool(idx);
+  // };
+
+  const handleImportPhoneNumber = (values: PhoneNumberFormValues) => {
+    const mutationPayload = {
+      ...values,
+      workflowId: workflowId,
+      agentId: agentId, // Pass the agentId to the router
+    };
+    importNumberMutation.mutate(mutationPayload);
+  };
+
+  const handleCancelSubscription = (phoneNumberId: number) => {
+    setCancellingNumberId(phoneNumberId);
+  };
+
+  const handleDeletePhoneNumber = (phoneNumber: string) => {
+    setNumberToDelete(phoneNumber);
+  };
+
+  const confirmCancelSubscription = () => {
+    if (cancellingNumberId) {
+      cancelSubscriptionMutation.mutate({ phoneNumberId: cancellingNumberId });
+    }
+  };
+
+  const confirmDeletePhoneNumber = () => {
+    if (numberToDelete) {
+      deletePhoneNumberMutation.mutate({ phoneNumber: numberToDelete });
+    }
+  };
+
+  const addVariableToGeneralPrompt = (variable: string) => {
+    if (generalPromptRef.current) {
+      const currentPrompt = generalPromptRef.current.value || "";
+      const cursorPosition = generalPromptRef.current.selectionStart || currentPrompt.length;
+      const variableName = `{${variable.toUpperCase().replace(/ /g, "_")}}`;
+      const newPrompt = `${currentPrompt.substring(
+        0,
+        cursorPosition
+      )}${variableName}${currentPrompt.substring(cursorPosition)}`;
+
+      agentForm.setValue("generalPrompt", newPrompt);
+
+      // Set cursor position after the inserted variable
+      setTimeout(() => {
+        if (generalPromptRef.current) {
+          generalPromptRef.current.focus();
+          generalPromptRef.current.setSelectionRange(
+            cursorPosition + variableName.length,
+            cursorPosition + variableName.length
+          );
+        }
+      }, 0);
+    }
+  };
+
+  return (
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="sm:max-w-xl">
+          <SheetHeader showCloseButton={false} className="w-full">
+            <SheetTitle className="mb-6">{t("Cal.AI Agent Configuration")}</SheetTitle>
+            <ToggleGroup
+              onValueChange={(val) => {
+                setActiveTab(val as "prompt" | "phoneNumber");
+              }}
+              value={activeTab}
+              options={[
+                { value: "prompt", label: t("Prompt") },
+                { value: "phoneNumber", label: t("Phone Number") },
+              ]}
+              isFullWidth={true}
+            />
+          </SheetHeader>
+          <SheetBody className="px-0">
+            {activeTab === "prompt" && (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-emphasis mb-1 block text-sm font-medium">
+                    {t("Initial Message")} *
+                  </Label>
+                  <p className="text-subtle mb-1.5 text-xs">
+                    {t("The first message the agent will say when starting a call")}
+                  </p>
+                  <Input
+                    type="text"
+                    {...agentForm.register("beginMessage")}
+                    placeholder={t("Hi. How are you doing?")}
+                    disabled={readOnly}
+                  />
+                </div>
+                <div>
+                  <div className="mb-1.5">
+                    <Label className="text-emphasis mb-1 block text-sm font-medium">
+                      {t("General Prompt")} *
+                    </Label>
+                    <p className="text-subtle text-xs">
+                      {t("This prompt defines the agent's role and primary objectives")}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between rounded-t-lg border border-b-0 p-2">
+                    {!readOnly && (
+                      <AddVariablesDropdown
+                        addVariable={addVariableToGeneralPrompt}
+                        variables={DYNAMIC_TEXT_VARIABLES}
+                        addVariableButtonClassName="border rounded-[10px] py-1 px-1"
+                      />
+                    )}
+                  </div>
+                  <TextArea
+                    {...agentForm.register("generalPrompt")}
+                    ref={(e) => {
+                      agentForm.register("generalPrompt").ref(e);
+                      generalPromptRef.current = e;
+                    }}
+                    placeholder={t("Enter the general prompt for the agent")}
+                    className="min-h-[500px] rounded-t-none"
+                    disabled={readOnly}
+                  />
+                </div>
+
+                {/* <div className="border-subtle bg-default rounded-lg border p-4">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-emphasis text-sm font-medium">{t("Functions")}</h4>
+                      <p className="text-subtle text-xs">
+                        {t(
+                          "Enable your agent with capabilities such as calendar bookings, call termination, etc."
+                        )}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={openAddToolDialog}
+                      color="secondary"
+                      size="sm"
+                      disabled={readOnly}>
+                      <Icon name="plus" className="mr-2 h-4 w-4" />
+                      {t("Add Function")}
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {toolFields.map((tool, idx) => (
+                      <div
+                        key={tool.id}
+                        className="border-subtle bg-muted hover:bg-default flex items-center justify-between rounded-lg border p-4 transition-colors">
+                        <div className="flex gap-3">
+                          <div className="bg-default border-subtle flex h-8 w-8 items-center justify-center rounded-md border">
+                            <Icon name="zap" className="text-emphasis h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="text-emphasis font-medium">{tool.name}</p>
+                            <p className="text-subtle text-sm">
+                              {tool.type === "check_availability_cal" && t("Check Availability")}
+                              {tool.type === "book_appointment_cal" && t("Book Appointment")}
+                              {tool.type === "end_call" && t("End Call")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            color="secondary"
+                            variant="icon"
+                            onClick={() => openEditToolDialog(idx)}
+                            disabled={readOnly}>
+                            <Icon name="pencil" className="h-4 w-4" />
+                          </Button>
+                          {tool.name !== "end_call" && (
+                            <Button
+                              type="button"
+                              color="destructive"
+                              variant="icon"
+                              size="sm"
+                              onClick={() => handleToolDelete(idx)}
+                              disabled={readOnly}>
+                              <Icon name="trash" className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {toolFields.length === 0 && (
+                      <div className="border-subtle bg-muted flex flex-col items-center justify-center rounded-lg border p-6 text-center">
+                        <Icon name="zap" className="text-subtle h-6 w-6" />
+                        <p className="text-subtle mt-2 text-sm">{t("No functions configured yet")}</p>
+                        <p className="text-subtle text-xs">
+                          {t("Add functions to enable advanced capabilities")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div> */}
+              </div>
+            )}
+
+            {activeTab === "phoneNumber" && (
+              <div className="relative space-y-2">
+                {agentQuery.isFetching && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Icon name="loader-2" className="h-4 w-4 animate-spin" />
+                      {t("Updating...")}
+                    </div>
+                  </div>
+                )}
+                {agentData?.outboundPhoneNumbers &&
+                agentData.outboundPhoneNumbers.filter(
+                  (phone) =>
+                    phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                    !phone.subscriptionStatus
+                ).length > 0 ? (
+                  <>
+                    <div className="border-subtle rounded-lg border p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-emphasis text-sm">
+                              {formatPhoneNumber(
+                                agentData.outboundPhoneNumbers.filter(
+                                  (phone) =>
+                                    phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                    !phone.subscriptionStatus
+                                )[0].phoneNumber
+                              )}
+                            </span>
+                            <Badge variant="green" size="md" withDot>
+                              {t("Active")}
+                            </Badge>
+                            {agentData.outboundPhoneNumbers.filter(
+                              (phone) =>
+                                phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                !phone.subscriptionStatus
+                            )[0].subscriptionStatus && <span className="text-muted text-xs">($5/month)</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            color="secondary"
+                            onClick={() => setIsTestAgentDialogOpen(true)}
+                            className="rounded-[10px]"
+                            disabled={readOnly}>
+                            {t("Test Agent")}
+                          </Button>
+                          <Dropdown>
+                            <DropdownMenuTrigger asChild>
+                              <Button type="button" color="secondary" variant="icon" StartIcon="ellipsis" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="trash"
+                                  color="destructive"
+                                  onClick={() => {
+                                    const activePhoneNumbers = agentData?.outboundPhoneNumbers?.filter(
+                                      (phone) =>
+                                        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                        !phone.subscriptionStatus
+                                    );
+                                    const phoneNumber = activePhoneNumbers?.[0];
+                                    if (phoneNumber) {
+                                      if (
+                                        phoneNumber.subscriptionStatus ===
+                                        PhoneNumberSubscriptionStatus.ACTIVE
+                                      ) {
+                                        handleCancelSubscription(phoneNumber.id);
+                                      } else {
+                                        handleDeletePhoneNumber(phoneNumber.phoneNumber);
+                                      }
+                                    }
+                                  }}>
+                                  {agentData?.outboundPhoneNumbers?.filter(
+                                    (phone) =>
+                                      phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                      !phone.subscriptionStatus
+                                  )?.[0]?.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+                                    ? t("Unsubscribe")
+                                    : t("Delete")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </Dropdown>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Only show US restriction for Retell purchased numbers, not imported ones */}
+                    {agentData.outboundPhoneNumbers.filter(
+                      (phone) =>
+                        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                        !phone.subscriptionStatus
+                    )[0].provider === "retell" && (
+                      <Alert severity="info" title={t("You can only call numbers in the US")} />
+                    )}
+                  </>
+                ) : (
+                  <div className="border-subtle rounded-xl border p-8">
+                    <div className="flex flex-col items-center space-y-6 text-center">
+                      <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
+                        <Icon name="phone" className="text-subtle h-8 w-8" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-emphasis text-lg font-semibold">{t("No phone numbers")}</h3>
+                        <p className="text-subtle text-sm">
+                          {t("Buy a phone number or import one you already have")}
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={() => setIsBuyDialogOpen(true)}
+                          StartIcon="external-link"
+                          className="px-6"
+                          disabled={buyNumberMutation.isPending}>
+                          {t("Buy")}
+                        </Button>
+                        <Button
+                          onClick={() => setIsImportDialogOpen(true)}
+                          color="secondary"
+                          className="px-6"
+                          disabled={importNumberMutation.isPending}>
+                          {t("Import")}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </SheetBody>
+          <SheetFooter>
+            <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+              {t("Cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={agentForm.handleSubmit(handleAgentUpdate)}
+              disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
+              loading={updateAgentMutation.isPending}>
+              {t("Save")}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <Dialog open={isBuyDialogOpen} onOpenChange={setIsBuyDialogOpen}>
+        <DialogContent type="creation">
+          <div className="flex flex-col">
+            <div className="mb-4">
+              <h3 className="text-emphasis text-lg font-bold">{t("buy_new_number")}</h3>
+              <p className="text-default text-sm">{t("buy_number_cost_5_per_month")}</p>
+            </div>
+            <BaseDialogFooter showDivider className="relative">
+              <Button onClick={() => setIsBuyDialogOpen(false)} color="secondary">
+                {t("cancel")}
+              </Button>
+              <Button
+                onClick={() =>
+                  buyNumberMutation.mutate({
+                    agentId: agentId,
+                    workflowId: workflowId,
+                    returnTo: window.location.href,
+                  })
+                }
+                loading={buyNumberMutation.isPending}
+                disabled={buyNumberMutation.isPending}>
+                {t("buy_number_for_5_per_month")}
+              </Button>
+            </BaseDialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+        <DialogContent type="creation">
+          <DialogHeader title={t("Import phone number")} subtitle={t("Description")} />
+
+          <Form form={phoneNumberForm} handleSubmit={(values) => handleImportPhoneNumber(values)}>
+            <div className="space-y-6">
+              <Controller
+                name="phoneNumber"
+                control={phoneNumberForm.control}
+                render={({ field: { value } }) => (
+                  <TextField
+                    name="phoneNumber"
+                    label={
+                      <span className="flex items-center gap-1">
+                        {t("Phone number")}
+                        <Tooltip content={t("phone_number_info_tooltip")}>
+                          <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                        </Tooltip>
+                      </span>
+                    }
+                    value={value}
+                    required
+                    type="text"
+                    placeholder="(208) 878-2105"
+                    onChange={(e) => {
+                      phoneNumberForm.setValue("phoneNumber", e?.target.value, { shouldDirty: true });
+                    }}
+                  />
+                )}
+              />
+
+              <Controller
+                name="terminationUri"
+                control={phoneNumberForm.control}
+                render={({ field: { value } }) => (
+                  <TextField
+                    name="terminationUri"
+                    label={
+                      <span className="flex items-center gap-1">
+                        {t("Terminator URL")}
+                        <Tooltip content={t("termination_uri_info_tooltip")}>
+                          <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                        </Tooltip>
+                      </span>
+                    }
+                    value={value}
+                    required
+                    type="text"
+                    placeholder="https://sip.example.com/terminator"
+                    onChange={(e) => {
+                      phoneNumberForm.setValue("terminationUri", e?.target.value, { shouldDirty: true });
+                    }}
+                  />
+                )}
+              />
+
+              <div className="bg-muted rounded-xl p-1">
+                <div className="flex items-center justify-between p-2">
+                  <Label className="text-emphasis mb-0 text-sm font-medium leading-none">
+                    {t("Advanced")}
+                  </Label>
+                  <Switch size="sm" checked={showAdvancedFields} onCheckedChange={setShowAdvancedFields} />
+                </div>
+
+                {showAdvancedFields && (
+                  <div className="space-y-5 rounded-lg bg-white p-4">
+                    <Controller
+                      name="sipTrunkAuthUsername"
+                      control={phoneNumberForm.control}
+                      render={({ field: { value } }) => (
+                        <TextField
+                          name="sipTrunkAuthUsername"
+                          label={
+                            <span className="flex items-center gap-1">
+                              {t("SIP Trunk User Name")}
+                              <Tooltip content={t("sip_trunk_username_info_tooltip")}>
+                                <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                              </Tooltip>
+                            </span>
+                          }
+                          value={value}
+                          type="text"
+                          onChange={(e) => {
+                            phoneNumberForm.setValue("sipTrunkAuthUsername", e?.target.value, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="sipTrunkAuthPassword"
+                      control={phoneNumberForm.control}
+                      render={({ field: { value } }) => (
+                        <TextField
+                          name="sipTrunkAuthPassword"
+                          label={
+                            <span className="flex items-center gap-1">
+                              {t("SIP Trunk Password")}
+                              <Tooltip content={t("sip_trunk_password_info_tooltip")}>
+                                <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                              </Tooltip>
+                            </span>
+                          }
+                          value={value}
+                          type="password"
+                          onChange={(e) => {
+                            phoneNumberForm.setValue("sipTrunkAuthPassword", e?.target.value, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="nickname"
+                      control={phoneNumberForm.control}
+                      render={({ field: { value } }) => (
+                        <TextField
+                          name="nickname"
+                          label={
+                            <span className="flex items-center gap-1">
+                              {t("Nickname")}
+                              <Tooltip content={t("nickname_info_tooltip")}>
+                                <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
+                              </Tooltip>
+                            </span>
+                          }
+                          value={value}
+                          type="text"
+                          onChange={(e) => {
+                            phoneNumberForm.setValue("nickname", e?.target.value, { shouldDirty: true });
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Having trouble importing section */}
+              <div className="bg-muted rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Icon name="info" className="text-subtle mt-0.5 h-5 w-5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-emphasis text-sm font-medium">{t("Having trouble importing?")}</p>
+                    <p className="text-subtle mt-1 text-sm">
+                      {t("Learn how to get your Terminator and SIP")}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    color="minimal"
+                    size="sm"
+                    EndIcon="external-link"
+                    className="text-emphasis">
+                    {t("Learn")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <BaseDialogFooter showDivider className="relative">
+              <Button onClick={() => setIsImportDialogOpen(false)} color="secondary">
+                {t("Cancel")}
+              </Button>
+              <Button
+                type="submit"
+                loading={importNumberMutation.isPending}
+                disabled={importNumberMutation.isPending}>
+                {t("Create")}
+              </Button>
+            </BaseDialogFooter>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {agentId && (
+        <TestAgentDialog
+          open={isTestAgentDialogOpen}
+          onOpenChange={setIsTestAgentDialogOpen}
+          agentId={agentId}
+        />
+      )}
+
+      <UIDialog open={cancellingNumberId !== null} onOpenChange={() => setCancellingNumberId(null)}>
+        <ConfirmationDialogContent
+          isPending={cancelSubscriptionMutation.isPending}
+          variety="danger"
+          title={t("cancel_phone_number_subscription")}
+          confirmBtnText={t("yes_cancel_subscription")}
+          onConfirm={confirmCancelSubscription}>
+          {t("cancel_phone_number_subscription_confirmation")}
+        </ConfirmationDialogContent>
+      </UIDialog>
+
+      <UIDialog open={numberToDelete !== null} onOpenChange={() => setNumberToDelete(null)}>
+        <ConfirmationDialogContent
+          isPending={deletePhoneNumberMutation.isPending}
+          variety="danger"
+          title={t("delete_phone_number")}
+          confirmBtnText={t("yes_delete_phone_number")}
+          onConfirm={confirmDeletePhoneNumber}>
+          {t("delete_phone_number_confirmation")}
+        </ConfirmationDialogContent>
+      </UIDialog>
+
+      {/* <ToolsDialog
+        open={toolDialogOpen}
+        onOpenChange={setToolDialogOpen}
+        toolDraft={toolDraft}
+        setToolDraft={setToolDraft}
+        onSave={handleToolDialogSave}
+        isEditing={editingToolIndex !== null}
+      /> */}
+    </>
+  );
+}
+
+// const ToolsDialog = ({
+//   open,
+//   onOpenChange,
+//   toolDraft,
+//   setToolDraft,
+//   onSave,
+//   isEditing,
+// }: {
+//   open: boolean;
+//   onOpenChange: (open: boolean) => void;
+//   toolDraft: ToolDraft | null;
+//   setToolDraft: (draft: ToolDraft) => void;
+//   onSave: () => void;
+//   isEditing: boolean;
+// }) => {
+//   const { t } = useLocale();
+
+//   const TOOL_TYPES = [
+//     { label: t("Check Availability"), value: "check_availability_cal" },
+//     { label: t("Book Appointment"), value: "book_appointment_cal" },
+//     { label: t("End Call"), value: "end_call" },
+//   ];
+
+//   return (
+//     <Dialog open={open} onOpenChange={onOpenChange}>
+//       <DialogContent
+//         enableOverflow
+//         title={isEditing ? t("Edit Function") : t("Add Function")}
+//         type="creation">
+//         <div className="flex flex-col gap-4">
+//           <div>
+//             <Label>{t("Type")}</Label>
+//             <Select
+//               options={TOOL_TYPES}
+//               value={TOOL_TYPES.find((opt) => opt.value === toolDraft?.type) || null}
+//               onChange={(option) => setToolDraft((d: ToolDraft) => ({ ...d, type: option?.value || "" }))}
+//               placeholder={t("Select function type")}
+//             />
+//           </div>
+//           <div>
+//             <Label>{t("Name")}</Label>
+//             <TextField
+//               required
+//               value={toolDraft?.name || ""}
+//               onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, name: e.target.value }))}
+//               placeholder={t("Enter function name")}
+//             />
+//           </div>
+//           <div>
+//             <Label>{t("Description")}</Label>
+//             <TextArea
+//               value={toolDraft?.description || ""}
+//               onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, description: e.target.value }))}
+//               placeholder={t("Enter description (optional)")}
+//             />
+//           </div>
+//           {(toolDraft?.type === "check_availability_cal" || toolDraft?.type === "book_appointment_cal") && (
+//             <>
+//               <div>
+//                 <Label>
+//                   {t("API Key (Cal.com)")}
+//                   <span className="text-red-500"> *</span>
+//                 </Label>
+//                 <TextField
+//                   required
+//                   value={toolDraft?.cal_api_key || ""}
+//                   onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, cal_api_key: e.target.value }))}
+//                   placeholder={t("Enter Cal.com API key")}
+//                 />
+//               </div>
+//               <div>
+//                 <Label>
+//                   {t("Event Type ID (Cal.com)")}
+//                   <span className="text-red-500"> *</span>
+//                 </Label>
+//                 <TextField
+//                   required
+//                   value={toolDraft?.event_type_id || ""}
+//                   onChange={(e) =>
+//                     setToolDraft((d: ToolDraft) => ({
+//                       ...d,
+//                       event_type_id: e.target.value ? Number(e.target.value) : null,
+//                     }))
+//                   }
+//                   placeholder={t("Enter Event Type ID")}
+//                   type="number"
+//                 />
+//               </div>
+//               <div>
+//                 <Label>
+//                   {t("Timezone")}
+//                   <span className="text-red-500"> *</span>
+//                 </Label>
+//                 <TextField
+//                   required
+//                   value={toolDraft?.timezone || ""}
+//                   onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, timezone: e.target.value }))}
+//                   placeholder={t("America/Los_Angeles")}
+//                 />
+//                 <p className="text-subtle mt-1 text-xs">{t("Required for Cal.com calendar integration")}</p>
+//               </div>
+//             </>
+//           )}
+//         </div>
+//         <DialogFooter showDivider>
+//           <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
+//             {t("Cancel")}
+//           </Button>
+//           <Button type="button" onClick={onSave}>
+//             {t("Save")}
+//           </Button>
+//         </DialogFooter>
+//       </DialogContent>
+//     </Dialog>
+//   );
+// };

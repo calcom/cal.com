@@ -252,6 +252,16 @@ export class RetellAIService {
       throw new Error("Phone number is already cancelled");
     }
 
+    try {
+      await this.repository.updatePhoneNumber(phoneNumber, {
+        inbound_agent_id: null,
+        outbound_agent_id: null,
+      });
+    } catch (error) {
+      // Log the error but continue with deletion
+      console.error("Failed to remove agents from phone number in Retell:", error);
+    }
+
     if (deleteFromDB) {
       await PhoneNumberRepository.deletePhoneNumber({ phoneNumber, userId });
     }

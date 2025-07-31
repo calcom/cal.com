@@ -1,13 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { type TFunction } from "i18next";
 import { useParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
-import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
@@ -19,6 +17,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import {
   MembershipRole,
+  PhoneNumberSubscriptionStatus,
   TimeUnit,
   WorkflowActions,
   WorkflowTemplates,
@@ -63,38 +62,9 @@ import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/ge
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
+import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
+import { TestAgentDialog } from "./TestAgentDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
-
-const agentSchema = z.object({
-  generalPrompt: z.string().min(1, "General prompt is required"),
-  beginMessage: z.string().min(1, "Begin message is required"),
-  numberToCall: z.string().optional(),
-  generalTools: z
-    .array(
-      z.object({
-        type: z.string(),
-        name: z.string(),
-        description: z.string().nullish().default(null),
-        cal_api_key: z.string().nullish().default(null),
-        event_type_id: z.number().nullish().default(null),
-        timezone: z.string().nullish().default(null),
-      })
-    )
-    .optional(),
-});
-
-type RetellData = RouterOutputs["viewer"]["ai"]["get"]["retellData"];
-
-type AgentFormValues = z.infer<typeof agentSchema>;
-
-type ToolDraft = {
-  type: string;
-  name: string;
-  description: string | null;
-  cal_api_key: string | null;
-  event_type_id: number | null;
-  timezone: string;
-};
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -132,6 +102,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
+  const [isAgentConfigurationSheetOpen, setIsAgentConfigurationSheetOpen] = useState(false);
 
   const creditsTeamId = userTeams?.find(
     (team) => team.accepted && (team.role === MembershipRole.ADMIN || team.role === MembershipRole.OWNER)
@@ -145,26 +116,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const createAgentMutation = trpc.viewer.ai.create.useMutation({
     onSuccess: async (data) => {
-      const workflowId = params.workflow as string;
-      const returnTo = `/workflows/${workflowId}`;
-      const workflowStepId = step?.id;
-      window.location.href = `/workflow-agent-setup/agent?workflowId=${workflowId}&agentId=${data.id}&workflowStepId=${workflowStepId}&returnTo=${returnTo}`;
-    },
-    onError: (error: { message: string }) => {
-      showToast(error.message, "error");
-    },
-  });
+      showToast(t("Agent created successfully"), "success");
 
-  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.ai.get.useQuery(
-    { id: step?.agentId || "" },
-    { enabled: !!step?.agentId }
-  );
+      // Update the step's agentId in the form state
+      if (step) {
+        const stepIndex = step.stepNumber - 1;
+        form.setValue(`steps.${stepIndex}.agentId`, data.id);
 
-  const updateAgentMutation = trpc.viewer.ai.update.useMutation({
-    onSuccess: async () => {
-      showToast(t("Agent updated successfully"), "success");
-      if (step?.agentId) {
-        utils.viewer.ai.get.invalidate({ id: step.agentId });
+        // Invalidate and refetch agent data
+        await utils.viewer.ai.get.invalidate({ id: data.id });
+
+        // Wait a moment for the query to update before opening the sheet
+        setTimeout(() => {
+          setIsAgentConfigurationSheetOpen(true);
+        }, 100);
+      } else {
+        setIsAgentConfigurationSheetOpen(true);
       }
     },
     onError: (error: { message: string }) => {
@@ -172,9 +139,31 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const testCallMutation = trpc.viewer.ai.testCall.useMutation({
-    onSuccess: async (data) => {
-      showToast(data.message || t("Call initiated!"), "success");
+  const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`);
+  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.ai.get.useQuery(
+    { id: stepAgentId || "" },
+    { enabled: !!stepAgentId }
+  );
+
+  const updateAgentMutation = trpc.viewer.ai.update.useMutation({
+    onSuccess: async () => {
+      showToast(t("Agent updated successfully"), "success");
+      if (stepAgentId) {
+        utils.viewer.ai.get.invalidate({ id: stepAgentId });
+      }
+    },
+    onError: (error: { message: string }) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const unsubscribePhoneNumberMutation = trpc.viewer.phoneNumber.update.useMutation({
+    onSuccess: async () => {
+      showToast(t("Phone number unsubscribed successfully"), "success");
+      setIsUnsubscribeDialogOpen(false);
+      if (stepAgentId) {
+        utils.viewer.ai.get.invalidate({ id: stepAgentId });
+      }
     },
     onError: (error: { message: string }) => {
       showToast(error.message, "error");
@@ -184,86 +173,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
   const verifiedEmails = _verifiedEmails || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
+  const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
+  const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
-
-  const agentForm = useForm<AgentFormValues>({
-    resolver: zodResolver(agentSchema),
-    defaultValues: {
-      generalPrompt: "",
-      beginMessage: "",
-      numberToCall: "",
-      generalTools: [],
-    },
-  });
-
-  const {
-    fields: toolFields,
-    append: appendTool,
-    remove: removeTool,
-    update: updateTool,
-  } = useFieldArray({
-    control: agentForm.control,
-    name: "generalTools",
-  });
-
-  const [toolDialogOpen, setToolDialogOpen] = useState(false);
-  const [editingToolIndex, setEditingToolIndex] = useState<number | null>(null);
-  const [toolDraft, setToolDraft] = useState<ToolDraft | null>(null);
-
-  const openAddToolDialog = () => {
-    setEditingToolIndex(null);
-    setToolDraft({
-      type: "check_availability_cal",
-      name: "",
-      description: "",
-      cal_api_key: null,
-      event_type_id: null,
-      timezone: "",
-    });
-    setToolDialogOpen(true);
-  };
-
-  const openEditToolDialog = (idx: number) => {
-    const tool = toolFields[idx];
-    if (tool) {
-      setEditingToolIndex(idx);
-      setToolDraft({ ...tool });
-      setToolDialogOpen(true);
-    }
-  };
-
-  const handleToolDialogSave = () => {
-    if (!toolDraft?.name || !toolDraft?.type) return;
-
-    if (toolDraft.type === "check_availability_cal" || toolDraft.type === "book_appointment_cal") {
-      if (!toolDraft.cal_api_key) {
-        showToast(t("API Key is required for Cal.com tools"), "error");
-        return;
-      }
-      if (!toolDraft.event_type_id) {
-        showToast(t("Event Type ID is required for Cal.com tools"), "error");
-        return;
-      }
-      if (!toolDraft.timezone) {
-        showToast(t("Timezone is required for Cal.com tools"), "error");
-        return;
-      }
-    }
-
-    if (editingToolIndex !== null) {
-      updateTool(editingToolIndex, toolDraft);
-    } else {
-      appendTool(toolDraft);
-    }
-    setToolDialogOpen(false);
-    setToolDraft(null);
-    setEditingToolIndex(null);
-  };
-
-  const handleToolDelete = (idx: number) => {
-    removeTool(idx);
-  };
 
   const action = step?.action;
   const requirePhoneNumber =
@@ -347,18 +260,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
-
-  useEffect(() => {
-    const llmData: RetellData = agentData?.retellData;
-    if (!llmData) return;
-
-    agentForm.reset({
-      generalPrompt: llmData.generalPrompt || "",
-      beginMessage: llmData.beginMessage || "",
-      numberToCall: "",
-      generalTools: llmData.generalTools || [],
-    });
-  }, [agentData, agentForm]);
 
   const addVariableEmailSubject = (variable: string) => {
     if (step) {
@@ -697,21 +598,47 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
               </div>
-              {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !step?.agentId && (
+              {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
                 <div className="bg-muted mt-2 rounded-lg p-4">
-                  <div className="text-center">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-emphasis text-sm font-medium leading-none">Cal.Ai Agent</h2>
+                      <p className="text-muted mt-2 text-sm font-medium leading-none">
+                        No phone number connected.
+                      </p>
+                    </div>
                     <Button
                       color="secondary"
                       onClick={async () => {
-                        console.log("step", step);
+                        console.log("Before save - step:", step);
+                        console.log(
+                          "Before save - action:",
+                          form.getValues(`steps.${step.stepNumber - 1}.action`)
+                        );
+
                         // save the workflow first to get the step id
                         if (props.onSaveWorkflow) {
                           await props.onSaveWorkflow();
+
+                          console.log(
+                            "After save - action:",
+                            form.getValues(`steps.${step.stepNumber - 1}.action`)
+                          );
+
                           // After saving, get the updated step ID from the form
                           const updatedSteps = form.getValues("steps");
                           console.log("updatedSteps", updatedSteps);
                           const currentStepIndex = step.stepNumber - 1;
                           const updatedStep = updatedSteps[currentStepIndex];
+
+                          // Ensure the action is still set correctly after save
+                          if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
+                            console.warn("Action was reset after save, fixing it");
+                            form.setValue(
+                              `steps.${currentStepIndex}.action`,
+                              WorkflowActions.CAL_AI_PHONE_CALL
+                            );
+                          }
 
                           if (updatedStep && updatedStep.id) {
                             // Create agent with the workflow step ID
@@ -725,236 +652,97 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }
                       }}
                       loading={createAgentMutation.isPending}>
-                      {t("setup_cal_ai_phone_call_agent")}
+                      {t("set_up")}
                     </Button>
                   </div>
                 </div>
               )}
 
-              {step?.agentId && agentData && (
+              {stepAgentId && agentData && (
                 <div className="bg-muted mt-4 rounded-lg p-4">
-                  <div className="mb-4">
-                    <h3 className="text-emphasis text-base font-medium">{t("Agent Configuration")}</h3>
-                    <p className="text-subtle text-sm">{t("Configure your Cal AI phone call agent")}</p>
-                  </div>
-
-                  {agentData.outboundPhoneNumbers && agentData.outboundPhoneNumbers.length > 0 ? (
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <Icon name="phone" className="text-emphasis h-4 w-4" />
-                        <span className="text-emphasis text-sm font-medium">
-                          {t("Connected Phone Number")}:
-                        </span>
-                        <span className="text-emphasis text-sm">
-                          {formatPhoneNumber(agentData.outboundPhoneNumbers[0].phoneNumber)}
-                        </span>
-                        <Badge variant="green" size="sm">
-                          {t("Active")}
-                        </Badge>
-                      </div>
-                      <p className="text-subtle mt-1 text-xs">
-                        {t("This is the phone number your agent will use to make calls")}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2">
-                        <Icon name="phone" className="text-subtle h-4 w-4" />
-                        <span className="text-subtle text-sm font-medium">
-                          {t("No Phone Number Connected")}
-                        </span>
-                        <Badge variant="gray" size="sm">
-                          {t("Inactive")}
-                        </Badge>
-                      </div>
-                      <p className="text-subtle mt-1 text-xs">
-                        {t(
-                          "Your agent needs a phone number to make calls. Purchase or import a phone number to get started."
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-emphasis mb-2 block text-sm font-medium">
-                        {t("General Prompt")} *
-                      </Label>
-                      <TextArea
-                        {...agentForm.register("generalPrompt")}
-                        placeholder={t("Enter the general prompt for the agent")}
-                        className="min-h-[500px]"
-                        disabled={props.readOnly}
-                      />
-                      <p className="text-subtle mt-1 text-xs">
-                        {t("This prompt defines the agent's role and primary objectives")}
-                      </p>
-                    </div>
-
-                    {/* Begin Message */}
-                    <div>
-                      <Label className="text-emphasis mb-2 block text-sm font-medium">
-                        {t("Begin Message")} *
-                      </Label>
-                      <Input
-                        type="text"
-                        {...agentForm.register("beginMessage")}
-                        placeholder={t("Enter the begin message")}
-                        disabled={props.readOnly}
-                      />
-                      <p className="text-subtle mt-1 text-xs">
-                        {t("The first message the agent will say when starting a call")}
-                      </p>
-                    </div>
-
-                    {/* Test Call Section */}
-                    <div className="border-subtle bg-default rounded-lg border p-4">
-                      <div className="mb-4 flex items-center justify-between">
-                        <div>
-                          <h4 className="text-emphasis text-sm font-medium">{t("Test Your Agent")}</h4>
-                          <p className="text-subtle text-xs">
-                            {t("Make a test call to verify your agent's configuration")}
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            const numberToCall = agentForm.getValues("numberToCall");
-                            if (!numberToCall) {
-                              showToast(t("Please enter a number to call"), "error");
-                              return;
-                            }
-                            testCallMutation.mutate({
-                              agentId: step.agentId!,
-                              phoneNumber: numberToCall,
-                            });
-                          }}
-                          loading={testCallMutation.isPending}
-                          color="secondary"
-                          size="sm"
-                          disabled={!agentForm.watch("numberToCall") || props.readOnly}>
-                          <Icon name="phone" className="mr-2 h-4 w-4" />
-                          {t("Make Test Call")}
-                        </Button>
-                      </div>
-                      <div>
-                        <Label className="text-emphasis mb-2 block text-sm font-medium">
-                          {t("Phone Number to Call")}
-                        </Label>
-                        <Controller
-                          name="numberToCall"
-                          control={agentForm.control}
-                          render={({ field: { onChange, value } }) => (
-                            <PhoneInput
-                              placeholder={t("Enter phone number to test call")}
-                              value={value ?? ""}
-                              onChange={(val) => onChange(val)}
-                              disabled={props.readOnly}
-                            />
-                          )}
-                        />
-                        <p className="text-subtle mt-1 text-xs">
-                          {t("Enter a phone number to test your agent configuration")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Functions Section */}
-                    <div className="border-subtle bg-default rounded-lg border p-4">
-                      <div className="mb-4 flex items-center justify-between">
-                        <div>
-                          <h4 className="text-emphasis text-sm font-medium">{t("Functions")}</h4>
-                          <p className="text-subtle text-xs">
-                            {t(
-                              "Enable your agent with capabilities such as calendar bookings, call termination, etc."
+                      <h3 className="text-emphasis text-base font-medium">{t("Cal.Ai Agent")}</h3>
+                      {agentData.outboundPhoneNumbers &&
+                      agentData.outboundPhoneNumbers.filter(
+                        (phone) =>
+                          phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                          !phone.subscriptionStatus
+                      ).length > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <Icon name="phone" className="text-emphasis h-4 w-4" />
+                          <span className="text-emphasis text-sm">
+                            {formatPhoneNumber(
+                              agentData.outboundPhoneNumbers.filter(
+                                (phone) =>
+                                  phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                  !phone.subscriptionStatus
+                              )[0].phoneNumber
                             )}
-                          </p>
+                          </span>
+                          <Badge variant="green" size="sm" withDot>
+                            {t("Active")}
+                          </Badge>
                         </div>
-                        <Button
-                          type="button"
-                          onClick={openAddToolDialog}
-                          color="secondary"
-                          size="sm"
-                          disabled={props.readOnly}>
-                          <Icon name="plus" className="mr-2 h-4 w-4" />
-                          {t("Add Function")}
-                        </Button>
-                      </div>
-                      <div className="space-y-3">
-                        {toolFields.map((tool, idx) => (
-                          <div
-                            key={tool.id}
-                            className="border-subtle bg-muted hover:bg-default flex items-center justify-between rounded-lg border p-4 transition-colors">
-                            <div className="flex gap-3">
-                              <div className="bg-default border-subtle flex h-8 w-8 items-center justify-center rounded-md border">
-                                <Icon name="zap" className="text-emphasis h-4 w-4" />
-                              </div>
-                              <div>
-                                <p className="text-emphasis font-medium">{tool.name}</p>
-                                <p className="text-subtle text-sm">
-                                  {tool.type === "check_availability_cal" && t("Check Availability")}
-                                  {tool.type === "book_appointment_cal" && t("Book Appointment")}
-                                  {tool.type === "end_call" && t("End Call")}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                size="sm"
-                                color="secondary"
-                                variant="icon"
-                                onClick={() => openEditToolDialog(idx)}
-                                disabled={props.readOnly}>
-                                <Icon name="pencil" className="h-4 w-4" />
-                              </Button>
-                              {tool.name !== "end_call" && (
-                                <Button
-                                  type="button"
-                                  color="destructive"
-                                  variant="icon"
-                                  size="sm"
-                                  onClick={() => handleToolDelete(idx)}
-                                  disabled={props.readOnly}>
-                                  <Icon name="trash" className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        {toolFields.length === 0 && (
-                          <div className="border-subtle bg-muted flex flex-col items-center justify-center rounded-lg border p-6 text-center">
-                            <Icon name="zap" className="text-subtle h-6 w-6" />
-                            <p className="text-subtle mt-2 text-sm">{t("No functions configured yet")}</p>
-                            <p className="text-subtle text-xs">
-                              {t("Add functions to enable advanced capabilities")}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className="text-subtle text-sm">{t("No phone number connected")}</span>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Update Agent Button */}
-                    {!props.readOnly && (
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          onClick={agentForm.handleSubmit((data) => {
-                            updateAgentMutation.mutate({
-                              id: step.agentId!,
-                              generalPrompt: data.generalPrompt,
-                              beginMessage: data.beginMessage,
-                              generalTools: data.generalTools,
-                            });
-                          })}
-                          loading={updateAgentMutation.isPending}
-                          disabled={!agentForm.formState.isDirty}
-                          color="secondary"
-                          size="sm">
-                          {t("Update Agent")}
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsTestAgentDialogOpen(true)}
+                        disabled={
+                          props.readOnly ||
+                          !agentData.outboundPhoneNumbers?.filter(
+                            (phone) =>
+                              phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                              !phone.subscriptionStatus
+                          ).length
+                        }>
+                        <Icon name="phone" className="mr-2 h-4 w-4" />
+                        {t("Test Agent")}
+                      </Button>
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            color="secondary"
+                            variant="icon"
+                            StartIcon="ellipsis"
+                            className="rounded-[10px]"
+                          />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              StartIcon="pencil"
+                              onClick={() => setIsAgentConfigurationSheetOpen(true)}>
+                              {t("Edit")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                          {agentData.outboundPhoneNumbers &&
+                            agentData.outboundPhoneNumbers.filter(
+                              (phone) =>
+                                phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                                !phone.subscriptionStatus
+                            ).length > 0 && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  StartIcon="trash"
+                                  color="destructive"
+                                  onClick={() => setIsUnsubscribeDialogOpen(true)}>
+                                  {t("Unsubscribe")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1541,134 +1329,98 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-        <ToolsDialog
-          open={toolDialogOpen}
-          onOpenChange={setToolDialogOpen}
-          toolDraft={toolDraft}
-          setToolDraft={setToolDraft}
-          onSave={handleToolDialogSave}
-          isEditing={editingToolIndex !== null}
+        <AgentConfigurationSheet
+          open={isAgentConfigurationSheetOpen}
+          onOpenChange={setIsAgentConfigurationSheetOpen}
+          agentId={stepAgentId}
+          agentData={agentData}
+          onUpdate={(data) => {
+            updateAgentMutation.mutate({
+              id: stepAgentId!,
+              generalPrompt: data.generalPrompt,
+              beginMessage: data.beginMessage,
+              generalTools: data.generalTools,
+            });
+          }}
+          readOnly={props.readOnly}
+          teamId={teamId}
+          workflowId={params.workflow as string}
+          workflowStepId={step?.id}
         />
+
+        {/* Test Agent Dialog */}
+        {step?.agentId && (
+          <TestAgentDialog
+            open={isTestAgentDialogOpen}
+            onOpenChange={setIsTestAgentDialogOpen}
+            agentId={step.agentId}
+          />
+        )}
+
+        {/* Unsubscribe Confirmation Dialog */}
+        <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
+          <DialogContent type="creation" title={t("Unsubscribe Phone Number")}>
+            <div className="space-y-4">
+              <p className="text-default text-sm">
+                {t("Are you sure you want to unsubscribe the phone number from this agent?")}
+              </p>
+              {agentData?.outboundPhoneNumbers &&
+                agentData.outboundPhoneNumbers.filter(
+                  (phone) =>
+                    phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                    !phone.subscriptionStatus
+                ).length > 0 && (
+                  <div className="bg-muted rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="phone" className="text-emphasis h-4 w-4" />
+                      <span className="text-emphasis text-sm font-medium">
+                        {formatPhoneNumber(
+                          agentData.outboundPhoneNumbers.filter(
+                            (phone) =>
+                              phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                              !phone.subscriptionStatus
+                          )[0].phoneNumber
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              <p className="text-subtle text-sm">
+                {t(
+                  "This action will disconnect the phone number from the agent. The agent will not be able to make calls until a new phone number is connected."
+                )}
+              </p>
+            </div>
+            <DialogFooter showDivider>
+              <Button type="button" color="secondary" onClick={() => setIsUnsubscribeDialogOpen(false)}>
+                {t("Cancel")}
+              </Button>
+              <Button
+                type="button"
+                StartIcon="trash"
+                color="destructive"
+                onClick={() => {
+                  const activePhoneNumbers = agentData?.outboundPhoneNumbers?.filter(
+                    (phone) =>
+                      phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
+                      !phone.subscriptionStatus
+                  );
+                  if (activePhoneNumbers?.[0]) {
+                    unsubscribePhoneNumberMutation.mutate({
+                      phoneNumber: activePhoneNumbers[0].phoneNumber,
+                      outboundAgentId: null,
+                    });
+                  }
+                }}
+                loading={unsubscribePhoneNumberMutation.isPending}>
+                {t("Unsubscribe")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </>
     );
   }
 
   return <></>;
 }
-
-const ToolsDialog = ({
-  open,
-  onOpenChange,
-  toolDraft,
-  setToolDraft,
-  onSave,
-  isEditing,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  toolDraft: ToolDraft | null;
-  setToolDraft: (draft: ToolDraft) => void;
-  onSave: () => void;
-  isEditing: boolean;
-}) => {
-  const { t } = useLocale();
-
-  const TOOL_TYPES = [
-    { label: t("Check Availability"), value: "check_availability_cal" },
-    { label: t("Book Appointment"), value: "book_appointment_cal" },
-    { label: t("End Call"), value: "end_call" },
-  ];
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        enableOverflow
-        title={isEditing ? t("Edit Function") : t("Add Function")}
-        type="creation">
-        <div className="flex flex-col gap-4">
-          <div>
-            <Label>{t("Type")}</Label>
-            <Select
-              options={TOOL_TYPES}
-              value={TOOL_TYPES.find((opt) => opt.value === toolDraft?.type) || null}
-              onChange={(option) => setToolDraft((d: ToolDraft) => ({ ...d, type: option?.value || "" }))}
-              placeholder={t("Select function type")}
-            />
-          </div>
-          <div>
-            <Label>{t("Name")}</Label>
-            <TextField
-              required
-              value={toolDraft?.name || ""}
-              onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, name: e.target.value }))}
-              placeholder={t("Enter function name")}
-            />
-          </div>
-          <div>
-            <Label>{t("Description")}</Label>
-            <TextArea
-              value={toolDraft?.description || ""}
-              onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, description: e.target.value }))}
-              placeholder={t("Enter description (optional)")}
-            />
-          </div>
-          {(toolDraft?.type === "check_availability_cal" || toolDraft?.type === "book_appointment_cal") && (
-            <>
-              <div>
-                <Label>
-                  {t("API Key (Cal.com)")}
-                  <span className="text-red-500"> *</span>
-                </Label>
-                <TextField
-                  required
-                  value={toolDraft?.cal_api_key || ""}
-                  onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, cal_api_key: e.target.value }))}
-                  placeholder={t("Enter Cal.com API key")}
-                />
-              </div>
-              <div>
-                <Label>
-                  {t("Event Type ID (Cal.com)")}
-                  <span className="text-red-500"> *</span>
-                </Label>
-                <TextField
-                  required
-                  value={toolDraft?.event_type_id || ""}
-                  onChange={(e) =>
-                    setToolDraft((d: ToolDraft) => ({
-                      ...d,
-                      event_type_id: e.target.value ? Number(e.target.value) : null,
-                    }))
-                  }
-                  placeholder={t("Enter Event Type ID")}
-                  type="number"
-                />
-              </div>
-              <div>
-                <Label>
-                  {t("Timezone")}
-                  <span className="text-red-500"> *</span>
-                </Label>
-                <TextField
-                  required
-                  value={toolDraft?.timezone || ""}
-                  onChange={(e) => setToolDraft((d: ToolDraft) => ({ ...d, timezone: e.target.value }))}
-                  placeholder={t("America/Los_Angeles")}
-                />
-                <p className="text-subtle mt-1 text-xs">{t("Required for Cal.com calendar integration")}</p>
-              </div>
-            </>
-          )}
-        </div>
-        <DialogFooter showDivider>
-          <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
-            {t("Cancel")}
-          </Button>
-          <Button type="button" onClick={onSave}>
-            {t("Save")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};

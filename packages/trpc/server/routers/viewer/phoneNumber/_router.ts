@@ -143,10 +143,12 @@ export const phoneNumberRouter = router({
         sipTrunkAuthPassword: z.string().optional(),
         nickname: z.string().optional(),
         teamId: z.number().optional(),
+        agentId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { phoneNumber, terminationUri, sipTrunkAuthUsername, sipTrunkAuthPassword, nickname } = input;
+      const { phoneNumber, terminationUri, sipTrunkAuthUsername, sipTrunkAuthPassword, nickname, agentId } =
+        input;
       const aiService = createDefaultAIPhoneServiceProvider();
 
       const importedPhoneNumber = await aiService.importPhoneNumber({
@@ -157,6 +159,65 @@ export const phoneNumberRouter = router({
         nickname,
         userId: ctx.user.id,
       });
+
+      // If agentId is provided, assign the phone number to the agent
+      if (agentId) {
+        try {
+          // First find the agent to get its internal ID
+          const agent = await prisma.agent.findFirst({
+            where: {
+              id: agentId,
+              OR: [
+                { userId: ctx.user.id },
+                {
+                  team: {
+                    members: {
+                      some: {
+                        userId: ctx.user.id,
+                        accepted: true,
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          });
+
+          if (!agent) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "You don't have permission to use the selected agent.",
+            });
+          }
+
+          // Update the phone number to link it to the agent
+          await prisma.calAiPhoneNumber.updateMany({
+            where: {
+              phoneNumber: importedPhoneNumber.phone_number,
+              userId: ctx.user.id,
+            },
+            data: {
+              outboundAgentId: agent.id,
+            },
+          });
+
+          // Also update the phone number in Retell to link the agent
+          try {
+            await aiService.updatePhoneNumber(importedPhoneNumber.phone_number, {
+              outbound_agent_id: agentId,
+            });
+          } catch (error) {
+            console.error("Failed to update phone number in Retell:", error);
+            // Don't fail the entire operation if Retell update fails
+          }
+        } catch (error) {
+          console.error("Failed to assign phone number to agent:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Phone number imported but failed to assign to agent.",
+          });
+        }
+      }
 
       return importedPhoneNumber;
     }),
@@ -190,13 +251,16 @@ export const phoneNumberRouter = router({
       // Cancel the Stripe subscription
       await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
 
-      // Update the phone number status
+      // Update the phone number status and disconnect outbound agent
       await prisma.calAiPhoneNumber.update({
         where: {
           id: phoneNumberId,
         },
         data: {
           subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+          outboundAgent: {
+            disconnect: true,
+          },
         },
       });
 

@@ -100,7 +100,10 @@ export const aiRouter = router({
           },
           outboundPhoneNumbers: {
             select: {
+              id: true,
               phoneNumber: true,
+              subscriptionStatus: true,
+              provider: true,
             },
           },
         },
@@ -162,7 +165,10 @@ export const aiRouter = router({
         },
         outboundPhoneNumbers: {
           select: {
+            id: true,
             phoneNumber: true,
+            subscriptionStatus: true,
+            provider: true,
           },
         },
       },

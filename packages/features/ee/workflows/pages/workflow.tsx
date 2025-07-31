@@ -27,7 +27,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
+import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction } from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
@@ -241,7 +241,8 @@ function WorkflowPage({
         values.steps.forEach((step) => {
           const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-          const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
+          const isBodyEmpty =
+            !isSMSOrWhatsappAction(step.action) && !isCalAIAction(step.action) && strippedHtml.length <= 1;
 
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
