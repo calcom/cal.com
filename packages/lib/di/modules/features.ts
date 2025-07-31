@@ -1,8 +1,4 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { prisma } from "@calcom/prisma";
 
-import { DI_TOKENS } from "../tokens";
-
-export const featuresModule = createModule();
-featuresModule.bind(DI_TOKENS.FEATURES_REPOSITORY).toFactory(() => new FeaturesRepository(), "singleton");
+export const getFeaturesRepository = () => new FeaturesRepository(prisma);
