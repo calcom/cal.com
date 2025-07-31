@@ -71,15 +71,24 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+type LoggedInUser = {
+  userId: number | undefined;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
+  userEmail: string | undefined;
+  userIsOrgAdminOrOwner: boolean | undefined;
+  teamsWhereUserIsAdminOrOwner:
+    | {
+        id: number;
+        teamId: number;
+      }[]
+    | undefined;
+};
+
 export type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
+  loggedInUser: LoggedInUser;
   isToday: boolean;
 };
 
@@ -201,14 +210,9 @@ function BookingListItem(booking: BookingItemProps) {
     );
   };
 
-  const checkIfUserIsAuthorizedToCancelSeats = (
-    { user, eventType }: Pick<BookingItemProps, "user" | "eventType">,
-    {
-      userId,
-      userIsOrgAdminOrOwner,
-      teamsWhereUserIsAdminOrOwner,
-    }: Pick<LoggedInUser, "userId" | "userIsOrgAdminOrOwner" | "teamsWhereUserIsAdminOrOwner">
-  ) => {
+  const checkIfUserIsAuthorizedToCancelSeats = () => {
+    const { user, eventType } = booking;
+    const { userId, userIsOrgAdminOrOwner, teamsWhereUserIsAdminOrOwner } = booking.loggedInUser;
     const isUserOwner = user?.id === userId;
     const isUserTeamEventHost = checkIfUserIsHost(userId);
     const isUserTeamAdminOrOwner = teamsWhereUserIsAdminOrOwner?.some(
@@ -280,6 +284,7 @@ function BookingListItem(booking: BookingItemProps) {
     cardCharged,
     attendeeList,
     getSeatReferenceUid,
+    checkIfUserIsAuthorizedToCancelSeats,
     t,
   } as BookingActionContext;
 
@@ -318,6 +323,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  const [isOpenRemoveSeatsDialog, setIsOpenRemoveSeatsDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -393,6 +399,8 @@ function BookingListItem(booking: BookingItemProps) {
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
+        : action.id === "remove_seats"
+        ? () => setIsOpenRemoveSeatsDialog(true)
         : action.id === "reassign"
         ? () => setIsOpenReassignDialog(true)
         : undefined,
@@ -455,14 +463,7 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
-      {checkIfUserIsAuthorizedToCancelSeats(
-        { user: booking.user, eventType: booking.eventType },
-        {
-          userId: booking.loggedInUser.userId,
-          userIsOrgAdminOrOwner: booking.loggedInUser.userIsOrgAdminOrOwner,
-          teamsWhereUserIsAdminOrOwner: booking.loggedInUser.teamsWhereUserIsAdminOrOwner,
-        }
-      ) && (
+      {checkIfUserIsAuthorizedToCancelSeats() && (
         <RemoveBookingSeatsDialog
           isOpenDialog={isOpenRemoveSeatsDialog}
           setIsOpenDialog={setIsOpenRemoveSeatsDialog}
