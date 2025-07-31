@@ -69,14 +69,18 @@ export class OrganizationsMembershipService {
       organizationId,
       membershipId
     );
-    
+
     if (!membership) {
       throw new NotFoundException(
         `Membership with id ${membershipId} within organization id ${organizationId} not found`
       );
     }
 
-    await TeamService.removeMembers([organizationId], [membership.userId], true);
+    await TeamService.removeMembers({
+      teamIds: [organizationId],
+      memberIds: [membership.userId],
+      isOrg: true,
+    });
 
     return this.organizationsMembershipOutputService.getOrgMembershipOutput(membership);
   }

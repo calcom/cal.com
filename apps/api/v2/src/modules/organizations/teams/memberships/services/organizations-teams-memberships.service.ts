@@ -2,6 +2,7 @@ import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/member
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
+
 import { TeamService } from "@calcom/platform-libraries";
 
 @Injectable()
@@ -72,12 +73,7 @@ export class OrganizationsTeamsMembershipsService {
       );
     }
 
-    // Use TeamService.removeMembers which handles:
-    // - Event type and host cleanup
-    // - Workflow reminder cleanup
-    // - Billing updates
-    // - Membership deletion
-    await TeamService.removeMembers([teamId], [teamMembership.userId], false);
+    await TeamService.removeMembers({ teamIds: [teamId], memberIds: [teamMembership.userId], isOrg: false });
 
     return teamMembership;
   }

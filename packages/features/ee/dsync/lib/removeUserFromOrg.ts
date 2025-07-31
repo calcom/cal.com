@@ -1,12 +1,7 @@
-import removeMember from "@calcom/features/ee/teams/lib/removeMember";
+import { TeamService } from "@calcom/lib/server/service/teamService";
 
 const removeUserFromOrg = async ({ userId, orgId }: { userId: number; orgId: number }) => {
-  // TODO: Shouldn't we call TeamService.removeMembers instead, which also updates billing too?
-  return removeMember({
-    memberId: userId,
-    teamId: orgId,
-    isOrg: true,
-  });
+  return TeamService.removeMembers({ teamIds: [orgId], memberIds: [userId], isOrg: true });
 };
 
 export default removeUserFromOrg;
