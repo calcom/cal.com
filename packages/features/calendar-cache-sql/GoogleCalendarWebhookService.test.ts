@@ -1,8 +1,4 @@
-import prismock from "../../../tests/libs/__mocks__/prisma";
-
 import { describe, it, expect, beforeEach, vi } from "vitest";
-
-import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
@@ -31,12 +27,6 @@ class MockCalendarEventRepository implements ICalendarEventRepository {
   cleanupOldEvents = vi.fn();
 }
 
-class MockFeaturesRepository implements IFeaturesRepository {
-  checkIfFeatureIsEnabledGlobally = vi.fn();
-  checkIfUserHasFeature = vi.fn();
-  checkIfTeamHasFeature = vi.fn();
-}
-
 class MockCalendarCacheService {
   processWebhookEvents = vi.fn();
   getAvailability = vi.fn();
@@ -45,7 +35,6 @@ class MockCalendarCacheService {
 describe("GoogleCalendarWebhookService", () => {
   const mockSubscriptionRepo = new MockCalendarSubscriptionRepository();
   const mockEventRepo = new MockCalendarEventRepository();
-  const mockFeaturesRepo = new MockFeaturesRepository(prismock);
   const mockCalendarCacheService = new MockCalendarCacheService();
   const mockGetCredentialForCalendarCache = vi.fn();
 
@@ -78,7 +67,6 @@ describe("GoogleCalendarWebhookService", () => {
   it("should process webhook successfully", async () => {
     const channelId = "test-channel-id";
 
-    mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue({
       id: "subscription-id",
       selectedCalendar: {
@@ -108,22 +96,9 @@ describe("GoogleCalendarWebhookService", () => {
     );
   });
 
-  it("should return ok when SQL cache write is disabled", async () => {
-    const channelId = "test-channel-id";
-
-    mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(false);
-
-    const response = await webhookService.processWebhook(channelId);
-
-    expect(response.status).toBe(200);
-    expect(response.body.message).toBe("ok");
-    expect(mockLogger.debug).toHaveBeenCalledWith("SQL cache write not enabled globally");
-  });
-
   it("should return ok when no subscription is found", async () => {
     const channelId = "test-channel-id";
 
-    mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue(null);
 
     const response = await webhookService.processWebhook(channelId);
@@ -138,7 +113,6 @@ describe("GoogleCalendarWebhookService", () => {
   it("should return ok when subscription has no credential", async () => {
     const channelId = "test-channel-id";
 
-    mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue({
       id: "subscription-id",
       selectedCalendar: {
@@ -159,7 +133,6 @@ describe("GoogleCalendarWebhookService", () => {
   it("should return 404 when credential is not found", async () => {
     const channelId = "test-channel-id";
 
-    mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue({
       id: "subscription-id",
       selectedCalendar: {
@@ -179,7 +152,7 @@ describe("GoogleCalendarWebhookService", () => {
   it("should handle errors gracefully", async () => {
     const channelId = "test-channel-id";
 
-    mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockRejectedValue(new Error("Database error"));
+    mockSubscriptionRepo.findByChannelId.mockRejectedValue(new Error("Database error"));
 
     const response = await webhookService.processWebhook(channelId);
 
