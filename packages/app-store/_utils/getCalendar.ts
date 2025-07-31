@@ -66,6 +66,12 @@ export const getCalendarService = async (
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
 
+  // Only Google Calendar supports CalendarCacheService
+  if (credential.type !== "google_calendar") {
+    log.debug(`Using regular CalendarService for credential ${credential.id} (not Google Calendar)`);
+    return await getCalendar(credential);
+  }
+
   try {
     const featuresRepo = new FeaturesRepository();
     const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
@@ -76,13 +82,6 @@ export const getCalendarService = async (
 
     // Check if this credential has any subscriptions
     const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
-    const eventRepo = new CalendarEventRepository(prisma);
-
-    // Only Google Calendar supports CalendarCacheService
-    if (credential.type !== "google_calendar") {
-      log.debug(`Using regular CalendarService for credential ${credential.id} (not Google Calendar)`);
-      return await getCalendar(credential);
-    }
 
     const subscription = await subscriptionRepo.findByCredentialId(credential.id);
     if (!subscription) {
@@ -90,6 +89,7 @@ export const getCalendarService = async (
       return await getCalendar(credential);
     }
 
+    const eventRepo = new CalendarEventRepository(prisma);
     log.debug(`Using CalendarCacheService for credential ${credential.id}`);
     return new CalendarCacheService(credential, subscriptionRepo, eventRepo);
   } catch (error) {
