@@ -373,6 +373,40 @@ describe("RetellSDKClient", () => {
         expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith(callData);
         expect(result).toEqual(mockResponse);
       });
+
+      it("should handle undefined dynamic variables", async () => {
+        const callData = {
+          from_number: "+14155551234",
+          to_number: "+14155555678",
+          retell_llm_dynamic_variables: undefined,
+        };
+        const mockResponse = { call_id: "test-call-id" };
+
+        mockRetellInstance.call.createPhoneCall.mockResolvedValue(mockResponse);
+
+        const result = await client.createPhoneCall(callData);
+
+        expect(mockRetellInstance.call.createPhoneCall).toHaveBeenCalledWith(callData);
+        expect(result).toEqual(mockResponse);
+      });
+    });
+  });
+
+  describe("Edge cases", () => {
+    beforeEach(() => {
+      client = new RetellSDKClient(mockLogger);
+    });
+
+    it("should handle special characters in phone numbers", async () => {
+      const phoneNumber = "+1 (415) 555-1234";
+      const mockResponse = { phone_number: phoneNumber };
+
+      mockRetellInstance.phoneNumber.retrieve.mockResolvedValue(mockResponse);
+
+      const result = await client.getPhoneNumber(phoneNumber);
+
+      expect(mockRetellInstance.phoneNumber.retrieve).toHaveBeenCalledWith(phoneNumber);
+      expect(result).toEqual(mockResponse);
     });
   });
 });
