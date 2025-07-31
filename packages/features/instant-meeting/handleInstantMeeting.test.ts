@@ -61,7 +61,6 @@ describe("handleInstantMeeting", () => {
               ],
               team: {
                 id: 1,
-                slug: "test-team",
               },
               instantMeetingExpiryTimeOffsetInSeconds: 90,
             },
