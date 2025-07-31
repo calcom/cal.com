@@ -33,7 +33,6 @@ async function postHandler(request: NextRequest) {
 
     const cleanupService = new CalendarCacheSqlCleanupService({
       eventRepo,
-      featuresRepo,
       logger: log,
     });
 
