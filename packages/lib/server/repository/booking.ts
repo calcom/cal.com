@@ -522,13 +522,15 @@ export class BookingRepository {
 
   async updateLocationById({
     where: { id },
-    data: { location, metadata, referencesToCreate },
+    data: { location, metadata, referencesToCreate, responses, iCalSequence },
   }: {
     where: { id: number };
     data: {
       location: string;
       metadata: Record<string, unknown>;
       referencesToCreate: Prisma.BookingReferenceCreateInput[];
+      responses?: Record<string, unknown>;
+      iCalSequence?: number;
     };
   }) {
     await this.prismaClient.booking.update({
@@ -538,6 +540,8 @@ export class BookingRepository {
       data: {
         location,
         metadata,
+        ...(responses && { responses }),
+        ...(iCalSequence !== undefined && { iCalSequence }),
         references: {
           create: referencesToCreate,
         },
@@ -862,6 +866,25 @@ export class BookingRepository {
         uid: {
           not: excludedUid,
         },
+      },
+    });
+  }
+
+  async updateBookingLocation({
+    bookingId,
+    location,
+    iCalSequence,
+  }: {
+    bookingId: number;
+    location: string;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        location,
+        iCalSequence,
       },
     });
   }
