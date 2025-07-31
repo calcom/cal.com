@@ -252,6 +252,7 @@ function BookingListItem(booking: BookingItemProps) {
     cardCharged,
     attendeeList,
     getSeatReferenceUid,
+    t,
   } as BookingActionContext;
 
   const basePendingActions = getPendingActions(actionContext);
