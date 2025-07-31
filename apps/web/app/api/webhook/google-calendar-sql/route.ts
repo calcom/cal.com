@@ -45,7 +45,6 @@ async function postHandler(request: NextRequest, { params }: { params: Promise<a
 
   const webhookRequest = {
     headers: {
-      "x-goog-channel-token": request.headers.get("x-goog-channel-token") || undefined,
       "x-goog-channel-id": request.headers.get("x-goog-channel-id") || undefined,
     },
   };

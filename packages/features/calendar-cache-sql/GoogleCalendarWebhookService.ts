@@ -6,7 +6,6 @@ import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepo
 
 export interface WebhookRequest {
   headers: {
-    "x-goog-channel-token"?: string;
     "x-goog-channel-id"?: string;
   };
 }
@@ -36,11 +35,9 @@ export class GoogleCalendarWebhookService {
   async processWebhook(request: WebhookRequest): Promise<WebhookResponse> {
     const { headers } = request;
     const { logger } = this.dependencies;
-
-    const channelToken = headers["x-goog-channel-token"];
     const channelId = headers["x-goog-channel-id"];
 
-    logger.debug("Processing webhook", { channelToken, channelId });
+    logger.debug("Processing webhook", { channelId });
 
     // Validate channel ID
     if (typeof channelId !== "string") {
