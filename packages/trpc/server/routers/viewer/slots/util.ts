@@ -92,6 +92,7 @@ export type GetAvailableSlotsResponse = Awaited<
 >;
 
 export interface IAvailableSlotsService {
+  checkBookingLimitsService: CheckBookingLimitsService;
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
   selectedSlotRepo: ISelectedSlotRepository;
@@ -105,8 +106,7 @@ export interface IAvailableSlotsService {
 
 function withSlotsCache(
   redisClient: IRedisService,
-  func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>,
-  ts: number
+  func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>
 ) {
   return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
     const cacheKey = `${JSON.stringify(args.input)}`;
@@ -140,7 +140,6 @@ function withSlotsCache(
     log.info("[CACHE MISS] Available slots", { cacheKey });
     return result;
   };
-  checkBookingLimitsService: CheckBookingLimitsService;
 }
 
 export class AvailableSlotsService {
