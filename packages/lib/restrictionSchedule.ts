@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 
 /**
  * Checks if the restriction schedule feature is enabled for a team
@@ -10,6 +10,6 @@ export async function isRestrictionScheduleEnabled(teamId?: number): Promise<boo
     return false; // Personal events don't have restriction schedules
   }
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = getFeaturesRepository();
   return await featureRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
 }

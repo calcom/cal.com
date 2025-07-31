@@ -9,10 +9,10 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -1153,7 +1153,7 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = getFeaturesRepository();
     const isTaskerEnabledForSalesforceCrm = event.team?.id
       ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;

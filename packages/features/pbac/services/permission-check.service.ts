@@ -1,4 +1,5 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -24,7 +25,7 @@ export class PermissionCheckService {
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(),
+    featuresRepository: FeaturesRepository = getFeaturesRepository(),
     permissionService: PermissionService = new PermissionService()
   ) {
     this.featuresRepository = featuresRepository;

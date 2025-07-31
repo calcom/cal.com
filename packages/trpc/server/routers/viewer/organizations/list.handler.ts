@@ -1,4 +1,4 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -26,7 +26,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     return currentOrg;
   }
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = getFeaturesRepository();
   const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
     organizationId,
     "delegation-credential"

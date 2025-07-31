@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 import {
   BookingStatus,
   WorkflowMethods,
@@ -32,7 +33,6 @@ import {
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { FeaturesRepository } from "../../../../flags/features.repository";
 import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
@@ -1103,8 +1103,8 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP when team has workflow-smtp-emails feature", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(true);
+    const featuresRepository = getFeaturesRepository();
+    vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(true);
 
     await scheduleEmailReminder({
       ...baseArgs,
@@ -1115,8 +1115,8 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP when user has workflow-smtp-emails feature", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(true);
+    const featuresRepository = getFeaturesRepository();
+    vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(true);
 
     await scheduleEmailReminder({
       ...baseArgs,
@@ -1127,8 +1127,8 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SendGrid when workflow-smtp-emails feature is not enabled for team", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfTeamHasFeature").mockResolvedValue(false);
+    const featuresRepository = getFeaturesRepository();
+    vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(false);
 
     await scheduleEmailReminder({
       ...baseArgs,
@@ -1140,8 +1140,8 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SendGrid when workflow-smtp-emails feature is not enabled for user", async () => {
-    const featuresRepository = new FeaturesRepository();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfUserHasFeature").mockResolvedValue(false);
+    const featuresRepository = getFeaturesRepository();
+    vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(false);
 
     await scheduleEmailReminder({
       ...baseArgs,
@@ -1153,7 +1153,7 @@ describe("Workflow SMTP Emails Feature Flag", () => {
   });
 
   test("should use SMTP when SendGrid is not configured", async () => {
-    const featuresRepository = new FeaturesRepository();
+    const featuresRepository = getFeaturesRepository();
     vi.spyOn(featuresRepository, "checkIfTeamHasFeature").mockResolvedValue(false);
     vi.spyOn(featuresRepository, "checkIfUserHasFeature").mockResolvedValue(false);
 

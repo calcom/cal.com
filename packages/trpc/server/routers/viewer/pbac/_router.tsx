@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { Resource, CrudAction, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
+import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 import { RoleType, MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
@@ -193,7 +193,7 @@ export const permissionsRouter = router({
         throw new Error("Unauthorized");
       }
 
-      const featureRepo = new FeaturesRepository();
+      const featureRepo = getFeaturesRepository();
       const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
 
       if (!teamHasPBACFeature) {

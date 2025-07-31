@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 import type { AppFlags } from "@calcom/features/flags/config";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
-import { FeaturesRepository } from "../features.repository";
 import { map } from "./procedures/map";
 
 export const featureFlagRouter = router({
