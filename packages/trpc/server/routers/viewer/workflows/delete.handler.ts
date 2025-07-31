@@ -77,7 +77,10 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
                 phoneNumberId: phoneNumber.id,
                 userId: ctx.user.id,
               });
-            } else {
+            } else if (
+              phoneNumber.subscriptionStatus === null ||
+              phoneNumber.subscriptionStatus === undefined
+            ) {
               // Delete imported or inactive phone number
               await aiPhoneService.deletePhoneNumber({
                 phoneNumber: phoneNumber.phoneNumber,
