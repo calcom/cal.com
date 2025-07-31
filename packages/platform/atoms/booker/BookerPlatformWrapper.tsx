@@ -57,6 +57,7 @@ export const BookerPlatformWrapper = (
     isBookingDryRun,
     handleSlotReservation,
     onTimeslotsLoaded,
+    startTime: customStartTime,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -220,13 +221,19 @@ export const BookerPlatformWrapper = (
       : undefined;
   const { timezone } = useTimePreferences();
 
-  const [startTime, endTime] = useTimesForSchedule({
+  const [calculatedStartTime, calculatedEndTime] = useTimesForSchedule({
     month,
     monthCount,
     dayCount,
     prefetchNextMonth,
     selectedDate,
   });
+
+  const startTime =
+    customStartTime && dayjs(customStartTime).isAfter(dayjs(calculatedStartTime))
+      ? dayjs(customStartTime).toISOString()
+      : calculatedStartTime;
+  const endTime = calculatedEndTime;
 
   const [routingParams, setRoutingParams] = useState<{
     routedTeamMemberIds?: number[];

@@ -132,6 +132,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
           await page.click('[data-testid="incrementMonth"]');
           await page.waitForLoadState("domcontentloaded");
           await getTeamScheduleRespPromise2;
+          await page.waitForSelector('[data-testid="time"]');
           // Verify that the first working day of next month has only 1 slot (as per cached). //120min event
           expect(await page.locator('[data-testid="time"]').count()).toBe(1);
 
@@ -143,6 +144,7 @@ test.describe("Office365Calendar - Integration Tests", () => {
           await goToUrlWithErrorHandling(page.url().replace("cal.cache=true", ""));
           await page.waitForLoadState("domcontentloaded");
           await getTeamScheduleRespPromise3;
+          await page.waitForSelector('[data-testid="time"]');
           expect(await page.locator('[data-testid="time"]').count()).toBe(4);
         }
       );
@@ -198,6 +200,7 @@ test.describe("Office365Calendar", () => {
       // Verify that the first working day of next month has only one slot
       // As the Calendar-Cache was updated with busy times such that 1,2,3 Days of next month shows only one slot
       // For all other days full 4 slots would be shown
+      await page.waitForSelector('[data-testid="time"]');
       expect(await page.locator('[data-testid="time"]').count()).toBe(1);
     });
   });
