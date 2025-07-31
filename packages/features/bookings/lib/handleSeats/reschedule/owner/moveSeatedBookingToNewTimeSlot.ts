@@ -87,7 +87,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     }
   }
 
-  if (noEmail !== true && isConfirmedByDefault) {
+  if (noEmail !== true) {
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
@@ -101,7 +101,7 @@ const moveSeatedBookingToNewTimeSlot = async (
   }
   const foundBooking = await findBookingQuery(newBooking.id);
 
-  return { ...foundBooking, appsStatus: newBooking.appsStatus };
+  return { ...foundBooking, appsStatus: newBooking.appsStatus, seatedRescheduleEmailSent: true };
 };
 
 export default moveSeatedBookingToNewTimeSlot;

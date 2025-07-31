@@ -72,6 +72,7 @@ export type HandleSeatsResultBooking =
       paymentUid?: string;
       message?: string;
       paymentId?: number;
+      seatedRescheduleEmailSent?: boolean;
     })
   | null;
 

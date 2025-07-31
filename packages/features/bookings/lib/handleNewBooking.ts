@@ -1887,7 +1887,7 @@ async function handler(
           })
         );
 
-        if (!isDryRun) {
+        if (!isDryRun && !("seatedRescheduleEmailSent" in (booking || {}))) {
           await sendScheduledEmailsAndSMS(
             {
               ...evt,

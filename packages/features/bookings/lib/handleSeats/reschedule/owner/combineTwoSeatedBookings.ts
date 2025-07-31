@@ -133,7 +133,7 @@ const combineTwoSeatedBookings = async (
     ? calendarResult?.updatedEvent[0]?.iCalUID
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 
-  if (noEmail !== true && isConfirmedByDefault) {
+  if (noEmail !== true) {
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
@@ -158,7 +158,7 @@ const combineTwoSeatedBookings = async (
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 
-  return { ...foundBooking };
+  return { ...foundBooking, seatedRescheduleEmailSent: true };
 };
 
 export default combineTwoSeatedBookings;

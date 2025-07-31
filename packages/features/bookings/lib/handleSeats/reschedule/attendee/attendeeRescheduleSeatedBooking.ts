@@ -48,6 +48,8 @@ const attendeeRescheduleSeatedBooking = async (
       },
     });
 
+    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
+
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
@@ -99,7 +101,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 
-  return { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
+  return { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid, seatedRescheduleEmailSent: true };
 };
 
 export default attendeeRescheduleSeatedBooking;
