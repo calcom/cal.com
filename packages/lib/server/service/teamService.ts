@@ -83,21 +83,21 @@ export class TeamService {
 
   static async removeMembers({
     teamIds,
-    memberIds,
+    userIds,
     isOrg = false,
   }: {
     teamIds: number[];
-    memberIds: number[];
+    userIds: number[];
     isOrg?: boolean;
   }) {
     const deleteMembershipPromises: Promise<RemoveMemberResult>[] = [];
 
-    for (const memberId of memberIds) {
+    for (const userId of userIds) {
       for (const teamId of teamIds) {
         deleteMembershipPromises.push(
           TeamService.removeMember({
             teamId,
-            memberId,
+            userId,
             isOrg,
           })
         );
@@ -167,17 +167,17 @@ export class TeamService {
   }
 
   private static async removeMember({
-    memberId,
+    userId,
     teamId,
     isOrg,
   }: {
-    memberId: number;
+    userId: number;
     teamId: number;
     isOrg: boolean;
   }) {
-    const membership = await TeamService.fetchMembershipOrThrow(memberId, teamId);
+    const membership = await TeamService.fetchMembershipOrThrow(userId, teamId);
     const team = await TeamService.fetchTeamOrThrow(teamId);
-    const user = await TeamService.fetchUserOrThrow(memberId);
+    const user = await TeamService.fetchUserOrThrow(userId);
 
     if (isOrg) {
       log.debug("Removing a member from the organization");
@@ -187,18 +187,18 @@ export class TeamService {
       await TeamService.removeFromTeam(membership, teamId);
     }
 
-    await deleteWorkfowRemindersOfRemovedMember(team, memberId, isOrg);
+    await deleteWorkfowRemindersOfRemovedMember(team, userId, isOrg);
 
     return { membership };
   }
 
   private static async fetchMembershipOrThrow(
-    memberId: number,
+    userId: number,
     teamId: number
   ): Promise<MembershipWithRelations> {
     const membership = await prisma.membership.findUnique({
       where: {
-        userId_teamId: { userId: memberId, teamId: teamId },
+        userId_teamId: { userId: userId, teamId: teamId },
       },
       select: {
         id: true,

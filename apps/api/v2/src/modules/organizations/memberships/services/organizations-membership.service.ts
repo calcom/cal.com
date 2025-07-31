@@ -78,7 +78,7 @@ export class OrganizationsMembershipService {
 
     await TeamService.removeMembers({
       teamIds: [organizationId],
-      memberIds: [membership.userId],
+      userIds: [membership.userId],
       isOrg: true,
     });
 

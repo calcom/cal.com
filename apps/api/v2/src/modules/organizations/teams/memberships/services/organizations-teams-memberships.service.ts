@@ -73,7 +73,7 @@ export class OrganizationsTeamsMembershipsService {
       );
     }
 
-    await TeamService.removeMembers({ teamIds: [teamId], memberIds: [teamMembership.userId], isOrg: false });
+    await TeamService.removeMembers({ teamIds: [teamId], userIds: [teamMembership.userId], isOrg: false });
 
     return teamMembership;
   }
