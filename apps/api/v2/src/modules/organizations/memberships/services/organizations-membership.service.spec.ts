@@ -4,13 +4,14 @@ import { OrganizationsMembershipService } from "@/modules/organizations/membersh
 import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 
-import { TeamService } from "@calcom/platform-libraries";
+// Mock the module
+jest.mock("@calcom/platform-libraries");
 
-jest.mock("@calcom/platform-libraries", () => ({
-  TeamService: {
-    removeMembers: jest.fn(),
-  },
-}));
+// Get the mocked functions
+import { TeamService } from "@calcom/platform-libraries";
+const mockRemoveMembers = TeamService.removeMembers as jest.MockedFunction<
+  typeof TeamService.removeMembers
+>;
 
 describe("OrganizationsMembershipService", () => {
   let service: OrganizationsMembershipService;
@@ -56,6 +57,10 @@ describe("OrganizationsMembershipService", () => {
     outputService = module.get<OrganizationsMembershipOutputService>(OrganizationsMembershipOutputService);
   });
 
+  beforeEach(() => {
+    mockRemoveMembers.mockReset();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -71,7 +76,7 @@ describe("OrganizationsMembershipService", () => {
       await service.deleteOrgMembership(organizationId, membershipId);
 
       expect(repository.findOrgMembership).toHaveBeenCalledWith(organizationId, membershipId);
-      expect(TeamService.removeMembers).toHaveBeenCalledWith({
+      expect(mockRemoveMembers).toHaveBeenCalledWith({
         teamIds: [organizationId],
         userIds: [mockMembership.userId],
         isOrg: true,
@@ -92,7 +97,7 @@ describe("OrganizationsMembershipService", () => {
       );
 
       expect(repository.findOrgMembership).toHaveBeenCalledWith(organizationId, membershipId);
-      expect(TeamService.removeMembers).not.toHaveBeenCalled();
+      expect(mockRemoveMembers).not.toHaveBeenCalled();
     });
 
     it("should propagate errors from TeamService.removeMembers", async () => {
@@ -101,12 +106,12 @@ describe("OrganizationsMembershipService", () => {
       const error = new Error("TeamService error");
 
       jest.spyOn(repository, "findOrgMembership").mockResolvedValue(mockMembership as any);
-      jest.spyOn(TeamService, "removeMembers").mockRejectedValue(error);
+      mockRemoveMembers.mockRejectedValue(error);
 
       await expect(service.deleteOrgMembership(organizationId, membershipId)).rejects.toThrow(error);
 
       expect(repository.findOrgMembership).toHaveBeenCalledWith(organizationId, membershipId);
-      expect(TeamService.removeMembers).toHaveBeenCalledWith({
+      expect(mockRemoveMembers).toHaveBeenCalledWith({
         teamIds: [organizationId],
         userIds: [mockMembership.userId],
         isOrg: true,
