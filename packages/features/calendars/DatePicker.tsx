@@ -409,7 +409,6 @@ const DatePicker = ({
     <div className={className}>
       <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
-          {" "}
           {browsingDate ? (
             <time dateTime={browsingDate.format("YYYY-MM")} data-testid="selected-month-label">
               <strong
@@ -457,7 +456,6 @@ const DatePicker = ({
         </div>
       </div>
       <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-b border-t text-center md:mb-0 md:border-0">
-        {" "}
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div
             key={weekDay}
@@ -470,7 +468,6 @@ const DatePicker = ({
         ))}
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
-        {" "}
         <Days
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
