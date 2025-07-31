@@ -1,6 +1,6 @@
-import type { JestConfigWithTsJest } from "ts-jest";
+import type { Config } from "jest";
 
-const config: JestConfigWithTsJest = {
+const config: Config = {
   preset: "ts-jest",
   moduleFileExtensions: ["js", "json", "ts"],
   rootDir: ".",
@@ -11,7 +11,7 @@ const config: JestConfigWithTsJest = {
   testEnvironment: "node",
   testRegex: ".e2e-spec.ts$",
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+    "^.+\\.ts$": "ts-jest",
   },
   setupFiles: ["<rootDir>/test/setEnvVars.ts", "jest-date-mock"],
   setupFilesAfterEnv: ["<rootDir>/test/jest.setup-e2e.ts"],

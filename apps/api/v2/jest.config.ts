@@ -1,8 +1,8 @@
-import type { JestConfigWithTsJest } from "ts-jest";
+import type { Config } from "jest";
 
-const config: JestConfigWithTsJest = {
+const config: Config = {
   preset: "ts-jest",
-  moduleFileExtensions: ["json", "ts"], // removed 'js'
+  moduleFileExtensions: ["ts", "js", "json"],
   rootDir: ".",
   moduleNameMapper: {
     "@/(.*)": "<rootDir>/src/$1",
