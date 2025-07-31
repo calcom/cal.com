@@ -4,12 +4,6 @@ import type { CalendarCacheSqlService } from "./CalendarCacheSqlService";
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
-export interface WebhookRequest {
-  headers: {
-    "x-goog-channel-id"?: string;
-  };
-}
-
 export interface WebhookResponse {
   status: number;
   body: Record<string, any>;
