@@ -1,4 +1,6 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -186,15 +188,47 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     )
   );
 
+  // Add PBAC permission checking for eventType.create
+  const profilesWithPermissions = await Promise.all(
+    eventTypeGroups.map(async (group) => {
+      let canCreateEventTypes: boolean | undefined = undefined;
+
+      // For team profiles, check PBAC permissions
+      if (group.teamId && group.membershipRole) {
+        try {
+          const permissions = await getResourcePermissions({
+            userId: user.id,
+            teamId: group.teamId,
+            resource: Resource.EventType,
+            userRole: group.membershipRole,
+            fallbackRoles: {
+              create: {
+                roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+              },
+            },
+          });
+          canCreateEventTypes = permissions.canCreate;
+        } catch (error) {
+          // If PBAC check fails, fall back to role-based check
+          canCreateEventTypes =
+            group.membershipRole === MembershipRole.ADMIN || group.membershipRole === MembershipRole.OWNER;
+        }
+      }
+
+      return {
+        ...group.profile,
+        ...group.metadata,
+        teamId: group.teamId,
+        membershipRole: group.membershipRole,
+        canCreateEventTypes,
+      };
+    })
+  );
+
   const denormalizedPayload = {
     eventTypeGroups,
     // so we can show a dropdown when the user has teams
-    profiles: eventTypeGroups.map((group) => ({
-      ...group.profile,
-      ...group.metadata,
-      teamId: group.teamId,
-      membershipRole: group.membershipRole,
-    })),
+    profiles: profilesWithPermissions,
   };
 
   return denormalizedPayload;
