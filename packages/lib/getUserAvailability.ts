@@ -381,7 +381,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     );
   }
 
-  // here to change if user's personal booking also has to be limited based on bookinglimit
   const teamForBookingLimits =
     initialData?.teamForBookingLimits ?? eventType?.team ?? eventType?.parent?.team;
 
