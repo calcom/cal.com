@@ -1,6 +1,7 @@
 import type { JestConfigWithTsJest } from "ts-jest";
 
 const config: JestConfigWithTsJest = {
+  preset: "ts-jest",
   moduleFileExtensions: ["js", "json", "ts"],
   rootDir: ".",
   moduleNameMapper: {
