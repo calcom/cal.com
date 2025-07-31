@@ -175,6 +175,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [isTestAgentDialogOpen, setIsTestAgentDialogOpen] = useState(false);
   const [isUnsubscribeDialogOpen, setIsUnsubscribeDialogOpen] = useState(false);
+  const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
 
@@ -492,19 +493,24 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             StartIcon="trash-2"
                             color="destructive"
                             onClick={() => {
-                              const steps = form.getValues("steps");
-                              const updatedSteps = steps
-                                ?.filter((currStep) => currStep.id !== step.id)
-                                .map((s) => {
-                                  const updatedStep = s;
-                                  if (step.stepNumber < updatedStep.stepNumber) {
-                                    updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                                  }
-                                  return updatedStep;
-                                });
-                              form.setValue("steps", updatedSteps);
-                              if (setReload) {
-                                setReload(!reload);
+                              // Check if this is a CAL_AI action with a phone number
+                              if (isCalAIAction(step.action) && agentData?.outboundPhoneNumbers?.length > 0) {
+                                setIsDeleteStepDialogOpen(true);
+                              } else {
+                                const steps = form.getValues("steps");
+                                const updatedSteps = steps
+                                  ?.filter((currStep) => currStep.id !== step.id)
+                                  .map((s) => {
+                                    const updatedStep = s;
+                                    if (step.stepNumber < updatedStep.stepNumber) {
+                                      updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                    }
+                                    return updatedStep;
+                                  });
+                                form.setValue("steps", updatedSteps);
+                                if (setReload) {
+                                  setReload(!reload);
+                                }
                               }
                             }}>
                             {t("delete")}
@@ -1414,6 +1420,90 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 }}
                 loading={unsubscribePhoneNumberMutation.isPending}>
                 {t("Unsubscribe")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Step Confirmation Dialog */}
+        <Dialog open={isDeleteStepDialogOpen} onOpenChange={setIsDeleteStepDialogOpen}>
+          <DialogContent type="creation" title={t("Delete Workflow Step")}>
+            <div className="space-y-4">
+              <p className="text-default text-sm">
+                {t("Are you sure you want to delete this workflow step?")}
+              </p>
+              {(() => {
+                const relevantPhoneNumbers =
+                  agentData?.outboundPhoneNumbers?.filter(
+                    (phone) => phone.subscriptionStatus !== PhoneNumberSubscriptionStatus.CANCELLED
+                  ) || [];
+
+                return (
+                  relevantPhoneNumbers.length > 0 && (
+                    <>
+                      <div className="bg-attention rounded-lg p-3">
+                        <div className="flex items-start gap-2">
+                          <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
+                          <div className="space-y-2">
+                            <p className="text-attention text-sm font-medium">
+                              {t("This action will also:")}
+                            </p>
+                            <ul className="text-attention list-inside list-disc space-y-1 text-sm">
+                              {relevantPhoneNumbers.some(
+                                (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+                              ) && <li>{t("Cancel your phone number subscription")}</li>}
+                              <li>{t("Delete the associated phone number")}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      {relevantPhoneNumbers.map((phone) => (
+                        <div key={phone.phoneNumber} className="bg-muted rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <Icon name="phone" className="text-emphasis h-4 w-4" />
+                            <span className="text-emphasis text-sm font-medium">
+                              {formatPhoneNumber(phone.phoneNumber)}
+                            </span>
+                            {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (
+                              <Badge variant="green" size="sm" withDot>
+                                {t("Active Subscription")}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )
+                );
+              })()}
+            </div>
+            <DialogFooter showDivider>
+              <Button type="button" color="secondary" onClick={() => setIsDeleteStepDialogOpen(false)}>
+                {t("Cancel")}
+              </Button>
+              <Button
+                type="button"
+                StartIcon="trash-2"
+                color="destructive"
+                onClick={() => {
+                  // Proceed with deletion
+                  const steps = form.getValues("steps");
+                  const updatedSteps = steps
+                    ?.filter((currStep) => currStep.id !== step.id)
+                    .map((s) => {
+                      const updatedStep = s;
+                      if (step.stepNumber < updatedStep.stepNumber) {
+                        updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                      }
+                      return updatedStep;
+                    });
+                  form.setValue("steps", updatedSteps);
+                  if (setReload) {
+                    setReload(!reload);
+                  }
+                  setIsDeleteStepDialogOpen(false);
+                }}>
+                {t("Delete")}
               </Button>
             </DialogFooter>
           </DialogContent>

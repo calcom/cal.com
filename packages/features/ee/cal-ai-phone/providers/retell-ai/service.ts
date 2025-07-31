@@ -438,11 +438,7 @@ export class RetellAIService {
 
       // Delete the phone number from Retell, DB
       try {
-        await this.deletePhoneNumber({
-          phoneNumber: phoneNumber.phoneNumber,
-          userId,
-          deleteFromDB: false,
-        });
+        await this.repository.deletePhoneNumber(phoneNumber.phoneNumber);
       } catch (error) {
         console.error(
           "Failed to delete phone number from AI service, but subscription was cancelled:",

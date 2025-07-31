@@ -1337,7 +1337,7 @@ model WorkflowStep {
   includeCalendarEvent      Boolean            @default(false)
   verifiedAt                DateTime?
   agentId                   String?            @unique
-  agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
