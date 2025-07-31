@@ -155,7 +155,7 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  async getRescheduledToInfo(bookingUid: string): Promise<{ uid?: string; rescheduledBy?: string }> {
+  async getRescheduledToInfo(bookingUid: string): Promise<{ uid?: string; rescheduledBy?: string | null }> {
     const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
     return { 
       uid: rescheduledTo?.uid, 
