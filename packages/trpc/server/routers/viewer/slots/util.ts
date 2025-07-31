@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -30,7 +30,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
@@ -92,7 +92,6 @@ export type GetAvailableSlotsResponse = Awaited<
 >;
 
 export interface IAvailableSlotsService {
-  checkBookingLimitsService: CheckBookingLimitsService;
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
   selectedSlotRepo: ISelectedSlotRepository;
@@ -101,6 +100,8 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
+  cacheService: CacheService;
+  checkBookingLimitsService: CheckBookingLimitsService;
   redisClient: IRedisService;
 }
 
@@ -140,8 +141,6 @@ function withSlotsCache(
     log.info("[CACHE MISS] Available slots", { cacheKey });
     return result;
   };
-  cacheService: CacheService;
-  checkBookingLimitsService: CheckBookingLimitsService;
 }
 
 export class AvailableSlotsService {
