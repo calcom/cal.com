@@ -222,7 +222,7 @@ const _ensureAvailableUsers = async (
 
     if (!dateRanges.length) {
       loggerWithEventDetails.error(
-        `User does not have availability at this time.`,
+        `User ${user.id} does not have availability at this time.`,
         piiFreeInputDataForLogging
       );
       return;
