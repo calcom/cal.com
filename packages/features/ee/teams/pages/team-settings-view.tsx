@@ -34,6 +34,10 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
+  const session = useSession();
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(session?.data?.user.org?.role);
+
   const form = useForm<{
     bookingLimits?: IntervalLimit;
     includeManagedEventsInLimits: boolean;
@@ -74,8 +78,6 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
       showToast(t("booking_limits_updated_successfully"), "success");
     },
   });
-
-  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
@@ -142,17 +144,19 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                           />
                         )}
                       />
-                      <Controller
-                        name="includePersonalEventsInLimits"
-                        render={({ field: { value, onChange } }) => (
-                          <CheckboxField
-                            description={t("count_personal_to_limit")}
-                            descriptionAsLabel
-                            onChange={(e) => onChange(e)}
-                            checked={value}
-                          />
-                        )}
-                      />
+                      {true && (
+                        <Controller
+                          name="includePersonalEventsInLimits"
+                          render={({ field: { value, onChange } }) => (
+                            <CheckboxField
+                              description={t("count_personal_to_limit")}
+                              descriptionAsLabel
+                              onChange={(e) => onChange(e)}
+                              checked={value}
+                            />
+                          )}
+                        />
+                      )}
                       <div className="pt-6">
                         <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
                       </div>
