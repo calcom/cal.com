@@ -172,6 +172,20 @@ export async function setUpTestUserForIntegrationTest(users: ReturnType<typeof c
     test.skip(!client_id || !client_secret, "Outlook App keys not found");
   }
 
+  // Delete test user if exists, to avoid duplicate email error
+  const existingTestUser = await prisma.user.findFirst({
+    where: {
+      email: testUserEmail,
+    },
+  });
+  if (existingTestUser) {
+    await prisma.user.delete({
+      where: {
+        email: testUserEmail,
+      },
+    });
+  }
+
   const orgSlug = `e2e-org-${uuidv4()}`;
   const testUser = await users.create(
     { email: testUserEmail, roleInOrganization: MembershipRole.ADMIN },
@@ -443,6 +457,18 @@ export async function cleanUpAfterIntegrationTest() {
     await prisma.workspacePlatform.delete({
       where: {
         id: workspacePlatformId,
+      },
+    });
+  }
+  const testUser = await prisma.user.findFirst({
+    where: {
+      email: testUserEmail,
+    },
+  });
+  if (testUser) {
+    await prisma.user.delete({
+      where: {
+        email: testUserEmail,
       },
     });
   }
