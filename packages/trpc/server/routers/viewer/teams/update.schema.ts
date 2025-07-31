@@ -20,6 +20,7 @@ export type TUpdateInputSchema = {
   theme?: string | null;
   bookingLimits?: IntervalLimit | null;
   includeManagedEventsInLimits?: boolean;
+  includePersonalEventsInLimits?: boolean;
   rrResetInterval?: "DAY" | "MONTH";
   rrTimestampBasis?: "CREATED_AT" | "START_TIME";
 };
@@ -46,6 +47,7 @@ export const ZUpdateInputSchema: z.Schema<TUpdateInputSchema> = z.object({
   theme: z.string().optional().nullable(),
   bookingLimits: intervalLimitsType.optional(),
   includeManagedEventsInLimits: z.boolean().optional(),
+  includePersonalEventsInLimits: z.boolean().optional(),
   rrResetInterval: z.enum(["DAY", "MONTH"]).optional(),
   rrTimestampBasis: z.enum(["CREATED_AT", "START_TIME"]).optional(),
 });

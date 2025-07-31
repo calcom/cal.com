@@ -225,6 +225,7 @@ export type InputEventType = {
     parentId?: number | null;
     bookingLimits?: IntervalLimit;
     includeManagedEventsInLimits?: boolean;
+    includePersonalEventsInLimits?: boolean;
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
@@ -437,6 +438,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     afterEventBuffer: 0,
     bookingLimits: {},
     includeManagedEventsInLimits: false,
+    includePersonalEventsInLimits: false,
     schedulingType: null,
     length: 15,
     //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?

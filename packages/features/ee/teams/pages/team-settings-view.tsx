@@ -34,10 +34,15 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const form = useForm<{ bookingLimits?: IntervalLimit; includeManagedEventsInLimits: boolean }>({
+  const form = useForm<{
+    bookingLimits?: IntervalLimit;
+    includeManagedEventsInLimits: boolean;
+    includePersonalEventsInLimits: boolean;
+  }>({
     defaultValues: {
       bookingLimits: team?.bookingLimits || undefined,
       includeManagedEventsInLimits: team?.includeManagedEventsInLimits ?? false,
+      includePersonalEventsInLimits: team?.includePersonalEventsInLimits ?? false,
     },
   });
 
@@ -56,6 +61,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
         reset({
           bookingLimits: res.bookingLimits,
           includeManagedEventsInLimits: res.includeManagedEventsInLimits,
+          includePersonalEventsInLimits: res.includePersonalEventsInLimits,
         });
       }
       if (team?.slug) {
@@ -106,11 +112,18 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                       } else {
                         form.setValue("bookingLimits", {});
                         form.setValue("includeManagedEventsInLimits", false);
+                        form.setValue("includePersonalEventsInLimits", false);
                       }
                       const bookingLimits = form.getValues("bookingLimits");
                       const includeManagedEventsInLimits = form.getValues("includeManagedEventsInLimits");
+                      const includePersonalEventsInLimits = form.getValues("includePersonalEventsInLimits");
 
-                      mutation.mutate({ bookingLimits, includeManagedEventsInLimits, id: team.id });
+                      mutation.mutate({
+                        bookingLimits,
+                        includeManagedEventsInLimits,
+                        includePersonalEventsInLimits,
+                        id: team.id,
+                      });
                     }}
                     switchContainerClassName={classNames(
                       "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
@@ -129,7 +142,17 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                           />
                         )}
                       />
-
+                      <Controller
+                        name="includePersonalEventsInLimits"
+                        render={({ field: { value, onChange } }) => (
+                          <CheckboxField
+                            description={t("count_personal_to_limit")}
+                            descriptionAsLabel
+                            onChange={(e) => onChange(e)}
+                            checked={value}
+                          />
+                        )}
+                      />
                       <div className="pt-6">
                         <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
                       </div>

@@ -66,6 +66,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: input.theme,
     bookingLimits: input.bookingLimits ?? undefined,
     includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
+    includePersonalEventsInLimits: input.includePersonalEventsInLimits ?? undefined,
     rrResetInterval: input.rrResetInterval,
     rrTimestampBasis: input.rrTimestampBasis,
   };
@@ -169,6 +170,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: updatedTeam.darkBrandColor,
     bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
     includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
+    includePersonalEventsInLimits: updatedTeam.includePersonalEventsInLimits,
     rrResetInterval: updatedTeam.rrResetInterval,
     rrTimestampBasis: updatedTeam.rrTimestampBasis,
   };

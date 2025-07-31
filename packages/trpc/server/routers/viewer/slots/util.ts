@@ -508,6 +508,7 @@ export class AvailableSlotsService {
     dateTo: Dayjs,
     teamId: number,
     includeManagedEvents: boolean,
+    includePersonalEvents: boolean,
     timeZone: string,
     rescheduleUid?: string
   ) {
