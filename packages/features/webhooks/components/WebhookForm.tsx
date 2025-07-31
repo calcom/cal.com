@@ -73,6 +73,142 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
   ],
 } as const;
 
+const WEBHOOK_VARIABLES = [
+  {
+    category: "Event and Booking",
+    variables: [
+      {
+        name: "triggerEvent",
+        variable: "{{triggerEvent}}",
+        type: "String",
+        description: "The name of the trigger event (e.g., BOOKING_CREATED, BOOKING_CANCELLED)",
+      },
+      {
+        name: "createdAt",
+        variable: "{{createdAt}}",
+        type: "Datetime",
+        description: "The time of the webhook",
+      },
+      { name: "type", variable: "{{type}}", type: "String", description: "The event type slug" },
+      { name: "title", variable: "{{title}}", type: "String", description: "The event type name" },
+      {
+        name: "startTime",
+        variable: "{{startTime}}",
+        type: "Datetime",
+        description: "The event's start time",
+      },
+      { name: "endTime", variable: "{{endTime}}", type: "Datetime", description: "The event's end time" },
+      {
+        name: "description",
+        variable: "{{description}}",
+        type: "String",
+        description: "The event's description as described in the event type settings",
+      },
+      { name: "location", variable: "{{location}}", type: "String", description: "Location of the event" },
+      { name: "uid", variable: "{{uid}}", type: "String", description: "The UID of the booking" },
+      {
+        name: "rescheduleUid",
+        variable: "{{rescheduleUid}}",
+        type: "String",
+        description: "The UID for rescheduling",
+      },
+      {
+        name: "cancellationReason",
+        variable: "{{cancellationReason}}",
+        type: "String",
+        description: "Reason for cancellation",
+      },
+      {
+        name: "rejectionReason",
+        variable: "{{rejectionReason}}",
+        type: "String",
+        description: "Reason for rejection",
+      },
+    ],
+  },
+  {
+    category: "People",
+    variables: [
+      {
+        name: "organizer.name",
+        variable: "{{organizer.name}}",
+        type: "String",
+        description: "Name of the organizer",
+      },
+      {
+        name: "organizer.email",
+        variable: "{{organizer.email}}",
+        type: "String",
+        description: "Email of the organizer",
+      },
+      {
+        name: "organizer.timezone",
+        variable: "{{organizer.timezone}}",
+        type: "String",
+        description: "Timezone of the organizer (e.g., 'America/New_York', 'Asia/Kolkata')",
+      },
+      {
+        name: "organizer.language.locale",
+        variable: "{{organizer.language.locale}}",
+        type: "String",
+        description: "Locale of the organizer (e.g., 'en', 'fr')",
+      },
+      {
+        name: "attendees.0.name",
+        variable: "{{attendees.0.name}}",
+        type: "String",
+        description: "Name of the first attendee",
+      },
+      {
+        name: "attendees.0.email",
+        variable: "{{attendees.0.email}}",
+        type: "String",
+        description: "Email of the first attendee",
+      },
+      {
+        name: "attendees.0.timezone",
+        variable: "{{attendees.0.timezone}}",
+        type: "String",
+        description: "Timezone of the first attendee",
+      },
+      {
+        name: "attendees.0.language.locale",
+        variable: "{{attendees.0.language.locale}}",
+        type: "String",
+        description: "Locale of the first attendee",
+      },
+    ],
+  },
+  {
+    category: "Teams",
+    variables: [
+      {
+        name: "team.name",
+        variable: "{{team.name}}",
+        type: "String",
+        description: "Name of the team booked",
+      },
+      {
+        name: "team.members",
+        variable: "{{team.members}}",
+        type: "String[]",
+        description: "Members of the team booked",
+      },
+    ],
+  },
+  {
+    category: "Metadata",
+    variables: [
+      {
+        name: "metadata.videoCallUrl",
+        variable: "{{metadata.videoCallUrl}}",
+        type: "String",
+        description: "Video call URL for the meeting",
+      },
+    ],
+  },
+];
+
 export type WebhookFormValues = {
   subscriberUrl: string;
   active: boolean;
@@ -141,6 +277,29 @@ const WebhookForm = (props: {
   const [useCustomTemplate, setUseCustomTemplate] = useState(
     props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
   );
+
+  function insertVariableIntoTemplate(current: string, name: string, value: string): string {
+    try {
+      const parsed = JSON.parse(current || "{}");
+      parsed[name] = value;
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      const trimmed = current.trim();
+      if (trimmed === "{}" || trimmed === "") {
+        return `{\n  "${name}": "${value}"\n}`;
+      }
+
+      if (trimmed.endsWith("}")) {
+        const withoutClosing = trimmed.slice(0, -1);
+        const needsComma = withoutClosing.trim().endsWith('"') || withoutClosing.trim().endsWith("}");
+        return `${withoutClosing}${needsComma ? "," : ""}\n  "${name}": "${value}"\n}`;
+      }
+
+      return `${current}\n"${name}": "${value}"`;
+    }
+  }
+
+  const [showVariables, setShowVariables] = useState(false);
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
@@ -339,14 +498,53 @@ const WebhookForm = (props: {
                 />
               </div>
               {useCustomTemplate && (
-                <TextArea
-                  name="customPayloadTemplate"
-                  rows={3}
-                  value={value}
-                  onChange={(e) => {
-                    formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true });
-                  }}
-                />
+                <div className="space-y-3">
+                  <TextArea
+                    name="customPayloadTemplate"
+                    rows={8}
+                    value={value || ""}
+                    placeholder="{}"
+                    onChange={(e) =>
+                      formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true })
+                    }
+                  />
+
+                  <Button type="button" color="secondary" onClick={() => setShowVariables(!showVariables)}>
+                    {showVariables ? "Hide Variables" : "Show Available Variables"}
+                  </Button>
+
+                  {showVariables && (
+                    <div className="max-h-80 overflow-y-auto rounded-md border border-zinc-600 p-3">
+                      {WEBHOOK_VARIABLES.map(({ category, variables }) => (
+                        <div key={category} className="mb-4">
+                          <h4 className="mb-2 text-sm font-medium">{category}</h4>
+                          <div className="space-y-2">
+                            {variables.map(({ name, variable, description }) => (
+                              <div
+                                key={name}
+                                className="cursor-pointer rounded bg-black p-2 text-sm transition-colors hover:bg-zinc-800"
+                                onClick={() => {
+                                  const currentValue = formMethods.getValues("payloadTemplate") || "{}";
+                                  const updatedValue = insertVariableIntoTemplate(
+                                    currentValue,
+                                    name,
+                                    variable
+                                  );
+                                  formMethods.setValue("payloadTemplate", updatedValue, {
+                                    shouldDirty: true,
+                                  });
+                                }}>
+                                <div className="font-mono text-white">{variable}</div>
+                                <div className="text-xs text-gray-500">{description}</div>
+                                <div className="mt-1 text-xs text-gray-500">Click to add to template</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </>
           )}
