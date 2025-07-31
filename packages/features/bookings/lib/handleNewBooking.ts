@@ -977,21 +977,31 @@ async function handler(
 
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
+    console.log("organizerUser", organizerUser);
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
+      console.log("organizerMetadata", organizerMetadata);
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
       if (isManagedEventType || isTeamEventType) {
+        console.log("isManagedEventType || isTeamEventType");
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
       }
     } else if (organizationDefaultLocation) {
+      console.log("organizationDefaultLocation", organizationDefaultLocation);
       locationBodyString = organizationDefaultLocation;
     } else {
+      console.log("integrations:daily");
       locationBodyString = "integrations:daily";
     }
   }
+
+  console.log("locationBodyString", {
+    locationBodyString,
+    organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+  });
 
   const invitee: Invitee = [
     {

@@ -73,6 +73,18 @@ export const handleRescheduleEventManager = async ({
 
   const results = updateManager.results ?? [];
 
+  const calVideoResult = results.find(
+    (result) => result.type.includes("_video") && result.type === "daily_video"
+  );
+  // Check if Cal Video Creation Failed - That is the fallback for Cal.com and must always work
+  if (calVideoResult && !calVideoResult.success) {
+    handleRescheduleEventManager.error("Cal Video creation failed", {
+      error: calVideoResult.error,
+      bookingLocation,
+    });
+    throw new Error("Failed to set video conferencing link, but the meeting has been rescheduled");
+  }
+
   const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
     results: results,
   });
@@ -80,7 +92,11 @@ export const handleRescheduleEventManager = async ({
   let videoCallUrl = _videoCallUrl;
   let metadata: AdditionalInformation = {};
   metadata = videoMetadata;
-
+  console.log("resultsOfHandleRescheduleEventManager", {
+    results,
+    bookingLocation,
+    evt,
+  });
   if (results.length) {
     // Handle Google Meet results
     if (bookingLocation === MeetLocationType) {
@@ -154,6 +170,9 @@ export const handleRescheduleEventManager = async ({
       ? calendarResult?.updatedEvent[0]?.iCalUID
       : calendarResult?.updatedEvent?.iCalUID || undefined;
   }
+  console.log("updateManager", {
+    updateManager,
+  });
   const newReferencesToCreate = structuredClone(updateManager.referencesToCreate);
 
   await BookingReferenceRepository.replaceBookingReferences({
