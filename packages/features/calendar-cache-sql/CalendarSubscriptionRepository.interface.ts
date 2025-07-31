@@ -16,6 +16,7 @@ export interface ICalendarSubscriptionRepository {
     | null
   >;
   upsert(data: Prisma.CalendarSubscriptionCreateInput): Promise<CalendarSubscription>;
+  upsertMany(data: Prisma.CalendarSubscriptionCreateInput[]): Promise<CalendarSubscription[]>;
   updateSyncToken(id: string, nextSyncToken: string): Promise<void>;
   updateWatchDetails(
     id: string,

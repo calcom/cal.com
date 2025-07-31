@@ -104,6 +104,29 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     }
   }
 
+  async upsertMany(data: Prisma.CalendarSubscriptionCreateInput[]) {
+    try {
+      // Use a transaction to ensure all upserts are atomic
+      return await this.prismaClient.$transaction(
+        data.map((item) =>
+          this.prismaClient.calendarSubscription.upsert({
+            where: {
+              selectedCalendarId: item.selectedCalendar.connect?.id as string,
+            },
+            create: item,
+            update: {
+              ...item,
+              updatedAt: new Date(),
+            },
+          })
+        )
+      );
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
   async updateSyncToken(id: string, nextSyncToken: string) {
     try {
       await this.prismaClient.calendarSubscription.update({

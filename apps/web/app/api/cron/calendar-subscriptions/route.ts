@@ -35,19 +35,20 @@ async function getHandler(req: NextRequest) {
     let createdCount = 0;
     let errorCount = 0;
 
-    for (const selectedCalendar of selectedCalendars) {
+    if (selectedCalendars.length > 0) {
       try {
-        await subscriptionRepo.upsert({
+        const upsertData = selectedCalendars.map((selectedCalendar) => ({
           selectedCalendar: { connect: { id: selectedCalendar.id } },
-        });
+        }));
 
-        createdCount++;
+        await subscriptionRepo.upsertMany(upsertData);
+        createdCount = selectedCalendars.length;
       } catch (error) {
         log.error(
-          `Failed to create subscription for selected calendar ${selectedCalendar.id}:`,
-          safeStringify({ error })
+          `Failed to bulk upsert subscriptions for selected calendars:`,
+          safeStringify({ error, selectedCalendarIds: selectedCalendars.map((sc) => sc.id) })
         );
-        errorCount++;
+        errorCount = selectedCalendars.length;
       }
     }
 
