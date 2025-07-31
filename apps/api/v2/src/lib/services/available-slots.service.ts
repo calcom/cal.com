@@ -35,7 +35,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       selectedSlotRepo: selectedSlotRepository,
       eventTypeRepo: eventTypeRepository,
       userRepo: userRepository,
-      checkBookingLimitsService: new CheckBookingLimitsService({ bookingRepo: bookingRepository }) as any,
+      checkBookingLimitsService: new CheckBookingLimitsService(bookingRepository) as any,
       cacheService: new CacheService(featuresRepository),
     });
   }

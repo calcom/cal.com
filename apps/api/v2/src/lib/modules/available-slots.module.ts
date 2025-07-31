@@ -8,6 +8,7 @@ import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
+import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
@@ -25,6 +26,7 @@ import { Module } from "@nestjs/common";
     PrismaTeamRepository,
     PrismaFeaturesRepository,
     CheckBookingLimitsService,
+    CacheService,
     AvailableSlotsService,
   ],
   exports: [AvailableSlotsService],

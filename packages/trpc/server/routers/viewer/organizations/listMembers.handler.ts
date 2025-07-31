@@ -1,6 +1,6 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -39,7 +39,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const expand = input.expand;
   const filters = input.filters || [];
 
-  const featuresRepository = getFeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const pbacFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(organizationId, "pbac");
 
   const allAttributeOptions = await prisma.attributeOption.findMany({

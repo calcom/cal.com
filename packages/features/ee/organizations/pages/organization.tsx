@@ -1,12 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { MembershipRole } from "@calcom/prisma/client";
 
 export const getServerSideProps = async ({ req }: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const featuresRepository = getFeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const organizationsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("organizations");
   // Check if organizations are enabled
   if (!organizationsEnabled) {

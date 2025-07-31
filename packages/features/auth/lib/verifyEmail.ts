@@ -6,10 +6,10 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getFeaturesRepository } from "@calcom/lib/di/containers/features";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -34,7 +34,7 @@ export const sendEmailVerification = async ({
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = getFeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
@@ -127,7 +127,7 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = getFeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
