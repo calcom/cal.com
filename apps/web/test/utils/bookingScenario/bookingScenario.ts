@@ -334,7 +334,12 @@ export async function addEventTypesToDb(
     destinationCalendar?: any;
     schedule?: any;
     metadata?: any;
-    team?: { id?: number | null; bookingLimits?: IntervalLimit; includeManagedEventsInLimits?: boolean };
+    team?: {
+      id?: number | null;
+      bookingLimits?: IntervalLimit;
+      includeManagedEventsInLimits?: boolean;
+      includePersonalEventsInLimits?: boolean;
+    };
     restrictionSchedule?: {
       create: {
         name: string;
@@ -409,6 +414,7 @@ export async function addEventTypesToDb(
           id: eventType.team?.id,
           bookingLimits: eventType.team?.bookingLimits,
           includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
+          includePersonalEventsInLimits: eventType.team?.includePersonalEventsInLimits,
           name: "",
         },
       });
@@ -1599,6 +1605,7 @@ export function getScenarioData(
           parentId: org ? org.id : null,
           bookingLimits: eventType?.team?.bookingLimits,
           includeManagedEventsInLimits: eventType?.team?.includeManagedEventsInLimits,
+          includePersonalEventsInLimits: eventType?.team?.includePersonalEventsInLimits,
         },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,

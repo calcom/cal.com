@@ -77,6 +77,7 @@ const mockOrganization = {
   darkBrandColor: null,
   createdAt: new Date(),
   includeManagedEventsInLimits: false,
+  includePersonalEventsInLimits: false,
   smsLockState: SMSLockState.LOCKED,
   smsLockReviewedByAdmin: false,
   slug: "test-org",
