@@ -114,6 +114,8 @@ export class TeamsMembershipsController {
     @Param("membershipId", ParseIntPipe) membershipId: number,
     @Body() body: UpdateTeamMembershipInput
   ): Promise<UpdateTeamMembershipOutput> {
+    const membership = await this.teamsMembershipsService.updateTeamMembership(teamId, membershipId, body);
+
     const currentMembership = await this.teamsMembershipsService.getTeamMembership(teamId, membershipId);
 
     const updatedMembership = await this.teamsMembershipsService.updateTeamMembership(
@@ -121,7 +123,6 @@ export class TeamsMembershipsController {
       membershipId,
       body
     );
-
     if (!currentMembership.accepted && updatedMembership.accepted) {
       try {
         await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
@@ -131,7 +132,7 @@ export class TeamsMembershipsController {
     }
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(TeamMembershipOutput, updatedMembership, { strategy: "excludeAll" }),
+      data: plainToClass(TeamMembershipOutput, membership, { strategy: "excludeAll" }),
     };
   }
 
