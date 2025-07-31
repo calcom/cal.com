@@ -1,10 +1,12 @@
 import { z } from "zod";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -59,13 +61,7 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAuthorized = (function () {
       if (event.team) {
-        const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
-        return (
-          event.team.members
-            .filter((member) => checkAdminOrOwner(member.role))
-            .map((member) => member.userId)
-            .includes(ctx.user.id) || isOrgAdmin
-        );
+        return event.team.members.map((member) => member.userId).includes(ctx.user.id);
       }
       return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
     })();
@@ -91,6 +87,62 @@ export const eventOwnerProcedure = authedProcedure
 
     return next();
   });
+
+/**
+ * Creates an event admin procedure with configurable permissions
+ * @param permission - The specific permission required (e.g., "eventType.manage", "eventType.update")
+ * @param fallbackRoles - Roles to check when PBAC is disabled (defaults to ["ADMIN", "OWNER"])
+ * @returns A procedure that checks the specified permission
+ */
+export const createEventPbacProcedure = (
+  permission: PermissionString,
+  fallbackRoles: MembershipRole[] = ["ADMIN", "OWNER"]
+) => {
+  return eventOwnerProcedure.use(async ({ ctx, input, next }) => {
+    const id = input.eventTypeId ?? input.id;
+
+    const event = await ctx.prisma.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        teamId: true,
+      },
+    });
+
+    if (!event) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+
+    // For team events, check PBAC permissions
+    if (event.teamId) {
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
+        userId: ctx.user.id,
+        teamId: event.teamId,
+        permission,
+        fallbackRoles,
+      });
+
+      if (!hasPermission) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Permission required: ${permission}`,
+        });
+      }
+    } else {
+      // For personal events, only the owner can manage
+      if (event.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: `Permission required: ${permission}`,
+        });
+      }
+    }
+
+    return next();
+  });
+};
 
 export function isPeriodType(keyInput: string): keyInput is PeriodType {
   return Object.keys(PeriodType).includes(keyInput);
