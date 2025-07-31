@@ -194,8 +194,10 @@ const Days = ({
   const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
   const totalDays = daysInMonth(browsingDate);
 
+  const showNextMonthDays = isSecondWeekOver && !isCompact;
+
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
-  if (isSecondWeekOver && !isCompact) {
+  if (showNextMonthDays) {
     const startDay = 8;
     const pad = getPadding(startDay);
     days = Array(pad).fill(null);
@@ -337,7 +339,7 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
-              showMonthTooltip={isSecondWeekOver && !isCompact}
+              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
               isFirstDayOfNextMonth={isFirstDayOfNextMonth}
             />
           )}
@@ -406,7 +408,7 @@ const DatePicker = ({
   return (
     <div className={className}>
       <div className="mb-1 flex items-center justify-between text-xl">
-        <span className="text-default w-1/2 text-base">
+        <span className="text-default font-medium">
           {browsingDate ? (
             <time dateTime={browsingDate.format("YYYY-MM")} data-testid="selected-month-label">
               <strong
@@ -418,7 +420,7 @@ const DatePicker = ({
               </span>
             </time>
           ) : (
-            <SkeletonText className="h-8 w-24" />
+            <SkeletonText className="h-8" />
           )}
         </span>
         <div className="text-emphasis">
@@ -453,7 +455,7 @@ const DatePicker = ({
           </div>
         </div>
       </div>
-      <div className="border-subtle mb-2 grid grid-cols-7 gap-4 border-b border-t text-center md:mb-0 md:border-0">
+      <div className="border-subtle mb-2 grid grid-cols-7 border-b text-center md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div
             key={weekDay}
@@ -465,7 +467,7 @@ const DatePicker = ({
           </div>
         ))}
       </div>
-      <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
+      <div className="grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
