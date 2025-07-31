@@ -2519,7 +2519,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.258"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.271"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -2777,6 +2777,15 @@ __metadata:
 "@calcom/bolna@workspace:packages/app-store/bolna":
   version: 0.0.0-use.local
   resolution: "@calcom/bolna@workspace:packages/app-store/bolna"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/btcpayserver@workspace:packages/app-store/btcpayserver":
+  version: 0.0.0-use.local
+  resolution: "@calcom/btcpayserver@workspace:packages/app-store/btcpayserver"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -3566,13 +3575,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.258":
-  version: 0.0.258
-  resolution: "@calcom/platform-libraries@npm:0.0.258"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.271":
+  version: 0.0.271
+  resolution: "@calcom/platform-libraries@npm:0.0.271"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: ca522eee904921d4a2f285ba6ed195118a6d68c76fb454d826574d1f5487e8d3d7e41915c968ad0eff6bb01730578ee414069684c7a395b0c19b910f136bffb7
+  checksum: 5b55a05c5cd1d471fe36c90b8b2f16e70f6155065b3b13e12c06bde73f3ceffde74de3921c3a9fe05d04eed7fb587836ac79a46a521d35fe83812d66b13d8733
   languageName: node
   linkType: hard
 
@@ -4060,6 +4069,7 @@ __metadata:
     "@stripe/react-stripe-js": ^1.10.0
     "@stripe/stripe-js": ^1.35.0
     "@tanstack/react-query": ^5.17.15
+    "@team-plain/typescript-sdk": ^5.9.0
     "@testing-library/react": ^13.3.0
     "@tremor/react": ^2.11.0
     "@types/accept-language-parser": 1.5.2
@@ -16749,6 +16759,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@team-plain/typescript-sdk@npm:^5.9.0":
+  version: 5.9.0
+  resolution: "@team-plain/typescript-sdk@npm:5.9.0"
+  dependencies:
+    "@graphql-typed-document-node/core": ^3.2.0
+    ajv: ^8.12.0
+    ajv-formats: ^2.1.1
+    graphql: ^16.6.0
+    lodash.get: ^4.4.2
+    zod: 3.22.4
+  checksum: a1eb9a7f65096d232337d081a1b56a51fc5a4cd39877debf29c0eed5ee9140aaf0f148f65681257bfe804076bff93a049d46b0cae940844c4e20e9528a6a8782
+  languageName: node
+  linkType: hard
+
 "@tediousjs/connection-string@npm:^0.5.0":
   version: 0.5.0
   resolution: "@tediousjs/connection-string@npm:0.5.0"
@@ -19872,6 +19896,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ajv@npm:^8.12.0":
+  version: 8.17.1
+  resolution: "ajv@npm:8.17.1"
+  dependencies:
+    fast-deep-equal: ^3.1.3
+    fast-uri: ^3.0.1
+    json-schema-traverse: ^1.0.0
+    require-from-string: ^2.0.2
+  checksum: 1797bf242cfffbaf3b870d13565bd1716b73f214bb7ada9a497063aada210200da36e3ed40237285f3255acc4feeae91b1fb183625331bad27da95973f7253d9
+  languageName: node
+  linkType: hard
+
 "akismet-api@npm:^6.0.0":
   version: 6.0.0
   resolution: "akismet-api@npm:6.0.0"
@@ -21726,6 +21762,7 @@ __metadata:
     c8: ^7.13.0
     checkly: latest
     city-timezones: ^1.2.1
+    date-fns-tz: ^3.2.0
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
     husky: ^8.0.0
@@ -23900,6 +23937,15 @@ __metadata:
   version: 2.2.3
   resolution: "dataloader@npm:2.2.3"
   checksum: cc272181f6cad0ea20511c0a0d270cbc1df960a3526ab24941bbeb2cb7120499a598fe2cd41b4818527367acf7bc1be0723b6e5034637db4759a396c904b78a6
+  languageName: node
+  linkType: hard
+
+"date-fns-tz@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "date-fns-tz@npm:3.2.0"
+  peerDependencies:
+    date-fns: ^3.0.0 || ^4.0.0
+  checksum: c49289a3944fc1eacaa08649c2c1adc1652456d405841f2093fdd365596dac46553a303629b5d528c3f5e4c49919fc3d3ff98da93ad32a1a193243aa04cc0987
   languageName: node
   linkType: hard
 
@@ -27225,6 +27271,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-uri@npm:^3.0.1":
+  version: 3.0.6
+  resolution: "fast-uri@npm:3.0.6"
+  checksum: 7161ba2a7944778d679ba8e5f00d6a2bb479a2142df0982f541d67be6c979b17808f7edbb0ce78161c85035974bde3fa52b5137df31da46c0828cb629ba67c4e
+  languageName: node
+  linkType: hard
+
 "fast-xml-parser@npm:4.4.1":
   version: 4.4.1
   resolution: "fast-xml-parser@npm:4.4.1"
@@ -29056,6 +29109,13 @@ __metadata:
   version: 16.5.0
   resolution: "graphql@npm:16.5.0"
   checksum: a82a926d085818934d04fdf303a269af170e79de943678bd2726370a96194f9454ade9d6d76c2de69afbd7b9f0b4f8061619baecbbddbe82125860e675ac219e
+  languageName: node
+  linkType: hard
+
+"graphql@npm:^16.6.0":
+  version: 16.11.0
+  resolution: "graphql@npm:16.11.0"
+  checksum: 65bc206edbe980f2759a8e4cf324873f75a66ab48263961472716e50127ae446739be20f926bb7f036a8d199bd4de072f684fd147c285bd6ba965d98cebb6200
   languageName: node
   linkType: hard
 
@@ -48077,7 +48137,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.20.2, zod@npm:^3.22.4":
+"zod@npm:3.22.4, zod@npm:^3.20.2, zod@npm:^3.22.4":
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
