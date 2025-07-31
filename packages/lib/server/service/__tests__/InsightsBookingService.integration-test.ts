@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsBookingService } from "../../service/insightsBooking";
+import { InsightsBookingBaseService as InsightsBookingService } from "../InsightsBookingBaseService";
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 

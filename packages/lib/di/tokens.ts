@@ -22,6 +22,8 @@ export const DI_TOKENS = {
   AVAILABLE_SLOTS_SERVICE_MODULE: Symbol("AvailableSlotsModule"),
   INSIGHTS_ROUTING_SERVICE: Symbol("InsightsRoutingService"),
   INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
+  INSIGHTS_BOOKING_SERVICE: Symbol("InsightsBookingService"),
+  INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
   CHECK_BOOKING_LIMITS_SERVICE: Symbol("CheckBookingLimitsService"),
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),

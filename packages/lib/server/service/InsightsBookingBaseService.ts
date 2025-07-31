@@ -120,7 +120,7 @@ const NOTHING_CONDITION = Prisma.sql`1=0`;
 
 const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
-export class InsightsBookingService {
+export class InsightsBookingBaseService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
   private filters: InsightsBookingServiceFilterOptions | null;
