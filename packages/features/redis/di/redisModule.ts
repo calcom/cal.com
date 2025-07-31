@@ -8,6 +8,7 @@ import { RedisService } from "../RedisService";
 const redisModule = createModule();
 
 redisModule.bind(DI_TOKENS.REDIS_CLIENT).toFactory(() => {
+  if (process.env.NODE_ENV === "test") return new NoopRedisService();
   try {
     return new RedisService();
   } catch (error) {}
