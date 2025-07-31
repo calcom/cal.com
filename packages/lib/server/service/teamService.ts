@@ -192,6 +192,7 @@ export class TeamService {
     return { membership };
   }
 
+  // TODO: Needs to be moved to repository
   private static async fetchMembershipOrThrow(
     userId: number,
     teamId: number
@@ -217,6 +218,7 @@ export class TeamService {
     return membership;
   }
 
+  // TODO: Needs to be moved to repository
   private static async fetchTeamOrThrow(teamId: number): Promise<TeamWithSettings> {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -237,6 +239,7 @@ export class TeamService {
     return team;
   }
 
+  // TODO: Needs to be moved to repository
   private static async fetchUserOrThrow(userId: number): Promise<UserWithTeams> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -266,6 +269,7 @@ export class TeamService {
     return user;
   }
 
+  // TODO: Needs to be moved to repository
   private static async cleanupTempOrgRedirect(user: UserWithTeams, team: TeamWithSettings) {
     const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
       userId: user.id,
@@ -282,19 +286,13 @@ export class TeamService {
     }
   }
 
-  // Generate new username for user leaving organization
-  private static generateNewUsername(user: UserWithTeams): string | null {
-    // We ensure that new username would be unique across all users in the global namespace outside any organization
-    return user.username != null ? `${user.username}-${user.id}` : null;
-  }
-
   private static async removeFromOrganization(
     membership: MembershipWithRelations,
     team: TeamWithSettings,
     user: UserWithTeams
   ) {
     await TeamService.cleanupTempOrgRedirect(user, team);
-    const newUsername = TeamService.generateNewUsername(user);
+    const newUsername = generateNewUsername(user);
 
     await prisma.$transaction([
       // Remove user from all sub-teams event type hosts
@@ -348,6 +346,12 @@ export class TeamService {
         },
       }),
     ]);
+
+    // Generate new username for user leaving organization
+    function generateNewUsername(user: UserWithTeams): string | null {
+      // We ensure that new username would be unique across all users in the global namespace outside any organization
+      return user.username != null ? `${user.username}-${user.id}` : null;
+    }
   }
 
   // Remove member from regular team

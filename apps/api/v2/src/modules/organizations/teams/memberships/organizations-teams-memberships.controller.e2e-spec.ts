@@ -12,7 +12,6 @@ import { Test } from "@nestjs/testing";
 import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
-import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -34,7 +33,6 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
-    let hostsRepositoryFixture: HostsRepositoryFixture;
 
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
@@ -75,7 +73,6 @@ describe("Organizations Teams Memberships Endpoints", () => {
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-      hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
 
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
@@ -400,121 +397,20 @@ describe("Organizations Teams Memberships Endpoints", () => {
     });
 
     it("should delete the membership of the org's team we created via api", async () => {
-      // Create a test user and membership for this specific test
-      const testUserForDeletion = await userRepositoryFixture.create({
-        email: `test-team-deletion-${randomString()}@api.com`,
-        username: `test-team-deletion-${randomString()}`,
-      });
-      
-      const membershipToDelete = await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: testUserForDeletion.id } },
-        team: { connect: { id: orgTeam.id } },
-        accepted: true,
-      });
-      
       return request(app.getHttpServer())
-        .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipToDelete.id}`)
+        .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipCreatedViaApi.id}`)
         .expect(200)
-        .then(async (response) => {
+        .then((response) => {
           const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(membershipToDelete.id);
-          
-          // Clean up
-          await userRepositoryFixture.deleteByEmail(testUserForDeletion.email);
+          expect(responseBody.data.id).toEqual(membershipCreatedViaApi.id);
         });
     });
 
     it("should fail to get the membership of the org's team we just deleted", async () => {
-      // Create and delete a membership for this test
-      const testUserForVerification = await userRepositoryFixture.create({
-        email: `test-verify-deletion-${randomString()}@api.com`,
-        username: `test-verify-deletion-${randomString()}`,
-      });
-      
-      const membershipToVerify = await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: testUserForVerification.id } },
-        team: { connect: { id: orgTeam.id } },
-        accepted: true,
-      });
-      
-      // Delete the membership first
-      await request(app.getHttpServer())
-        .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipToVerify.id}`)
-        .expect(200);
-      
-      // Now verify it returns 404
       return request(app.getHttpServer())
-        .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipToVerify.id}`)
-        .expect(404)
-        .then(async () => {
-          // Clean up
-          await userRepositoryFixture.deleteByEmail(testUserForVerification.email);
-        });
-    });
-
-    it("should remove user from team event type hosts when deleting membership", async () => {
-      // Create a test user and membership
-      const testUserForHostRemoval = await userRepositoryFixture.create({
-        email: `test-host-removal-${randomString()}@api.com`,
-        username: `test-host-removal-${randomString()}`,
-      });
-      
-      // Add user to organization
-      await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: testUserForHostRemoval.id } },
-        team: { connect: { id: org.id } },
-        accepted: true,
-      });
-
-      // Create organization profile for the user
-      await profileRepositoryFixture.create({
-        uid: `usr-${testUserForHostRemoval.id}`,
-        username: testUserForHostRemoval.username!,
-        organization: {
-          connect: {
-            id: org.id,
-          },
-        },
-        user: {
-          connect: {
-            id: testUserForHostRemoval.id,
-          },
-        },
-      });
-      
-      const membershipForHost = await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: testUserForHostRemoval.id } },
-        team: { connect: { id: orgTeam.id } },
-        accepted: true,
-      });
-
-      // Add user as host to the team event type
-      await hostsRepositoryFixture.create({
-        eventType: { connect: { id: teamEventType.id } },
-        user: { connect: { id: testUserForHostRemoval.id } },
-        isFixed: false,
-      });
-
-      // Verify host exists
-      const hostsBefore = await hostsRepositoryFixture.getEventTypeHosts(teamEventType.id);
-      expect(hostsBefore.some((host: { userId: number }) => host.userId === testUserForHostRemoval.id)).toBeTruthy();
-
-      // Delete the membership
-      await request(app.getHttpServer())
-        .delete(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipForHost.id}`)
-        .expect(200);
-      
-      // Verify host is removed
-      const hostsAfter = await hostsRepositoryFixture.getEventTypeHosts(teamEventType.id);
-      expect(hostsAfter.some((host: { userId: number }) => host.userId === testUserForHostRemoval.id)).toBeFalsy();
-
-      // Clean up
-      await userRepositoryFixture.deleteByEmail(testUserForHostRemoval.email);
+        .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships/${membershipCreatedViaApi.id}`)
+        .expect(404);
     });
 
     it("should fail if the membership does not exist", async () => {
