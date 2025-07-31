@@ -2,6 +2,7 @@ import type { EventTypeCustomInput } from "@prisma/client";
 import type z from "zod";
 
 import dayjs from "@calcom/dayjs";
+import getBookingDataLocation from "@calcom/features/bookings/lib/getBookingDataLocation";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -59,6 +60,7 @@ const _getBookingData = async <T extends z.ZodType>({
     throw new Error("`responses` must not be nullish");
   }
   const responses = parsedBody.responses;
+  const location = getBookingDataLocation(responses.location);
 
   const { userFieldsResponses: calEventUserFieldsResponses, responses: calEventResponses } =
     getCalEventResponses({
@@ -71,7 +73,7 @@ const _getBookingData = async <T extends z.ZodType>({
     email: responses.email,
     attendeePhoneNumber: responses.attendeePhoneNumber,
     guests: responses.guests ? responses.guests : [],
-    location: responses.location?.optionValue || responses.location?.value || "",
+    location,
     smsReminderNumber: responses.smsReminderNumber,
     notes: responses.notes || "",
     calEventUserFieldsResponses,

@@ -156,7 +156,7 @@ export const getBookingForReschedule = async (uid: string, userId?: number) => {
   let attendeeEmail: string | null = null;
   let bookingSeatData: { description?: string; responses: Prisma.JsonValue } | null = null;
   if (!theBooking) {
-    const bookingSeat = await prisma.bookingSeat.findFirst({
+    const bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
         referenceUid: uid,
       },
