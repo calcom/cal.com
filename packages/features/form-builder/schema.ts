@@ -400,34 +400,16 @@ export const fieldTypesSchemaMap: Partial<
       return response.trim();
     },
     superRefine: ({ response, ctx, m }) => {
-      const value = response ?? "";
+      const value = response?.trim() ?? "";
+
       const urlSchema = z.string().url();
 
-      // Check for malformed protocols (missing second slash test case)
-      if (value.match(/^https?:\/[^\/]/)) {
+      if (!urlSchema.safeParse(value).success) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m("url_validation_error"),
+          message: m("Invalid URL"),
         });
-        return;
       }
-
-      // 1. Try validating the original value
-      if (urlSchema.safeParse(value).success) {
-        return;
-      }
-
-      // 2. If it failed, try prepending https://
-      const valueWithHttps = `https://${value}`;
-      if (urlSchema.safeParse(valueWithHttps).success) {
-        return;
-      }
-
-      // 3. If all attempts fail, throw err
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: m("url_validation_error"),
-      });
     },
   },
 };
