@@ -1,3 +1,5 @@
+import prismock from "../../../tests/libs/__mocks__/prisma";
+
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
@@ -21,7 +23,7 @@ class MockFeaturesRepository implements IFeaturesRepository {
 
 describe("CalendarCacheSqlCleanupService", () => {
   const mockEventRepo = new MockCalendarEventRepository();
-  const mockFeaturesRepo = new MockFeaturesRepository();
+  const mockFeaturesRepo = new MockFeaturesRepository(prismock);
   const mockLogger = {
     debug: vi.fn(),
     info: vi.fn(),

@@ -21,7 +21,7 @@ async function postHandler(request: NextRequest) {
 
   try {
     log.info("Starting calendar cache SQL cleanup cron job");
-    const featuresRepo = new FeaturesRepository();
+    const featuresRepo = new FeaturesRepository(prisma);
     // Check if cleanup feature is enabled globally
     const isCleanupEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-cleanup");
     if (!isCleanupEnabled) {

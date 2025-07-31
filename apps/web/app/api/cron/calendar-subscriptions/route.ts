@@ -21,7 +21,7 @@ async function getHandler(req: NextRequest) {
   }
 
   try {
-    const featuresRepo = new FeaturesRepository();
+    const featuresRepo = new FeaturesRepository(prisma);
     const isSqlWriteEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-write");
 
     if (!isSqlWriteEnabled) {

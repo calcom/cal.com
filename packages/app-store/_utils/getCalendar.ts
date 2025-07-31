@@ -73,7 +73,7 @@ export const getCalendarService = async (
   }
 
   try {
-    const featuresRepo = new FeaturesRepository();
+    const featuresRepo = new FeaturesRepository(prisma);
     const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
 
     if (!isSqlReadEnabled) {

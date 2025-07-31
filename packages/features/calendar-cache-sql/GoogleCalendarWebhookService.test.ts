@@ -1,3 +1,5 @@
+import prismock from "../../../tests/libs/__mocks__/prisma";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
@@ -43,7 +45,7 @@ class MockCalendarCacheService {
 describe("GoogleCalendarWebhookService", () => {
   const mockSubscriptionRepo = new MockCalendarSubscriptionRepository();
   const mockEventRepo = new MockCalendarEventRepository();
-  const mockFeaturesRepo = new MockFeaturesRepository();
+  const mockFeaturesRepo = new MockFeaturesRepository(prismock);
   const mockCalendarCacheService = new MockCalendarCacheService();
   const mockGetCredentialForCalendarCache = vi.fn();
 

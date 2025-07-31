@@ -152,7 +152,7 @@ constructor(
 
 ```typescript
 // Team-based feature flag checking with global kill switch
-const featureRepo = new FeaturesRepository();
+const featureRepo = new FeaturesRepository(prisma);
 if (
   this.credential.userId &&
   (await featureRepo.checkIfUserHasFeature(this.credential.userId, "calendar-cache-sql-read"))
@@ -301,7 +301,7 @@ yarn lint -- --fix
 
 ```typescript
 const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
-const featureRepo = new FeaturesRepository();
+const featureRepo = new FeaturesRepository(prisma);
 
 // Team-based check with user context
 if (await featureRepo.checkIfUserHasFeature(userId, "calendar-cache-sql-read")) {

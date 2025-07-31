@@ -17,7 +17,7 @@ const log = logger.getSubLogger({ prefix: ["GoogleCalendarSqlWebhook"] });
 async function postHandler(request: NextRequest, { params }: { params: Promise<any> }) {
   const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
   const eventRepo = new CalendarEventRepository(prisma);
-  const featuresRepo = new FeaturesRepository();
+  const featuresRepo = new FeaturesRepository(prisma);
   const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
 
   const isSqlWriteEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-write");
