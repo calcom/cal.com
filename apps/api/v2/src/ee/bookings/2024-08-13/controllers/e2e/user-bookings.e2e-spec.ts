@@ -1894,6 +1894,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
+            // Fetch the original booking to get its rescheduledBy value
+            const originalBookingFromDb = await bookingsRepositoryFixture.getByUid(originalBooking.uid);
+            const expectedRescheduledBy = originalBookingFromDb?.rescheduledBy;
+
             await bookingsRepositoryFixture.deleteById(originalBooking.id);
             await bookingsRepositoryFixture.deleteById(newBooking.id);
             const responseBody: GetBookingOutput_2024_08_13 = response.body;
@@ -1904,7 +1908,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             if (responseDataIsBooking(responseBody.data)) {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.uid).toEqual(newBooking.uid);
-              expect(data.rescheduledByEmail).toEqual(rescheduledByEmail);
+              expect(rescheduledByEmail).toEqual(expectedRescheduledBy);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
