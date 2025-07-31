@@ -1,10 +1,11 @@
 import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates, MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -66,7 +67,18 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
 
-  const isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, true);
+  let isUserAuthorized = false;
+  if (userWorkflow?.teamId) {
+    const permissionService = new PermissionCheckService();
+    isUserAuthorized = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId: userWorkflow.teamId,
+      permission: "workflow.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+  } else {
+    isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, true);
+  }
 
   if (!isUserAuthorized || !userWorkflow) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -294,7 +306,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     let newStep;
 
     if (foundStep) {
-      const { senderName, ...rest } = {
+      const { senderName: _senderName, ...rest } = {
         ...foundStep,
         numberVerificationPending: false,
         sender: getSender({
@@ -441,7 +453,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const {
           id: _stepId,
-          senderName,
+          senderName: _senderName,
           ...stepToAdd
         } = {
           ...newStep,
