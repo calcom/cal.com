@@ -1,4 +1,3 @@
-// packages/features/ee/cal-ai-phone/providers/retell-ai/provider.ts
 import type {
   AIPhoneServiceProvider,
   AIPhoneServiceConfiguration,
@@ -132,5 +131,88 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     });
 
     return result;
+  }
+
+  async generatePhoneNumberCheckoutSession(params: {
+    userId: number;
+    teamId?: number;
+    agentId?: string | null;
+    workflowId?: string;
+  }): Promise<{ url: string; message: string }> {
+    return await this.service.generatePhoneNumberCheckoutSession(params);
+  }
+
+  async cancelPhoneNumberSubscription(params: {
+    phoneNumberId: number;
+    userId: number;
+  }): Promise<{ success: boolean; message: string }> {
+    return await this.service.cancelPhoneNumberSubscription(params);
+  }
+
+  async updatePhoneNumberWithAgents(params: {
+    phoneNumber: string;
+    userId: number;
+    inboundAgentId?: string | null;
+    outboundAgentId?: string | null;
+  }): Promise<{ message: string }> {
+    return await this.service.updatePhoneNumberWithAgents(params);
+  }
+
+  async listAgents(params: {
+    userId: number;
+    teamId?: number;
+    scope?: "personal" | "team" | "all";
+  }): Promise<{
+    totalCount: number;
+    filtered: any[];
+  }> {
+    return await this.service.listAgents(params);
+  }
+
+  async getAgentWithDetails(params: { id: string; userId: number }): Promise<any> {
+    return await this.service.getAgentWithDetails(params);
+  }
+
+  async createAgent(params: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId?: number;
+    generalPrompt?: string;
+    beginMessage?: string;
+    generalTools?: any;
+    voiceId?: string;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    retellAgentId: string;
+    message: string;
+  }> {
+    return await this.service.createAgent(params);
+  }
+
+  async updateAgentConfiguration(params: {
+    id: string;
+    userId: number;
+    name?: string;
+    enabled?: boolean;
+    generalPrompt?: string | null;
+    beginMessage?: string | null;
+    generalTools?: any;
+    voiceId?: string;
+  }): Promise<{ message: string }> {
+    return await this.service.updateAgentConfiguration(params);
+  }
+
+  async deleteAgent(params: { id: string; userId: number }): Promise<{ message: string }> {
+    return await this.service.deleteAgent(params);
+  }
+
+  async createTestCall(params: { agentId: string; phoneNumber?: string; userId: number }): Promise<{
+    callId: string;
+    status: string;
+    message: string;
+  }> {
+    return await this.service.createTestCall(params);
   }
 }

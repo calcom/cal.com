@@ -5,10 +5,8 @@ export type RetellPhoneNumber = Retell.PhoneNumberResponse;
 export type RetellCall = Retell.PhoneCallResponse;
 export type RetellDynamicVariables = { [key: string]: unknown };
 
-// Use the SDK's AgentResponse directly - no type assertions needed!
 export type RetellAgent = Retell.AgentResponse;
 
-// Specific agent types for type narrowing
 export type RetellAgentWithRetellLm = Retell.AgentResponse & {
   response_engine: Retell.AgentResponse.ResponseEngineRetellLm;
 };
@@ -34,16 +32,12 @@ export function isConversationFlowAgent(agent: RetellAgent): agent is RetellAgen
   return agent.response_engine.type === "conversation-flow";
 }
 
-// Utility function to safely access llm_id (only available for retell-llm agents)
 export function getLlmId(agent: RetellAgent): string | null {
   if (isRetellLmAgent(agent)) {
     return agent.response_engine.llm_id;
   }
   return null;
 }
-
-// Legacy type alias for backward compatibility
-export type LegacyRetellAgent = RetellAgentWithRetellLm;
 
 // Request/response types
 export type CreateLLMRequest = Retell.LlmCreateParams;

@@ -10,6 +10,7 @@ import type {
   CreatePhoneNumberParams as RetellAICreatePhoneNumberParams,
   ImportPhoneNumberParams as RetellAIImportPhoneNumberParams,
   UpdateAgentRequest as RetellAIUpdateAgentParams,
+  RetellLLMGeneralTools,
 } from "../providers/retell-ai/types";
 
 export type AIPhoneServiceConfiguration = RetellAIConfigurationSetup;
@@ -37,7 +38,10 @@ export type AIPhoneServiceCall = RetellCall;
 export type AIPhoneServicePhoneNumber = RetellPhoneNumber;
 export type AIPhoneServiceUpdatePhoneNumberParams = RetellAIUpdatePhoneNumberParams;
 export type AIPhoneServiceCreatePhoneNumberParams = RetellAICreatePhoneNumberParams;
-export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberParams & { userId: number };
+export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberParams & {
+  userId: number;
+  agentId?: string | null;
+};
 export type AIPhoneServiceUpdateAgentParams = RetellAIUpdateAgentParams;
 export type AIPhoneServiceGeneralTool = RetellAIConfigurationSetup["generalTools"];
 /**
@@ -110,6 +114,94 @@ export interface AIPhoneServiceProvider {
    * Import a phone number
    */
   importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<AIPhoneServicePhoneNumber>;
+
+  /**
+   * Generate a checkout session for phone number subscription
+   */
+  generatePhoneNumberCheckoutSession(params: {
+    userId: number;
+    teamId?: number;
+    agentId?: string | null;
+    workflowId?: string;
+  }): Promise<{ url: string; message: string }>;
+
+  /**
+   * Cancel a phone number subscription
+   */
+  cancelPhoneNumberSubscription(params: {
+    phoneNumberId: number;
+    userId: number;
+  }): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Update phone number with agent assignments
+   */
+  updatePhoneNumberWithAgents(params: {
+    phoneNumber: string;
+    userId: number;
+    inboundAgentId?: string | null;
+    outboundAgentId?: string | null;
+  }): Promise<{ message: string }>;
+
+  /**
+   * List agents with user access
+   */
+  listAgents(params: { userId: number; teamId?: number; scope?: "personal" | "team" | "all" }): Promise<{
+    totalCount: number;
+    filtered: any[];
+  }>;
+
+  /**
+   * Get agent with detailed information
+   */
+  getAgentWithDetails(params: { id: string; userId: number }): Promise<any>;
+
+  /**
+   * Create a new agent
+   */
+  createAgent(params: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId?: number;
+    generalPrompt?: string;
+    beginMessage?: string;
+    generalTools?: RetellLLMGeneralTools;
+    voiceId?: string;
+    userTimeZone: string;
+  }): Promise<{
+    id: string;
+    retellAgentId: string;
+    message: string;
+  }>;
+
+  /**
+   * Update agent configuration
+   */
+  updateAgentConfiguration(params: {
+    id: string;
+    userId: number;
+    name?: string;
+    enabled?: boolean;
+    generalPrompt?: string | null;
+    beginMessage?: string | null;
+    generalTools?: RetellLLMGeneralTools;
+    voiceId?: string;
+  }): Promise<{ message: string }>;
+
+  /**
+   * Delete an agent
+   */
+  deleteAgent(params: { id: string; userId: number }): Promise<{ message: string }>;
+
+  /**
+   * Create a test call
+   */
+  createTestCall(params: { agentId: string; phoneNumber?: string; userId: number }): Promise<{
+    callId: string;
+    status: string;
+    message: string;
+  }>;
 }
 
 /**

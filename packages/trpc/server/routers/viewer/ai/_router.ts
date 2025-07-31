@@ -2,30 +2,9 @@ import { z } from "zod";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import type { RetellLLMGeneralTools } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
-import { getLlmId } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
-import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-
-const canManageTeamResources = async (userId: number, teamId: number) => {
-  const membership = await prisma.membership.findFirst({
-    where: {
-      userId,
-      teamId,
-      accepted: true,
-    },
-  });
-
-  if (!membership) {
-    return false;
-  }
-
-  return membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER;
-};
 
 export const aiRouter = router({
   test: authedProcedure.query(async ({ ctx }) => {
@@ -33,6 +12,7 @@ export const aiRouter = router({
       message: "test",
     };
   }),
+
   list: authedProcedure
     .input(
       z
@@ -43,182 +23,22 @@ export const aiRouter = router({
         .optional()
     )
     .query(async ({ ctx, input }) => {
-      const whereClause: any = {
-        OR: [
-          { userId: ctx.user.id },
-          {
-            team: {
-              members: {
-                some: {
-                  userId: ctx.user.id,
-                  accepted: true,
-                },
-              },
-            },
-          },
-        ],
-      };
+      const aiService = createDefaultAIPhoneServiceProvider();
 
-      if (input?.scope === "personal") {
-        whereClause.OR = [{ userId: ctx.user.id }];
-      } else if (input?.scope === "team") {
-        whereClause.OR = [
-          {
-            team: {
-              members: {
-                some: {
-                  userId: ctx.user.id,
-                  accepted: true,
-                },
-              },
-            },
-          },
-        ];
-      }
-
-      if (input?.teamId) {
-        whereClause.teamId = input.teamId;
-      }
-
-      const agents = await prisma.agent.findMany({
-        where: whereClause,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              logoUrl: true,
-            },
-          },
-          outboundPhoneNumbers: {
-            select: {
-              id: true,
-              phoneNumber: true,
-              subscriptionStatus: true,
-              provider: true,
-            },
-          },
-        },
-        orderBy: [{ teamId: "asc" }, { createdAt: "desc" }],
+      return await aiService.listAgents({
+        userId: ctx.user.id,
+        teamId: input?.teamId,
+        scope: input?.scope,
       });
-
-      const formattedAgents = agents.map((agent) => ({
-        id: agent.id,
-        name: agent.name,
-        retellAgentId: agent.retellAgentId,
-        enabled: agent.enabled,
-        userId: agent.userId,
-        teamId: agent.teamId,
-        createdAt: agent.createdAt,
-        updatedAt: agent.updatedAt,
-        outboundPhoneNumbers: agent.outboundPhoneNumbers,
-        team: agent.team,
-        user: agent.user,
-      }));
-
-      return {
-        totalCount: formattedAgents.length,
-        filtered: formattedAgents,
-      };
     }),
 
   get: authedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-    const agent = await prisma.agent.findFirst({
-      where: {
-        id: input.id,
-        OR: [
-          { userId: ctx.user.id },
-          {
-            team: {
-              members: {
-                some: {
-                  userId: ctx.user.id,
-                  accepted: true,
-                },
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        team: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        outboundPhoneNumbers: {
-          select: {
-            id: true,
-            phoneNumber: true,
-            subscriptionStatus: true,
-            provider: true,
-          },
-        },
-      },
-    });
-
-    if (!agent) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Agent not found or you don't have permission to view it.",
-      });
-    }
-
     const aiService = createDefaultAIPhoneServiceProvider();
 
-    const retellAgent = await aiService.getAgent(agent.retellAgentId);
-
-    const llmId = getLlmId(retellAgent);
-    if (!llmId) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Agent does not have an LLM configured.",
-      });
-    }
-
-    const llmDetails = await aiService.getLLMDetails(llmId);
-
-    return {
-      id: agent.id,
-      name: agent.name,
-      retellAgentId: agent.retellAgentId,
-      enabled: agent.enabled,
-      userId: agent.userId,
-      teamId: agent.teamId,
-      outboundPhoneNumbers: agent.outboundPhoneNumbers,
-      retellData: {
-        agentId: retellAgent.agent_id,
-        agentName: retellAgent.agent_name,
-        voiceId: retellAgent.voice_id,
-        responseEngine: retellAgent.response_engine,
-        language: retellAgent.language,
-        responsiveness: retellAgent.responsiveness,
-        interruptionSensitivity: retellAgent.interruption_sensitivity,
-        generalPrompt: llmDetails.general_prompt,
-        beginMessage: llmDetails.begin_message,
-        generalTools: llmDetails.general_tools,
-        llmId: llmDetails.llm_id,
-      },
-      createdAt: agent.createdAt,
-      updatedAt: agent.updatedAt,
-    };
+    return await aiService.getAgentWithDetails({
+      id: input.id,
+      userId: ctx.user.id,
+    });
   }),
 
   create: authedProcedure
@@ -248,52 +68,18 @@ export const aiRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { teamId, name, workflowStepId, ...retellConfig } = input;
 
-      const agentName =
-        name || `${ctx.user.name}'s Agent - ${ctx.user.id} ${Math.random().toString(36).substring(2, 15)}`;
-
-      if (teamId) {
-        const canManage = await canManageTeamResources(ctx.user.id, teamId);
-        if (!canManage) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "You don't have permission to create agents for this team.",
-          });
-        }
-      }
-
       const aiService = createDefaultAIPhoneServiceProvider();
 
-      const llmConfig = await aiService.setupConfiguration({
-        calApiKey: undefined,
-        timeZone: ctx.user.timeZone,
-        eventTypeId: undefined, // Not linked to event type at the start
+      return await aiService.createAgent({
+        name,
+        userId: ctx.user.id,
+        teamId,
+        workflowStepId,
         generalPrompt: retellConfig.generalPrompt,
         beginMessage: retellConfig.beginMessage,
         generalTools: retellConfig.generalTools as RetellLLMGeneralTools,
+        userTimeZone: ctx.user.timeZone,
       });
-
-      const agent = await prisma.agent.create({
-        data: {
-          name: agentName,
-          retellAgentId: llmConfig.agentId,
-          userId: teamId ? undefined : ctx.user.id,
-          teamId: teamId || undefined,
-        },
-      });
-
-      // If workflowStepId is provided, update the workflow step to link it with the agent
-      if (workflowStepId) {
-        await prisma.workflowStep.update({
-          where: { id: workflowStepId },
-          data: { agentId: agent.id },
-        });
-      }
-
-      return {
-        id: agent.id,
-        retellAgentId: agent.retellAgentId,
-        message: "Agent created successfully",
-      };
     }),
 
   update: authedProcedure
@@ -323,112 +109,26 @@ export const aiRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, name, enabled, ...retellUpdates } = input;
 
-      // Get agent and verify permissions
-      const agent = await prisma.agent.findFirst({
-        where: {
-          id,
-          OR: [
-            { userId: ctx.user.id },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: ctx.user.id,
-                    accepted: true,
-                    role: {
-                      in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
+      const aiService = createDefaultAIPhoneServiceProvider();
+
+      return await aiService.updateAgentConfiguration({
+        id,
+        userId: ctx.user.id,
+        name,
+        generalPrompt: retellUpdates.generalPrompt,
+        beginMessage: retellUpdates.beginMessage,
+        generalTools: retellUpdates.generalTools as RetellLLMGeneralTools,
+        voiceId: retellUpdates.voiceId,
       });
-
-      if (!agent) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Agent not found or you don't have permission to update it.",
-        });
-      }
-
-      if (Object.keys(retellUpdates).length > 0) {
-        const aiService = createDefaultAIPhoneServiceProvider();
-
-        const retellAgent = await aiService.getAgent(agent.retellAgentId);
-
-        const llmId = getLlmId(retellAgent);
-        if (llmId && (retellUpdates.generalPrompt || retellUpdates.beginMessage)) {
-          await aiService.updateLLMConfiguration(llmId, {
-            general_prompt: retellUpdates.generalPrompt,
-            begin_message: retellUpdates.beginMessage,
-            general_tools: retellUpdates.generalTools as RetellLLMGeneralTools,
-          });
-        }
-
-        if (retellUpdates.voiceId) {
-          await aiService.updateAgent(agent.retellAgentId, {
-            voice_id: retellUpdates.voiceId,
-          });
-        }
-      }
-
-      return { message: "Agent updated successfully" };
     }),
 
   delete: authedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
-    const agent = await prisma.agent.findFirst({
-      where: {
-        id: input.id,
-        OR: [
-          { userId: ctx.user.id },
-          {
-            team: {
-              members: {
-                some: {
-                  userId: ctx.user.id,
-                  accepted: true,
-                  role: {
-                    in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
-
-    if (!agent) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Agent not found or you don't have permission to delete it.",
-      });
-    }
-
     const aiService = createDefaultAIPhoneServiceProvider();
 
-    try {
-      // Get agent details to find LLM
-      const retellAgent = await aiService.getAgent(agent.retellAgentId);
-
-      // Delete agent and LLM from Retell
-      await aiService.deleteConfiguration({
-        agentId: agent.retellAgentId,
-        llmId: getLlmId(retellAgent) || undefined,
-      });
-    } catch (error) {
-      console.error("Failed to delete from Retell:", error);
-      // Continue with local deletion even if Retell fails
-    }
-
-    // Delete from database
-    await prisma.agent.delete({
-      where: { id: input.id },
+    return await aiService.deleteAgent({
+      id: input.id,
+      userId: ctx.user.id,
     });
-
-    return { message: "Agent deleted successfully" };
   }),
 
   testCall: authedProcedure
@@ -439,71 +139,12 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const toNumber = input.phoneNumber;
-      if (!toNumber) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "No phone number provided for test call.",
-        });
-      }
-
-      const agent = await prisma.agent.findFirst({
-        where: {
-          id: input.agentId,
-          OR: [
-            { userId: ctx.user.id },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: ctx.user.id,
-                    accepted: true,
-                  },
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          outboundPhoneNumbers: {
-            select: {
-              phoneNumber: true,
-            },
-          },
-        },
-      });
-
-      if (!agent) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Agent not found or you don't have permission to use it.",
-        });
-      }
-
-      const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
-
-      if (!agentPhoneNumber) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Agent must have a phone number assigned to make calls.",
-        });
-      }
-
-      console.log("agentPhoneNumber", {
-        from_number: agentPhoneNumber,
-        to_number: toNumber,
-      });
-
       const aiService = createDefaultAIPhoneServiceProvider();
-      const call = await aiService.createPhoneCall({
-        from_number: agentPhoneNumber,
-        to_number: toNumber,
-      });
 
-      return {
-        callId: call.call_id,
-        status: call.call_status,
-        message: `Call initiated to ${toNumber} with call_id ${call.call_id}`,
-      };
+      return await aiService.createTestCall({
+        agentId: input.agentId,
+        phoneNumber: input.phoneNumber,
+        userId: ctx.user.id,
+      });
     }),
 });

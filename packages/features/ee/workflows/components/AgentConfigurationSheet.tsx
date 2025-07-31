@@ -522,7 +522,7 @@ export function AgentConfigurationSheet({
                 {agentQuery.isFetching && (
                   <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Icon name="loader-2" className="h-4 w-4 animate-spin" />
+                      <Icon name="loader" className="h-4 w-4 animate-spin" />
                       {t("Updating...")}
                     </div>
                   </div>
@@ -681,7 +681,6 @@ export function AgentConfigurationSheet({
                   buyNumberMutation.mutate({
                     agentId: agentId,
                     workflowId: workflowId,
-                    returnTo: window.location.href,
                   })
                 }
                 loading={buyNumberMutation.isPending}

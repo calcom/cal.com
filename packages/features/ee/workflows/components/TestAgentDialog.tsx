@@ -45,12 +45,11 @@ export function TestAgentDialog({ open, onOpenChange, agentId }: TestAgentDialog
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         type="creation"
         title={t("Test Cal.Ai Agent")}
-        description={t("Make a test call to verify your configuration")}
-        forceOverlayWhenNoModal={true}>
+        description={t("Make a test call to verify your configuration")}>
         <div>
           <Label className="mb-1 block text-sm font-medium">{t("Call to")}:</Label>
           <PhoneInput

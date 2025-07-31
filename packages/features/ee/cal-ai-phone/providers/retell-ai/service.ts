@@ -1,4 +1,10 @@
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
+import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+
+import { TRPCError } from "@trpc/server";
 
 import type {
   updateLLMConfigurationParams,
@@ -19,6 +25,45 @@ import type {
   RetellAIRepository,
   RetellLLMGeneralTools,
 } from "./types";
+import { getLlmId } from "./types";
+
+type Language =
+  | "en-US"
+  | "en-IN"
+  | "en-GB"
+  | "en-AU"
+  | "en-NZ"
+  | "de-DE"
+  | "es-ES"
+  | "es-419"
+  | "hi-IN"
+  | "fr-FR"
+  | "fr-CA"
+  | "ja-JP"
+  | "pt-PT"
+  | "pt-BR"
+  | "zh-CN"
+  | "ru-RU"
+  | "it-IT"
+  | "ko-KR"
+  | "nl-NL"
+  | "nl-BE"
+  | "pl-PL"
+  | "tr-TR"
+  | "th-TH"
+  | "vi-VN"
+  | "ro-RO"
+  | "bg-BG"
+  | "ca-ES"
+  | "da-DK"
+  | "fi-FI"
+  | "el-GR"
+  | "hu-HU"
+  | "id-ID"
+  | "no-NO"
+  | "sk-SK"
+  | "sv-SE"
+  | "multi";
 
 export class RetellAIService {
   constructor(private repository: RetellAIRepository) {}
@@ -71,7 +116,7 @@ export class RetellAIService {
   }
 
   async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<RetellPhoneNumber> {
-    const { userId, ...rest } = data;
+    const { userId, agentId, ...rest } = data;
     const importedPhoneNumber = await this.repository.importPhoneNumber({
       phone_number: rest.phone_number,
       termination_uri: rest.termination_uri,
@@ -80,11 +125,50 @@ export class RetellAIService {
       nickname: rest.nickname,
     });
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
     await PhoneNumberRepository.createPhoneNumber({
       phoneNumber: importedPhoneNumber.phone_number,
       userId,
       provider: "Custom telephony",
     });
+
+    // If agentId is provided, assign the phone number to the agent
+    if (agentId) {
+      try {
+        // Verify user has access to the agent
+        const agent = await AgentRepository.findByIdWithUserAccess({
+          agentId,
+          userId,
+        });
+
+        if (!agent) {
+          throw new Error("You don't have permission to use the selected agent.");
+        }
+
+        // Update the phone number to link it to the agent
+        await PhoneNumberRepository.updatePhoneNumberByUserId({
+          phoneNumber: importedPhoneNumber.phone_number,
+          userId,
+          data: {
+            outboundAgentId: agent.id,
+          },
+        });
+
+        // Also update the phone number in Retell to link the agent
+        try {
+          await this.repository.updatePhoneNumber(importedPhoneNumber.phone_number, {
+            outbound_agent_id: agentId,
+          });
+        } catch (error) {
+          console.error("Failed to update phone number in Retell:", error);
+          // Don't fail the entire operation if Retell update fails
+        }
+      } catch (error) {
+        console.error("Failed to assign phone number to agent:", error);
+        throw new Error("Phone number imported but failed to assign to agent.");
+      }
+    }
 
     return importedPhoneNumber;
   }
@@ -118,7 +202,7 @@ export class RetellAIService {
         }
       }
     } else {
-      result.deleted.agent = true; // No agent to delete
+      result.deleted.agent = true;
     }
 
     // Delete LLM
@@ -170,43 +254,7 @@ export class RetellAIService {
     data: {
       agent_name?: string;
       voice_id?: string;
-      language?:
-        | "en-US"
-        | "en-IN"
-        | "en-GB"
-        | "en-AU"
-        | "en-NZ"
-        | "de-DE"
-        | "es-ES"
-        | "es-419"
-        | "hi-IN"
-        | "fr-FR"
-        | "fr-CA"
-        | "ja-JP"
-        | "pt-PT"
-        | "pt-BR"
-        | "zh-CN"
-        | "ru-RU"
-        | "it-IT"
-        | "ko-KR"
-        | "nl-NL"
-        | "nl-BE"
-        | "pl-PL"
-        | "tr-TR"
-        | "th-TH"
-        | "vi-VN"
-        | "ro-RO"
-        | "bg-BG"
-        | "ca-ES"
-        | "da-DK"
-        | "fi-FI"
-        | "el-GR"
-        | "hu-HU"
-        | "id-ID"
-        | "no-NO"
-        | "sk-SK"
-        | "sv-SE"
-        | "multi";
+      language?: Language;
       responsiveness?: number;
       interruption_sensitivity?: number;
     }
@@ -278,5 +326,527 @@ export class RetellAIService {
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ): Promise<RetellPhoneNumber> {
     return this.repository.updatePhoneNumber(phoneNumber, data);
+  }
+
+  async generatePhoneNumberCheckoutSession({
+    userId,
+    teamId,
+    agentId,
+    workflowId,
+  }: {
+    userId: number;
+    teamId?: number;
+    agentId?: string | null;
+    workflowId?: string;
+  }) {
+    const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
+
+    if (!phoneNumberPriceId) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Phone number price ID not configured. Please contact support.",
+      });
+    }
+
+    // Get or create Stripe customer
+    const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
+    if (!stripeCustomerId) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create Stripe customer.",
+      });
+    }
+
+    // Create Stripe checkout session for phone number subscription
+    const checkoutSession = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
+      mode: "subscription",
+      line_items: [
+        {
+          price: phoneNumberPriceId,
+          quantity: 1,
+        },
+      ],
+      success_url: `${WEBAPP_URL}/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${WEBAPP_URL}/settings/my-account/phone-numbers`,
+      allow_promotion_codes: true,
+      customer_update: {
+        address: "auto",
+      },
+      automatic_tax: {
+        enabled: IS_PRODUCTION,
+      },
+      metadata: {
+        userId: userId.toString(),
+        teamId: teamId?.toString() || "",
+        agentId: agentId || "",
+        workflowId: workflowId || "",
+        type: "phone_number_subscription",
+      },
+      subscription_data: {
+        metadata: {
+          userId: userId.toString(),
+          teamId: teamId?.toString() || "",
+          agentId: agentId || "",
+          workflowId: workflowId || "",
+          type: "phone_number_subscription",
+        },
+      },
+    });
+
+    if (!checkoutSession.url) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create checkout session.",
+      });
+    }
+
+    return { url: checkoutSession.url, message: "Payment required to purchase phone number" };
+  }
+
+  async cancelPhoneNumberSubscription({ phoneNumberId, userId }: { phoneNumberId: number; userId: number }) {
+    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+
+    const phoneNumber = await PhoneNumberRepository.findById({
+      id: phoneNumberId,
+      userId,
+    });
+
+    if (!phoneNumber) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Phone number not found or you don't have permission to cancel it.",
+      });
+    }
+
+    if (!phoneNumber.stripeSubscriptionId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number doesn't have an active subscription.",
+      });
+    }
+
+    try {
+      await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+
+      // Update the phone number status and disconnect outbound agent
+      await PhoneNumberRepository.updateSubscriptionStatus({
+        id: phoneNumberId,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectOutboundAgent: true,
+      });
+
+      // Delete the phone number from Retell, DB
+      try {
+        await this.deletePhoneNumber({
+          phoneNumber: phoneNumber.phoneNumber,
+          userId,
+          deleteFromDB: false,
+        });
+      } catch (error) {
+        console.error(
+          "Failed to delete phone number from AI service, but subscription was cancelled:",
+          error
+        );
+      }
+
+      return { success: true, message: "Phone number subscription cancelled successfully." };
+    } catch (error) {
+      console.error("Error cancelling phone number subscription:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to cancel subscription. Please try again or contact support.",
+      });
+    }
+  }
+
+  async updatePhoneNumberWithAgents({
+    phoneNumber,
+    userId,
+    inboundAgentId,
+    outboundAgentId,
+  }: {
+    phoneNumber: string;
+    userId: number;
+    inboundAgentId?: string | null;
+    outboundAgentId?: string | null;
+  }) {
+    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const phoneNumberRecord = await PhoneNumberRepository.findByPhoneNumberAndUserId({
+      phoneNumber,
+      userId,
+    });
+
+    if (!phoneNumberRecord) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Phone number not found or you don't have permission to update it.",
+      });
+    }
+
+    if (inboundAgentId) {
+      const inboundAgent = await AgentRepository.findByRetellAgentIdWithUserAccess({
+        retellAgentId: inboundAgentId,
+        userId,
+      });
+
+      if (!inboundAgent) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to use the selected inbound agent.",
+        });
+      }
+    }
+
+    if (outboundAgentId) {
+      const outboundAgent = await AgentRepository.findByRetellAgentIdWithUserAccess({
+        retellAgentId: outboundAgentId,
+        userId,
+      });
+
+      if (!outboundAgent) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to use the selected outbound agent.",
+        });
+      }
+    }
+
+    try {
+      await this.getPhoneNumber(phoneNumber);
+
+      const retellUpdateData: { inbound_agent_id?: string | null; outbound_agent_id?: string | null } = {};
+
+      if (inboundAgentId !== undefined) {
+        retellUpdateData.inbound_agent_id = inboundAgentId;
+      }
+
+      if (outboundAgentId !== undefined) {
+        retellUpdateData.outbound_agent_id = outboundAgentId;
+      }
+
+      if (Object.keys(retellUpdateData).length > 0) {
+        await this.updatePhoneNumber(phoneNumber, retellUpdateData);
+      }
+    } catch (error: any) {
+      // Check if it's a 404 error (phone number not found in Retell)
+      if (error.message?.includes("404") || error.message?.includes("Not Found")) {
+        console.log(`Phone number ${phoneNumber} not found in Retell - updating local database only`);
+      } else {
+        console.error("Failed to update phone number in AI service:", error);
+      }
+    }
+
+    await PhoneNumberRepository.updateAgents({
+      id: phoneNumberRecord.id,
+      inboundAgentId,
+      outboundAgentId,
+    });
+
+    return { message: "Phone number updated successfully" };
+  }
+
+  async listAgents({
+    userId,
+    teamId,
+    scope = "all",
+  }: {
+    userId: number;
+    teamId?: number;
+    scope?: "personal" | "team" | "all";
+  }) {
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const agents = await AgentRepository.findManyWithUserAccess({
+      userId,
+      teamId,
+      scope,
+    });
+
+    const formattedAgents = agents.map((agent) => ({
+      id: agent.id,
+      name: agent.name,
+      retellAgentId: agent.retellAgentId,
+      enabled: agent.enabled,
+      userId: agent.userId,
+      teamId: agent.teamId,
+      createdAt: agent.createdAt,
+      updatedAt: agent.updatedAt,
+      outboundPhoneNumbers: agent.outboundPhoneNumbers,
+      team: agent.team,
+      user: agent.user,
+    }));
+
+    return {
+      totalCount: formattedAgents.length,
+      filtered: formattedAgents,
+    };
+  }
+
+  async getAgentWithDetails({ id, userId }: { id: string; userId: number }) {
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const agent = await AgentRepository.findByIdWithUserAccessAndDetails({
+      id,
+      userId,
+    });
+
+    if (!agent) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Agent not found or you don't have permission to view it.",
+      });
+    }
+
+    const retellAgent = await this.getAgent(agent.retellAgentId);
+    const llmId = getLlmId(retellAgent);
+
+    if (!llmId) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Agent does not have an LLM configured.",
+      });
+    }
+
+    const llmDetails = await this.getLLMDetails(llmId);
+
+    return {
+      id: agent.id,
+      name: agent.name,
+      retellAgentId: agent.retellAgentId,
+      enabled: agent.enabled,
+      userId: agent.userId,
+      teamId: agent.teamId,
+      outboundPhoneNumbers: agent.outboundPhoneNumbers,
+      retellData: {
+        agentId: retellAgent.agent_id,
+        agentName: retellAgent.agent_name,
+        voiceId: retellAgent.voice_id,
+        responseEngine: retellAgent.response_engine,
+        language: retellAgent.language,
+        responsiveness: retellAgent.responsiveness,
+        interruptionSensitivity: retellAgent.interruption_sensitivity,
+        generalPrompt: llmDetails.general_prompt,
+        beginMessage: llmDetails.begin_message,
+        generalTools: llmDetails.general_tools,
+        llmId: llmDetails.llm_id,
+      },
+      createdAt: agent.createdAt,
+      updatedAt: agent.updatedAt,
+    };
+  }
+
+  async createAgent({
+    name,
+    userId,
+    teamId,
+    workflowStepId,
+    generalPrompt,
+    beginMessage,
+    generalTools,
+    userTimeZone,
+  }: {
+    name?: string;
+    userId: number;
+    teamId?: number;
+    workflowStepId?: number;
+    generalPrompt?: string;
+    beginMessage?: string;
+    generalTools?: RetellLLMGeneralTools;
+    userTimeZone: string;
+  }) {
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const agentName = name || `Agent - ${userId} ${Math.random().toString(36).substring(2, 15)}`;
+
+    if (teamId) {
+      const canManage = await AgentRepository.canManageTeamResources({
+        userId,
+        teamId,
+      });
+      if (!canManage) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to create agents for this team.",
+        });
+      }
+    }
+
+    const llmConfig = await this.setupAIConfiguration({
+      calApiKey: undefined,
+      timeZone: userTimeZone,
+      eventTypeId: undefined,
+      generalPrompt,
+      beginMessage,
+      generalTools,
+    });
+
+    const agent = await AgentRepository.create({
+      name: agentName,
+      retellAgentId: llmConfig.agentId,
+      userId,
+      teamId,
+    });
+
+    if (workflowStepId) {
+      await AgentRepository.linkToWorkflowStep({
+        workflowStepId,
+        agentId: agent.id,
+      });
+    }
+
+    return {
+      id: agent.id,
+      retellAgentId: agent.retellAgentId,
+      message: "Agent created successfully",
+    };
+  }
+
+  async updateAgentConfiguration({
+    id,
+    userId,
+    name,
+    generalPrompt,
+    beginMessage,
+    generalTools,
+    voiceId,
+  }: {
+    id: string;
+    userId: number;
+    name?: string;
+    generalPrompt?: string | null;
+    beginMessage?: string | null;
+    generalTools?: RetellLLMGeneralTools;
+    voiceId?: string;
+  }) {
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const agent = await AgentRepository.findByIdWithAdminAccess({
+      id,
+      userId,
+    });
+
+    if (!agent) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Agent not found or you don't have permission to update it.",
+      });
+    }
+
+    const hasRetellUpdates =
+      generalPrompt !== undefined ||
+      beginMessage !== undefined ||
+      generalTools !== undefined ||
+      voiceId !== undefined;
+
+    if (hasRetellUpdates) {
+      const retellAgent = await this.getAgent(agent.retellAgentId);
+      const llmId = getLlmId(retellAgent);
+
+      if (
+        llmId &&
+        (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
+      ) {
+        await this.updateLLMConfiguration(llmId, {
+          general_prompt: generalPrompt,
+          begin_message: beginMessage,
+          general_tools: generalTools,
+        });
+      }
+
+      if (voiceId) {
+        await this.updateAgent(agent.retellAgentId, {
+          voice_id: voiceId,
+        });
+      }
+    }
+
+    return { message: "Agent updated successfully" };
+  }
+
+  async deleteAgent({ id, userId }: { id: string; userId: number }) {
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const agent = await AgentRepository.findByIdWithAdminAccess({
+      id,
+      userId,
+    });
+
+    if (!agent) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Agent not found or you don't have permission to delete it.",
+      });
+    }
+
+    try {
+      const retellAgent = await this.getAgent(agent.retellAgentId);
+      const llmId = getLlmId(retellAgent);
+
+      await this.deleteAIConfiguration({
+        agentId: agent.retellAgentId,
+        llmId: llmId || undefined,
+      });
+    } catch (error) {
+      console.error("Failed to delete from Retell:", error);
+    }
+
+    await AgentRepository.delete({ id });
+
+    return { message: "Agent deleted successfully" };
+  }
+
+  async createTestCall({
+    agentId,
+    phoneNumber,
+    userId,
+  }: {
+    agentId: string;
+    phoneNumber?: string;
+    userId: number;
+  }) {
+    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+    const toNumber = phoneNumber;
+    if (!toNumber) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No phone number provided for test call.",
+      });
+    }
+
+    const agent = await AgentRepository.findByIdWithCallAccess({
+      id: agentId,
+      userId,
+    });
+
+    if (!agent) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Agent not found or you don't have permission to use it.",
+      });
+    }
+
+    const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
+
+    if (!agentPhoneNumber) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Agent must have a phone number assigned to make calls.",
+      });
+    }
+
+    const call = await this.createPhoneCall({
+      from_number: agentPhoneNumber,
+      to_number: toNumber,
+    });
+
+    return {
+      callId: call.call_id,
+      status: call.call_status,
+      message: `Call initiated to ${toNumber} with call_id ${call.call_id}`,
+    };
   }
 }

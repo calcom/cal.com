@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
@@ -67,6 +69,108 @@ export class PhoneNumberRepository {
         phoneNumber,
         userId,
       },
+    });
+  }
+
+  static async findById({ id, userId }: { id: number; userId: number }) {
+    return await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        id,
+        userId,
+      },
+    });
+  }
+
+  static async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
+    return await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        phoneNumber,
+        userId,
+      },
+    });
+  }
+
+  static async updateSubscriptionStatus({
+    id,
+    subscriptionStatus,
+    disconnectOutboundAgent = false,
+  }: {
+    id: number;
+    subscriptionStatus: PhoneNumberSubscriptionStatus;
+    disconnectOutboundAgent?: boolean;
+  }) {
+    const updateData: Prisma.CalAiPhoneNumberUpdateInput = {
+      subscriptionStatus,
+    };
+
+    if (disconnectOutboundAgent) {
+      updateData.outboundAgent = {
+        disconnect: true,
+      };
+    }
+
+    return await prisma.calAiPhoneNumber.update({
+      where: {
+        id,
+      },
+      data: updateData,
+    });
+  }
+
+  static async updateAgents({
+    id,
+    inboundAgentId,
+    outboundAgentId,
+  }: {
+    id: number;
+    inboundAgentId?: string | null;
+    outboundAgentId?: string | null;
+  }) {
+    const updateData: Prisma.CalAiPhoneNumberUpdateInput = {};
+
+    if (inboundAgentId !== undefined) {
+      if (inboundAgentId) {
+        updateData.inboundAgent = {
+          connect: { retellAgentId: inboundAgentId },
+        };
+      } else {
+        updateData.inboundAgent = { disconnect: true };
+      }
+    }
+
+    if (outboundAgentId !== undefined) {
+      if (outboundAgentId) {
+        updateData.outboundAgent = {
+          connect: { retellAgentId: outboundAgentId },
+        };
+      } else {
+        updateData.outboundAgent = { disconnect: true };
+      }
+    }
+
+    return await prisma.calAiPhoneNumber.update({
+      where: {
+        id,
+      },
+      data: updateData,
+    });
+  }
+
+  static async updatePhoneNumberByUserId({
+    phoneNumber,
+    userId,
+    data,
+  }: {
+    phoneNumber: string;
+    userId: number;
+    data: { outboundAgentId: string };
+  }) {
+    return await prisma.calAiPhoneNumber.updateMany({
+      where: {
+        phoneNumber,
+        userId,
+      },
+      data,
     });
   }
 }
