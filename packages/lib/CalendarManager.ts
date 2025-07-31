@@ -267,7 +267,10 @@ export const getBusyCalendarTimes = async (
       );
     }
   } catch (e) {
-    log.warn("Error getting busy calendar times", safeStringify(e));
+    log.warn(`Error getting calendar availability`, {
+      selectedCalendarIds: selectedCalendars.map((calendar) => calendar.externalId),
+      error: safeStringify(e),
+    });
     return { success: false, data: [{ start: startDate, end: endDate, source: "error-placeholder" }] };
   }
   return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
