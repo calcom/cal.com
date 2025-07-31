@@ -3,6 +3,7 @@ import prismock from "../../../tests/libs/__mocks__/prisma";
 import {
   createBookingScenario,
   getScenarioData,
+  getGoogleCalendarCredential,
   TestData,
   getOrganizer,
   mockSuccessfulVideoMeetingCreation,
@@ -44,7 +45,7 @@ describe("handleInstantMeeting", () => {
         email: "organizer@example.com",
         id: 101,
         schedules: [TestData.schedules.IstWorkHours],
-        credentials: [TestData.credentials.googleCalendar],
+        credentials: [getGoogleCalendarCredential()],
         selectedCalendars: [TestData.selectedCalendars.google],
       });
 
@@ -64,7 +65,6 @@ describe("handleInstantMeeting", () => {
               ],
               team: {
                 id: 1,
-                name: "Test Team",
                 slug: "test-team",
               },
               instantMeetingExpiryTimeOffsetInSeconds: 90,
@@ -132,7 +132,7 @@ describe("handleInstantMeeting", () => {
         email: "organizer@example.com",
         id: 101,
         schedules: [TestData.schedules.IstWorkHours],
-        credentials: [TestData.credentials.googleCalendar],
+        credentials: [getGoogleCalendarCredential()],
         selectedCalendars: [TestData.selectedCalendars.google],
       });
 
