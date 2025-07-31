@@ -101,9 +101,12 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const [rescheduledToUid, rescheduledByEmail] = databaseBooking.rescheduled
+    const rescheduledToInfo = databaseBooking.rescheduled
       ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : [undefined, undefined];
+      : undefined;
+    
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled ? rescheduledToInfo?.rescheduledBy : databaseBooking.rescheduledBy;
 
 
     const booking = {
@@ -152,9 +155,12 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  async getRescheduledToInfo(bookingUid: string): Promise<[string | undefined, string | undefined]> {
+  async getRescheduledToInfo(bookingUid: string): Promise<{ uid?: string; rescheduledBy?: string }> {
     const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
-    return [rescheduledTo?.uid, rescheduledTo?.rescheduledBy];
+    return { 
+      uid: rescheduledTo?.uid, 
+      rescheduledBy: rescheduledTo?.rescheduledBy 
+    };
   }
 
 
@@ -270,9 +276,12 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const [rescheduledToUid, rescheduledByEmail] = databaseBooking.rescheduled
+    const rescheduledToInfo = databaseBooking.rescheduled
       ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : [undefined, undefined];
+      : undefined;
+    
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled ? rescheduledToInfo?.rescheduledBy : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
