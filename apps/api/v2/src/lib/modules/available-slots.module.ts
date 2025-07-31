@@ -1,5 +1,6 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
@@ -22,6 +23,7 @@ import { Module } from "@nestjs/common";
     PrismaEventTypeRepository,
     PrismaRoutingFormResponseRepository,
     PrismaTeamRepository,
+    PrismaFeaturesRepository,
     CheckBookingLimitsService,
     AvailableSlotsService,
   ],
