@@ -584,6 +584,8 @@ model CreditExpenseLog {
   date            DateTime
   smsSid          String?
   smsSegments     Int?
+  phoneNumber     String?
+  email           String?
 }
 
 enum CreditType {
