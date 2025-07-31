@@ -10,6 +10,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -97,20 +98,16 @@ async function updateBookingLocationInDb({
     };
   });
 
-  await prisma.booking.update({
-    where: {
-      id: booking.id,
-    },
+  const bookingRepository = new BookingRepository(prisma);
+  await bookingRepository.updateLocationById({
+    where: { id: booking.id },
     data: {
       location: evt.location,
-      iCalSequence: evt.iCalSequence || 0,
       metadata: {
         ...(typeof booking.metadata === "object" && booking.metadata),
         ...bookingMetadataUpdate,
       },
-      references: {
-        create: referencesToCreate,
-      },
+      referencesToCreate,
       responses: {
         ...(typeof booking.responses === "object" && booking.responses),
         location: {
@@ -118,6 +115,7 @@ async function updateBookingLocationInDb({
           optionValue: "",
         },
       },
+      iCalSequence: evt.iCalSequence || 1,
     },
   });
 }
