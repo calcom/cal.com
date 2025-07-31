@@ -400,16 +400,40 @@ export const fieldTypesSchemaMap: Partial<
       return response.trim();
     },
     superRefine: ({ response, ctx, m }) => {
-      const value = response?.trim() ?? "";
-
+      const value = response ?? "";
       const urlSchema = z.string().url();
 
-      if (!urlSchema.safeParse(value).success) {
+      // Check for malformed protocols (missing second slash test case)
+      if (value.match(/^https?:\/[^\/]/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m("Invalid URL"),
+          message: m("url_validation_error"),
         });
+        return;
       }
+
+      const tryValidate = (v: string) => {
+        const result = urlSchema.safeParse(v);
+        if (!result.success) return false;
+
+        try {
+          const hostname = new URL(v).hostname;
+          // Require at least one dot in hostname (e.g., "google.com")
+          return hostname.includes(".");
+        } catch {
+          return false;
+        }
+      };
+
+      if (tryValidate(value)) return;
+
+      const valueWithHttps = `https://${value}`;
+      if (tryValidate(valueWithHttps)) return;
+
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: m("url_validation_error"),
+      });
     },
   },
 };
