@@ -24,6 +24,7 @@ import {
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
+import { ChartCard } from "./ChartCard";
 
 interface DownloadButtonProps {
   teamId?: number;
@@ -365,98 +366,96 @@ export function RoutedToPerPeriod() {
   };
 
   return (
-    <div className="w-full text-sm">
-      <div className="flex h-12 items-center">
-        <h2 className="text-emphasis text-md font-semibold">{t("routed_to_per_period")}</h2>
-      </div>
+    <ChartCard title={t("routed_to_per_period")}>
+      <div className="w-full text-sm">
+        <FormCard
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={setSelectedPeriod}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          userId={userId}
+          teamId={teamId}
+          isAll={isAll}
+          routingFormId={routingFormId}
+          startDate={startDate}
+          endDate={endDate}>
+          <div className="mt-6">
+            <div
+              className="scrollbar-thin border-subtle relative overflow-auto rounded-md border"
+              ref={tableContainerRef}>
+              <TableNew className="border-0">
+                <TableHeader className="bg-subtle sticky top-0 z-10">
+                  <TableRow>
+                    <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
+                    {uniquePeriods.map((period, index) => {
+                      const date = period;
+                      const today = new Date();
 
-      <FormCard
-        selectedPeriod={selectedPeriod}
-        onPeriodChange={setSelectedPeriod}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        userId={userId}
-        teamId={teamId}
-        isAll={isAll}
-        routingFormId={routingFormId}
-        startDate={startDate}
-        endDate={endDate}>
-        <div className="mt-6">
-          <div
-            className="scrollbar-thin border-subtle relaitve relative h-[80dvh] overflow-auto rounded-md border"
-            ref={tableContainerRef}>
-            <TableNew className="border-0">
-              <TableHeader className="bg-subtle sticky top-0 z-10">
-                <TableRow>
-                  <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
-                  {uniquePeriods.map((period, index) => {
-                    const date = period;
-                    const today = new Date();
+                      const isCurrent = isCurrentPeriod(date, today, selectedPeriod);
 
-                    const isCurrent = isCurrentPeriod(date, today, selectedPeriod);
-
+                      return (
+                        <TableHead
+                          key={period.toISOString()}
+                          className="text-center"
+                          data-is-current={isCurrent}>
+                          <span className={classNames(isCurrent && "font-bold")}>
+                            {date.toLocaleDateString()}
+                          </span>
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="relative">
+                  {processedData.map((row, index) => {
                     return (
-                      <TableHead
-                        key={period.toISOString()}
-                        className="text-center"
-                        data-is-current={isCurrent}>
-                        <span className={classNames(isCurrent && "font-bold")}>
-                          {date.toLocaleDateString()}
-                        </span>
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              </TableHeader>
-              <TableBody className="relative">
-                {processedData.map((row, index) => {
-                  return (
-                    <TableRow
-                      key={row.id}
-                      ref={index === processedData.length - 1 ? loadMoreRef : undefined}
-                      className="divide-muted divide-x">
-                      <TableCell className="bg-default w-[200px]">
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <div className="flex cursor-pointer items-center gap-2">
-                              <Avatar size="sm" imageSrc={row.avatarUrl} alt={row.name} />
-                              <div className="flex flex-col gap-1 truncate">
-                                <span>{row.name}</span>
-                              </div>
-                            </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent className="p-3">
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-default font-medium">{row.name}</span>
-                              </div>
-                              <div className="text-subtle flex flex-col text-sm">
-                                <div>
-                                  {t("total_bookings_per_period")}: <Badge>{row.totalBookings}</Badge>
-                                  {t("status")}: {getPerformanceBadge(row.performance, t)}
+                      <TableRow
+                        key={row.id}
+                        ref={index === processedData.length - 1 ? loadMoreRef : undefined}
+                        className="divide-muted divide-x">
+                        <TableCell className="bg-default w-[200px]">
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div className="flex cursor-pointer items-center gap-2">
+                                <Avatar size="sm" imageSrc={row.avatarUrl} alt={row.name} />
+                                <div className="flex flex-col gap-1 truncate">
+                                  <span>{row.name}</span>
                                 </div>
                               </div>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      </TableCell>
-                      {uniquePeriods.map((period) => {
-                        return (
-                          <TableCell key={period.toISOString()} className="text-center">
-                            {row.stats[period.toISOString()] === 0 ? null : (
-                              <>{row.stats[period.toISOString()]}</>
-                            )}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </TableNew>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="p-3">
+                              <div className="flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-default font-medium">{row.name}</span>
+                                </div>
+                                <div className="text-subtle flex flex-col text-sm">
+                                  <div>
+                                    {t("total_bookings_per_period")}: <Badge>{row.totalBookings}</Badge>
+                                    {t("status")}: {getPerformanceBadge(row.performance, t)}
+                                  </div>
+                                </div>
+                              </div>
+                            </HoverCardContent>
+                          </HoverCard>
+                        </TableCell>
+                        {uniquePeriods.map((period) => {
+                          return (
+                            <TableCell key={period.toISOString()} className="text-center">
+                              {row.stats[period.toISOString()] === 0 ? null : (
+                                <>{row.stats[period.toISOString()]}</>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </TableNew>
+            </div>
           </div>
-        </div>
-      </FormCard>
-    </div>
+        </FormCard>
+      </div>
+    </ChartCard>
   );
 }

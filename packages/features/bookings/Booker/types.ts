@@ -100,6 +100,7 @@ export interface BookerProps {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  crmRecordId?: string | null;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
   hasValidLicense?: boolean;
@@ -161,14 +162,7 @@ export type CustomClassNames = {
     eventMetaTimezoneSelect?: string;
     eventMetaChildren?: string;
   };
-  datePickerCustomClassNames?: {
-    datePickerContainer?: string;
-    datePickerTitle?: string;
-    datePickerDays?: string;
-    datePickerDate?: string;
-    datePickerDatesActive?: string;
-    datePickerToggle?: string;
-  };
+  datePickerCustomClassNames?: DatePickerClassNames;
   availableTimeSlotsCustomClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsHeaderContainer?: string;
@@ -181,4 +175,13 @@ export type CustomClassNames = {
     confirmButton?: string;
     backButton?: string;
   };
+};
+
+export type DatePickerClassNames = {
+  datePickerContainer?: string;
+  datePickerTitle?: string;
+  datePickerDays?: string;
+  datePickerDate?: string;
+  datePickerDatesActive?: string;
+  datePickerToggle?: string;
 };

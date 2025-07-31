@@ -130,6 +130,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableRecordingForOrganizer: true,
           disableRecordingForGuests: true,
           enableAutomaticTranscription: true,
+          enableAutomaticRecordingForOrganizer: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
@@ -636,10 +637,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  const updatedEventTypeSelect = {
     slug: true,
     schedulingType: true,
-  });
+  } satisfies Prisma.EventTypeSelect;
   let updatedEventType: Prisma.EventTypeGetPayload<{ select: typeof updatedEventTypeSelect }>;
   try {
     updatedEventType = await ctx.prisma.eventType.update({

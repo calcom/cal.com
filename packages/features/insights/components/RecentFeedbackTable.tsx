@@ -1,10 +1,8 @@
-import { Title } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { FeedbackTable } from "./FeedbackTable";
 import { LoadingInsight } from "./LoadingInsights";
 
@@ -33,9 +31,8 @@ export const RecentFeedbackTable = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <CardInsights>
-      <Title className="text-emphasis">{t("recent_ratings")}</Title>
+    <ChartCard title={t("recent_ratings")}>
       <FeedbackTable data={data} />
-    </CardInsights>
+    </ChartCard>
   );
 };

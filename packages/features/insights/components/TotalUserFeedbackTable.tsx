@@ -1,8 +1,8 @@
-import { Table, TableBody, TableCell, TableRow, Text } from "@tremor/react";
-
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { User } from "@calcom/prisma/client";
 import { Avatar } from "@calcom/ui/components/avatar";
+
+import { ChartCardItem } from "./ChartCard";
 
 export const TotalUserFeedbackTable = ({
   data,
@@ -19,36 +19,29 @@ export const TotalUserFeedbackTable = ({
     | undefined;
 }) => {
   return (
-    <Table>
-      <TableBody>
-        <>
-          {data &&
-            data?.length > 0 &&
-            data?.map((item) => (
-              <TableRow key={item.userId}>
-                <TableCell className="flex flex-row">
-                  <Avatar
-                    alt={item.user.name || ""}
-                    size="sm"
-                    imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
-                    title={item.user.name || ""}
-                    className="m-2"
-                  />
-                  <p className="text-default mx-0 my-auto">
-                    <strong>{item.user.name}</strong>
-                  </p>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Text>
-                    <strong className="text-default">
-                      {item.averageRating ? item.averageRating.toFixed(1) : item.count}
-                    </strong>
-                  </Text>
-                </TableCell>
-              </TableRow>
-            ))}
-        </>
-      </TableBody>
-    </Table>
+    <div className="overflow-hidden rounded-md">
+      {data && data?.length > 0 ? (
+        data?.map((item) => (
+          <ChartCardItem
+            key={item.userId}
+            count={item.averageRating ? item.averageRating.toFixed(1) : item.count}>
+            <div className="flex items-center">
+              <Avatar
+                alt={item.user.name || ""}
+                size="sm"
+                imageSrc={getUserAvatarUrl({ avatarUrl: item.user.avatarUrl })}
+                title={item.user.name || ""}
+                className="mr-3"
+              />
+              <div className="text-default text-sm font-medium">{item.user.name}</div>
+            </div>
+          </ChartCardItem>
+        ))
+      ) : (
+        <div className="flex h-60 text-center">
+          <p className="m-auto text-sm font-light">No data found</p>
+        </div>
+      )}
+    </div>
   );
 };

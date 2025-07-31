@@ -1,11 +1,9 @@
-import { Title } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { valueFormatter } from "../lib/valueFormatter";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { LineChart } from "./LineChart";
 import { LoadingInsight } from "./LoadingInsights";
 
@@ -39,16 +37,15 @@ export const BookingStatusLineChart = () => {
   if (!isSuccess) return null;
 
   return (
-    <CardInsights>
-      <Title className="text-emphasis">{t("event_trends")}</Title>
+    <ChartCard title={t("event_trends")}>
       <LineChart
-        className="linechart mt-4 h-80"
+        className="linechart ml-4 mt-4 h-80 sm:ml-0"
         data={eventsTimeLine ?? []}
         categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)", "No-Show (Guest)"]}
         index="Month"
         colors={["purple", "green", "blue", "red", "slate", "orange"]}
         valueFormatter={valueFormatter}
       />
-    </CardInsights>
+    </ChartCard>
   );
 };

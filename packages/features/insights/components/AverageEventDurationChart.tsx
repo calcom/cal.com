@@ -1,11 +1,9 @@
-import { Title } from "@tremor/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { valueFormatter } from "../lib/valueFormatter";
-import { CardInsights } from "./Card";
+import { ChartCard } from "./ChartCard";
 import { LineChart } from "./LineChart";
 import { LoadingInsight } from "./LoadingInsights";
 
@@ -36,8 +34,7 @@ export const AverageEventDurationChart = () => {
   if (!isSuccess || !data) return null;
   const isNoData = data.every((item) => item["Average"] === 0);
   return (
-    <CardInsights>
-      <Title className="text-emphasis">{t("average_event_duration")}</Title>
+    <ChartCard title={t("average_event_duration")}>
       {isNoData && (
         <div className="text-default flex h-60 text-center">
           <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
@@ -53,6 +50,6 @@ export const AverageEventDurationChart = () => {
           valueFormatter={valueFormatter}
         />
       )}
-    </CardInsights>
+    </ChartCard>
   );
 };

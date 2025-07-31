@@ -17,6 +17,7 @@ import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
@@ -54,7 +55,7 @@ async function getEnrichedSerializableForm<
 >(form: TForm) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
   };
 
   const serializableForm = await getSerializableForm({
@@ -176,7 +177,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({

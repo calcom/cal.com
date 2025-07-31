@@ -53,6 +53,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
@@ -67,7 +68,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
     ),
     teamId
       ? []
-      : EventTypeRepository.findAllByUpIdWithMinimalData(
+      : eventTypeRepo.findAllByUpIdWithMinimalData(
           {
             upId: userProfile.upId,
             userId: user.id,

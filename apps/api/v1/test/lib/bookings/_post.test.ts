@@ -25,6 +25,44 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
+describe("POST /api/bookings - eventTypeId validation", () => {
+  test("String eventTypeId should return 400", async () => {
+    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {
+        eventTypeId: "invalid-string",
+      },
+    });
+
+    await handler(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+    expect(JSON.parse(res._getData())).toEqual(
+      expect.objectContaining({
+        message: "Bad request, eventTypeId must be a number",
+      })
+    );
+  });
+
+  test("Number eventTypeId should not trigger validation error", async () => {
+    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {
+        eventTypeId: 123,
+      },
+    });
+
+    await handler(req, res);
+
+    const statusCode = res._getStatusCode();
+    const responseData = JSON.parse(res._getData());
+
+    if (statusCode === 400) {
+      expect(responseData.message).not.toBe("Bad request, eventTypeId must be a number");
+    }
+  });
+});
+
 describe.skipIf(true)("POST /api/bookings", () => {
   describe("Errors", () => {
     test("Missing required data", async () => {

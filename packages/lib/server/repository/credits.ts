@@ -180,8 +180,17 @@ export class CreditsRepository {
   }
 
   static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
+    const { teamId, userId } = data;
+
+    if (!teamId && !userId) {
+      throw new Error("Team or user ID is required");
+    }
+
     return (tx ?? prisma).creditBalance.create({
-      data,
+      data: {
+        ...data,
+        ...(!teamId ? { userId } : {}),
+      },
     });
   }
 

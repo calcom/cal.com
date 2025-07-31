@@ -30,16 +30,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-01T23:59:59.999Z",
           formattedDate: "May 1",
+          formattedDateFull: "May 1",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-02T00:00:00.000Z",
           endDate: "2025-05-02T23:59:59.999Z",
           formattedDate: "2",
+          formattedDateFull: "May 2",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-03T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
           formattedDate: "3",
+          formattedDateFull: "May 3",
         });
       });
 
@@ -64,26 +67,31 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
           formattedDate: "May 1 - 3",
+          formattedDateFull: "May 1 - May 3",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-04T00:00:00.000Z",
           endDate: "2025-05-10T23:59:59.999Z",
           formattedDate: "May 4 - 10",
+          formattedDateFull: "May 4 - May 10",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-11T00:00:00.000Z",
           endDate: "2025-05-17T23:59:59.999Z",
           formattedDate: "May 11 - 17",
+          formattedDateFull: "May 11 - May 17",
         });
         expect(ranges[3]).toEqual({
           startDate: "2025-05-18T00:00:00.000Z",
           endDate: "2025-05-24T23:59:59.999Z",
           formattedDate: "May 18 - 24",
+          formattedDateFull: "May 18 - May 24",
         });
         expect(ranges[4]).toEqual({
           startDate: "2025-05-25T00:00:00.000Z",
           endDate: "2025-05-25T23:59:59.999Z",
           formattedDate: "May 25 - 25",
+          formattedDateFull: "May 25 - May 25",
         });
       });
 
@@ -108,16 +116,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-15T00:00:00.000Z",
           endDate: "2025-05-31T23:59:59.999Z",
           formattedDate: "May",
+          formattedDateFull: "May",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-06-01T00:00:00.000Z",
           endDate: "2025-06-30T23:59:59.999Z",
           formattedDate: "Jun",
+          formattedDateFull: "Jun",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-07-01T00:00:00.000Z",
           endDate: "2025-07-15T23:59:59.999Z",
           formattedDate: "Jul",
+          formattedDateFull: "Jul",
         });
       });
 
@@ -142,16 +153,19 @@ describe("EventsInsights", () => {
           startDate: "2025-06-15T00:00:00.000Z",
           endDate: "2025-12-31T23:59:59.999Z",
           formattedDate: "2025",
+          formattedDateFull: "2025",
         });
         expect(ranges[1]).toEqual({
           startDate: "2026-01-01T00:00:00.000Z",
           endDate: "2026-12-31T23:59:59.999Z",
           formattedDate: "2026",
+          formattedDateFull: "2026",
         });
         expect(ranges[2]).toEqual({
           startDate: "2027-01-01T00:00:00.000Z",
           endDate: "2027-03-15T23:59:59.999Z",
           formattedDate: "2027",
+          formattedDateFull: "2027",
         });
       });
 
@@ -176,6 +190,7 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-01T23:59:59.999Z",
           formattedDate: "May 1",
+          formattedDateFull: "May 1",
         });
       });
     });
@@ -205,6 +220,7 @@ describe("EventsInsights", () => {
           startDate: "2025-03-29T23:00:00.000Z", // March 30th 00:00 Paris time
           endDate: "2025-03-30T21:59:59.999Z", // March 30th 23:59:59 Paris time
           formattedDate: "Mar 30",
+          formattedDateFull: "Mar 30",
         });
         expect(new Date(ranges[0].endDate).getTime() - new Date(ranges[0].startDate).getTime()).toBeLessThan(
           23 * 60 * 60 * 1000
@@ -213,6 +229,7 @@ describe("EventsInsights", () => {
           startDate: "2025-03-30T22:00:00.000Z", // March 31st 00:00 Paris time
           endDate: "2025-03-31T21:59:59.999Z", // March 31st 23:59:59 Paris time
           formattedDate: "31",
+          formattedDateFull: "Mar 31",
         });
       });
 
@@ -237,16 +254,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-15T22:00:00.000Z",
           endDate: "2025-05-17T21:59:59.999Z",
           formattedDate: "May 16 - 17",
+          formattedDateFull: "May 16 - May 17",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-17T22:00:00.000Z",
           endDate: "2025-05-24T21:59:59.999Z",
           formattedDate: "May 18 - 24",
+          formattedDateFull: "May 18 - May 24",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-24T22:00:00.000Z",
           endDate: "2025-05-29T21:59:59.999Z",
           formattedDate: "May 25 - 29",
+          formattedDateFull: "May 25 - May 29",
         });
       });
 
@@ -271,11 +291,13 @@ describe("EventsInsights", () => {
           startDate: "2025-05-31T22:00:00.000Z",
           endDate: "2025-06-30T21:59:59.999Z",
           formattedDate: "Jun",
+          formattedDateFull: "Jun",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-06-30T22:00:00.000Z",
           endDate: "2025-07-31T21:59:59.999Z",
           formattedDate: "Jul",
+          formattedDateFull: "Jul",
         });
       });
     });
@@ -304,11 +326,13 @@ describe("EventsInsights", () => {
           startDate: "2025-05-14T15:00:00.000Z",
           endDate: "2025-05-15T14:59:59.999Z",
           formattedDate: "May 15",
+          formattedDateFull: "May 15",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-15T15:00:00.000Z",
           endDate: "2025-05-16T14:59:59.999Z",
           formattedDate: "16",
+          formattedDateFull: "May 16",
         });
       });
 
@@ -333,16 +357,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-11T15:00:00.000Z",
           endDate: "2025-05-17T14:59:59.999Z",
           formattedDate: "May 12 - 17",
+          formattedDateFull: "May 12 - May 17",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-17T15:00:00.000Z",
           endDate: "2025-05-24T14:59:59.999Z",
           formattedDate: "May 18 - 24",
+          formattedDateFull: "May 18 - May 24",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-24T15:00:00.000Z",
           endDate: "2025-05-25T14:59:59.999Z",
           formattedDate: "May 25 - 25",
+          formattedDateFull: "May 25 - May 25",
         });
       });
 
@@ -367,11 +394,13 @@ describe("EventsInsights", () => {
           startDate: "2025-04-30T15:00:00.000Z",
           endDate: "2025-05-31T14:59:59.999Z",
           formattedDate: "May",
+          formattedDateFull: "May",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-31T15:00:00.000Z",
           endDate: "2025-06-30T14:59:59.999Z",
           formattedDate: "Jun",
+          formattedDateFull: "Jun",
         });
       });
     });
@@ -421,16 +450,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-04T23:59:59.999Z",
           formattedDate: "May 1 - 4",
+          formattedDateFull: "May 1 - May 4",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-05T00:00:00.000Z",
           endDate: "2025-05-11T23:59:59.999Z",
           formattedDate: "May 5 - 11",
+          formattedDateFull: "May 5 - May 11",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-12T00:00:00.000Z",
           endDate: "2025-05-14T23:59:59.999Z",
           formattedDate: "May 12 - 14",
+          formattedDateFull: "May 12 - May 14",
         });
       });
 
@@ -455,16 +487,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-03T23:59:59.999Z",
           formattedDate: "May 1 - 3",
+          formattedDateFull: "May 1 - May 3",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-04T00:00:00.000Z",
           endDate: "2025-05-10T23:59:59.999Z",
           formattedDate: "May 4 - 10",
+          formattedDateFull: "May 4 - May 10",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-11T00:00:00.000Z",
           endDate: "2025-05-14T23:59:59.999Z",
           formattedDate: "May 11 - 14",
+          formattedDateFull: "May 11 - May 14",
         });
       });
 
@@ -489,16 +524,19 @@ describe("EventsInsights", () => {
           startDate: "2025-05-01T00:00:00.000Z",
           endDate: "2025-05-02T23:59:59.999Z",
           formattedDate: "May 1 - 2",
+          formattedDateFull: "May 1 - May 2",
         });
         expect(ranges[1]).toEqual({
           startDate: "2025-05-03T00:00:00.000Z",
           endDate: "2025-05-09T23:59:59.999Z",
           formattedDate: "May 3 - 9",
+          formattedDateFull: "May 3 - May 9",
         });
         expect(ranges[2]).toEqual({
           startDate: "2025-05-10T00:00:00.000Z",
           endDate: "2025-05-14T23:59:59.999Z",
           formattedDate: "May 10 - 14",
+          formattedDateFull: "May 10 - May 14",
         });
       });
     });
@@ -844,6 +882,206 @@ describe("EventsInsights", () => {
     it("should handle same day range", () => {
       const result = EventsInsights.getTimeView("2024-01-01T00:00:00.000Z", "2024-01-01T23:59:59.999Z");
       expect(result).toBe("day");
+    });
+  });
+
+  describe("getDateRanges - Formatting Comparison", () => {
+    const timeZone = "UTC";
+
+    describe("Daily view formatting differences", () => {
+      it("should show smart vs full formatting for consecutive days", () => {
+        const startDate = "2024-01-15T00:00:00.000Z";
+        const endDate = "2024-01-19T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(5);
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan 15", "16", "17", "18", "19"]);
+
+        expect(formattedDatesFull).toEqual(["Jan 15", "Jan 16", "Jan 17", "Jan 18", "Jan 19"]);
+      });
+
+      it("should show formatting differences across month boundaries", () => {
+        const startDate = "2024-01-30T00:00:00.000Z";
+        const endDate = "2024-02-02T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(4);
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan 30", "31", "Feb 1", "2"]);
+
+        expect(formattedDatesFull).toEqual(["Jan 30", "Jan 31", "Feb 1", "Feb 2"]);
+      });
+    });
+
+    describe("Weekly view formatting differences", () => {
+      it("should show smart vs full formatting for weekly ranges", () => {
+        const startDate = "2024-01-15T00:00:00.000Z"; // Monday
+        const endDate = "2024-01-28T23:59:59.999Z"; // Sunday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(2);
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan 15 - 21", "Jan 22 - 28"]);
+
+        expect(formattedDatesFull).toEqual(["Jan 15 - Jan 21", "Jan 22 - Jan 28"]);
+      });
+
+      it("should show formatting differences for cross-month weekly ranges", () => {
+        const startDate = "2024-01-29T00:00:00.000Z"; // Monday
+        const endDate = "2024-02-11T23:59:59.999Z"; // Sunday
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "week",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(2);
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan 29 - Feb 4", "Feb 5 - 11"]);
+
+        expect(formattedDatesFull).toEqual(["Jan 29 - Feb 4", "Feb 5 - Feb 11"]);
+      });
+    });
+
+    describe("Monthly view formatting differences", () => {
+      it("should show consistent formatting for monthly ranges", () => {
+        const startDate = "2024-01-15T00:00:00.000Z";
+        const endDate = "2024-03-15T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "month",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        expect(ranges).toHaveLength(3);
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan", "Feb", "Mar"]);
+
+        expect(formattedDatesFull).toEqual(["Jan", "Feb", "Mar"]);
+      });
+    });
+
+    describe("Real-world usage examples", () => {
+      it("should demonstrate practical differences for chart display", () => {
+        // Simulate a common analytics scenario: 7 days of data
+        const startDate = "2024-01-15T00:00:00.000Z";
+        const endDate = "2024-01-21T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan 15", "16", "17", "18", "19", "20", "21"]);
+
+        expect(formattedDatesFull).toEqual([
+          "Jan 15",
+          "Jan 16",
+          "Jan 17",
+          "Jan 18",
+          "Jan 19",
+          "Jan 20",
+          "Jan 21",
+        ]);
+      });
+
+      it("should show benefits of full formatting for data export", () => {
+        // Simulate data that might be exported or used in external systems
+        const startDate = "2024-01-30T00:00:00.000Z";
+        const endDate = "2024-02-05T23:59:59.999Z";
+
+        const ranges = EventsInsights.getDateRanges({
+          startDate,
+          endDate,
+          timeZone,
+          timeView: "day",
+          weekStart: "Monday",
+        });
+
+        if (!ranges) {
+          throw new Error("Expected ranges to be defined");
+        }
+
+        const formattedDates = ranges.map((r) => r.formattedDate);
+        const formattedDatesFull = ranges.map((r) => r.formattedDateFull);
+
+        expect(formattedDates).toEqual(["Jan 30", "31", "Feb 1", "2", "3", "4", "5"]);
+
+        expect(formattedDatesFull).toEqual(["Jan 30", "Jan 31", "Feb 1", "Feb 2", "Feb 3", "Feb 4", "Feb 5"]);
+      });
     });
   });
 });

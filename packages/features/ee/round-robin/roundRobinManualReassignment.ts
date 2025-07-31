@@ -24,6 +24,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -181,6 +182,12 @@ export const roundRobinManualReassignment = async ({
         userPrimaryEmail: newUser.email,
         reassignReason,
         reassignById: reassignedById,
+        idempotencyKey: IdempotencyKeyService.generate({
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          userId: newUser.id,
+          reassignedById,
+        }),
       },
       select: bookingSelect,
     });
@@ -379,7 +386,7 @@ export const roundRobinManualReassignment = async ({
   return booking;
 };
 
-async function handleWorkflowsUpdate({
+export async function handleWorkflowsUpdate({
   booking,
   newUser,
   evt,
@@ -403,6 +410,7 @@ async function handleWorkflowsUpdate({
       scheduled: true,
       OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
+        action: WorkflowActions.EMAIL_HOST,
         workflow: {
           trigger: {
             in: [

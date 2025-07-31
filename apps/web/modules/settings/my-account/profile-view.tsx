@@ -652,8 +652,9 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
-        <p className="text-subtle mt-1 flex items-center gap-1 text-sm">
-          <Icon name="info" /> {t("tip_username_plus")}
+        <p className="text-subtle mt-1 flex gap-1 text-sm">
+          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
