@@ -411,24 +411,39 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
 
-  const busyTimes = await getBusyTimes({
-    credentials: user.credentials,
-    startTime: getBusyTimesStart,
-    endTime: getBusyTimesEnd,
-    eventTypeId,
-    userId: user.id,
-    userEmail: user.email,
-    username: `${user.username}`,
-    beforeEventBuffer,
-    afterEventBuffer,
-    selectedCalendars,
-    seatedEvent: !!eventType?.seatsPerTimeSlot,
-    rescheduleUid: initialData?.rescheduleUid || null,
-    duration,
-    currentBookings: initialData?.currentBookings,
-    bypassBusyCalendarTimes,
-    shouldServeCache,
-  });
+  let busyTimes = [];
+  try {
+    busyTimes = await getBusyTimes({
+      credentials: user.credentials,
+      startTime: getBusyTimesStart,
+      endTime: getBusyTimesEnd,
+      eventTypeId,
+      userId: user.id,
+      userEmail: user.email,
+      username: `${user.username}`,
+      beforeEventBuffer,
+      afterEventBuffer,
+      selectedCalendars,
+      seatedEvent: !!eventType?.seatsPerTimeSlot,
+      rescheduleUid: initialData?.rescheduleUid || null,
+      duration,
+      currentBookings: initialData?.currentBookings,
+      bypassBusyCalendarTimes,
+      shouldServeCache,
+    });
+  } catch (error) {
+    log.error(`Error fetching busy times for user ${username}:`, error);
+    return {
+      busy: [],
+      timeZone,
+      dateRanges: [],
+      oooExcludedDateRanges: [],
+      workingHours: [],
+      dateOverrides: [],
+      currentSeats: [],
+      datesOutOfOffice: undefined,
+    };
+  }
 
   const detailedBusyTimes: EventBusyDetails[] = [
     ...busyTimes.map((a) => ({
