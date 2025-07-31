@@ -124,6 +124,58 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     });
   }
 
+  // First, get all PBAC permissions for teams to avoid duplicate requests
+  const teamPermissionsMap = new Map<number, { canCreate: boolean; canEdit: boolean; canDelete: boolean }>();
+
+  for (const membership of memberships) {
+    const orgMembership = teamMemberships.find(
+      (teamM) => teamM.teamId === membership.team.parentId
+    )?.membershipRole;
+
+    const effectiveRole =
+      orgMembership && compareMembership(orgMembership, membership.role) ? orgMembership : membership.role;
+
+    try {
+      const permissions = await getResourcePermissions({
+        userId: user.id,
+        teamId: membership.team.id,
+        resource: Resource.EventType,
+        userRole: effectiveRole,
+        fallbackRoles: {
+          create: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+          update: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+          },
+          delete: {
+            roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+      });
+
+      teamPermissionsMap.set(membership.team.id, {
+        canCreate: permissions.canCreate,
+        canEdit: permissions.canEdit,
+        canDelete: permissions.canDelete,
+      });
+    } catch (error) {
+      // If PBAC check fails, fall back to role-based check
+      console.warn(
+        `PBAC check failed for user ${user.id} on team ${membership.team.id}, falling back to role check:`,
+        error
+      );
+      teamPermissionsMap.set(membership.team.id, {
+        canCreate: effectiveRole === MembershipRole.ADMIN || effectiveRole === MembershipRole.OWNER,
+        canEdit:
+          effectiveRole === MembershipRole.ADMIN ||
+          effectiveRole === MembershipRole.OWNER ||
+          effectiveRole === MembershipRole.MEMBER,
+        canDelete: effectiveRole === MembershipRole.ADMIN || effectiveRole === MembershipRole.OWNER,
+      });
+    }
+  }
+
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
     await Promise.all(
@@ -156,16 +208,22 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
             slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
           }
 
+          const effectiveRole =
+            orgMembership && compareMembership(orgMembership, membership.role)
+              ? orgMembership
+              : membership.role;
+
+          // Get permissions from the pre-computed map
+          const permissions = teamPermissionsMap.get(team.id);
+          const isReadOnly = permissions ? !permissions.canEdit : true; // Default to readOnly if no permissions found
+
           // const eventTypes = await Promise.all(team.eventTypes.map(mapEventType));
           const teamParentMetadata = team.parent ? teamMetadataSchema.parse(team.parent.metadata) : null;
           return {
             teamId: team.id,
             parentId: team.parentId,
             bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
-            membershipRole:
-              orgMembership && compareMembership(orgMembership, membership.role)
-                ? orgMembership
-                : membership.role,
+            membershipRole: effectiveRole,
             profile: {
               image: team.parent
                 ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
@@ -175,55 +233,34 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
             },
             metadata: {
               membershipCount: 0,
-              readOnly:
-                membership.role ===
-                (team.parentId
-                  ? orgMembership && compareMembership(orgMembership, membership.role)
-                    ? orgMembership
-                    : MembershipRole.MEMBER
-                  : MembershipRole.MEMBER),
+              readOnly: isReadOnly,
             },
           };
         })
     )
   );
 
-  // Add PBAC permission checking for eventType.create
-  const profilesWithPermissions = await Promise.all(
-    eventTypeGroups.map(async (group) => {
-      let canCreateEventTypes: boolean | undefined = undefined;
+  // Use pre-computed permissions for profiles
+  const profilesWithPermissions = eventTypeGroups.map((group) => {
+    let canCreateEventTypes: boolean | undefined = undefined;
+    let canUpdateEventTypes: boolean | undefined = undefined;
 
-      // For team profiles, check PBAC permissions
-      if (group.teamId && group.membershipRole) {
-        try {
-          const permissions = await getResourcePermissions({
-            userId: user.id,
-            teamId: group.teamId,
-            resource: Resource.EventType,
-            userRole: group.membershipRole,
-            fallbackRoles: {
-              create: {
-                roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-              },
-            },
-          });
-          canCreateEventTypes = permissions.canCreate;
-        } catch (error) {
-          // If PBAC check fails, fall back to role-based check
-          canCreateEventTypes =
-            group.membershipRole === MembershipRole.ADMIN || group.membershipRole === MembershipRole.OWNER;
-        }
-      }
+    // For team profiles, get permissions from the pre-computed map
+    if (group.teamId) {
+      const permissions = teamPermissionsMap.get(group.teamId);
+      canCreateEventTypes = permissions?.canCreate;
+      canUpdateEventTypes = permissions?.canEdit;
+    }
 
-      return {
-        ...group.profile,
-        ...group.metadata,
-        teamId: group.teamId,
-        membershipRole: group.membershipRole,
-        canCreateEventTypes,
-      };
-    })
-  );
+    return {
+      ...group.profile,
+      ...group.metadata,
+      teamId: group.teamId,
+      membershipRole: group.membershipRole,
+      canCreateEventTypes,
+      canUpdateEventTypes,
+    };
+  });
 
   const denormalizedPayload = {
     eventTypeGroups,
