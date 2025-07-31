@@ -56,6 +56,10 @@ export class EventGroupBuilder {
         userId
       );
 
+    if (!accessibleMemberships) {
+      throw new Error("Failed to filter team memberships");
+    }
+
     const memberships = accessibleMemberships.map((membership) => ({
       ...membership,
       team: {
