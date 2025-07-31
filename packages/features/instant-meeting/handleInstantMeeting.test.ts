@@ -8,9 +8,11 @@ import {
   getOrganizer,
   mockSuccessfulVideoMeetingCreation,
   mockCalendarToHaveNoBusySlots,
+  mockNoTranslations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
-import { describe, it, expect, vi } from "vitest";
+import type { NextApiRequest } from "next";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -27,16 +29,10 @@ vi.mock("@calcom/lib/videoClient", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
-  getTranslation: vi.fn().mockResolvedValue((key: string, options?: any) => {
-    if (key === "instant_meeting_with_title") {
-      return `Instant meeting with ${options?.name || "Guest"}`;
-    }
-    return key;
-  }),
-}));
-
 describe("handleInstantMeeting", () => {
+  beforeEach(() => {
+    mockNoTranslations();
+  });
   describe("team event instant meeting", () => {
     it("should successfully create instant meeting for team event", async () => {
       const handler = (await import("./handleInstantMeeting")).default;
@@ -104,7 +100,16 @@ describe("handleInstantMeeting", () => {
         metadata: {},
       };
 
-      const result = await handler({ body: mockReqBody });
+      const mockRequest = {
+        body: mockReqBody,
+        method: "POST",
+        headers: {},
+        query: {},
+        cookies: {},
+        url: "/api/instant-meeting",
+      } as NextApiRequest;
+
+      const result = await handler(mockRequest);
 
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
@@ -172,7 +177,16 @@ describe("handleInstantMeeting", () => {
         metadata: {},
       };
 
-      await expect(handler({ body: mockReqBody })).rejects.toThrow(
+      const mockRequest = {
+        body: mockReqBody,
+        method: "POST",
+        headers: {},
+        query: {},
+        cookies: {},
+        url: "/api/instant-meeting",
+      } as NextApiRequest;
+
+      await expect(handler(mockRequest)).rejects.toThrow(
         "Only Team Event Types are supported for Instant Meeting"
       );
     });
