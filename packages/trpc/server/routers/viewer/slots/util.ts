@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -30,7 +30,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
@@ -140,6 +140,8 @@ function withSlotsCache(
     log.info("[CACHE MISS] Available slots", { cacheKey });
     return result;
   };
+  cacheService: CacheService;
+  checkBookingLimitsService: CheckBookingLimitsService;
 }
 
 export class AvailableSlotsService {
@@ -952,8 +954,10 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    // TODO: DI getShouldServeCache
-    const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
+      _shouldServeCache,
+      eventType.team?.id
+    );
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
