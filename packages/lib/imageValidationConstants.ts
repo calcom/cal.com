@@ -56,14 +56,18 @@ export function containsDangerousSVGContent(content: string): boolean {
 }
 
 /**
- * Validate base64 string format
+ * Base64 regex pattern that matches valid base64 strings
+ * - Matches complete base64 groups of 4 characters
+ * - Handles proper padding with = characters
+ * - Supports both padded and unpadded forms correctly
+ */
+const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-9+/]{3}=)?$/;
+
+/**
+ * Validate base64 string format using strict regex
  */
 export function isValidBase64(str: string): boolean {
-  try {
-    return btoa(atob(str)) === str;
-  } catch {
-    return false;
-  }
+  return BASE64_REGEX.test(str);
 }
 
 /**
