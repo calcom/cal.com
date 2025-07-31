@@ -2450,7 +2450,7 @@ enum BookingAuditAction {
 }
 
 model BookingAudit {
-  id        String              @id @default(uuid())
+  id        String              @id @default(uuid()) //TODO: Use uuid7() for time-sortable ID once Prisma updates to 7.
   bookingId String
   userId    String?
   type      BookingAuditType

@@ -4,6 +4,7 @@ import type { IBookingAuditRepository } from "../repository/IBookingAuditReposit
 import { PrismaBookingAuditRepository } from "../repository/PrismaBookingAuditRepository";
 
 export type BookingAuditData = {
+  version?: number;
   actor?: {
     type: "User" | "System" | "Attendee";
   };
@@ -39,6 +40,8 @@ export type CreateBookingAuditInput = {
   data?: BookingAuditData | null;
 };
 
+const CURRENT_AUDIT_DATA_VERSION = 1;
+
 export class BookingAuditService {
   constructor(
     private readonly bookingAuditRepository: IBookingAuditRepository = new PrismaBookingAuditRepository()
@@ -60,7 +63,12 @@ export class BookingAuditService {
       userId: input.userId,
       type: input.type,
       action: input.action,
-      data: input.data ? (input.data as Prisma.InputJsonValue) : undefined,
+      data: input.data
+        ? ({
+            ...input.data,
+            version: CURRENT_AUDIT_DATA_VERSION,
+          } as Prisma.InputJsonValue)
+        : undefined,
     };
 
     return this.bookingAuditRepository.create(auditData);
