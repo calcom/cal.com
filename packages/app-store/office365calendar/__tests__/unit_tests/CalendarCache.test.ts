@@ -127,8 +127,8 @@ describe("Office365CalendarCache - Cache Operations", () => {
       const calendarService = new Office365CalendarService(credentialInDb);
       const calendarCache = new Office365CalendarCache(calendarService);
 
-      // Create expired cache
-      const expiredDate = new Date(Date.now() - 100000); // 100 seconds ago
+      // Create expired cache by exceeding 5-minute TTL
+      const expiredDate = new Date(Date.now() - 6 * 60 * 1000); // 6 minutes ago
       await calendarCacheHelpers.setCache({
         credentialId: credentialInDb.id,
         key: JSON.stringify({

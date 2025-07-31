@@ -2,12 +2,24 @@ import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
 import "vitest-fetch-mock";
 
 import { getTokenObjectFromCredential } from "../../../_utils/oauth/getTokenObjectFromCredential";
+import webhookHandler from "../../api/webhook";
 import { getOfficeAppKeys } from "../../lib/getOfficeAppKeys";
 import { ErrorHandlingTestUtils } from "./shared/error-handling.utils";
 
 // Mock dependencies
 vi.mock("../../../_utils/oauth/getTokenObjectFromCredential");
 vi.mock("../../lib/getOfficeAppKeys");
+
+// Mock database dependencies
+vi.mock("@calcom/lib/server/repository/selectedCalendar", () => ({
+  SelectedCalendarRepository: {
+    findManyByOutlookSubscriptionIds: vi.fn().mockResolvedValue([]),
+  },
+}));
+
+vi.mock("@calcom/lib/delegationCredential/server", () => ({
+  getCredentialForCalendarCache: vi.fn().mockResolvedValue(null),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -34,23 +46,15 @@ describe("Office365Webhook - Webhook Processing", () => {
         query: {
           validationToken: "test-validation-token-123",
         },
-      };
+      } as any;
 
       const mockResponse = {
         status: vi.fn().mockReturnThis(),
         send: vi.fn(),
         setHeader: vi.fn(),
-      };
+      } as any;
 
-      // Mock webhook handler
-      const webhookHandler = vi.fn().mockImplementation((req, res) => {
-        if (req.method === "GET" && req.query.validationToken) {
-          res.status(200).send(req.query.validationToken);
-          return;
-        }
-      });
-
-      webhookHandler(mockRequest, mockResponse);
+      await webhookHandler(mockRequest, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.send).toHaveBeenCalledWith("test-validation-token-123");
@@ -60,25 +64,18 @@ describe("Office365Webhook - Webhook Processing", () => {
       const mockRequest = {
         method: "GET",
         query: {}, // No validation token
-      };
+      } as any;
 
       const mockResponse = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
         setHeader: vi.fn(),
-      };
+      } as any;
 
-      const webhookHandler = vi.fn().mockImplementation((req, res) => {
-        if (req.method === "GET" && !req.query.validationToken) {
-          res.status(400).json({ error: "Missing validation token" });
-          return;
-        }
-      });
+      await webhookHandler(mockRequest, mockResponse);
 
-      webhookHandler(mockRequest, mockResponse);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({ error: "Missing validation token" });
+      // The real handler should handle this gracefully
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
     });
   });
 
@@ -104,37 +101,27 @@ describe("Office365Webhook - Webhook Processing", () => {
         headers: {
           "content-type": "application/json",
         },
-      };
+        query: {},
+      } as any;
 
       const mockResponse = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
         setHeader: vi.fn(),
-      };
+      } as any;
 
-      const webhookHandler = vi.fn().mockImplementation((req, res) => {
-        if (req.method === "POST" && req.body.value) {
-          const processed = req.body.value.length;
-          res.status(200).json({
-            message: "Webhook processed successfully",
-            processed,
-            failed: 0,
-            skipped: 0,
-            errors: [],
-          });
-        }
-      });
+      await webhookHandler(mockRequest, mockResponse);
 
-      webhookHandler(mockRequest, mockResponse);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        message: "Webhook processed successfully",
-        processed: 1,
-        failed: 0,
-        skipped: 0,
-        errors: [],
-      });
+      // The real handler processes the webhook and returns success metrics
+      expect(mockResponse.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "ok",
+          processed: expect.any(Number),
+          failed: expect.any(Number),
+          skipped: expect.any(Number),
+          errors: expect.any(Array),
+        })
+      );
     });
 
     test("should handle malformed webhook payloads", async () => {
@@ -146,35 +133,20 @@ describe("Office365Webhook - Webhook Processing", () => {
         headers: {
           "content-type": "application/json",
         },
-      };
+        query: {},
+      } as any;
 
       const mockResponse = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
         setHeader: vi.fn(),
-      };
+      } as any;
 
-      const webhookHandler = vi.fn().mockImplementation((req, res) => {
-        if (req.method === "POST" && !req.body.value) {
-          res.status(400).json({
-            message: "Invalid webhook payload",
-            processed: 0,
-            failed: 1,
-            skipped: 0,
-            errors: ["Missing 'value' array in payload"],
-          });
-        }
-      });
-
-      webhookHandler(mockRequest, mockResponse);
+      await webhookHandler(mockRequest, mockResponse);
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         message: "Invalid webhook payload",
-        processed: 0,
-        failed: 1,
-        skipped: 0,
-        errors: ["Missing 'value' array in payload"],
       });
     });
 

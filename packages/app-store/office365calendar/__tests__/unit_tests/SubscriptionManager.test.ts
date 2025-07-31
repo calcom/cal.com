@@ -96,7 +96,7 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
         return defaultFetcherMockImplementation(endpoint, options);
       });
 
-      vi.spyOn(calendarService, "fetcher" as any).mockImplementation(fetcherSpy);
+      vi.spyOn(calendarService, "fetcher").mockImplementation(fetcherSpy);
 
       await expect(subscriptionManager.createSubscription("calendar123")).rejects.toThrow(
         /Failed to create subscription: 500 Internal Server Error - /
@@ -211,7 +211,7 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const renewalError = ErrorHandlingTestUtils.ERROR_SCENARIOS.SUBSCRIPTION_ERROR;
       const fetcherSpy = ErrorHandlingTestUtils.createErrorMock(renewalError);
 
-      vi.spyOn(calendarService, "fetcher" as any).mockImplementation(fetcherSpy);
+      vi.spyOn(calendarService, "fetcher").mockImplementation(fetcherSpy);
 
       await expect(subscriptionManager.renewSubscription("subscription-123")).rejects.toThrow(
         "Failed to renew subscription: 500 Internal Server Error"
@@ -302,7 +302,7 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const deletionError = ErrorHandlingTestUtils.ERROR_SCENARIOS.SUBSCRIPTION_ERROR;
       const fetcherSpy = ErrorHandlingTestUtils.createErrorMock(deletionError);
 
-      vi.spyOn(calendarService, "fetcher" as any).mockImplementation(fetcherSpy);
+      vi.spyOn(calendarService, "fetcher").mockImplementation(fetcherSpy);
 
       await expect(subscriptionManager.deleteSubscription("subscription-123")).rejects.toThrow(
         "Failed to delete subscription: 500 Internal Server Error"
@@ -466,11 +466,7 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const subscriptions = await subscriptionManager.getSubscriptionsForCredential();
       const renewalThreshold = 15 * 60 * 1000; // 15 minutes
 
-      const needsRenewal = subscriptions.filter((sub: any) => {
-        const expirationTime = new Date(sub.expirationDateTime).getTime();
-        const currentTime = Date.now();
-        return expirationTime - currentTime < renewalThreshold;
-      });
+      const needsRenewal = await subscriptionManager.getSubscriptionsNeedingRenewal(renewalThreshold);
 
       expect(needsRenewal).toHaveLength(1);
       expect(needsRenewal[0].id).toBe("subscription-1");

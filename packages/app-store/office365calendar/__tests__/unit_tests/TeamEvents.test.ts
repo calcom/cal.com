@@ -1,8 +1,6 @@
 import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
 import "vitest-fetch-mock";
 
-import logger from "@calcom/lib/logger";
-
 import { getTokenObjectFromCredential } from "../../../_utils/oauth/getTokenObjectFromCredential";
 import Office365CalendarService from "../../lib/CalendarService";
 import { getOfficeAppKeys } from "../../lib/getOfficeAppKeys";
@@ -14,8 +12,6 @@ import { TeamScenariosTestUtils } from "./shared/team-scenarios.utils";
 // Mock dependencies
 vi.mock("../../../_utils/oauth/getTokenObjectFromCredential");
 vi.mock("../../lib/getOfficeAppKeys");
-
-const log = logger.getSubLogger({ prefix: ["TeamEvents.test"] });
 
 beforeEach(() => {
   vi.clearAllMocks();

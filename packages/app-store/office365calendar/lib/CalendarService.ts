@@ -633,7 +633,9 @@ export default class Office365CalendarService implements Calendar {
         return times;
       }, []);
 
-      return [...acc, ...busyTimes];
+      // Use push.apply instead of spread to avoid O(n²) complexity
+      Array.prototype.push.apply(acc, busyTimes);
+      return acc;
     }, []);
   };
 

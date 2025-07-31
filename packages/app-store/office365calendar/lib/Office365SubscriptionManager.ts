@@ -129,20 +129,27 @@ export class Office365SubscriptionManager {
 
   async getSubscriptionsForCredential() {
     try {
-      //const userEndpoint = await this.calendarService.getUserEndpoint();
-      const response = await this.calendarService.fetcher(`/subscriptions`, {
-        method: "GET",
-      });
-
+      const response = await this.calendarService.fetcher("/subscriptions");
       if (!response.ok) {
         throw new Error(`Failed to get subscriptions: ${response.status} ${response.statusText}`);
       }
-
       const subscriptions = await response.json();
       return subscriptions.value || [];
     } catch (error) {
       log.error("Error getting subscriptions", safeStringify({ error }));
       throw error;
     }
+  }
+
+  /**
+   * Returns subscriptions that need renewal based on a threshold
+   */
+  async getSubscriptionsNeedingRenewal(renewalThreshold = 15 * 60 * 1000) {
+    const subscriptions = await this.getSubscriptionsForCredential();
+    return subscriptions.filter((sub: any) => {
+      const expirationTime = new Date(sub.expirationDateTime).getTime();
+      const currentTime = Date.now();
+      return expirationTime - currentTime < renewalThreshold;
+    });
   }
 }
