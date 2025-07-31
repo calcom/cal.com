@@ -5,12 +5,14 @@ import type { IFeaturesRepository } from "@calcom/features/flags/features.reposi
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 import { GoogleCalendarWebhookService } from "./GoogleCalendarWebhookService";
-import type { WebhookRequest } from "./GoogleCalendarWebhookService";
 
 class MockCalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
   findByChannelId = vi.fn();
   findBySelectedCalendar = vi.fn();
+  findByCredentialId = vi.fn();
+  findBySelectedCalendarIds = vi.fn();
   upsert = vi.fn();
+  upsertMany = vi.fn();
   updateSyncToken = vi.fn();
   updateWatchDetails = vi.fn();
   getSubscriptionsToWatch = vi.fn();
@@ -20,9 +22,11 @@ class MockCalendarSubscriptionRepository implements ICalendarSubscriptionReposit
 
 class MockCalendarEventRepository implements ICalendarEventRepository {
   getEventsForAvailability = vi.fn();
+  getEventsForAvailabilityBatch = vi.fn();
   upsertEvent = vi.fn();
   deleteEvent = vi.fn();
   bulkUpsertEvents = vi.fn();
+  cleanupOldEvents = vi.fn();
 }
 
 class MockFeaturesRepository implements IFeaturesRepository {
@@ -52,10 +56,8 @@ describe("GoogleCalendarWebhookService", () => {
   const dependencies = {
     subscriptionRepo: mockSubscriptionRepo,
     eventRepo: mockEventRepo,
-    featuresRepo: mockFeaturesRepo,
     calendarCacheService: mockCalendarCacheService as any,
     getCredentialForCalendarCache: mockGetCredentialForCalendarCache,
-    webhookToken: "test-token",
     logger: mockLogger,
   };
 
@@ -72,12 +74,7 @@ describe("GoogleCalendarWebhookService", () => {
   });
 
   it("should process webhook successfully", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
+    const channelId = "test-channel-id";
 
     mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue({
@@ -99,7 +96,7 @@ describe("GoogleCalendarWebhookService", () => {
       },
     });
 
-    const response = await webhookService.processWebhook(request);
+    const response = await webhookService.processWebhook(channelId);
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("ok");
@@ -109,44 +106,12 @@ describe("GoogleCalendarWebhookService", () => {
     );
   });
 
-  it("should reject invalid webhook token", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "invalid-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
-
-    const response = await webhookService.processWebhook(request);
-
-    expect(response.status).toBe(403);
-    expect(response.body.message).toBe("Invalid API key");
-  });
-
-  it("should handle missing channel ID", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-      },
-    };
-
-    const response = await webhookService.processWebhook(request);
-
-    expect(response.status).toBe(403);
-    expect(response.body.message).toBe("Missing Channel ID");
-  });
-
   it("should return ok when SQL cache write is disabled", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
+    const channelId = "test-channel-id";
 
     mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(false);
 
-    const response = await webhookService.processWebhook(request);
+    const response = await webhookService.processWebhook(channelId);
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("ok");
@@ -154,17 +119,12 @@ describe("GoogleCalendarWebhookService", () => {
   });
 
   it("should return ok when no subscription is found", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
+    const channelId = "test-channel-id";
 
     mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue(null);
 
-    const response = await webhookService.processWebhook(request);
+    const response = await webhookService.processWebhook(channelId);
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("ok");
@@ -174,12 +134,7 @@ describe("GoogleCalendarWebhookService", () => {
   });
 
   it("should return ok when subscription has no credential", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
+    const channelId = "test-channel-id";
 
     mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue({
@@ -190,7 +145,7 @@ describe("GoogleCalendarWebhookService", () => {
       },
     });
 
-    const response = await webhookService.processWebhook(request);
+    const response = await webhookService.processWebhook(channelId);
 
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("ok");
@@ -200,12 +155,7 @@ describe("GoogleCalendarWebhookService", () => {
   });
 
   it("should return 404 when credential is not found", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
+    const channelId = "test-channel-id";
 
     mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
     mockSubscriptionRepo.findByChannelId.mockResolvedValue({
@@ -218,23 +168,18 @@ describe("GoogleCalendarWebhookService", () => {
     });
     mockGetCredentialForCalendarCache.mockResolvedValue(null);
 
-    const response = await webhookService.processWebhook(request);
+    const response = await webhookService.processWebhook(channelId);
 
     expect(response.status).toBe(404);
     expect(response.body.error).toBe("Credential not found");
   });
 
   it("should handle errors gracefully", async () => {
-    const request: WebhookRequest = {
-      headers: {
-        "x-goog-channel-token": "test-token",
-        "x-goog-channel-id": "test-channel-id",
-      },
-    };
+    const channelId = "test-channel-id";
 
     mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockRejectedValue(new Error("Database error"));
 
-    const response = await webhookService.processWebhook(request);
+    const response = await webhookService.processWebhook(channelId);
 
     expect(response.status).toBe(500);
     expect(response.body.message).toBe("Internal server error");
