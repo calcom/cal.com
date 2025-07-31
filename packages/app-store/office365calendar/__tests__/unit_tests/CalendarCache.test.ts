@@ -1,8 +1,6 @@
 import { vi, describe, test, expect, beforeEach, afterEach } from "vitest";
 import "vitest-fetch-mock";
 
-import logger from "@calcom/lib/logger";
-
 import { getTokenObjectFromCredential } from "../../../_utils/oauth/getTokenObjectFromCredential";
 import Office365CalendarService from "../../lib/CalendarService";
 import { Office365CalendarCache } from "../../lib/Office365CalendarCache";
@@ -19,8 +17,6 @@ import {
 vi.mock("../../../_utils/oauth/getTokenObjectFromCredential");
 vi.mock("../../lib/getOfficeAppKeys");
 vi.mock("@calcom/features/calendar-cache/calendar-cache");
-
-const log = logger.getSubLogger({ prefix: ["CalendarCache.test"] });
 
 // Mock CalendarCache
 const mockCalendarCache = {

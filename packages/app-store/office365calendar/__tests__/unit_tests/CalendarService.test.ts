@@ -51,7 +51,7 @@ describe("Office365CalendarService - Core Functionality", () => {
         key: { invalid: "key" },
         userId: 1,
         appId: "office365calendar",
-        invalid: false,
+        invalid: true,
         teamId: null,
         delegationCredentialId: null,
         user: null,

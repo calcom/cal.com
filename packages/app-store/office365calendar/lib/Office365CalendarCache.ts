@@ -10,6 +10,48 @@ import type Office365CalendarService from "./CalendarService";
 
 const log = logger.getSubLogger({ prefix: ["Office365CalendarCache"] });
 
+// Custom error class for Office365 calendar cache operations
+export class Office365CalendarCacheError extends Error {
+  constructor(message: string, public readonly operation: string, public readonly originalError?: unknown) {
+    super(message);
+    this.name = "Office365CalendarCacheError";
+  }
+}
+
+// Type guard to validate cached data structure
+function isValidEventBusyDateArray(data: unknown): data is EventBusyDate[] {
+  if (!Array.isArray(data)) {
+    return false;
+  }
+
+  return data.every((item) => {
+    if (typeof item !== "object" || item === null) {
+      return false;
+    }
+
+    const event = item as Record<string, unknown>;
+
+    // Check required fields
+    if (!event.start || !event.end) {
+      return false;
+    }
+
+    // Validate start and end are Date or string
+    const isValidDate = (value: unknown): boolean => value instanceof Date || typeof value === "string";
+
+    if (!isValidDate(event.start) || !isValidDate(event.end)) {
+      return false;
+    }
+
+    // Validate optional source field if present
+    if (event.source !== undefined && event.source !== null && typeof event.source !== "string") {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 export class Office365CalendarCache {
   private calendarService: Office365CalendarService;
   private credentialId: number;
@@ -73,11 +115,24 @@ export class Office365CalendarCache {
           dateTo,
           calendarCount: calendarIds.length,
         });
-        return cachedAvailability.value as unknown as EventBusyDate[];
+
+        // Validate cached data before returning
+        if (isValidEventBusyDateArray(cachedAvailability.value)) {
+          return cachedAvailability.value;
+        } else {
+          log.warn("[Cache Hit] Invalid cached data structure, falling back to fresh fetch", {
+            dateFrom,
+            dateTo,
+            calendarCount: calendarIds.length,
+            cachedDataType: typeof cachedAvailability.value,
+            isArray: Array.isArray(cachedAvailability.value),
+          });
+          // Fall through to fresh fetch instead of throwing error
+        }
       }
 
-      // Cache miss - no cached data found
-      log.info("[Cache Miss] No cached data found, fetching fresh availability", {
+      // Cache miss or invalid cached data - fetch fresh availability
+      log.info("[Cache Miss] No cached data found or invalid cache, fetching fresh availability", {
         dateFrom,
         dateTo,
         calendarCount: calendarIds.length,
@@ -90,7 +145,11 @@ export class Office365CalendarCache {
       return data;
     } catch (error) {
       log.error("Error getting cached availability", safeStringify({ error }));
-      return [];
+      throw new Office365CalendarCacheError(
+        "Failed to get calendar availability",
+        "getCacheOrFetchAvailability",
+        error
+      );
     }
   }
 
@@ -150,6 +209,7 @@ export class Office365CalendarCache {
       );
     } catch (error) {
       log.error("Error updating cache", safeStringify({ error }));
+      throw new Office365CalendarCacheError("Failed to update calendar cache", "updateCache", error);
     }
   }
 }

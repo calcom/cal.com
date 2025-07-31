@@ -105,12 +105,12 @@ export const generateTestDates = {
     const targetDay = getNow().add(dayOffset, "day");
     return [
       {
-        start: targetDay.hour(9).minute(0).second(0).toDate(),
-        end: targetDay.hour(10).minute(0).second(0).toDate(),
+        start: targetDay.hour(9).minute(0).second(0).millisecond(0).toDate(),
+        end: targetDay.hour(10).minute(0).second(0).millisecond(0).toDate(),
       },
       {
-        start: targetDay.hour(14).minute(0).second(0).toDate(),
-        end: targetDay.hour(15).minute(30).second(0).toDate(),
+        start: targetDay.hour(14).minute(0).second(0).millisecond(0).toDate(),
+        end: targetDay.hour(15).minute(30).second(0).millisecond(0).toDate(),
       },
     ];
   },
