@@ -31,6 +31,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  if (!isOrgAdmin) {
+    input.includePersonalEventsInLimits = false;
+  }
+
   if (input.slug) {
     const userConflict = await prisma.team.findMany({
       where: {
