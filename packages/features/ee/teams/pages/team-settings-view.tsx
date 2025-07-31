@@ -35,8 +35,9 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const utils = trpc.useUtils();
 
   const session = useSession();
+
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
-  const isOrgAdminOrOwner = checkAdminOrOwner(session?.data?.user.org?.role);
+  const isOrgTeam = session?.data?.user.org ?? false;
 
   const form = useForm<{
     bookingLimits?: IntervalLimit;
@@ -144,7 +145,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                           />
                         )}
                       />
-                      {isOrgAdminOrOwner && (
+                      {isOrgTeam && isAdmin && (
                         <Controller
                           name="includePersonalEventsInLimits"
                           render={({ field: { value, onChange } }) => (

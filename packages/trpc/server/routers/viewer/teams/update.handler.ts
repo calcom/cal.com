@@ -31,8 +31,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (!isOrgAdmin) {
-    input.includePersonalEventsInLimits = false;
+  const isOrgTeam = ctx.user?.organization ?? false;
+
+  if (input.includePersonalEventsInLimits && !isOrgTeam) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   if (input.slug) {
