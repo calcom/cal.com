@@ -469,7 +469,7 @@ We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:is
 
 <!-- CONTRIBUTORS -->
 
-### Contributors
+### Contributors:-
 
 <a href="https://github.com/calcom/cal.com/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=calcom/cal.com" />
