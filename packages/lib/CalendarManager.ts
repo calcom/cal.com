@@ -250,21 +250,21 @@ export const getBusyCalendarTimes = async (
   const endDate = dayjs(dateTo).add(14, "hours").format();
   try {
     if (includeTimeZone) {
-      results = await getCalendarsEvents(
-        deduplicatedCredentials,
-        startDate,
-        endDate,
+      results = await getCalendarsEvents({
+        withCredentials: deduplicatedCredentials,
+        dateFrom: startDate,
+        dateTo: endDate,
         selectedCalendars,
-        { includeTimeZone: true }
-      );
+        includeTimeZone: true
+      });
     } else {
-      results = await getCalendarsEvents(
-        deduplicatedCredentials,
-        startDate,
-        endDate,
+      results = await getCalendarsEvents({
+        withCredentials: deduplicatedCredentials,
+        dateFrom: startDate,
+        dateTo: endDate,
         selectedCalendars,
         shouldServeCache
-      );
+      });
     }
   } catch (e) {
     log.warn(`Error getting calendar availability`, {

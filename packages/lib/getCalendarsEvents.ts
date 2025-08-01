@@ -13,48 +13,31 @@ const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-interface GetCalendarsEventsOptions {
+interface GetCalendarsEventsParams {
+  withCredentials: CredentialForCalendarService[];
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: SelectedCalendar[];
   shouldServeCache?: boolean;
   includeTimeZone?: boolean;
 }
 
 function getCalendarsEvents(
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean
+  params: Omit<GetCalendarsEventsParams, 'includeTimeZone'>
 ): Promise<EventBusyDate[][]>;
 
 function getCalendarsEvents(
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  options: GetCalendarsEventsOptions & { includeTimeZone: true }
+  params: GetCalendarsEventsParams & { includeTimeZone: true }
 ): Promise<(EventBusyDate & { timeZone: string })[][]>;
 
 function getCalendarsEvents(
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  optionsOrShouldServeCache?: boolean | GetCalendarsEventsOptions
+  params: GetCalendarsEventsParams
 ): Promise<EventBusyDate[][] | (EventBusyDate & { timeZone: string })[][]>;
 
 async function getCalendarsEvents(
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  optionsOrShouldServeCache?: boolean | GetCalendarsEventsOptions
+  params: GetCalendarsEventsParams
 ): Promise<EventBusyDate[][] | (EventBusyDate & { timeZone: string })[][]> {
-  const options: GetCalendarsEventsOptions = 
-    typeof optionsOrShouldServeCache === 'boolean' 
-      ? { shouldServeCache: optionsOrShouldServeCache, includeTimeZone: false }
-      : { shouldServeCache: undefined, includeTimeZone: false, ...optionsOrShouldServeCache };
-
-  const { shouldServeCache, includeTimeZone } = options;
+  const { withCredentials, dateFrom, dateTo, selectedCalendars, shouldServeCache, includeTimeZone = false } = params;
   const calendarCredentials = withCredentials
     .filter((credential) => 
       includeTimeZone 
@@ -182,7 +165,13 @@ export const getCalendarsEventsWithTimezones = async (
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
 ): Promise<(EventBusyDate & { timeZone: string })[][]> => {
-  return getCalendarsEvents(withCredentials, dateFrom, dateTo, selectedCalendars, { includeTimeZone: true });
+  return getCalendarsEvents({ 
+    withCredentials, 
+    dateFrom, 
+    dateTo, 
+    selectedCalendars, 
+    includeTimeZone: true 
+  });
 };
 
 export default getCalendarsEvents;
