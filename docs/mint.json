@@ -113,7 +113,7 @@
         {
           "group": "Insights",
           "icon": "chart-bar",
-          "pages": ["developing/guides/insights/add-charts"]
+          "pages": ["developing/guides/insights/add-new-booking-charts"]
         }
       ]
     },
