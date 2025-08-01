@@ -42,7 +42,7 @@ export async function getTeamPermissions(
           roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
         update: {
-          roles: [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER],
+          roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
         },
         delete: {
           roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
