@@ -1,36 +1,51 @@
 import type { BookingAudit, BookingAuditType, BookingAuditAction, Prisma } from "@prisma/client";
+import { z } from "zod";
 
 import type { IBookingAuditRepository } from "../repository/IBookingAuditRepository";
 import { PrismaBookingAuditRepository } from "../repository/PrismaBookingAuditRepository";
 
-export type BookingAuditData = {
-  version?: number;
-  actor?: {
-    type: "User" | "System" | "Attendee";
-  };
-  booking?: {
-    meetingTime?: string;
-    totalReschedules?: number;
-    attendeeCountChange?: number;
-    cancellationReason?: string;
-    rejectionReason?: string;
-    assignmentReason?: string;
-    reassignmentReason?: string;
-  };
-  attendee?: {
-    id?: string;
-  };
-  meeting?: {
-    provider?: string;
-    meetingId?: string;
-    meetingUrl?: string;
-  };
-  location?: {
-    type?: string;
-    address?: string;
-    details?: Record<string, unknown>;
-  };
-};
+export const BookingAuditDataSchema = z
+  .object({
+    version: z.number().optional(),
+    actor: z
+      .object({
+        type: z.enum(["User", "System", "Attendee"]),
+      })
+      .optional(),
+    booking: z
+      .object({
+        meetingTime: z.string().optional(),
+        totalReschedules: z.number().optional(),
+        attendeeCountChange: z.number().optional(),
+        cancellationReason: z.string().optional(),
+        rejectionReason: z.string().optional(),
+        assignmentReason: z.string().optional(),
+        reassignmentReason: z.string().optional(),
+      })
+      .optional(),
+    attendee: z
+      .object({
+        id: z.string().optional(),
+      })
+      .optional(),
+    meeting: z
+      .object({
+        provider: z.string().optional(),
+        meetingId: z.string().optional(),
+        meetingUrl: z.string().url().optional(),
+      })
+      .optional(),
+    location: z
+      .object({
+        type: z.string().optional(),
+        address: z.string().optional(),
+        details: z.record(z.unknown()).optional(),
+      })
+      .optional(),
+  })
+  .optional();
+
+export type BookingAuditData = z.infer<typeof BookingAuditDataSchema>;
 
 export type CreateBookingAuditInput = {
   bookingId: string;
