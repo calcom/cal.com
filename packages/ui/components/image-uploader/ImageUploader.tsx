@@ -9,10 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor, ButtonProps } from "../button";
 import { Button } from "../button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
+import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 import { validateImageFile } from "./imageValidation";
-import { MAX_IMAGE_FILE_SIZE } from "./imageValidation.test";
 
 const MAX_IMAGE_SIZE = 512;
 
@@ -96,9 +96,13 @@ export default function ImageUploader({
 
     const file = e.target.files[0];
 
-    const maxAvatarSize = MAX_IMAGE_FILE_SIZE;
-    const isValid = await validateImageFile(file, t, maxAvatarSize);
-    if (!isValid) {
+    const maxAvatarSize = 5 * 1024 * 1024; // 5MB for avatars
+    const validation = await validateImageFile(file, maxAvatarSize);
+
+    if (!validation.isValid) {
+      if (validation.error) {
+        showToast(t(validation.error), "error");
+      }
       e.target.value = "";
       return;
     }
