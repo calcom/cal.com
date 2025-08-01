@@ -12,85 +12,55 @@ import { symmetricDecrypt } from "./crypto";
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
-// only for Google Calendar for now
-export const getCalendarsEventsWithTimezones = async (
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[]
-): Promise<(EventBusyDate & { timeZone: string })[][]> => {
-  const calendarCredentials = withCredentials
-    .filter((credential) => credential.type === "google_calendar")
-    // filter out invalid credentials - these won't work.
-    .filter((credential) => !credential.invalid);
 
-  const calendarAndCredentialPairs = await Promise.all(
-    calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
-      return [calendar, credential] as const;
-    })
-  );
+interface GetCalendarsEventsOptions {
+  shouldServeCache?: boolean;
+  includeTimeZone?: boolean;
+}
 
-  const calendars = calendarAndCredentialPairs.map(([calendar]) => calendar);
-  const calendarToCredentialMap = new Map(calendarAndCredentialPairs);
-
-  const results = calendars.map(async (c, i) => {
-    /** Filter out nulls */
-    if (!c) return [];
-    /** We rely on the index so we can match credentials with calendars */
-    const { type } = calendarCredentials[i];
-    const credential = calendarToCredentialMap.get(c);
-    /** We just pass the calendars that matched the credential type,
-     * TODO: Migrate credential type or appId
-     */
-    const passedSelectedCalendars = credential
-      ? filterSelectedCalendarsForCredential(selectedCalendars, credential)
-      : selectedCalendars
-          .filter((sc) => sc.integration === type)
-          // Needed to ensure cache keys are consistent
-          .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
-    const isADelegationCredential = credential && isDelegationCredential({ credentialId: credential.id });
-    // We want to fallback to primary calendar when no selectedCalendars are passed
-    // Default behaviour for Google Calendar is to use all available calendars, which isn't good default.
-    const allowFallbackToPrimary = isADelegationCredential;
-    if (!passedSelectedCalendars.length) {
-      if (!isADelegationCredential) {
-        // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
-        // https://github.com/calcom/cal.com/issues/8929
-        log.error(
-          `No selected calendars for non DWD credential: Skipping getAvailability call for credential ${credential?.id}`
-        );
-        return [];
-      }
-      // For delegation credential, we should allow getAvailability even without any selected calendars. It ensures that enabling Delegation Credential at Organization level always ensure one selected calendar for conflicts checking, without requiring any manual action from organization members
-      // This is also, similar to how Google Calendar connect flow(through /googlecalendar/api/callback) sets the primary calendar as the selected calendar automatically.
-      log.info("Allowing getAvailability even without any selected calendars for Delegation Credential");
-    }
-    /** We extract external Ids so we don't cache too much */
-    const eventBusyDates =
-      (await c.getAvailabilityWithTimeZones?.(
-        dateFrom,
-        dateTo,
-        passedSelectedCalendars,
-        allowFallbackToPrimary
-      )) || [];
-
-    return eventBusyDates;
-  });
-  const awaitedResults = await Promise.all(results);
-  return awaitedResults;
-};
-
-const getCalendarsEvents = async (
+function getCalendarsEvents(
   withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
   shouldServeCache?: boolean
-): Promise<EventBusyDate[][]> => {
+): Promise<EventBusyDate[][]>;
+
+function getCalendarsEvents(
+  withCredentials: CredentialForCalendarService[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[],
+  options: GetCalendarsEventsOptions & { includeTimeZone: true }
+): Promise<(EventBusyDate & { timeZone: string })[][]>;
+
+function getCalendarsEvents(
+  withCredentials: CredentialForCalendarService[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[],
+  optionsOrShouldServeCache?: boolean | GetCalendarsEventsOptions
+): Promise<EventBusyDate[][] | (EventBusyDate & { timeZone: string })[][]>;
+
+async function getCalendarsEvents(
+  withCredentials: CredentialForCalendarService[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[],
+  optionsOrShouldServeCache?: boolean | GetCalendarsEventsOptions
+): Promise<EventBusyDate[][] | (EventBusyDate & { timeZone: string })[][]> {
+  const options: GetCalendarsEventsOptions = 
+    typeof optionsOrShouldServeCache === 'boolean' 
+      ? { shouldServeCache: optionsOrShouldServeCache, includeTimeZone: false }
+      : { shouldServeCache: undefined, includeTimeZone: false, ...optionsOrShouldServeCache };
+
+  const { shouldServeCache, includeTimeZone } = options;
   const calendarCredentials = withCredentials
-    .filter((credential) => credential.type.endsWith("_calendar"))
-    // filter out invalid credentials - these won't work.
+    .filter((credential) => 
+      includeTimeZone 
+        ? credential.type === "google_calendar"
+        : credential.type.endsWith("_calendar")
+    )
     .filter((credential) => !credential.invalid);
 
   const calendarAndCredentialPairs = await Promise.all(
@@ -102,7 +72,11 @@ const getCalendarsEvents = async (
 
   const calendars = calendarAndCredentialPairs.map(([calendar]) => calendar);
   const calendarToCredentialMap = new Map(calendarAndCredentialPairs);
-  performance.mark("getBusyCalendarTimesStart");
+  
+  if (!includeTimeZone) {
+    performance.mark("getBusyCalendarTimesStart");
+  }
+
   const results = calendars.map(async (calendarService, i) => {
     /** Filter out nulls */
     if (!calendarService) return [];
@@ -112,7 +86,6 @@ const getCalendarsEvents = async (
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
-    // Important to have them unique so that
     const passedSelectedCalendars = credential
       ? filterSelectedCalendarsForCredential(selectedCalendars, credential)
       : selectedCalendars
@@ -136,53 +109,80 @@ const getCalendarsEvents = async (
       // This is also, similar to how Google Calendar connect flow(through /googlecalendar/api/callback) sets the primary calendar as the selected calendar automatically.
       log.info("Allowing getAvailability even without any selected calendars for Delegation Credential");
     }
-    /** We extract external Ids so we don't cache too much */
 
-    const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** If we don't then we actually fetch external calendars (which can be very slow) */
-    performance.mark("eventBusyDatesStart");
+    if (includeTimeZone) {
+      /** We extract external Ids so we don't cache too much */
+      const eventBusyDates =
+        (await calendarService.getAvailabilityWithTimeZones?.(
+          dateFrom,
+          dateTo,
+          passedSelectedCalendars,
+          allowFallbackToPrimary
+        )) || [];
+
+      return eventBusyDates;
+    } else {
+      /** We extract external Ids so we don't cache too much */
+      const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
+      /** If we don't then we actually fetch external calendars (which can be very slow) */
+      performance.mark("eventBusyDatesStart");
+      log.debug(
+        `Getting availability for`,
+        safeStringify({
+          calendarService: calendarService.constructor.name,
+          selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
+        })
+      );
+      const eventBusyDates = await calendarService.getAvailability(
+        dateFrom,
+        dateTo,
+        passedSelectedCalendars,
+        shouldServeCache,
+        allowFallbackToPrimary
+      );
+      performance.mark("eventBusyDatesEnd");
+      performance.measure(
+        `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
+        "eventBusyDatesStart",
+        "eventBusyDatesEnd"
+      );
+
+      return eventBusyDates.map((a) => ({
+        ...a,
+        source: `${appId}`,
+      }));
+    }
+  });
+  
+  const awaitedResults = await Promise.all(results);
+  
+  if (!includeTimeZone) {
+    performance.mark("getBusyCalendarTimesEnd");
+    performance.measure(
+      `getBusyCalendarTimes took $1 for creds ${calendarCredentials.map((cred) => cred.id)}`,
+      "getBusyCalendarTimesStart",
+      "getBusyCalendarTimesEnd"
+    );
     log.debug(
-      `Getting availability for`,
+      "Result",
       safeStringify({
-        calendarService: calendarService.constructor.name,
-        selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
+        calendarCredentials: calendarCredentials.map(getPiiFreeCredential),
+        selectedCalendars: selectedCalendars.map(getPiiFreeSelectedCalendar),
+        calendarEvents: awaitedResults,
       })
     );
-    const eventBusyDates = await calendarService.getAvailability(
-      dateFrom,
-      dateTo,
-      passedSelectedCalendars,
-      shouldServeCache,
-      allowFallbackToPrimary
-    );
-    performance.mark("eventBusyDatesEnd");
-    performance.measure(
-      `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
-      "eventBusyDatesStart",
-      "eventBusyDatesEnd"
-    );
-
-    return eventBusyDates.map((a) => ({
-      ...a,
-      source: `${appId}`,
-    }));
-  });
-  const awaitedResults = await Promise.all(results);
-  performance.mark("getBusyCalendarTimesEnd");
-  performance.measure(
-    `getBusyCalendarTimes took $1 for creds ${calendarCredentials.map((cred) => cred.id)}`,
-    "getBusyCalendarTimesStart",
-    "getBusyCalendarTimesEnd"
-  );
-  log.debug(
-    "Result",
-    safeStringify({
-      calendarCredentials: calendarCredentials.map(getPiiFreeCredential),
-      selectedCalendars: selectedCalendars.map(getPiiFreeSelectedCalendar),
-      calendarEvents: awaitedResults,
-    })
-  );
+  }
+  
   return awaitedResults;
+}
+
+export const getCalendarsEventsWithTimezones = async (
+  withCredentials: CredentialForCalendarService[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[]
+): Promise<(EventBusyDate & { timeZone: string })[][]> => {
+  return getCalendarsEvents(withCredentials, dateFrom, dateTo, selectedCalendars, { includeTimeZone: true });
 };
 
 export default getCalendarsEvents;

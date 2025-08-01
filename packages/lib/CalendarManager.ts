@@ -25,7 +25,6 @@ import type { CredentialForCalendarService, CredentialPayload } from "@calcom/ty
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
-import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
@@ -251,11 +250,12 @@ export const getBusyCalendarTimes = async (
   const endDate = dayjs(dateTo).add(14, "hours").format();
   try {
     if (includeTimeZone) {
-      results = await getCalendarsEventsWithTimezones(
+      results = await getCalendarsEvents(
         deduplicatedCredentials,
         startDate,
         endDate,
-        selectedCalendars
+        selectedCalendars,
+        { includeTimeZone: true }
       );
     } else {
       results = await getCalendarsEvents(
