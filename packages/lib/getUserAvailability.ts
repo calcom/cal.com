@@ -684,13 +684,11 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
       `High-load warning: Attempting to fetch availability for ${users.length} users. User IDs: [${userIds}], EventTypeId: [${query.eventTypeId}]`
     );
   }
-  const parsedQuery = availabilitySchema.parse(query);
-
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
         {
-          ...parsedQuery,
+          ...query,
           userId: user.id,
           username: user.username || "",
         },
