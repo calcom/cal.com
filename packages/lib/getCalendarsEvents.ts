@@ -30,10 +30,6 @@ function getCalendarsEvents(
   params: GetCalendarsEventsParams & { includeTimeZone: true }
 ): Promise<(EventBusyDate & { timeZone: string })[][]>;
 
-function getCalendarsEvents(
-  params: GetCalendarsEventsParams
-): Promise<EventBusyDate[][] | (EventBusyDate & { timeZone: string })[][]>;
-
 async function getCalendarsEvents(
   params: GetCalendarsEventsParams
 ): Promise<EventBusyDate[][] | (EventBusyDate & { timeZone: string })[][]> {
