@@ -65,9 +65,10 @@ export const getCalendarService = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
+  log.debug(`Getting calendar service for credential ${credential.id}`);
 
   // Only Google Calendar supports CalendarCacheService
-  if (credential.type !== "google_calendar") {
+  if (credential.appId !== "google-calendar") {
     log.debug(`Using regular CalendarService for credential ${credential.id} (not Google Calendar)`);
     return await getCalendar(credential);
   }
@@ -77,6 +78,9 @@ export const getCalendarService = async (
     const isSqlReadEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-read");
 
     if (!isSqlReadEnabled) {
+      log.debug(
+        `calendar-cache-sql-read is not enabled, using regular CalendarService for credential ${credential.id}`
+      );
       return await getCalendar(credential);
     }
 

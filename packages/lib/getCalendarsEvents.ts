@@ -1,4 +1,4 @@
-import { getCalendar, getCalendarService } from "@calcom/app-store/_utils/getCalendar";
+import { getCalendarService } from "@calcom/app-store/_utils/getCalendar";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -26,7 +26,7 @@ export const getCalendarsEventsWithTimezones = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential);
+      const calendar = await getCalendarService(credential);
       return [calendar, credential] as const;
     })
   );
@@ -164,7 +164,7 @@ const getCalendarsEvents = async (
 
     return eventBusyDates.map((a) => ({
       ...a,
-      source: `${appId}`,
+      source: a.source || `${appId}`,
     }));
   });
   const awaitedResults = await Promise.all(results);
