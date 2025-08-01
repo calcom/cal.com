@@ -25,17 +25,6 @@ vi.mock("@calcom/prisma", () => {
 
 vi.mock("stripe");
 
-vi.mock("@calcom/lib/server/i18n", () => {
-  return {
-    getTranslation: async (locale: string, namespace: string) => {
-      const t = (key: string) => key;
-      t.locale = locale;
-      t.namespace = namespace;
-      return t;
-    },
-  };
-});
-
 vi.mock("@calcom/lib/constants", async () => {
   const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
   return {
