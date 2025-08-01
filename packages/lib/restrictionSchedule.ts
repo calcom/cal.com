@@ -1,4 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import prisma from "@calcom/prisma";
 
 /**
  * Checks if the restriction schedule feature is enabled for a team
@@ -10,6 +11,6 @@ export async function isRestrictionScheduleEnabled(teamId?: number): Promise<boo
     return false; // Personal events don't have restriction schedules
   }
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   return await featureRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
 }

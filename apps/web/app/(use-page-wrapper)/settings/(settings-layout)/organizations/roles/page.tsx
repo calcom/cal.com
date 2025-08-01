@@ -11,6 +11,7 @@ import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permiss
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -29,7 +30,7 @@ const getCachedTeamRoles = unstable_cache(
 
 const getCachedTeamFeature = unstable_cache(
   async (teamId: number, feature: keyof AppFlags) => {
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new FeaturesRepository(prisma);
     const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
     return res;
   },

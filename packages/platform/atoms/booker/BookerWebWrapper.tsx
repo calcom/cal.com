@@ -128,7 +128,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
     (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
       dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.MONTH_VIEW &&
+    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
       (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
       dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
 

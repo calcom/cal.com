@@ -1229,8 +1229,21 @@ function RecurringBookings({
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
               {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
               <br />
-              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
-              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+              {formatToLocalizedTime({
+                date: dayjs(dateStr),
+                locale: language,
+                timeStyle: undefined,
+                hour12: !is24h,
+                timeZone: tz,
+              })}{" "}
+              -{" "}
+              {formatToLocalizedTime({
+                date: dayjs(dateStr).add(duration, "m"),
+                locale: language,
+                timeStyle: undefined,
+                hour12: !is24h,
+                timeZone: tz,
+              })}{" "}
               <span className="text-bookinglight">
                 ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
               </span>
@@ -1249,14 +1262,19 @@ function RecurringBookings({
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
                     {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
                     <br />
-                    {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
-                    {formatToLocalizedTime(
-                      dayjs(dateStr).add(duration, "m"),
-                      language,
-                      undefined,
-                      !is24h,
-                      tz
-                    )}{" "}
+                    {formatToLocalizedTime({
+                      date: dayjs(dateStr),
+                      locale: language,
+                      hour12: !is24h,
+                      timeZone: tz,
+                    })}{" "}
+                    -{" "}
+                    {formatToLocalizedTime({
+                      date: dayjs(dateStr).add(duration, "m"),
+                      locale: language,
+                      hour12: !is24h,
+                      timeZone: tz,
+                    })}{" "}
                     <span className="text-bookinglight">
                       ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
                     </span>
@@ -1273,8 +1291,13 @@ function RecurringBookings({
     <div className={classNames(isCancelled ? "line-through" : "")}>
       {formatToLocalizedDate(date, language, "full", tz)}
       <br />
-      {formatToLocalizedTime(date, language, undefined, !is24h, tz)} -{" "}
-      {formatToLocalizedTime(dayjs(date).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+      {formatToLocalizedTime({ date, locale: language, hour12: !is24h, timeZone: tz })} -{" "}
+      {formatToLocalizedTime({
+        date: dayjs(date).add(duration, "m"),
+        locale: language,
+        hour12: !is24h,
+        timeZone: tz,
+      })}{" "}
       <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );

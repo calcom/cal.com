@@ -34,7 +34,7 @@ export const sendEmailVerification = async ({
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
@@ -127,7 +127,7 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {

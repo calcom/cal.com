@@ -102,7 +102,7 @@ export const DatePicker = ({
   moveToNextMonthOnNoAvailability();
 
   // Determine if this is a compact sidebar view based on layout
-  const isCompact = layout !== "month_view";
+  const isCompact = layout !== "month_view" && layout !== "mobile";
 
   const periodData: PeriodData = {
     ...{
