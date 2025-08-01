@@ -7,6 +7,7 @@ import { cookies, headers } from "next/headers";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { loadTranslations } from "@calcom/lib/server/i18n";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
@@ -17,7 +18,7 @@ import type { PageProps as LegacyPageProps } from "~/team/type-view";
 import CachedTeamBooker, { generateMetadata as generateCachedMetadata } from "./pageWithCachedData";
 
 async function isCachedTeamBookingEnabled(searchParams: SearchParams): Promise<boolean> {
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const isGloballyEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
     "team-booking-page-cache"
   );

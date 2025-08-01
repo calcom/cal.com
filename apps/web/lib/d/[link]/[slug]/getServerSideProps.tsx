@@ -120,7 +120,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   // Check if team has API v2 feature flag enabled (same logic as team pages)
   let useApiV2 = false;
   if (isTeamEvent && hashedLink.eventType.team?.id) {
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new FeaturesRepository(prisma);
     const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
       hashedLink.eventType.team.id,
       "use-api-v2-for-team-slots"

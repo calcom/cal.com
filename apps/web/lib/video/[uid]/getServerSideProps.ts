@@ -247,7 +247,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const videoReference = getCalVideoReference(bookingObj.references);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const displayLogInOverlay = profile?.organizationId
     ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
     : false;
