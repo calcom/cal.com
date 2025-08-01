@@ -6,7 +6,7 @@ import { isRerouting } from "./routing/utils";
 export const filterHostsBySameRoundRobinHost = async <
   T extends {
     isFixed: false; // ensure no fixed hosts are passed.
-    user: { id: number };
+    user: { id: number; email: string };
   }
 >({
   hosts,
@@ -35,9 +35,30 @@ export const filterHostsBySameRoundRobinHost = async <
     },
     select: {
       userId: true,
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
     },
   });
 
-  // FIXME: this doesn't work with fixed hosts or round robin groups
-  return hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+  const originalRRHost = hosts.find((host) => host.user.id === originalRescheduledBooking?.userId);
+
+  if (originalRRHost) {
+    return [originalRRHost];
+  }
+
+  // if round robin event has fixed hosts, check if any host's email matches any attendee's email
+  if (originalRescheduledBooking?.attendees) {
+    const attendeeEmails = originalRescheduledBooking.attendees.map((attendee) => attendee.email);
+    const hostFromAttendees = hosts.find((host) => attendeeEmails.includes(host.user.email));
+
+    if (hostFromAttendees) {
+      return [hostFromAttendees];
+    }
+  }
+
+  // Return empty array if no matching host found
+  return [];
 };
