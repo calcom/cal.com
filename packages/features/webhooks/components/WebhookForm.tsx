@@ -73,141 +73,153 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
   ],
 } as const;
 
-const WEBHOOK_VARIABLES = [
-  {
-    category: "Event and Booking",
-    variables: [
-      {
-        name: "triggerEvent",
-        variable: "{{triggerEvent}}",
-        type: "String",
-        description: "The name of the trigger event (e.g., BOOKING_CREATED, BOOKING_CANCELLED)",
-      },
-      {
-        name: "createdAt",
-        variable: "{{createdAt}}",
-        type: "Datetime",
-        description: "The time of the webhook",
-      },
-      { name: "type", variable: "{{type}}", type: "String", description: "The event type slug" },
-      { name: "title", variable: "{{title}}", type: "String", description: "The event type name" },
-      {
-        name: "startTime",
-        variable: "{{startTime}}",
-        type: "Datetime",
-        description: "The event's start time",
-      },
-      { name: "endTime", variable: "{{endTime}}", type: "Datetime", description: "The event's end time" },
-      {
-        name: "description",
-        variable: "{{description}}",
-        type: "String",
-        description: "The event's description as described in the event type settings",
-      },
-      { name: "location", variable: "{{location}}", type: "String", description: "Location of the event" },
-      { name: "uid", variable: "{{uid}}", type: "String", description: "The UID of the booking" },
-      {
-        name: "rescheduleUid",
-        variable: "{{rescheduleUid}}",
-        type: "String",
-        description: "The UID for rescheduling",
-      },
-      {
-        name: "cancellationReason",
-        variable: "{{cancellationReason}}",
-        type: "String",
-        description: "Reason for cancellation",
-      },
-      {
-        name: "rejectionReason",
-        variable: "{{rejectionReason}}",
-        type: "String",
-        description: "Reason for rejection",
-      },
-    ],
-  },
-  {
-    category: "People",
-    variables: [
-      {
-        name: "organizer.name",
-        variable: "{{organizer.name}}",
-        type: "String",
-        description: "Name of the organizer",
-      },
-      {
-        name: "organizer.email",
-        variable: "{{organizer.email}}",
-        type: "String",
-        description: "Email of the organizer",
-      },
-      {
-        name: "organizer.timezone",
-        variable: "{{organizer.timezone}}",
-        type: "String",
-        description: "Timezone of the organizer (e.g., 'America/New_York', 'Asia/Kolkata')",
-      },
-      {
-        name: "organizer.language.locale",
-        variable: "{{organizer.language.locale}}",
-        type: "String",
-        description: "Locale of the organizer (e.g., 'en', 'fr')",
-      },
-      {
-        name: "attendees.0.name",
-        variable: "{{attendees.0.name}}",
-        type: "String",
-        description: "Name of the first attendee",
-      },
-      {
-        name: "attendees.0.email",
-        variable: "{{attendees.0.email}}",
-        type: "String",
-        description: "Email of the first attendee",
-      },
-      {
-        name: "attendees.0.timezone",
-        variable: "{{attendees.0.timezone}}",
-        type: "String",
-        description: "Timezone of the first attendee",
-      },
-      {
-        name: "attendees.0.language.locale",
-        variable: "{{attendees.0.language.locale}}",
-        type: "String",
-        description: "Locale of the first attendee",
-      },
-    ],
-  },
-  {
-    category: "Teams",
-    variables: [
-      {
-        name: "team.name",
-        variable: "{{team.name}}",
-        type: "String",
-        description: "Name of the team booked",
-      },
-      {
-        name: "team.members",
-        variable: "{{team.members}}",
-        type: "String[]",
-        description: "Members of the team booked",
-      },
-    ],
-  },
-  {
-    category: "Metadata",
-    variables: [
-      {
-        name: "metadata.videoCallUrl",
-        variable: "{{metadata.videoCallUrl}}",
-        type: "String",
-        description: "Video call URL for the meeting",
-      },
-    ],
-  },
-];
+function getWebhookVariables(t: (key: string) => string) {
+  return [
+    {
+      category: "Event and Booking",
+      variables: [
+        {
+          name: "triggerEvent",
+          variable: "{{triggerEvent}}",
+          type: "String",
+          description: t("webhook_trigger_event"),
+        },
+        {
+          name: "createdAt",
+          variable: "{{createdAt}}",
+          type: "Datetime",
+          description: t("webhook_created_at"),
+        },
+        { name: "type", variable: "{{type}}", type: "String", description: t("webhook_type") },
+        { name: "title", variable: "{{title}}", type: "String", description: t("webhook_title") },
+        {
+          name: "startTime",
+          variable: "{{startTime}}",
+          type: "Datetime",
+          description: t("webhook_start_time"),
+        },
+        {
+          name: "endTime",
+          variable: "{{endTime}}",
+          type: "Datetime",
+          description: t("webhook_end_time"),
+        },
+        {
+          name: "description",
+          variable: "{{description}}",
+          type: "String",
+          description: t("webhook_description"),
+        },
+        {
+          name: "location",
+          variable: "{{location}}",
+          type: "String",
+          description: t("webhook_location"),
+        },
+        { name: "uid", variable: "{{uid}}", type: "String", description: t("webhook_uid") },
+        {
+          name: "rescheduleUid",
+          variable: "{{rescheduleUid}}",
+          type: "String",
+          description: t("webhook_reschedule_uid"),
+        },
+        {
+          name: "cancellationReason",
+          variable: "{{cancellationReason}}",
+          type: "String",
+          description: t("webhook_cancellation_reason"),
+        },
+        {
+          name: "rejectionReason",
+          variable: "{{rejectionReason}}",
+          type: "String",
+          description: t("webhook_rejection_reason"),
+        },
+      ],
+    },
+    {
+      category: "People",
+      variables: [
+        {
+          name: "organizer.name",
+          variable: "{{organizer.name}}",
+          type: "String",
+          description: t("webhook_organizer_name"),
+        },
+        {
+          name: "organizer.email",
+          variable: "{{organizer.email}}",
+          type: "String",
+          description: t("webhook_organizer_email"),
+        },
+        {
+          name: "organizer.timezone",
+          variable: "{{organizer.timezone}}",
+          type: "String",
+          description: t("webhook_organizer_timezone"),
+        },
+        {
+          name: "organizer.language.locale",
+          variable: "{{organizer.language.locale}}",
+          type: "String",
+          description: t("webhook_organizer_locale"),
+        },
+        {
+          name: "attendees.0.name",
+          variable: "{{attendees.0.name}}",
+          type: "String",
+          description: t("webhook_attendee_name"),
+        },
+        {
+          name: "attendees.0.email",
+          variable: "{{attendees.0.email}}",
+          type: "String",
+          description: t("webhook_attendee_email"),
+        },
+        {
+          name: "attendees.0.timezone",
+          variable: "{{attendees.0.timezone}}",
+          type: "String",
+          description: t("webhook_attendee_timezone"),
+        },
+        {
+          name: "attendees.0.language.locale",
+          variable: "{{attendees.0.language.locale}}",
+          type: "String",
+          description: t("webhook_attendee_locale"),
+        },
+      ],
+    },
+    {
+      category: "Teams",
+      variables: [
+        {
+          name: "team.name",
+          variable: "{{team.name}}",
+          type: "String",
+          description: t("webhook_team_name"),
+        },
+        {
+          name: "team.members",
+          variable: "{{team.members}}",
+          type: "String[]",
+          description: t("webhook_team_members"),
+        },
+      ],
+    },
+    {
+      category: "Metadata",
+      variables: [
+        {
+          name: "metadata.videoCallUrl",
+          variable: "{{metadata.videoCallUrl}}",
+          type: "String",
+          description: t("webhook_video_call_url"),
+        },
+      ],
+    },
+  ];
+}
 
 export type WebhookFormValues = {
   subscriberUrl: string;
@@ -230,6 +242,7 @@ const WebhookForm = (props: {
 }) => {
   const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
   const { t } = useLocale();
+  const webhookVariables = getWebhookVariables(t);
 
   const triggerOptions = overrideTriggerOptions
     ? [...overrideTriggerOptions]
@@ -515,7 +528,7 @@ const WebhookForm = (props: {
 
                   {showVariables && (
                     <div className="border-muted max-h-80 overflow-y-auto rounded-md border p-3">
-                      {WEBHOOK_VARIABLES.map(({ category, variables }) => (
+                      {webhookVariables.map(({ category, variables }) => (
                         <div key={category} className="mb-4">
                           <h4 className="mb-2 text-sm font-medium">{category}</h4>
                           <div className="space-y-2">
@@ -534,9 +547,8 @@ const WebhookForm = (props: {
                                     shouldDirty: true,
                                   });
                                 }}>
-                                <div className="font-mono text-white">{variable}</div>
+                                <div className="text-emphasis font-mono">{variable}</div>
                                 <div className="text-muted mt-1 text-xs">{description}</div>
-                                <div className="text-muted mt-1 text-xs">{t("Click to add to template")}</div>
                               </div>
                             ))}
                           </div>
