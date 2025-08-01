@@ -118,7 +118,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   let permissions = {
     canCreate: true,
     canRead: true,
-    canUpdate: true,
+    canEdit: true,
     canDelete: true,
   };
 
@@ -161,7 +161,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       permissions: {
         canCreate: permissions.canCreate,
         canRead: permissions.canRead,
-        canUpdate: permissions.canUpdate,
+        canEdit: permissions.canEdit,
         canDelete: permissions.canDelete,
       },
     },
