@@ -21,6 +21,4 @@ jobs:
         working-directory: apps/api/v2
         run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          # We need to build the platform libraries before running the tests as there are some calls to platform libraries fns
-          yarn workspace @calcom/platform-libraries build 
           yarn test
