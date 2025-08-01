@@ -1397,7 +1397,8 @@ async function handler(
 
         logger.info(`Booking created`, {
           bookingUid: booking.uid,
-          selectedCalendarIds: organizerUser.allSelectedCalendars.map((calendar) => calendar.id),
+          selectedCalendarIds:
+            organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
           availabilitySnapshot: organizerUserAvailability?.availabilityData,
         });
       }
