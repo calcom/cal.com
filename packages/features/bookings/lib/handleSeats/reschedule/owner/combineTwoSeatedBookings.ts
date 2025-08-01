@@ -158,7 +158,7 @@ const combineTwoSeatedBookings = async (
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 
-  return { ...foundBooking, seatedRescheduleEmailSent: true };
+  return { ...foundBooking };
 };
 
 export default combineTwoSeatedBookings;

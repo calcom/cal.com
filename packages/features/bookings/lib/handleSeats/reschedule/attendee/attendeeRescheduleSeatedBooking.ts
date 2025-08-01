@@ -101,7 +101,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 
-  return { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid, seatedRescheduleEmailSent: true };
+  return { ...foundBooking, seatReferenceUid: bookingSeat?.referenceUid };
 };
 
 export default attendeeRescheduleSeatedBooking;

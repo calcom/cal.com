@@ -101,7 +101,7 @@ const moveSeatedBookingToNewTimeSlot = async (
   }
   const foundBooking = await findBookingQuery(newBooking.id);
 
-  return { ...foundBooking, appsStatus: newBooking.appsStatus, seatedRescheduleEmailSent: true };
+  return { ...foundBooking, appsStatus: newBooking.appsStatus };
 };
 
 export default moveSeatedBookingToNewTimeSlot;
