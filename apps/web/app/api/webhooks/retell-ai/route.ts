@@ -1,4 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -64,7 +66,10 @@ async function handleCallAnalyzed(callData: any) {
 
   const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
     where: { phoneNumber: from_number },
-    include: { user: { select: { id: true, email: true, name: true } } },
+    include: {
+      user: { select: { id: true, email: true, name: true } },
+      team: { select: { id: true, name: true } },
+    },
   });
 
   if (!phoneNumber) {
@@ -72,27 +77,40 @@ async function handleCallAnalyzed(callData: any) {
     return;
   }
 
-  const userId = phoneNumber.user.id;
+  // Support both personal and team phone numbers
+  const userId = phoneNumber.userId;
+  const teamId = phoneNumber.teamId;
+
+  if (!userId && !teamId) {
+    log.error(`Phone number ${from_number} has no associated user or team`);
+    return;
+  }
+
   const baseCost = call_cost.combined_cost; // in cents
   const creditsToDeduct = Math.ceil(baseCost * 1.8);
 
   const creditService = new CreditService();
-  const hasCredits = await creditService.hasAvailableCredits({ userId });
+  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
   if (!hasCredits) {
     log.error(
-      `User ${userId} has insufficient credits for call ${call_id} (${creditsToDeduct} credits needed)`
+      `${
+        teamId ? `Team ${teamId}` : `User ${userId}`
+      } has insufficient credits for call ${call_id} (${creditsToDeduct} credits needed)`
     );
     return;
   }
 
   await creditService.chargeCredits({
     userId,
+    teamId,
     credits: creditsToDeduct,
   });
 
   return {
     success: true,
-    message: `Successfully charged ${creditsToDeduct} credits for user ${userId}, call ${call_id} (base cost: ${baseCost} cents)`,
+    message: `Successfully charged ${creditsToDeduct} credits for ${
+      teamId ? `team ${teamId}` : `user ${userId}`
+    }, call ${call_id} (base cost: ${baseCost} cents)`,
   };
 }
 
@@ -105,37 +123,40 @@ async function handleCallAnalyzed(callData: any) {
  *
  * This webhook will:
  * - Receive call_analyzed events from Retell AI
- * - Charge credits based on the call cost from the user's credit balance
+ * - Charge credits based on the call cost from the user's or team's credit balance
  * - Log all transactions for audit purposes
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+async function handler(request: NextRequest) {
+  const body = await request.json();
 
-  if (req.body.event !== "call_analyzed") {
-    return res.status(200).json({
+  if (body.event !== "call_analyzed") {
+    return NextResponse.json({
       success: true,
-      message: `No handling for ${req.body.event} for call ${req.body.call?.call_id ?? "unknown"}`,
+      message: `No handling for ${body.event} for call ${body.call?.call_id ?? "unknown"}`,
     });
   }
 
   try {
-    const payload = RetellWebhookSchema.parse(req.body);
+    const payload = RetellWebhookSchema.parse(body);
     const callData = payload.call;
     log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`);
 
     const result = await handleCallAnalyzed(callData);
 
-    res.status(200).json({
+    return NextResponse.json({
       success: true,
       message: result?.message ?? `Processed ${payload.event} for call ${callData.call_id}`,
     });
   } catch (error) {
     log.error("Error processing Retell AI webhook:", safeStringify(error));
-    res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
+
+export const POST = defaultResponderForAppDir(handler);
