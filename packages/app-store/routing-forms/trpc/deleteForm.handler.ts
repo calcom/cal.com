@@ -1,5 +1,6 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
+import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -21,10 +22,7 @@ export const deleteFormHandler = async ({ ctx, input }: DeleteFormHandlerOptions
   const { user, prisma } = ctx;
 
   // First get the form to check its team context
-  const form = await prisma.app_RoutingForms_Form.findUnique({
-    where: { id: input.id },
-    select: { teamId: true, userId: true },
-  });
+  const form = await RoutingFormRepository.findById(input.id, { teamId: true, userId: true });
 
   if (!form) {
     throw new TRPCError({
