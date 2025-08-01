@@ -26,10 +26,12 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
+import type { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
@@ -150,8 +152,8 @@ export const getEventType = withReporting(_getEventType, "getEventType");
 
 export interface UserAvailabilityDependencies {
   getEventType: (id: number) => Promise<EventType | null>;
-  getCurrentSeats: (eventType: any, dateFrom: any, dateTo: any) => Promise<CurrentSeats>;
-  getOutOfOfficeDays: (userId: number, dateFrom: any, dateTo: any) => Promise<any>;
+  getCurrentSeats: (eventType: any, dateFrom: Dayjs, dateTo: Dayjs) => Promise<CurrentSeats>;
+  getOutOfOfficeDays: (userId: number, dateFrom: Dayjs, dateTo: Dayjs) => Promise<any>;
 }
 
 export type GetUserAvailabilityInput = {
@@ -168,8 +170,6 @@ export type GetUserAvailabilityInput = {
   bypassBusyCalendarTimes?: boolean;
   shouldServeCache?: boolean;
 };
-
-export type GetUserAvailabilityQuery = z.infer<typeof availabilitySchema>;
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
   return findUsersForAvailabilityCheck({ where });
@@ -215,6 +215,14 @@ export type GetUserAvailabilityInitialData = {
 
 export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
 
+export type CurrentSeats = {
+  uid: string;
+  startTime: Date;
+  _count: {
+    attendees: number;
+  };
+}[];
+
 const _getCurrentSeats = async (
   eventType: {
     id?: number;
@@ -227,52 +235,34 @@ const _getCurrentSeats = async (
   },
   dateFrom: Dayjs,
   dateTo: Dayjs
-) => {
-  const { schedulingType, hosts, id } = eventType;
-  const hostEmails = hosts?.map((host) => host.user.email);
-  const isTeamEvent =
-    schedulingType === SchedulingType.MANAGED ||
-    schedulingType === SchedulingType.ROUND_ROBIN ||
-    schedulingType === SchedulingType.COLLECTIVE;
-
-  const bookings = await prisma.booking.findMany({
-    where: {
-      eventTypeId: id,
-      startTime: {
-        gte: dateFrom.format(),
-        lte: dateTo.format(),
-      },
-      status: BookingStatus.ACCEPTED,
-    },
-    select: {
-      uid: true,
-      startTime: true,
-      attendees: {
-        select: {
-          email: true,
-        },
-      },
-    },
-  });
-
-  return bookings.map((booking) => {
-    const attendees = isTeamEvent
-      ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
-      : booking.attendees;
-
-    return {
-      uid: booking.uid,
-      startTime: booking.startTime,
-      _count: {
-        attendees: attendees.length,
-      },
-    };
+): Promise<CurrentSeats> => {
+  const bookingRepo = new BookingRepository(prisma);
+  return await bookingRepo.findCurrentSeats({
+    eventType,
+    dateFrom: dateFrom.format(),
+    dateTo: dateTo.format(),
   });
 };
 
-export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
-
 export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
+
+const _getOutOfOfficeDaysDefault = async (userId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
+  const oooRepo = new PrismaOOORepository(prisma);
+  const oooEntries = await oooRepo.findManyOOO({
+    startTimeDate: dateFrom.toDate(),
+    endTimeDate: dateTo.toDate(),
+    allUserIds: [userId],
+  });
+
+  return oooEntries.map((entry) => ({
+    id: entry.id,
+    start: entry.start,
+    end: entry.end,
+    user: entry.user,
+    toUser: entry.toUser,
+    reason: entry.reason,
+  }));
+};
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 export const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
@@ -526,70 +516,7 @@ export const _getUserAvailability = async function getUsersWorkingHoursLifeTheUn
     initialData?.outOfOfficeDays ??
     (dependencies
       ? await dependencies.getOutOfOfficeDays(user.id, dateFrom, dateTo)
-      : await prisma.outOfOfficeEntry.findMany({
-          where: {
-            userId: user.id,
-            OR: [
-              // outside of range
-              // (start <= 'dateTo' AND end >= 'dateFrom')
-              {
-                start: {
-                  lte: dateTo.toISOString(),
-                },
-                end: {
-                  gte: dateFrom.toISOString(),
-                },
-              },
-              // start is between dateFrom and dateTo but end is outside of range
-              // (start <= 'dateTo' AND end >= 'dateTo')
-              {
-                start: {
-                  lte: dateTo.toISOString(),
-                },
-
-                end: {
-                  gte: dateTo.toISOString(),
-                },
-              },
-              // end is between dateFrom and dateTo but start is outside of range
-              // (start <= 'dateFrom' OR end <= 'dateTo')
-              {
-                start: {
-                  lte: dateFrom.toISOString(),
-                },
-
-                end: {
-                  lte: dateTo.toISOString(),
-                },
-              },
-            ],
-          },
-          select: {
-            id: true,
-            start: true,
-            end: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            toUser: {
-              select: {
-                id: true,
-                username: true,
-                name: true,
-              },
-            },
-            reason: {
-              select: {
-                id: true,
-                emoji: true,
-                reason: true,
-              },
-            },
-          },
-        }));
+      : await _getOutOfOfficeDaysDefault(user.id, dateFrom, dateTo));
 
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
@@ -644,6 +571,8 @@ const getUserAvailabilityWithValidation = async (
   const validatedQuery = availabilitySchema.parse(query);
   return _getUserAvailability(validatedQuery, initialData, dependencies);
 };
+
+export type GetUserAvailabilityQuery = z.infer<typeof availabilitySchema>;
 
 export const getUserAvailability = withReporting(getUserAvailabilityWithValidation, "getUserAvailability");
 
@@ -755,14 +684,16 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
       `High-load warning: Attempting to fetch availability for ${users.length} users. User IDs: [${userIds}], EventTypeId: [${query.eventTypeId}]`
     );
   }
+  const parsedQuery = availabilitySchema.parse(query);
+
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
-        availabilitySchema.parse({
-          ...query,
+        {
+          ...parsedQuery,
           userId: user.id,
           username: user.username || "",
-        }),
+        },
         initialData
           ? {
               ...initialData,
@@ -777,3 +708,75 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
 };
 
 export const getUsersAvailability = withReporting(_getUsersAvailability, "getUsersAvailability");
+
+export interface IUserAvailabilityService {
+  eventTypeRepo: EventTypeRepository;
+  bookingRepo: BookingRepository;
+  oooRepo: PrismaOOORepository;
+  userRepo: UserRepository;
+}
+
+export class UserAvailabilityService {
+  constructor(public readonly dependencies: IUserAvailabilityService) {}
+
+  private async _getEventType(id: number): Promise<EventType | null> {
+    return await this.dependencies.eventTypeRepo.findForUserAvailability({ id });
+  }
+
+  private async _getCurrentSeats(
+    eventType: {
+      id?: number;
+      schedulingType?: any;
+      hosts?: {
+        user: {
+          email: string;
+        };
+      }[];
+    },
+    dateFrom: Dayjs,
+    dateTo: Dayjs
+  ): Promise<CurrentSeats> {
+    return await this.dependencies.bookingRepo.findCurrentSeats({
+      eventType,
+      dateFrom: dateFrom.format(),
+      dateTo: dateTo.format(),
+    });
+  }
+
+  private async _getOutOfOfficeDays(userId: number, dateFrom: Dayjs, dateTo: Dayjs) {
+    const oooEntries = await this.dependencies.oooRepo.findManyOOO({
+      startTimeDate: dateFrom.toDate(),
+      endTimeDate: dateTo.toDate(),
+      allUserIds: [userId],
+    });
+
+    return oooEntries.map((entry) => ({
+      id: entry.id,
+      start: entry.start,
+      end: entry.end,
+      user: entry.user,
+      toUser: entry.toUser,
+      reason: entry.reason,
+    }));
+  }
+
+  public getEventType = withReporting(this._getEventType.bind(this), "getEventType");
+  public getCurrentSeats = withReporting(this._getCurrentSeats.bind(this), "getCurrentSeats");
+  public getOutOfOfficeDays = withReporting(this._getOutOfOfficeDays.bind(this), "getOutOfOfficeDays");
+
+  async getUserAvailability(
+    query: GetUserAvailabilityInput,
+    initialData?: GetUserAvailabilityInitialData
+  ): Promise<GetUserAvailabilityResult> {
+    const getEventType = this.getEventType;
+    const getCurrentSeats = this.getCurrentSeats;
+    const getOutOfOfficeDays = this.getOutOfOfficeDays;
+
+    const validatedQuery = availabilitySchema.parse(query);
+    return await _getUserAvailability(validatedQuery, initialData, {
+      getEventType,
+      getCurrentSeats,
+      getOutOfOfficeDays,
+    });
+  }
+}
