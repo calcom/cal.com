@@ -65,6 +65,7 @@ import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -135,10 +136,11 @@ function withSlotsCache(
       return cachedResult;
     }
     const result = await func(args);
+    const ttl = parseInt(process.env.SLOTS_CACHE_TTL, 10) || DEFAULT_SLOTS_CACHE_TTL;
     // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
     // this is to already start responding to the client.
-    redisClient.set(cacheKey, result, { ttl: 2000 }); // Cache for 2 seconds
-    log.info("[CACHE MISS] Available slots", { cacheKey });
+    redisClient.set(cacheKey, result, { ttl });
+    log.info("[CACHE MISS] Available slots", { cacheKey, ttl });
     return result;
   };
 }
