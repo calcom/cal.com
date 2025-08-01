@@ -37,7 +37,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const session = useSession();
 
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
-  const isOrgTeam = session?.data?.user.org ?? false;
+  const isOrgTeam = !!session?.data?.user.org.id;
 
   const form = useForm<{
     bookingLimits?: IntervalLimit;

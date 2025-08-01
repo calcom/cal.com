@@ -31,7 +31,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  const isOrgTeam = ctx.user?.organization ?? false;
+  const isOrgTeam = !!ctx.user?.organization.id;
 
   if (input.includePersonalEventsInLimits && !isOrgTeam) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
