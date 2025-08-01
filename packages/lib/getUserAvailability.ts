@@ -41,24 +41,22 @@ import { withReporting } from "./sentryWrapper";
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 
 /**
- * Attempts to get timezone from user's connected calendar services
- * Tries Google Calendar and Office365 Calendar in order
+ * Attempts to get timezone from delegation credentials associated calendars (DWD)
  */
-const getTimezoneFromCalendars = async (
-  user: GetAvailabilityUser,
-  selectedCalendars: { externalId: string }[]
-): Promise<string | null> => {
+const getTimezoneFromDelegatedCalendars = async (user: GetAvailabilityUser): Promise<string | null> => {
   if (!user.credentials || user.credentials.length === 0) {
     return null;
   }
 
-  const calendarCredentials = user.credentials.filter((credential) => credential.type.endsWith("_calendar"));
+  const delegatedCredentials = user.credentials.filter(
+    (credential) => credential.type.endsWith("_calendar") && Boolean(credential.delegatedToId)
+  );
 
-  if (calendarCredentials.length === 0) {
+  if (delegatedCredentials.length === 0) {
     return null;
   }
 
-  for (const credential of calendarCredentials) {
+  for (const credential of delegatedCredentials) {
     try {
       const calendar = await getCalendar(credential);
       if (calendar && "getMainTimeZone" in calendar && typeof calendar.getMainTimeZone === "function") {
@@ -376,10 +374,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
     timeZone: fallbackTimezoneIfScheduleIsMissing,
   };
-
-  const schedule =
-    (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ??
-    fallbackSchedule;
+  const potentialSchedule = eventType?.schedule
+    ? eventType.schedule
+    : hostSchedule
+    ? hostSchedule
+    : userSchedule;
+  const schedule = potentialSchedule ?? fallbackSchedule;
 
   const bookingLimits =
     eventType?.bookingLimits &&
@@ -403,11 +403,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
     : user.userLevelSelectedCalendars;
 
-  const calendarTimezone = !schedule?.timeZone
-    ? await getTimezoneFromCalendars(user, selectedCalendars)
-    : null;
-  const finalTimezone = schedule?.timeZone || calendarTimezone || fallbackTimezoneIfScheduleIsMissing;
-
+  const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
+  const calendarTimezone = !isTimezoneSet ? await getTimezoneFromDelegatedCalendars(user) : null;
+  const finalTimezone =
+    !isTimezoneSet && calendarTimezone
+      ? calendarTimezone
+      : schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+  console.log("FINAL TIME ZONE", finalTimezone);
   let busyTimesFromLimits: EventBusyDetails[] = [];
 
   if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
