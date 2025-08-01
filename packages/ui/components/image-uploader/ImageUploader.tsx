@@ -12,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from 
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 import { validateImageFile } from "./imageValidation";
+import { MAX_IMAGE_FILE_SIZE } from "./imageValidation.test";
 
 const MAX_IMAGE_SIZE = 512;
 
@@ -95,8 +96,8 @@ export default function ImageUploader({
 
     const file = e.target.files[0];
 
-    // Validate the file - toast will be shown automatically if invalid
-    const isValid = await validateImageFile(file, t);
+    const maxAvatarSize = MAX_IMAGE_FILE_SIZE;
+    const isValid = await validateImageFile(file, t, maxAvatarSize);
     if (!isValid) {
       e.target.value = "";
       return;

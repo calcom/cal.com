@@ -13,6 +13,7 @@ import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
 import { validateImageFile } from "./imageValidation";
+import { MAX_IMAGE_FILE_SIZE } from "./imageValidation.test";
 
 type BannerUploaderProps = {
   id: string;
@@ -93,8 +94,8 @@ export default function BannerUploader({
 
     const file = e.target.files[0];
 
-    // Validate the file - toast will be shown automatically if invalid
-    const isValid = await validateImageFile(file, t);
+    const maxBannerSize = MAX_IMAGE_FILE_SIZE;
+    const isValid = await validateImageFile(file, t, maxBannerSize);
     if (!isValid) {
       e.target.value = "";
       return;

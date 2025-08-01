@@ -1,16 +1,22 @@
 import {
   FILE_SIGNATURES,
   matchesSignature,
-  MAX_IMAGE_FILE_SIZE,
-} from "../../../lib/imageValidationConstants";
+  containsDangerousSVGContent,
+} from "@calcom/lib/imageValidationConstants";
+
 import { showToast } from "../toast";
+import { MAX_IMAGE_FILE_SIZE } from "./imageValidation.test";
 
 /**
  * Enhanced browser-compatible image validation with magic number checking
  * This function performs comprehensive validation and shows toast messages directly
  */
-export const validateImageFile = async (file: File, t: (key: string) => string): Promise<boolean> => {
-  if (file.size > MAX_IMAGE_FILE_SIZE) {
+export const validateImageFile = async (
+  file: File,
+  t: (key: string) => string,
+  maxFileSize: number = MAX_IMAGE_FILE_SIZE
+): Promise<boolean> => {
+  if (file.size > maxFileSize) {
     showToast(t("image_size_limit_exceed"), "error");
     return false;
   }
@@ -63,7 +69,11 @@ export const validateImageFile = async (file: File, t: (key: string) => string):
       matchesSignature(uint8Array, FILE_SIGNATURES.ICO) ||
       (matchesSignature(uint8Array, FILE_SIGNATURES.WEBP) &&
         uint8Array.length >= 12 &&
-        matchesSignature(uint8Array.slice(8), FILE_SIGNATURES.WEBP_SIGNATURE));
+        matchesSignature(uint8Array.slice(8), FILE_SIGNATURES.WEBP_SIGNATURE)) ||
+      // SVG validation with content scanning
+      ((matchesSignature(uint8Array, FILE_SIGNATURES.SVG) ||
+        matchesSignature(uint8Array, FILE_SIGNATURES.SVG_DIRECT)) &&
+        !containsDangerousSVGContent(new TextDecoder().decode(uint8Array)));
 
     if (!isValidImage) {
       showToast(t("invalid_image_file_format"), "error");

@@ -69,8 +69,3 @@ const BASE64_REGEX = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}(?:==)?|[A-Za-z0-
 export function isValidBase64(str: string): boolean {
   return BASE64_REGEX.test(str);
 }
-
-/**
- * Maximum image file size (5MB)
- */
-export const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
