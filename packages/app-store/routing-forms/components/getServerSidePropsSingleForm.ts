@@ -1,3 +1,6 @@
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
@@ -85,6 +88,12 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
+  // For personal forms (teamId = null), check if the form belongs to the current user
+  if (!form.teamId && form.userId !== user.id) {
+    return {
+      notFound: true, // Don't reveal that the form exists to unauthorized users
+    };
+  }
   const { user: u, ...formWithoutUser } = form;
 
   const formWithoutProfileInfo = {
@@ -105,12 +114,56 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
   };
 
+  // Get PBAC permissions for team-scoped routing forms
+  let permissions = {
+    canCreate: true,
+    canRead: true,
+    canUpdate: true,
+    canDelete: true,
+  };
+
+  if (form.teamId) {
+    // Get user's role in the team
+    const membership = await prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId: user.id,
+          teamId: form.teamId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (membership) {
+      permissions = await getResourcePermissions({
+        userId: user.id,
+        teamId: form.teamId,
+        resource: Resource.RoutingForm,
+        userRole: membership.role,
+        fallbackRoles: {
+          read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
+          create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      });
+    }
+  }
+
   return {
     props: {
       form: await getSerializableForm({ form: formWithoutProfileInfo }),
       enrichedWithUserProfileForm: await getSerializableForm({
         form: enrichFormWithMigrationData(formWithUserInfoProfile),
       }),
+      permissions: {
+        canCreate: permissions.canCreate,
+        canRead: permissions.canRead,
+        canUpdate: permissions.canUpdate,
+        canDelete: permissions.canDelete,
+      },
     },
   };
 };
