@@ -78,6 +78,7 @@ async function handler(input: CancelBookingInput) {
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
+    fromReport,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -113,7 +114,7 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
-  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
+  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId && !fromReport) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
