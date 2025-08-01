@@ -9,11 +9,8 @@ import { UserRepository } from "./user";
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
-    getTranslation: async (locale: string, namespace: string) => {
-      const t = (key: string) => key;
-      t.locale = locale;
-      t.namespace = namespace;
-      return t;
+    getTranslation: (key: string) => {
+      return () => key;
     },
   };
 });
