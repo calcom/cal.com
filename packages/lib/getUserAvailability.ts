@@ -9,6 +9,7 @@ import type {
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
@@ -38,6 +39,42 @@ import { getBusyTimes } from "./getBusyTimes";
 import { withReporting } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
+
+/**
+ * Attempts to get timezone from user's connected calendar services
+ * Tries Google Calendar and Office365 Calendar in order
+ */
+const getTimezoneFromCalendars = async (
+  user: GetAvailabilityUser,
+  selectedCalendars: { externalId: string }[]
+): Promise<string | null> => {
+  if (!user.credentials || user.credentials.length === 0) {
+    return null;
+  }
+
+  const calendarCredentials = user.credentials.filter((credential) => credential.type.endsWith("_calendar"));
+
+  if (calendarCredentials.length === 0) {
+    return null;
+  }
+
+  for (const credential of calendarCredentials) {
+    try {
+      const calendar = await getCalendar(credential);
+      if (calendar && "getMainTimeZone" in calendar && typeof calendar.getMainTimeZone === "function") {
+        const timezone = await calendar.getMainTimeZone();
+        if (timezone && timezone !== "UTC") {
+          log.debug(`Got timezone ${timezone} from calendar service ${credential.type}`);
+          return timezone;
+        }
+      }
+    } catch (error) {
+      log.warn(`Failed to get timezone from calendar service ${credential.type}:`, error);
+    }
+  }
+
+  return null;
+};
 const availabilitySchema = z
   .object({
     dateFrom: stringToDayjsZod,
@@ -343,7 +380,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const schedule =
     (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ??
     fallbackSchedule;
-  const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
 
   const bookingLimits =
     eventType?.bookingLimits &&
@@ -359,6 +395,19 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       ? parseDurationLimit(eventType.durationLimits)
       : null;
 
+  // TODO: only query what we need after applying limits (shrink date range)
+  const getBusyTimesStart = dateFrom.toISOString();
+  const getBusyTimesEnd = dateTo.toISOString();
+
+  const selectedCalendars = eventType?.useEventLevelSelectedCalendars
+    ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+    : user.userLevelSelectedCalendars;
+
+  const calendarTimezone = !schedule?.timeZone
+    ? await getTimezoneFromCalendars(user, selectedCalendars)
+    : null;
+  const finalTimezone = schedule?.timeZone || calendarTimezone || fallbackTimezoneIfScheduleIsMissing;
+
   let busyTimesFromLimits: EventBusyDetails[] = [];
 
   if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
@@ -368,12 +417,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     busyTimesFromLimits = await getBusyTimesFromLimits(
       bookingLimits,
       durationLimits,
-      dateFrom.tz(timeZone),
-      dateTo.tz(timeZone),
+      dateFrom.tz(finalTimezone),
+      dateTo.tz(finalTimezone),
       duration,
       eventType,
       initialData?.busyTimesFromLimitsBookings ?? [],
-      timeZone,
+      finalTimezone,
       initialData?.rescheduleUid ?? undefined
     );
   }
@@ -394,22 +443,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
       user,
       teamBookingLimits,
-      dateFrom.tz(timeZone),
-      dateTo.tz(timeZone),
+      dateFrom.tz(finalTimezone),
+      dateTo.tz(finalTimezone),
       teamForBookingLimits.id,
       teamForBookingLimits.includeManagedEventsInLimits,
-      timeZone,
+      finalTimezone,
       initialData?.rescheduleUid ?? undefined
     );
   }
-
-  // TODO: only query what we need after applying limits (shrink date range)
-  const getBusyTimesStart = dateFrom.toISOString();
-  const getBusyTimesEnd = dateTo.toISOString();
-
-  const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-    ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
-    : user.userLevelSelectedCalendars;
 
   let busyTimes = [];
   try {
@@ -435,7 +476,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     log.error(`Error fetching busy times for user ${username}:`, error);
     return {
       busy: [],
-      timeZone,
+      timeZone: finalTimezone,
       dateRanges: [],
       oooExcludedDateRanges: [],
       workingHours: [],
@@ -481,7 +522,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     userId: user.id,
   }));
 
-  const workingHours = getWorkingHours({ timeZone }, availability);
+  const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
 
   const dateOverrides: TimeRange[] = [];
   // NOTE: getSchedule is currently calling this function for every user in a team event
@@ -584,7 +625,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     dateFrom,
     dateTo,
     availability,
-    timeZone,
+    timeZone: finalTimezone,
     travelSchedules: isDefaultSchedule
       ? user.travelSchedules.map((schedule) => {
           return {
@@ -607,7 +648,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const result = {
     busy: detailedBusyTimes,
-    timeZone,
+    timeZone: finalTimezone,
     dateRanges: dateRangesInWhichUserIsAvailable,
     oooExcludedDateRanges: dateRangesInWhichUserIsAvailableWithoutOOO,
     workingHours,
