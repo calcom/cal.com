@@ -35,6 +35,7 @@ export interface ProfileWithPermissions {
   membershipRole?: MembershipRole | null;
   canCreateEventTypes?: boolean;
   canUpdateEventTypes?: boolean;
+  canDeleteEventTypes?: boolean;
 }
 
 export async function createUserEventGroup(
@@ -122,11 +123,13 @@ export function createProfilesWithPermissions(
   return eventTypeGroups.map((group) => {
     let canCreateEventTypes: boolean | undefined = undefined;
     let canUpdateEventTypes: boolean | undefined = undefined;
+    let canDeleteEventTypes: boolean | undefined = undefined;
 
     if (group.teamId) {
       const permissions = teamPermissionsMap.get(group.teamId);
       canCreateEventTypes = permissions?.canCreate;
       canUpdateEventTypes = permissions?.canEdit;
+      canDeleteEventTypes = permissions?.canDelete;
     }
 
     return {
@@ -136,6 +139,7 @@ export function createProfilesWithPermissions(
       membershipRole: group.membershipRole,
       canCreateEventTypes,
       canUpdateEventTypes,
+      canDeleteEventTypes,
     };
   });
 }
