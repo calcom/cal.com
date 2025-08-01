@@ -136,7 +136,7 @@ function withSlotsCache(
       return cachedResult;
     }
     const result = await func(args);
-    const ttl = parseInt(process.env.SLOTS_CACHE_TTL, 10) || DEFAULT_SLOTS_CACHE_TTL;
+    const ttl = parseInt(process.env.SLOTS_CACHE_TTL ?? "", 10) || DEFAULT_SLOTS_CACHE_TTL;
     // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
     // this is to already start responding to the client.
     redisClient.set(cacheKey, result, { ttl });
