@@ -1290,6 +1290,95 @@ export class EventTypeRepository {
     };
   }
 
+  async findForUserAvailability({ id }: { id: number }) {
+    const eventType = await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        seatsPerTimeSlot: true,
+        bookingLimits: true,
+        useEventLevelSelectedCalendars: true,
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        },
+        hosts: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                id: true,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        durationLimits: true,
+        assignAllTeamMembers: true,
+        schedulingType: true,
+        timeZone: true,
+        length: true,
+        metadata: true,
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                days: true,
+                date: true,
+                startTime: true,
+                endTime: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            startTime: true,
+            endTime: true,
+            days: true,
+            date: true,
+          },
+        },
+      },
+    });
+    if (!eventType) {
+      return eventType;
+    }
+    return {
+      ...eventType,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    };
+  }
+
   static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
     user,
     eventTypeId,

@@ -144,9 +144,32 @@ const _getEventType = async (id: number) => {
   };
 };
 
-export type EventType = Awaited<ReturnType<typeof _getEventType>>;
+export type EventType = NonNullable<Awaited<ReturnType<typeof _getEventType>>>;
 
 export const getEventType = withReporting(_getEventType, "getEventType");
+
+export interface UserAvailabilityDependencies {
+  getEventType: (id: number) => Promise<EventType | null>;
+  getCurrentSeats: (eventType: any, dateFrom: any, dateTo: any) => Promise<CurrentSeats>;
+  getOutOfOfficeDays: (userId: number, dateFrom: any, dateTo: any) => Promise<any>;
+}
+
+export type GetUserAvailabilityInput = {
+  dateFrom: string;
+  dateTo: string;
+  eventTypeId?: number;
+  username?: string;
+  userId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  withSource?: boolean;
+  duration?: number;
+  returnDateOverrides?: boolean;
+  bypassBusyCalendarTimes?: boolean;
+  shouldServeCache?: boolean;
+};
+
+export type GetUserAvailabilityQuery = z.infer<typeof availabilitySchema>;
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
   return findUsersForAvailabilityCheck({ where });
@@ -191,21 +214,6 @@ export type GetUserAvailabilityInitialData = {
 };
 
 export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
-
-type GetUserAvailabilityQuery = {
-  withSource?: boolean;
-  username?: string;
-  userId?: number;
-  dateFrom: string;
-  dateTo: string;
-  eventTypeId?: number;
-  afterEventBuffer?: number;
-  beforeEventBuffer?: number;
-  duration?: number;
-  returnDateOverrides: boolean;
-  bypassBusyCalendarTimes: boolean;
-  shouldServeCache?: boolean;
-};
 
 const _getCurrentSeats = async (
   eventType: {
@@ -266,12 +274,11 @@ export type CurrentSeats = Awaited<ReturnType<typeof _getCurrentSeats>>;
 
 export const getCurrentSeats = withReporting(_getCurrentSeats, "getCurrentSeats");
 
-export type GetUserAvailabilityResult = Awaited<ReturnType<typeof _getUserAvailability>>;
-
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
-const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
-  query: GetUserAvailabilityQuery,
-  initialData?: GetUserAvailabilityInitialData
+export const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
+  query: z.infer<typeof availabilitySchema>,
+  initialData?: GetUserAvailabilityInitialData,
+  dependencies?: UserAvailabilityDependencies
 ) {
   const {
     username,
@@ -308,13 +315,17 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }
 
   let eventType: EventType | null = initialData?.eventType || null;
-  if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
+  if (!eventType && eventTypeId) {
+    eventType = dependencies ? await dependencies.getEventType(eventTypeId) : await getEventType(eventTypeId);
+  }
 
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
-    currentSeats = await getCurrentSeats(eventType, dateFrom, dateTo);
+    currentSeats = dependencies
+      ? await dependencies.getCurrentSeats(eventType, dateFrom, dateTo)
+      : await getCurrentSeats(eventType, dateFrom, dateTo);
   }
 
   const userSchedule = user.schedules.filter(
@@ -513,70 +524,72 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const outOfOfficeDays =
     initialData?.outOfOfficeDays ??
-    (await prisma.outOfOfficeEntry.findMany({
-      where: {
-        userId: user.id,
-        OR: [
-          // outside of range
-          // (start <= 'dateTo' AND end >= 'dateFrom')
-          {
-            start: {
-              lte: dateTo.toISOString(),
-            },
-            end: {
-              gte: dateFrom.toISOString(),
-            },
-          },
-          // start is between dateFrom and dateTo but end is outside of range
-          // (start <= 'dateTo' AND end >= 'dateTo')
-          {
-            start: {
-              lte: dateTo.toISOString(),
-            },
+    (dependencies
+      ? await dependencies.getOutOfOfficeDays(user.id, dateFrom, dateTo)
+      : await prisma.outOfOfficeEntry.findMany({
+          where: {
+            userId: user.id,
+            OR: [
+              // outside of range
+              // (start <= 'dateTo' AND end >= 'dateFrom')
+              {
+                start: {
+                  lte: dateTo.toISOString(),
+                },
+                end: {
+                  gte: dateFrom.toISOString(),
+                },
+              },
+              // start is between dateFrom and dateTo but end is outside of range
+              // (start <= 'dateTo' AND end >= 'dateTo')
+              {
+                start: {
+                  lte: dateTo.toISOString(),
+                },
 
-            end: {
-              gte: dateTo.toISOString(),
-            },
-          },
-          // end is between dateFrom and dateTo but start is outside of range
-          // (start <= 'dateFrom' OR end <= 'dateTo')
-          {
-            start: {
-              lte: dateFrom.toISOString(),
-            },
+                end: {
+                  gte: dateTo.toISOString(),
+                },
+              },
+              // end is between dateFrom and dateTo but start is outside of range
+              // (start <= 'dateFrom' OR end <= 'dateTo')
+              {
+                start: {
+                  lte: dateFrom.toISOString(),
+                },
 
-            end: {
-              lte: dateTo.toISOString(),
+                end: {
+                  lte: dateTo.toISOString(),
+                },
+              },
+            ],
+          },
+          select: {
+            id: true,
+            start: true,
+            end: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            toUser: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+              },
+            },
+            reason: {
+              select: {
+                id: true,
+                emoji: true,
+                reason: true,
+              },
             },
           },
-        ],
-      },
-      select: {
-        id: true,
-        start: true,
-        end: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        toUser: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-          },
-        },
-        reason: {
-          select: {
-            id: true,
-            emoji: true,
-            reason: true,
-          },
-        },
-      },
-    }));
+        }));
 
   const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
@@ -623,7 +636,18 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   return result;
 };
 
-export const getUserAvailability = withReporting(_getUserAvailability, "getUserAvailability");
+const getUserAvailabilityWithValidation = async (
+  query: GetUserAvailabilityInput,
+  initialData?: GetUserAvailabilityInitialData,
+  dependencies?: UserAvailabilityDependencies
+) => {
+  const validatedQuery = availabilitySchema.parse(query);
+  return _getUserAvailability(validatedQuery, initialData, dependencies);
+};
+
+export const getUserAvailability = withReporting(getUserAvailabilityWithValidation, "getUserAvailability");
+
+export type GetUserAvailabilityResult = Awaited<ReturnType<typeof _getUserAvailability>>;
 
 const _getPeriodStartDatesBetween = (
   dateFrom: Dayjs,
@@ -720,7 +744,7 @@ type GetUsersAvailabilityProps = {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
     outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
   })[];
-  query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
+  query: Omit<GetUserAvailabilityInput, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
 };
 
@@ -734,11 +758,11 @@ const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvai
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
-        {
+        availabilitySchema.parse({
           ...query,
           userId: user.id,
           username: user.username || "",
-        },
+        }),
         initialData
           ? {
               ...initialData,

@@ -869,4 +869,61 @@ export class BookingRepository {
       },
     });
   }
+
+  async findCurrentSeats({
+    eventType,
+    dateFrom,
+    dateTo,
+  }: {
+    eventType: {
+      id?: number;
+      schedulingType?: any;
+      hosts?: {
+        user: {
+          email: string;
+        };
+      }[];
+    };
+    dateFrom: string;
+    dateTo: string;
+  }) {
+    const { schedulingType, hosts, id } = eventType;
+    const hostEmails = hosts?.map((host) => host.user.email);
+    const isTeamEvent =
+      schedulingType === "MANAGED" || schedulingType === "ROUND_ROBIN" || schedulingType === "COLLECTIVE";
+
+    const bookings = await this.prismaClient.booking.findMany({
+      where: {
+        eventTypeId: id,
+        startTime: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    return bookings.map((booking) => {
+      const attendees = isTeamEvent
+        ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
+        : booking.attendees;
+
+      return {
+        uid: booking.uid,
+        startTime: booking.startTime,
+        _count: {
+          attendees: attendees.length,
+        },
+      };
+    });
+  }
 }
