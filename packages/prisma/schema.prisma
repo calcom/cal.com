@@ -813,6 +813,16 @@ model Tracking {
   @@unique([bookingId])
 }
 
+model BookingAudit {
+  id        Int      @id @default(autoincrement())
+  bookingId Int
+  action    String
+  actor     String? // Optional, for metadata
+  version   Int? // For forward compatibility
+  data      Json
+  createdAt DateTime @default(now())
+}
+
 model Schedule {
   id                   Int            @id @default(autoincrement())
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)

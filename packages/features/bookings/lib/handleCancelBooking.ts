@@ -37,6 +37,7 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { BookingAuditService } from "./audit/booking-audit-service";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
@@ -392,6 +393,22 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
+
+    // Log cancellation audit for all cancelled recurring bookings
+    try {
+      for (const cancelledBooking of allUpdatedBookings) {
+        await BookingAuditService.logBookingCancelled({
+          bookingId: cancelledBooking.id,
+          cancellationReason,
+          actor: cancelledBy ? { userId: parseInt(cancelledBy), role: "organizer" } : undefined,
+        });
+      }
+    } catch (auditError) {
+      log.error(
+        "Failed to log booking cancellation audit",
+        safeStringify({ auditError, bookingId: bookingToDelete.id })
+      );
+    }
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
       await prisma.attendee.deleteMany({
@@ -429,6 +446,20 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    // Log cancellation audit for single booking
+    try {
+      await BookingAuditService.logBookingCancelled({
+        bookingId: updatedBooking.id,
+        cancellationReason,
+        actor: cancelledBy ? { userId: parseInt(cancelledBy), role: "organizer" } : undefined,
+      });
+    } catch (auditError) {
+      log.error(
+        "Failed to log booking cancellation audit",
+        safeStringify({ auditError, bookingId: bookingToDelete.id })
+      );
+    }
 
     if (!!bookingToDelete.payment.length) {
       await processPaymentRefund({

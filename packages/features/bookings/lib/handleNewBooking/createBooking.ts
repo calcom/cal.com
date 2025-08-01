@@ -11,6 +11,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { BookingAuditService } from "../audit/booking-audit-service";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -109,7 +110,9 @@ const _createBooking = async ({
     bookingAndAssociatedData,
     originalRescheduledBooking,
     eventType.paymentAppData,
-    eventType.organizerUser
+    eventType.organizerUser,
+    evt,
+    eventType
   );
 
   function shouldConnectBookingToFormResponse() {
@@ -136,7 +139,9 @@ async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,
   originalRescheduledBooking: OriginalRescheduledBooking,
   paymentAppData: PaymentAppData,
-  organizerUser: CreateBookingParams["eventType"]["organizerUser"]
+  organizerUser: CreateBookingParams["eventType"]["organizerUser"],
+  evt: CalendarEvent,
+  eventType: CreateBookingParams["eventType"]
 ) {
   const { newBookingData, reroutingFormResponseUpdateData, originalBookingUpdateDataForCancellation } =
     bookingAndAssociatedData;
@@ -178,8 +183,60 @@ async function saveBooking(
     }
 
     const booking = await tx.booking.create(createBookingObj);
+
     if (reroutingFormResponseUpdateData) {
       await tx.app_RoutingForms_FormResponse.update(reroutingFormResponseUpdateData);
+    }
+
+    // Log booking audit after successful creation
+    try {
+      if (originalRescheduledBooking) {
+        // This is a reschedule operation
+        await BookingAuditService.logBookingRescheduled({
+          bookingId: booking.id,
+          eventTypeId: eventType.eventTypeData.id,
+          originalStartTime: originalRescheduledBooking.startTime,
+          originalEndTime: originalRescheduledBooking.endTime,
+          newStartTime: booking.startTime,
+          newEndTime: booking.endTime,
+          location: booking.location ?? undefined,
+          attendeeCount: booking.attendees.length,
+          rescheduleReason: booking.cancellationReason ?? undefined,
+          rescheduledBy: booking.rescheduledBy ?? undefined,
+          organizerChanged: originalRescheduledBooking.userId !== booking.userId,
+          actor: {
+            userId: organizerUser.id,
+            email: organizerUser.email,
+            name: organizerUser.name ?? undefined,
+            role: "organizer",
+          },
+        });
+      } else {
+        // This is a new booking creation
+        await BookingAuditService.logBookingCreated({
+          bookingId: booking.id,
+          eventTypeId: eventType.eventTypeData.id,
+          eventTypeName: eventType.eventTypeData.title,
+          organizerId: organizerUser.id,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          location: booking.location ?? undefined,
+          attendeeCount: booking.attendees.length,
+          isConfirmed: booking.status === BookingStatus.ACCEPTED,
+          paymentRequired: paymentAppData.price > 0,
+          seatsPerTimeSlot: eventType.eventTypeData.seatsPerTimeSlot ?? undefined,
+          recurringEventId: booking.recurringEventId ?? undefined,
+          actor: {
+            userId: organizerUser.id,
+            email: organizerUser.email,
+            name: organizerUser.name ?? undefined,
+            role: "organizer",
+          },
+        });
+      }
+    } catch (auditError) {
+      // Audit logging should not affect the main booking flow
+      // Error is already logged within BookingAuditService
     }
 
     return booking;
