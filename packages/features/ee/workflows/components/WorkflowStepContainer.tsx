@@ -125,14 +125,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         // Invalidate and refetch agent data
         await utils.viewer.ai.get.invalidate({ id: data.id });
-
-        // Wait a moment for the query to update before opening the sheet
-        setTimeout(() => {
-          setIsAgentConfigurationSheetOpen(true);
-        }, 100);
-      } else {
-        setIsAgentConfigurationSheetOpen(true);
       }
+      setIsAgentConfigurationSheetOpen(true);
     },
     onError: (error: { message: string }) => {
       showToast(error.message, "error");
@@ -1343,6 +1337,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           onUpdate={(data) => {
             updateAgentMutation.mutate({
               id: stepAgentId!,
+              teamId: teamId,
               generalPrompt: data.generalPrompt,
               beginMessage: data.beginMessage,
               generalTools: data.generalTools,
@@ -1360,6 +1355,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
             agentId={step.agentId}
+            teamId={teamId}
           />
         )}
 

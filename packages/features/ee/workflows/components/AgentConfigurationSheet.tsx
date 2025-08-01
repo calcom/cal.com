@@ -261,6 +261,7 @@ export function AgentConfigurationSheet({
 
     await updateAgentMutation.mutateAsync({
       id: agentId,
+      teamId: teamId,
       ...data,
     });
 
@@ -327,6 +328,7 @@ export function AgentConfigurationSheet({
       ...values,
       workflowId: workflowId,
       agentId: agentId, // Pass the agentId to the router
+      teamId: teamId,
     };
     importNumberMutation.mutate(mutationPayload);
   };
@@ -681,6 +683,7 @@ export function AgentConfigurationSheet({
                   buyNumberMutation.mutate({
                     agentId: agentId,
                     workflowId: workflowId,
+                    teamId: teamId,
                   })
                 }
                 loading={buyNumberMutation.isPending}
@@ -876,6 +879,7 @@ export function AgentConfigurationSheet({
           open={isTestAgentDialogOpen}
           onOpenChange={setIsTestAgentDialogOpen}
           agentId={agentId}
+          teamId={teamId}
         />
       )}
 

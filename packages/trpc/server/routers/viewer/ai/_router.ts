@@ -32,14 +32,21 @@ export const aiRouter = router({
       });
     }),
 
-  get: authedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-    const aiService = createDefaultAIPhoneServiceProvider();
+  get: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        teamId: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const aiService = createDefaultAIPhoneServiceProvider();
 
-    return await aiService.getAgentWithDetails({
-      id: input.id,
-      userId: ctx.user.id,
-    });
-  }),
+      return await aiService.getAgentWithDetails({
+        id: input.id,
+        userId: ctx.user.id,
+      });
+    }),
 
   create: authedProcedure
     .input(
@@ -86,6 +93,7 @@ export const aiRouter = router({
     .input(
       z.object({
         id: z.string(),
+        teamId: z.number().optional(),
         name: z.string().optional(),
         enabled: z.boolean().optional(),
         // Retell updates
@@ -107,7 +115,7 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, name, enabled, ...retellUpdates } = input;
+      const { id, teamId, name, enabled, ...retellUpdates } = input;
 
       const aiService = createDefaultAIPhoneServiceProvider();
 
@@ -122,20 +130,28 @@ export const aiRouter = router({
       });
     }),
 
-  delete: authedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
-    const aiService = createDefaultAIPhoneServiceProvider();
+  delete: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        teamId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const aiService = createDefaultAIPhoneServiceProvider();
 
-    return await aiService.deleteAgent({
-      id: input.id,
-      userId: ctx.user.id,
-    });
-  }),
+      return await aiService.deleteAgent({
+        id: input.id,
+        userId: ctx.user.id,
+      });
+    }),
 
   testCall: authedProcedure
     .input(
       z.object({
         agentId: z.string(),
         phoneNumber: z.string().optional(),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

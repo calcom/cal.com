@@ -28,9 +28,10 @@ export type ListAgents = RouterOutputs["viewer"]["ai"]["list"]["filtered"][0];
 
 interface Props {
   agents: ListAgents[];
+  teamId?: number;
 }
 
-export default function AgentsListPage({ agents }: Props) {
+export default function AgentsListPage({ agents, teamId }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -50,7 +51,7 @@ export default function AgentsListPage({ agents }: Props) {
   });
 
   const handleDelete = async (agentId: string) => {
-    deleteMutation.mutate({ id: agentId });
+    deleteMutation.mutate({ id: agentId, teamId });
     setDeleteDialogOpen(false);
   };
 

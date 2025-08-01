@@ -196,15 +196,15 @@ export class AgentRepository {
   }: {
     name: string;
     retellAgentId: string;
-    userId?: number;
+    userId: number;
     teamId?: number;
   }) {
     return await prisma.agent.create({
       data: {
         name,
         retellAgentId,
-        userId: teamId ? undefined : userId,
-        teamId: teamId || undefined,
+        userId,
+        teamId,
       },
     });
   }

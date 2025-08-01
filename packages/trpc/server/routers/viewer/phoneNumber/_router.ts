@@ -63,8 +63,15 @@ export const phoneNumberRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { phoneNumber, terminationUri, sipTrunkAuthUsername, sipTrunkAuthPassword, nickname, agentId } =
-        input;
+      const {
+        phoneNumber,
+        terminationUri,
+        sipTrunkAuthUsername,
+        sipTrunkAuthPassword,
+        nickname,
+        teamId,
+        agentId,
+      } = input;
       const aiService = createDefaultAIPhoneServiceProvider();
 
       // Use the service's importPhoneNumber which now handles agent assignment
@@ -75,33 +82,50 @@ export const phoneNumberRouter = router({
         sip_trunk_auth_password: sipTrunkAuthPassword,
         nickname,
         userId: ctx.user.id,
+        teamId,
         agentId,
       });
 
       return importedPhoneNumber;
     }),
 
-  cancel: authedProcedure.input(z.object({ phoneNumberId: z.number() })).mutation(async ({ ctx, input }) => {
-    const { phoneNumberId } = input;
-    const aiService = createDefaultAIPhoneServiceProvider();
+  cancel: authedProcedure
+    .input(
+      z.object({
+        phoneNumberId: z.number(),
+        teamId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { phoneNumberId, teamId } = input;
+      const aiService = createDefaultAIPhoneServiceProvider();
 
-    return await aiService.cancelPhoneNumberSubscription({
-      phoneNumberId,
-      userId: ctx.user.id,
-    });
-  }),
+      return await aiService.cancelPhoneNumberSubscription({
+        phoneNumberId,
+        userId: ctx.user.id,
+        teamId,
+      });
+    }),
 
-  delete: authedProcedure.input(z.object({ phoneNumber: z.string() })).mutation(async ({ ctx, input }) => {
-    const aiService = createDefaultAIPhoneServiceProvider();
+  delete: authedProcedure
+    .input(
+      z.object({
+        phoneNumber: z.string(),
+        teamId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const aiService = createDefaultAIPhoneServiceProvider();
 
-    await aiService.deletePhoneNumber({
-      phoneNumber: input.phoneNumber,
-      userId: ctx.user.id,
-      deleteFromDB: true,
-    });
+      await aiService.deletePhoneNumber({
+        phoneNumber: input.phoneNumber,
+        userId: ctx.user.id,
+        teamId: input.teamId,
+        deleteFromDB: true,
+      });
 
-    return { message: "Phone number deleted successfully" };
-  }),
+      return { message: "Phone number deleted successfully" };
+    }),
 
   update: authedProcedure
     .input(
@@ -109,15 +133,17 @@ export const phoneNumberRouter = router({
         phoneNumber: z.string(),
         inboundAgentId: z.string().nullish().default(null),
         outboundAgentId: z.string().nullish().default(null),
+        teamId: z.number().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { phoneNumber, inboundAgentId, outboundAgentId } = input;
+      const { phoneNumber, inboundAgentId, outboundAgentId, teamId } = input;
       const aiService = createDefaultAIPhoneServiceProvider();
 
       return await aiService.updatePhoneNumberWithAgents({
         phoneNumber,
         userId: ctx.user.id,
+        teamId,
         inboundAgentId,
         outboundAgentId,
       });

@@ -77,6 +77,7 @@ async function saveToCreditBalance({
 
 async function handlePhoneNumberSubscription(session: any) {
   const userId = session.metadata?.userId ? parseInt(session.metadata.userId, 10) : null;
+  const teamId = session.metadata?.teamId ? parseInt(session.metadata.teamId, 10) : null;
   const agentId = session.metadata?.agentId || null;
 
   if (!userId || !session.subscription) {
@@ -100,6 +101,7 @@ async function handlePhoneNumberSubscription(session: any) {
   const newNumber = await prisma.calAiPhoneNumber.create({
     data: {
       userId,
+      teamId,
       phoneNumber: retellPhoneNumber.phone_number,
       provider: "retell",
       stripeCustomerId: session.customer as string,

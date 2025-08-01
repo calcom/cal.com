@@ -49,15 +49,18 @@ export class PhoneNumberRepository {
     phoneNumber,
     provider,
     userId,
+    teamId,
   }: {
     phoneNumber: string;
     provider?: string;
     userId: number;
+    teamId?: number;
   }) {
     return await prisma.calAiPhoneNumber.create({
       data: {
         provider,
         userId,
+        teamId,
         phoneNumber,
       },
     });
@@ -81,11 +84,61 @@ export class PhoneNumberRepository {
     });
   }
 
+  static async findByIdWithTeamAccess({
+    id,
+    teamId,
+    userId,
+  }: {
+    id: number;
+    teamId: number;
+    userId: number;
+  }) {
+    return await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        id,
+        teamId,
+        team: {
+          members: {
+            some: {
+              userId,
+              accepted: true,
+            },
+          },
+        },
+      },
+    });
+  }
+
   static async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
     return await prisma.calAiPhoneNumber.findFirst({
       where: {
         phoneNumber,
         userId,
+      },
+    });
+  }
+
+  static async findByPhoneNumberAndTeamId({
+    phoneNumber,
+    teamId,
+    userId,
+  }: {
+    phoneNumber: string;
+    teamId: number;
+    userId: number;
+  }) {
+    return await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        phoneNumber,
+        teamId,
+        team: {
+          members: {
+            some: {
+              userId,
+              accepted: true,
+            },
+          },
+        },
       },
     });
   }

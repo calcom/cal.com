@@ -51,7 +51,7 @@ export class RetellAIService {
   }
 
   async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<RetellPhoneNumber> {
-    const { userId, agentId, ...rest } = data;
+    const { userId, agentId, teamId, ...rest } = data;
     const importedPhoneNumber = await this.repository.importPhoneNumber({
       phone_number: rest.phone_number,
       termination_uri: rest.termination_uri,
@@ -62,10 +62,24 @@ export class RetellAIService {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
+    if (teamId) {
+      const canManage = await AgentRepository.canManageTeamResources({
+        userId,
+        teamId,
+      });
+      if (!canManage) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to import phone numbers for this team.",
+        });
+      }
+    }
+
     await PhoneNumberRepository.createPhoneNumber({
       phoneNumber: importedPhoneNumber.phone_number,
       userId,
       provider: "Custom telephony",
+      teamId,
     });
 
     // If agentId is provided, assign the phone number to the agent
@@ -214,18 +228,35 @@ export class RetellAIService {
   async deletePhoneNumber({
     phoneNumber,
     userId,
+    teamId,
     deleteFromDB = false,
   }: {
     phoneNumber: string;
     userId: number;
+    teamId?: number;
     deleteFromDB: boolean;
   }): Promise<void> {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
 
-    const phoneNumberToDelete = await PhoneNumberRepository.findMinimalPhoneNumber({
-      phoneNumber,
-      userId,
-    });
+    // Find phone number with proper authorization
+    const phoneNumberToDelete = teamId
+      ? await PhoneNumberRepository.findByPhoneNumberAndTeamId({
+          phoneNumber,
+          teamId,
+          userId, // Still check user access within team
+        })
+      : await PhoneNumberRepository.findMinimalPhoneNumber({
+          phoneNumber,
+          userId,
+        });
+
+    if (!phoneNumberToDelete) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Phone number not found or you don't have permission to delete it.",
+      });
+    }
+
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
       throw new Error("Phone number is still active");
     }
@@ -337,13 +368,28 @@ export class RetellAIService {
     return { url: checkoutSession.url, message: "Payment required to purchase phone number" };
   }
 
-  async cancelPhoneNumberSubscription({ phoneNumberId, userId }: { phoneNumberId: number; userId: number }) {
+  async cancelPhoneNumberSubscription({
+    phoneNumberId,
+    userId,
+    teamId,
+  }: {
+    phoneNumberId: number;
+    userId: number;
+    teamId?: number;
+  }) {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
 
-    const phoneNumber = await PhoneNumberRepository.findById({
-      id: phoneNumberId,
-      userId,
-    });
+    // Find phone number with proper team authorization
+    const phoneNumber = teamId
+      ? await PhoneNumberRepository.findByIdWithTeamAccess({
+          id: phoneNumberId,
+          teamId,
+          userId,
+        })
+      : await PhoneNumberRepository.findById({
+          id: phoneNumberId,
+          userId,
+        });
 
     if (!phoneNumber) {
       throw new TRPCError({
@@ -392,21 +438,29 @@ export class RetellAIService {
   async updatePhoneNumberWithAgents({
     phoneNumber,
     userId,
+    teamId,
     inboundAgentId,
     outboundAgentId,
   }: {
     phoneNumber: string;
     userId: number;
+    teamId?: number;
     inboundAgentId?: string | null;
     outboundAgentId?: string | null;
   }) {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
-    const phoneNumberRecord = await PhoneNumberRepository.findByPhoneNumberAndUserId({
-      phoneNumber,
-      userId,
-    });
+    const phoneNumberRecord = teamId
+      ? await PhoneNumberRepository.findByPhoneNumberAndTeamId({
+          phoneNumber,
+          teamId,
+          userId,
+        })
+      : await PhoneNumberRepository.findByPhoneNumberAndUserId({
+          phoneNumber,
+          userId,
+        });
 
     if (!phoneNumberRecord) {
       throw new TRPCError({
@@ -427,6 +481,13 @@ export class RetellAIService {
           message: "You don't have permission to use the selected inbound agent.",
         });
       }
+
+      if (teamId && inboundAgent.teamId !== teamId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Selected inbound agent does not belong to the specified team.",
+        });
+      }
     }
 
     if (outboundAgentId) {
@@ -439,6 +500,13 @@ export class RetellAIService {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to use the selected outbound agent.",
+        });
+      }
+
+      if (teamId && outboundAgent.teamId !== teamId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Selected outbound agent does not belong to the specified team.",
         });
       }
     }

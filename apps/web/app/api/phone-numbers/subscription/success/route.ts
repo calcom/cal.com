@@ -17,6 +17,10 @@ const querySchema = z.object({
 
 const checkoutSessionMetadataSchema = z.object({
   userId: z.string().transform(Number),
+  teamId: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
   eventTypeId: z
     .string()
     .optional()
@@ -79,6 +83,8 @@ async function handler(request: NextRequest) {
                 },
               },
             ],
+            // If teamId is provided, ensure agent belongs to the same team
+            ...(checkoutSessionMetadata.teamId ? { teamId: checkoutSessionMetadata.teamId } : {}),
           },
         });
 
@@ -203,6 +209,7 @@ async function createPhoneNumber(
   const newNumber = await prisma.calAiPhoneNumber.create({
     data: {
       userId: metadata.userId,
+      teamId: metadata.teamId,
       phoneNumber: retellPhoneNumber.phone_number,
       provider: "retell",
       stripeCustomerId: checkoutSession.customer as string,

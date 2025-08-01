@@ -40,6 +40,7 @@ export type AIPhoneServiceUpdatePhoneNumberParams = RetellAIUpdatePhoneNumberPar
 export type AIPhoneServiceCreatePhoneNumberParams = RetellAICreatePhoneNumberParams;
 export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberParams & {
   userId: number;
+  teamId?: number;
   agentId?: string | null;
 };
 export type AIPhoneServiceUpdateAgentParams = RetellAIUpdateAgentParams;
@@ -98,7 +99,12 @@ export interface AIPhoneServiceProvider {
   /**
    * Delete a phone number
    */
-  deletePhoneNumber(params: { phoneNumber: string; userId: number; deleteFromDB: boolean }): Promise<void>;
+  deletePhoneNumber(params: {
+    phoneNumber: string;
+    userId: number;
+    teamId?: number;
+    deleteFromDB: boolean;
+  }): Promise<void>;
 
   /**
    * Get phone number details
@@ -134,6 +140,7 @@ export interface AIPhoneServiceProvider {
   cancelPhoneNumberSubscription(params: {
     phoneNumberId: number;
     userId: number;
+    teamId?: number;
   }): Promise<{ success: boolean; message: string }>;
 
   /**
@@ -142,6 +149,7 @@ export interface AIPhoneServiceProvider {
   updatePhoneNumberWithAgents(params: {
     phoneNumber: string;
     userId: number;
+    teamId?: number;
     inboundAgentId?: string | null;
     outboundAgentId?: string | null;
   }): Promise<{ message: string }>;
