@@ -14,9 +14,10 @@ interface TestAgentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   agentId: string;
+  teamId?: number;
 }
 
-export function TestAgentDialog({ open, onOpenChange, agentId }: TestAgentDialogProps) {
+export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAgentDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
@@ -40,12 +41,14 @@ export function TestAgentDialog({ open, onOpenChange, agentId }: TestAgentDialog
       testCallMutation.mutate({
         agentId: agentId,
         phoneNumber: testPhoneNumber,
+        teamId: teamId,
       });
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    // Without modal={false}, the screen freezes when Sheet is open
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent
         type="creation"
         title={t("Test Cal.Ai Agent")}
