@@ -110,6 +110,11 @@
           "icon": "code-simple",
           "pages": ["developing/guides/embeds/embed-events"]
         }
+        {
+          "group": "Insights",
+          "icon": "chart-bar",
+          "pages": ["developing/guides/insights/add-charts"]
+        }
       ]
     },
     {
