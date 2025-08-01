@@ -37,6 +37,8 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const calendarService = new Office365CalendarService(credential);
       const subscriptionManager = new Office365SubscriptionManager(calendarService);
 
+      // Note: fetcher is a public method, but we use 'as any' to avoid TypeScript issues with mock return types
+      // This is acceptable for testing since we're testing the SubscriptionManager's behavior, not the fetcher implementation
       const fetcherSpy = vi
         .spyOn(calendarService, "fetcher" as any)
         .mockImplementation(async (endpoint, options) => {
@@ -519,9 +521,9 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const calendarService = new Office365CalendarService(credential);
       const subscriptionManager = new Office365SubscriptionManager(calendarService);
 
-      // Mock a 429 response that should cause the operation to fail
+      // Mock the fetcher method to simulate rate limit errors
       const fetcherSpy = vi
-        .spyOn(calendarService, "fetcher" as any)
+        .spyOn(calendarService, "fetcher")
         .mockImplementation(async (endpoint, options) => {
           // Mock the /me endpoint to succeed so getUserEndpoint doesn't fail
           if (endpoint === "/me") {
@@ -534,10 +536,10 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
                 userPrincipalName: "test@example.com",
                 id: "test-user-id",
               }),
-            };
+            } as Response;
           }
           // Mock the subscription creation to fail with rate limit
-          if (endpoint === "/subscriptions" && (options as any)?.method === "POST") {
+          if (endpoint === "/subscriptions" && options?.method === "POST") {
             return {
               status: 429,
               ok: false,
@@ -556,7 +558,7 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
                     message: "Rate limit exceeded",
                   },
                 }),
-            };
+            } as Response;
           }
           return defaultFetcherMockImplementation(endpoint, options);
         });
@@ -577,9 +579,9 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
       const calendarService = new Office365CalendarService(credential);
       const subscriptionManager = new Office365SubscriptionManager(calendarService);
 
-      // Mock a 401 response that should cause the operation to fail
+      // Mock the fetcher method to simulate authentication errors
       const fetcherSpy = vi
-        .spyOn(calendarService, "fetcher" as any)
+        .spyOn(calendarService, "fetcher")
         .mockImplementation(async (endpoint, options) => {
           // Mock the /me endpoint to succeed so getUserEndpoint doesn't fail
           if (endpoint === "/me") {
@@ -592,10 +594,10 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
                 userPrincipalName: "test@example.com",
                 id: "test-user-id",
               }),
-            };
+            } as Response;
           }
           // Mock the subscription creation to fail with auth error
-          if (endpoint === "/subscriptions" && (options as any)?.method === "POST") {
+          if (endpoint === "/subscriptions" && options?.method === "POST") {
             return {
               status: 401,
               ok: false,
@@ -614,7 +616,7 @@ describe("Office365SubscriptionManager - Subscription Management", () => {
                     message: "Authentication failed",
                   },
                 }),
-            };
+            } as Response;
           }
           return defaultFetcherMockImplementation(endpoint, options);
         });
