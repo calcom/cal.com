@@ -1,24 +1,24 @@
 import type {
   AIConfigurationSetup as RetellAIConfigurationSetup,
-  UpdateLLMRequest as RetellAIUpdateLLMParams,
-  RetellLLM,
-  RetellAgent,
-  RetellCall,
-  CreatePhoneCallParams,
-  RetellPhoneNumber,
+  UpdateLLMRequest as RetellAIUpdateModelParams,
+  RetellLLM as RetellAIModel,
+  RetellAgent as RetellAIAgent,
+  RetellCall as RetellAICall,
+  CreatePhoneCallParams as RetellAICreatePhoneCallParams,
+  RetellPhoneNumber as RetellAIPhoneNumber,
   UpdatePhoneNumberParams as RetellAIUpdatePhoneNumberParams,
   CreatePhoneNumberParams as RetellAICreatePhoneNumberParams,
   ImportPhoneNumberParams as RetellAIImportPhoneNumberParams,
   UpdateAgentRequest as RetellAIUpdateAgentParams,
-  RetellLLMGeneralTools,
+  RetellLLMGeneralTools as RetellAITools,
 } from "../providers/retell-ai/types";
 
 export type AIPhoneServiceConfiguration = RetellAIConfigurationSetup;
-export type updateLLMConfigurationParams = RetellAIUpdateLLMParams;
-export type AIPhoneServiceModel = RetellLLM;
+export type AIPhoneServiceUpdateModelParams = RetellAIUpdateModelParams;
+export type AIPhoneServiceModel = RetellAIModel;
 
 export interface AIPhoneServiceDeletion {
-  llmId?: string;
+  modelId?: string;
   agentId?: string;
 }
 
@@ -26,16 +26,16 @@ export interface AIPhoneServiceDeletionResult {
   success: boolean;
   errors: string[];
   deleted: {
-    llm: boolean;
+    model: boolean;
     agent: boolean;
   };
 }
 
-export type AIPhoneServiceCallData = CreatePhoneCallParams;
-export type AIPhoneServiceAgent = RetellAgent;
-export type AIPhoneServiceCall = RetellCall;
+export type AIPhoneServiceCallData = RetellAICreatePhoneCallParams;
+export type AIPhoneServiceAgent = RetellAIAgent;
+export type AIPhoneServiceCall = RetellAICall;
 
-export type AIPhoneServicePhoneNumber = RetellPhoneNumber;
+export type AIPhoneServicePhoneNumber = RetellAIPhoneNumber;
 export type AIPhoneServiceUpdatePhoneNumberParams = RetellAIUpdatePhoneNumberParams;
 export type AIPhoneServiceCreatePhoneNumberParams = RetellAICreatePhoneNumberParams;
 export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberParams & {
@@ -43,7 +43,7 @@ export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberPar
   agentId?: string | null;
 };
 export type AIPhoneServiceUpdateAgentParams = RetellAIUpdateAgentParams;
-export type AIPhoneServiceGeneralTool = RetellAIConfigurationSetup["generalTools"];
+export type AIPhoneServiceTools = RetellAITools;
 /**
  * Generic interface for AI phone service providers
  * This interface abstracts away provider-specific details
@@ -53,7 +53,7 @@ export interface AIPhoneServiceProvider {
    * Setup AI configuration
    */
   setupConfiguration(config: AIPhoneServiceConfiguration): Promise<{
-    llmId: string;
+    modelId: string;
     agentId: string;
   }>;
 
@@ -63,14 +63,17 @@ export interface AIPhoneServiceProvider {
   deleteConfiguration(config: AIPhoneServiceDeletion): Promise<AIPhoneServiceDeletionResult>;
 
   /**
-   * Update LLM configuration
+   * Update model configuration
    */
-  updateLLMConfiguration(llmId: string, data: updateLLMConfigurationParams): Promise<AIPhoneServiceModel>;
+  updateModelConfiguration(
+    modelId: string,
+    data: AIPhoneServiceUpdateModelParams
+  ): Promise<AIPhoneServiceModel>;
 
   /**
-   * Get LLM details
+   * Get model details
    */
-  getLLMDetails(llmId: string): Promise<AIPhoneServiceModel>;
+  getModelDetails(modelId: string): Promise<AIPhoneServiceModel>;
 
   /**
    * Get agent details
@@ -166,12 +169,12 @@ export interface AIPhoneServiceProvider {
     workflowStepId?: number;
     generalPrompt?: string;
     beginMessage?: string;
-    generalTools?: RetellLLMGeneralTools;
+    generalTools?: AIPhoneServiceTools;
     voiceId?: string;
     userTimeZone: string;
   }): Promise<{
     id: string;
-    retellAgentId: string;
+    providerAgentId: string;
     message: string;
   }>;
 
@@ -185,7 +188,7 @@ export interface AIPhoneServiceProvider {
     enabled?: boolean;
     generalPrompt?: string | null;
     beginMessage?: string | null;
-    generalTools?: RetellLLMGeneralTools;
+    generalTools?: AIPhoneServiceTools;
     voiceId?: string;
   }): Promise<{ message: string }>;
 

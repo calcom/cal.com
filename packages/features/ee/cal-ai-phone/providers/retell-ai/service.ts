@@ -7,12 +7,13 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type {
-  updateLLMConfigurationParams,
+  AIPhoneServiceUpdateModelParams,
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParams,
 } from "../../interfaces/ai-phone-service.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
 import { RetellAIError } from "./errors";
+import { RetellServiceMapper, type Language } from "./service-mappers";
 import type {
   RetellLLM,
   RetellCall,
@@ -27,90 +28,24 @@ import type {
 } from "./types";
 import { getLlmId } from "./types";
 
-type Language =
-  | "en-US"
-  | "en-IN"
-  | "en-GB"
-  | "en-AU"
-  | "en-NZ"
-  | "de-DE"
-  | "es-ES"
-  | "es-419"
-  | "hi-IN"
-  | "fr-FR"
-  | "fr-CA"
-  | "ja-JP"
-  | "pt-PT"
-  | "pt-BR"
-  | "zh-CN"
-  | "ru-RU"
-  | "it-IT"
-  | "ko-KR"
-  | "nl-NL"
-  | "nl-BE"
-  | "pl-PL"
-  | "tr-TR"
-  | "th-TH"
-  | "vi-VN"
-  | "ro-RO"
-  | "bg-BG"
-  | "ca-ES"
-  | "da-DK"
-  | "fi-FI"
-  | "el-GR"
-  | "hu-HU"
-  | "id-ID"
-  | "no-NO"
-  | "sk-SK"
-  | "sv-SE"
-  | "multi";
-
 export class RetellAIService {
   constructor(private repository: RetellAIRepository) {}
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
-    const generalTools: NonNullable<RetellLLMGeneralTools> = [
+    const generalTools = RetellServiceMapper.buildGeneralTools(config);
+
+    const llmRequest = RetellServiceMapper.mapToCreateLLMRequest(
       {
-        type: "end_call",
-        name: "end_call",
-        description: "Hang up the call, triggered only after appointment successfully scheduled.",
+        ...config,
+        generalPrompt: config.generalPrompt || DEFAULT_PROMPT_VALUE,
+        beginMessage: config.beginMessage || DEFAULT_BEGIN_MESSAGE,
       },
-      ...(config.calApiKey && config.eventTypeId && config.timeZone
-        ? [
-            {
-              type: "check_availability_cal" as const,
-              name: "check_availability",
-              cal_api_key: config.calApiKey,
-              event_type_id: config.eventTypeId,
-              timezone: config.timeZone,
-            },
-            {
-              type: "book_appointment_cal" as const,
-              name: "book_appointment",
-              cal_api_key: config.calApiKey,
-              event_type_id: config.eventTypeId,
-              timezone: config.timeZone,
-            },
-          ]
-        : []),
-    ];
+      generalTools
+    );
+    const llm = await this.repository.createLLM(llmRequest);
 
-    if (config.generalTools) {
-      generalTools.push(...config.generalTools);
-    }
-
-    const llm = await this.repository.createLLM({
-      general_prompt: config.generalPrompt || DEFAULT_PROMPT_VALUE,
-      begin_message: config.beginMessage || DEFAULT_BEGIN_MESSAGE,
-      general_tools: generalTools,
-    });
-
-    const agent = await this.repository.createAgent({
-      response_engine: { llm_id: llm.llm_id, type: "retell-llm" },
-      agent_name: `agent-${config.eventTypeId}-${Date.now()}`,
-      // Can be configured in the future
-      voice_id: "11labs-Adrian",
-    });
+    const agentRequest = RetellServiceMapper.mapToCreateAgentRequest(llm.llm_id, config.eventTypeId);
+    const agent = await this.repository.createAgent(agentRequest);
 
     return { llmId: llm.llm_id, agentId: agent.agent_id };
   }
@@ -233,12 +168,9 @@ export class RetellAIService {
   /**
    * Update LLM configuration (for existing configurations)
    */
-  async updateLLMConfiguration(llmId: string, data: updateLLMConfigurationParams): Promise<RetellLLM> {
-    return this.repository.updateLLM(llmId, {
-      general_prompt: data.general_prompt,
-      begin_message: data.begin_message,
-      general_tools: data.general_tools ?? null,
-    });
+  async updateLLMConfiguration(llmId: string, data: AIPhoneServiceUpdateModelParams): Promise<RetellLLM> {
+    const updateRequest = RetellServiceMapper.mapToUpdateLLMRequest(data);
+    return this.repository.updateLLM(llmId, updateRequest);
   }
 
   async getLLMDetails(llmId: string): Promise<RetellLLM> {
@@ -259,7 +191,8 @@ export class RetellAIService {
       interruption_sensitivity?: number;
     }
   ): Promise<RetellAgent> {
-    return this.repository.updateAgent(agentId, data);
+    const updateRequest = RetellServiceMapper.mapToUpdateAgentRequest(data);
+    return this.repository.updateAgent(agentId, updateRequest);
   }
 
   async createPhoneCall(data: {
@@ -513,15 +446,7 @@ export class RetellAIService {
     try {
       await this.getPhoneNumber(phoneNumber);
 
-      const retellUpdateData: { inbound_agent_id?: string | null; outbound_agent_id?: string | null } = {};
-
-      if (inboundAgentId !== undefined) {
-        retellUpdateData.inbound_agent_id = inboundAgentId;
-      }
-
-      if (outboundAgentId !== undefined) {
-        retellUpdateData.outbound_agent_id = outboundAgentId;
-      }
+      const retellUpdateData = RetellServiceMapper.mapPhoneNumberUpdateData(inboundAgentId, outboundAgentId);
 
       if (Object.keys(retellUpdateData).length > 0) {
         await this.updatePhoneNumber(phoneNumber, retellUpdateData);
@@ -561,19 +486,7 @@ export class RetellAIService {
       scope,
     });
 
-    const formattedAgents = agents.map((agent) => ({
-      id: agent.id,
-      name: agent.name,
-      retellAgentId: agent.retellAgentId,
-      enabled: agent.enabled,
-      userId: agent.userId,
-      teamId: agent.teamId,
-      createdAt: agent.createdAt,
-      updatedAt: agent.updatedAt,
-      outboundPhoneNumbers: agent.outboundPhoneNumbers,
-      team: agent.team,
-      user: agent.user,
-    }));
+    const formattedAgents = agents.map((agent) => RetellServiceMapper.formatAgentForList(agent));
 
     return {
       totalCount: formattedAgents.length,
@@ -608,30 +521,7 @@ export class RetellAIService {
 
     const llmDetails = await this.getLLMDetails(llmId);
 
-    return {
-      id: agent.id,
-      name: agent.name,
-      retellAgentId: agent.retellAgentId,
-      enabled: agent.enabled,
-      userId: agent.userId,
-      teamId: agent.teamId,
-      outboundPhoneNumbers: agent.outboundPhoneNumbers,
-      retellData: {
-        agentId: retellAgent.agent_id,
-        agentName: retellAgent.agent_name,
-        voiceId: retellAgent.voice_id,
-        responseEngine: retellAgent.response_engine,
-        language: retellAgent.language,
-        responsiveness: retellAgent.responsiveness,
-        interruptionSensitivity: retellAgent.interruption_sensitivity,
-        generalPrompt: llmDetails.general_prompt,
-        beginMessage: llmDetails.begin_message,
-        generalTools: llmDetails.general_tools,
-        llmId: llmDetails.llm_id,
-      },
-      createdAt: agent.createdAt,
-      updatedAt: agent.updatedAt,
-    };
+    return RetellServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
   }
 
   async createAgent({
@@ -745,11 +635,12 @@ export class RetellAIService {
         llmId &&
         (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
       ) {
-        await this.updateLLMConfiguration(llmId, {
-          general_prompt: generalPrompt,
-          begin_message: beginMessage,
-          general_tools: generalTools,
-        });
+        const llmUpdateData = RetellServiceMapper.extractLLMUpdateData(
+          generalPrompt,
+          beginMessage,
+          generalTools
+        );
+        await this.updateLLMConfiguration(llmId, llmUpdateData);
       }
 
       if (voiceId) {

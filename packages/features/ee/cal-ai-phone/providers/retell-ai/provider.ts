@@ -8,7 +8,7 @@ import type {
   AIPhoneServiceCall,
   AIPhoneServicePhoneNumber,
   AIPhoneServiceAgent,
-  updateLLMConfigurationParams,
+  AIPhoneServiceUpdateModelParams,
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParams,
@@ -25,7 +25,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
   }
 
   async setupConfiguration(config: AIPhoneServiceConfiguration): Promise<{
-    llmId: string;
+    modelId: string;
     agentId: string;
   }> {
     const result = await this.service.setupAIConfiguration({
@@ -38,14 +38,14 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     });
 
     return {
-      llmId: result.llmId,
+      modelId: result.llmId,
       agentId: result.agentId,
     };
   }
 
   async deleteConfiguration(config: AIPhoneServiceDeletion): Promise<AIPhoneServiceDeletionResult> {
     const result = await this.service.deleteAIConfiguration({
-      llmId: config.llmId,
+      llmId: config.modelId,
       agentId: config.agentId,
     });
 
@@ -53,22 +53,22 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
       success: result.success,
       errors: result.errors,
       deleted: {
-        llm: result.deleted.llm,
+        model: result.deleted.llm,
         agent: result.deleted.agent,
       },
     };
   }
 
-  async updateLLMConfiguration(
-    llmId: string,
-    data: updateLLMConfigurationParams
+  async updateModelConfiguration(
+    modelId: string,
+    data: AIPhoneServiceUpdateModelParams
   ): Promise<AIPhoneServiceModel> {
-    const result = await this.service.updateLLMConfiguration(llmId, data);
+    const result = await this.service.updateLLMConfiguration(modelId, data);
     return result;
   }
 
-  async getLLMDetails(llmId: string): Promise<AIPhoneServiceModel> {
-    const result = await this.service.getLLMDetails(llmId);
+  async getModelDetails(modelId: string): Promise<AIPhoneServiceModel> {
+    const result = await this.service.getLLMDetails(modelId);
     return result;
   }
 
@@ -185,10 +185,15 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     userTimeZone: string;
   }): Promise<{
     id: string;
-    retellAgentId: string;
+    providerAgentId: string;
     message: string;
   }> {
-    return await this.service.createAgent(params);
+    const result = await this.service.createAgent(params);
+    return {
+      id: result.id,
+      providerAgentId: result.retellAgentId,
+      message: result.message,
+    };
   }
 
   async updateAgentConfiguration(params: {
