@@ -33,6 +33,7 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  onSaveWorkflow?: () => Promise<void>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -182,6 +183,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                onSaveWorkflow={props.onSaveWorkflow}
               />
             </div>
           )}
@@ -198,6 +200,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    onSaveWorkflow={props.onSaveWorkflow}
                   />
                 );
               })}

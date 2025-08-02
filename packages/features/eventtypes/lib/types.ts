@@ -193,6 +193,7 @@ export type TabMap = {
   webhooks?: React.ReactNode;
   workflows?: React.ReactNode;
   payments?: React.ReactNode;
+  aiSelfServe?: React.ReactNode;
 };
 
 export type SettingsToggleClassNames = {
