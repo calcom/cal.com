@@ -12,6 +12,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
@@ -49,7 +50,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   log.debug("handler", { email: _email });
 
-  let username: string | null = usernameStatus.requestedUserName;
+  let username: string = usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
 
   // Check for premium username
@@ -126,7 +127,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
     /** We create a username-less user until he pays */
     checkoutSessionId = checkoutSession.sessionId;
-    username = null;
+    username = "";
   }
 
   // Hash the password
@@ -192,18 +193,17 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    await prisma.user.create({
-      data: {
-        username,
-        email,
-        locked: shouldLockByDefault,
-        password: { create: { hash: hashedPassword } },
-        metadata: {
-          stripeCustomerId: customer.stripeCustomerId,
-          checkoutSessionId,
-        },
-        creationSource: CreationSource.WEBAPP,
+    const user = await UserRepository.create({
+      username: username,
+      email: email,
+      locked: shouldLockByDefault,
+      hashedPassword: hashedPassword,
+      metadata: {
+        stripeCustomerId: customer.stripeCustomerId,
+        checkoutSessionId,
       },
+      organizationId: null,
+      creationSource: CreationSource.WEBAPP,
     });
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
