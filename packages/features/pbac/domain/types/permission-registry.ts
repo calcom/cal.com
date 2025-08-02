@@ -27,6 +27,7 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  AdminApi = "adminApi",
 }
 
 export enum Scope {
@@ -298,6 +299,12 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_update",
       descriptionI18nKey: "pbac_desc_edit_organization_settings",
       scope: [Scope.Organization],
+    },
+    [CustomAction.AdminApi]: {
+      description: "Access organization admin API",
+      category: "org",
+      i18nKey: "pbac_action_admin_api",
+      descriptionI18nKey: "pbac_desc_access_organization_admin_api",
     },
   },
   [Resource.Booking]: {
