@@ -12,7 +12,7 @@ import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
@@ -247,7 +247,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const videoReference = getCalVideoReference(bookingObj.references);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const displayLogInOverlay = profile?.organizationId
     ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
     : false;

@@ -96,6 +96,7 @@ const _handleResponse = async ({
     let crmContactOwnerEmail: string | null = null;
     let crmContactOwnerRecordType: string | null = null;
     let crmAppSlug: string | null = null;
+    let crmRecordId: string | null = null;
     let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
@@ -119,6 +120,7 @@ const _handleResponse = async ({
             crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
             crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
             crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
+            crmRecordId = contactOwnerQuery?.recordId ?? null;
           })(),
           (async () => {
             const teamMembersMatchingAttributeLogicWithResult =
@@ -212,6 +214,7 @@ const _handleResponse = async ({
       crmContactOwnerEmail,
       crmContactOwnerRecordType,
       crmAppSlug,
+      crmRecordId,
       attributeRoutingConfig: chosenRoute
         ? "attributeRoutingConfig" in chosenRoute
           ? chosenRoute.attributeRoutingConfig
