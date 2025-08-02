@@ -397,10 +397,11 @@ async function handler(input: CancelBookingInput) {
     // Log cancellation audit for all cancelled recurring bookings
     try {
       for (const cancelledBooking of allUpdatedBookings) {
+        const userId = parseInt(cancelledBy);
         await BookingAuditService.logBookingCancelled({
           bookingId: cancelledBooking.id,
           cancellationReason,
-          actor: cancelledBy ? { userId: parseInt(cancelledBy), role: "organizer" } : undefined,
+          actor: !isNaN(userId) ? { userId, role: "organizer" } : undefined,
         });
       }
     } catch (auditError) {
@@ -449,10 +450,11 @@ async function handler(input: CancelBookingInput) {
 
     // Log cancellation audit for single booking
     try {
+      const userId = parseInt(cancelledBy);
       await BookingAuditService.logBookingCancelled({
         bookingId: updatedBooking.id,
         cancellationReason,
-        actor: cancelledBy ? { userId: parseInt(cancelledBy), role: "organizer" } : undefined,
+        actor: !isNaN(userId) ? { userId, role: "organizer" } : undefined,
       });
     } catch (auditError) {
       log.error(

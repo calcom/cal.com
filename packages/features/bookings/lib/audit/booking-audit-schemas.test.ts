@@ -30,12 +30,15 @@ describe("BookingAuditSchemas", () => {
     it("should reject invalid booking creation data", () => {
       const invalidData = {
         bookingId: -1, // Invalid
-        eventTypeId: 1,
-        eventTypeName: "", // Invalid
-        organizerId: 123,
-        startTime: "invalid-date", // Invalid
-        endTime: "invalid-date", // Invalid
-        isConfirmed: "yes", // Invalid type
+        action: BookingAuditAction.CREATED,
+        data: {
+          eventTypeId: 1,
+          eventTypeName: "", // Invalid
+          organizerId: 123,
+          startTime: "invalid-date", // Invalid
+          endTime: "invalid-date", // Invalid
+          isConfirmed: "yes", // Invalid type
+        },
       };
 
       const schema = getBookingAuditSchema(BookingAuditAction.CREATED);
