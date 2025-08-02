@@ -412,18 +412,24 @@ export const fieldTypesSchemaMap: Partial<
         return;
       }
 
-      // 1. Try validating the original value
-      if (urlSchema.safeParse(value).success) {
-        return;
-      }
+      const tryValidate = (v: string) => {
+        const result = urlSchema.safeParse(v);
+        if (!result.success) return false;
 
-      // 2. If it failed, try prepending https://
+        try {
+          const hostname = new URL(v).hostname;
+          // Require at least one dot in hostname (e.g., "google.com")
+          return hostname.includes(".");
+        } catch {
+          return false;
+        }
+      };
+
+      if (tryValidate(value)) return;
+
       const valueWithHttps = `https://${value}`;
-      if (urlSchema.safeParse(valueWithHttps).success) {
-        return;
-      }
+      if (tryValidate(valueWithHttps)) return;
 
-      // 3. If all attempts fail, throw err
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: m("url_validation_error"),
