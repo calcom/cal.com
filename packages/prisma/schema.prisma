@@ -881,6 +881,8 @@ model SelectedCalendar {
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
 
+  calendarSubscription CalendarSubscription?
+
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
@@ -1561,6 +1563,81 @@ model TeamFeatures {
 
   @@id([teamId, featureId])
   @@index([teamId, featureId])
+}
+
+model CalendarSubscription {
+  id                 String @id @default(uuid())
+  selectedCalendarId String @unique
+
+  // Webhook subscription details
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+  nextSyncToken            String?
+
+  // Sync management
+  lastFullSync  DateTime?
+  syncErrors    Int       @default(0)
+  maxSyncErrors Int       @default(5)
+  backoffUntil  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
+  events           CalendarEvent[]
+
+  @@index([googleChannelExpiration, syncErrors, backoffUntil])
+  @@index([nextSyncToken])
+  @@index([selectedCalendarId])
+}
+
+model CalendarEvent {
+  id                     String @id @default(uuid())
+  calendarSubscriptionId String
+
+  // Google Calendar event data
+  googleEventId String
+  iCalUID       String?
+  etag          String
+  sequence      Int     @default(0)
+
+  // Event details
+  summary     String?
+  description String?
+  location    String?
+  start       DateTime
+  end         DateTime
+  isAllDay    Boolean  @default(false)
+
+  // Event metadata
+  status       String @default("confirmed") // confirmed, tentative, cancelled
+  transparency String @default("opaque") // opaque, transparent
+  visibility   String @default("default") // default, public, private
+
+  // Recurring events
+  recurringEventId  String?
+  originalStartTime DateTime?
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  googleCreatedAt DateTime?
+  googleUpdatedAt DateTime?
+
+  // Relations
+  calendarSubscription CalendarSubscription @relation(fields: [calendarSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarSubscriptionId, googleEventId])
+  @@index([calendarSubscriptionId, start, end])
+  @@index([calendarSubscriptionId, iCalUID])
+  @@index([updatedAt, calendarSubscriptionId])
+  @@index([start, end, status]) // For availability queries
+  @@index([googleEventId])
 }
 
 enum FeatureType {
