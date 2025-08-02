@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
 import { verifyVideoToken } from "@calcom/lib/videoTokens";
 
@@ -10,6 +11,11 @@ export async function GET(request: Request) {
   if (!token) {
     return new Response("Missing token", { status: 401 });
   }
+
+  await checkRateLimitAndThrowError({
+    identifier: `api.video.recording.${token}`,
+    rateLimitingType: "common",
+  });
 
   const verification = verifyVideoToken(token);
   if (!verification.valid || !verification.recordingId) {

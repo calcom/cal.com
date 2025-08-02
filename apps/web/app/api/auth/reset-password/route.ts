@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
+import { checkRateLimitWithIPAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -20,6 +21,13 @@ async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
 
   const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(body);
+
+  await checkRateLimitWithIPAndThrowError({
+    rateLimitingType: "core",
+    req,
+    identifier: `reset-password.${rawRequestId}`,
+  });
+
   // rate-limited there is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options.
   const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
