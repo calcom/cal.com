@@ -43,8 +43,21 @@ type RhfFormFields = RhfForm["fields"];
 
 type RhfFormField = RhfFormFields[number];
 
+type MinimalField = Pick<RhfFormField, "name" | "label" | "defaultLabel" | "type" | "options">;
+
 function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
+}
+interface FieldEditDialogProps {
+  dialog: {
+    isOpen: boolean;
+    fieldIndex: number;
+    data: RhfFormField | null;
+  };
+  onOpenChange: (open: boolean) => void;
+  handleSubmit: SubmitHandler<RhfFormField>;
+  shouldConsiderRequired?: (f: RhfFormField) => boolean | undefined;
+  allFields: MinimalField[];
 }
 
 /**
@@ -99,11 +112,19 @@ export const FormBuilder = function FormBuilder({
     name: formProp as unknown as "fields",
   });
 
-  const [fieldDialog, setFieldDialog] = useState({
+  const [fieldDialog, setFieldDialog] = useState<FieldEditDialogProps["dialog"]>({
     isOpen: false,
     fieldIndex: -1,
-    data: {} as RhfFormField | null,
+    data: null,
   });
+
+  const minimalFields: MinimalField[] = fields.map((f) => ({
+    name: f.name,
+    label: f.label,
+    defaultLabel: f.defaultLabel,
+    type: f.type,
+    options: f.options,
+  }));
 
   const addField = () => {
     setFieldDialog({
@@ -391,6 +412,7 @@ export const FormBuilder = function FormBuilder({
             });
           }}
           shouldConsiderRequired={shouldConsiderRequired}
+          allFields={minimalFields}
         />
       )}
     </div>
@@ -510,18 +532,14 @@ function FieldEditDialog({
   onOpenChange,
   handleSubmit,
   shouldConsiderRequired,
-}: {
-  dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
-  onOpenChange: (isOpen: boolean) => void;
-  handleSubmit: SubmitHandler<RhfFormField>;
-  shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
-}) {
+  allFields,
+}: FieldEditDialogProps) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
   });
-  const formFieldType = fieldForm.getValues("type");
+  const formFieldType = fieldForm.watch("type");
 
   useEffect(() => {
     if (!formFieldType) {
@@ -535,7 +553,7 @@ function FieldEditDialog({
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
-  }, [fieldForm]);
+  }, [formFieldType, fieldForm]);
 
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
@@ -693,6 +711,7 @@ function FieldEditDialog({
                         );
                       }}
                     />
+                    <VisibleIfField allFields={allFields} fieldForm={fieldForm} />
                   </>
                 );
               }
@@ -815,6 +834,71 @@ function FieldLabel({ field }: { field: RhfFormField }) {
 function VariantSelector() {
   // Implement a Variant selector for cases when there are more than 2 variants
   return null;
+}
+
+function VisibleIfField({
+  allFields,
+  fieldForm,
+}: {
+  allFields: MinimalField[];
+  fieldForm: UseFormReturn<RhfFormField>;
+}) {
+  const { t } = useLocale();
+
+  // Parent selector options: any field with selectable choices
+  const selectableParents = allFields.filter(
+    (f) => (f.options && f.options.length) || f.type === "radioInput"
+  );
+
+  const parentOptions = selectableParents.map((f) => ({
+    label: f.label || t(f.defaultLabel || f.name),
+    value: f.name,
+  }));
+
+  const parent = fieldForm.watch("visibleIf.parent") as string | undefined;
+
+  const parentField = selectableParents.find((f) => f.name === parent);
+  const valueOptions = parentField?.options?.map((o) => ({ label: o.label, value: o.value })) ?? [];
+
+  return (
+    <>
+      <SelectField
+        label={t("form_builder.show_this_field_if")}
+        value={parentOptions.find((p) => p.value === parent) || null}
+        options={parentOptions}
+        onChange={(opt) => {
+          if (opt?.value) {
+            fieldForm.setValue("visibleIf.parent", opt.value, { shouldDirty: true });
+            // reset values list when parent changes
+            fieldForm.setValue("visibleIf.values", [], { shouldDirty: true });
+          } else {
+            fieldForm.resetField("visibleIf", { defaultValue: undefined });
+          }
+        }}
+        placeholder={t("form_builder.select_parent_field")}
+        containerClassName="mt-6"
+      />
+
+      {parent && (
+        <SelectField
+          isMulti
+          value={
+            (fieldForm.watch("visibleIf.values") || []).map((v: string) => ({
+              label: valueOptions.find((o) => o.value === v)?.label ?? v,
+              value: v,
+            })) as { label: string; value: string }[]
+          }
+          options={valueOptions}
+          onChange={(opts) => {
+            fieldForm.setValue("visibleIf.values", opts?.map((o) => o.value) || [], { shouldDirty: true });
+          }}
+          placeholder={t("form_builder.select_values")}
+          label={t("form_builder.when_value_is")}
+          containerClassName="mt-4"
+        />
+      )}
+    </>
+  );
 }
 
 function VariantFields({
