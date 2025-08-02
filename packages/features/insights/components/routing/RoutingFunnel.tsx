@@ -1,7 +1,6 @@
 "use client";
 
-import { useColumnFilters } from "@calcom/features/data-table";
-import { useInsightsParameters } from "@calcom/features/insights/hooks/useInsightsParameters";
+import { useInsightsRoutingParameters } from "@calcom/features/insights/hooks/useInsightsRoutingParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -11,18 +10,9 @@ import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
 
 export function RoutingFunnel() {
   const { t } = useLocale();
-  const { scope, selectedTeamId, startDate, endDate } = useInsightsParameters();
-  const columnFilters = useColumnFilters({
-    exclude: ["createdAt"],
-  });
+  const insightsRoutingParams = useInsightsRoutingParameters();
   const { data, isSuccess, isLoading } = trpc.viewer.insights.getRoutingFunnelData.useQuery(
-    {
-      scope,
-      selectedTeamId,
-      startDate,
-      endDate,
-      columnFilters,
-    },
+    insightsRoutingParams,
     {
       staleTime: 30000,
       trpc: {
