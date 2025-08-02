@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS,
@@ -28,10 +27,10 @@ import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKey
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingLocationService } from "@calcom/lib/server/service/bookingLocationService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -118,7 +117,12 @@ export const roundRobinManualReassignment = async ({
 
   const originalOrganizer = booking.user;
   const hasOrganizerChanged = !fixedHost && booking.userId !== newUserId;
-
+  console.log("hasOrganizerChanged", {
+    hasOrganizerChanged,
+    fixedHost,
+    bookingUserId: booking.userId,
+    newUserId,
+  });
   const newUser = newUserHost.user;
   const newUserT = await getTranslation(newUser.locale || "en", "common");
   const originalOrganizerT = await getTranslation(originalOrganizer.locale || "en", "common");
@@ -141,8 +145,14 @@ export const roundRobinManualReassignment = async ({
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
   let bookingLocation = booking.location;
-
+  let conferenceCredentialId: number | null = null;
   if (hasOrganizerChanged) {
+    console.log("hasOrganizerChanged", {
+      hasOrganizerChanged,
+      fixedHost,
+      bookingUserId: booking.userId,
+      newUserId,
+    });
     const bookingResponses = booking.responses;
     const responseSchema = getBookingResponsesSchema({
       bookingFields: eventType.bookingFields,
@@ -151,16 +161,26 @@ export const roundRobinManualReassignment = async ({
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
-    if (eventType.locations.some((location) => location.type === OrganizerDefaultConferencingAppType)) {
-      const newUserMetadataSafeParse = userMetadataSchema.safeParse(newUser.metadata);
-      const defaultLocationUrl = newUserMetadataSafeParse.success
-        ? newUserMetadataSafeParse?.data?.defaultConferencingApp?.appLink
-        : undefined;
-      const currentBookingLocation = booking.location || "integrations:daily";
-      bookingLocation =
-        defaultLocationUrl ||
-        getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
+    // Determine the location for the new host
+    const isManagedEventType = eventType.schedulingType === "MANAGED";
+    const isTeamEventType = !!eventType.teamId;
+
+    const locationResult = BookingLocationService.getLocationForHost({
+      hostMetadata: newUser.metadata,
+      eventTypeLocations: eventType.locations,
+      isManagedEventType,
+      isTeamEventType,
+    });
+
+    bookingLocation = locationResult.bookingLocation;
+    if (locationResult.requiresActualLink) {
+      conferenceCredentialId = locationResult.conferenceCredentialId;
     }
+    console.log("new bookingLocation for host change", {
+      bookingLocation,
+      previousLocation: booking.location,
+      eventTypeLocations: eventType.locations,
+    });
 
     const newBookingTitle = getEventName({
       attendeeName: responses?.name || "Nameless",
@@ -209,6 +229,18 @@ export const roundRobinManualReassignment = async ({
         locale: newUser.locale,
       },
     });
+  }
+
+  // When organizer hasn't changed, still extract conferenceCredentialId from event type locations
+  if (!hasOrganizerChanged && bookingLocation) {
+    const { conferenceCredentialId: extractedCredentialId } =
+      BookingLocationService.getLocationDetailsFromType({
+        locationType: bookingLocation,
+        eventTypeLocations: eventType.locations || [],
+      });
+    if (extractedCredentialId) {
+      conferenceCredentialId = extractedCredentialId;
+    }
   }
 
   const destinationCalendar = await getDestinationCalendar({
@@ -282,6 +314,7 @@ export const roundRobinManualReassignment = async ({
     customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
     ...(platformClientParams ? platformClientParams : {}),
+    conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
   const credentials = await prisma.credential.findMany({
@@ -315,7 +348,7 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {

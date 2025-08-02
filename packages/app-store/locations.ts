@@ -1,3 +1,6 @@
+/**
+ * TODO: Consolidate this file with BookingLocationService and add tests
+ */
 import type { TFunction } from "i18next";
 import { z } from "zod";
 
@@ -58,7 +61,7 @@ export type EventLocationTypeFromApp = Ensure<
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
 export const DailyLocationType = "integrations:daily";
-
+export const CalVideoLocationType = "integrations:daily";
 export const MeetLocationType = "integrations:google:meet";
 
 /**
@@ -378,12 +381,12 @@ export const getLocationValueForDB = (
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let conferenceCredentialId = undefined;
+  let conferenceCredentialId: number | null = null;
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
       const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
-      conferenceCredentialId = location.credentialId;
+      conferenceCredentialId = location.credentialId || null;
       if (!eventLocationType) {
         return;
       }
