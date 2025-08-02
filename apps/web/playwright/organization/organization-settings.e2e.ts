@@ -6,7 +6,7 @@ import { test } from "../lib/fixtures";
 
 type TestContext = Awaited<ReturnType<typeof setupOrgMember>>;
 
-interface ToggleSeoSwitchParams {
+interface ToggleSwitchParams {
   page: Page;
   switchTestId: string;
   expectedChecked: boolean;
@@ -21,15 +21,15 @@ interface VerifyRobotsMetaTagParams {
 }
 
 // Helper function to toggle the SEO switch
-async function toggleSeoSwitch({
+async function toggleSwitch({
   page,
   switchTestId,
   expectedChecked,
   waitForMessage,
-}: ToggleSeoSwitchParams): Promise<void> {
-  const seoSwitch = await page.getByTestId(switchTestId);
-  await seoSwitch.click();
-  await expect(seoSwitch).toBeChecked({ checked: expectedChecked });
+}: ToggleSwitchParams): Promise<void> {
+  const switchElement = await page.getByTestId(switchTestId);
+  await switchElement.click();
+  await expect(switchElement).toBeChecked({ checked: expectedChecked });
   if (waitForMessage) {
     await page.waitForSelector(`text=${waitForMessage}`);
   }
@@ -97,7 +97,7 @@ test.describe("Organization Settings", () => {
     test("Enabling SEO indexing updates settings and meta tags", async ({ page }) => {
       await test.step("Enable 'Allow search engine indexing' for organization", async () => {
         await page.goto(`/settings/organizations/profile`);
-        await toggleSeoSwitch({
+        await toggleSwitch({
           page,
           switchTestId: `${ctx.org.id}-seo-indexing-switch`,
           expectedChecked: true,
@@ -136,6 +136,32 @@ test.describe("Organization Settings", () => {
           urls: [`/${orgMember.username}/${userEvent.slug}`],
           expectedContent: "noindex,nofollow",
         });
+      });
+    });
+  });
+
+  test.describe("Disabling auto prefill updates settings and booking page", async () => {
+    let ctx: TestContext;
+
+    test.beforeEach(async ({ users }) => {
+      ctx = await setupOrgMember(users);
+    });
+
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
+
+    test("Disable 'Disable auto prefill' for organization", async ({ page }) => {
+      await page.goto(`/settings/organizations/profile`);
+
+      const autoPrefillSwitch = await page.getByTestId(`${ctx.org.id}-disable-auto-prefill-switch`);
+      await expect(autoPrefillSwitch).toBeChecked({ checked: false });
+
+      await toggleSwitch({
+        page,
+        switchTestId: `${ctx.org.id}-disable-auto-prefill-switch`,
+        expectedChecked: true,
+        waitForMessage: "Your team has been updated successfully.",
       });
     });
   });
