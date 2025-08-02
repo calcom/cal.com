@@ -14,7 +14,7 @@ type CreateSelfHostedOptions = {
   input: TCreateSelfHostedInputSchema;
 };
 
-export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOptions) => {
+export const createSelfHostedHandler = async ({ input }: CreateSelfHostedOptions) => {
   if (!IS_SELF_HOSTED) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
@@ -49,6 +49,7 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     organizationOnboarding: {
       id: input.onboardingId,
       logo: input.logo ?? null,
+      logoUrl: null,
       bio: input.bio ?? null,
       invitedMembers: input.invitedMembers ?? [],
       teams: input.teams ?? [],

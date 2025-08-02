@@ -135,6 +135,7 @@ describe("OrganizationPaymentService", () => {
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
+        logoUrl: null,
         teams: [
           {
             id: 1,
@@ -183,6 +184,7 @@ describe("OrganizationPaymentService", () => {
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
+        logoUrl: null,
         teams: [
           {
             id: 1,
@@ -232,6 +234,7 @@ describe("OrganizationPaymentService", () => {
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
+          logoUrl: null,
           teams: [
             {
               id: 1,
@@ -240,6 +243,7 @@ describe("OrganizationPaymentService", () => {
               slug: "team1",
             },
           ],
+          invitedMembers: undefined,
           stripeCustomerId: "mock_stripe_customer_id",
           pricePerSeat: defaultOrgOnboarding.pricePerSeat,
           billingPeriod: "MONTHLY",
@@ -261,6 +265,7 @@ describe("OrganizationPaymentService", () => {
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
+          logoUrl: null,
           teams: [
             {
               id: 1,
@@ -269,6 +274,7 @@ describe("OrganizationPaymentService", () => {
               slug: "team1",
             },
           ],
+          invitedMembers: undefined,
           stripeCustomerId: "mock_stripe_customer_id",
           pricePerSeat: customPrice,
           billingPeriod: "MONTHLY",
