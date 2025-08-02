@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookingForm {
-  event?: Pick<BookerEvent, "bookingFields"> | null;
+  bookingFields?: BookerEvent["bookingFields"] | null;
   sessionEmail?: string | null;
   sessionName?: string | null;
   sessionUsername?: string | null;
@@ -28,7 +28,7 @@ export interface IUseBookingForm {
 export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
 
 export const useBookingForm = ({
-  event,
+  bookingFields,
   sessionEmail,
   sessionName,
   sessionUsername,
@@ -44,9 +44,9 @@ export const useBookingForm = ({
 
   const bookingFormSchema = z
     .object({
-      responses: event
+      responses: bookingFields
         ? getBookingResponsesSchema({
-            bookingFields: event.bookingFields,
+            bookingFields,
             view: rescheduleUid ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.
@@ -65,7 +65,7 @@ export const useBookingForm = ({
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
   const { values: initialValues, key } = useInitialFormValues({
-    eventType: event,
+    bookingFields,
     rescheduleUid,
     isRescheduling,
     email: sessionEmail,
