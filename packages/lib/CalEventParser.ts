@@ -314,6 +314,58 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getManageLink>[0] &
   Pick<CalendarEvent, "organizer" | "paymentInfo">;
 
+export const getRichDescriptionHTML = (
+  calEvent: RichDescriptionCalEvent,
+  t_?: TFunction,
+  includeAppStatus = false
+) => {
+  const t = t_ ?? calEvent.organizer.language.translate;
+
+  // Helper function to convert plain text with newlines to HTML paragraphs
+  const textToHtml = (text: string) => {
+    if (!text) return "";
+    const lines = text.split("\n").filter(Boolean);
+    return lines
+      .map((line, index) => {
+        if (index === 0) {
+          return `<p><strong>${line}</strong></p>`;
+        }
+        return `<p>${line}</p>`;
+      })
+      .join("");
+  };
+
+  // Convert the manage link to a clickable hyperlink
+  const manageLinkText = getManageLink(calEvent, t);
+  const manageLinkHtml = manageLinkText
+    ? `<p><strong>${t("need_to_reschedule_or_cancel")}</strong> <a href="${manageLinkText
+        .split(" ")
+        .pop()}">${manageLinkText.split(" ").pop()}</a></p>`
+    : "";
+
+  // Build the HTML content for each section
+  const parts = [
+    textToHtml(getCancellationReason(calEvent, t)),
+    textToHtml(getWhat(calEvent, t)),
+    textToHtml(getWhen(calEvent, t)),
+    textToHtml(getWho(calEvent, t)),
+    textToHtml(getDescription(calEvent, t)),
+    textToHtml(getAdditionalNotes(calEvent, t)),
+    textToHtml(getUserFieldsResponses(calEvent, t)),
+    includeAppStatus ? textToHtml(getAppsStatus(calEvent, t)) : "",
+    manageLinkHtml,
+    calEvent.paymentInfo
+      ? `<p><strong>${t("pay_now")}:</strong> <a href="${calEvent.paymentInfo.link}">${
+          calEvent.paymentInfo.link
+        }</a></p>`
+      : "",
+  ]
+    .filter(Boolean) // Remove empty strings
+    .join("\n"); // Single newline between sections
+
+  return parts.trim();
+};
+
 export const getRichDescription = (
   calEvent: RichDescriptionCalEvent,
   t_?: TFunction /*, attendee?: Person*/,
