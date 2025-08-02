@@ -15,6 +15,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -669,13 +670,36 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+  const checkIfUserIsAdminOrOwnerOfTeam = async (userId: number, booking: (typeof plainBookings)[number]) => {
+    if (!booking.eventType?.team?.id) {
+      return false;
+    }
+
+    const membership = await prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId: booking.eventType.team.id,
+        },
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return !!membership;
+  };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
-      // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
+      // If seats are enabled, the event is not set to show attendees, and the current user is not the host/admin/owner, filter out attendees who are not the current user
       if (
         booking.seatsReferences.length &&
         !booking.eventType?.seatsShowAttendees &&
-        !checkIfUserIsHost(user.id, booking)
+        !checkIfUserIsHost(user.id, booking) &&
+        !(await checkIfUserIsAdminOrOwnerOfTeam(user.id, booking))
       ) {
         booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
       }
