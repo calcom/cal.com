@@ -16,7 +16,7 @@ const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.REJECTED]: 5,
 };
 
-export const useInsightsFacetedUniqueValues = ({
+export const useInsightsRoutingFacetedUniqueValues = ({
   headers,
   userId,
   teamId,
