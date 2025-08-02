@@ -147,7 +147,9 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           disabled: false,
         },
     // Reassign (if round robin)
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+    (booking.eventType.schedulingType === SchedulingType.MANAGED &&
+      booking.eventType.allowManagedEventReassignment)
       ? {
           id: "reassign",
           label: t("reassign"),
