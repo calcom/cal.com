@@ -11,6 +11,7 @@ import { Prisma } from "@calcom/prisma/client";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import Office365CalendarService from "../lib/CalendarService";
 
 const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
 
@@ -133,6 +134,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           credentialId: credential.id,
         },
       });
+      // --- SUBSCRIBE TO WEBHOOK ---
+      try {
+        const service = new Office365CalendarService({ ...credential, user: { email: responseBody.email } });
+        const webhookUrl = `${WEBAPP_URL}/api/integrations/office365calendar/webhook`;
+        const subscriptionResult = await service.subscribeToCalendar({
+          calendarId: defaultCalendar.id,
+          notificationUrl: webhookUrl,
+        });
+        // Store subscription info in SelectedCalendar
+        await prisma.selectedCalendar.update({
+          where: {
+            userId: req.session.user.id,
+            integration: "office365_calendar",
+            externalId: defaultCalendar.id,
+            eventTypeId: null,
+          },
+          data: {
+            office365SubscriptionId: subscriptionResult.id,
+            office365SubscriptionExpiration: subscriptionResult.expirationDateTime,
+            office365SubscriptionResource: subscriptionResult.resource,
+            office365SubscriptionClientState: subscriptionResult.clientState,
+          },
+        });
+      } catch (subErr) {
+        // Log but don't block install
+        // eslint-disable-next-line no-console
+        console.error("Failed to subscribe Office365 calendar to webhook", subErr);
+      }
+      // --- END SUBSCRIBE ---
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
