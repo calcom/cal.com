@@ -401,6 +401,23 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
+  async getMainTimeZone(): Promise<string> {
+    try {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
+      const timezone = await handleErrorsJson<string>(response);
+
+      if (!timezone) {
+        this.log.warn("No timezone found in mailbox settings, defaulting to UTC");
+        return "UTC";
+      }
+
+      return timezone;
+    } catch (error) {
+      this.log.error("Error getting main timezone from Office365 Calendar", { error });
+      throw error;
+    }
+  }
+
   private translateEvent = (event: CalendarServiceEvent) => {
     const office365Event: Event = {
       subject: event.title,

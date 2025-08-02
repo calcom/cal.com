@@ -17,6 +17,25 @@ export class ScheduleRepository {
   // when instantiating, prismaClient injection is required
   constructor(private prismaClient: PrismaClient) {}
 
+  async createGenericSchedule(userId: number, timeZone?: string) {
+    const schedule = await this.prismaClient.schedule.create({
+      data: {
+        name: "Working Hours",
+        userId,
+        availability: {
+          create: {
+            days: [1, 2, 3, 4, 5],
+            startTime: "1970-01-01T09:00:00.000Z",
+            endTime: "1970-01-01T17:00:00.000Z",
+          },
+        },
+        timeZone,
+      },
+    });
+
+    return schedule;
+  }
+
   async findScheduleByIdForBuildDateRanges({ scheduleId }: { scheduleId: number }) {
     const schedule = await this.prismaClient.schedule.findUnique({
       where: { id: scheduleId },
