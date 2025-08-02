@@ -21,6 +21,8 @@ export class EventTypesRepository_2024_06_14 {
         locations: body.locations,
         bookingFields: body.bookingFields,
         users: { connect: { id: userId } },
+        // Fix: Ensure metadata is JSON-serializable for Prisma
+        ...(body.metadata !== undefined ? { metadata: body.metadata as any } : {}),
         ...(calVideoSettings && {
           calVideoSettings: {
             create: calVideoSettings,

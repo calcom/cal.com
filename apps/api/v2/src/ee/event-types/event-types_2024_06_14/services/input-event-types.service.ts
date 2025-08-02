@@ -119,6 +119,7 @@ export class InputEventTypesService_2024_06_14 {
       customName,
       useDestinationCalendarEmail,
       disableGuests,
+      metadata: inputMetadata,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -141,6 +142,7 @@ export class InputEventTypesService_2024_06_14 {
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
       metadata: {
+        ...(inputMetadata || {}),
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
@@ -176,6 +178,7 @@ export class InputEventTypesService_2024_06_14 {
       customName,
       useDestinationCalendarEmail,
       disableGuests,
+      metadata: inputMetadata,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -204,6 +207,7 @@ export class InputEventTypesService_2024_06_14 {
       ...this.transformInputBookingWindow(bookingWindow),
       metadata: {
         ...metadataTransformed,
+        ...(inputMetadata || {}),
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
