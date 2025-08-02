@@ -32,6 +32,7 @@ import {
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulVideoMeetingDeletionInCalendar,
   expectSuccessfulRoundRobinReschedulingEmails,
+  expectSuccessfulCalendarEventCreationInCalendar,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
@@ -2823,6 +2824,318 @@ describe("handleNewBooking", () => {
             newOrganizer: otherHost,
             emails,
           });
+        },
+        timeout
+      );
+
+      test(
+        `should create a new calendar event when rescheduling a booking that has no existing calendar event UID (declarative approach)
+          1. Should cancel the existing booking
+          2. Should create a new booking in the database
+          3. Should create a new calendar event since none existed before
+          4. Should update booking references with the new calendar event information
+          5. Should send emails to the booker as well as organizer
+          6. Should trigger BOOKING_RESCHEDULED webhook
+      `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+          const iCalUID = `${uidOfBookingToBeRescheduled}@Cal.com`;
+
+          await createBookingScenario(
+            getScenarioData({
+              webhooks: [
+                {
+                  userId: organizer.id,
+                  eventTriggers: ["BOOKING_CREATED"],
+                  subscriberUrl: "http://my-webhook.example.com",
+                  active: true,
+                  eventTypeId: 1,
+                  appId: null,
+                },
+              ],
+              workflows: [
+                {
+                  userId: organizer.id,
+                  trigger: "RESCHEDULE_EVENT",
+                  action: "EMAIL_HOST",
+                  template: "REMINDER",
+                  activeOn: [1],
+                },
+              ],
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  users: [
+                    {
+                      id: 101,
+                    },
+                  ],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                  references: [
+                    {
+                      type: appStoreMetadata.dailyvideo.type,
+                      uid: "MOCK_ID",
+                      meetingId: "MOCK_ID",
+                      meetingPassword: "MOCK_PASS",
+                      meetingUrl: "http://mock-dailyvideo.example.com",
+                      credentialId: null,
+                    },
+                  ],
+                  iCalUID,
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          const videoMock = mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "NEW_CALENDAR_EVENT_UID",
+              id: "NEW_CALENDAR_EVENT_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+              rescheduledBy: organizer.email,
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          // Expect previous booking to be cancelled
+          await expectBookingToBeInDatabase({
+            uid: uidOfBookingToBeRescheduled,
+            status: BookingStatus.CANCELLED,
+            rescheduledBy: organizer.email,
+          });
+
+          // Expect new booking with calendar event reference
+          await expectBookingToBeInDatabase({
+            uid: createdBooking.uid!,
+            description: "",
+            eventTypeId: mockBookingData.eventTypeId,
+            status: BookingStatus.ACCEPTED,
+            location: BookingLocations.CalVideo,
+            responses: expect.objectContaining({
+              email: booker.email,
+              name: booker.name,
+            }),
+          });
+
+          // Verify references separately
+          const actualBooking = await prismaMock.booking.findUnique({
+            where: {
+              uid: createdBooking.uid!,
+            },
+            include: {
+              references: true,
+            },
+          });
+
+          expect(actualBooking?.references).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                type: appStoreMetadata.dailyvideo.type,
+                uid: "MOCK_ID",
+              }),
+              expect.objectContaining({
+                type: appStoreMetadata.googlecalendar.type,
+                uid: expect.any(String),
+              }),
+            ])
+          );
+
+          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+            calEvent: expect.objectContaining({
+              location: "http://mock-dailyvideo.example.com",
+            }),
+            videoCallUrl: "http://mock-dailyvideo.example.com",
+          });
+
+          expectSuccessfulBookingRescheduledEmails({
+            booker,
+            organizer,
+            emails,
+            iCalUID: createdBooking.uid!,
+            appsStatus: [
+              getMockPassingAppStatus({ slug: appStoreMetadata.dailyvideo.slug }),
+              getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
+            ],
+          });
+
+          expectBookingRescheduledWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.CalVideo,
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+            payload: {
+              rescheduledBy: organizer.email,
+            },
+          });
+        },
+        timeout
+      );
+
+      test(
+        `should create a new calendar event when rescheduling a booking that has an empty calendar event UID
+          1. Should create a new calendar event since the existing one has empty UID
+          2. Should update booking references with the new calendar event information
+      `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "n5Wv3eHgconAED2j4gcVhP";
+
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  users: [{ id: 101 }],
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  references: [
+                    {
+                      type: appStoreMetadata.googlecalendar.type,
+                      uid: "",
+                      meetingId: "",
+                      meetingPassword: "",
+                      meetingUrl: "",
+                      externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                      credentialId: undefined,
+                    },
+                  ],
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"]],
+            })
+          );
+
+          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+            create: {
+              uid: "NEW_CALENDAR_EVENT_UID",
+              id: "NEW_CALENDAR_EVENT_ID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T04:00:00.000Z`,
+              end: `${plus1DateString}T04:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "inPerson" },
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+            calEvent: expect.objectContaining({
+              location: "inPerson",
+            }),
+            videoCallUrl: null, // Explicitly set to null for in-person meetings
+          });
+
+          await expectBookingToBeInDatabase({
+            uid: createdBooking.uid!,
+          });
+
+          // Verify references separately
+          const actualBooking = await prismaMock.booking.findUnique({
+            where: {
+              uid: createdBooking.uid!,
+            },
+            include: {
+              references: true,
+            },
+          });
+
+          expect(actualBooking?.references).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                type: appStoreMetadata.googlecalendar.type,
+                uid: expect.any(String),
+              }),
+            ])
+          );
         },
         timeout
       );
