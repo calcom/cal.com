@@ -176,7 +176,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isLoggedInUserHost = checkIfUserIsHost(userId);
 
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
-    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
+    await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost, userId);
   }
 
   const payment = await prisma.payment.findFirst({
