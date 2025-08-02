@@ -7,6 +7,7 @@ export enum Resource {
   Booking = "booking",
   Insights = "insights",
   Role = "role",
+  RoutingForm = "routingForm",
 }
 
 export enum CrudAction {
@@ -382,6 +383,42 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "attributes",
       i18nKey: "pbac_action_create",
       descriptionI18nKey: "pbac_desc_create_organization_attributes",
+    },
+  },
+  [Resource.RoutingForm]: {
+    _resource: {
+      i18nKey: "pbac_resource_routing_form",
+    },
+    [CrudAction.Create]: {
+      description: "Create routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_routing_forms",
+    },
+    [CrudAction.Read]: {
+      description: "View routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_routing_forms",
+    },
+    [CrudAction.Update]: {
+      description: "Update routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_routing_forms",
+    },
+    [CrudAction.Delete]: {
+      description: "Delete routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_routing_forms",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage routing forms",
+      category: "routing",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_routing_forms",
+      scope: [Scope.Organization],
     },
   },
 };

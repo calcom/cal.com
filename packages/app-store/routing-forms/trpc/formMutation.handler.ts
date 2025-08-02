@@ -1,8 +1,10 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -30,6 +32,30 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   const { name, id, description, disabled, addFallback, duplicateFrom, shouldConnect } = input;
   let teamId = input.teamId;
   const settings = input.settings;
+
+  // Check PBAC permissions for team-scoped routing forms only
+  // Personal forms (teamId = null) are always allowed for the user
+  if (teamId) {
+    const permissionService = new PermissionCheckService();
+    const isUpdate = !!id;
+    const requiredPermission = isUpdate ? "routingForm.update" : "routingForm.create";
+
+    const hasPermission = await permissionService.checkPermission({
+      userId: user.id,
+      teamId,
+      permission: requiredPermission,
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `You don't have permission to ${isUpdate ? "update" : "create"} routing forms for this team`,
+      });
+    }
+  }
+
+  // Legacy permission check as fallback
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
     throw new TRPCError({
       code: "FORBIDDEN",
