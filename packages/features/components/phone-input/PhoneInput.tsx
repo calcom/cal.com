@@ -23,24 +23,28 @@ export type PhoneInputProps = {
 
 // Custom formatter for Venezuela (+58) phone numbers
 const formatVenezuelaPhoneNumber = (value: string, country: string) => {
-  if (country === "ve" || value.startsWith("58")) {
-    // Remove all non-digit characters except the leading +
+  // Handle edge cases
+  if (!value || typeof value !== 'string') return value || '';
+
+  if (country === "ve") {
+    // Remove all non-digit characters but preserve leading +
+    const hasPlus = value.startsWith("+");
     const digits = value.replace(/[^\d]/g, "");
 
     if (digits.startsWith("58")) {
       const afterCountryCode = digits.substring(2);
 
       if (afterCountryCode.length <= 3) {
-        return `+58 ${afterCountryCode}`;
+        return `${hasPlus ? '+' : ''}58 ${afterCountryCode}`;
       } else if (afterCountryCode.length <= 10) {
         const firstThree = afterCountryCode.substring(0, 3);
         const remaining = afterCountryCode.substring(3);
-        return `+58 ${firstThree} ${remaining}`;
+        return `${hasPlus ? '+' : ''}58 ${firstThree} ${remaining}`;
       } else {
         // Limit to 10 digits after country code
         const firstThree = afterCountryCode.substring(0, 3);
         const remaining = afterCountryCode.substring(3, 10);
-        return `+58 ${firstThree} ${remaining}`;
+        return `${hasPlus ? '+' : ''}58 ${firstThree} ${remaining}`;
       }
     }
   }
