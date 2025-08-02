@@ -16,6 +16,7 @@ export const ZEditInputSchema = webhookIdAndEventTypeIdSchema.extend({
   secret: z.string().optional().nullable(),
   time: z.number().nullable().optional(),
   timeUnit: z.enum(TIME_UNIT).nullable().optional(),
+  delayMinutes: z.number().min(5).max(1440).optional().default(10),
 });
 
 export type TEditInputSchema = z.infer<typeof ZEditInputSchema>;
