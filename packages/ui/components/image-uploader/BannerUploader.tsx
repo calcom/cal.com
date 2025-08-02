@@ -12,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from 
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
+import { validateImageFile } from "./imageValidation";
 
 type BannerUploaderProps = {
   id: string;
@@ -90,14 +91,21 @@ export default function BannerUploader({
       return;
     }
 
-    const limit = 5 * 1000000; // max limit 5mb
     const file = e.target.files[0];
 
-    if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
-    } else {
-      setFile(file);
+    // Validate the file and show appropriate toast message
+    const maxBannerSize = 10 * 1024 * 1024; // 10MB for banners (larger than avatars)
+    const validation = await validateImageFile(file, maxBannerSize);
+
+    if (!validation.isValid) {
+      if (validation.error) {
+        showToast(t(validation.error), "error");
+      }
+      e.target.value = "";
+      return;
     }
+
+    setFile(file);
   };
 
   const showCroppedImage = useCallback(

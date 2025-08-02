@@ -12,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from 
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
 import type { FileEvent, Area } from "./Common";
+import { validateImageFile } from "./imageValidation";
 
 const MAX_IMAGE_SIZE = 512;
 
@@ -88,19 +89,25 @@ export default function ImageUploader({
     method: "readAsDataURL",
   });
 
-  const onInputFile = (e: FileEvent<HTMLInputElement>) => {
+  const onInputFile = async (e: FileEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) {
       return;
     }
 
-    const limit = 5 * 1000000; // max limit 5mb
     const file = e.target.files[0];
 
-    if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
-    } else {
-      setFile(file);
+    const maxAvatarSize = 5 * 1024 * 1024; // 5MB for avatars
+    const validation = await validateImageFile(file, maxAvatarSize);
+
+    if (!validation.isValid) {
+      if (validation.error) {
+        showToast(t(validation.error), "error");
+      }
+      e.target.value = "";
+      return;
     }
+
+    setFile(file);
   };
 
   const showCroppedImage = useCallback(
