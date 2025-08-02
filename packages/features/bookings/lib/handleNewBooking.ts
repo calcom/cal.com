@@ -387,6 +387,16 @@ export type BookingHandlerInput = {
   forcedSlug?: string;
 } & PlatformParams;
 
+function formatAvailabilitySnapshot(data: { dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[] }) {
+  return {
+    ...data,
+    dateRanges: data.dateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+  };
+}
+
 async function handler(
   input: BookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
@@ -1397,9 +1407,10 @@ async function handler(
 
         logger.info(`Booking created`, {
           bookingUid: booking.uid,
-          selectedCalendarIds:
-            organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
-          availabilitySnapshot: organizerUserAvailability?.availabilityData,
+          selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
+          availabilitySnapshot: organizerUserAvailability
+            ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
+            : null,
         });
       }
 
