@@ -35,4 +35,8 @@ export class MembershipRepositoryFixture {
     await this.prismaWriteClient.user.update({ where: { id: user.id }, data: { organizationId: org.id } });
     return membership;
   }
+
+  async findById(membershipId: Membership["id"]) {
+    return this.prismaReadClient.membership.findUnique({ where: { id: membershipId } });
+  }
 }

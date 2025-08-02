@@ -20,7 +20,6 @@ import {
   OrgTeamMembershipOutputResponseDto,
 } from "@/modules/organizations/teams/memberships/outputs/organization-teams-memberships.output";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 import {
   Controller,
@@ -59,7 +58,6 @@ export class OrganizationsTeamsMembershipsController {
 
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
-    private teamsEventTypesService: TeamsEventTypesService,
     private readonly organizationsRepository: OrganizationsRepository
   ) {}
 
@@ -126,8 +124,6 @@ export class OrganizationsTeamsMembershipsController {
       teamId,
       membershipId
     );
-
-    await this.teamsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
 
     return {
       status: SUCCESS_STATUS,
