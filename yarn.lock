@@ -2509,7 +2509,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.276"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.280"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -3565,13 +3565,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.276":
-  version: 0.0.276
-  resolution: "@calcom/platform-libraries@npm:0.0.276"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.280":
+  version: 0.0.280
+  resolution: "@calcom/platform-libraries@npm:0.0.280"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 4effc186c0301ec35496ebffbe32280f26261667b60057d18207b30636b038cdcc3783b95390eecc8460f3203d0cfe5d732e3b3f89031ff064b1a556321779a8
+  checksum: 30c4b8e96e5daa63cfcb3911a22a961dbb57b171bc23031a8b7357ac061e1cd71aad67e985bbd874fbdc2130e36693560ca52dfcbb6c462b1f7463f32d141402
   languageName: node
   linkType: hard
 
@@ -4086,7 +4086,7 @@ __metadata:
     "@types/turndown": ^5.0.1
     "@types/uuid": 8.3.1
     "@unkey/ratelimit": ^0.1.1
-    "@upstash/redis": ^1.21.0
+    "@upstash/redis": ^1.35.2
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
     "@vercel/og": ^0.6.3
@@ -18836,12 +18836,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@upstash/redis@npm:^1.21.0":
-  version: 1.30.1
-  resolution: "@upstash/redis@npm:1.30.1"
+"@upstash/redis@npm:^1.35.2":
+  version: 1.35.2
+  resolution: "@upstash/redis@npm:1.35.2"
   dependencies:
-    crypto-js: ^4.2.0
-  checksum: 1d8083650fbc1760fe4c58d263c62f9c658d08035480927316932df2757f4e987799f7ce752579e7dd871155e96996bb4caf8ad1034af3ab18965d7ca76421cf
+    uncrypto: ^0.1.3
+  checksum: 1d54217589418873702f08bdc27d9455ea44df0fce30ace612b5637a1c4c261b762a80fb85d7b3c72d3213e82b8938bb57c413ae44f9f1e713eeab3f31d5539a
   languageName: node
   linkType: hard
 
@@ -23377,13 +23377,6 @@ __metadata:
     randombytes: ^2.0.0
     randomfill: ^1.0.3
   checksum: c1609af82605474262f3eaa07daa0b2140026bd264ab316d4bf1170272570dbe02f0c49e29407fe0d3634f96c507c27a19a6765fb856fed854a625f9d15618e2
-  languageName: node
-  linkType: hard
-
-"crypto-js@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "crypto-js@npm:4.2.0"
-  checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
   languageName: node
   linkType: hard
 
@@ -45591,6 +45584,13 @@ __metadata:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: a05fa2006bf4606051c10fc7968f08ce7b28fa646befafa282813aeb1ac1a56f65cb1b577ca7851af2726198d59475bb49b11776036257b843eaacee2860a4ec
+  languageName: node
+  linkType: hard
+
+"uncrypto@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "uncrypto@npm:0.1.3"
+  checksum: 07160e08806dd6cea16bb96c3fd54cd70fc801e02fc3c6f86980144d15c9ebbd1c55587f7280a207b3af6cd34901c0d0b77ada5a02c2f7081a033a05acf409e2
   languageName: node
   linkType: hard
 
