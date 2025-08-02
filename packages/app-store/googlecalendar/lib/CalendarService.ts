@@ -217,9 +217,9 @@ export default class GoogleCalendarService implements Calendar {
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
 
     const selectedCalendar =
-      externalCalendarId ??
-      (calEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
-        "primary");
+      externalCalendarId ||
+      calEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
+      "primary";
 
     try {
       let event: calendar_v3.Schema$Event | undefined;
@@ -260,6 +260,10 @@ export default class GoogleCalendarService implements Calendar {
           });
         }
       } else {
+        this.log.info(
+          `Creating event for booking ${calEvent?.uid}`,
+          safeStringify({ payload: { start: payload?.start, end: payload?.end } })
+        );
         const eventResponse = await calendar.events.insert({
           calendarId: selectedCalendar,
           requestBody: payload,
