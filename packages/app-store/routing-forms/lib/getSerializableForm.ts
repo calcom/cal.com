@@ -55,7 +55,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     fieldsExistInForm[f.id] = true;
   });
 
-  const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, form.userId);
+  const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, form.userId || null);
 
   const connectedForms = (await getConnectedForms(prisma, form)).map((f) => ({
     id: f.id,
@@ -103,7 +103,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
   /**
    * Enriches routes that are actually routers and returns a list of routers separately
    */
-  async function getEnrichedRoutesAndRouters(parsedRoutes: z.infer<typeof zodRoutes>, userId: number) {
+  async function getEnrichedRoutesAndRouters(parsedRoutes: z.infer<typeof zodRoutes>, userId: number | null) {
     const routers: { name: string; description: string | null; id: string }[] = [];
     const routes: z.infer<typeof zodRoutesView> = [];
     if (!parsedRoutes) {
@@ -115,7 +115,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
         const router = await prisma.app_RoutingForms_Form.findFirst({
           where: {
             id: route.id,
-            ...entityPrismaWhereClause({ userId: userId }),
+            ...(userId ? entityPrismaWhereClause({ userId: userId }) : {}),
           },
         });
         if (!router) {
