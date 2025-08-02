@@ -397,7 +397,7 @@ async function handler(input: CancelBookingInput) {
     // Log cancellation audit for all cancelled recurring bookings
     try {
       for (const cancelledBooking of allUpdatedBookings) {
-        const userId = parseInt(cancelledBy);
+        const userId = cancelledBy ? parseInt(cancelledBy) : NaN;
         await BookingAuditService.logBookingCancelled({
           bookingId: cancelledBooking.id,
           cancellationReason,
@@ -450,7 +450,7 @@ async function handler(input: CancelBookingInput) {
 
     // Log cancellation audit for single booking
     try {
-      const userId = parseInt(cancelledBy);
+      const userId = cancelledBy ? parseInt(cancelledBy) : NaN;
       await BookingAuditService.logBookingCancelled({
         bookingId: updatedBooking.id,
         cancellationReason,
