@@ -1,0 +1,177 @@
+---
+title: "MCP Server"
+---
+
+The **Cal.com MCP Server** is a community-built MCP server that was created by **[Arley D. Peter](https://www.linkedin.com/in/arley-peter/)**, it lets you interact with the Cal.com API through a set of ready-made, LLM-compatible tools. This open-source middleware enables automation, conversational AI integrations, and backend workflows for event management and booking on Cal.com.
+
+<Note>
+This is an independent, community-driven project and is not officially affiliated with Cal.com. Use at your own discretion.
+</Note>
+
+## What is the Cal.com MCP Server?
+
+The Cal.com MCP Server is a [FastMCP](https://github.com/jlowin/fastmcp)-based Python service that exposes Cal.com API actions as "tools" which can be called by language models, bots, scripts, or other automation platforms.  
+Common use cases include:
+- Connecting LLMs and chatbots with your scheduling.
+- Automating bookings, event listings, and schedule management.
+- Enabling conversational or programmatic workflows for Cal.com.
+
+> **Note:** Requires a Cal.com v2 API Key.  
+> Your API key is **never stored** in the repository—set it as an environment variable.
+
+---
+
+## Prerequisites
+
+- Python 3.8 or newer
+- Cal.com account and [API Key (v2)](https://cal.com/docs/api-reference/v2/introduction)
+- [pip](https://pip.pypa.io/en/stable/)
+
+---
+
+## Installation & Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    <code>git clone https://github.com/Danielpeter-99/calcom-mcp.git</code>
+    <br/>
+    <code>cd calcom-mcp</code>
+  </Step>
+  <Step title="Set up a virtual environment (recommended)">
+    <code>python -m venv venv</code>
+    <br/>
+    <code>source venv/bin/activate</code> <span style={{ color: "#888" }}># On Windows: <code>venv\Scripts\activate</code></span>
+  </Step>
+  <Step title="Install dependencies">
+    <code>pip install -r requirements.txt</code>
+  </Step>
+  <Step title="Set your Cal.com API key as an environment variable">
+    On <b>Linux/macOS</b>:  
+    <code>export CALCOM_API_KEY="your_actual_api_key_here"</code>
+    <br/><br/>
+    On <b>Windows (PowerShell)</b>:  
+    <code>$env:CALCOM_API_KEY="your_actual_api_key_here"</code>
+  </Step>
+  <Step title="Run the FastMCP server">
+    <code>fastmcp run app.py --transport sse --port 8010</code>
+  </Step>
+</Steps>
+
+---
+
+## Running the Server
+
+Once installed, run the server with:
+
+```bash
+fastmcp run app.py --transport sse --port 8010
+````
+
+* Default: `http://localhost:8010`
+* If the `CALCOM_API_KEY` is missing, a warning will appear and most tools will not function
+
+---
+
+## Available Tools
+
+The server exposes these **tools** for LLMs and automations:
+
+| Tool                  | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| `get_api_status()`    | Check if your Cal.com API key is configured                  |
+| `list_event_types()`  | List all active (non-hidden) event types on your account     |
+| `get_bookings(...)`   | List bookings, with filters for event, user, status, or date |
+| `create_booking(...)` | Create a new booking (with attendee and event type details)  |
+| `list_schedules(...)` | List all schedules for your user or a specified user/team    |
+| `list_teams(...)`     | List all teams in your account                               |
+| `list_users(...)`     | List all users in your account                               |
+| `list_webhooks(...)`  | List all webhooks configured for your account                |
+
+---
+
+## Example Usage
+
+```python
+get_api_status()
+# "Cal.com API key is configured."
+```
+
+```python
+list_event_types()
+# Returns: [ { "id": ..., "title": ..., ... }, ... ]
+```
+
+```python
+create_booking(
+    start_time="2024-09-01T15:00:00Z",
+    attendee_name="John Doe",
+    attendee_email="john@example.com",
+    attendee_timezone="America/New_York",
+    event_type_id=123
+)
+# Returns booking details or error
+```
+
+---
+
+## Tool API Reference
+
+* Tools return a dictionary or list of dictionaries.
+* On error, the result will contain an `error` key and status code if applicable.
+
+Example error response:
+
+```json
+{
+  "error": "HTTP error occurred: 401 Client Error: Unauthorized for url: ...",
+  "status_code": 401,
+  "response_text": "{\"message\":\"Unauthorized\"}"
+}
+```
+
+* All HTTP requests use your API key as a Bearer token.
+* The API base URL is `https://api.cal.com/v2`
+* See [app.py on GitHub](https://github.com/Danielpeter-99/calcom-mcp/blob/main/app.py) for parameter and return structure.
+
+---
+
+## Security
+
+* **Never** commit your API key to version control or share it publicly.
+* Always use environment variables to store sensitive data.
+
+---
+
+## Development Notes
+
+* Project is MIT licensed
+* Requests handled with `requests` Python library
+* Built on [FastMCP](https://github.com/jlowin/fastmcp)
+* For advanced usage or custom tool creation, see [`app.py`](https://github.com/Danielpeter-99/calcom-mcp/blob/main/app.py)
+
+---
+
+## Quick Reference
+
+<Steps>
+  <Step title="Clone the repository">
+    <code>git clone https://github.com/Danielpeter-99/calcom-mcp.git</code>
+  </Step>
+  <Step title="Install dependencies">
+    <code>pip install -r requirements.txt</code>
+  </Step>
+  <Step title="Set API key">
+    <code>export CALCOM_API_KEY="your_actual_api_key_here"</code>
+  </Step>
+  <Step title="Run the server">
+    <code>fastmcp run app.py --transport sse --port 8010</code>
+  </Step>
+</Steps>
+
+---
+
+## Additional Resources
+
+* [Cal.com API Reference](https://cal.com/docs/api-reference/v2/introduction)
+* [FastMCP Framework](https://github.com/jlowin/fastmcp)
+* [calcom-mcp on GitHub](https://github.com/Danielpeter-99/calcom-mcp)
