@@ -21,6 +21,34 @@ export type PhoneInputProps = {
   defaultCountry?: string;
 };
 
+// Custom formatter for Venezuela (+58) phone numbers
+const formatVenezuelaPhoneNumber = (value: string, country: string) => {
+  if (country === "ve" || value.startsWith("58")) {
+    // Remove all non-digit characters except the leading +
+    const digits = value.replace(/[^\d]/g, "");
+
+    if (digits.startsWith("58")) {
+      const afterCountryCode = digits.substring(2);
+
+      if (afterCountryCode.length <= 3) {
+        return `+58 ${afterCountryCode}`;
+      } else if (afterCountryCode.length <= 10) {
+        const firstThree = afterCountryCode.substring(0, 3);
+        const remaining = afterCountryCode.substring(3);
+        return `+58 ${firstThree} ${remaining}`;
+      } else {
+        // Limit to 10 digits after country code
+        const firstThree = afterCountryCode.substring(0, 3);
+        const remaining = afterCountryCode.substring(3, 10);
+        return `+58 ${firstThree} ${remaining}`;
+      }
+    }
+  }
+
+  // Return original value for other countries
+  return value;
+};
+
 function BasePhoneInput({
   name,
   className = "",
@@ -44,6 +72,7 @@ function BasePhoneInput({
       enableSearch
       disableSearchIcon
       country={defaultCountry}
+      format={(value, country) => formatVenezuelaPhoneNumber(value, country)}
       inputProps={{
         name: name,
         required: rest.required,
@@ -91,6 +120,7 @@ function BasePhoneInputWeb({
       country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
+      format={(value, country) => formatVenezuelaPhoneNumber(value, country)}
       inputProps={{
         name: name,
         required: rest.required,
