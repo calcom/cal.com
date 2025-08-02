@@ -170,6 +170,7 @@ export class SlotsController_2024_04_15 {
           ? await this.slotsService.checkIfIsTeamEvent(query.eventTypeId)
           : query.isTeamEvent;
 
+
       // Do not use workers in E2E, not supported by TS-JEST
       const availableSlotsService = this.config.get<boolean>("e2e") ? this.availableSlotsService : null;
 

@@ -45,6 +45,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
@@ -113,6 +114,8 @@ import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from 
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
+
+const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY;
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -1113,8 +1116,28 @@ async function handler(
     : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
-  if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
-    organizerEmail = destinationCalendar[0].primaryEmail;
+  if (
+    eventType.useEventTypeDestinationCalendarEmail &&
+    destinationCalendar &&
+    destinationCalendar.length > 0
+  ) {
+    if (destinationCalendar?.[0]?.primaryEmail) {
+      organizerEmail = destinationCalendar[0].primaryEmail;
+    } else if (destinationCalendar?.[0]?.integration === "apple_calendar" && CALENDSO_ENCRYPTION_KEY) {
+      /* For when useEventTypeDestinationCalendarEmail, there are cases where primary email is not present, in that case. get it directly by decrypting the key for the credential.
+      Code is wrapper around try catch so as to catch any form of error during decryption or json parsing.
+       */
+      try {
+        const credentials = allCredentials.find((cred) => cred.id === destinationCalendar[0].credentialId);
+        const { username } = JSON.parse(
+          symmetricDecrypt(credentials?.key as string, CALENDSO_ENCRYPTION_KEY)
+        );
+        organizerEmail = username;
+      } catch (error) {
+        // do nothing
+        logger.error("Error decrypting destination calendar email", error);
+      }
+    }
   } else if (eventType.secondaryEmailId && eventType.secondaryEmail?.email) {
     organizerEmail = eventType.secondaryEmail.email;
   }
