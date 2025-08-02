@@ -8,27 +8,29 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({}) => {
   const [projects, setProjects] = useState();
   const [selectedProject, setSelectedProject] = useState<undefined | { label: string; value: string }>();
   const { data } = trpc.viewer.appBasecamp3.projects.useQuery();
-  const setProject = trpc.viewer.appBasecamp3.projectMutation.useMutation();
 
   useEffect(
     function refactorMeWithoutEffect() {
-      setSelectedProject({
-        value: data?.projects.currentProject,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        label: data?.projects?.find((project: any) => project.id === data?.currentProject)?.name,
-      });
-      setProjects(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data?.projects?.map((project: any) => {
-          return {
-            value: project.id,
-            label: project.name,
-          };
-        })
-      );
+      if (data) {
+        setSelectedProject({
+          value: data?.projects.currentProject,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          label: data?.projects?.find((project: any) => project.id === data?.currentProject)?.name,
+        });
+        setProjects(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data?.projects?.map((project: any) => {
+            return {
+              value: project.id,
+              label: project.name,
+            };
+          })
+        );
+      }
     },
     [data]
   );
+  const setProject = trpc.viewer.appBasecamp3.projectMutation.useMutation();
 
   return (
     <div className="mt-2 text-sm">
