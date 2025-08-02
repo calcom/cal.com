@@ -45,9 +45,15 @@ async function processReschedule({
 }) {
   if (!rescheduleUid) return;
 
-  const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+  const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id, true);
 
-  if (booking?.eventType?.disableRescheduling) {
+  // Check if user is a host or owner of the event type
+  const userId = session?.user?.id;
+  const userIsHost = booking?.eventType?.hosts?.find((host) => host.userId === userId);
+  const userIsOwnerOfEventType = booking?.eventType?.owner?.id === userId;
+  const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
+
+  if (booking?.eventType?.disableRescheduling && !isHostOrOwner) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,
