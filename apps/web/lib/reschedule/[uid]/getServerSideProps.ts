@@ -119,7 +119,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
 
   const userId = session?.user?.id;
-  const isHost = userId && (eventType?.userId === userId || eventType?.owner?.id === userId);
+  const isHost =
+    userId &&
+    (eventType?.userId === userId ||
+      eventType?.owner?.id === userId ||
+      eventType?.hosts?.some((host) => host.user.id === userId));
 
   // This comes from query param and thus is considered forced
   const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
@@ -127,7 +131,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
 
   if (isDisabledRescheduling && !isHost) {
-    console.log("hhhhhh");
     return {
       redirect: {
         destination: `/booking/${uid}`,
