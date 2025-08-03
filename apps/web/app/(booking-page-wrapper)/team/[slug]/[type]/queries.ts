@@ -102,7 +102,7 @@ export async function getEnrichedEventType({
 }
 
 export async function shouldUseApiV2ForTeamSlots(teamId: number): Promise<boolean> {
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(teamId, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 
