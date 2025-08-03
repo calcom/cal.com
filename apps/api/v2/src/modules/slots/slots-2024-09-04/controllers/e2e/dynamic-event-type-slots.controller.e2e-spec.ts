@@ -22,7 +22,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
+import { EventTypesService } from "@calcom/event-types/event-types.service";
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
 import { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
@@ -133,11 +133,17 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       await app.init();
     });
+    const eventType = await eventTypesService.create({
+      userId: userOne.id,
+      organizationId: organization.id,
+      title: "Test Event",
+      length: 60,
+    });
 
     it("should get slots in UTC by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60`
+            `/v2/slots?eventTypeId=${eventType.id}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -156,7 +162,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     it("should get slots in specified timezone and in specified duration by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
+            `/v2/slots?eventTypeId=${eventType.id}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
