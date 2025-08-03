@@ -22,16 +22,16 @@ export type PhoneInputProps = {
 };
 
 // Custom formatter for Venezuela (+58) phone numbers
-const formatVenezuelaPhoneNumber = (value: string, country: string) => {
+const formatVenezuelaPhoneNumber = (value: string, country: string): string => {
   // Handle edge cases
   if (!value || typeof value !== 'string') return value || '';
 
   if (country === "ve") {
     // Remove all non-digit characters but preserve leading +
-    const hasPlus = value.startsWith("+");
+    const hasPlus = value.indexOf("+") === 0;
     const digits = value.replace(/[^\d]/g, "");
 
-    if (digits.startsWith("58")) {
+    if (digits.indexOf("58") === 0) {
       const afterCountryCode = digits.substring(2);
 
       if (afterCountryCode.length <= 3) {
