@@ -963,7 +963,7 @@ async function handler(
   if (reqBody.teamMemberEmail) {
     organizerUser = users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0];
   } else {
-    organizerUser = fixedOrganizerUser || users[0];
+    organizerUser = users[0];
   }
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
