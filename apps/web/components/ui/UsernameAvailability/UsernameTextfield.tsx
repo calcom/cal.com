@@ -58,8 +58,10 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         return;
       }
 
-      if (currentUsername !== username) {
-        const { data } = await fetchUsername(username, null);
+      // trim the username for comparison to avoidd the whitespaces comparison
+      const trimmedUsername = username.trim();
+      if (currentUsername !== trimmedUsername) {
+        const { data } = await fetchUsername(trimmedUsername, null);
         setMarkAsError(!data.available);
         setUsernameIsAvailable(data.available);
       } else {
@@ -83,7 +85,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   });
 
   const ActionButtons = () => {
-    return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
+    const trimmedInputUsername = inputUsernameValue?.trim();
+    return usernameIsAvailable && currentUsername !== trimmedInputUsername ? (
       <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
         <Button
           type="button"
@@ -108,8 +111,9 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   };
 
   const updateUsername = async () => {
+    const trimmedUsername = inputUsernameValue?.trim();
     updateUsernameMutation.mutate({
-      username: inputUsernameValue,
+      username: trimmedUsername,
     });
   };
 
@@ -137,7 +141,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             data-testid="username-input"
             {...rest}
           />
-          {currentUsername !== inputUsernameValue && (
+          {currentUsername !== inputUsernameValue?.trim() && (
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
               <span className={classNames("bg-default mx-0 p-3")}>
                 {usernameIsAvailable ? (
@@ -155,7 +159,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       </div>
       {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
 
-      {usernameIsAvailable && currentUsername !== inputUsernameValue && (
+      {usernameIsAvailable && currentUsername !== inputUsernameValue?.trim() && (
         <div className="mt-2 flex justify-end md:hidden">
           <ActionButtons />
         </div>
