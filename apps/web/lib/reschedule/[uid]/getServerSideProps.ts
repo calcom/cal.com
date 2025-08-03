@@ -117,12 +117,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+
+  const userId = session?.user?.id;
+  const isHost = userId && (eventType?.userId === userId || eventType?.owner?.id === userId);
+
   // This comes from query param and thus is considered forced
   const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
   const isNonRescheduleableBooking =
     booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
 
-  if (isDisabledRescheduling) {
+  if (isDisabledRescheduling && !isHost) {
+    console.log("hhhhhh");
     return {
       redirect: {
         destination: `/booking/${uid}`,
