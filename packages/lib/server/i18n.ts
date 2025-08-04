@@ -1,6 +1,7 @@
 import { createInstance } from "i18next";
 
-import { i18n } from "@calcom/config/next-i18next.config";
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { i18n } = require("@calcom/config/next-i18next.config");
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { fetchWithTimeout } from "../fetchWithTimeout";
