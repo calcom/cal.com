@@ -44,7 +44,7 @@ export const filterHostsBySameRoundRobinHost = async <
   });
 
   if (!originalRescheduledBooking) {
-    return [];
+    return hosts;
   }
 
   const attendeeEmails = originalRescheduledBooking.attendees?.map((attendee) => attendee.email) || [];
