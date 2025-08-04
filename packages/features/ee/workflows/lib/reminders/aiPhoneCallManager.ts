@@ -7,11 +7,11 @@ import prisma from "@calcom/prisma";
 import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 
-import type { ExtendedCalendarEvent } from "./reminderScheduler";
+import type { BookingInfo } from "./smsReminderManager";
 
 type timeUnitLowerCase = "day" | "hour" | "minute";
 
-function extractPhoneNumber(responses: ExtendedCalendarEvent["responses"]): string | undefined {
+function extractPhoneNumber(responses: BookingInfo["responses"]): string | undefined {
   if (!responses) return undefined;
 
   // Priority 1: CAL_AI_AGENT_PHONE_NUMBER_FIELD first
@@ -34,7 +34,7 @@ function extractPhoneNumber(responses: ExtendedCalendarEvent["responses"]): stri
 }
 
 interface ScheduleAIPhoneCallArgs {
-  evt: ExtendedCalendarEvent;
+  evt: BookingInfo;
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
