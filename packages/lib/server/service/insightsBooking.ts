@@ -44,6 +44,19 @@ export type SelectedFields<T> = T extends undefined
         : never;
     };
 
+type UserStatsData = {
+  userId: number;
+  user: {
+    id: number;
+    username: string | null;
+    name: string | null;
+    email: string;
+    avatarUrl: string;
+  };
+  emailMd5: string;
+  count: number;
+}[];
+
 export const bookingDataSchema = z
   .object({
     id: z.number(),
@@ -765,7 +778,7 @@ export class InsightsBookingService {
   async getMembersStatsWithCount(
     type: "all" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
-  ) {
+  ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
     let additionalCondition = Prisma.sql``;
@@ -833,7 +846,7 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC") {
+  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC"): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
