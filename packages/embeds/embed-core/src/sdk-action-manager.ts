@@ -22,6 +22,8 @@ export type EventDataMap = {
     };
   };
   linkReady: Record<string, never>;
+  __connectInitiated: Record<string, never>;
+  __connectCompleted: Record<string, never>;
   bookingSuccessfulV2: {
     uid: string | undefined;
     title: string | undefined;
@@ -101,11 +103,19 @@ export type EventDataMap = {
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;
   __closeIframe: Record<string, never>;
-  __iframeReady: Record<string, never>;
+  __iframeReady: {
+    isPrerendering: boolean;
+  };
   __dimensionChanged: {
     iframeHeight: number;
     iframeWidth: number;
     isFirstTime: boolean;
+  };
+  __scrollByDistance: {
+    /**
+     * Distance in pixels to scroll by.
+     */
+    distance: number;
   };
 };
 

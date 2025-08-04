@@ -26,13 +26,10 @@ import { Icon } from "@calcom/ui/components/icon";
 import { List, ListLinkItem } from "@calcom/ui/components/list";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
 import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "../../types/types";
-import { getServerSideProps } from "./getServerSideProps";
 
 function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
@@ -47,11 +44,7 @@ function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNe
   );
 }
 
-export default function RoutingForms({
-  appUrl,
-}: inferSSRProps<typeof getServerSideProps> & {
-  appUrl: string;
-}) {
+export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { t } = useLocale();
   const { hasPaidPlan } = useHasPaidPlan();
   const routerQuery = useRouterQuery();
@@ -59,7 +52,7 @@ export default function RoutingForms({
   const utils = trpc.useUtils();
   const [parent] = useAutoAnimate<HTMLUListElement>();
 
-  const mutation = trpc.viewer.routingFormOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.routingFormOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.appRoutingForms.forms.cancel();
@@ -332,5 +325,3 @@ export default function RoutingForms({
     </LicenseRequired>
   );
 }
-
-export { getServerSideProps };

@@ -110,4 +110,14 @@ export class TeamsRepository {
       where: { id: teamId },
     });
   }
+
+  async findTeamBySlug(slug: string) {
+    return this.dbRead.prisma.team.findFirst({
+      where: {
+        slug,
+        isOrganization: false,
+        parentId: null,
+      },
+    });
+  }
 }

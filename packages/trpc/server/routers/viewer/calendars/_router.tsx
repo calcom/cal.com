@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
@@ -8,38 +10,25 @@ type CalendarsRouterHandlerCache = {
   setDestinationCalendar?: typeof import("./setDestinationCalendar.handler").setDestinationCalendarHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: CalendarsRouterHandlerCache = {};
-
 export const calendarsRouter = router({
   connectedCalendars: authedProcedure.input(ZConnectedCalendarsInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.connectedCalendars) {
-      UNSTABLE_HANDLER_CACHE.connectedCalendars = (
-        await import("./connectedCalendars.handler")
-      ).connectedCalendarsHandler;
-    }
+    const { connectedCalendarsHandler } = await import("./connectedCalendars.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.connectedCalendars) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.connectedCalendars({ ctx, input });
+    return connectedCalendarsHandler({ ctx, input });
   }),
 
   setDestinationCalendar: authedProcedure
     .input(ZSetDestinationCalendarInputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.setDestinationCalendar) {
-        UNSTABLE_HANDLER_CACHE.setDestinationCalendar = (
-          await import("./setDestinationCalendar.handler")
-        ).setDestinationCalendarHandler;
-      }
+      const { setDestinationCalendarHandler } = await import("./setDestinationCalendar.handler");
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.setDestinationCalendar) {
-        throw new Error("Failed to load handler");
-      }
+      return setDestinationCalendarHandler({ ctx, input });
+    }),
 
-      return UNSTABLE_HANDLER_CACHE.setDestinationCalendar({ ctx, input });
+  deleteCache: authedProcedure
+    .input(z.object({ credentialId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { deleteCacheHandler } = await import("./deleteCache.handler");
+      return deleteCacheHandler({ ctx, input });
     }),
 });

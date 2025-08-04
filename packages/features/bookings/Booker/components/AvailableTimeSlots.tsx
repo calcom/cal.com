@@ -4,10 +4,11 @@ import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import type { Slot } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
+import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
@@ -135,7 +136,8 @@ export const AvailableTimeSlots = ({
         schedule?.invalidate();
       }
       setTentativeSelectedTimeslots([]);
-      setSelectedTimeslot(time);
+      // note(Lauris): setting setSeatedEventData before setSelectedTimeslot so that in useSlots we have seated event data available
+      // and only then we invoke handleReserveSlot that is triggered by the changes in setSelectedTimeslot.
       if (seatsPerTimeSlot) {
         setSeatedEventData({
           seatsPerTimeSlot,
@@ -144,6 +146,7 @@ export const AvailableTimeSlots = ({
           showAvailableSeatsCount,
         });
       }
+      setSelectedTimeslot(time);
       const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
       if (skipConfirmStep && isTimeSlotAvailable) {
         onSubmit(time);

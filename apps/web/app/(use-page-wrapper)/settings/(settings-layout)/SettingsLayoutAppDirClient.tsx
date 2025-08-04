@@ -10,13 +10,14 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { TeamFeatures } from "@calcom/features/flags/config";
+import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -91,7 +92,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           ? [
               {
                 name: "members",
-                href: `/settings/organizations/${orgBranding.slug}/members`,
+                href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+                isExternalLink: true,
               },
             ]
           : []),
@@ -145,6 +147,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
         { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
+        { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
   ];
@@ -178,7 +181,15 @@ const organizationAdminKeys = [
   "delegation_credential",
 ];
 
-const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
+const useTabs = ({
+  isDelegationCredentialEnabled,
+  isPbacEnabled,
+  canViewRoles,
+}: {
+  isDelegationCredentialEnabled: boolean;
+  isPbacEnabled: boolean;
+  canViewRoles?: boolean;
+}) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -199,9 +210,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
         );
 
-        // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
-        // You have to refresh the page to see the changes.
-        if (true) {
+        if (isOrgAdminOrOwner) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -213,6 +222,15 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
           newArray.push({
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
+          });
+        }
+
+        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
+        // This prevents showing the menu item when user has no organization permissions
+        if (isPbacEnabled && canViewRoles) {
+          newArray.push({
+            name: "roles_and_permissions",
+            href: "/settings/organizations/roles",
           });
         }
 
@@ -257,7 +275,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
 const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
-      href="/"
+      href="/event-types"
       className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
@@ -275,11 +293,40 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
-  currentOrg: SettingsLayoutProps["currentOrg"];
-  otherTeams: SettingsLayoutProps["otherTeams"];
+  teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 }
 
-const TeamListCollapsible = () => {
+const TeamRolesNavItem = ({
+  team,
+  teamFeatures,
+}: {
+  team: { id: number; parentId?: number | null };
+  teamFeatures?: Record<number, TeamFeatures>;
+}) => {
+  const { t } = useLocale();
+
+  // Always call the hook first (Rules of Hooks)
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: team.parentId || 0, // Use 0 as fallback when no parentId
+    feature: "pbac",
+  });
+
+  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
+  if (!team.parentId || !isPbacEnabled) return null;
+
+  return (
+    <VerticalTabItem
+      name={t("roles_and_permissions")}
+      href={`/settings/teams/${team.id}/roles`}
+      textClassNames="px-3 text-emphasis font-medium text-sm"
+      disableChevron
+    />
+  );
+};
+
+const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
@@ -316,27 +363,41 @@ const TeamListCollapsible = () => {
                 className="cursor-pointer"
                 key={team.id}
                 open={teamMenuState[index].teamMenuOpen}
-                onOpenChange={() =>
-                  setTeamMenuState([
-                    ...teamMenuState,
-                    (teamMenuState[index] = {
-                      ...teamMenuState[index],
-                      teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                    }),
-                  ])
-                }>
+                onOpenChange={(open) => {
+                  const newTeamMenuState = [...teamMenuState];
+                  newTeamMenuState[index] = {
+                    ...newTeamMenuState[index],
+                    teamMenuOpen: open,
+                  };
+                  setTeamMenuState(newTeamMenuState);
+                }}>
                 <CollapsibleTrigger asChild>
-                  <div
+                  <button
                     className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                    onClick={() =>
-                      setTeamMenuState([
-                        ...teamMenuState,
-                        (teamMenuState[index] = {
-                          ...teamMenuState[index],
+                    aria-controls={`team-content-${team.id}`}
+                    aria-expanded={teamMenuState[index].teamMenuOpen}
+                    onClick={() => {
+                      const newTeamMenuState = [...teamMenuState];
+                      newTeamMenuState[index] = {
+                        ...newTeamMenuState[index],
+                        teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                      };
+                      setTeamMenuState(newTeamMenuState);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        const newTeamMenuState = [...teamMenuState];
+                        newTeamMenuState[index] = {
+                          ...newTeamMenuState[index],
                           teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                        }),
-                      ])
-                    }>
+                        };
+                        setTeamMenuState(newTeamMenuState);
+                      }
+                    }}
+                    aria-label={`${team.name} ${
+                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+                    }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -357,9 +418,9 @@ const TeamListCollapsible = () => {
                         Inv.
                       </Badge>
                     )}
-                  </div>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-0.5">
+                <CollapsibleContent className="space-y-0.5" id={`team-content-${team.id}`}>
                   {team.accepted && (
                     <VerticalTabItem
                       name={t("profile")}
@@ -374,12 +435,8 @@ const TeamListCollapsible = () => {
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
-                  <VerticalTabItem
-                    name={t("event_types_page_title")}
-                    href={`/event-types?teamId=${team.id}`}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    disableChevron
-                  />
+                  {/* Show roles only for sub-teams with PBAC-enabled parent */}
+                  <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
@@ -429,10 +486,11 @@ const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
   bannersHeight,
-  currentOrg: currentOrgProp,
-  otherTeams: otherTeamsProp,
+  teamFeatures,
+  canViewRoles,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
+  const orgBranding = useOrgBranding();
   const { t } = useLocale();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
@@ -441,19 +499,31 @@ const SettingsSidebarContainer = ({
     }[]
   >();
   const session = useSession();
-  const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !currentOrgProp,
+
+  const organizationId = session.data?.user?.org?.id;
+
+  const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "delegation-credential",
+  });
+
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "pbac",
   });
 
   const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: !!_currentOrg?.features?.delegationCredential,
+    isDelegationCredentialEnabled,
+    isPbacEnabled,
+    canViewRoles,
   });
 
-  const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org && !otherTeamsProp,
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
   });
-  const currentOrg = currentOrgProp ?? _currentOrg;
-  const otherTeams = otherTeamsProp ?? _otherTeams;
+
   // Same as above but for otherTeams
   useEffect(() => {
     if (otherTeams) {
@@ -473,8 +543,7 @@ const SettingsSidebarContainer = ({
     }
   }, [searchParams?.get("id"), otherTeams]);
 
-  const isOrgAdminOrOwner =
-    currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
+  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   return (
     <nav
@@ -486,7 +555,7 @@ const SettingsSidebarContainer = ({
           ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
-      aria-label="Tabs">
+      aria-label={t("settings_navigation")}>
       <>
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
@@ -556,8 +625,8 @@ const SettingsSidebarContainer = ({
                         </Skeleton>
                       </div>
                     </Link>
-                    <TeamListCollapsible />
-                    {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
+                    <TeamListCollapsible teamFeatures={teamFeatures} />
+                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
@@ -602,27 +671,43 @@ const SettingsSidebarContainer = ({
                               className="cursor-pointer"
                               key={otherTeam.id}
                               open={otherTeamMenuState[index].teamMenuOpen}
-                              onOpenChange={() =>
-                                setOtherTeamMenuState([
-                                  ...otherTeamMenuState,
-                                  (otherTeamMenuState[index] = {
-                                    ...otherTeamMenuState[index],
-                                    teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                  }),
-                                ])
-                              }>
+                              onOpenChange={(open) => {
+                                const newOtherTeamMenuState = [...otherTeamMenuState];
+                                newOtherTeamMenuState[index] = {
+                                  ...newOtherTeamMenuState[index],
+                                  teamMenuOpen: open,
+                                };
+                                setOtherTeamMenuState(newOtherTeamMenuState);
+                              }}>
                               <CollapsibleTrigger asChild>
-                                <div
+                                <button
                                   className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-left text-sm font-medium leading-none transition"
-                                  onClick={() =>
-                                    setOtherTeamMenuState([
-                                      ...otherTeamMenuState,
-                                      (otherTeamMenuState[index] = {
-                                        ...otherTeamMenuState[index],
+                                  aria-controls={`other-team-content-${otherTeam.id}`}
+                                  aria-expanded={otherTeamMenuState[index].teamMenuOpen}
+                                  onClick={() => {
+                                    const newOtherTeamMenuState = [...otherTeamMenuState];
+                                    newOtherTeamMenuState[index] = {
+                                      ...newOtherTeamMenuState[index],
+                                      teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
+                                    };
+                                    setOtherTeamMenuState(newOtherTeamMenuState);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                      e.preventDefault();
+                                      const newOtherTeamMenuState = [...otherTeamMenuState];
+                                      newOtherTeamMenuState[index] = {
+                                        ...newOtherTeamMenuState[index],
                                         teamMenuOpen: !otherTeamMenuState[index].teamMenuOpen,
-                                      }),
-                                    ])
-                                  }>
+                                      };
+                                      setOtherTeamMenuState(newOtherTeamMenuState);
+                                    }
+                                  }}
+                                  aria-label={`${otherTeam.name} ${
+                                    otherTeamMenuState[index].teamMenuOpen
+                                      ? t("collapse_menu")
+                                      : t("expand_menu")
+                                  }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
@@ -638,9 +723,11 @@ const SettingsSidebarContainer = ({
                                     />
                                   )}
                                   <p className="w-1/2 truncate leading-normal">{otherTeam.name}</p>
-                                </div>
+                                </button>
                               </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-0.5">
+                              <CollapsibleContent
+                                className="space-y-0.5"
+                                id={`other-team-content-${otherTeam.id}`}>
                                 <VerticalTabItem
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
@@ -703,15 +790,15 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export type SettingsLayoutProps = {
   children: React.ReactNode;
-  currentOrg: Awaited<ReturnType<typeof OrganizationRepository.findCurrentOrg>> | null;
-  otherTeams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>> | null;
   containerClassName?: string;
+  teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
 } & ComponentProps<typeof Shell>;
 
 export default function SettingsLayoutAppDirClient({
   children,
-  currentOrg,
-  otherTeams,
+  teamFeatures,
+  canViewRoles,
   ...rest
 }: SettingsLayoutProps) {
   const pathname = usePathname();
@@ -743,10 +830,10 @@ export default function SettingsLayoutAppDirClient({
       {...rest}
       SidebarContainer={
         <SidebarContainerElement
-          currentOrg={currentOrg}
-          otherTeams={otherTeams}
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
+          teamFeatures={teamFeatures}
+          canViewRoles={canViewRoles}
         />
       }
       drawerState={state}
@@ -764,12 +851,20 @@ export default function SettingsLayoutAppDirClient({
   );
 }
 
+type SidebarContainerElementProps = {
+  sideContainerOpen: boolean;
+  bannersHeight?: number;
+  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  teamFeatures?: Record<number, TeamFeatures>;
+  canViewRoles?: boolean;
+};
+
 const SidebarContainerElement = ({
   sideContainerOpen,
   bannersHeight,
   setSideContainerOpen,
-  currentOrg,
-  otherTeams,
+  teamFeatures,
+  canViewRoles,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -785,17 +880,9 @@ const SidebarContainerElement = ({
       <SettingsSidebarContainer
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
-        currentOrg={currentOrg}
-        otherTeams={otherTeams}
+        teamFeatures={teamFeatures}
+        canViewRoles={canViewRoles}
       />
     </>
   );
-};
-
-type SidebarContainerElementProps = {
-  sideContainerOpen: boolean;
-  bannersHeight?: number;
-  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  currentOrg: SettingsLayoutProps["currentOrg"];
-  otherTeams: SettingsLayoutProps["otherTeams"];
 };

@@ -63,7 +63,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     throw new NotAuthorizedError();
   }
 
-  const organization = await prisma.team.findFirst({
+  const organization = await prisma.team.findUnique({
     where: { id: orgId },
     select: { slug: true, id: true, metadata: true },
   });
@@ -84,7 +84,7 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
 
   const [teamSlugs, userSlugs] = [
     await prisma.team.findMany({ where: { parentId: orgId }, select: { slug: true } }),
-    await UserRepository.findManyByOrganization({ organizationId: orgId }),
+    await new UserRepository(prisma).findManyByOrganization({ organizationId: orgId }),
   ];
 
   const existingSlugs = teamSlugs
@@ -137,12 +137,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   return { duplicatedSlugs };
 };
 
-class NoUserError extends TRPCError {
-  constructor() {
-    super({ code: "BAD_REQUEST", message: "no_user" });
-  }
-}
-
 class NotAuthorizedError extends TRPCError {
   constructor() {
     super({ code: "FORBIDDEN", message: "not_authorized" });
@@ -193,6 +187,12 @@ async function moveTeam({
       id: true,
       slug: true,
       metadata: true,
+      parent: {
+        select: {
+          id: true,
+          isPlatform: true,
+        },
+      },
       members: {
         select: {
           role: true,
@@ -208,25 +208,47 @@ async function moveTeam({
   });
 
   if (!team) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: `Team with id: ${teamId} not found`,
+    log.warn(`Team with id: ${teamId} not found. Skipping migration.`, {
+      teamId,
+      orgId: org.id,
+      orgSlug: org.slug,
     });
+    return;
   }
 
-  log.debug("Moving team", safeStringify({ teamId, newSlug, org, oldSlug: team.slug }));
+  if (team.parent?.isPlatform) {
+    log.info(
+      "Team belongs to a platform organization. Not moving to regular organization.",
+      safeStringify({ teamId, newSlug, org, oldSlug: team.slug, platformOrgId: team.parent.id })
+    );
+    return;
+  }
+  log.info("Moving team", safeStringify({ teamId, newSlug, oldSlug: team.slug }));
 
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
-  await prisma.team.update({
-    where: {
-      id: teamId,
-    },
-    data: {
-      slug: newSlug,
-      parentId: org.id,
-    },
-  });
+  try {
+    await prisma.team.update({
+      where: {
+        id: teamId,
+      },
+      data: {
+        slug: newSlug,
+        parentId: org.id,
+      },
+    });
+  } catch (error) {
+    log.error(
+      "Error while moving team to organization",
+      safeStringify(error),
+      safeStringify({
+        teamId,
+        newSlug,
+        orgId: org.id,
+      })
+    );
+    throw error;
+  }
 
   // Owner is already a member of the team. Inviting an existing member can throw error
   const invitableMembers = team.members.filter(isMembershipNotWithOwner).map((membership) => ({
@@ -299,12 +321,12 @@ async function addTeamRedirect({
 }) {
   logger.info(`Adding redirect for team: ${oldTeamSlug} -> ${teamSlug}`);
   if (!oldTeamSlug) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "No oldSlug for team. Not adding the redirect",
-    });
+    // This can happen for unpublished teams that don't have a slug yet
+    logger.warn(`No oldSlug for team. Not adding the redirect`);
+    return;
   }
   if (!teamSlug) {
+    // This should not happen as org onboarding ensures teams have slugs
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "No slug for team. Not adding the redirect",

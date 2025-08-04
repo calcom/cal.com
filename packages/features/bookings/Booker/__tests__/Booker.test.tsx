@@ -20,6 +20,13 @@ import { Booker } from "../Booker";
 import { useBookerStore } from "../store";
 import type { BookerState } from "../types";
 
+vi.mock("framer-motion", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+  };
+});
+
 // Mock components that we don't want to test
 vi.mock("../components/BookEventForm", () => ({
   BookEventForm: ({
@@ -55,6 +62,12 @@ const mockEvent = {
   isSuccess: true,
   isPending: false,
 };
+
+vi.mock("../../../calendars/NoAvailabilityDialog", () => ({
+  default: () => {
+    return null;
+  },
+}));
 
 const mockSchedule = {
   data: {
@@ -176,6 +189,8 @@ describe("Booker", () => {
   beforeEach(() => {
     constantsScenarios.set({
       PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
+      POWERED_BY_URL: "https://go.cal.com/booking",
+      APP_NAME: "Cal.com",
     });
     vi.clearAllMocks();
   });

@@ -11,56 +11,27 @@ type OAuthRouterHandlerCache = {
   generateAuthCode?: typeof import("./generateAuthCode.handler").generateAuthCodeHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: OAuthRouterHandlerCache = {};
-
 export const oAuthRouter = router({
   getClient: authedProcedure.input(ZGetClientInputSchema).query(async ({ input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.getClient) {
-      UNSTABLE_HANDLER_CACHE.getClient = await import("./getClient.handler").then(
-        (mod) => mod.getClientHandler
-      );
-    }
+    const { getClientHandler } = await import("./getClient.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.getClient) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.getClient({
+    return getClientHandler({
       input,
     });
   }),
 
   addClient: authedAdminProcedure.input(ZAddClientInputSchema).mutation(async ({ input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.addClient) {
-      UNSTABLE_HANDLER_CACHE.addClient = await import("./addClient.handler").then(
-        (mod) => mod.addClientHandler
-      );
-    }
+    const { addClientHandler } = await import("./addClient.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.addClient) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.addClient({
+    return addClientHandler({
       input,
     });
   }),
 
   generateAuthCode: authedProcedure.input(ZGenerateAuthCodeInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.generateAuthCode) {
-      UNSTABLE_HANDLER_CACHE.generateAuthCode = await import("./generateAuthCode.handler").then(
-        (mod) => mod.generateAuthCodeHandler
-      );
-    }
+    const { generateAuthCodeHandler } = await import("./generateAuthCode.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.generateAuthCode) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.generateAuthCode({
+    return generateAuthCodeHandler({
       ctx,
       input,
     });

@@ -17,7 +17,7 @@ export type ErrorProps = {
   reset?: () => void;
 };
 
-export default function Error({ error }: ErrorProps) {
+export default function Error({ error, reset }: ErrorProps) {
   React.useEffect(() => {
     log.error(error);
 
@@ -51,6 +51,7 @@ export default function Error({ error }: ErrorProps) {
 
   return (
     <ErrorPage
+      reset={reset}
       statusCode={processedError.statusCode}
       error={processedError}
       message={processedError.message}

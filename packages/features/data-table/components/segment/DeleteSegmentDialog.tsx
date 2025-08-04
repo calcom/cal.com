@@ -1,7 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
@@ -45,18 +44,15 @@ export function DeleteSegmentDialog({
           onClose();
         }
       }}>
-      <DialogContent>
-        <DialogHeader title={t("delete_segment")} />
-        <div className="mb-6">{t("delete_segment_confirmation")}</div>
-        <DialogFooter>
-          <Button color="secondary" onClick={onClose}>
-            {t("cancel")}
-          </Button>
-          <Button color="destructive" onClick={handleDelete} loading={isPending}>
-            {t("delete")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      <ConfirmationDialogContent
+        variety="danger"
+        title={t("delete_segment")}
+        confirmBtnText={t("delete")}
+        cancelBtnText={t("cancel")}
+        isPending={isPending}
+        onConfirm={handleDelete}>
+        <p className="mt-5">{t("delete_segment_confirmation")}</p>
+      </ConfirmationDialogContent>
     </Dialog>
   );
 }

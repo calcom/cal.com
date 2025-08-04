@@ -2,7 +2,7 @@ import { vi, beforeEach } from "vitest";
 
 import type * as constants from "@calcom/lib/constants";
 
-const mockedConstants = {
+const initialConstants = {
   IS_PRODUCTION: false,
   IS_TEAM_BILLING_ENABLED: false,
   WEBSITE_URL: "",
@@ -20,18 +20,15 @@ const mockedConstants = {
   APP_NAME: "Cal.com",
   BOOKER_NUMBER_OF_DAYS_TO_LOAD: 14,
   PUBLIC_QUICK_AVAILABILITY_ROLLOUT: 100,
+  SINGLE_ORG_SLUG: "",
 } as typeof constants;
 
-vi.mock("@calcom/lib/constants", () => {
-  return mockedConstants;
-});
+export const mockedConstants = { ...initialConstants };
+
+vi.mock("@calcom/lib/constants", () => mockedConstants);
 
 beforeEach(() => {
-  Object.entries(mockedConstants).forEach(([key]) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    delete mockedConstants[key];
-  });
+  Object.assign(mockedConstants, initialConstants);
 });
 
 export const constantsScenarios = {

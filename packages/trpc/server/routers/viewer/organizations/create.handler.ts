@@ -112,6 +112,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
               slug: true,
               isOrganization: true,
               isPlatform: true,
+              name: true,
             },
           },
         },
@@ -173,7 +174,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   });
 
   if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `You can't create a new team because you are already a part of ${hasExistingPlatformOrOrgTeam.team.name}`,
+    });
   }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
@@ -258,7 +262,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       });
     }
 
-    const user = await UserRepository.enrichUserWithItsProfile({
+    const user = await new UserRepository(prisma).enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
     });
 
@@ -304,7 +308,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     if (!organization.id) throw Error("User not created");
-    const user = await UserRepository.enrichUserWithItsProfile({
+    const user = await new UserRepository(prisma).enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
     });
 

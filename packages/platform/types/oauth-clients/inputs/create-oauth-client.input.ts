@@ -6,6 +6,10 @@ import { PERMISSION_MAP } from "@calcom/platform-constants";
 
 export const ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS =
   "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user.";
+
+export const ARE_CALENDAR_EVENTS_ENABLED_DOCS =
+  "If true and if managed user has calendar connected, calendar events will be created. Disable it if you manually create calendar events. Default to true.";
+
 export class CreateOAuthClientInput {
   @IsOptional()
   @IsString()
@@ -60,4 +64,14 @@ export class CreateOAuthClientInput {
     description: ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS,
   })
   areDefaultEventTypesEnabled? = false;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value ?? true)
+  @ApiPropertyOptional({
+    type: Boolean,
+    default: true,
+    description: ARE_CALENDAR_EVENTS_ENABLED_DOCS,
+  })
+  areCalendarEventsEnabled? = true;
 }

@@ -19,7 +19,10 @@ const calFont = localFont({
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("icon_showcase"),
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    "/icons"
   );
 };
 export default async function IconsPage() {

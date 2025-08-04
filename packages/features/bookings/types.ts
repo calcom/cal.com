@@ -46,6 +46,7 @@ export type BookerEvent = Pick<
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
+  | "lockedTimeZone"
   | "schedule"
   | "seatsPerTimeSlot"
   | "title"
@@ -61,6 +62,7 @@ export type BookerEvent = Pick<
   | "autoTranslateDescriptionEnabled"
   | "disableCancelling"
   | "disableRescheduling"
+  | "interfaceLanguage"
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;

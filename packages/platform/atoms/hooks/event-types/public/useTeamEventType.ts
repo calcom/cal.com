@@ -11,8 +11,6 @@ export const QUERY_KEY = "use-team-event-type";
 
 export const useTeamEventType = (teamId: number | undefined, eventSlug: string, isTeamEvent: boolean | undefined, hostsLimit?: number) => {
   const { organizationId } = useAtomsContext();
-
-
   const requestEventSlug = eventSlug;
 
   let pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;

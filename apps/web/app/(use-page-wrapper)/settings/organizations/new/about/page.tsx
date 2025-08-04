@@ -11,7 +11,10 @@ import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/about-vi
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("about_your_organization"),
-    (t) => t("about_your_organization_description")
+    (t) => t("about_your_organization_description"),
+    undefined,
+    undefined,
+    "/settings/organizations/new/about"
   );
 
 const getData = withAppDirSsr(getServerSideProps);

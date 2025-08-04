@@ -14,27 +14,23 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
-import {
-  InfiniteSkeletonLoader,
-  EventTypesSkeletonLoader,
-} from "@calcom/features/eventtypes/components/SkeletonLoader";
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { parseEventTypeColor } from "@calcom/lib";
+import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
+import { filterActiveLinks } from "@calcom/lib/hashedLinksUtils";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Alert } from "@calcom/ui/components/alert";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { UserAvatarGroup } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -59,8 +55,6 @@ import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { TRPCClientError } from "@trpc/client";
 
@@ -267,7 +261,7 @@ export const InfiniteEventTypeList = ({
   const [privateLinkCopyIndices, setPrivateLinkCopyIndices] = useState<Record<string, number>>({});
 
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.eventTypeOrder.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
@@ -475,6 +469,14 @@ export const InfiniteEventTypeList = ({
     return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
   };
 
+  const userTimezone = extractHostTimezone({
+    userId: firstItem.userId,
+    teamId: firstItem?.teamId,
+    hosts: firstItem?.hosts,
+    owner: firstItem?.owner,
+    team: firstItem?.team,
+  });
+
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
@@ -482,11 +484,17 @@ export const InfiniteEventTypeList = ({
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
             const calLink = `${bookerUrl}/${embedLink}`;
+
+            const activeHashedLinks = type.hashedLink ? filterActiveLinks(type.hashedLink, userTimezone) : [];
+
+            // Ensure index is within bounds for active links
+            const currentIndex = privateLinkCopyIndices[type.slug] ?? 0;
+            const safeIndex = activeHashedLinks.length > 0 ? currentIndex % activeHashedLinks.length : 0;
+
             const isPrivateURLEnabled =
-              type.hashedLink && type.hashedLink.length > 0
-                ? type.hashedLink[privateLinkCopyIndices[type.slug] ?? 0]?.link
-                : "";
+              activeHashedLinks.length > 0 ? activeHashedLinks[safeIndex]?.link : "";
             const placeholderHashedLink = `${bookerUrl}/d/${isPrivateURLEnabled}/${type.slug}`;
+
             const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
             const isChildrenManagedEventType =
               type.metadata?.managedEventConfig !== undefined &&
@@ -588,8 +596,8 @@ export const InfiniteEventTypeList = ({
                                         copyToClipboard(placeholderHashedLink);
                                         setPrivateLinkCopyIndices((prev) => {
                                           const prevIndex = prev[type.slug] ?? 0;
-                                          prev[type.slug] = (prevIndex + 1) % type.hashedLink.length;
-                                          return prev;
+                                          const nextIndex = (prevIndex + 1) % activeHashedLinks.length;
+                                          return { ...prev, [type.slug]: nextIndex };
                                         });
                                       }}
                                     />
@@ -604,7 +612,7 @@ export const InfiniteEventTypeList = ({
                                   variant="icon"
                                   color="secondary"
                                   StartIcon="ellipsis"
-                                  // Unsual practice to use radix state open but for some reason this dropdown and only thi dropdown clears the border radius of this button.
+                                  // Unusual practice to use radix state open but for some reason this dropdown and only this dropdown clears the border radius of this button.
                                   className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
                                 />
                               </DropdownMenuTrigger>
@@ -661,7 +669,7 @@ export const InfiniteEventTypeList = ({
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
                                         StartIcon="trash"
-                                        className="w-full rounded-none">
+                                        className="w-full rounded-t-none">
                                         {t("delete")}
                                       </DropdownItem>
                                     </DropdownMenuItem>
@@ -758,7 +766,7 @@ export const InfiniteEventTypeList = ({
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
                                   StartIcon="trash"
-                                  className="w-full rounded-none">
+                                  className="w-full rounded-t-none">
                                   {t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -766,7 +774,7 @@ export const InfiniteEventTypeList = ({
                           )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
-                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
+                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between rounded-b-lg px-4 py-2 transition">
                               <Skeleton
                                 as={Label}
                                 htmlFor="hiddenSwitch"
@@ -841,7 +849,6 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
 
 const CTA = ({
   profileOptions,
-  isOrganization,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -850,7 +857,6 @@ const CTA = ({
     membershipRole: MembershipRole | null | undefined;
     slug: string | null;
   }[];
-  isOrganization: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -892,27 +898,15 @@ const EmptyEventTypeList = ({
 };
 
 const InfiniteScrollMain = ({
-  status,
-  errorMessage,
   eventTypeGroups,
   profiles,
 }: {
-  status: string;
-  errorMessage?: string;
-  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
-  profiles: GetUserEventGroupsResponse["profiles"] | undefined;
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
+  profiles: GetUserEventGroupsResponse["profiles"];
 }) => {
   const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
-
-  if (status === "error") {
-    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
-  }
-
-  if (!eventTypeGroups || !profiles || status === "pending") {
-    return <EventTypesSkeletonLoader />;
-  }
 
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
@@ -931,8 +925,8 @@ const InfiniteScrollMain = ({
   // This is to ensure that the bookerUrl is always the same as the one in the org branding settings
   // This keeps the app working for personal event types that were not migrated to the org (rare)
   if (
-    activeEventTypeGroup[0].teamId === orgBranding?.id ||
-    activeEventTypeGroup[0].parentId === orgBranding?.id
+    orgBranding &&
+    (activeEventTypeGroup[0].teamId === orgBranding.id || activeEventTypeGroup[0].parentId === orgBranding.id)
   ) {
     activeEventTypeGroup[0].bookerUrl = bookerUrl;
   }
@@ -948,20 +942,17 @@ const InfiniteScrollMain = ({
   );
 };
 
-export const EventTypesCTA = () => {
-  const { data: user } = useMeQuery();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
-  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
-    filters && { filters },
-    {
-      refetchOnWindowFocus: false,
-      gcTime: 1 * 60 * 60 * 1000,
-      staleTime: 1 * 60 * 60 * 1000,
-    }
-  );
+type Props = {
+  userEventGroupsData: GetUserEventGroupsResponse;
+  user: {
+    id: number;
+    completedOnboarding?: boolean;
+  } | null;
+};
+
+export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    getUserEventGroupsData?.profiles
+    userEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
       ?.map((profile) => {
@@ -974,28 +965,13 @@ export const EventTypesCTA = () => {
         };
       }) ?? [];
 
-  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+  return <CTA profileOptions={profileOptions} />;
 };
 
-const EventTypesPage: React.FC = () => {
-  const { data: user } = useMeQuery();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
-  const routerQuery = useRouterQuery();
-  const filters = getTeamsFiltersFromQuery(routerQuery);
   const router = useRouter();
-
-  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
-  const {
-    data: getUserEventGroupsData,
-    status: getUserEventGroupsStatus,
-    error: getUserEventGroupsStatusError,
-  } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(filters && { filters }, {
-    refetchOnWindowFocus: false,
-    gcTime: 1 * 60 * 60 * 1000,
-    staleTime: 1 * 60 * 60 * 1000,
-  });
 
   useEffect(() => {
     /**
@@ -1016,10 +992,8 @@ const EventTypesPage: React.FC = () => {
 
   return (
     <InfiniteScrollMain
-      profiles={getUserEventGroupsData?.profiles}
-      eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-      status={getUserEventGroupsStatus}
-      errorMessage={getUserEventGroupsStatusError?.message}
+      profiles={userEventGroupsData.profiles}
+      eventTypeGroups={userEventGroupsData.eventTypeGroups}
     />
   );
 };

@@ -9,10 +9,13 @@ import { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSide
 import type { PageProps as ClientPageProps } from "~/videos/views/videos-meeting-ended-single-view";
 import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
 
-export const generateMetadata = async () =>
+export const generateMetadata = async ({ params }: ServerPageProps) =>
   await _generateMetadata(
     (t) => t("meeting_unavailable"),
-    (t) => t("meeting_unavailable")
+    (t) => t("meeting_unavailable"),
+    undefined,
+    undefined,
+    `/video/meeting-ended/${(await params).uid}`
   );
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);

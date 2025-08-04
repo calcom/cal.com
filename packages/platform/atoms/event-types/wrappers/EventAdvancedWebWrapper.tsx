@@ -4,6 +4,9 @@ import { trpc } from "@calcom/trpc/react";
 
 const EventAdvancedWebWrapper = ({ ...props }: EventAdvancedBaseProps) => {
   const connectedCalendarsQuery = trpc.viewer.calendars.connectedCalendars.useQuery();
+  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
+    teamId: props.team?.id,
+  });
   return (
     <EventAdvancedTab
       {...props}
@@ -13,6 +16,7 @@ const EventAdvancedWebWrapper = ({ ...props }: EventAdvancedBaseProps) => {
         error: connectedCalendarsQuery.error,
       }}
       showBookerLayoutSelector={true}
+      verifiedEmails={verifiedEmails}
     />
   );
 };

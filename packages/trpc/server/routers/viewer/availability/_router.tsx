@@ -12,70 +12,36 @@ type AvailabilityRouterHandlerCache = {
   listTeamAvailability?: typeof import("./team/listTeamAvailability.handler").listTeamAvailabilityHandler;
 };
 
-const UNSTABLE_HANDLER_CACHE: AvailabilityRouterHandlerCache = {};
-
 export const availabilityRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
-    }
+    const { listHandler } = await import("./list.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.list) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.list({
+    return listHandler({
       ctx,
     });
   }),
 
   user: authedProcedure.input(ZUserInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.user) {
-      UNSTABLE_HANDLER_CACHE.user = await import("./user.handler").then((mod) => mod.userHandler);
-    }
+    const { userHandler } = await import("./user.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.user) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.user({
+    return userHandler({
       ctx,
       input,
     });
   }),
   listTeam: authedProcedure.input(ZListTeamAvailaiblityScheme).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listTeamAvailability) {
-      UNSTABLE_HANDLER_CACHE.listTeamAvailability = await import("./team/listTeamAvailability.handler").then(
-        (mod) => mod.listTeamAvailabilityHandler
-      );
-    }
+    const { listTeamAvailabilityHandler } = await import("./team/listTeamAvailability.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listTeamAvailability) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.listTeamAvailability({
+    return listTeamAvailabilityHandler({
       ctx,
       input,
     });
   }),
   schedule: scheduleRouter,
   calendarOverlay: authedProcedure.input(ZCalendarOverlayInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
-      UNSTABLE_HANDLER_CACHE.calendarOverlay = await import("./calendarOverlay.handler").then(
-        (mod) => mod.calendarOverlayHandler
-      );
-    }
+    const { calendarOverlayHandler } = await import("./calendarOverlay.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.calendarOverlay) {
-      throw new Error("Failed to load handler");
-    }
-
-    return UNSTABLE_HANDLER_CACHE.calendarOverlay({
+    return calendarOverlayHandler({
       ctx,
       input,
     });

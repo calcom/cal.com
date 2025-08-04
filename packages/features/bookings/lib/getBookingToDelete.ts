@@ -73,7 +73,9 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           bookingFields: true,
           seatsShowAttendees: true,
           metadata: true,
+          hideOrganizerEmail: true,
           schedulingType: true,
+          customReplyToEmail: true,
           hosts: {
             select: {
               user: true,
@@ -98,6 +100,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       responses: true,
       iCalUID: true,
       iCalSequence: true,
+      status: true,
     },
   });
 }

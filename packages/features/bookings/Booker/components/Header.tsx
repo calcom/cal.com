@@ -130,7 +130,7 @@ export function Header({
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate(today.format("YYYY-MM-DD"))}>
+              onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
               {t("today")}
             </Button>
           )}

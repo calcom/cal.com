@@ -1,4 +1,4 @@
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
+import { OrganizationMembershipOutput } from "@/modules/organizations/memberships/outputs/organization-membership.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
@@ -11,10 +11,10 @@ export class GetOrgMembership {
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: TeamMembershipOutput,
+    type: OrganizationMembershipOutput,
   })
   @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => TeamMembershipOutput)
-  data!: TeamMembershipOutput;
+  @Type(() => OrganizationMembershipOutput)
+  data!: OrganizationMembershipOutput;
 }

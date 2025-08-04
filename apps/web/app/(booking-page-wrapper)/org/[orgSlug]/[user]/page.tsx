@@ -20,6 +20,7 @@ const getData = withAppDirSsr<OrgPageProps>(getServerSideProps);
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
+  const decodedParams = decodeParams(await params);
 
   if ((props as TeamPageProps)?.team) {
     const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = props as TeamPageProps;
@@ -30,7 +31,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         image: getOrgOrTeamAvatar(team),
       },
     };
-    const decodedParams = decodeParams(await params);
     return {
       ...(await generateMeetingMetadata(
         meeting,
@@ -67,7 +67,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         () => profile.name,
         () => markdownStrippedBio,
         false,
-        getOrgFullOrigin(entity.orgSlug ?? null)
+        getOrgFullOrigin(entity.orgSlug ?? null),
+        `/${decodedParams.user}`
       )),
       robots: {
         index: allowSEOIndexing,

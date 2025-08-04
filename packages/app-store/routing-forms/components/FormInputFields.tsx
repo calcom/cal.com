@@ -51,7 +51,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const options = getUIOptionsForSelect(field);
         const fieldIdentifier = getFieldIdentifier(field);
         return (
-          <div key={field.id} className="mb-4 block flex-col sm:flex ">
+          <div key={field.id} className="block flex-col sm:flex ">
             <div className="min-w-48 mb-2 flex-grow">
               <label id="slug-label" htmlFor="slug" className="text-default flex text-sm font-medium">
                 {field.label}

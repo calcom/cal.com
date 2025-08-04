@@ -4,7 +4,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,6 +30,7 @@ type UseHandleBookingProps = {
   handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
+  isBookingDryRun?: boolean;
 };
 
 export const useHandleBookEvent = ({
@@ -43,6 +43,7 @@ export const useHandleBookEvent = ({
   handleRecBooking,
   locationUrl,
   routingFormSearchParams,
+  isBookingDryRun,
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStore((state) => state.setFormValues);
@@ -61,6 +62,7 @@ export const useHandleBookEvent = ({
   const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
   const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
   const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
+  const crmRecordId = useBookerStore((state) => state.crmRecordId);
   const handleError = (err: any) => {
     const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
@@ -91,8 +93,6 @@ export const useHandleBookEvent = ({
         ? duration
         : event.data.length;
 
-      setLastBookingResponse(values.responses);
-
       const bookingInput = {
         values,
         duration: validDuration,
@@ -109,8 +109,10 @@ export const useHandleBookEvent = ({
         teamMemberEmail,
         crmOwnerRecordType,
         crmAppSlug,
+        crmRecordId,
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
+        isDryRunProp: isBookingDryRun,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

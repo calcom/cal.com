@@ -78,6 +78,14 @@ const accountQueryResponse = {
   ],
 };
 
+const mockSalesforceGraphQLClientQuery = vi.fn();
+
+vi.mock("./graphql/SalesforceGraphQLClient", () => ({
+  SalesforceGraphQLClient: class {
+    GetAccountRecordsForRRSkip = mockSalesforceGraphQLClientQuery;
+  },
+}));
+
 describe("SalesforceCRMService", () => {
   let service: SalesforceCRMService;
   let mockConnection: { query: any; sobject: any };
@@ -105,6 +113,7 @@ describe("SalesforceCRMService", () => {
       user: {
         email: "test-user@example.com",
       },
+      delegationCredentialId: null,
     };
 
     service = new SalesforceCRMService(mockCredential, {}, true);
@@ -484,11 +493,16 @@ describe("SalesforceCRMService", () => {
         mockAppOptions({
           roundRobinSkipCheckRecordOn: SalesforceRecordEnum.ACCOUNT,
         });
-        const querySpy = vi.spyOn(mockConnection, "query");
-        querySpy
-          .mockResolvedValueOnce(contactUnderAccountQueryResponse)
-          .mockResolvedValueOnce(accountQueryResponse)
-          .mockResolvedValueOnce(ownerQueryResponse);
+
+        mockSalesforceGraphQLClientQuery.mockResolvedValueOnce([
+          {
+            id: "acc001",
+            email: "test@example.com",
+            ownerId: "owner001",
+            ownerEmail: "owner@example.com",
+            recordType: SalesforceRecordEnum.ACCOUNT,
+          },
+        ]);
 
         const result = await service.getContacts({
           emails: "test@example.com",
@@ -504,11 +518,6 @@ describe("SalesforceCRMService", () => {
             recordType: "Account",
           },
         ]);
-
-        expect(querySpy).toHaveBeenNthCalledWith(
-          1,
-          "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
-        );
       });
     });
   });
@@ -569,21 +578,6 @@ describe("SalesforceCRMService", () => {
       const result = service.getAllPossibleAccountWebsiteFromEmailDomain("example.com");
       expect(result).toEqual(
         "'example.com', 'www.example.com', 'http://www.example.com', 'http://example.com', 'https://www.example.com', 'https://example.com'"
-      );
-    });
-  });
-
-  describe("getAccountBasedOnEmailDomainOfContacts", () => {
-    it("should return the account ID based on email domain", async () => {
-      const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy.mockResolvedValueOnce(accountQueryResponse);
-
-      await service.getAccountBasedOnEmailDomainOfContacts("test@example.com");
-      expect(querySpy).toHaveBeenNthCalledWith(
-        1,
-        `SELECT Id, OwnerId, Owner.Email, Website FROM Account WHERE Website IN (${service.getAllPossibleAccountWebsiteFromEmailDomain(
-          "example.com"
-        )}) LIMIT 1`
       );
     });
   });

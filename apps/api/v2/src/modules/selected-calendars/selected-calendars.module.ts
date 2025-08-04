@@ -4,6 +4,7 @@ import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsController } from "@/modules/selected-calendars/controllers/selected-calendars.controller";
@@ -22,6 +23,7 @@ import { Module } from "@nestjs/common";
     CredentialsRepository,
     AppsRepository,
     OrganizationsMembershipService,
+    OrganizationsMembershipOutputService,
     OrganizationsDelegationCredentialRepository,
     OrganizationsMembershipRepository,
     SelectedCalendarsService,

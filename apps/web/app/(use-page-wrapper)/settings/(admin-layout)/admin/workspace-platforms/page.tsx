@@ -7,7 +7,10 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("workspace_platforms"),
-    (t) => t("workspace_platforms_description")
+    (t) => t("workspace_platforms_description"),
+    undefined,
+    undefined,
+    "/settings/admin/workspace-platforms"
   );
 
 const Page = async () => {

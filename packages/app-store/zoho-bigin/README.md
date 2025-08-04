@@ -6,4 +6,4 @@
 4. Go to tab "Client Secret" tab.
 5. Now copy the Client ID and Client Secret to your .env.appStore file into the `ZOHO_BIGIN_CLIENT_ID` and `ZOHO_BIGIN_CLIENT_SECRET` fields.
 6. In the "Settings" section check the "Multi-DC" option if you wish to use the same OAuth credentials for all data centers.
-7. You're good to go. Now you can easily add Zoho Bigin from the Cal.com app store.
+7. You're good to go. Now you can easily add Zoho Bigin from the [Cal.com](https://cal.com) app store.

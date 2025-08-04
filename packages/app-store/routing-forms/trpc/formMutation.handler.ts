@@ -1,7 +1,7 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -235,7 +235,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     inputFields: InputFields
   ) {
     for (const [, connectedForm] of Object.entries(serializedForm.connectedForms)) {
-      const connectedFormDb = await prisma.app_RoutingForms_Form.findFirst({
+      const connectedFormDb = await prisma.app_RoutingForms_Form.findUnique({
         where: {
           id: connectedForm.id,
         },

@@ -1,9 +1,8 @@
-import { z } from "zod";
-
 import type { AnyRouter } from "@trpc/server";
 import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
 
 import { createContext as createTrpcContext } from "./createContext";
+import { onErrorHandler } from "./onErrorHandler";
 
 /**
  * Creates an API handler executed by Next.js.
@@ -20,12 +19,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
     /**
      * @link https://trpc.io/docs/error-handling
      */
-    onError({ error }) {
-      if (error.code === "INTERNAL_SERVER_ERROR") {
-        // send to bug reporting
-        console.error("Something went wrong", error);
-      }
-    },
+    onError: onErrorHandler,
     /**
      * Enable query batching
      */
@@ -46,9 +40,6 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
       const defaultHeaders: Record<"headers", Record<string, string>> = {
         headers: {},
       };
-
-      const timezone = z.string().safeParse(ctx.req?.headers["x-vercel-ip-timezone"]);
-      if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
 
       // We need all these conditions to be true to set cache headers
       if (!(isPublic && allOk && isQuery)) return defaultHeaders;

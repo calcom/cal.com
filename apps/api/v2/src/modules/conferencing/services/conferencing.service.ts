@@ -3,9 +3,15 @@ import { ConferencingRepository } from "@/modules/conferencing/repositories/conf
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -15,7 +21,8 @@ import {
   ZOOM,
   OFFICE_365_VIDEO,
 } from "@calcom/platform-constants";
-import { userMetadata, getUsersCredentials } from "@calcom/platform-libraries";
+import { userMetadata } from "@calcom/platform-libraries";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import { getApps, handleDeleteCredential } from "@calcom/platform-libraries/app-store";
 
 @Injectable()
@@ -25,6 +32,7 @@ export class ConferencingService {
   constructor(
     private readonly conferencingRepository: ConferencingRepository,
     private readonly usersRepository: UsersRepository,
+    private readonly tokensRepository: TokensRepository,
     private readonly googleMeetService: GoogleMeetService,
     private readonly zoomVideoService: ZoomVideoService,
     private readonly office365VideoService: Office365VideoService
@@ -47,10 +55,13 @@ export class ConferencingService {
   async connectOauthApps(
     app: string,
     code: string,
-    userId: number,
     decodedCallbackState: OAuthCallbackState,
     teamId?: number
   ) {
+    const userId = await this.tokensRepository.getAccessTokenOwnerId(decodedCallbackState.accessToken);
+    if (!userId) {
+      throw new UnauthorizedException("Invalid Access token.");
+    }
     switch (app) {
       case ZOOM:
         return await this.zoomVideoService.connectZoomApp(decodedCallbackState, code, userId, teamId);
@@ -80,7 +91,7 @@ export class ConferencingService {
     if (!CONFERENCING_APPS.includes(appSlug)) {
       throw new BadRequestException("Invalid app, available apps are: ", CONFERENCING_APPS.join(", "));
     }
-    const credentials = await getUsersCredentials(user);
+    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
 
     const foundApp = getApps(credentials, true).filter((app) => app.slug === appSlug)[0];
 

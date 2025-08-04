@@ -11,7 +11,11 @@ export class CreateTeamInput {
 
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional({ type: String, description: "Team slug", example: "caltel" })
+  @ApiPropertyOptional({
+    type: String,
+    description: "Team slug in kebab-case - if not provided will be generated automatically based on name.",
+    example: "caltel",
+  })
   readonly slug?: string;
 
   @IsOptional()

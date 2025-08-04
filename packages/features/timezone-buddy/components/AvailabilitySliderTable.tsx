@@ -47,7 +47,7 @@ function UpgradeTeamTip() {
     <UpgradeTip
       plan="team"
       title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
-      description="add_your_team_members"
+      description={t("add_your_team_members")}
       background="/tips/teams"
       features={[]}
       buttons={
@@ -67,7 +67,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
+export function AvailabilitySliderTable(props: { isOrg: boolean }) {
   return (
     <DataTableProvider>
       <AvailabilitySliderTableContent {...props} />
@@ -75,7 +75,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   );
 }
 
-function AvailabilitySliderTableContent(props: { userTimeFormat: number | null; isOrg: boolean }) {
+function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);

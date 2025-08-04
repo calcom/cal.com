@@ -1,5 +1,6 @@
 import { sendVerificationCode } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -20,13 +21,16 @@ export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificati
   const isCurrentUsernamePremium =
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
+  const creditBalance = await CreditsRepository.findCreditBalance({ userId: user.id });
+  const hasNoAdditionalCredits = !!creditBalance && creditBalance.additionalCredits <= 0;
+
   let isTeamsPlan = false;
   if (!isCurrentUsernamePremium) {
     const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
     isTeamsPlan = !!hasTeamPlan;
   }
 
-  if (!isCurrentUsernamePremium && !isTeamsPlan) {
+  if (!isCurrentUsernamePremium && !isTeamsPlan && hasNoAdditionalCredits) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 

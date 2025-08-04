@@ -17,6 +17,7 @@ export default class EventLocationChangedSMS extends SMSManager {
 
     const urlText = t("you_can_view_booking_details_with_this_url", {
       url: bookingUrl,
+      interpolation: { escapeValue: false },
     });
 
     return `${messageText}\n\n${urlText}`;

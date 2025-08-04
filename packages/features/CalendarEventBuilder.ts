@@ -47,10 +47,14 @@ export class CalendarEventBuilder {
     id: number;
     hideCalendarNotes?: boolean;
     hideCalendarEventDetails?: boolean;
+    hideOrganizerEmail?: boolean;
     schedulingType?: SchedulingType | null;
     seatsPerTimeSlot?: number | null;
     seatsShowAttendees?: boolean | null;
     seatsShowAvailabilityCount?: boolean | null;
+    customReplyToEmail?: string | null;
+    disableRescheduling?: boolean;
+    disableCancelling?: boolean;
   }) {
     this.event = {
       ...this.event,
@@ -59,11 +63,15 @@ export class CalendarEventBuilder {
       eventTypeId: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
       hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+      hideOrganizerEmail: eventType.hideOrganizerEmail,
       schedulingType: eventType.schedulingType,
       seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       // if seats are not enabled we should default true
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
+      customReplyToEmail: eventType.customReplyToEmail,
+      disableRescheduling: eventType.disableRescheduling ?? false,
+      disableCancelling: eventType.disableCancelling ?? false,
     };
     return this;
   }

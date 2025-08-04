@@ -34,6 +34,7 @@ export const getCalendarEvent = async (booking: getBookingResponse) => {
     },
     attendees: attendeesList,
     uid: booking.uid,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
   };
 
   return Promise.resolve(evt);

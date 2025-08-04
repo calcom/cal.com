@@ -98,7 +98,10 @@ export class OAuthClientUsersController {
       status: SUCCESS_STATUS,
       data: {
         user: this.oAuthClientUsersOutputService.getResponseUser(user),
-        ...tokens,
+        accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
+        refreshToken: tokens.refreshToken,
+        refreshTokenExpiresAt: tokens.refreshTokenExpiresAt.valueOf(),
       },
     };
   }
@@ -162,7 +165,7 @@ export class OAuthClientUsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: "Force refresh tokens",
-    description: `If you have lost managed user access or refresh token or the refresh token has expired, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
+    description: `If you have lost managed user access or refresh token, then you can get new ones by using OAuth credentials. ${TOKENS_DOCS}`,
   })
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   async forceRefresh(
@@ -171,16 +174,19 @@ export class OAuthClientUsersController {
   ): Promise<KeysResponseDto> {
     this.logger.log(`Forcing new access tokens for managed user with ID ${userId}`);
 
-    await this.validateManagedUserOwnership(oAuthClientId, userId);
+    const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken } = await this.tokensRepository.refreshOAuthTokens(
-      userId,
-      oAuthClientId
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.forceRefreshOAuthTokens(oAuthClientId, id);
 
     return {
       status: SUCCESS_STATUS,
-      data: this.oAuthClientUsersService.getResponseOAuthTokens(accessToken, refreshToken),
+      data: {
+        accessToken,
+        refreshToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
+        refreshTokenExpiresAt: refreshTokenExpiresAt.valueOf(),
+      },
     };
   }
 

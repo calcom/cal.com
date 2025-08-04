@@ -5,10 +5,10 @@ import { ConfigService } from "@nestjs/config";
 
 const CACHING_TIME = 86400000; // 24 hours in milliseconds
 
-const getLicenseCacheKey = (key: string) => `api-v2-license-key-url-${key}`;
+const getLicenseCacheKey = (key: string) => `api-v2-license-key-goblin-url-${key}`;
 
 type LicenseCheckResponse = {
-  valid: boolean;
+  status: boolean;
 };
 @Injectable()
 export class DeploymentsService {
@@ -36,12 +36,12 @@ export class DeploymentsService {
     const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `/${licenseKey}`;
     const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
     if (cachedData) {
-      return (JSON.parse(cachedData) as LicenseCheckResponse)?.valid;
+      return (JSON.parse(cachedData) as LicenseCheckResponse)?.status;
     }
     const response = await fetch(licenseKeyUrl, { mode: "cors" });
     const data = (await response.json()) as LicenseCheckResponse;
     const cacheKey = getLicenseCacheKey(licenseKey);
     this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
-    return data.valid;
+    return data.status;
   }
 }

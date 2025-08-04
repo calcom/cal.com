@@ -1,0 +1,161 @@
+---
+title: Global event types
+description: Event types that every managed user or a subset of managed users will have automatically
+---
+
+If you want all of your managed users or a subset of managed users to have the same event type set up automatically, then follow along.
+
+## Prerequisites
+
+1. You need to have an OAuth client set up, since we'll need the client id and client secret from the OAuth client to be included in the API requests. Here is the link for the [OAuth client setup guide](https://cal.com/docs/platform/quickstart)
+2. You need to have an ESSENTIALS plan or higher
+
+## Steps
+
+Overview:
+1. Create a team.
+2. Create managed team event type with `assignAllTeamMembers: true` - it is an event type that you can define once and that will be used as a template to create event types for managed users. We call it the parent
+managed event type and the event types created for managed users based on it are called children managed event types.
+3. Create managed users.
+4. For each managed user you want to have this event type, create a membership within the team.
+
+Then the managed user will have the event type created. Once you have steps 1 and 2 set up, you simply need to add the managed user to the team
+and the user will have the event type created. If you then update the parent managed event type then it will automatically update all of the children managed event types.
+
+<Steps>
+
+<Step>
+ Create a team by sending a POST request to the [create a team](https://cal.com/docs/api-reference/v2/orgs-teams/create-a-team) endpoint. Example request body:
+
+```
+{
+  "name": "coffee fans",
+  "slug": "coffee-fans"
+}
+```
+
+You will need to note down the "id" of the created team from the response:
+```
+{
+    "status": "success",
+    "data": {
+        ...
+        "id": 1041,
+        ...
+    }
+}
+```
+
+</Step>
+
+<Step>
+Now we will create the managed team event type. Make a POST request to the [create an organization team event type](https://cal.com/docs/api-reference/v2/orgs-teams-event-types/create-an-event-type) endpoint. Example request body:
+```
+{
+  "lengthInMinutes": 60,
+  "title": "coffee tasting",
+  "slug": "coffee-tasting",
+  "schedulingType": "managed",
+  "assignAllTeamMembers": true
+}
+```
+
+Note that `"schedulingType"` has to be set to `"managed"` and `"assignAllTeamMembers"` has to be set to `true`. `"assignAllTeamMembers"` being `true` means that once a managed user has membership in the team this event type will be automatically created for the managed user.
+
+You will need to note down the "id" of the created event type from the response:
+```
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 3672,
+            "lengthInMinutes": 60,
+            "title": "coffee tasting",
+            "slug": "coffee-tasting",
+            "schedulingType": "managed",
+            "assignAllTeamMembers": true,
+            ...
+        }
+    ]
+}
+```
+</Step>
+
+<Step>
+The team created in the previous step has no members, so we need to create managed users and later their membership in the team. To create a managed user here is the [create managed user](https://cal.com/docs/api-reference/v2/platform-managed-users/create-a-managed-user) endpoint. Example request body:
+```
+{
+    "email": "charlie@gmail.com",
+    "name": "charlie",
+    "timeZone": "Europe/Rome"
+}
+```
+
+After creating managed user you have to save its "id", "accessToken" and "refreshToken" in your database and note down the "id" for the next step. Here is response:
+```
+{
+    "status": "success",
+    "data": {
+        "user": {
+            "id": 1458,
+            "email": "charlie+clxyyy21o0003sbk7yw5z6tzg@gmail.com",
+            "username": "charlie-clxyyy21o0003sbk7yw5z6tzg-gmail-com",
+            "name": "charlie",
+            ...
+        },
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiY2xpZW50SWQiOiJjbHh5eXkyMW8wMDAzc2JrN3l3NXo2dHpnIiwib3duZXJJZCI6MTQ1OCwiZXhwaXJlc0F0IjoxNzQ1NDkwODQwMDAwLCJpYXQiOjE3NDU0ODcyNTh9.FI9-Hi7O_j4QLn7SuNJlOnmk-0MHhZoXPCncsmgyCoQ",
+        "accessTokenExpiresAt": 1745490840000,
+        "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoicmVmcmVzaF90b2tlbiIsImNsaWVudElkIjoiY2x4eXl5MjFvMDAwM3Niazd5dzV6NnR6ZyIsIm93bmVySWQiOjE0NTgsImV4cGlyZXNBdCI6MTc3Njk4MTYwMDAwMCwiaWF0IjoxNzQ1NDg3MjU4fQ.YYTH7WeshMR-BpbNeSYFUubjTlsAsOhdhrge-LngRiw",
+        "refreshTokenExpiresAt": 1776981600000
+    }
+}
+```
+</Step>
+
+<Step>
+
+Now we will create a membership for this user within the team by making a POST request to the [create membership](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership) endpoint. Example body:
+
+```
+{
+  "userId": 1458,
+  "accepted": true,
+  "role": "MEMBER"
+}
+```
+Note that `"accepted"` has to be `"true"` and `"userId"` has to be the id of the managed user created in the previous step.
+</Step>
+
+</Steps>
+
+Now, if we fetch managed user event types using the [get event types](https://cal.com/docs/api-reference/v2/event-types/get-all-event-types) endpoint and given our example
+query params `eventSlug` and `username` (`?eventSlug=coffee-tasting&username=charlie-clxyyy21o0003sbk7yw5z6tzg-gmail-com`), the response will contain the "global" event type:
+
+```
+{
+    "status": "success",
+    "data": [
+        {
+            "id": 3673,
+            "ownerId": 1458,
+            "lengthInMinutes": 60,
+            "title": "coffee tasting",
+            "slug": "coffee-tasting"
+            ...
+        }
+    ]
+}
+```
+
+Note, that when we create the "parent" managed event type in step 2 it has an id `3672` but the child managed event type belonging to managed user has `3673`, so they are separate entities
+and the "child" managed event type is the same as having individually created event type just for that managed user.
+
+Now, if we update the "parent" managed team event type via [update an organization team event type](https://cal.com/docs/api-reference/v2/orgs-teams-event-types/update-a-team-event-type) endpoint, and fetch
+again managed user event type using the [get event types](https://cal.com/docs/api-reference/v2/event-types/get-all-event-types) endpoint with same query parameters `eventSlug` and `username` as above,
+the child managed event type will also be updated automatically.
+
+Now with this setup you can:
+1. Each time you create a new managed user simply create membership within the team and have the event type created automatically.
+2. If you want that already existing managed users have the event type created, you have to create team and then membership within the team just like we saw above.
+3. You can create a team called "global" where you add all managed users so all managed users have the same event type or a subset of managed users have the same event type belonging to "subset-team"
+if you want to have a subset of managed users have the same event type.

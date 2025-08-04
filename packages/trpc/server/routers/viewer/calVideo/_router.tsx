@@ -2,46 +2,38 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZGetCalVideoRecordingsInputSchema } from "./getCalVideoRecordings.schema";
 import { ZGetDownloadLinkOfCalVideoRecordingsInputSchema } from "./getDownloadLinkOfCalVideoRecordings.schema";
+import { ZGetMeetingInformationInputSchema } from "./getMeetingInformation.schema";
 
 type CalVideoRouterHandlerCache = {
   getCalVideoRecordings?: typeof import("./getCalVideoRecordings.handler").getCalVideoRecordingsHandler;
   getDownloadLinkOfCalVideoRecordings?: typeof import("./getDownloadLinkOfCalVideoRecordings.handler").getDownloadLinkOfCalVideoRecordingsHandler;
+  getMeetingInformation?: typeof import("./getMeetingInformation.handler").getMeetingInformationHandler;
 };
-
-const UNSTABLE_HANDLER_CACHE: CalVideoRouterHandlerCache = {};
 
 export const calVideoRouter = router({
   getCalVideoRecordings: authedProcedure
     .input(ZGetCalVideoRecordingsInputSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getCalVideoRecordings) {
-        UNSTABLE_HANDLER_CACHE.getCalVideoRecordings = (
-          await import("./getCalVideoRecordings.handler")
-        ).getCalVideoRecordingsHandler;
-      }
+      const { getCalVideoRecordingsHandler } = await import("./getCalVideoRecordings.handler");
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getCalVideoRecordings) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.getCalVideoRecordings({ ctx, input });
+      return getCalVideoRecordingsHandler({ ctx, input });
     }),
 
   getDownloadLinkOfCalVideoRecordings: authedProcedure
     .input(ZGetDownloadLinkOfCalVideoRecordingsInputSchema)
     .query(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings) {
-        UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings = (
-          await import("./getDownloadLinkOfCalVideoRecordings.handler")
-        ).getDownloadLinkOfCalVideoRecordingsHandler;
-      }
+      const { getDownloadLinkOfCalVideoRecordingsHandler } = await import(
+        "./getDownloadLinkOfCalVideoRecordings.handler"
+      );
 
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings) {
-        throw new Error("Failed to load handler");
-      }
+      return getDownloadLinkOfCalVideoRecordingsHandler({ ctx, input });
+    }),
 
-      return UNSTABLE_HANDLER_CACHE.getDownloadLinkOfCalVideoRecordings({ ctx, input });
+  getMeetingInformation: authedProcedure
+    .input(ZGetMeetingInformationInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getMeetingInformationHandler } = await import("./getMeetingInformation.handler");
+
+      return getMeetingInformationHandler({ ctx, input });
     }),
 });

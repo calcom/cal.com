@@ -20,14 +20,13 @@ import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-type BookerWebWrapperAtomProps = BookerProps & {
+export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
 };
 
@@ -48,8 +47,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       }
     : clientFetchedEvent;
 
-  const bookerLayout = useBookerLayout(event.data);
-
+  const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
   const selectedDate = searchParams?.get("date");
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
@@ -66,20 +64,20 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
-
   useInitializeBookerStore({
     ...props,
     eventId: props.entity.eventTypeId ?? event?.data?.id,
     rescheduleUid,
     rescheduledBy,
     bookingUid: bookingUid,
-    layout: bookerLayout.defaultLayout,
+    layout: bookerLayout.isMobile ? "mobile" : bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
     timezone,
   });
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+  const [month] = useBookerStore((state) => [state.month, state.setMonth], shallow);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -104,8 +102,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
-  const lastBookingResponse = getLastBookingResponse();
-
   const bookerForm = useBookingForm({
     event: event.data,
     sessionEmail: session?.user.email,
@@ -114,7 +110,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
-    lastBookingResponse,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
@@ -132,7 +127,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       !!bookerLayout.extraDays &&
       dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
     (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
+      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
+    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
+      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
+      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
 
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
@@ -158,6 +156,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     teamMemberEmail: props.teamMemberEmail,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
+    useApiV2: props.useApiV2,
   });
   const bookings = useBookings({
     event,
@@ -208,6 +207,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
         Array.from(searchParams.values()).includes(param)
       )
   );
+
+  useEffect(() => {
+    if (hasSession) onOverlaySwitchStateChange(true);
+  }, [hasSession]);
 
   return (
     <BookerComponent

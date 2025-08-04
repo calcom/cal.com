@@ -26,7 +26,7 @@ function ConnectAndJoin() {
   const session = useSession();
   const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
 
-  const mutation = trpc.viewer.connectAndJoin.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.connectAndJoin.useMutation({
     onSuccess: (res) => {
       if (res.meetingUrl && !res.isBookingAlreadyAcceptedBySomeoneElse) {
         router.push(res.meetingUrl);

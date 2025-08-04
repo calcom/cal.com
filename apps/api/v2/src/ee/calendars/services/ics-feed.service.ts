@@ -35,6 +35,7 @@ export class IcsFeedService implements ICSFeedCalendarApp {
       teamId: null,
       appId: ICS_CALENDAR,
       invalid: false,
+      delegationCredentialId: null,
     };
 
     try {

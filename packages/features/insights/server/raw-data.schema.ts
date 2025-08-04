@@ -11,6 +11,8 @@ export type RawDataInput = {
   memberUserId?: number | null;
   isAll?: boolean;
   eventTypeId?: number | null;
+  offset?: number;
+  limit?: number;
 };
 
 export const rawDataInputSchema = z.object({
@@ -21,6 +23,8 @@ export const rawDataInputSchema = z.object({
   memberUserId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
   eventTypeId: z.coerce.number().optional().nullable(),
+  offset: z.number().optional(),
+  limit: z.number().max(100).optional(),
 }) satisfies z.ZodType<RawDataInput>;
 
 export type RoutingFormStatsInput = {
@@ -57,3 +61,20 @@ export const routingFormResponsesInputSchema = z.object({
   offset: z.number().optional(),
   limit: z.number().max(100).optional(),
 }) satisfies z.ZodType<RoutingFormResponsesInput>;
+
+export const routingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+});
+
+export const bookingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  timeZone: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+});

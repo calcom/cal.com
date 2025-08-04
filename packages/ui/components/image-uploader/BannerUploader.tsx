@@ -209,6 +209,12 @@ async function getCroppedImg(
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Context is null, this should never happen.");
 
+  // Detect original image format from data URL
+  const originalFormat =
+    imageSrc.startsWith("data:image/jpeg") || imageSrc.startsWith("data:image/jpg")
+      ? "image/jpeg"
+      : "image/png";
+
   canvas.width = width;
   canvas.height = height;
 
@@ -224,5 +230,6 @@ async function getCroppedImg(
     canvas.height
   );
 
-  return canvas.toDataURL("image/png");
+  // Use original format with quality setting for JPEG
+  return canvas.toDataURL(originalFormat, originalFormat === "image/jpeg" ? 0.6 : undefined);
 }

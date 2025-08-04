@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
@@ -22,13 +23,17 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
   if (!parsed.success) {
     notFound();
   }
-  const booking = await BookingRepository.findBookingByUid({
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingByUid({
     bookingUid: parsed.data.uid,
   });
 
   return await _generateMetadata(
     (t) => t("this_meeting_has_not_started_yet"),
-    () => booking?.title ?? ""
+    () => booking?.title ?? "",
+    undefined,
+    undefined,
+    `/video/meeting-not-started/${parsed.data.uid}`
   );
 };
 

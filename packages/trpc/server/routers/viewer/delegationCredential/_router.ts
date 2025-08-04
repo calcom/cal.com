@@ -1,19 +1,18 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
-import { router, importHandler } from "../../../trpc";
+import { router } from "../../../trpc";
 import {
   DelegationCredentialCreateSchema,
   DelegationCredentialUpdateSchema,
   DelegationCredentialDeleteSchema,
   DelegationCredentialToggleEnabledSchema,
+  DelegationCredentialGetAffectedMembersForDisableSchema,
 } from "./schema";
-
-const NAMESPACE = "delegationCredential";
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 const checkDelegationCredentialFeature = async ({
   ctx,
@@ -24,7 +23,7 @@ const checkDelegationCredentialFeature = async ({
 }) => {
   const user = ctx.user;
   const t = await getTranslation(user.locale ?? "en", "common");
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
 
   if (!user.organizationId) {
     throw new TRPCError({
@@ -47,46 +46,55 @@ const checkDelegationCredentialFeature = async ({
 };
 
 export const delegationCredentialRouter = router({
+  check: authedOrgAdminProcedure.query(async (opts) => {
+    return await checkDelegationCredentialFeature({
+      ctx: opts.ctx,
+      next: async () => ({
+        hasDelegationCredential: true,
+      }),
+    });
+  }),
   list: authedOrgAdminProcedure.use(checkDelegationCredentialFeature).query(async (opts) => {
-    const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
+    const handler = await import("./list.handler").then((mod) => mod.default);
     return handler(opts);
   }),
   update: authedOrgAdminProcedure
     .use(checkDelegationCredentialFeature)
     .input(DelegationCredentialUpdateSchema)
     .mutation(async (opts) => {
-      const handler = await importHandler(namespaced("update"), () => import("./update.handler"));
+      const handler = await import("./update.handler").then((mod) => mod.default);
       return handler(opts);
     }),
   add: authedOrgAdminProcedure
     .use(checkDelegationCredentialFeature)
     .input(DelegationCredentialCreateSchema)
     .mutation(async (opts) => {
-      const handler = await importHandler(namespaced("add"), () => import("./add.handler"));
+      const handler = await import("./add.handler").then((mod) => mod.default);
       return handler(opts);
     }),
   toggleEnabled: authedOrgAdminProcedure
     .use(checkDelegationCredentialFeature)
     .input(DelegationCredentialToggleEnabledSchema)
     .mutation(async (opts) => {
-      const handler = await importHandler(
-        namespaced("toggleEnabled"),
-        () => import("./toggleEnabled.handler")
-      );
+      const handler = await import("./toggleEnabled.handler").then((mod) => mod.default);
+      return handler(opts);
+    }),
+  getAffectedMembersForDisable: authedOrgAdminProcedure
+    .use(checkDelegationCredentialFeature)
+    .input(DelegationCredentialGetAffectedMembersForDisableSchema)
+    .query(async (opts) => {
+      const handler = await import("./getAffectedMembersForDisable.handler").then((mod) => mod.default);
       return handler(opts);
     }),
   delete: authedOrgAdminProcedure
     .use(checkDelegationCredentialFeature)
     .input(DelegationCredentialDeleteSchema)
     .mutation(async (opts) => {
-      const handler = await importHandler(namespaced("delete"), () => import("./delete.handler"));
+      const handler = await import("./delete.handler").then((mod) => mod.default);
       return handler(opts);
     }),
   listWorkspacePlatforms: authedProcedure.use(checkDelegationCredentialFeature).query(async () => {
-    const handler = await importHandler(
-      namespaced("listWorkspacePlatforms"),
-      () => import("./listWorkspacePlatforms.handler")
-    );
+    const handler = await import("./listWorkspacePlatforms.handler").then((mod) => mod.default);
     return handler();
   }),
 });

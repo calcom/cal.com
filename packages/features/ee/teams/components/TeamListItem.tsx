@@ -30,11 +30,13 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { TeamRole } from "./TeamPill";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["list"][number];
+  orgId: number | null;
   key: number;
   onActionSelect: (text: string) => void;
   isPending?: boolean;
@@ -46,8 +48,7 @@ export default function TeamListItem(props: Props) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const user = trpc.viewer.me.get.useQuery().data;
-  const team = props.team;
+  const { team, orgId } = props;
 
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [openMemberInvitationModal, setOpenMemberInvitationModal] = useState(showDialog);
@@ -59,9 +60,10 @@ export default function TeamListItem(props: Props) {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
       utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
-      const userOrganizationId = user?.profile?.organization?.id;
+      const userOrganizationId = orgId ?? undefined;
       const isSubTeamOfDifferentOrg = team.parentId ? team.parentId != userOrganizationId : false;
       const isDifferentOrg = team.isOrganization && team.id !== userOrganizationId;
       // If the user team being accepted is a sub-team of different organization or the different organization itself then page must be reloaded to let the session change reflect reliably everywhere.
@@ -270,6 +272,7 @@ export default function TeamListItem(props: Props) {
                               color="destructive"
                               type="button"
                               StartIcon="trash"
+                              className="rounded-t-none"
                               onClick={(e) => {
                                 e.stopPropagation();
                               }}>

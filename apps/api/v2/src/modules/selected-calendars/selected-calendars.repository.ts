@@ -7,6 +7,9 @@ const ensureUserLevelWhere = {
   eventTypeId: null,
 };
 
+export const NO_SELECTED_CALENDAR_FOUND = "No SelectedCalendar found.";
+export const MULTIPLE_SELECTED_CALENDARS_FOUND = "Multiple SelecteCalendars found. Skipping deletion";
+
 @Injectable()
 export class SelectedCalendarsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -113,11 +116,11 @@ export class SelectedCalendarsRepository {
 
     // Make the behaviour same as .delete which throws error if no record is found
     if (records.length === 0) {
-      throw new Error("No SelectedCalendar found.");
+      throw new Error(NO_SELECTED_CALENDAR_FOUND);
     }
 
     if (records.length > 1) {
-      throw new Error("Multiple SelecteCalendars found. Skipping deletion");
+      throw new Error(MULTIPLE_SELECTED_CALENDARS_FOUND);
     }
 
     return await this.dbWrite.prisma.selectedCalendar.delete({

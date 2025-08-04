@@ -8,6 +8,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
@@ -50,6 +51,7 @@ type EventType = Pick<
   | "isRRWeightsEnabled"
   | "rescheduleWithSameRoundRobinHost"
   | "teamId"
+  | "includeNoShowInRRCalculation"
 >;
 
 type InputProps = {
@@ -66,7 +68,7 @@ type InputProps = {
   forcedSlug: string | undefined;
 };
 
-export async function loadAndValidateUsers({
+const _loadAndValidateUsers = async ({
   eventType,
   eventTypeId,
   dynamicUserList,
@@ -82,7 +84,7 @@ export async function loadAndValidateUsers({
   qualifiedRRUsers: UsersWithDelegationCredentials;
   additionalFallbackRRUsers: UsersWithDelegationCredentials;
   fixedUsers: UsersWithDelegationCredentials;
-}> {
+}> => {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -221,4 +223,6 @@ export async function loadAndValidateUsers({
     additionalFallbackRRUsers, // without qualified
     fixedUsers,
   };
-}
+};
+
+export const loadAndValidateUsers = withReporting(_loadAndValidateUsers, "loadAndValidateUsers");

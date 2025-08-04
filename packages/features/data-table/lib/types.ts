@@ -1,6 +1,9 @@
+import type { SortingState, ColumnSort, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
+
+export type { SortingState } from "@tanstack/react-table";
 
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",
@@ -110,7 +113,8 @@ export const ZFilterValue = z.union([
 ]);
 
 export type DateRangeFilterOptions = {
-  range: "past" | "custom";
+  range?: "past" | "custom";
+  endOfDay?: boolean;
 };
 
 export type TextFilterOptions = {
@@ -200,11 +204,7 @@ export type TypedColumnFilter<T extends ColumnFilterType> = {
   value: FilterValue<T>;
 };
 
-export type Sorting = {
-  id: string;
-  desc: boolean;
-};
-export type SortingState = Sorting[];
+export type Sorting = ColumnSort;
 
 export const ZSorting = z.object({
   id: z.string(),
@@ -247,11 +247,17 @@ export type FilterSegmentOutput = {
   columnVisibility: Record<string, boolean>;
   columnSizing: Record<string, number>;
   perPage: number;
+  searchTerm: string | null;
   createdAt: Date;
   updatedAt: Date;
   userId: number;
   teamId: number | null;
   team: { id: number; name: string } | null;
+};
+
+export type FilterSegmentsListResponse = {
+  segments: FilterSegmentOutput[];
+  preferredSegmentId: number | null;
 };
 
 export type SegmentStorage = {
@@ -266,3 +272,35 @@ export const ZSegmentStorage = z.record(
     segmentId: z.number(),
   })
 ) satisfies z.ZodType<SegmentStorage>;
+
+export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
+
+export type UseSegmentsProps = {
+  tableIdentifier: string;
+  activeFilters: ActiveFilters;
+  sorting: SortingState;
+  columnVisibility: VisibilityState;
+  columnSizing: ColumnSizingState;
+  pageSize: number;
+  searchTerm: string;
+  defaultPageSize: number;
+  segmentId: number;
+  setSegmentId: (segmentId: number | null) => void;
+  setActiveFilters: (activeFilters: ActiveFilters) => void;
+  setSorting: (sorting: SortingState) => void;
+  setColumnVisibility: (columnVisibility: VisibilityState) => void;
+  setColumnSizing: (columnSizing: ColumnSizingState) => void;
+  setPageSize: (pageSize: number) => void;
+  setPageIndex: (pageIndex: number) => void;
+  setSearchTerm: (searchTerm: string | null) => void;
+  segments?: FilterSegmentOutput[];
+  preferredSegmentId?: number | null;
+};
+
+export type UseSegmentsReturn = {
+  segments: FilterSegmentOutput[];
+  selectedSegment: FilterSegmentOutput | undefined;
+  canSaveSegment: boolean;
+  setAndPersistSegmentId: (segmentId: number | null) => void;
+  isSegmentEnabled: boolean;
+};

@@ -3,13 +3,12 @@ import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { Locales } from "@/lib/enums/locales";
 import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-client-users/inputs/get-managed-users.input";
-import { KeysDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
-import { User, CreationSource, PlatformOAuthClient, AccessToken, RefreshToken } from "@prisma/client";
+import { User, CreationSource, PlatformOAuthClient } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -79,10 +78,8 @@ export class OAuthClientUsersService {
       });
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
-      user.id,
-      oAuthClientId
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt } =
+      await this.tokensRepository.createOAuthTokens(oAuthClientId, user.id);
 
     if (oAuthClient.areDefaultEventTypesEnabled) {
       await this.eventTypesService.createUserDefaultEventTypes(user.id);
@@ -102,16 +99,12 @@ export class OAuthClientUsersService {
 
     return {
       user,
-      tokens: this.getResponseOAuthTokens(accessToken, refreshToken),
-    };
-  }
-
-  getResponseOAuthTokens(accessToken: AccessToken, refreshToken: RefreshToken): KeysDto {
-    return {
-      accessToken: accessToken.secret,
-      refreshToken: refreshToken.secret,
-      accessTokenExpiresAt: accessToken.expiresAt.valueOf(),
-      refreshTokenExpiresAt: refreshToken.expiresAt.valueOf(),
+      tokens: {
+        accessToken,
+        accessTokenExpiresAt,
+        refreshToken,
+        refreshTokenExpiresAt,
+      },
     };
   }
 
@@ -151,6 +144,9 @@ export class OAuthClientUsersService {
   }
 
   static getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
+    if (userEmail.includes(`+${oAuthClientId}@`)) {
+      return userEmail;
+    }
     const [username, emailDomain] = userEmail.split("@");
     return `${username}+${oAuthClientId}@${emailDomain}`;
   }

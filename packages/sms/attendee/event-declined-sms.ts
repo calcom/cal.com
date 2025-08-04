@@ -13,6 +13,7 @@ export default class EventDeclinedSMS extends SMSManager {
     const eventDeclinedText = t("event_declined_subject", {
       title: this.calEvent.title,
       date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
+      interpolation: { escapeValue: false },
     });
 
     const messageText = `${t("hey_there")} ${attendee.name}, ${t(
