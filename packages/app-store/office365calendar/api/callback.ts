@@ -95,14 +95,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     logger.info("Office365 Calendar: Received calendar response", {
       userId: req.session?.user?.id,
-      calRequest,
+      status: calRequest.status,
+      statusText: calRequest.statusText,
+      url: calRequest.url,
     });
 
     let calBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(calRequest);
 
     logger.info("Office365 Calendar: handleErrorsJson completed", {
       userId: req.session?.user?.id,
-      calBody,
+      calendarCount: calBody.value.length ?? 0,
     });
 
     if (typeof responseBody === "string") {
