@@ -12,6 +12,21 @@ export async function checkRateLimitAndThrowError({
   onRateLimiterResponse,
   opts,
 }: RateLimitHelper) {
+  // Check if user is locked first
+  if (identifier.includes("@")) {
+    const user = await prisma.user.findUnique({
+      where: { email: identifier },
+      select: { locked: true },
+    });
+    
+    if (user?.locked) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Account is locked due to rate limit violations. Please contact support.",
+      });
+    }
+  }
+
   const response = await rateLimiter()({ rateLimitingType, identifier, opts });
   const { success, reset } = response;
 

@@ -175,3 +175,83 @@ export async function lockUser(identifierType: string, identifier: string, lockR
     });
   }
 }
+
+export async function unlockUser(identifierType: string, identifier: string) {
+  if (!identifier) {
+    return;
+  }
+
+  type UserType = {
+    id: number;
+    email: string;
+    username: string | null;
+  } | null;
+
+  let user: UserType = null;
+
+  switch (identifierType) {
+    case "userId":
+      user = await prisma.user.update({
+        where: { id: Number(identifier) },
+        data: { locked: false },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
+      });
+      break;
+    case "email":
+      user = await prisma.user.update({
+        where: { email: identifier },
+        data: { locked: false },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
+      });
+      break;
+    case "apiKey":
+      const hashedApiKey = hashAPIKey(identifier);
+      const apiKey = await prisma.apiKey.findUnique({
+        where: { hashedKey: hashedApiKey },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+        },
+      });
+
+      if (!apiKey?.user) {
+        throw new Error("No user found for this API key.");
+      }
+
+      user = await prisma.user.update({
+        where: { id: apiKey.user.id },
+        data: { locked: false },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
+      });
+      break;
+    default:
+      throw new Error("Invalid identifier type for unlocking");
+  }
+
+  if (user) {
+    log.info("User unlocked successfully", {
+      userId: user.id,
+      email: user.email,
+      username: user.username,
+    });
+  }
+
+  return user;
+}
