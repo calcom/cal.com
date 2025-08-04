@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { WEBAPP_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
@@ -24,6 +25,7 @@ interface OnboardingUserStoreState {
   name: string;
   slug: string;
   logo?: string | null;
+  logoUrl?: string | null;
   bio?: string | null;
   onboardingId: string | null;
   invitedMembers: { email: string; name?: string }[];
@@ -41,6 +43,7 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
   setName: (name: string) => void;
   setSlug: (slug: string) => void;
   setLogo: (logo: string) => void;
+  setLogoUrl: (logoUrl: string) => void;
   setBio: (bio: string) => void;
   addInvitedMember: (member: { email: string; name?: string }) => void;
   removeInvitedMember: (email: string) => void;
@@ -58,6 +61,7 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   name: "",
   slug: "",
   logo: "",
+  logoUrl: "",
   bio: "",
   orgOwnerEmail: "",
   seats: null,
@@ -83,6 +87,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       setName: (name) => set({ name }),
       setSlug: (slug) => set({ slug }),
       setLogo: (logo) => set({ logo }),
+      setLogoUrl: (logoUrl) => set({ logoUrl }),
       setBio: (bio) => set({ bio }),
       setOnboardingId: (onboardingId) => set({ onboardingId }),
       addInvitedMember: (member) =>
@@ -151,6 +156,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           slug: organizationOnboarding.slug,
           bio: organizationOnboarding.bio,
           logo: organizationOnboarding.logo,
+          logoUrl: organizationOnboarding.logoUrl,
         });
         if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
           reset();
@@ -166,7 +172,16 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
         router.push("/settings/organizations/new");
       }
     }
-  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
+  }, [
+    organizationOnboarding,
+    isLoadingOrgOnboarding,
+    isAdmin,
+    onboardingId,
+    reset,
+    step,
+    router,
+    session.data?.user.email,
+  ]);
 
   useEffect(() => {
     if (session.status === "loading") {
