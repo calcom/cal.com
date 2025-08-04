@@ -4085,7 +4085,7 @@ __metadata:
     "@types/stripe": ^8.0.417
     "@types/turndown": ^5.0.1
     "@types/uuid": 8.3.1
-    "@unkey/ratelimit": ^0.1.1
+    "@unkey/ratelimit": ^2.0.1
     "@upstash/redis": ^1.21.0
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
@@ -18808,31 +18808,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@unkey/api@npm:^0.19.4":
-  version: 0.19.4
-  resolution: "@unkey/api@npm:0.19.4"
-  dependencies:
-    "@unkey/rbac": ^0.1.11
-  checksum: 974bb7fd5462aab55250ddd93c9785f0a1cfed19354e17bf2dbffb30ce5f3c3192dcafe71b9af36cdc7212760e1e0f3762fc8e6b0373db24c175a9e406a7a2a7
+"@unkey/api@npm:2.0.0-alpha.7":
+  version: 2.0.0-alpha.7
+  resolution: "@unkey/api@npm:2.0.0-alpha.7"
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ^1.5.0
+    zod: ">= 3"
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: 2f2bb70a7757f719b8df7c98ea6a686dca33ea9ccc8c599b773b1b020065bed70dffaa89254488e59ea006ca31e7fb2495ccaa6473a2e3db7ec9e0090fe28114
   languageName: node
   linkType: hard
 
-"@unkey/ratelimit@npm:^0.1.1":
-  version: 0.1.1
-  resolution: "@unkey/ratelimit@npm:0.1.1"
+"@unkey/ratelimit@npm:^2.0.1":
+  version: 2.1.0
+  resolution: "@unkey/ratelimit@npm:2.1.0"
   dependencies:
-    "@unkey/api": ^0.19.4
-  checksum: ec1d5fcf14787700d0a6e16a64e372683f9edcf08c052dbf84b8ef1c2c798d6d5162e7cb1a954d847381ab53db039747490507c0ed02c88eeea06268c02e4d56
-  languageName: node
-  linkType: hard
-
-"@unkey/rbac@npm:^0.1.11":
-  version: 0.1.11
-  resolution: "@unkey/rbac@npm:0.1.11"
-  dependencies:
-    zod: ^3.22.4
-    zod-error: ^1.5.0
-  checksum: 69fddda11453363da7b6fd881d97d21a6bb31be3c234dec51e5837634be71531ada0d69c51d37ef4d0540fb5d65ce7cbd8843380d30c70741135b27e10878e5d
+    "@unkey/api": 2.0.0-alpha.7
+  checksum: 4658e0ff8d2071d5a76c6cbc12c2b203e65eff4250ff305b72d692b48d7cdbc6f59f50bbf176f5ca074722a56010c07a5c033064fd65265c1f8054b1fe4197c4
   languageName: node
   linkType: hard
 
@@ -47778,15 +47774,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-error@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "zod-error@npm:1.5.0"
-  dependencies:
-    zod: ^3.20.2
-  checksum: 1ee6f642f3dcabc2a9610d67f1986f94c338bcf38d152e788dafc4703e488fc7624c189c5948649beb566e2d37444cea064afea662924ac2e8504920e7863ded
-  languageName: node
-  linkType: hard
-
 "zod-prisma@npm:^0.5.4":
   version: 0.5.4
   resolution: "zod-prisma@npm:0.5.4"
@@ -47816,7 +47803,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:3.22.4, zod@npm:^3.20.2, zod@npm:^3.22.4":
+"zod@npm:3.22.4, zod@npm:^3.22.4":
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
