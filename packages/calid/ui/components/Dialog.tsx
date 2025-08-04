@@ -1,148 +1,101 @@
-import * as RadixDialog from "@radix-ui/react-dialog";
-import { AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { cn } from "@calid/features/lib/cn";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as React from "react";
 
-import CircularLoader from "./CircularLoader";
+import { Icon } from "@calcom/ui/components/icon";
 
-// Assuming you have a Loader component
-type Variant = "danger" | "warning" | "success";
-type Size = "md" | "lg" | "xl";
+const Dialog = DialogPrimitive.Root;
 
-interface DialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  variant: Variant;
-  title: string;
-  description?: string;
-  confirmBtnText: string;
-  cancelBtnText?: string;
-  onConfirm: () => Promise<void> | void;
-  size?: Size;
-  loader?: boolean;
-  children?: React.ReactNode;
-}
+const DialogTrigger = DialogPrimitive.Trigger;
 
-export const Dialog: React.FC<DialogProps> = ({
-  open,
-  onOpenChange,
-  variant,
-  title,
-  description,
-  confirmBtnText,
-  cancelBtnText,
-  onConfirm,
-  size = "md",
-  loader = false,
-  children,
-}) => {
-  const handleConfirm = async () => {
-    onConfirm();
-  };
+const DialogPortal = DialogPrimitive.Portal;
 
-  const variantConfig: Record<Variant, { icon: React.ReactNode; color: string }> = {
-    danger: {
-      icon: <XCircle size={24} color="#dc2626" />,
-      color: "#dc2626",
-    },
-    warning: {
-      icon: <AlertTriangle size={24} color="#f59e0b" />,
-      color: "#f59e0b",
-    },
-    success: {
-      icon: <CheckCircle size={24} color="#16a34a" />,
-      color: "#16a34a",
-    },
-  };
+const DialogClose = DialogPrimitive.Close;
 
-  const sizeMap: Record<Size, number> = {
-    md: 400,
-    lg: 600,
-    xl: 800,
-  };
+const DialogOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0  fixed inset-0 z-50 bg-black/80",
+      className
+    )}
+    {...props}
+  />
+));
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-  return (
-    <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
-      <RadixDialog.Portal>
-        <RadixDialog.Overlay
-          style={{
-            backgroundColor: "rgba(0,0,0,0.4)",
-            position: "fixed",
-            inset: 0,
-          }}
-        />
-        <RadixDialog.Content
-          style={{
-            backgroundColor: "white",
-            borderRadius: 6,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
-            padding: 24,
-            width: "90%",
-            maxWidth: sizeMap[size],
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 12,
-            }}>
-            <span aria-hidden>{variantConfig[variant].icon}</span>
-            <RadixDialog.Title style={{ fontSize: 18, fontWeight: 600 }}>{title}</RadixDialog.Title>
-          </div>
+const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 sm:rounded-lg",
+        className
+      )}
+      {...props}>
+      {children}
+      <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:pointer-events-none">
+        <Icon name="x" className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPortal>
+));
+DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-          {description && (
-            <RadixDialog.Description style={{ marginBottom: 20, fontSize: 14, color: "#555" }}>
-              {description}
-            </RadixDialog.Description>
-          )}
-          {children}
+const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+);
+DialogHeader.displayName = "DialogHeader";
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 8,
-            }}>
-            {cancelBtnText && (
-              <RadixDialog.Close asChild>
-                <button
-                  type="button"
-                  style={{
-                    padding: "6px 12px",
-                    border: "1px solid #ccc",
-                    borderRadius: 4,
-                    background: "white",
-                    cursor: "pointer",
-                  }}>
-                  {cancelBtnText}
-                </button>
-              </RadixDialog.Close>
-            )}
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={loader}
-              style={{
-                padding: "6px 12px",
-                border: "none",
-                borderRadius: 4,
-                background: variantConfig[variant].color,
-                color: "white",
-                cursor: loader ? "not-allowed" : "pointer",
-                opacity: loader ? 0.8 : 1,
-              }}>
-              <div className="flex items-center gap-2">
-                {loader && <CircularLoader />}
-                {confirmBtnText}
-              </div>
-            </button>
-          </div>
-        </RadixDialog.Content>
-      </RadixDialog.Portal>
-    </RadixDialog.Root>
-  );
+const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+    {...props}
+  />
+);
+DialogFooter.displayName = "DialogFooter";
+
+const DialogTitle = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Title>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+));
+DialogTitle.displayName = DialogPrimitive.Title.displayName;
+
+const DialogDescription = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-muted-foreground text-sm", className)}
+    {...props}
+  />
+));
+DialogDescription.displayName = DialogPrimitive.Description.displayName;
+
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
 };
