@@ -55,6 +55,8 @@ type Booking = {
   } | null;
   attendees: Attendee[];
   eventType: EventType | null;
+  iCalUID: string | null;
+  iCalSequence: number;
 };
 
 export const buildCalEventFromBooking = async ({
@@ -110,5 +112,7 @@ export const buildCalEventFromBooking = async ({
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    iCalUID: booking.iCalUID ?? booking.uid,
+    iCalSequence: booking.iCalSequence ?? 0,
   };
 };

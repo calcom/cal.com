@@ -277,7 +277,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const isSendgridEnabled = !!(process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL);
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
 
   const isWorkflowSmtpEmailsEnabled = teamId
     ? await featureRepo.checkIfTeamHasFeature(teamId, "workflow-smtp-emails")
