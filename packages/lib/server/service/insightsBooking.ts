@@ -839,16 +839,16 @@ export class InsightsBookingService {
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
         userId: number;
-        averageRating: number;
+        count: number;
       }>
     >`
       SELECT
         "userId",
-        AVG("rating")::float as "averageRating"
+        AVG("rating")::float as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
       GROUP BY "userId"
-      ORDER BY "averageRating" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
+      ORDER BY "count" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
     `;
 
@@ -886,7 +886,7 @@ export class InsightsBookingService {
           userId: booking.userId,
           user,
           emailMd5: md5(user.email),
-          averageRating: booking.averageRating,
+          count: booking.count,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);

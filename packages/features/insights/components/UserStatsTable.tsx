@@ -2,12 +2,22 @@
 
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 
 import { ChartCardItem } from "./ChartCard";
 
-type UserStatsData = RouterOutputs["viewer"]["insights"]["membersWithMostBookings"];
+type UserStatsData = {
+  userId: number;
+  user: {
+    id: number;
+    username: string | null;
+    name: string | null;
+    email: string;
+    avatarUrl: string;
+  };
+  emailMd5: string;
+  count: number;
+}[];
 
 export const UserStatsTable = ({ data }: { data: UserStatsData }) => {
   const { t } = useLocale();
@@ -21,7 +31,7 @@ export const UserStatsTable = ({ data }: { data: UserStatsData }) => {
         filteredData.map((item) => (
           <ChartCardItem
             key={item.userId || `user-${Math.random()}`}
-            count={item.averageRating ? item.averageRating.toFixed(1) : item.count}
+            count={Number.isInteger(item.count) ? item.count : item.count.toFixed(1)}
             className="py-3">
             <div className="flex items-center">
               <Avatar
