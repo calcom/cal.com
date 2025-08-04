@@ -1,8 +1,6 @@
 import { cn } from "@calid/features/lib/cn";
 import * as React from "react";
 
-// Adjust the import path as necessary
-
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
     return (

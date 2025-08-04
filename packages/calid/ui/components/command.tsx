@@ -5,7 +5,7 @@ import * as React from "react";
 
 import { Icon } from "@calcom/ui/components/icon";
 
-import { Dialog, DialogContent } from "./Dialog";
+import { Dialog, DialogContent } from "./dialog";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,

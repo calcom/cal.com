@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { Icon } from "@calcom/ui/components/icon";
 
-import { Button } from "./Button";
+import { Button } from "./button";
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;

@@ -4,7 +4,7 @@ import { DayPicker } from "react-day-picker";
 
 import { Icon } from "@calcom/ui/components/icon";
 
-import { buttonVariants } from "./Button";
+import { buttonVariants } from "./button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 

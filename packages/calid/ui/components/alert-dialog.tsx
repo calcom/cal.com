@@ -1,7 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
-import { buttonVariants } from "@calid/features/ui";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 import * as React from "react";
+
+import { buttonVariants } from "./button";
 
 const AlertDialog = AlertDialogPrimitive.Root;
 
