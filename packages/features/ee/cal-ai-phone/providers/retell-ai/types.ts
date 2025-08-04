@@ -1,5 +1,7 @@
 import type { Retell } from "retell-sdk";
 
+import type { AgentRepository } from "@calcom/lib/server/repository/agent";
+
 export type RetellLLM = Retell.LlmResponse;
 export type RetellPhoneNumber = Retell.PhoneNumberResponse;
 export type RetellCall = Retell.PhoneCallResponse;
@@ -39,6 +41,43 @@ export function getLlmId(agent: RetellAgent): string | null {
   return null;
 }
 
+export type Language =
+  | "en-US"
+  | "en-IN"
+  | "en-GB"
+  | "en-AU"
+  | "en-NZ"
+  | "de-DE"
+  | "es-ES"
+  | "es-419"
+  | "hi-IN"
+  | "fr-FR"
+  | "fr-CA"
+  | "ja-JP"
+  | "pt-PT"
+  | "pt-BR"
+  | "zh-CN"
+  | "ru-RU"
+  | "it-IT"
+  | "ko-KR"
+  | "nl-NL"
+  | "nl-BE"
+  | "pl-PL"
+  | "tr-TR"
+  | "th-TH"
+  | "vi-VN"
+  | "ro-RO"
+  | "bg-BG"
+  | "ca-ES"
+  | "da-DK"
+  | "fi-FI"
+  | "el-GR"
+  | "hu-HU"
+  | "id-ID"
+  | "no-NO"
+  | "sk-SK"
+  | "sv-SE"
+  | "multi";
 // Request/response types
 export type CreateLLMRequest = Retell.LlmCreateParams;
 export type CreatePhoneNumberParams = Retell.PhoneNumberCreateParams;
@@ -49,6 +88,43 @@ export type RetellLLMGeneralTools = Retell.LlmCreateParams["general_tools"];
 export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
+export type Agent = NonNullable<Awaited<ReturnType<typeof AgentRepository.findByIdWithUserAccessAndDetails>>>;
+
+export type RetellAgentWithDetails = {
+  id: string;
+  name: string;
+  retellAgentId: string;
+  enabled: boolean;
+  userId: number;
+  teamId: number | null;
+  outboundPhoneNumbers: Array<{
+    id: number;
+    phoneNumber: string;
+    provider: string | null;
+    userId: number | null;
+    teamId: number | null;
+    subscriptionStatus: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    stripeCustomerId: string | null;
+    stripeSubscriptionId: string | null;
+  }>;
+  retellData: {
+    agentId: string;
+    agentName: string;
+    voiceId: string;
+    responseEngine: Retell.AgentResponse.ResponseEngine;
+    language: Language;
+    responsiveness: number;
+    interruptionSensitivity: number;
+    generalPrompt: string;
+    beginMessage: string;
+    generalTools: RetellLLM["general_tools"];
+    llmId: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export interface AIConfigurationSetup {
   calApiKey?: string;

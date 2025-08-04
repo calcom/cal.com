@@ -11,6 +11,7 @@ import type {
   ImportPhoneNumberParams as RetellAIImportPhoneNumberParams,
   UpdateAgentRequest as RetellAIUpdateAgentParams,
   RetellLLMGeneralTools as RetellAITools,
+  RetellAgentWithDetails,
 } from "../providers/retell-ai/types";
 
 export type AIPhoneServiceConfiguration = RetellAIConfigurationSetup;
@@ -165,7 +166,7 @@ export interface AIPhoneServiceProvider {
   /**
    * Get agent with detailed information
    */
-  getAgentWithDetails(params: { id: string; userId: number }): Promise<any>;
+  getAgentWithDetails(params: { id: string; userId: number }): Promise<RetellAgentWithDetails>;
 
   /**
    * Create a new agent

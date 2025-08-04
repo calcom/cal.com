@@ -13,45 +13,12 @@ import type {
   CreateLLMRequest,
   CreateAgentRequest,
   UpdateAgentRequest,
+  RetellAgentWithDetails,
+  Language,
+  Agent,
+  RetellAgent,
+  RetellLLM,
 } from "./types";
-
-export type Language =
-  | "en-US"
-  | "en-IN"
-  | "en-GB"
-  | "en-AU"
-  | "en-NZ"
-  | "de-DE"
-  | "es-ES"
-  | "es-419"
-  | "hi-IN"
-  | "fr-FR"
-  | "fr-CA"
-  | "ja-JP"
-  | "pt-PT"
-  | "pt-BR"
-  | "zh-CN"
-  | "ru-RU"
-  | "it-IT"
-  | "ko-KR"
-  | "nl-NL"
-  | "nl-BE"
-  | "pl-PL"
-  | "tr-TR"
-  | "th-TH"
-  | "vi-VN"
-  | "ro-RO"
-  | "bg-BG"
-  | "ca-ES"
-  | "da-DK"
-  | "fi-FI"
-  | "el-GR"
-  | "hu-HU"
-  | "id-ID"
-  | "no-NO"
-  | "sk-SK"
-  | "sv-SE"
-  | "multi";
 
 export class RetellServiceMapper {
   /**
@@ -170,7 +137,7 @@ export class RetellServiceMapper {
   /**
    * Format agent for listing response
    */
-  static formatAgentForList(agent: any) {
+  static formatAgentForList(agent: Agent) {
     return {
       id: agent.id,
       name: agent.name,
@@ -189,7 +156,11 @@ export class RetellServiceMapper {
   /**
    * Format agent details response
    */
-  static formatAgentDetails(agent: any, retellAgent: any, llmDetails: any) {
+  static formatAgentDetails(
+    agent: Agent,
+    retellAgent: RetellAgent,
+    llmDetails: RetellLLM
+  ): RetellAgentWithDetails {
     return {
       id: agent.id,
       name: agent.name,

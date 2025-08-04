@@ -18,7 +18,7 @@ interface _PhoneNumberRawResult {
   stripeSubscriptionId: string | null;
 }
 
-interface _AgentRawResult {
+export interface AgentRawResult {
   id: string;
   name: string;
   retellAgentId: string;
@@ -67,7 +67,7 @@ export class PhoneNumberRepository {
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
       phoneNumberIds.length > 0
-        ? await prisma.$queryRaw<(_AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        ? await prisma.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
         SELECT 
           a.id,
           a.name,
@@ -102,7 +102,7 @@ export class PhoneNumberRepository {
       }
 
       return acc;
-    }, {} as Record<number, { inbound: _AgentRawResult | null; outbound: _AgentRawResult | null }>);
+    }, {} as Record<number, { inbound: AgentRawResult | null; outbound: AgentRawResult | null }>);
 
     return phoneNumbers.map((pn) => ({
       id: pn.id,
@@ -291,7 +291,7 @@ export class PhoneNumberRepository {
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
       phoneNumberIds.length > 0
-        ? await prisma.$queryRaw<(_AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        ? await prisma.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
         SELECT 
           a.id,
           a.name,
@@ -326,7 +326,7 @@ export class PhoneNumberRepository {
       }
 
       return acc;
-    }, {} as Record<number, { inbound: _AgentRawResult | null; outbound: _AgentRawResult | null }>);
+    }, {} as Record<number, { inbound: AgentRawResult | null; outbound: AgentRawResult | null }>);
 
     return phoneNumbers.map((pn) => ({
       id: pn.id,

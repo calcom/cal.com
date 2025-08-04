@@ -69,16 +69,16 @@ const phoneNumberFormSchema = z.object({
 
 type AgentFormValues = z.infer<typeof agentSchema>;
 type PhoneNumberFormValues = z.infer<typeof phoneNumberFormSchema>;
-type RetellData = RouterOutputs["viewer"]["ai"]["get"]["retellData"];
+// type RetellData = RouterOutputs["viewer"]["ai"]["get"]["retellData"];
 
-type ToolDraft = {
-  type: string;
-  name: string;
-  description: string | null;
-  cal_api_key: string | null;
-  event_type_id: number | null;
-  timezone: string;
-};
+// type ToolDraft = {
+//   type: string;
+//   name: string;
+//   description: string | null;
+//   cal_api_key: string | null;
+//   event_type_id: number | null;
+//   timezone: string;
+// };
 
 type AgentConfigurationSheetProps = {
   open: boolean;
