@@ -13,7 +13,7 @@ import type {
 } from "../../interfaces/ai-phone-service.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
 import { RetellAIError } from "./errors";
-import { RetellServiceMapper, type Language } from "./service-mappers";
+import { RetellServiceMapper } from "./service-mappers";
 import type {
   RetellLLM,
   RetellCall,
@@ -25,6 +25,7 @@ import type {
   DeletionResult,
   RetellAIRepository,
   RetellLLMGeneralTools,
+  Language,
 } from "./types";
 import { getLlmId } from "./types";
 
