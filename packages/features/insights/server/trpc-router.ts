@@ -340,6 +340,26 @@ function createInsightsBookingService(
     },
   });
 }
+
+function createInsightsRoutingService(
+  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  input: z.infer<typeof routingRepositoryBaseInputSchema>
+) {
+  return getInsightsRoutingService({
+    options: {
+      scope: input.scope,
+      teamId: input.selectedTeamId,
+      userId: ctx.user.id,
+      orgId: ctx.user.organizationId,
+    },
+    filters: {
+      startDate: input.startDate,
+      endDate: input.endDate,
+      columnFilters: input.columnFilters,
+    },
+  });
+}
+
 export const insightsRouter = router({
   bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
@@ -1001,19 +1021,7 @@ export const insightsRouter = router({
         timeView,
         weekStart: ctx.user.weekStart,
       });
-      const insightsRoutingService = getInsightsRoutingService({
-        options: {
-          scope: input.scope,
-          teamId: input.selectedTeamId,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId,
-        },
-        filters: {
-          startDate: input.startDate,
-          endDate: input.endDate,
-          columnFilters: input.columnFilters,
-        },
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
       } catch (e) {
