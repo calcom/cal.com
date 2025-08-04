@@ -2,7 +2,7 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -24,6 +24,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
@@ -130,6 +131,7 @@ function BookingsContent({ status }: BookingsProps) {
   const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
 
   const { limit, offset } = useDataTable();
+  const [showFilters, setShowFilters] = useState(false);
 
   const query = trpc.viewer.bookings.get.useQuery({
     limit,
@@ -382,6 +384,15 @@ function BookingsContent({ status }: BookingsProps) {
             name: t(tab.name),
           }))}
         />
+
+        <div className="flex h-[32px] flex-row">
+          <Button StartIcon="bookmark" color="secondary" onClick={() => setShowFilters((prev) => !prev)}>
+            {t("filter")}
+          </Button>
+
+          <DataTableSegment.SaveButton />
+          <DataTableSegment.Select />
+        </div>
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
@@ -404,16 +415,10 @@ function BookingsContent({ status }: BookingsProps) {
                 totalRowCount={query.data?.totalCount}
                 variant="compact"
                 paginationMode="standard"
-                ToolbarLeft={
-                  <>
-                    <DataTableFilters.FilterBar table={table} />
-                  </>
-                }
+                ToolbarLeft={<>{showFilters && <DataTableFilters.FilterBar table={table} />}</>}
                 ToolbarRight={
                   <>
                     <DataTableFilters.ClearFiltersButton />
-                    <DataTableSegment.SaveButton />
-                    <DataTableSegment.Select />
                   </>
                 }
                 LoaderView={<SkeletonLoader />}
