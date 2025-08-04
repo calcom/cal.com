@@ -24,7 +24,7 @@ export const currencyOptions = [
   { label: "PLN- Polish Zloty", value: "PLN", unit: "PLN" },
   { label: "TWD- New Taiwan Dollar", value: "TWD", unit: "TWD" },
   { label: "MXN- Mexican Peso", value: "MXN", unit: "MXN" },
-  { label: "ILS- New Insreali Shekel", value: "ILS", unit: "ILS" },
+  { label: "ILS- New Isreali Shekel", value: "ILS", unit: "ILS" },
   { label: "NGN- Nigerian Naira", value: "NGN", unit: "NGN" }
 ];
 
