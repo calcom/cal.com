@@ -390,7 +390,6 @@ export function LogInOverlay(props: LogInOverlayProps) {
               />
               <Button
                 color="primary"
-                disabled={!userName.trim() || isLoading}
                 onClick={handleContinueAsGuest}
                 loading={isLoading}>
                 {t("continue")}
@@ -422,8 +421,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
             <Button
               color="secondary"
               className="w-full justify-center"
-              onClick={handleSignIn}
-              disabled={isLoading}>
+              onClick={handleSignIn}>
               {t("sign_in")}
             </Button>
           </div>
