@@ -1,7 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import * as React from "react";
+
+import { Icon } from "@calcom/ui/components/icon";
 
 const Select = SelectPrimitive.Root;
 
@@ -22,7 +23,7 @@ const SelectTrigger = React.forwardRef<
     {...props}>
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+      <Icon name="chevron-down" className="h-4 w-4 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -37,7 +38,7 @@ const SelectScrollUpButton = React.forwardRef<
     ref={ref}
     className={cn("flex cursor-default items-center justify-center py-1", className)}
     {...props}>
-    <ChevronUp className="h-4 w-4" />
+    <Icon name="chevron-up" className="h-4 w-4" />
   </SelectPrimitive.ScrollUpButton>
 ));
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
@@ -50,7 +51,7 @@ const SelectScrollDownButton = React.forwardRef<
     ref={ref}
     className={cn("flex cursor-default items-center justify-center py-1", className)}
     {...props}>
-    <ChevronDown className="h-4 w-4" />
+    <Icon name="chevron-down" className="h-4 w-4" />
   </SelectPrimitive.ScrollDownButton>
 ));
 SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
@@ -111,7 +112,7 @@ const SelectItem = React.forwardRef<
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     <span className=" ml-2">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        <Icon name="check" className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
   </SelectPrimitive.Item>
@@ -259,10 +260,13 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                   handleClearAll();
                 }}
                 className="text-muted-foreground hover:text-foreground">
-                <X className="h-4 w-4" />
+                <Icon name="x" className="h-4 w-4" />
               </button>
             )}
-            <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", isOpen && "rotate-180")} />
+            <Icon
+              name="chevron-down"
+              className={cn("h-4 w-4 opacity-50 transition-transform", isOpen && "rotate-180")}
+            />
           </div>
         </button>
 
