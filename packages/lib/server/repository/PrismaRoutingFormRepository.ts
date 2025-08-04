@@ -15,17 +15,20 @@ const defaultSelect = {
   teamId: true,
   disabled: true,
   settings: true,
-};
+} as const;
 
-export class RoutingFormRepository {
+export class PrismaRoutingFormRepository {
   static async findById<T extends Partial<typeof defaultSelect> = typeof defaultSelect>(
     id: string,
-    options?: { select?: T }
-  ): Promise<Prisma.App_RoutingForms_FormGetPayload<{ select: T }> | null> {
-    return await prisma.app_RoutingForms_Form.findUnique({
+    options?: {
+      select?: T;
+    }
+  ) {
+    const select = options?.select ?? (defaultSelect as T);
+    return (await prisma.app_RoutingForms_Form.findUnique({
       where: { id },
-      select: options?.select ?? (defaultSelect as T),
-    });
+      select,
+    })) as Promise<Prisma.App_RoutingForms_FormGetPayload<{ select: T }> | null>;
   }
 
   static async findFormByIdIncludeUserTeamAndOrg(formId: string) {
