@@ -12,6 +12,7 @@ import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { Module } from "@nestjs/common";
+import { UserAvailabilityService } from "@/lib/services/user-availability.service";
 
 @Module({
   imports: [PrismaModule],
@@ -28,6 +29,7 @@ import { Module } from "@nestjs/common";
     CheckBookingLimitsService,
     CacheService,
     AvailableSlotsService,
+    UserAvailabilityService
   ],
   exports: [AvailableSlotsService],
 })
