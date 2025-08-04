@@ -297,7 +297,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     userWorkflow.steps.map(async (oldStep) => {
       const foundStep = steps.find((s) => s.id === oldStep.id);
       let newStep;
-      console.log("oldStep", oldStep);
 
       if (foundStep) {
         const { senderName, ...rest } = {
@@ -349,7 +348,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
             if (agent?.outboundPhoneNumbers) {
               for (const phoneNumber of agent.outboundPhoneNumbers) {
-                console.log("phoneNumber", phoneNumber);
                 try {
                   // Check subscription status and handle accordingly
                   if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {

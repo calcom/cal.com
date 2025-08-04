@@ -67,7 +67,6 @@ import { TestAgentDialog } from "./TestAgentDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
-type PhoneNumberData = NonNullable<RouterOutputs["viewer"]["phoneNumbers"]["list"]>[number];
 
 type WorkflowStepProps = {
   step?: WorkflowStep;
@@ -489,7 +488,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             color="destructive"
                             onClick={() => {
                               // Check if this is a CAL_AI action with a phone number
-                              if (isCalAIAction(step.action) && agentData?.outboundPhoneNumbers?.length > 0) {
+                              if (
+                                isCalAIAction(step.action) &&
+                                agentData?.outboundPhoneNumbers &&
+                                agentData.outboundPhoneNumbers.length > 0
+                              ) {
                                 setIsDeleteStepDialogOpen(true);
                               } else {
                                 const steps = form.getValues("steps");
@@ -666,7 +669,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <h3 className="text-emphasis text-base font-medium">{t("Cal.Ai Agent")}</h3>
                       {agentData.outboundPhoneNumbers &&
                       agentData.outboundPhoneNumbers.filter(
-                        (phone: PhoneNumberData) =>
+                        (phone) =>
                           phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                           !phone.subscriptionStatus
                       ).length > 0 ? (
@@ -675,7 +678,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           <span className="text-emphasis text-sm">
                             {formatPhoneNumber(
                               agentData.outboundPhoneNumbers.filter(
-                                (phone: PhoneNumberData) =>
+                                (phone) =>
                                   phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                                   !phone.subscriptionStatus
                               )[0].phoneNumber
@@ -698,7 +701,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         disabled={
                           props.readOnly ||
                           !agentData.outboundPhoneNumbers?.filter(
-                            (phone: PhoneNumberData) =>
+                            (phone) =>
                               phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                               !phone.subscriptionStatus
                           ).length
@@ -727,7 +730,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           </DropdownMenuItem>
                           {agentData.outboundPhoneNumbers &&
                             agentData.outboundPhoneNumbers.filter(
-                              (phone: PhoneNumberData) =>
+                              (phone) =>
                                 phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                                 !phone.subscriptionStatus
                             ).length > 0 && (
@@ -1369,7 +1372,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </p>
               {agentData?.outboundPhoneNumbers &&
                 agentData.outboundPhoneNumbers.filter(
-                  (phone: PhoneNumberData) =>
+                  (phone) =>
                     phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                     !phone.subscriptionStatus
                 ).length > 0 && (
@@ -1379,7 +1382,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <span className="text-emphasis text-sm font-medium">
                         {formatPhoneNumber(
                           agentData.outboundPhoneNumbers.filter(
-                            (phone: PhoneNumberData) =>
+                            (phone) =>
                               phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                               !phone.subscriptionStatus
                           )[0].phoneNumber
@@ -1404,7 +1407,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 color="destructive"
                 onClick={() => {
                   const activePhoneNumbers = agentData?.outboundPhoneNumbers?.filter(
-                    (phone: PhoneNumberData) =>
+                    (phone) =>
                       phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                       !phone.subscriptionStatus
                   );
@@ -1432,8 +1435,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {(() => {
                 const relevantPhoneNumbers =
                   agentData?.outboundPhoneNumbers?.filter(
-                    (phone: PhoneNumberData) =>
-                      phone.subscriptionStatus !== PhoneNumberSubscriptionStatus.CANCELLED
+                    (phone) => phone.subscriptionStatus !== PhoneNumberSubscriptionStatus.CANCELLED
                   ) || [];
 
                 return (
@@ -1448,15 +1450,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             </p>
                             <ul className="text-attention list-inside list-disc space-y-1 text-sm">
                               {relevantPhoneNumbers.some(
-                                (phone: PhoneNumberData) =>
-                                  phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+                                (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
                               ) && <li>{t("Cancel your phone number subscription")}</li>}
                               <li>{t("Delete the associated phone number")}</li>
                             </ul>
                           </div>
                         </div>
                       </div>
-                      {relevantPhoneNumbers.map((phone: PhoneNumberData) => (
+                      {relevantPhoneNumbers.map((phone) => (
                         <div key={phone.phoneNumber} className="bg-muted rounded-lg p-3">
                           <div className="flex items-center gap-2">
                             <Icon name="phone" className="text-emphasis h-4 w-4" />
