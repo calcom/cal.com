@@ -438,7 +438,6 @@ describe("handleChildrenEventTypes", () => {
         schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
         lockTimeZoneToggleOnBookingPage: false,
-        lockedTimeZone: "Europe/London",
         useEventTypeDestinationCalendarEmail: false,
         workflows: [],
         parentId: 1,

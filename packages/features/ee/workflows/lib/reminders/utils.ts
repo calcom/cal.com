@@ -4,6 +4,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { AttendeeInBookingInfo, BookingInfo } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -40,10 +41,18 @@ export const getSMSMessageWithVariables = async (
   attendeeToBeUsedInSMS: AttendeeInBookingInfo,
   action: WorkflowActions
 ) => {
+  const recipientEmail = getWorkflowRecipientEmail({
+    action,
+    attendeeEmail: attendeeToBeUsedInSMS.email,
+  });
   const urls = {
     meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
-    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
-    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true${
+      recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+    }`,
+    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}${
+      recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+    }`,
   };
 
   const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =

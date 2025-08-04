@@ -1,5 +1,13 @@
 # Review Instructions
 
+## File Naming Conventions
+
+- **Repository Files**: Must include `Repository` suffix, prefix with technology if applicable (e.g., `PrismaAppRepository.ts`), use PascalCase matching exported class
+- **Service Files**: Must include `Service` suffix, use PascalCase matching exported class, avoid generic names (e.g., `MembershipService.ts`)
+- **New files**: Avoid dot-suffixes like `.service.ts` or `.repository.ts`; reserve `.test.ts`, `.spec.ts`, `.types.ts` for their specific purposes
+
+## Code Quality
+
 - Prefer early returns. It is recommended to throw/return early so we can ensure null-checks and prevent further nesting.
 - Prefer Composition over Prop Drilling. Instead of relying on prop drilling, let's try to take advantage of react children feature.
 - For Prisma queries:
