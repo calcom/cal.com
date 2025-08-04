@@ -7,13 +7,14 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { TeamSelect, TeamFilter } from "../data/team";
+import type { TeamFilter } from "../data/team/filters";
+import type { TeamSelect } from "../data/team/selects";
 import {
   teamBasicSelect,
   teamWithMembersSelect,
   teamWithOrganizationSettingsSelect,
   teamForUserMembershipSelect,
-} from "../data/team";
+} from "../data/team/selects";
 import { mapToPrismaSelect, mapToPrismaWhere } from "./prisma-mapper";
 import { getParsedTeam } from "./teamUtils";
 

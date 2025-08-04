@@ -15,7 +15,7 @@ import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
-import type { TeamSelect } from "../data/team";
+import type { TeamSelect } from "../data/team/selects";
 import { withSelectedCalendars } from "../withSelectedCalendars";
 import { mapToPrismaSelect } from "./prisma-mapper";
 import { ProfileRepository } from "./profile";

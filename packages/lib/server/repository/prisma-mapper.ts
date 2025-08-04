@@ -2,7 +2,8 @@ import type { Prisma } from "@prisma/client";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 
-import type { TeamSelect, TeamFilter } from "../data/team";
+import type { TeamFilter } from "../data/team/filters";
+import type { TeamSelect } from "../data/team/selects";
 
 export function mapToPrismaSelect(select: TeamSelect): Prisma.TeamSelect {
   return select as Prisma.TeamSelect;
