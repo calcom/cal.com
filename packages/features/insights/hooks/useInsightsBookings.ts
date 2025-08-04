@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { HeaderRow, RoutingFormTableRow } from "../lib/types";
 import { useInsightsFacetedUniqueValues } from "./useInsightsFacetedUniqueValues";
-import { useInsightsParameters } from "./useInsightsParameters";
+import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 type DummyTableRow = {
   bookingUserId: RoutingFormTableRow["bookingUserId"];
@@ -18,7 +18,7 @@ const dummyHeaders: HeaderRow[] = [];
 
 export const useInsightsBookings = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId } = useInsightsParameters();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({
     headers: dummyHeaders,
