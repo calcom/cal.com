@@ -93,8 +93,8 @@ export default function BannerUploader({
 
     const file = e.target.files[0];
 
-    // Validate the file and show appropriate toast message
-    const maxBannerSize = 10 * 1024 * 1024; // 10MB for banners (larger than avatars)
+
+    const maxBannerSize = 5 * 1024 * 1024; 
     const validation = await validateImageFile(file, maxBannerSize);
 
     if (!validation.isValid) {
