@@ -6,3 +6,4 @@ export { RoutingFormResponseRepository as PrismaRoutingFormResponseRepository } 
 export { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 export { TeamRepository as PrismaTeamRepository } from "@calcom/lib/server/repository/team";
 export { UserRepository as PrismaUserRepository } from "@calcom/lib/server/repository/user";
+export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
