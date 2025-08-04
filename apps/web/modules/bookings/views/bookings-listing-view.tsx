@@ -112,6 +112,11 @@ function BookingsContent({ status }: BookingsProps) {
         path: "/bookings/cancelled",
         "data-testid": "cancelled",
       },
+      {
+        name: "Mine",
+        path: "/bookings/mine",
+        "data-testid": "mine",
+      },
     ];
 
     return baseTabConfigs.map((tabConfig) => ({
@@ -243,6 +248,13 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
+      // columnHelper.accessor((row) => row.type === "data" && row.booking, {
+      //   id: "mine",
+      //   header: 'Mine',
+      //   enableColumnFilter: true,
+      //   enableSorting: false,
+      //   cell: () => null,
+      // }),
       columnHelper.display({
         id: "customView",
         cell: (props) => {
