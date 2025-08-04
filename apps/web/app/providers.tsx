@@ -13,14 +13,15 @@ import PlainChat from "@lib/plain/dynamicProvider";
 type ProvidersProps = {
   isEmbed: boolean;
   children: React.ReactNode;
+  nonce: string | undefined;
 };
-export function Providers({ isEmbed, children }: ProvidersProps) {
+export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
 
   return (
     <SessionProvider>
       <TrpcProvider>
-        {!isBookingPage ? <PlainChat /> : null}
+        {!isBookingPage ? <PlainChat nonce={nonce} /> : null}
         {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
         {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
         <CacheProvider>
