@@ -43,18 +43,15 @@ export const filterHostsBySameRoundRobinHost = async <
     },
   });
 
-  const organizerHost = hosts.find((host) => host.user.id === originalRescheduledBooking?.userId);
-  // needed if round robin has fixed hosts or host groups
-  if (originalRescheduledBooking?.attendees) {
-    const attendeeEmails = originalRescheduledBooking.attendees.map((attendee) => attendee.email);
-    const hostsFromAttendees = hosts.filter(
-      (host) => organizerHost?.user.email !== host.user.email && attendeeEmails.includes(host.user.email)
-    );
-    // Filter out undefined organizerHost and return only valid hosts
-    const validHosts = organizerHost ? [organizerHost, ...hostsFromAttendees] : hostsFromAttendees;
-
-    return validHosts;
+  if (!originalRescheduledBooking) {
+    return [];
   }
 
-  return organizerHost ? [organizerHost] : [];
+  const attendeeEmails = originalRescheduledBooking.attendees?.map((attendee) => attendee.email) || [];
+
+  return hosts.filter((host) => {
+    const isOrganizer = host.user.id === originalRescheduledBooking.userId;
+    const isAttendee = attendeeEmails.includes(host.user.email);
+    return isOrganizer || isAttendee;
+  });
 };
