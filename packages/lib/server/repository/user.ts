@@ -896,6 +896,8 @@ export class UserRepository {
             eventTypeId: true,
             externalId: true,
             integration: true,
+            updatedAt: true,
+            googleChannelId: true,
           },
         },
         completedOnboarding: true,

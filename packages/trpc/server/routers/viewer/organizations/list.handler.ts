@@ -1,5 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -26,7 +27,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     return currentOrg;
   }
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const hasDelegationCredential = await featureRepo.checkIfTeamHasFeature(
     organizationId,
     "delegation-credential"
