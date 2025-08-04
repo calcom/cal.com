@@ -741,6 +741,7 @@ export async function scheduleBookingReminders(
       const bookingInfo = {
         uid: booking.uid,
         bookerUrl,
+        type: booking.eventType?.slug || "event",
         attendees: booking.attendees.map((attendee) => {
           return {
             name: attendee.name,

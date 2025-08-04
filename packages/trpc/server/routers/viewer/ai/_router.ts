@@ -166,7 +166,6 @@ export const aiRouter = router({
       }
 
       checkRateLimitAndThrowError({
-        userId: ctx.user.id,
         rateLimitingType: "core",
         identifier: `test-call:${ctx.user.id}`,
       });

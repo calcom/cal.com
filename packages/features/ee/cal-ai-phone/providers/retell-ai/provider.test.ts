@@ -87,7 +87,7 @@ describe("RetellAIProvider", () => {
       });
 
       expect(result).toEqual({
-        llmId: "test-llm-id",
+        modelId: "test-llm-id",
         agentId: "test-agent-id",
       });
     });
@@ -125,7 +125,7 @@ describe("RetellAIProvider", () => {
 
     it("should delete AI configuration and return result", async () => {
       const config: AIPhoneServiceDeletion = {
-        llmId: "test-llm-id",
+        modelId: "test-llm-id",
         agentId: "test-agent-id",
       };
 
@@ -139,7 +139,7 @@ describe("RetellAIProvider", () => {
       expect(result).toEqual({
         success: true,
         errors: [],
-        deleted: { llm: true, agent: true },
+        deleted: { model: true, agent: true },
       });
     });
 
@@ -151,7 +151,7 @@ describe("RetellAIProvider", () => {
       });
 
       const config: AIPhoneServiceDeletion = {
-        llmId: "test-llm-id",
+        modelId: "test-llm-id",
         agentId: "test-agent-id",
       };
 
@@ -160,12 +160,12 @@ describe("RetellAIProvider", () => {
       expect(result).toEqual({
         success: false,
         errors: ["Failed to delete LLM"],
-        deleted: { llm: false, agent: true },
+        deleted: { model: false, agent: true },
       });
     });
   });
 
-  describe("updateLLMConfiguration", () => {
+  describe("updateModelConfiguration", () => {
     const mockService = {
       updateLLMConfiguration: vi.fn().mockResolvedValue({ llm_id: "test-llm-id" }),
     };
@@ -174,21 +174,21 @@ describe("RetellAIProvider", () => {
       (provider as any).service = mockService;
     });
 
-    it("should update LLM configuration", async () => {
-      const llmId = "test-llm-id";
+    it("should update model configuration", async () => {
+      const modelId = "test-llm-id";
       const updateData: updateLLMConfigurationParams = {
         general_prompt: "Updated prompt",
         begin_message: "Updated begin message",
       };
 
-      const result = await provider.updateLLMConfiguration(llmId, updateData);
+      const result = await provider.updateModelConfiguration(modelId, updateData);
 
-      expect(mockService.updateLLMConfiguration).toHaveBeenCalledWith(llmId, updateData);
+      expect(mockService.updateLLMConfiguration).toHaveBeenCalledWith(modelId, updateData);
       expect(result).toEqual({ llm_id: "test-llm-id" });
     });
   });
 
-  describe("getLLMDetails", () => {
+  describe("getModelDetails", () => {
     const mockService = {
       getLLMDetails: vi.fn().mockResolvedValue({ llm_id: "test-llm-id", general_prompt: "Test prompt" }),
     };
@@ -197,12 +197,12 @@ describe("RetellAIProvider", () => {
       (provider as any).service = mockService;
     });
 
-    it("should get LLM details", async () => {
-      const llmId = "test-llm-id";
+    it("should get model details", async () => {
+      const modelId = "test-llm-id";
 
-      const result = await provider.getLLMDetails(llmId);
+      const result = await provider.getModelDetails(modelId);
 
-      expect(mockService.getLLMDetails).toHaveBeenCalledWith(llmId);
+      expect(mockService.getLLMDetails).toHaveBeenCalledWith(modelId);
       expect(result).toEqual({ llm_id: "test-llm-id", general_prompt: "Test prompt" });
     });
   });
