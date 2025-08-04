@@ -309,7 +309,6 @@ const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => 
         "workflows",
         "webhooks",
         "ai",
-        "aiSelfServe",
       ])
       .optional()
       .default("setup"),

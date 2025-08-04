@@ -138,7 +138,7 @@ export class RetellServiceMapper {
    * Maps agent update data to Retell format
    */
   static mapToUpdateAgentRequest(data: {
-    agent_name?: string;
+    agent_name?: string | null;
     voice_id?: string;
     language?: Language;
     responsiveness?: number;

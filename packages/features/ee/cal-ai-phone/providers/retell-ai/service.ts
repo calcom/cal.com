@@ -198,7 +198,7 @@ export class RetellAIService {
   async updateAgent(
     agentId: string,
     data: {
-      agent_name?: string;
+      agent_name?: string | null;
       voice_id?: string;
       language?: Language;
       responsiveness?: number;

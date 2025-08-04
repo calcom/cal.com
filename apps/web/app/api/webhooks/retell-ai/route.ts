@@ -1,9 +1,11 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { Retell } from "retell-sdk";
 import { z } from "zod";
 
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { RETELL_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -101,8 +103,8 @@ async function handleCallAnalyzed(callData: any) {
   }
 
   await creditService.chargeCredits({
-    userId,
-    teamId,
+    userId: userId ?? undefined,
+    teamId: teamId ?? undefined,
     credits: creditsToDeduct,
   });
 
@@ -120,14 +122,44 @@ async function handleCallAnalyzed(callData: any) {
  * Setup Instructions:
  * 1. Add this webhook URL to your Retell AI dashboard: https://yourdomain.com/api/webhooks/retell-ai
  * 2. Ensure your domain is accessible from the internet (for local development, use ngrok or similar)
+ * 3. Set the RETELL_API_KEY environment variable with your Retell API key (must have webhook badge)
  *
  * This webhook will:
+ * - Verify webhook signature for security
  * - Receive call_analyzed events from Retell AI
  * - Charge credits based on the call cost from the user's or team's credit balance
  * - Log all transactions for audit purposes
  */
 async function handler(request: NextRequest) {
-  const body = await request.json();
+  // Get the raw body for signature verification
+  const rawBody = await request.text();
+  const body = JSON.parse(rawBody);
+
+  // Verify webhook signature
+  const signature = request.headers.get("x-retell-signature");
+  const apiKey = RETELL_API_KEY;
+
+  if (!signature || !apiKey) {
+    log.error("Missing signature or API key for webhook verification");
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "Missing signature or API key",
+      },
+      { status: 401 }
+    );
+  }
+
+  if (!Retell.verify(rawBody, apiKey, signature)) {
+    log.error("Invalid webhook signature");
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        message: "Invalid signature",
+      },
+      { status: 401 }
+    );
+  }
 
   if (body.event !== "call_analyzed") {
     return NextResponse.json({
