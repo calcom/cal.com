@@ -58,6 +58,7 @@ interface FormCardProps {
 }
 
 function FormCard({ formName, fields }: FormCardProps) {
+  const { t } = useLocale();
   const fieldNames = Object.keys(fields);
   const [selectedField, setSelectedField] = useState(fieldNames[0]);
 

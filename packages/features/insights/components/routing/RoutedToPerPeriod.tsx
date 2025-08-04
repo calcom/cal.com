@@ -286,7 +286,7 @@ export function RoutedToPerPeriod() {
       .sort((a, b) => a.getTime() - b.getTime());
   }, [data?.pages]);
 
-  const processedData: RoutedToTableRow[] = useMemo(() => {
+  const processedData = useMemo(() => {
     if (!data?.pages) return [];
 
     // Create a map for quick lookup of stats
@@ -413,7 +413,7 @@ export function RoutedToPerPeriod() {
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="flex cursor-pointer items-center gap-2">
-                                <Avatar size="sm" imageSrc={row.avatarUrl} alt={row.name} />
+                                <Avatar size="sm" imageSrc={row.avatarUrl} alt={row.name || ""} />
                                 <div className="flex flex-col gap-1 truncate">
                                   <span>{row.name}</span>
                                 </div>
