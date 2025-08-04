@@ -136,11 +136,11 @@ const _findQualifiedHostsWithDelegationCredentials = async <
   }
 
   const hostsAfterSegmentMatching = applyFilterWithFallback(
-    roundRobinHosts,
+    hostsAfterRescheduleWithSameRoundRobinHost,
     (await findMatchingHostsWithEventSegment({
       eventType,
-      hosts: roundRobinHosts,
-    })) as typeof roundRobinHosts
+      hosts: hostsAfterRescheduleWithSameRoundRobinHost,
+    })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
   );
 
   if (hostsAfterSegmentMatching.length === 1) {
@@ -151,7 +151,9 @@ const _findQualifiedHostsWithDelegationCredentials = async <
   }
 
   //if segment matching doesn't return any hosts we fall back to all round robin hosts
-  const officalRRHosts = hostsAfterSegmentMatching.length ? hostsAfterSegmentMatching : roundRobinHosts;
+  const officalRRHosts = hostsAfterSegmentMatching.length
+    ? hostsAfterSegmentMatching
+    : hostsAfterRescheduleWithSameRoundRobinHost;
 
   const hostsAfterContactOwnerMatching = applyFilterWithFallback(
     officalRRHosts,

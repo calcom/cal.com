@@ -43,22 +43,18 @@ export const filterHostsBySameRoundRobinHost = async <
     },
   });
 
-  const originalRRHost = hosts.find((host) => host.user.id === originalRescheduledBooking?.userId);
-
-  if (originalRRHost) {
-    return [originalRRHost];
-  }
-
-  // if round robin event has fixed hosts, check if any host's email matches any attendee's email
+  const organizerHost = hosts.find((host) => host.user.id === originalRescheduledBooking?.userId);
+  // needed if round robin has fixed hosts or host groups
   if (originalRescheduledBooking?.attendees) {
     const attendeeEmails = originalRescheduledBooking.attendees.map((attendee) => attendee.email);
-    const hostFromAttendees = hosts.find((host) => attendeeEmails.includes(host.user.email));
+    const hostsFromAttendees = hosts.filter(
+      (host) => organizerHost?.user.email !== host.user.email && attendeeEmails.includes(host.user.email)
+    );
+    // Filter out undefined organizerHost and return only valid hosts
+    const validHosts = organizerHost ? [organizerHost, ...hostsFromAttendees] : hostsFromAttendees;
 
-    if (hostFromAttendees) {
-      return [hostFromAttendees];
-    }
+    return validHosts;
   }
 
-  // Return empty array if no matching host found
-  return [];
+  return organizerHost ? [organizerHost] : [];
 };
