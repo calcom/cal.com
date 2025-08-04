@@ -21,8 +21,8 @@ import { trpc } from "@calcom/trpc";
 import { RoutingFormResponsesDownload } from "../../filters/Download";
 import { OrgTeamsFilter } from "../../filters/OrgTeamsFilter";
 import { useInsightsColumns } from "../../hooks/useInsightsColumns";
-import { useInsightsFacetedUniqueValues } from "../../hooks/useInsightsFacetedUniqueValues";
 import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
 
@@ -46,7 +46,12 @@ export function RoutingFormResponsesTable() {
       routingFormId,
     });
 
-  const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
+  const getInsightsFacetedUniqueValues = useInsightsRoutingFacetedUniqueValues({
+    headers,
+    userId,
+    teamId,
+    isAll,
+  });
 
   const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
