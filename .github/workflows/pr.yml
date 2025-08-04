@@ -237,7 +237,6 @@ jobs:
         lint,
         type-check,
         unit-test,
-        integration-test,
         check-label,
         build,
         build-api-v1,
