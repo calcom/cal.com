@@ -44,6 +44,7 @@ type Props = {
   bookerUrl: string;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
+  teamId?: string;
   isPlatform?: boolean;
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
@@ -66,6 +67,7 @@ function EventTypeSingleLayout({
   tabsNavigation,
   allowDelete = true,
   saveButtonRef,
+  teamId,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -99,7 +101,7 @@ function EventTypeSingleLayout({
 
   return (
     <Shell
-      backPath="/event-types"
+      backPath={teamId ? `/event-types?teamId=${teamId}` : "/event-types"}
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
       CTA={

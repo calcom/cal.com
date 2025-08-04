@@ -79,6 +79,7 @@ export const EventType = ({
   isUserOrganizationAdmin,
   onDelete,
   isDeleting,
+  isTeamEvent,
   tabsNavigation,
   handleSubmit,
   children,
@@ -86,12 +87,14 @@ export const EventType = ({
   saveButtonRef,
 }: EventTypeComponentProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
+  const teamId = eventType.team?.id;
 
   return (
     <>
       <EventTypeSingleLayout
         eventType={eventType}
         team={team}
+        teamId={teamId}
         isUpdateMutationLoading={isUpdating}
         formMethods={formMethods}
         // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
@@ -101,6 +104,7 @@ export const EventType = ({
         isUserOrganizationAdmin={isUserOrganizationAdmin}
         onDelete={onDelete}
         isDeleting={isDeleting}
+        isTeamEvent={eventType.isTeamEvent}
         isPlatform={isPlatform}
         allowDelete={allowDelete}
         tabsNavigation={tabsNavigation}

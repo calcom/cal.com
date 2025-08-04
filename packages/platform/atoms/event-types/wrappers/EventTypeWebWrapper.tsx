@@ -100,15 +100,19 @@ export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWe
   );
 
   if (serverFetchedData) {
-    return <EventTypeWeb {...serverFetchedData} id={id} />;
+    return <EventTypeWeb {...serverFetchedData} id={id} teamId={serverFetchedData.eventType.teamId} />;
   }
 
   if (!eventTypeQueryData) return null;
 
-  return <EventTypeWeb {...eventTypeQueryData} id={id} />;
+  return <EventTypeWeb {...eventTypeQueryData} id={id} teamId={eventTypeQueryData.eventType.teamId} />;
 };
 
-const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
+const EventTypeWeb = ({
+  id,
+  teamId,
+  ...rest
+}: EventTypeSetupProps & { id: number; teamId?: number | null }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();
