@@ -29,7 +29,7 @@
     "postcss-prefixwrap": "1.46.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "ts-jest": "^29.1.2",
-    "typescript": "^5.7.2",
+    "typescript": "^5.9.0-beta",
     "vite": "^5.0.10",
     "vite-plugin-dts": "^3.7.3",
     "vite-plugin-inspect": "^0.8.4",
@@ -43,8 +43,7 @@
   "exports": {
     ".": {
       "import": "./dist/cal-atoms.js",
-      "types": "./dist/index.d.ts",
-      "require": "./dist/cal-atoms.umd.cjs"
+      "types": "./dist/index.d.ts"
     },
     "./add-members-switch/AddMembersWithSwitchPlatformWrapper": "./add-members-switch/AddMembersWithSwitchPlatformWrapper.tsx",
     "./add-members-switch/AddMembersWithSwitchWebWrapper": "./add-members-switch/AddMembersWithSwitchWebWrapper.tsx",
@@ -85,6 +84,5 @@
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "typescript": "^5.0.0"
-  },
-  "main": "./dist/cal-atoms.umd.cjs"
+  }
 }

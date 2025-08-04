@@ -293,6 +293,19 @@ async function createOrganizationAndAddMembersAndTeams({
   }[];
 }) {
   console.log(`\n🏢 Creating organization "${orgData.name}"`);
+
+  const existingTeam = await prisma.team.findFirst({
+    where: {
+      slug: orgData.slug,
+      parentId: null,
+    },
+  });
+
+  if (existingTeam) {
+    console.log(`Organization with slug '${orgData.slug}' already exists, skipping.`);
+    return;
+  }
+
   const orgMembersInDb: (User & {
     inTeams: { slug: string; role: MembershipRole }[];
     orgMembership: Partial<Membership>;

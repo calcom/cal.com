@@ -80,7 +80,7 @@ interface PlainChatConfig {
 }
 
 const PlainChat = IS_PLAIN_CHAT_ENABLED
-  ? () => {
+  ? ({ nonce }: { nonce: string | undefined }) => {
       const [config, setConfig] = useState<PlainChatConfig | null>(null);
       const [isSmallScreen, setIsSmallScreen] = useState(false);
       const { data: session } = useSession();
@@ -297,12 +297,14 @@ const PlainChat = IS_PLAIN_CHAT_ENABLED
       return (
         <>
           <Script
+            nonce={nonce}
             id="plain-chat"
             src="https://chat.cdn-plain.com/index.js"
             strategy="afterInteractive"
             onLoad={() => window.plainScriptLoaded?.()}
           />
           <Script
+            nonce={nonce}
             id="plain-chat-init"
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{ __html: plainChatScript }}
