@@ -37,7 +37,8 @@
   },
   "files": [
     "dist",
-    "globals.min.css"
+    "globals.min.css",
+    "fonts"
   ],
   "module": "./dist/cal-atoms.js",
   "exports": {
