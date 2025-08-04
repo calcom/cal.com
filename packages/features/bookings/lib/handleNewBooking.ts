@@ -27,7 +27,6 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -52,6 +51,7 @@ import {
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
 import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/booking-limits";
+import { getCacheService } from "@calcom/lib/di/containers/cache";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -387,6 +387,23 @@ export type BookingHandlerInput = {
   forcedSlug?: string;
 } & PlatformParams;
 
+function formatAvailabilitySnapshot(data: {
+  dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+  oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+}) {
+  return {
+    ...data,
+    dateRanges: data.dateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+    oooExcludedDateRanges: data.oooExcludedDateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+  };
+}
+
 async function handler(
   input: BookingHandlerInput,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
@@ -539,7 +556,8 @@ async function handler(
     }
   }
 
-  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+  const cacheService = getCacheService();
+  const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -977,31 +995,21 @@ async function handler(
 
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
-    console.log("organizerUser", organizerUser);
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
-      console.log("organizerMetadata", organizerMetadata);
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
       if (isManagedEventType || isTeamEventType) {
-        console.log("isManagedEventType || isTeamEventType");
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
       }
     } else if (organizationDefaultLocation) {
-      console.log("organizationDefaultLocation", organizationDefaultLocation);
       locationBodyString = organizationDefaultLocation;
     } else {
-      console.log("integrations:daily");
       locationBodyString = "integrations:daily";
     }
   }
-
-  console.log("locationBodyString", {
-    locationBodyString,
-    organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-  });
 
   const invitee: Invitee = [
     {
@@ -1406,7 +1414,10 @@ async function handler(
 
         logger.info(`Booking created`, {
           bookingUid: booking.uid,
-          availabilitySnapshot: organizerUserAvailability?.availabilityData,
+          selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
+          availabilitySnapshot: organizerUserAvailability?.availabilityData
+            ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
+            : null,
         });
       }
 

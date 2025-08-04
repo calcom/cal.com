@@ -348,7 +348,7 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {

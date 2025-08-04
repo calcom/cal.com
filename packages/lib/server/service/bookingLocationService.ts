@@ -199,10 +199,10 @@ export class BookingLocationService {
     }
 
     // Process the first real location through getLocationValueForDB to handle static links properly
-    const { bookingLocation, conferenceCredentialId } = getLocationValueForDB(
-      firstRealLocation.type,
-      eventTypeLocations
-    );
+    const { bookingLocation, conferenceCredentialId } = BookingLocationService.getLocationDetailsFromType({
+      locationType: firstRealLocation.type,
+      eventTypeLocations,
+    });
 
     return {
       bookingLocation,
@@ -237,6 +237,11 @@ export class BookingLocationService {
     locationType,
     eventTypeLocations,
   }: GetLocationDetailsFromTypeParams): GetLocationDetailsFromTypeResult {
-    return getLocationValueForDB(locationType, eventTypeLocations);
+    const { bookingLocation, conferenceCredentialId } = getLocationValueForDB(
+      locationType,
+      eventTypeLocations
+    );
+
+    return { bookingLocation, conferenceCredentialId: conferenceCredentialId ?? null };
   }
 }

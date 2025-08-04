@@ -61,7 +61,7 @@ export type EventLocationTypeFromApp = Ensure<
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
 export const DailyLocationType = "integrations:daily";
-export const CalVideoLocationType = "integrations:daily";
+export const CalVideoLocationType = DailyLocationType;
 export const MeetLocationType = "integrations:google:meet";
 
 /**
@@ -381,12 +381,12 @@ export const getLocationValueForDB = (
   eventLocations: LocationObject[]
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
-  let conferenceCredentialId: number | null = null;
+  let conferenceCredentialId: number | undefined = undefined;
 
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
       const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
-      conferenceCredentialId = location.credentialId || null;
+      conferenceCredentialId = location.credentialId;
       if (!eventLocationType) {
         return;
       }

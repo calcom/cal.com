@@ -486,7 +486,7 @@ describe("BookingLocationService", () => {
 
         expect(result).toEqual({
           bookingLocation: "integrations:zoom",
-          conferenceCredentialId: null, // 0 is treated as falsy by || operator
+          conferenceCredentialId: 0,
         });
       });
     });
