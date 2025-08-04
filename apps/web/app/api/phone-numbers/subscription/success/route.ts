@@ -221,37 +221,4 @@ async function createPhoneNumber(
   return newNumber;
 }
 
-async function linkPhoneNumberToAgent(phoneNumberId: number, eventTypeId: number, userId: number) {
-  const aiService = createDefaultAIPhoneServiceProvider();
-
-  // const config = await prisma.aISelfServeConfiguration.findFirst({
-  //   where: {
-  //     eventTypeId: eventTypeId,
-  //     eventType: {
-  //       userId: userId,
-  //     },
-  //   },
-  // });
-
-  // if (config?.agentId) {
-  //   const phoneNumber = await prisma.calAiPhoneNumber.findUnique({
-  //     where: { id: phoneNumberId },
-  //   });
-
-  //   if (phoneNumber) {
-  //     // Assign agent to the new number via Retell API
-  //     await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
-  //       inbound_agent_id: config.agentId,
-  //       outbound_agent_id: config.agentId,
-  //     });
-
-  //     // Link the new number to the AI config
-  //     await prisma.aISelfServeConfiguration.update({
-  //       where: { id: config.id },
-  //       data: { yourPhoneNumberId: phoneNumberId },
-  //     });
-  //   }
-  // }
-}
-
 export const GET = defaultResponderForAppDir(handler);
