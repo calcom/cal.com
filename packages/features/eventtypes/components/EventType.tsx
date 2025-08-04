@@ -79,7 +79,6 @@ export const EventType = ({
   isUserOrganizationAdmin,
   onDelete,
   isDeleting,
-  isTeamEvent,
   tabsNavigation,
   handleSubmit,
   children,
@@ -104,7 +103,6 @@ export const EventType = ({
         isUserOrganizationAdmin={isUserOrganizationAdmin}
         onDelete={onDelete}
         isDeleting={isDeleting}
-        isTeamEvent={eventType.isTeamEvent}
         isPlatform={isPlatform}
         allowDelete={allowDelete}
         tabsNavigation={tabsNavigation}
