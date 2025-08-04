@@ -11,6 +11,7 @@ export enum ColumnFilterType {
   TEXT = "t",
   NUMBER = "n",
   DATE_RANGE = "dr",
+  BOOLEAN = "b"
 }
 
 export const textFilterOperators = [
@@ -32,6 +33,17 @@ export type SingleSelectFilterValue = {
   type: ColumnFilterType.SINGLE_SELECT;
   data: string | number;
 };
+
+export type BooleanFilterValue = {
+  type: ColumnFilterType.BOOLEAN;
+  data: boolean;
+};
+
+export const ZBooleanFilterValue = z.object({
+  type: z.literal(ColumnFilterType.BOOLEAN),
+  data: z.boolean(),
+}) satisfies z.ZodType<BooleanFilterValue>;
+
 
 export const ZSingleSelectFilterValue = z.object({
   type: z.literal(ColumnFilterType.SINGLE_SELECT),
@@ -110,6 +122,7 @@ export const ZFilterValue = z.union([
   ZTextFilterValue,
   ZNumberFilterValue,
   ZDateRangeFilterValue,
+  ZBooleanFilterValue,
 ]);
 
 export type DateRangeFilterOptions = {
