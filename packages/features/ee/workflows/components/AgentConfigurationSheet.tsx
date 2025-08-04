@@ -168,7 +168,6 @@ export function AgentConfigurationSheet({
         window.location.href = data.checkoutUrl;
       } else if (data.phoneNumber) {
         showToast(t("phone_number_purchased_successfully"), "success");
-        await utils.viewer.phoneNumber.list.invalidate();
         await utils.viewer.me.get.invalidate();
         setIsBuyDialogOpen(false);
         if (agentId) {
@@ -189,8 +188,6 @@ export function AgentConfigurationSheet({
       setIsImportDialogOpen(false);
       phoneNumberForm.reset();
 
-      // Refetch all relevant data
-      await utils.viewer.phoneNumber.list.invalidate();
       await utils.viewer.me.get.invalidate();
       if (agentId) {
         await utils.viewer.ai.get.invalidate({ id: agentId });
@@ -206,7 +203,6 @@ export function AgentConfigurationSheet({
       showToast(data.message || "Phone number subscription cancelled successfully", "success");
       setCancellingNumberId(null);
 
-      await utils.viewer.phoneNumber.list.invalidate();
       await utils.viewer.me.get.invalidate();
       if (agentId) {
         await utils.viewer.ai.get.invalidate({ id: agentId });
@@ -223,7 +219,6 @@ export function AgentConfigurationSheet({
       showToast("Phone number deleted successfully", "success");
       setNumberToDelete(null);
 
-      await utils.viewer.phoneNumber.list.invalidate();
       if (agentId) {
         await utils.viewer.ai.get.invalidate({ id: agentId });
       }
@@ -234,17 +229,14 @@ export function AgentConfigurationSheet({
     },
   });
 
-  // Track when we're refetching agent data
   const agentQuery = trpc.viewer.ai.get.useQuery(
     { id: agentId! },
     {
       enabled: !!agentId,
-      // Don't show as loading on initial fetch since we have agentData prop
       refetchOnMount: false,
     }
   );
 
-  // Add agent update mutation for proper loading states
   const updateAgentMutation = trpc.viewer.ai.update.useMutation({
     onSuccess: () => {
       if (agentId) {
@@ -265,7 +257,6 @@ export function AgentConfigurationSheet({
       ...data,
     });
 
-    // Also call the original onUpdate prop if provided
     onUpdate(data);
   };
 

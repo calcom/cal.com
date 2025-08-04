@@ -55,7 +55,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  // Handle phone number subscriptions for CAL_AI steps
   const calAISteps = workflowToDelete.steps?.filter(
     (step) =>
       step.action === WorkflowActions.CAL_AI_PHONE_CALL &&

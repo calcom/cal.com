@@ -2,17 +2,13 @@ import { z } from "zod";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import type { RetellLLMGeneralTools } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
 export const aiRouter = router({
-  test: authedProcedure.query(async ({ ctx }) => {
-    return {
-      message: "test",
-    };
-  }),
-
   list: authedProcedure
     .input(
       z
@@ -54,7 +50,6 @@ export const aiRouter = router({
         name: z.string().optional(),
         teamId: z.number().optional(),
         workflowStepId: z.number().optional(),
-        // Retell configuration
         generalPrompt: z.string().optional(),
         beginMessage: z.string().optional(),
         generalTools: z
@@ -96,7 +91,6 @@ export const aiRouter = router({
         teamId: z.number().optional(),
         name: z.string().optional(),
         enabled: z.boolean().optional(),
-        // Retell updates
         generalPrompt: z.string().nullish().default(null),
         beginMessage: z.string().nullish().default(null),
         generalTools: z
@@ -155,6 +149,22 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const hasCredits = await CreditsRepository.hasAvailableCredits({
+        userId: ctx.user.id,
+        teamId: input.teamId,
+        creditsRequired: 5, // Minimum 5 credits required for test calls
+      });
+
+      if (!hasCredits) {
+        throw new Error("Insufficient credits to make test call. Please purchase more credits.");
+      }
+
+      checkRateLimitAndThrowError({
+        userId: ctx.user.id,
+        rateLimitingType: "core",
+        identifier: `test-call:${ctx.user.id}`,
+      });
+
       const aiService = createDefaultAIPhoneServiceProvider();
 
       return await aiService.createTestCall({

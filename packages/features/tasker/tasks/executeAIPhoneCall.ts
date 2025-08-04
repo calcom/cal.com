@@ -1,6 +1,7 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import prisma from "@calcom/prisma";
 
 interface ExecuteAIPhoneCallPayload {
@@ -69,7 +70,24 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("Reminder not found or not scheduled");
     }
 
-    // Check rate limits
+    // Check if user/team has sufficient credits before making the call
+    if (data.userId || data.teamId) {
+      const hasCredits = await CreditsRepository.hasAvailableCredits({
+        userId: data.userId || undefined,
+        teamId: data.teamId || undefined,
+        creditsRequired: 5, // Minimum 5 credits required for AI phone calls
+      });
+
+      if (!hasCredits) {
+        logger.warn(`Insufficient credits for AI phone call`, {
+          userId: data.userId,
+          teamId: data.teamId,
+          workflowReminderId: data.workflowReminderId,
+        });
+        throw new Error("Insufficient credits to make AI phone call. Please purchase more credits.");
+      }
+    }
+
     // TODO: add better rate limiting for AI phone calls
     if (data.userId) {
       await checkRateLimitAndThrowError({
@@ -105,6 +123,7 @@ export async function executeAIPhoneCall(payload: string) {
       schedulerName: booking.user?.name || "",
       eventName: booking.eventType?.title || "",
       eventDate: booking.startTime.toISOString(),
+      // TODO:Add more dynamic variables
     };
 
     console.log("Dynamic variables:", dynamicVariables);

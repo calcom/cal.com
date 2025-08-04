@@ -1,5 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { AgentRepository } from "@calcom/lib/server/repository/agent";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -113,23 +114,9 @@ async function handlePhoneNumberSubscription(session: any) {
   // If agentId is provided, link the phone number to the agent
   if (agentId) {
     try {
-      const agent = await prisma.agent.findFirst({
-        where: {
-          id: agentId,
-          OR: [
-            { userId: userId },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: userId,
-                    accepted: true,
-                  },
-                },
-              },
-            },
-          ],
-        },
+      const agent = await AgentRepository.findByIdWithUserAccess({
+        agentId,
+        userId,
       });
 
       if (agent) {

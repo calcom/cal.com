@@ -329,7 +329,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
       //step was deleted
       if (!newStep) {
-        // Handle phone number subscriptions for CAL_AI steps
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && oldStep.agentId) {
           try {
             const aiPhoneService = createDefaultAIPhoneServiceProvider();
@@ -446,9 +445,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
 
-        // Note: AI phone call actions can be saved without an agent initially
-        // The agent will be created and linked in a separate step
-
         const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
 
         await ctx.prisma.workflowStep.update({
@@ -520,9 +516,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
-
-        // Note: AI phone call actions can be saved without an agent initially
-        // The agent will be created and linked in a separate step
 
         const {
           id: _stepId,

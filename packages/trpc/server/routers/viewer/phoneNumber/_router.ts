@@ -9,9 +9,22 @@ import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
 export const phoneNumberRouter = router({
-  list: authedProcedure.query(async ({ ctx }) => {
-    return await PhoneNumberRepository.findPhoneNumbersFromUserId({ userId: ctx.user.id });
-  }),
+  list: authedProcedure
+    .input(
+      z
+        .object({
+          teamId: z.number().optional(),
+          scope: z.enum(["personal", "team", "all"]).default("all"),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      return await PhoneNumberRepository.findManyWithUserAccess({
+        userId: ctx.user.id,
+        teamId: input?.teamId,
+        scope: input?.scope || "all",
+      });
+    }),
 
   buy: authedProcedure
     .input(
@@ -27,7 +40,6 @@ export const phoneNumberRouter = router({
       const userId = ctx.user.id;
       const aiService = createDefaultAIPhoneServiceProvider();
 
-      // Generate checkout session for phone number subscription
       const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
         userId,
         teamId: input?.teamId,
@@ -74,7 +86,6 @@ export const phoneNumberRouter = router({
       } = input;
       const aiService = createDefaultAIPhoneServiceProvider();
 
-      // Use the service's importPhoneNumber which now handles agent assignment
       const importedPhoneNumber = await aiService.importPhoneNumber({
         phone_number: phoneNumber,
         termination_uri: terminationUri,
