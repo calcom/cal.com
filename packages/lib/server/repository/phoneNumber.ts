@@ -1,9 +1,40 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+interface _PhoneNumberRawResult {
+  id: number;
+  phoneNumber: string;
+  provider: string | null;
+  userId: number | null;
+  teamId: number | null;
+  subscriptionStatus: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  inboundAgentId: string | null;
+  outboundAgentId: string | null;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+}
+
+interface _AgentRawResult {
+  id: string;
+  name: string;
+  retellAgentId: string;
+}
+
 export class PhoneNumberRepository {
+  private static async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
+    const result = await prisma.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT "teamId"
+      FROM "Membership"
+      WHERE "userId" = ${userId} AND accepted = true
+    `;
+
+    return result.map((row) => row.teamId);
+  }
+
   static async findMinimalPhoneNumber({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
     return await prisma.calAiPhoneNumber.findUniqueOrThrow({
       where: {
@@ -12,30 +43,83 @@ export class PhoneNumberRepository {
       },
     });
   }
+
   static async findPhoneNumbersFromUserId({ userId }: { userId: number }) {
-    return await prisma.calAiPhoneNumber.findMany({
-      where: {
-        userId,
-        OR: [{ subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE }, { subscriptionStatus: null }],
-      },
-      include: {
-        inboundAgent: {
-          select: {
-            id: true,
-            name: true,
-            retellAgentId: true,
-          },
-        },
-        outboundAgent: {
-          select: {
-            id: true,
-            name: true,
-            retellAgentId: true,
-          },
-        },
-      },
-    });
+    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+      SELECT 
+        pn.id,
+        pn."phoneNumber",
+        pn.provider,
+        pn."userId",
+        pn."teamId",
+        pn."subscriptionStatus",
+        pn."createdAt",
+        pn."updatedAt",
+        pn."inboundAgentId",
+        pn."outboundAgentId",
+        pn."stripeCustomerId",
+        pn."stripeSubscriptionId"
+      FROM "CalAiPhoneNumber" pn
+      WHERE pn."userId" = ${userId}
+        AND (pn."subscriptionStatus" = ${PhoneNumberSubscriptionStatus.ACTIVE} OR pn."subscriptionStatus" IS NULL)
+    `;
+
+    const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
+    const agents =
+      phoneNumberIds.length > 0
+        ? await prisma.$queryRaw<(_AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        SELECT 
+          a.id,
+          a.name,
+          a."retellAgentId",
+          pn.id as "phoneNumberId",
+          CASE 
+            WHEN pn."inboundAgentId" = a.id THEN 'inbound'
+            WHEN pn."outboundAgentId" = a.id THEN 'outbound'
+          END as "agentType"
+        FROM "Agent" a
+        INNER JOIN "CalAiPhoneNumber" pn ON (pn."inboundAgentId" = a.id OR pn."outboundAgentId" = a.id)
+        WHERE pn.id IN (${Prisma.join(phoneNumberIds)})
+      `
+        : [];
+
+    const agentsByPhoneNumber = agents.reduce((acc, agent) => {
+      const phoneNumberId = agent.phoneNumberId;
+      if (!acc[phoneNumberId]) {
+        acc[phoneNumberId] = { inbound: null, outbound: null };
+      }
+
+      const agentData = {
+        id: agent.id,
+        name: agent.name,
+        retellAgentId: agent.retellAgentId,
+      };
+
+      if (agent.agentType === "inbound") {
+        acc[phoneNumberId].inbound = agentData;
+      } else if (agent.agentType === "outbound") {
+        acc[phoneNumberId].outbound = agentData;
+      }
+
+      return acc;
+    }, {} as Record<number, { inbound: _AgentRawResult | null; outbound: _AgentRawResult | null }>);
+
+    return phoneNumbers.map((pn) => ({
+      id: pn.id,
+      phoneNumber: pn.phoneNumber,
+      provider: pn.provider,
+      userId: pn.userId,
+      teamId: pn.teamId,
+      subscriptionStatus: pn.subscriptionStatus,
+      createdAt: pn.createdAt,
+      updatedAt: pn.updatedAt,
+      stripeCustomerId: pn.stripeCustomerId,
+      stripeSubscriptionId: pn.stripeSubscriptionId,
+      inboundAgent: agentsByPhoneNumber[pn.id]?.inbound || null,
+      outboundAgent: agentsByPhoneNumber[pn.id]?.outbound || null,
+    }));
   }
+
   static async findUnassignedPhoneNumbersFromUserId({ userId }: { userId: number }) {
     return await prisma.calAiPhoneNumber.findMany({
       where: {
@@ -93,18 +177,16 @@ export class PhoneNumberRepository {
     teamId: number;
     userId: number;
   }) {
+    const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
+
+    if (!accessibleTeamIds.includes(teamId)) {
+      return null;
+    }
+
     return await prisma.calAiPhoneNumber.findFirst({
       where: {
         id,
         teamId,
-        team: {
-          members: {
-            some: {
-              userId,
-              accepted: true,
-            },
-          },
-        },
       },
     });
   }
@@ -127,20 +209,139 @@ export class PhoneNumberRepository {
     teamId: number;
     userId: number;
   }) {
+    const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
+
+    if (!accessibleTeamIds.includes(teamId)) {
+      return null;
+    }
+
     return await prisma.calAiPhoneNumber.findFirst({
       where: {
         phoneNumber,
         teamId,
-        team: {
-          members: {
-            some: {
-              userId,
-              accepted: true,
-            },
-          },
-        },
       },
     });
+  }
+
+  static async findManyWithUserAccess({
+    userId,
+    teamId,
+    scope = "all",
+  }: {
+    userId: number;
+    teamId?: number;
+    scope?: "personal" | "team" | "all";
+  }) {
+    let whereCondition: Prisma.Sql;
+
+    if (scope === "personal") {
+      whereCondition = Prisma.sql`pn."userId" = ${userId}`;
+    } else if (scope === "team") {
+      const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
+
+      if (accessibleTeamIds.length === 0) {
+        return [];
+      }
+
+      if (teamId) {
+        if (!accessibleTeamIds.includes(teamId)) {
+          return [];
+        }
+        whereCondition = Prisma.sql`pn."teamId" = ${teamId}`;
+      } else {
+        whereCondition = Prisma.sql`pn."teamId" IN (${Prisma.join(accessibleTeamIds)})`;
+      }
+    } else {
+      const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
+
+      if (teamId) {
+        if (accessibleTeamIds.includes(teamId)) {
+          whereCondition = Prisma.sql`(pn."userId" = ${userId} OR pn."teamId" = ${teamId})`;
+        } else {
+          whereCondition = Prisma.sql`pn."userId" = ${userId}`;
+        }
+      } else if (accessibleTeamIds.length > 0) {
+        whereCondition = Prisma.sql`(pn."userId" = ${userId} OR pn."teamId" IN (${Prisma.join(
+          accessibleTeamIds
+        )}))`;
+      } else {
+        whereCondition = Prisma.sql`pn."userId" = ${userId}`;
+      }
+    }
+
+    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+      SELECT 
+        pn.id,
+        pn."phoneNumber",
+        pn.provider,
+        pn."userId",
+        pn."teamId",
+        pn."subscriptionStatus",
+        pn."createdAt",
+        pn."updatedAt",
+        pn."inboundAgentId",
+        pn."outboundAgentId",
+        pn."stripeCustomerId",
+        pn."stripeSubscriptionId"
+      FROM "CalAiPhoneNumber" pn
+      WHERE ${whereCondition}
+      ORDER BY pn."createdAt" DESC
+    `;
+
+    const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
+    const agents =
+      phoneNumberIds.length > 0
+        ? await prisma.$queryRaw<(_AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        SELECT 
+          a.id,
+          a.name,
+          a."retellAgentId",
+          pn.id as "phoneNumberId",
+          CASE 
+            WHEN pn."inboundAgentId" = a.id THEN 'inbound'
+            WHEN pn."outboundAgentId" = a.id THEN 'outbound'
+          END as "agentType"
+        FROM "Agent" a
+        INNER JOIN "CalAiPhoneNumber" pn ON (pn."inboundAgentId" = a.id OR pn."outboundAgentId" = a.id)
+        WHERE pn.id IN (${Prisma.join(phoneNumberIds)})
+      `
+        : [];
+
+    const agentsByPhoneNumber = agents.reduce((acc, agent) => {
+      const phoneNumberId = agent.phoneNumberId;
+      if (!acc[phoneNumberId]) {
+        acc[phoneNumberId] = { inbound: null, outbound: null };
+      }
+
+      const agentData = {
+        id: agent.id,
+        name: agent.name,
+        retellAgentId: agent.retellAgentId,
+      };
+
+      if (agent.agentType === "inbound") {
+        acc[phoneNumberId].inbound = agentData;
+      } else if (agent.agentType === "outbound") {
+        acc[phoneNumberId].outbound = agentData;
+      }
+
+      return acc;
+    }, {} as Record<number, { inbound: _AgentRawResult | null; outbound: _AgentRawResult | null }>);
+
+    return phoneNumbers.map((pn) => ({
+      id: pn.id,
+      phoneNumber: pn.phoneNumber,
+      provider: pn.provider,
+      userId: pn.userId,
+      teamId: pn.teamId,
+      subscriptionStatus: pn.subscriptionStatus,
+      createdAt: pn.createdAt,
+      updatedAt: pn.updatedAt,
+      stripeCustomerId: pn.stripeCustomerId,
+      stripeSubscriptionId: pn.stripeSubscriptionId,
+      inboundAgent: agentsByPhoneNumber[pn.id]?.inbound || null,
+      outboundAgent: agentsByPhoneNumber[pn.id]?.outbound || null,
+    }));
   }
 
   static async updateSubscriptionStatus({
