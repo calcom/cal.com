@@ -1,7 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import prisma from "@calcom/prisma";
 
 interface ExecuteAIPhoneCallPayload {
@@ -72,19 +71,28 @@ export async function executeAIPhoneCall(payload: string) {
 
     // Check if user/team has sufficient credits before making the call
     if (data.userId || data.teamId) {
-      const hasCredits = await CreditsRepository.hasAvailableCredits({
+      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+      const creditService = new CreditService();
+      const credits = await creditService.getAllCredits({
         userId: data.userId || undefined,
         teamId: data.teamId || undefined,
-        creditsRequired: 5, // Minimum 5 credits required for AI phone calls
       });
 
-      if (!hasCredits) {
+      const availableCredits =
+        (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
+      const requiredCredits = 5;
+
+      if (availableCredits < requiredCredits) {
         logger.warn(`Insufficient credits for AI phone call`, {
           userId: data.userId,
           teamId: data.teamId,
+          availableCredits,
+          requiredCredits,
           workflowReminderId: data.workflowReminderId,
         });
-        throw new Error("Insufficient credits to make AI phone call. Please purchase more credits.");
+        throw new Error(
+          `Insufficient credits to make AI phone call. Need ${requiredCredits} credits, have ${availableCredits}. Please purchase more credits.`
+        );
       }
     }
 

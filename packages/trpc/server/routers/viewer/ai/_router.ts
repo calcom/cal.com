@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import type { RetellLLMGeneralTools } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -149,14 +148,21 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const hasCredits = await CreditsRepository.hasAvailableCredits({
+      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+      const creditService = new CreditService();
+      const credits = await creditService.getAllCredits({
         userId: ctx.user.id,
         teamId: input.teamId,
-        creditsRequired: 5, // Minimum 5 credits required for test calls
       });
 
-      if (!hasCredits) {
-        throw new Error("Insufficient credits to make test call. Please purchase more credits.");
+      const availableCredits =
+        (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
+      const requiredCredits = 5;
+
+      if (availableCredits < requiredCredits) {
+        throw new Error(
+          `Insufficient credits to make test call. Need ${requiredCredits} credits, have ${availableCredits}. Please purchase more credits.`
+        );
       }
 
       checkRateLimitAndThrowError({
