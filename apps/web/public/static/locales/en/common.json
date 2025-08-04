@@ -3429,6 +3429,7 @@
   "usage_based_expiration_description": "This link can be used for {{count}} booking",
   "usage_based_generic_expiration_description": "This link can be configured to expire after a set number of bookings",
   "usage_based_expiration_description_plural": "This link can be used for {{count}} bookings",
+  "booking_status": "Booking status",
   "pdf_files_cannot_be_uploaded_as_images": "PDF files cannot be uploaded as images",
   "only_image_files_allowed": "Only image files are allowed",
   "html_files_cannot_be_uploaded_as_images": "HTML files cannot be uploaded as images",
