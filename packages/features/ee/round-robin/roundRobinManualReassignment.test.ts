@@ -27,6 +27,27 @@ vi.mock("@calcom/app-store/utils", () => ({
   getAppFromSlug: vi.fn(),
 }));
 
+// Type definitions
+type TestUserMetadata = {
+  defaultConferencingApp?: {
+    appSlug: string;
+    appLink?: string;
+  };
+};
+
+type TestUser = {
+  id: number;
+  name: string;
+  timeZone: string;
+  username: string;
+  email: string;
+  schedules: (typeof TestData.schedules.IstWorkHours)[];
+  destinationCalendar?: { integration: string; externalId: string };
+  metadata?: TestUserMetadata;
+};
+
+type MockBookingAttendee = ReturnType<typeof getMockBookingAttendee>;
+
 // Test Data Builders
 const createTestUser = (overrides?: {
   id?: number;
@@ -34,7 +55,7 @@ const createTestUser = (overrides?: {
   username?: string;
   email?: string;
   destinationCalendar?: { integration: string; externalId: string };
-  metadata?: Record<string, any>;
+  metadata?: TestUserMetadata;
 }) => ({
   id: overrides?.id ?? 1,
   name: overrides?.name ?? `user-${overrides?.id ?? 1}`,
@@ -44,6 +65,18 @@ const createTestUser = (overrides?: {
   schedules: [TestData.schedules.IstWorkHours],
   destinationCalendar: overrides?.destinationCalendar,
   metadata: overrides?.metadata,
+  defaultScheduleId: 1,
+  credentials: [],
+  selectedCalendars: [],
+  weekStart: "Monday" as const,
+  teams: [],
+  availability: [],
+  profiles: [],
+  outOfOffice: undefined,
+  smsLockState: undefined,
+  completedOnboarding: true,
+  locked: false,
+  organizationId: null,
 });
 
 const createTestDestinationCalendar = (overrides?: { integration?: string; externalId?: string }) => ({
@@ -56,7 +89,7 @@ const createTestBooking = async (params: {
   userId: number;
   bookingId: number;
   bookingUid: string;
-  attendees?: any[];
+  attendees?: MockBookingAttendee[];
   location?: string;
 }) => {
   const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
@@ -85,11 +118,12 @@ const createTestBooking = async (params: {
 const createRoundRobinEventType = (params: {
   id: number;
   slug: string;
-  users: any[];
-  hosts?: any[];
-  locations?: any[];
+  users: TestUser[];
+  hosts?: { userId: number; isFixed: boolean }[];
+  locations?: { type: string; credentialId?: number }[];
   teamId?: number;
   schedulingType?: SchedulingType;
+  parentId?: number;
 }) => ({
   id: params.id,
   slug: params.slug,
@@ -99,16 +133,17 @@ const createRoundRobinEventType = (params: {
   hosts: params.hosts ?? params.users.map((user) => ({ userId: user.id, isFixed: false })),
   locations: params.locations,
   teamId: params.teamId,
+  parentId: params.parentId,
 });
 
 // Assertion Helpers
 const expectEventManagerCalledWith = (
-  spy: any,
+  spy: ReturnType<typeof vi.spyOn>,
   expectedParams: {
     location?: string;
     uid: string;
     changedOrganizer: boolean;
-    destinationCalendars?: any[];
+    destinationCalendars?: Array<{ integration: string; externalId: string }>;
   }
 ) => {
   expect(spy).toHaveBeenCalledTimes(1);
@@ -128,13 +163,26 @@ type MockEventManagerConfig = {
   failConferencing?: boolean;
 };
 
+type ConferenceResult = {
+  type: string;
+  success: boolean;
+  uid: string;
+  originalEvent: Record<string, unknown>;
+  error?: string;
+  updatedEvent?: {
+    url: string;
+  };
+};
+
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/lib/EventManager")).default;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spy.mockImplementation(async (event: any) => {
     const location = event.location;
-    const results: any[] = [];
+    const results: ConferenceResult[] = [];
 
     // Check if location is a static link (starts with http:// or https://)
     const isStaticLink = location?.startsWith("http://") || location?.startsWith("https://");
@@ -208,7 +256,7 @@ describe("roundRobinManualReassignment test", () => {
             trigger: "NEW_EVENT",
             action: "EMAIL_HOST",
             template: "REMINDER",
-            activeEventTypeId: 1,
+            activeOn: [1],
           },
         ],
         eventTypes: [
@@ -235,7 +283,7 @@ describe("roundRobinManualReassignment test", () => {
       {
         bookingUid: bookingToReassignUid,
         method: WorkflowMethods.EMAIL,
-        scheduledDate: dateStringPlusTwo,
+        scheduledDate: new Date(dateStringPlusTwo),
         scheduled: true,
         workflowStepId: 1,
         workflowId: 1,
@@ -269,7 +317,7 @@ describe("roundRobinManualReassignment test", () => {
     expectWorkflowToBeTriggered({ emailsToReceive: [newHost.email], emails });
   });
 
-  test("should include conferenceCredentialId when reassigning booking with conference location", async () => {
+  test("should include conferenceCredentialId when reassigning booking with with fixed host as organizer", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     const eventManagerRescheduleSpy = await mockEventManagerReschedule();
 
@@ -320,6 +368,7 @@ describe("roundRobinManualReassignment test", () => {
     // Verify that EventManager.reschedule was called with an event containing conferenceCredentialId
     expect(eventManagerRescheduleSpy).toHaveBeenCalledTimes(1);
     const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((calledEvent as any).conferenceCredentialId).toBe(conferenceCredentialId);
   });
 
@@ -402,16 +451,15 @@ describe("roundRobinManualReassignment test", () => {
       userId: fixedHost.id,
     });
 
-    const bookingRepo = new BookingRepository(prismaMock);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bookingRepo = new BookingRepository(prismaMock as any);
     const attendees = await bookingRepo.getBookingAttendees(123);
 
     expect(attendees.some((attendee) => attendee.email === currentRRHost.email)).toBe(false);
     expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
   });
 
-  test("should send cancellation email to previous round robin attendee when reassigning", async ({
-    emails,
-  }) => {
+  test("should send cancellation email to previous round robin attendee when reassigning", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule();
 
@@ -528,6 +576,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
               type: "integrations:google:meet",
             },
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (slug === "zoom" && config?.zoom !== false) {
@@ -537,6 +586,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
               type: "integrations:zoom",
             },
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (slug === "custom-video" && config?.customVideo !== false) {
@@ -546,6 +596,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
               type: "integrations:custom-video",
             },
           },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return undefined;
@@ -568,19 +619,12 @@ describe("roundRobinManualReassignment - Location Changes", () => {
 
       await createBookingScenario(
         getScenarioData({
-          teams: [
-            {
-              id: 1,
-              name: "Test Team",
-              slug: "test-team",
-            },
-          ],
           eventTypes: [
             createRoundRobinEventType({
               id: 1,
               slug: "round-robin-event",
               teamId: 1,
-              users,
+              users: Object.values(users),
               locations: [{ type: OrganizerDefaultConferencingAppType }, { type: "integrations:daily" }],
             }),
           ],
@@ -642,7 +686,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
             createRoundRobinEventType({
               id: 2,
               slug: "round-robin-event-fallback",
-              users,
+              users: Object.values(users),
               locations: [
                 { type: OrganizerDefaultConferencingAppType },
                 { type: "integrations:first-available" },
@@ -672,6 +716,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((calledEvent as any).location).toBe("integrations:first-available");
     });
 
@@ -693,8 +738,9 @@ describe("roundRobinManualReassignment - Location Changes", () => {
             createRoundRobinEventType({
               id: 4,
               slug: "managed-event",
-              schedulingType: "MANAGED" as SchedulingType,
-              users,
+              // This is a managed event type child which allows Organizer's Default Conferencing App
+              parentId: 1,
+              users: Object.values(users),
               locations: [{ type: OrganizerDefaultConferencingAppType }],
             }),
           ],
@@ -721,6 +767,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((calledEvent as any).location).toBe("https://custom-video.com/room123");
     });
 
@@ -742,7 +789,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
             createRoundRobinEventType({
               id: 3,
               slug: "round-robin-event-error",
-              users,
+              users: Object.values(users),
               teamId: 1,
               locations: [{ type: OrganizerDefaultConferencingAppType }],
             }),
@@ -770,6 +817,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((calledEvent as any).location).toBe("integrations:google:meet");
 
       await expectBookingToBeInDatabase({
@@ -796,7 +844,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
           createRoundRobinEventType({
             id: 3,
             slug: "round-robin-event-error",
-            users,
+            users: Object.values(users),
             locations: [{ type: OrganizerDefaultConferencingAppType }],
           }),
         ],

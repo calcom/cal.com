@@ -117,12 +117,6 @@ export const roundRobinManualReassignment = async ({
 
   const originalOrganizer = booking.user;
   const hasOrganizerChanged = !fixedHost && booking.userId !== newUserId;
-  console.log("hasOrganizerChanged", {
-    hasOrganizerChanged,
-    fixedHost,
-    bookingUserId: booking.userId,
-    newUserId,
-  });
   const newUser = newUserHost.user;
   const newUserT = await getTranslation(newUser.locale || "en", "common");
   const originalOrganizerT = await getTranslation(originalOrganizer.locale || "en", "common");
@@ -147,12 +141,6 @@ export const roundRobinManualReassignment = async ({
   let bookingLocation = booking.location;
   let conferenceCredentialId: number | null = null;
   if (hasOrganizerChanged) {
-    console.log("hasOrganizerChanged", {
-      hasOrganizerChanged,
-      fixedHost,
-      bookingUserId: booking.userId,
-      newUserId,
-    });
     const bookingResponses = booking.responses;
     const responseSchema = getBookingResponsesSchema({
       bookingFields: eventType.bookingFields,
@@ -162,7 +150,7 @@ export const roundRobinManualReassignment = async ({
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
     // Determine the location for the new host
-    const isManagedEventType = eventType.schedulingType === "MANAGED";
+    const isManagedEventType = !!eventType.parentId;
     const isTeamEventType = !!eventType.teamId;
 
     const locationResult = BookingLocationService.getLocationForHost({
