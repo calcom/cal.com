@@ -124,10 +124,59 @@ const expectEventManagerCalledWith = (
 };
 
 // Mock Helpers
-const mockEventManagerReschedule = async (result?: any) => {
+type MockEventManagerConfig = {
+  failConferencing?: boolean;
+};
+
+const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/lib/EventManager")).default;
   const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
-  spy.mockResolvedValue(result ?? { referencesToCreate: [] });
+
+  spy.mockImplementation(async (event: any) => {
+    const location = event.location;
+    const results: any[] = [];
+
+    // Check if location is a static link (starts with http:// or https://)
+    const isStaticLink = location?.startsWith("http://") || location?.startsWith("https://");
+
+    if (isStaticLink) {
+      // For static links, no conferencing result is generated
+      return { referencesToCreate: [] };
+    }
+
+    // Handle conferencing based on location type
+    if (location?.includes("integrations:")) {
+      const conferenceType = location.split(":")[1];
+
+      if (config?.failConferencing) {
+        results.push({
+          type: `${conferenceType}_video`,
+          success: false,
+          error: `Failed to create ${conferenceType} room`,
+          uid: event.uid || "test-uid",
+          originalEvent: {},
+        });
+      } else {
+        results.push({
+          type: `${conferenceType}_video`,
+          success: true,
+          uid: event.uid || "test-uid",
+          originalEvent: {},
+          updatedEvent: {
+            url:
+              conferenceType === "zoom"
+                ? "https://zoom.us/j/123456789"
+                : conferenceType === "google"
+                ? "https://meet.google.com/test-meeting"
+                : `https://${conferenceType}.co/test-room`,
+          },
+        });
+      }
+    }
+
+    return { results, referencesToCreate: [] };
+  });
+
   return spy;
 };
 
@@ -139,7 +188,7 @@ const mockGetAppFromSlug = async () => {
 describe("roundRobinManualReassignment test", () => {
   setupAndTeardown();
 
-  test("manually reassign round robin organizer", async ({ emails }) => {
+  test("should reassign round robin booking to new host and update workflows", async ({ emails }) => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     const eventManagerRescheduleSpy = await mockEventManagerReschedule();
 
@@ -220,7 +269,7 @@ describe("roundRobinManualReassignment test", () => {
     expectWorkflowToBeTriggered({ emailsToReceive: [newHost.email], emails });
   });
 
-  test("passes conferenceCredentialId to EventManager when event location has credential ID", async () => {
+  test("should include conferenceCredentialId when reassigning booking with conference location", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     const eventManagerRescheduleSpy = await mockEventManagerReschedule();
 
@@ -240,10 +289,10 @@ describe("roundRobinManualReassignment test", () => {
             slug: "round-robin-event",
             users,
             locations: [
-              { 
-                type: "integrations:zoom", 
-                credentialId: conferenceCredentialId 
-              }
+              {
+                type: "integrations:zoom",
+                credentialId: conferenceCredentialId,
+              },
             ],
           }),
         ],
@@ -271,10 +320,10 @@ describe("roundRobinManualReassignment test", () => {
     // Verify that EventManager.reschedule was called with an event containing conferenceCredentialId
     expect(eventManagerRescheduleSpy).toHaveBeenCalledTimes(1);
     const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-    expect(calledEvent.conferenceCredentialId).toBe(conferenceCredentialId);
+    expect((calledEvent as any).conferenceCredentialId).toBe(conferenceCredentialId);
   });
 
-  test("Manually reassign round robin host with fixed host as organizer", async () => {
+  test("should reassign round robin attendee while keeping fixed host as organizer", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     const eventManagerRescheduleSpy = await mockEventManagerReschedule();
 
@@ -360,9 +409,11 @@ describe("roundRobinManualReassignment test", () => {
     expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
   });
 
-  test("sends cancellation email to previous RR host when reassigning", async ({ emails }) => {
+  test("should send cancellation email to previous round robin attendee when reassigning", async ({
+    emails,
+  }) => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule();
+    await mockEventManagerReschedule();
 
     const sendRoundRobinCancelledEmailsAndSMSSpy = vi.spyOn(
       await import("@calcom/emails"),
@@ -426,12 +477,12 @@ describe("roundRobinManualReassignment test", () => {
   });
 });
 
-describe("roundRobinManualReassignment - Location Changes and Errors", () => {
+describe("roundRobinManualReassignment - Location Changes", () => {
   setupAndTeardown();
 
   const createConferencingUsers = () => {
-    return [
-      createTestUser({
+    return {
+      googleMeetHost: createTestUser({
         id: 1,
         destinationCalendar: {
           integration: "google_calendar",
@@ -443,7 +494,7 @@ describe("roundRobinManualReassignment - Location Changes and Errors", () => {
           },
         },
       }),
-      createTestUser({
+      zoomHost: createTestUser({
         id: 2,
         metadata: {
           defaultConferencingApp: {
@@ -451,11 +502,11 @@ describe("roundRobinManualReassignment - Location Changes and Errors", () => {
           },
         },
       }),
-      createTestUser({
+      noDefaultConferencingAppHost: createTestUser({
         id: 3,
         metadata: {},
       }),
-      createTestUser({
+      staticVideoLinkHost: createTestUser({
         id: 4,
         metadata: {
           defaultConferencingApp: {
@@ -464,7 +515,7 @@ describe("roundRobinManualReassignment - Location Changes and Errors", () => {
           },
         },
       }),
-    ];
+    };
   };
 
   const mockAppStore = async (config?: { googleMeet?: boolean; zoom?: boolean; customVideo?: boolean }) => {
@@ -502,170 +553,240 @@ describe("roundRobinManualReassignment - Location Changes and Errors", () => {
     return getAppFromSlug;
   };
 
-  test("Location changes from Google Meet to Zoom when organizer changes", async () => {
-    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule({
-      results: [
-        {
-          type: "zoom_video",
-          success: true,
-          uid: "test-uid",
-          originalEvent: {},
-          updatedEvent: {
-            url: "https://zoom.us/j/123456789",
-          },
-        },
-      ],
-      referencesToCreate: [],
-    });
+  describe("when event has Organizer's Default Conferencing App location", () => {
+    test("should update location from Google Meet to Zoom when reassigning between hosts with different default conferencing apps", async () => {
+      const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+      const eventManagerRescheduleSpy = await mockEventManagerReschedule();
 
-    await mockAppStore({ googleMeet: true, zoom: true });
+      await mockAppStore({ googleMeet: true, zoom: true });
 
-    const users = createConferencingUsers();
-    const originalHost = users[0];
-    const newHost = users[1];
+      const users = createConferencingUsers();
+      const googleMeetHost = users.googleMeetHost;
+      const zoomHost = users.zoomHost;
 
-    const bookingToReassignUid = "booking-location-change-test";
+      const bookingToReassignUid = "booking-location-change-test";
 
-    await createBookingScenario(
-      getScenarioData({
-        teams: [
-          {
-            id: 1,
-            name: "Test Team",
-            slug: "test-team",
-          },
-        ],
-        eventTypes: [
-          createRoundRobinEventType({
-            id: 1,
-            slug: "round-robin-event",
-            teamId: 1,
-            users,
-            locations: [{ type: OrganizerDefaultConferencingAppType }, { type: "integrations:daily" }],
+      await createBookingScenario(
+        getScenarioData({
+          teams: [
+            {
+              id: 1,
+              name: "Test Team",
+              slug: "test-team",
+            },
+          ],
+          eventTypes: [
+            createRoundRobinEventType({
+              id: 1,
+              slug: "round-robin-event",
+              teamId: 1,
+              users,
+              locations: [{ type: OrganizerDefaultConferencingAppType }, { type: "integrations:daily" }],
+            }),
+          ],
+          bookings: [
+            await createTestBooking({
+              eventTypeId: 1,
+              userId: googleMeetHost.id,
+              bookingId: 125,
+              bookingUid: bookingToReassignUid,
+              location: "integrations:google:meet",
+            }),
+          ],
+          organizer: googleMeetHost,
+          usersApartFromOrganizer: Object.values(users).slice(1),
+        })
+      );
+
+      await roundRobinManualReassignment({
+        bookingId: 125,
+        newUserId: zoomHost.id,
+        orgId: null,
+        reassignReason: "Host unavailable",
+        reassignedById: 999,
+      });
+
+      expectEventManagerCalledWith(eventManagerRescheduleSpy, {
+        location: "integrations:zoom",
+        uid: bookingToReassignUid,
+        changedOrganizer: true,
+        destinationCalendars: expect.arrayContaining([
+          expect.objectContaining({
+            integration: "google_calendar",
+            externalId: "test-calendar",
           }),
-        ],
-        bookings: [
-          await createTestBooking({
-            eventTypeId: 1,
-            userId: originalHost.id,
-            bookingId: 125,
-            bookingUid: bookingToReassignUid,
-            location: "integrations:google:meet",
-          }),
-        ],
-        organizer: originalHost,
-        usersApartFromOrganizer: users.slice(1),
-      })
-    );
+        ]),
+      });
 
-    await roundRobinManualReassignment({
-      bookingId: 125,
-      newUserId: newHost.id,
-      orgId: null,
-      reassignReason: "Host unavailable",
-      reassignedById: 999,
+      expectBookingToBeInDatabase({
+        uid: bookingToReassignUid,
+        userId: zoomHost.id,
+      });
     });
 
-    expectEventManagerCalledWith(eventManagerRescheduleSpy, {
-      location: "integrations:zoom",
-      uid: bookingToReassignUid,
-      changedOrganizer: true,
-      destinationCalendars: expect.arrayContaining([
-        expect.objectContaining({
-          integration: "google_calendar",
-          externalId: "test-calendar",
-        }),
-      ]),
+    test("should fallback to first available event location in Event Type when new host has no default conferencing app", async () => {
+      const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+      const eventManagerRescheduleSpy = await mockEventManagerReschedule();
+
+      // (await mockGetAppFromSlug()).mockReturnValue(undefined);
+
+      const users = createConferencingUsers();
+      const googleMeetHost = users.googleMeetHost;
+      const noDefaultConferencingAppHost = users.noDefaultConferencingAppHost;
+
+      const bookingToReassignUid = "booking-fallback-location-test";
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            createRoundRobinEventType({
+              id: 2,
+              slug: "round-robin-event-fallback",
+              users,
+              locations: [
+                { type: OrganizerDefaultConferencingAppType },
+                { type: "integrations:first-available" },
+              ],
+            }),
+          ],
+          bookings: [
+            await createTestBooking({
+              eventTypeId: 2,
+              userId: googleMeetHost.id,
+              bookingId: 126,
+              bookingUid: bookingToReassignUid,
+              location: "integrations:google:meet",
+            }),
+          ],
+          organizer: googleMeetHost,
+          usersApartFromOrganizer: Object.values(users).slice(1),
+        })
+      );
+
+      await roundRobinManualReassignment({
+        bookingId: 126,
+        newUserId: noDefaultConferencingAppHost.id,
+        orgId: null,
+        reassignReason: "Host unavailable",
+        reassignedById: 999,
+      });
+
+      const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+      expect((calledEvent as any).location).toBe("integrations:first-available");
     });
 
-    expectBookingToBeInDatabase({
-      uid: bookingToReassignUid,
-      userId: newHost.id,
+    test("should update location from Google Meet to static video link when new host has static video link app", async () => {
+      const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+      const eventManagerRescheduleSpy = await mockEventManagerReschedule();
+
+      await mockAppStore({ customVideo: true });
+
+      const users = createConferencingUsers();
+      const googleMeetHost = users.googleMeetHost;
+      const staticVideoLinkHost = users.staticVideoLinkHost;
+
+      const bookingToReassignUid = "booking-static-link-test";
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            createRoundRobinEventType({
+              id: 4,
+              slug: "managed-event",
+              schedulingType: "MANAGED" as SchedulingType,
+              users,
+              locations: [{ type: OrganizerDefaultConferencingAppType }],
+            }),
+          ],
+          bookings: [
+            await createTestBooking({
+              eventTypeId: 4,
+              userId: googleMeetHost.id,
+              bookingId: 128,
+              bookingUid: bookingToReassignUid,
+              location: "integrations:google:meet",
+            }),
+          ],
+          organizer: googleMeetHost,
+          usersApartFromOrganizer: Object.values(users).slice(1),
+        })
+      );
+
+      await roundRobinManualReassignment({
+        bookingId: 128,
+        newUserId: staticVideoLinkHost.id,
+        orgId: null,
+        reassignReason: "Host unavailable",
+        reassignedById: 999,
+      });
+
+      const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+      expect((calledEvent as any).location).toBe("https://custom-video.com/room123");
+    });
+
+    test("should update location from Static Video Link to Google Meet when new host has Google Meet app", async () => {
+      const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+      const eventManagerRescheduleSpy = await mockEventManagerReschedule();
+
+      await mockAppStore({ googleMeet: true });
+
+      const users = createConferencingUsers();
+      const staticVideoLinkHost = users.staticVideoLinkHost;
+      const googleMeetHost = users.googleMeetHost;
+
+      const bookingToReassignUid = "booking-static-link-to-google-meet-test";
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            createRoundRobinEventType({
+              id: 3,
+              slug: "round-robin-event-error",
+              users,
+              teamId: 1,
+              locations: [{ type: OrganizerDefaultConferencingAppType }],
+            }),
+          ],
+          bookings: [
+            await createTestBooking({
+              eventTypeId: 3,
+              userId: staticVideoLinkHost.id,
+              bookingId: 127,
+              bookingUid: bookingToReassignUid,
+              location: "https://custom-video.com/room123",
+            }),
+          ],
+          organizer: staticVideoLinkHost,
+          usersApartFromOrganizer: Object.values(users).filter((user) => user.id !== staticVideoLinkHost.id),
+        })
+      );
+
+      await roundRobinManualReassignment({
+        bookingId: 127,
+        newUserId: googleMeetHost.id,
+        orgId: null,
+        reassignReason: "Host unavailable",
+        reassignedById: 999,
+      });
+
+      const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
+      expect((calledEvent as any).location).toBe("integrations:google:meet");
+
+      await expectBookingToBeInDatabase({
+        uid: bookingToReassignUid,
+        userId: googleMeetHost.id,
+        location: "integrations:google:meet",
+      });
     });
   });
 
-  test("Falls back to first available location when new host has no default conferencing app", async () => {
+  test("should throw error when Cal Video fallback fails", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule({
-      results: [
-        {
-          type: "daily_video",
-          success: true,
-          uid: "test-uid",
-          originalEvent: {},
-          updatedEvent: {
-            url: "https://daily.co/test-room",
-          },
-        },
-      ],
-      referencesToCreate: [],
-    });
-
-    (await mockGetAppFromSlug()).mockReturnValue(undefined);
+    await mockEventManagerReschedule({ failConferencing: true });
 
     const users = createConferencingUsers();
-    const originalHost = users[0];
-    const newHost = users[2];
-
-    const bookingToReassignUid = "booking-fallback-location-test";
-
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          createRoundRobinEventType({
-            id: 2,
-            slug: "round-robin-event-fallback",
-            users,
-            locations: [{ type: OrganizerDefaultConferencingAppType }, { type: "integrations:daily" }],
-          }),
-        ],
-        bookings: [
-          await createTestBooking({
-            eventTypeId: 2,
-            userId: originalHost.id,
-            bookingId: 126,
-            bookingUid: bookingToReassignUid,
-            location: "integrations:google:meet",
-          }),
-        ],
-        organizer: originalHost,
-        usersApartFromOrganizer: users.slice(1),
-      })
-    );
-
-    await roundRobinManualReassignment({
-      bookingId: 126,
-      newUserId: newHost.id,
-      orgId: null,
-      reassignReason: "Host unavailable",
-      reassignedById: 999,
-    });
-
-    const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-    expect(calledEvent.location).toBe("integrations:daily");
-  });
-
-  test("Throws error when Cal Video fallback fails", async () => {
-    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule({
-      results: [
-        {
-          type: "daily_video",
-          success: false,
-          error: "Failed to create Cal Video room",
-          uid: "test-uid",
-          originalEvent: {},
-        },
-      ],
-      referencesToCreate: [],
-    });
-
-    (await mockGetAppFromSlug()).mockReturnValue(undefined);
-
-    const users = createConferencingUsers();
-    const originalHost = users[0];
-    const newHost = users[2];
+    const googleMeetHost = users.googleMeetHost;
+    const noDefaultConferencingAppHost = users.noDefaultConferencingAppHost;
 
     const bookingToReassignUid = "booking-calvideo-error-test";
 
@@ -676,191 +797,31 @@ describe("roundRobinManualReassignment - Location Changes and Errors", () => {
             id: 3,
             slug: "round-robin-event-error",
             users,
-            locations: [{ type: OrganizerDefaultConferencingAppType }, { type: "integrations:daily" }],
+            locations: [{ type: OrganizerDefaultConferencingAppType }],
           }),
         ],
         bookings: [
           await createTestBooking({
             eventTypeId: 3,
-            userId: originalHost.id,
+            userId: googleMeetHost.id,
             bookingId: 127,
             bookingUid: bookingToReassignUid,
             location: "integrations:google:meet",
           }),
         ],
-        organizer: originalHost,
-        usersApartFromOrganizer: users.slice(1),
+        organizer: googleMeetHost,
+        usersApartFromOrganizer: Object.values(users).slice(1),
       })
     );
 
     await expect(
       roundRobinManualReassignment({
         bookingId: 127,
-        newUserId: newHost.id,
+        newUserId: noDefaultConferencingAppHost.id,
         orgId: null,
         reassignReason: "Host unavailable",
         reassignedById: 999,
       })
     ).rejects.toThrow("Failed to set video conferencing link, but the meeting has been rescheduled");
-  });
-
-  test("Uses static link for managed event types when organizer has static conferencing app", async () => {
-    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule({
-      results: [],
-      referencesToCreate: [],
-    });
-
-    await mockAppStore({ customVideo: true });
-
-    const users = createConferencingUsers();
-    const originalHost = users[0];
-    const newHost = users[3];
-
-    const bookingToReassignUid = "booking-static-link-test";
-
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          createRoundRobinEventType({
-            id: 4,
-            slug: "managed-event",
-            schedulingType: "MANAGED" as SchedulingType,
-            users,
-            locations: [{ type: OrganizerDefaultConferencingAppType }],
-          }),
-        ],
-        bookings: [
-          await createTestBooking({
-            eventTypeId: 4,
-            userId: originalHost.id,
-            bookingId: 128,
-            bookingUid: bookingToReassignUid,
-            location: "integrations:google:meet",
-          }),
-        ],
-        organizer: originalHost,
-        usersApartFromOrganizer: users.slice(1),
-      })
-    );
-
-    await roundRobinManualReassignment({
-      bookingId: 128,
-      newUserId: newHost.id,
-      orgId: null,
-      reassignReason: "Host unavailable",
-      reassignedById: 999,
-    });
-
-    const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-    expect(calledEvent.location).toBe("https://custom-video.com/room123");
-  });
-
-  test("Handles location change for team events", async () => {
-    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule({
-      results: [],
-      referencesToCreate: [],
-    });
-
-    await mockAppStore({ zoom: true });
-
-    const users = createConferencingUsers();
-    const originalHost = users[0];
-    const newHost = users[1];
-
-    const bookingToReassignUid = "booking-team-event-test";
-
-    await createBookingScenario(
-      getScenarioData({
-        teams: [
-          {
-            id: 1,
-            name: "Test Team",
-            slug: "test-team",
-          },
-        ],
-        eventTypes: [
-          createRoundRobinEventType({
-            id: 5,
-            slug: "team-round-robin",
-            teamId: 1,
-            users,
-            locations: [{ type: OrganizerDefaultConferencingAppType }],
-          }),
-        ],
-        bookings: [
-          await createTestBooking({
-            eventTypeId: 5,
-            userId: originalHost.id,
-            bookingId: 129,
-            bookingUid: bookingToReassignUid,
-            location: "integrations:google:meet",
-          }),
-        ],
-        organizer: originalHost,
-        usersApartFromOrganizer: users.slice(1),
-      })
-    );
-
-    await roundRobinManualReassignment({
-      bookingId: 129,
-      newUserId: newHost.id,
-      orgId: null,
-      reassignReason: "Host unavailable",
-      reassignedById: 999,
-    });
-
-    const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-    expect(calledEvent.location).toBe("integrations:zoom");
-  });
-
-  test("Location doesn't change when OrganizerDefaultConferencingAppType is not in event locations", async () => {
-    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const eventManagerRescheduleSpy = await mockEventManagerReschedule({
-      results: [],
-      referencesToCreate: [],
-    });
-
-    const users = createConferencingUsers();
-    const originalHost = users[0];
-    const newHost = users[1];
-
-    const bookingToReassignUid = "booking-no-organizer-default";
-
-    await createBookingScenario(
-      getScenarioData({
-        eventTypes: [
-          createRoundRobinEventType({
-            id: 6,
-            slug: "fixed-location-event",
-            users,
-            locations: [{ type: "integrations:daily" }],
-          }),
-        ],
-        bookings: [
-          await createTestBooking({
-            eventTypeId: 6,
-            userId: originalHost.id,
-            bookingId: 130,
-            bookingUid: bookingToReassignUid,
-            location: "integrations:daily",
-          }),
-        ],
-        organizer: originalHost,
-        usersApartFromOrganizer: users.slice(1),
-      })
-    );
-
-    await roundRobinManualReassignment({
-      bookingId: 130,
-      newUserId: newHost.id,
-      orgId: null,
-      reassignReason: "Host unavailable",
-      reassignedById: 999,
-    });
-
-    const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-    expect(calledEvent.location).toBe("integrations:daily");
   });
 });

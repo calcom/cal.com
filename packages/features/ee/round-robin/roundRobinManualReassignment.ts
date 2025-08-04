@@ -176,11 +176,6 @@ export const roundRobinManualReassignment = async ({
     if (locationResult.requiresActualLink) {
       conferenceCredentialId = locationResult.conferenceCredentialId;
     }
-    console.log("new bookingLocation for host change", {
-      bookingLocation,
-      previousLocation: booking.location,
-      eventTypeLocations: eventType.locations,
-    });
 
     const newBookingTitle = getEventName({
       attendeeName: responses?.name || "Nameless",
