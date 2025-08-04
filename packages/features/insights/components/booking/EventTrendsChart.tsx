@@ -83,23 +83,6 @@ export const EventTrendsChart = () => {
 
   if (!isSuccess) return null;
 
-  const categories = [
-    "Created",
-    "Completed",
-    "Rescheduled",
-    "Cancelled",
-    "No-Show (Host)",
-    "No-Show (Guest)",
-  ];
-  const colors = [
-    COLOR.CREATED,
-    COLOR.COMPLETED,
-    COLOR.RESCHEDULED,
-    COLOR.CANCELLED,
-    COLOR.NO_SHOW_HOST,
-    COLOR.NO_SHOW_GUEST,
-  ];
-
   return (
     <ChartCard title={t("event_trends")} legend={legend}>
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
@@ -115,13 +98,13 @@ export const EventTrendsChart = () => {
               tickFormatter={valueFormatter}
             />
             <Tooltip content={<CustomTooltip />} />
-            {categories.map((category, idx) => (
+            {legend.map((item) => (
               <Line
-                key={category}
+                key={item.label}
                 type="linear"
-                dataKey={category}
-                name={category}
-                stroke={colors[idx]}
+                dataKey={item.label}
+                name={item.label}
+                stroke={item.color}
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
