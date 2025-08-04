@@ -73,6 +73,8 @@ module.exports = {
         subtle: "var(--cal-bg-subtle)",
         muted: "var(--cal-bg-muted)",
         inverted: "var(--cal-bg-inverted)",
+        gradient: "var(--cal-bg-gradient)",
+        active: "var(--cal-bg-active)",
 
         // Primary Background
         primary: {
