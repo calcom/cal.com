@@ -8,6 +8,8 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
+import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -28,6 +30,9 @@ type BookingsRouterHandlerCache = {
   bulkEventFetch?: typeof import("./bulkEventFetch.handler").bulkEventFetchHandler;
   bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
 };
+
+// Init the handler cache
+const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -170,4 +175,22 @@ export const eventTypesRouter = router({
         input,
       });
     }),
+
+  getHashedLink: authedProcedure.input(ZGetHashedLinkInputSchema).query(async ({ ctx, input }) => {
+    const { getHashedLinkHandler } = await import("./getHashedLink.handler");
+
+    return getHashedLinkHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  getHashedLinks: authedProcedure.input(ZGetHashedLinksInputSchema).query(async ({ ctx, input }) => {
+    const { getHashedLinksHandler } = await import("./getHashedLinks.handler");
+
+    return getHashedLinksHandler({
+      ctx,
+      input,
+    });
+  }),
 });

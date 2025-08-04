@@ -1,10 +1,14 @@
 import type { Team, User, Membership } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 import { InsightsBookingService } from "../../service/insightsBooking";
+
+const NOTHING_CONDITION = Prisma.sql`1=0`;
 
 // Helper function to create unique test data
 async function createTestData({
@@ -204,7 +208,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      expect(conditions).toEqual(NOTHING_CONDITION);
     });
 
     it("should return NOTHING for non-owner/admin user", async () => {
@@ -239,7 +243,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({ id: -1 });
+      expect(conditions).toEqual(NOTHING_CONDITION);
 
       // Clean up
       await prisma.membership.delete({
@@ -267,14 +271,7 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            userId: testData.user.id,
-            teamId: null,
-          },
-        ],
-      });
+      expect(conditions).toEqual(Prisma.sql`("userId" = ${testData.user.id}) AND ("teamId" IS NULL)`);
 
       await testData.cleanup();
     });
@@ -296,24 +293,11 @@ describe("InsightsBookingService Integration Tests", () => {
       });
 
       const conditions = await service.getAuthorizationConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            OR: [
-              {
-                teamId: testData.team.id,
-                isTeamBooking: true,
-              },
-              {
-                userId: {
-                  in: [testData.user.id],
-                },
-                isTeamBooking: false,
-              },
-            ],
-          },
-        ],
-      });
+      expect(conditions).toEqual(
+        Prisma.sql`(("teamId" = ${testData.team.id}) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
+          testData.user.id,
+        ]})) AND ("isTeamBooking" = false))`
+      );
 
       // Clean up
       await testData.cleanup();
@@ -346,26 +330,18 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getAuthorizationConditions();
 
-      expect(conditions).toEqual({
-        AND: [
-          {
-            OR: [
-              {
-                teamId: {
-                  in: [testData.org.id, testData.team.id, team2.id, team3.id],
-                },
-                isTeamBooking: true,
-              },
-              {
-                userId: {
-                  in: [testData.user.id, user2.id, user3.id],
-                },
-                isTeamBooking: false,
-              },
-            ],
-          },
-        ],
-      });
+      expect(conditions).toEqual(
+        Prisma.sql`(("teamId" = ANY(${[
+          testData.org.id,
+          testData.team.id,
+          team2.id,
+          team3.id,
+        ]})) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
+          testData.user.id,
+          user2.id,
+          user3.id,
+        ]})) AND ("isTeamBooking" = false))`
+      );
 
       await testData.cleanup();
     });
@@ -401,23 +377,27 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: testData.eventType.id,
+          columnFilters: [
+            {
+              id: "eventTypeId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.eventType.id,
+              },
+            },
+          ],
         },
       });
 
       const conditions = await service.getFilterConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            OR: [{ eventTypeId: testData.eventType.id }, { eventParentId: testData.eventType.id }],
-          },
-        ],
-      });
+      expect(conditions).toEqual(
+        Prisma.sql`("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})`
+      );
 
       await testData.cleanup();
     });
 
-    it("should build memberUserId filter conditions", async () => {
+    it("should build userId filter conditions", async () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
@@ -428,18 +408,20 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          memberUserId: testData.user.id,
+          columnFilters: [
+            {
+              id: "userId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.user.id,
+              },
+            },
+          ],
         },
       });
 
       const conditions = await service.getFilterConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            userId: testData.user.id,
-          },
-        ],
-      });
+      expect(conditions).toEqual(Prisma.sql`"userId" = ${testData.user.id}`);
 
       await testData.cleanup();
     });
@@ -455,63 +437,34 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: testData.eventType.id,
-          memberUserId: testData.user.id,
+          columnFilters: [
+            {
+              id: "eventTypeId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.eventType.id,
+              },
+            },
+            {
+              id: "userId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.user.id,
+              },
+            },
+          ],
         },
       });
 
       const conditions = await service.getFilterConditions();
-      expect(conditions).toEqual({
-        AND: [
-          {
-            OR: [{ eventTypeId: testData.eventType.id }, { eventParentId: testData.eventType.id }],
-          },
-          {
-            userId: testData.user.id,
-          },
-        ],
-      });
+      expect(conditions).toEqual(
+        Prisma.sql`(("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})) AND ("userId" = ${testData.user.id})`
+      );
 
       await testData.cleanup();
     });
-  });
 
-  describe("Caching", () => {
-    it("should cache authorization conditions", async () => {
-      const testData = await createTestData({
-        teamRole: MembershipRole.OWNER,
-        orgRole: MembershipRole.OWNER,
-      });
-
-      const service = new InsightsBookingService({
-        prisma,
-        options: {
-          scope: "user",
-          userId: testData.user.id,
-          orgId: testData.org.id,
-        },
-      });
-
-      // First call should build conditions
-      const conditions1 = await service.getAuthorizationConditions();
-      expect(conditions1).toEqual({
-        AND: [
-          {
-            userId: testData.user.id,
-            teamId: null,
-          },
-        ],
-      });
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getAuthorizationConditions();
-      expect(conditions2).toEqual(conditions1);
-
-      // Clean up
-      await testData.cleanup();
-    });
-
-    it("should cache filter conditions", async () => {
+    it("should build status filter conditions", async () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
@@ -522,29 +475,31 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: testData.eventType.id,
+          columnFilters: [
+            {
+              id: "status",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["pending", "accepted"],
+              },
+            },
+          ],
         },
       });
 
-      // First call should build conditions
-      const conditions1 = await service.getFilterConditions();
-      expect(conditions1).toEqual({
-        AND: [
-          {
-            OR: [{ eventTypeId: testData.eventType.id }, { eventParentId: testData.eventType.id }],
-          },
-        ],
-      });
-
-      // Second call should use cached conditions
-      const conditions2 = await service.getFilterConditions();
-      expect(conditions2).toEqual(conditions1);
+      const conditions = await service.getFilterConditions();
+      expect(conditions).toEqual(
+        Prisma.sql`"status" IN (${Prisma.join([
+          Prisma.sql`${"pending"}::"BookingStatus"`,
+          Prisma.sql`${"accepted"}::"BookingStatus"`,
+        ])})`
+      );
 
       await testData.cleanup();
     });
   });
 
-  describe("findMany", () => {
+  describe("getBaseConditions", () => {
     it("should combine authorization and filter conditions", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
@@ -583,20 +538,30 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: userEventType.id,
+          columnFilters: [
+            {
+              id: "eventTypeId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: userEventType.id,
+              },
+            },
+          ],
         },
       });
 
-      const results = await service.findMany({
-        select: {
-          id: true,
-          title: true,
-        },
-      });
+      const baseConditions = await service.getBaseConditions();
+      const results = await prisma.$queryRaw<{ id: number }[]>`
+        SELECT id FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions}
+      `;
 
       // Should return the user booking since it matches both conditions
-      expect(results).toHaveLength(1);
-      expect(results[0]?.id).toBe(userBooking.id);
+      expect(results).toEqual([
+        {
+          id: userBooking.id,
+        },
+      ]);
 
       // Clean up
       await prisma.booking.delete({

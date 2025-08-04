@@ -398,6 +398,7 @@ export class BookingRepository {
                 disableRecordingForGuests: true,
                 disableRecordingForOrganizer: true,
                 enableAutomaticTranscription: true,
+                enableAutomaticRecordingForOrganizer: true,
                 disableTranscriptionForGuests: true,
                 disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
@@ -521,13 +522,15 @@ export class BookingRepository {
 
   async updateLocationById({
     where: { id },
-    data: { location, metadata, referencesToCreate },
+    data: { location, metadata, referencesToCreate, responses, iCalSequence },
   }: {
     where: { id: number };
     data: {
       location: string;
       metadata: Record<string, unknown>;
       referencesToCreate: Prisma.BookingReferenceCreateInput[];
+      responses?: Record<string, unknown>;
+      iCalSequence?: number;
     };
   }) {
     await this.prismaClient.booking.update({
@@ -537,6 +540,8 @@ export class BookingRepository {
       data: {
         location,
         metadata,
+        ...(responses && { responses }),
+        ...(iCalSequence !== undefined && { iCalSequence }),
         references: {
           create: referencesToCreate,
         },
@@ -833,6 +838,34 @@ export class BookingRepository {
         attendees: true,
         references: true,
         user: true,
+      },
+    });
+  }
+
+  async countBookingsByEventTypeAndDateRange({
+    eventTypeId,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    eventTypeId: number;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }) {
+    return await this.prismaClient.booking.count({
+      where: {
+        status: BookingStatus.ACCEPTED,
+        eventTypeId,
+        startTime: {
+          gte: startDate,
+        },
+        endTime: {
+          lte: endDate,
+        },
+        uid: {
+          not: excludedUid,
+        },
       },
     });
   }
