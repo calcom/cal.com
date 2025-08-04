@@ -18,6 +18,7 @@ import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
 import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
+import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
 interface FormMutationHandlerOptions {
   ctx: {
@@ -33,33 +34,31 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   let teamId = input.teamId;
   const settings = input.settings;
 
-  // Check PBAC permissions for team-scoped routing forms only
-  // Personal forms (teamId = null) are always allowed for the user
-  if (teamId) {
+  if (id) {
+    // Check PBAC permissions for updating routing forms only
+    await checkPermissionOnExistingRoutingForm({
+      formId: id,
+      userId: user.id,
+      permission: "routingForm.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+  } else if (teamId) {
+    // Check PBAC permissions for creating team-scoped routing forms only
+    // Personal forms (teamId = null) are always allowed for the user
     const permissionService = new PermissionCheckService();
-    const isUpdate = !!id;
-    const requiredPermission = isUpdate ? "routingForm.update" : "routingForm.create";
-
     const hasPermission = await permissionService.checkPermission({
       userId: user.id,
       teamId,
-      permission: requiredPermission,
+      permission: "routingForm.create",
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
 
     if (!hasPermission) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: `You don't have permission to ${isUpdate ? "update" : "create"} routing forms for this team`,
+        message: `You don't have permission to create routing forms for this team`,
       });
     }
-  }
-
-  // Legacy permission check as fallback
-  if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-    });
   }
 
   let { routes: inputRoutes, fields: inputFields } = input;

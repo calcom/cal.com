@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { TFormQueryInputSchema } from "./formQuery.schema";
+import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
 interface FormsHandlerOptions {
   ctx: {
@@ -42,24 +43,12 @@ export const formQueryHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     return null;
   }
 
-  // Check PBAC permissions for team-scoped routing forms only
-  // Personal forms (teamId = null) are always accessible to the owner
-  if (form.teamId) {
-    const permissionService = new PermissionCheckService();
-    const hasPermission = await permissionService.checkPermission({
-      userId: user.id,
-      teamId: form.teamId,
-      permission: "routingForm.read",
-      fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
-
-    if (!hasPermission) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You don't have permission to view this routing form",
-      });
-    }
-  }
+  await checkPermissionOnExistingRoutingForm({
+    formId: input.id,
+    userId: user.id,
+    permission: "routingForm.read",
+    fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
 
   return await getSerializableForm({ form });
 };

@@ -1,17 +1,13 @@
 import type { z } from "zod";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
-import { TRPCError } from "@trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { zodFields, zodRoutes } from "../zod";
@@ -28,25 +24,6 @@ const log = logger.getSubLogger({ prefix: ["[formsHandler]"] });
 
 export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
   const { prisma, user } = ctx;
-
-  // Check permission to read routing forms for team context only
-  // Personal forms (no team filter) are always accessible to the user
-  if (input?.filters?.teamIds?.[0]) {
-    const permissionService = new PermissionCheckService();
-    const canReadForms = await permissionService.checkPermission({
-      userId: user.id,
-      teamId: input.filters.teamIds[0],
-      permission: "routingForm.read",
-      fallbackRoles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
-
-    if (!canReadForms) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You don't have permission to view routing forms for this team",
-      });
-    }
-  }
 
   const where = getPrismaWhereFromFilters(user, input?.filters);
   log.debug("Getting forms where", JSON.stringify(where));

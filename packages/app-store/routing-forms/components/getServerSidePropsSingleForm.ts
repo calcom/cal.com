@@ -1,5 +1,6 @@
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
@@ -124,32 +125,29 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   if (form.teamId) {
     // Get user's role in the team
-    const membership = await prisma.membership.findUnique({
-      where: {
-        userId_teamId: {
-          userId: user.id,
-          teamId: form.teamId,
-        },
-      },
-      select: {
-        role: true,
-      },
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      userId: user.id,
+      teamId: form.teamId,
     });
 
-    if (membership) {
-      permissions = await getResourcePermissions({
-        userId: user.id,
-        teamId: form.teamId,
-        resource: Resource.RoutingForm,
-        userRole: membership.role,
-        fallbackRoles: {
-          read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
-          create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-          update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-          delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-        },
-      });
+    if (!membership) {
+      return {
+        notFound: true,
+      };
     }
+
+    permissions = await getResourcePermissions({
+      userId: user.id,
+      teamId: form.teamId,
+      resource: Resource.RoutingForm,
+      userRole: membership.role,
+      fallbackRoles: {
+        read: { roles: [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER] },
+        create: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        update: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        delete: { roles: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+      },
+    });
   }
 
   return {
