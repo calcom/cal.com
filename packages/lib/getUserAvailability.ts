@@ -203,7 +203,7 @@ export class UserAvailabilityService {
             log.debug(`Got timezone ${timezone} from calendar service ${credential.type}`);
 
             try {
-              await this.dependencies.redisClient.set<string>(cacheKey, timezone, { ttl: 3600 * 6 * 100 }); // 6 hours ttl in ms;
+              await this.dependencies.redisClient.set<string>(cacheKey, timezone, { ttl: 3600 * 6 * 1000 }); // 6 hours ttl in ms;
               log.debug(`Cached timezone ${timezone} in Redis for user ${user.id}`);
             } catch (error) {
               log.warn(`Failed to set timezone in Redis cache for user ${user.id}:`, error);
