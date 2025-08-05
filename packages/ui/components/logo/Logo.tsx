@@ -18,14 +18,14 @@ export function Logo({
       <strong>
         {icon ? (
           <div className="flex items-center space-x-2">
-            <img className="h-8 w-8 dark:invert" alt="Cal Id" title="Cal Id" src={`${src}?type=icon`} />
-            <span className="text-xl">Cal Id</span>
+            <img className="h-8 w-8 dark:invert" alt="Cal ID" title="Cal ID" src={`${src}?type=icon`} />
+            <span className="text-xl">Cal ID</span>
           </div>
         ) : (
           <img
             className={classNames(small ? "h-4 w-auto" : "h-5 w-auto", "dark:invert")}
-            alt="Cal Id"
-            title="Cal Id"
+            alt="Cal ID"
+            title="Cal ID"
             src={src}
           />
         )}

@@ -6,13 +6,13 @@ export function Divider({ className, ...props }: JSX.IntrinsicElements["hr"]) {
 }
 
 export function VerticalDivider({ className, ...props }: JSX.IntrinsicElements["svg"]) {
-  className = cn("mx-3 text-muted", className);
+  className = cn("mx-2 text-muted", className);
   return (
     <svg
       className={className}
       {...props}
-      width="1"
-      height="12"
+      width="1.5"
+      height="16"
       viewBox="0 0 2 16"
       ry="6"
       fill="none"

@@ -48,7 +48,7 @@ export const EditableHeading = function EditableHeading({
           />
           {!isEditing && isReady && !disabled && (
             <Icon
-              name="square-pen"
+              name="pen-line"
               className="text-subtle group-hover:text-subtle -mt-px ml-2 inline h-4 w-4"
             />
           )}

@@ -104,6 +104,8 @@ export const lucideIconList = new Set([
   "paintbrush",
   "paperclip",
   "pencil",
+  "pencil-line",
+  "pen-line",
   "phone-call",
   "phone",
   "plus",
