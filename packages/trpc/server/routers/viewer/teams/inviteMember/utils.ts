@@ -845,7 +845,7 @@ export async function handleExistingUsersInvites({
     if (parentOrganization) {
       const parsedOrg = getParsedTeam(parentOrganization);
       // Create profiles if needed
-      await Promise.all([
+      await Promise.all(
         autoJoinUsers
           .concat(regularUsers)
           .filter((u) => u.needToCreateProfile)
@@ -858,8 +858,8 @@ export async function handleExistingUsersInvites({
               },
               organizationId: parsedOrg.id,
             })
-          ),
-      ]);
+          )
+      );
     }
   } else {
     const organization = team;
