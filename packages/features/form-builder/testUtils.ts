@@ -97,15 +97,20 @@ export const pageObject = {
   },
   dialog: {
     isFieldShowingAsRequired: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      return (
-        within(dialog.getByTestId("field-required")).getByText("Yes").getAttribute("aria-checked") === "true"
-      );
+      const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+      return checkbox.checked;
     },
     makeFieldOptional: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      fireEvent.click(within(dialog.getByTestId("field-required")).getByText("No"));
+      const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+      if (checkbox.checked) {
+        fireEvent.click(checkbox);
+      }
     },
     makeFieldRequired: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      fireEvent.click(within(dialog.getByTestId("field-required")).getByText("Yes"));
+      const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+      if (!checkbox.checked) {
+        fireEvent.click(checkbox);
+      }
     },
     queryIdentifierInput: ({ dialog }: { dialog: TestingLibraryElement }) => {
       return dialog.getByLabelText("identifier");
@@ -225,10 +230,18 @@ export const verifier = {
     });
   },
   verifyThatFieldCanBeMarkedOptional: async ({ identifier }: { identifier: string }) => {
-    expectScenario.toHaveRequiredBadge({ identifier });
+    expectScenario.toHaveOptionalBadge({ identifier });
     const editDialogForm = pageObject.openEditFieldDialog({ identifier });
-    pageObject.dialog.makeFieldOptional({ dialog: editDialogForm });
+    pageObject.dialog.makeFieldRequired({ dialog: editDialogForm });
     pageObject.dialog.saveField({ dialog: editDialogForm });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("optional")).not.toBeInTheDocument();
+    });
+
+    const editDialogForm2 = pageObject.openEditFieldDialog({ identifier });
+    pageObject.dialog.makeFieldOptional({ dialog: editDialogForm2 });
+    pageObject.dialog.saveField({ dialog: editDialogForm2 });
 
     await waitFor(() => {
       expect(screen.getByTestId("optional")).toBeInTheDocument();
@@ -249,10 +262,8 @@ export const expectScenario = {
     expect(identifierInput.disabled).toBe(true);
   },
   toHaveRequirablityToggleDisabled: ({ dialog }: { dialog: TestingLibraryElement }) => {
-    const no = within(dialog.getByTestId("field-required")).getByText("No") as HTMLButtonElement;
-    const yes = within(dialog.getByTestId("field-required")).getByText("Yes") as HTMLButtonElement;
-    expect(no.disabled).toBe(true);
-    expect(yes.disabled).toBe(true);
+    const checkbox = dialog.getByTestId("field-required") as HTMLInputElement;
+    expect(checkbox.disabled).toBe(true);
   },
   toHaveLabelChangeAllowed: ({ dialog }: { dialog: TestingLibraryElement }) => {
     const labelInput = dialog.getByLabelText("label");
@@ -268,8 +279,16 @@ export const expectScenario = {
     const field = getFieldInTheList({ identifier });
     expect(field.getByText(sourceLabel)).not.toBeNull();
   },
+  toHaveOptionalBadge: ({ identifier }: { identifier: string }) => {
+    const field = getFieldInTheList({ identifier });
+    expect(field.queryByTestId("optional")).not.toBeNull();
+  },
+  toNotHaveOptionalBadge: ({ identifier }: { identifier: string }) => {
+    const field = getFieldInTheList({ identifier });
+    expect(field.queryByTestId("optional")).toBeNull();
+  },
   toHaveRequiredBadge: ({ identifier }: { identifier: string }) => {
     const field = getFieldInTheList({ identifier });
-    expect(field.getByText("required")).not.toBeNull();
+    expect(field.queryByTestId("optional")).toBeNull();
   },
 };
