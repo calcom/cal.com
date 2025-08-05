@@ -23,7 +23,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAge
 
   const testCallMutation = trpc.viewer.ai.testCall.useMutation({
     onSuccess: async (data) => {
-      showToast(data.message || t("Call initiated!"), "success");
+      showToast(data.message || t("call_initiated_successfully"), "success");
       onOpenChange(false);
       setTestPhoneNumber("");
     },
@@ -34,7 +34,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAge
 
   const handleTestCall = () => {
     if (!testPhoneNumber) {
-      showToast(t("Please enter a phone number"), "error");
+      showToast(t("please_enter_phone_number"), "error");
       return;
     }
     if (agentId) {
@@ -51,12 +51,12 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAge
     <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
       <DialogContent
         type="creation"
-        title={t("Test Cal.Ai Agent")}
-        description={t("Make a test call to verify your configuration")}>
+        title={t("test_cal_ai_agent")}
+        description={t("make_test_call_to_verify_configuration")}>
         <div>
-          <Label className="mb-1 block text-sm font-medium">{t("Call to")}:</Label>
+          <Label className="mb-1 block text-sm font-medium">{t("call_to")}:</Label>
           <PhoneInput
-            placeholder={t("Enter phone number to test call")}
+            placeholder={t("enter_phone_number_to_test_call")}
             value={testPhoneNumber}
             onChange={(val) => setTestPhoneNumber(val || "")}
             disabled={testCallMutation.isPending}
@@ -64,7 +64,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAge
         </div>
         <DialogFooter showDivider>
           <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -72,7 +72,7 @@ export function TestAgentDialog({ open, onOpenChange, agentId, teamId }: TestAge
             loading={testCallMutation.isPending}
             disabled={!testPhoneNumber}>
             <Icon name="phone" className="mr-2 h-4 w-4" />
-            {t("Make Test Call")}
+            {t("make_test_call")}
           </Button>
         </DialogFooter>
       </DialogContent>

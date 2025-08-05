@@ -236,12 +236,10 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     });
   }
 
-  const currentTime = dayjs();
-  const scheduledTime = dayjs(scheduledDate);
-
   try {
-    if (scheduledTime.diff(currentTime, "minute") <= 5) {
-      await tasker.create("executeAIPhoneCall", {
+    await tasker.create(
+      "executeAIPhoneCall",
+      {
         workflowReminderId,
         agentId,
         fromNumber: phoneNumber,
@@ -249,25 +247,12 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
         bookingUid,
         userId,
         teamId,
-      });
-    } else {
-      const taskId = await tasker.create(
-        "executeAIPhoneCall",
-        {
-          workflowReminderId,
-          agentId,
-          fromNumber: phoneNumber,
-          toNumber: attendeePhoneNumber,
-          bookingUid,
-          userId,
-          teamId,
-        },
-        {
-          scheduledAt: scheduledDate,
-          maxAttempts: 1,
-        }
-      );
-    }
+      },
+      {
+        scheduledAt: scheduledDate,
+        maxAttempts: 1,
+      }
+    );
   } catch (error) {
     console.error("Error creating AI phone call task:", error);
     throw error;

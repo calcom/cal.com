@@ -311,14 +311,14 @@ function WorkflowPage({
       const validationErrors: string[] = [];
 
       if (isEmpty) {
-        validationErrors.push("One or more workflow steps have empty message content");
+        validationErrors.push(t("workflow_validation_empty_fields"));
       }
 
       if (!isVerified) {
-        validationErrors.push("One or more phone numbers or email addresses are not verified");
+        validationErrors.push(t("workflow_validation_unverified_contacts"));
       }
 
-      throw new Error(`Workflow validation failed: ${validationErrors.join("; ")}`);
+      throw new Error(`${t("workflow_validation_failed")}: ${validationErrors.join("; ")}`);
     }
   };
 

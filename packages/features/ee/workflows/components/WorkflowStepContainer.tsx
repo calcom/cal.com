@@ -149,14 +149,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const createAgentMutation = trpc.viewer.ai.create.useMutation({
     onSuccess: async (data) => {
-      showToast(t("Agent created successfully"), "success");
+      showToast(t("agent_created_successfully"), "success");
 
       // Update the step's agentId in the form state
       if (step) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
 
-        // Invalidate and refetch agent data
         await utils.viewer.ai.get.invalidate({ id: data.id });
       }
       setIsAgentConfigurationSheetOpen(true);
@@ -174,7 +173,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const updateAgentMutation = trpc.viewer.ai.update.useMutation({
     onSuccess: async () => {
-      showToast(t("Agent updated successfully"), "success");
+      showToast(t("agent_updated_successfully"), "success");
       if (stepAgentId) {
         utils.viewer.ai.get.invalidate({ id: stepAgentId });
       }
@@ -186,7 +185,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const unsubscribePhoneNumberMutation = trpc.viewer.phoneNumber.update.useMutation({
     onSuccess: async () => {
-      showToast(t("Phone number unsubscribed successfully"), "success");
+      showToast(t("phone_number_unsubscribed_successfully"), "success");
       setIsUnsubscribeDialogOpen(false);
       if (stepAgentId) {
         utils.viewer.ai.get.invalidate({ id: stepAgentId });
@@ -639,7 +638,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="bg-muted mt-2 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-emphasis text-sm font-medium leading-none">Cal.Ai Agent</h2>
+                      <h2 className="text-emphasis text-sm font-medium leading-none">Cal.ai Agent</h2>
                       <p className="text-muted mt-2 text-sm font-medium leading-none">
                         {t("no_phone_number_connected")}.
                       </p>
@@ -671,7 +670,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               workflowStepId: updatedStep.id,
                             });
                           } else {
-                            showToast("Failed to get workflow step ID", "error");
+                            showToast(t("failed_to_get_workflow_step_id"), "error");
                           }
                         }
                       }}
@@ -687,7 +686,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="bg-muted mt-4 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-emphasis text-base font-medium">{t("Cal.Ai Agent")}</h3>
+                      <h3 className="text-emphasis text-base font-medium">Cal.ai Agent</h3>
                       {getActivePhoneNumbers(agentData.outboundPhoneNumbers).length > 0 ? (
                         <div className="flex items-center gap-2">
                           <Icon name="phone" className="text-emphasis h-4 w-4" />
@@ -697,7 +696,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             )}
                           </span>
                           <Badge variant="green" size="sm" withDot>
-                            {t("Active")}
+                            {t("active")}
                           </Badge>
                         </div>
                       ) : (
@@ -714,7 +713,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           props.readOnly || !getActivePhoneNumbers(agentData.outboundPhoneNumbers).length
                         }>
                         <Icon name="phone" className="mr-2 h-4 w-4" />
-                        {t("Test Agent")}
+                        {t("test_agent")}
                       </Button>
                       <Dropdown>
                         <DropdownMenuTrigger asChild>

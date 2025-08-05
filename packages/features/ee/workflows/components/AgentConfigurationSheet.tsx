@@ -381,8 +381,8 @@ export function AgentConfigurationSheet({
               }}
               value={activeTab}
               options={[
-                { value: "prompt", label: t("Prompt") },
-                { value: "phoneNumber", label: t("Phone Number") },
+                { value: "prompt", label: t("prompt") },
+                { value: "phoneNumber", label: t("phone_number") },
               ]}
               isFullWidth={true}
             />
@@ -392,26 +392,22 @@ export function AgentConfigurationSheet({
               <div className="space-y-4">
                 <div>
                   <Label className="text-emphasis mb-1 block text-sm font-medium">
-                    {t("Initial Message")} *
+                    {t("initial_message")} *
                   </Label>
-                  <p className="text-subtle mb-1.5 text-xs">
-                    {t("The first message the agent will say when starting a call")}
-                  </p>
+                  <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
                   <Input
                     type="text"
                     {...agentForm.register("beginMessage")}
-                    placeholder={t("Hi. How are you doing?")}
+                    placeholder={t("hi_how_are_you_doing")}
                     disabled={readOnly}
                   />
                 </div>
                 <div>
                   <div className="mb-1.5">
                     <Label className="text-emphasis mb-1 block text-sm font-medium">
-                      {t("General Prompt")} *
+                      {t("general_prompt")} *
                     </Label>
-                    <p className="text-subtle text-xs">
-                      {t("This prompt defines the agent's role and primary objectives")}
-                    </p>
+                    <p className="text-subtle text-xs">{t("general_prompt_description")}</p>
                   </div>
                   <div className="flex items-center justify-between rounded-t-lg border border-b-0 p-2">
                     {!readOnly && (
@@ -516,7 +512,7 @@ export function AgentConfigurationSheet({
                   <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/50">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Icon name="loader" className="h-4 w-4 animate-spin" />
-                      {t("Updating...")}
+                      {t("updating")}...
                     </div>
                   </div>
                 )}
@@ -541,13 +537,17 @@ export function AgentConfigurationSheet({
                               )}
                             </span>
                             <Badge variant="green" size="md" withDot>
-                              {t("Active")}
+                              {t("active")}
                             </Badge>
                             {agentData.outboundPhoneNumbers.filter(
                               (phone) =>
                                 phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                                 !phone.subscriptionStatus
-                            )[0].subscriptionStatus && <span className="text-muted text-xs">($5/month)</span>}
+                            )[0].subscriptionStatus && (
+                              <span className="text-muted text-xs">
+                                {t("phone_number_cost", { price: 5 })}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -556,7 +556,7 @@ export function AgentConfigurationSheet({
                             onClick={() => setIsTestAgentDialogOpen(true)}
                             className="rounded-[10px]"
                             disabled={readOnly}>
-                            {t("Test Agent")}
+                            {t("test_agent")}
                           </Button>
                           <Dropdown>
                             <DropdownMenuTrigger asChild>
@@ -591,8 +591,8 @@ export function AgentConfigurationSheet({
                                       phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                                       !phone.subscriptionStatus
                                   )?.[0]?.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
-                                    ? t("Unsubscribe")
-                                    : t("Delete")}
+                                    ? t("unsubscribe")
+                                    : t("delete")}
                                 </DropdownItem>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -606,7 +606,7 @@ export function AgentConfigurationSheet({
                         phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
                         !phone.subscriptionStatus
                     )[0].provider === "retell" && (
-                      <Alert severity="info" title={t("You can only call numbers in the US")} />
+                      <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />
                     )}
                   </>
                 ) : (
@@ -618,7 +618,7 @@ export function AgentConfigurationSheet({
                       <div className="space-y-2">
                         <h3 className="text-emphasis text-lg font-semibold">{t("No phone numbers")}</h3>
                         <p className="text-subtle text-sm">
-                          {t("Buy a phone number or import one you already have")}
+                          {t("buy_a_phone_number_or_import_one_you_already_have")}
                         </p>
                       </div>
                       <div className="flex gap-3">
@@ -627,14 +627,14 @@ export function AgentConfigurationSheet({
                           StartIcon="external-link"
                           className="px-6"
                           disabled={buyNumberMutation.isPending}>
-                          {t("Buy")}
+                          {t("buy")}
                         </Button>
                         <Button
                           onClick={() => setIsImportDialogOpen(true)}
                           color="secondary"
                           className="px-6"
                           disabled={importNumberMutation.isPending}>
-                          {t("Import")}
+                          {t("import")}
                         </Button>
                       </div>
                     </div>
@@ -645,14 +645,14 @@ export function AgentConfigurationSheet({
           </SheetBody>
           <SheetFooter>
             <Button type="button" color="secondary" onClick={() => onOpenChange(false)}>
-              {t("Cancel")}
+              {t("cancel")}
             </Button>
             <Button
               type="button"
               onClick={agentForm.handleSubmit(handleAgentUpdate)}
               disabled={!agentForm.formState.isDirty || readOnly || updateAgentMutation.isPending}
               loading={updateAgentMutation.isPending}>
-              {t("Save")}
+              {t("save")}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -700,7 +700,7 @@ export function AgentConfigurationSheet({
                     name="phoneNumber"
                     label={
                       <span className="flex items-center gap-1">
-                        {t("Phone number")}
+                        {t("phone_number")}
                         <Tooltip content={t("phone_number_info_tooltip")}>
                           <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
                         </Tooltip>
@@ -709,7 +709,7 @@ export function AgentConfigurationSheet({
                     value={value}
                     required
                     type="text"
-                    placeholder="(208) 878-2105"
+                    placeholder="+12088782105"
                     onChange={(e) => {
                       phoneNumberForm.setValue("phoneNumber", e?.target.value, { shouldDirty: true });
                     }}
@@ -725,7 +725,7 @@ export function AgentConfigurationSheet({
                     name="terminationUri"
                     label={
                       <span className="flex items-center gap-1">
-                        {t("Terminator URL")}
+                        {t("termination_uri")}
                         <Tooltip content={t("termination_uri_info_tooltip")}>
                           <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
                         </Tooltip>
@@ -734,7 +734,7 @@ export function AgentConfigurationSheet({
                     value={value}
                     required
                     type="text"
-                    placeholder="https://sip.example.com/terminator"
+                    placeholder="sip.example.co.pstn.twilio.com"
                     onChange={(e) => {
                       phoneNumberForm.setValue("terminationUri", e?.target.value, { shouldDirty: true });
                     }}
@@ -745,7 +745,7 @@ export function AgentConfigurationSheet({
               <div className="bg-muted rounded-xl p-1">
                 <div className="flex items-center justify-between p-2">
                   <Label className="text-emphasis mb-0 text-sm font-medium leading-none">
-                    {t("Advanced")}
+                    {t("advanced")}
                   </Label>
                   <Switch size="sm" checked={showAdvancedFields} onCheckedChange={setShowAdvancedFields} />
                 </div>
@@ -760,7 +760,7 @@ export function AgentConfigurationSheet({
                           name="sipTrunkAuthUsername"
                           label={
                             <span className="flex items-center gap-1">
-                              {t("SIP Trunk User Name")}
+                              {t("sip_trunk_username")}
                               <Tooltip content={t("sip_trunk_username_info_tooltip")}>
                                 <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
                               </Tooltip>
@@ -785,7 +785,7 @@ export function AgentConfigurationSheet({
                           name="sipTrunkAuthPassword"
                           label={
                             <span className="flex items-center gap-1">
-                              {t("SIP Trunk Password")}
+                              {t("sip_trunk_password")}
                               <Tooltip content={t("sip_trunk_password_info_tooltip")}>
                                 <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
                               </Tooltip>
@@ -810,7 +810,7 @@ export function AgentConfigurationSheet({
                           name="nickname"
                           label={
                             <span className="flex items-center gap-1">
-                              {t("Nickname")}
+                              {t("nickname")}
                               <Tooltip content={t("nickname_info_tooltip")}>
                                 <Icon name="info" className="text-muted h-4 w-4 cursor-pointer" />
                               </Tooltip>
@@ -829,22 +829,23 @@ export function AgentConfigurationSheet({
               </div>
 
               {/* Having trouble importing section */}
-              <div className="bg-muted rounded-lg p-4">
+              <div className="rounded-lg border p-2">
                 <div className="flex items-start gap-3">
                   <Icon name="info" className="text-subtle mt-0.5 h-5 w-5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="text-emphasis text-sm font-medium">{t("Having trouble importing?")}</p>
-                    <p className="text-subtle mt-1 text-sm">
-                      {t("Learn how to get your Terminator and SIP")}
+                    <p className="text-emphasis text-sm font-medium">{t("having_trouble_importing")}</p>
+                    <p className="text-subtle mt-1 text-sm leading-tight">
+                      {t("learn_how_to_get_your_terminator")}
                     </p>
                   </div>
+                  {/*TODO: Create a doc and link to it */}
                   <Button
                     type="button"
-                    color="minimal"
-                    size="sm"
+                    color="secondary"
+                    size="base"
                     EndIcon="external-link"
                     className="text-emphasis">
-                    {t("Learn")}
+                    {t("learn")}
                   </Button>
                 </div>
               </div>
@@ -858,7 +859,7 @@ export function AgentConfigurationSheet({
                 type="submit"
                 loading={importNumberMutation.isPending}
                 disabled={importNumberMutation.isPending}>
-                {t("Create")}
+                {t("create")}
               </Button>
             </BaseDialogFooter>
           </Form>
