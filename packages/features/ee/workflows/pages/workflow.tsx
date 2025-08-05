@@ -10,7 +10,6 @@ import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -43,17 +42,9 @@ export type FormValues = {
 
 type PageProps = {
   workflow: number;
-  workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
-  verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
-  verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
 };
 
-function WorkflowPage({
-  workflow: workflowId,
-  workflowData: workflowDataProp,
-  verifiedNumbers: verifiedNumbersProp,
-  verifiedEmails: verifiedEmailsProp,
-}: PageProps) {
+function WorkflowPage({ workflow: workflowId }: PageProps) {
   const { t, i18n } = useLocale();
   const session = useSession();
 
@@ -73,35 +64,23 @@ function WorkflowPage({
 
   const {
     data: workflowData,
-    isError: _isError,
+    isError,
     error,
-    isPending: _isPendingWorkflow,
-  } = trpc.viewer.workflows.get.useQuery(
-    { id: +workflowId },
-    {
-      enabled: workflowDataProp ? false : !!workflowId,
-    }
-  );
+    isPending: isPendingWorkflow,
+  } = trpc.viewer.workflows.get.useQuery({ id: +workflowId });
 
-  const workflow = workflowDataProp || workflowData;
-  const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
-  const isError = workflowDataProp ? false : _isError;
+  const workflow = workflowData;
 
-  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: verifiedNumbersProp ? false : !!workflow?.id,
+      enabled: !!workflow?.id,
     }
   );
-  const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
 
-  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
-    {
-      teamId: workflow?.team?.id,
-    },
-    { enabled: !verifiedEmailsProp }
-  );
-  const verifiedEmails = verifiedEmailsProp || verifiedEmailsData;
+  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
+    teamId: workflow?.team?.id,
+  });
 
   const isOrg = workflow?.team?.isOrganization ?? false;
 
@@ -208,7 +187,9 @@ function WorkflowPage({
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
+        // utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
+        await utils.viewer.workflows.get.invalidate({ id: +workflow.id });
+
         setFormData(workflow);
         showToast(
           t("workflow_updated_successfully", {
