@@ -26,7 +26,7 @@ jobs:
   e2e:
     timeout-minutes: 20
     name: E2E API v2
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    runs-on: buildjet-16vcpu-ubuntu-2204
     services:
       postgres:
         image: postgres:13

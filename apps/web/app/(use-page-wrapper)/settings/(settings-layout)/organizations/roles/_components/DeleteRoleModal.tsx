@@ -28,7 +28,7 @@ export function DeleteRoleModal({ roleId, roleName, teamId, onDeleted }: DeleteR
     onSuccess: async () => {
       showToast(t("role_deleted_successfully"), "success");
       setIsModalOpen(false);
-      await revalidateTeamRoles();
+      await revalidateTeamRoles(teamId);
       router.refresh();
       onDeleted?.();
     },
