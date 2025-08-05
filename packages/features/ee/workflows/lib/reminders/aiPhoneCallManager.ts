@@ -102,9 +102,10 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   // Get the workflow step to check if it has an agent configured
   const workflowStep = await prisma.workflowStep.findUnique({
     where: { id: workflowStepId },
-    include: {
+    select: {
       agent: {
-        include: {
+        select: {
+          id: true,
           outboundPhoneNumbers: {
             select: {
               phoneNumber: true,

@@ -174,7 +174,7 @@ export function AgentConfigurationSheet({
           utils.viewer.ai.get.invalidate({ id: agentId });
         }
       } else {
-        showToast(data.message || "Something went wrong", "error");
+        showToast(data.message || t("something_went_wrong"), "error");
       }
     },
     onError: (error: { message: string }) => {
@@ -200,7 +200,7 @@ export function AgentConfigurationSheet({
 
   const cancelSubscriptionMutation = trpc.viewer.phoneNumber.cancel.useMutation({
     onSuccess: async (data: { message?: string }) => {
-      showToast(data.message || "Phone number subscription cancelled successfully", "success");
+      showToast(data.message || t("phone_number_subscription_cancelled_successfully"), "success");
       setCancellingNumberId(null);
 
       await utils.viewer.me.get.invalidate();
