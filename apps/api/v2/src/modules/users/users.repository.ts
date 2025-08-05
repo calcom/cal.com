@@ -85,6 +85,27 @@ export class UsersRepository {
     });
   }
 
+  async findOwnerByTeamIdWithProfile(teamId: number): Promise<UserWithProfile | null> {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        teams: {
+          some: {
+            teamId,
+            role: "OWNER",
+          },
+        },
+      },
+      include: {
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+      },
+    });
+  }
+
   async findByIdsWithEventTypes(userIds: number[]) {
     return this.dbRead.prisma.user.findMany({
       where: {
