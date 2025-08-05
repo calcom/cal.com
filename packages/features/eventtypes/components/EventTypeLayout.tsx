@@ -44,7 +44,7 @@ type Props = {
   bookerUrl: string;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
-  teamId?: string;
+  teamId?: number | null;
   isPlatform?: boolean;
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;

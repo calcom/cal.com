@@ -93,7 +93,7 @@ export const EventType = ({
       <EventTypeSingleLayout
         eventType={eventType}
         team={team}
-        teamId={teamId?.toString()}
+        teamId={teamId ?? null}
         isUpdateMutationLoading={isUpdating}
         formMethods={formMethods}
         // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
