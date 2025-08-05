@@ -15,9 +15,7 @@ import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
 import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
-import type { TeamSelect } from "../data/team/selects";
 import { withSelectedCalendars } from "../withSelectedCalendars";
-import { mapToPrismaSelect } from "./prisma-mapper";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 
@@ -69,7 +67,7 @@ const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
 
-const teamSelect: TeamSelect = {
+const teamSelect = {
   id: true,
   name: true,
   slug: true,
@@ -78,7 +76,7 @@ const teamSelect: TeamSelect = {
   organizationSettings: true,
   isOrganization: true,
   isPlatform: true,
-};
+} satisfies Prisma.TeamSelect;
 
 const userSelect = {
   id: true,
@@ -131,7 +129,7 @@ export class UserRepository {
       },
       include: {
         team: {
-          select: mapToPrismaSelect(teamSelect),
+          select: teamSelect,
         },
       },
     });
