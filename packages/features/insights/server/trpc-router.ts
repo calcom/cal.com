@@ -320,7 +320,7 @@ function createInsightsBookingService(
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
   dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
-  const { scope, selectedTeamId, eventTypeId, memberUserId, startDate, endDate } = input;
+  const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
 
   return getInsightsBookingService({
     options: {
@@ -330,8 +330,7 @@ function createInsightsBookingService(
       ...(selectedTeamId && { teamId: selectedTeamId }),
     },
     filters: {
-      ...(eventTypeId && { eventTypeId }),
-      ...(memberUserId && { memberUserId }),
+      ...(columnFilters && { columnFilters }),
       dateRange: {
         target: dateTarget,
         startDate,
