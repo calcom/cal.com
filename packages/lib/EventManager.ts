@@ -44,9 +44,7 @@ const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 const CALDAV_CALENDAR_TYPE = "caldav_calendar";
 export const isDedicatedIntegration = (location: string): boolean => {
-  return (
-    location !== MeetLocationType && location !== MSTeamsLocationType && location.includes("integrations:")
-  );
+  return location !== MeetLocationType && location.includes("integrations:");
 };
 
 interface HasId {
@@ -253,6 +251,34 @@ export default class EventManager {
     return matches;
   }
 
+  private updateVideoCallData(
+    evt: CalendarEvent,
+    results: Array<EventResult<Exclude<Event, AdditionalInformation>>>
+  ) {
+    if (evt.location === MSTeamsLocationType) {
+      const office365CalendarWithTeams = results.find(
+        (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+      );
+      if (office365CalendarWithTeams) {
+        evt.videoCallData = {
+          type: "office365_video",
+          id: office365CalendarWithTeams.createdEvent?.id,
+          password: "",
+          url: office365CalendarWithTeams.createdEvent?.url,
+        };
+        if (evt.location && evt.responses) {
+          evt.responses["location"] = {
+            ...(evt.responses["location"] ?? {}),
+            value: {
+              optionValue: "",
+              value: evt.location,
+            },
+          };
+        }
+      }
+    }
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -301,30 +327,15 @@ export default class EventManager {
         evt["conferenceCredentialId"] = undefined;
       }
     }
-    // Fallback to Cal Video if MSTeams is selected w/o a Outlook Calendar connection
-    if (
-      evt.location === MSTeamsLocationType &&
-      mainHostDestinationCalendar?.integration !== "office365_calendar"
-    ) {
-      const [outlookCalendarCredential] = this.calendarCredentials.filter(
-        (cred) => cred.type === "office365_calendar"
-      );
-      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Outlook Calendar credential would be used. Identify that case.
-      // TODO: We could extend this logic to Regular Credentials also. Having a Outlook Calendar credential would cause fallback to use that credential to create calendar and thus we could have MSTeams link
-      if (!isDelegationCredential({ credentialId: outlookCalendarCredential?.id })) {
-        log.warn(
-          "Falling back to Cal Video integration for Regular Credential as Outlook Calendar is not set as destination calendar"
-        );
-        evt["location"] = "integrations:daily";
-        evt["conferenceCredentialId"] = undefined;
-      }
-    }
+
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    const isMSTeamsWithOutlookCalendar = evt.location === MSTeamsLocationType && mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
+    // If the event is a Microsoft Teams meeting with Outlook Calendar, do not create a MSTeams video event, create calendar event will take care.
+    if (isDedicated && !isMSTeamsWithOutlookCalendar) {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
@@ -351,30 +362,7 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    // If the location is MSTeams, update 'evt.videoCallData' with the url
-    if (evt.location === MSTeamsLocationType) {
-      const office365CalendarWithTeams = results.find(
-        (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
-      );
-      if (office365CalendarWithTeams) {
-        evt.videoCallData = {
-          type: "office365_video",
-          id: office365CalendarWithTeams.createdEvent?.id,
-          password: "",
-          url: office365CalendarWithTeams.createdEvent?.url,
-        };
-        //responses data is later sent to webhook
-        if (evt.location && evt.responses) {
-          evt.responses["location"] = {
-            ...(evt.responses["location"] ?? {}),
-            value: {
-              optionValue: "",
-              value: evt.location,
-            },
-          };
-        }
-      }
-    }
+    this.updateVideoCallData(evt, results);
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -451,30 +439,7 @@ export default class EventManager {
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
-      // If the location is MSTeams, update 'evt.videoCallData' with the url
-      if (evt.location === MSTeamsLocationType) {
-        const office365CalendarWithTeams = results.find(
-          (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
-        );
-        if (office365CalendarWithTeams) {
-          evt.videoCallData = {
-            type: "office365_video",
-            id: office365CalendarWithTeams.createdEvent?.id,
-            password: "",
-            url: office365CalendarWithTeams.createdEvent?.url,
-          };
-          //responses data is later sent to webhook
-          if (evt.location && evt.responses) {
-            evt.responses["location"] = {
-              ...(evt.responses["location"] ?? {}),
-              value: {
-                optionValue: "",
-                value: evt.location,
-              },
-            };
-          }
-        }
-      }
+      this.updateVideoCallData(evt, results);
     }
 
     const referencesToCreate = results.map((result) => {
