@@ -187,7 +187,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
+    // If the user is not a host/owner of the event type and no seat reference uid is provided, return not found
+    // If user is not host/owner but has a seat reference uid, then allow reschedule
+    if (!userIsHost && !userIsOwnerOfEventType && !seatReferenceUid) {
       return {
         notFound: true,
       } as {
