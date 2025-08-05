@@ -11,8 +11,11 @@ import { UserCreationService } from "./userCreationService";
 
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
-    getTranslation: (key: string) => {
-      return () => key;
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
     },
   };
 });

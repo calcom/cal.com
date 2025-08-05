@@ -7,7 +7,9 @@ import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
+import { revalidateWebhooksListGetByViewer } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
+import { revalidateWebhookById } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/[id]/actions";
+import { revalidateWebhookList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/new/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
@@ -43,10 +45,10 @@ export function EditWebhookView({ webhook }: { webhook?: WebhookProps }) {
   });
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
-      await utils.viewer.webhook.list.invalidate();
-      await utils.viewer.webhook.get.invalidate({ webhookId: webhook?.id });
+      revalidateWebhookById(webhook?.id ?? "");
+      revalidateWebhookList();
       showToast(t("webhook_updated_successfully"), "success");
-      revalidateWebhooksList();
+      revalidateWebhooksListGetByViewer();
       router.push("/settings/developer/webhooks");
     },
     onError(error) {
