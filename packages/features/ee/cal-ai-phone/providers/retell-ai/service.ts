@@ -87,7 +87,7 @@ export class RetellAIService {
     }
 
     return await prisma.$transaction(async (tx) => {
-      let importedPhoneNumber: RetellPhoneNumber;
+      let importedPhoneNumber: RetellPhoneNumber | undefined = undefined;
 
       try {
         // Step 1: Import phone number in Retell
@@ -130,7 +130,7 @@ export class RetellAIService {
       } catch (error) {
         // If we have an imported phone number but something else failed,
         // try to clean up the Retell phone number
-        if (importedPhoneNumber) {
+        if (importedPhoneNumber?.phone_number) {
           try {
             await this.repository.deletePhoneNumber(importedPhoneNumber.phone_number);
           } catch (cleanupError) {

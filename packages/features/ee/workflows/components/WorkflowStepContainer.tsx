@@ -112,7 +112,9 @@ const CalAIAgentDataSkeleton = () => {
   );
 };
 
-const getActivePhoneNumbers = (phoneNumbers?: typeof agentData.outboundPhoneNumbers) => {
+const getActivePhoneNumbers = (
+  phoneNumbers?: Array<{ subscriptionStatus?: string; phoneNumber: string }>
+) => {
   return (
     phoneNumbers?.filter(
       (phone) =>

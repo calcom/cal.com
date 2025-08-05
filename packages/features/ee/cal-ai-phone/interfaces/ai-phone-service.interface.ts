@@ -240,7 +240,12 @@ export interface AIPhoneServiceProvider {
   /**
    * Create a test call
    */
-  createTestCall(params: { agentId: string; phoneNumber?: string; userId: number }): Promise<{
+  createTestCall(params: {
+    agentId: string;
+    phoneNumber?: string;
+    userId: number;
+    teamId?: number;
+  }): Promise<{
     callId: string;
     status: string;
     message: string;

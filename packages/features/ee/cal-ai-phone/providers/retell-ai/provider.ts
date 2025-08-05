@@ -218,7 +218,12 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     return await this.service.deleteAgent(params);
   }
 
-  async createTestCall(params: { agentId: string; phoneNumber?: string; userId: number }): Promise<{
+  async createTestCall(params: {
+    agentId: string;
+    phoneNumber?: string;
+    userId: number;
+    teamId?: number;
+  }): Promise<{
     callId: string;
     status: string;
     message: string;
