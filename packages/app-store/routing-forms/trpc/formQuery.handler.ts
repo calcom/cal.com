@@ -1,4 +1,3 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
