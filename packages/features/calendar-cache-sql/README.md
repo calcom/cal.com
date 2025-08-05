@@ -6,11 +6,33 @@ A high-performance SQL-based calendar caching system for Cal.com that provides f
 
 The Calendar Cache SQL system replaces the previous JSONB-based `CalendarCache` table with a robust structured SQL solution that:
 
+- **Migrates from JSONB to structured tables** - Replaces the generic `CalendarCache` table (key-value JSONB storage) with dedicated `CalendarEvent` and `CalendarSubscription` tables
 - **Caches calendar events** in PostgreSQL for sub-second availability queries
 - **Maintains real-time sync** with Google Calendar via webhooks
 - **Provides team-based feature flags** for gradual rollouts
 - **Ensures data consistency** with proper repository patterns
 - **Handles cleanup** of old events automatically
+
+### Migration from Legacy System
+
+**Old System (`CalendarCache` table):**
+
+```sql
+CREATE TABLE "CalendarCache" (
+  "key" TEXT NOT NULL,
+  "value" JSONB NOT NULL,           -- Unstructured JSON storage
+  "expiresAt" TIMESTAMP(3) NOT NULL,
+  "credentialId" INTEGER NOT NULL,
+  CONSTRAINT "CalendarCache_pkey" PRIMARY KEY ("credentialId", "key")
+);
+```
+
+**New System (Structured tables):**
+
+- **`CalendarEvent`** - Structured storage for individual calendar events with proper indexing
+- **`CalendarSubscription`** - Webhook subscription management with sync state tracking
+- **Better performance** through proper indexing and structured queries
+- **Real-time sync** via Google Calendar webhooks instead of periodic cache updates
 
 ## Architecture
 
