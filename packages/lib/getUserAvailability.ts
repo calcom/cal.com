@@ -322,10 +322,12 @@ export class UserAvailabilityService {
       timeZone: fallbackTimezoneIfScheduleIsMissing,
     };
 
-    const schedule =
-      (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ??
-      fallbackSchedule;
-    const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+    const potentialSchedule = eventType?.schedule
+    ? eventType.schedule
+    : hostSchedule
+    ? hostSchedule
+    : userSchedule;
+  const schedule = potentialSchedule ?? fallbackSchedule;
 
     const bookingLimits =
       eventType?.bookingLimits &&
@@ -341,6 +343,23 @@ export class UserAvailabilityService {
         ? parseDurationLimit(eventType.durationLimits)
         : null;
 
+        // TODO: only query what we need after applying limits (shrink date range)
+  const getBusyTimesStart = dateFrom.toISOString();
+  const getBusyTimesEnd = dateTo.toISOString();
+
+
+
+    const selectedCalendars = eventType?.useEventLevelSelectedCalendars
+      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+      : user.userLevelSelectedCalendars;
+
+  const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
+  const calendarTimezone = !isTimezoneSet ? await this.getTimezoneFromDelegatedCalendars(user) : null;
+  const finalTimezone =
+    !isTimezoneSet && calendarTimezone
+      ? calendarTimezone
+      : schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+  console.log("FINAL TIME ZONE", finalTimezone);
     let busyTimesFromLimits: EventBusyDetails[] = [];
 
     if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
@@ -350,12 +369,12 @@ export class UserAvailabilityService {
       busyTimesFromLimits = await getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
-        dateFrom.tz(timeZone),
-        dateTo.tz(timeZone),
+        dateFrom.tz(finalTimezone),
+        dateTo.tz(finalTimezone),
         duration,
         eventType,
         initialData?.busyTimesFromLimitsBookings ?? [],
-        timeZone,
+        finalTimezone,
         initialData?.rescheduleUid ?? undefined
       );
     }
@@ -376,22 +395,16 @@ export class UserAvailabilityService {
       busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
         user,
         teamBookingLimits,
-        dateFrom.tz(timeZone),
-        dateTo.tz(timeZone),
+        dateFrom.tz(finalTimezone),
+        dateTo.tz(finalTimezone),
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
-        timeZone,
+        finalTimezone,
         initialData?.rescheduleUid ?? undefined
       );
     }
 
-    // TODO: only query what we need after applying limits (shrink date range)
-    const getBusyTimesStart = dateFrom.toISOString();
-    const getBusyTimesEnd = dateTo.toISOString();
 
-    const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
-      : user.userLevelSelectedCalendars;
 
     let busyTimes = [];
     try {
@@ -417,7 +430,7 @@ export class UserAvailabilityService {
       log.error(`Error fetching busy times for user ${username}:`, error);
       return {
         busy: [],
-        timeZone,
+        timeZone: finalTimezone,
         dateRanges: [],
         oooExcludedDateRanges: [],
         workingHours: [],
@@ -466,7 +479,7 @@ export class UserAvailabilityService {
       userId: user.id,
     }));
 
-    const workingHours = getWorkingHours({ timeZone }, availability);
+    const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
 
     const dateOverrides: TimeRange[] = [];
     // NOTE: getSchedule is currently calling this function for every user in a team event
@@ -506,7 +519,7 @@ export class UserAvailabilityService {
       dateFrom,
       dateTo,
       availability,
-      timeZone,
+      timeZone: finalTimezone,
       travelSchedules: isDefaultSchedule
         ? user.travelSchedules.map((schedule) => {
             return {
@@ -529,7 +542,7 @@ export class UserAvailabilityService {
 
     const result = {
       busy: detailedBusyTimes,
-      timeZone,
+      timeZone: finalTimezone,
       dateRanges: dateRangesInWhichUserIsAvailable,
       oooExcludedDateRanges: dateRangesInWhichUserIsAvailableWithoutOOO,
       workingHours,
