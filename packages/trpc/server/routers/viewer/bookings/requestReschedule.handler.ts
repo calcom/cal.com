@@ -5,9 +5,8 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
@@ -331,15 +330,5 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     teamId: teamId ? [teamId] : null,
     orgId,
   };
-  const webhooks = await getWebhooks(subscriberOptions);
-
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${payload.bookingId}, bookingUid: ${payload.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  await WebhookService.sendWebhook(subscriberOptions, payload);
 };

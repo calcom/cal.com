@@ -1,7 +1,8 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getDelegationCredentialOrFindRegularCredential } from "@calcom/lib/delegationCredential/server";
@@ -25,13 +26,6 @@ async function cancelAttendeeSeat(
     bookingToDelete: BookingToDelete;
   },
   dataForWebhooks: {
-    webhooks: {
-      id: string;
-      subscriberUrl: string;
-      payloadTemplate: string | null;
-      appId: string | null;
-      secret: string | null;
-    }[];
     evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
   },
@@ -40,7 +34,7 @@ async function cancelAttendeeSeat(
   const input = bookingCancelAttendeeSeatSchema.safeParse({
     seatReferenceUid: data.seatReferenceUid,
   });
-  const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
+  const { evt, eventTypeInfo } = dataForWebhooks;
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
   const bookingToDelete = data.bookingToDelete;
@@ -152,21 +146,23 @@ async function cancelAttendeeSeat(
     smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
   };
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(
-      webhook.secret,
-      WebhookTriggerEvents.BOOKING_CANCELLED,
-      new Date().toISOString(),
-      webhook,
-      payload
-    ).catch((e) => {
-      logger.error(
-        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  // Send webhook for attendee seat cancellation
+  try {
+    const orgId = await getOrgIdFromMemberOrTeamId({
+      memberId: bookingToDelete.userId,
+      teamId: bookingToDelete.eventType?.teamId,
+    });
+
+    await WebhookService.sendWebhook({
+      userId: bookingToDelete.userId,
+      eventTypeId: bookingToDelete.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+      teamId: bookingToDelete.eventType?.teamId,
+      orgId,
+    }, payload);
+  } catch (error) {
+    logger.error("Error sending webhook for attendee seat cancellation", error);
+  }
 
   const workflowRemindersForAttendee =
     bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??

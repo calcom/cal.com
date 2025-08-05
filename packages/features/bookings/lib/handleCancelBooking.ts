@@ -7,10 +7,8 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -41,6 +39,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -165,7 +164,7 @@ async function handler(input: CancelBookingInput) {
     length: bookingToDelete?.eventType?.length || null,
   };
 
-  const webhooks = await getWebhooks(subscriberOptions);
+
 
   const organizer = await prisma.user.findUniqueOrThrow({
     where: {
@@ -287,7 +286,7 @@ async function handler(input: CancelBookingInput) {
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
   };
 
-  const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+  const dataForWebhooks = { evt, eventTypeInfo };
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
@@ -307,21 +306,13 @@ async function handler(input: CancelBookingInput) {
       message: "Attendee successfully removed.",
     } satisfies HandleCancelBookingResponse;
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-      cancelledBy: cancelledBy,
-    }).catch((e) => {
-      logger.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  await WebhookService.sendWebhook(subscriberOptions, {
+    ...evt,
+    ...eventTypeInfo,
+    status: "CANCELLED",
+    smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    cancelledBy: cancelledBy,
+  });
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});

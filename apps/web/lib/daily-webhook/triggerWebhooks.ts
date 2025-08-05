@@ -1,6 +1,5 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -24,15 +23,13 @@ const getWebhooksByEventTrigger = async (eventTrigger: WebhookTriggerEvents, boo
   const organizerUserId = triggerForUser ? booking.userId : null;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId: booking.teamId });
 
-  const subscriberOptions = {
+  return {
     userId: organizerUserId,
     eventTypeId: booking.eventTypeId,
     triggerEvent: eventTrigger,
     teamId: booking.teamId,
     orgId,
   };
-
-  return getWebhooks(subscriberOptions);
 };
 
 export const triggerRecordingReadyWebhook = async ({
@@ -45,12 +42,12 @@ export const triggerRecordingReadyWebhook = async ({
   booking: Booking;
 }) => {
   const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
-  const webhooks = await getWebhooksByEventTrigger(eventTrigger, booking);
+  const subscriberOptions = await getWebhooksByEventTrigger(eventTrigger, booking);
 
   log.debug(
     "Webhooks:",
     safeStringify({
-      webhooks,
+      subscriberOptions,
     })
   );
 
@@ -59,15 +56,7 @@ export const triggerRecordingReadyWebhook = async ({
     downloadLink,
   };
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  await WebhookService.sendWebhook(subscriberOptions, payload);
 };
 
 export const triggerTranscriptionGeneratedWebhook = async ({
@@ -82,7 +71,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
   };
   booking: Booking;
 }) => {
-  const webhooks = await getWebhooksByEventTrigger(
+  const subscriberOptions = await getWebhooksByEventTrigger(
     WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
     booking
   );
@@ -90,7 +79,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
   log.debug(
     "Webhooks:",
     safeStringify({
-      webhooks,
+      subscriberOptions,
     })
   );
 
@@ -99,19 +88,5 @@ export const triggerTranscriptionGeneratedWebhook = async ({
     downloadLinks,
   };
 
-  const promises = webhooks.map((webhook) =>
-    sendPayload(
-      webhook.secret,
-      WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-      new Date().toISOString(),
-      webhook,
-      payload
-    ).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  await WebhookService.sendWebhook(subscriberOptions, payload);
 };

@@ -4,6 +4,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import getWebhooks from "./getWebhooks";
 import type { GetSubscriberOptions, GetWebhooksReturnType } from "./getWebhooks";
 import sendOrSchedulePayload from "./sendOrSchedulePayload";
+import type { WebhookPayloadType } from "./sendPayload";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookService] "] });
 
@@ -33,5 +34,10 @@ export class WebhookService {
       })
     );
     await Promise.allSettled(promises);
+  }
+  
+  static async sendWebhook(options: GetSubscriberOptions, payload: WebhookPayloadType) {
+    const service = await WebhookService.init(options);
+    await service.sendPayload(payload);
   }
 }
