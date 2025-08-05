@@ -12,6 +12,7 @@ import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.s
 import { Injectable } from "@nestjs/common";
 
 import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
+import { UserAvailabilityService } from "./user-availability.service";
 
 @Injectable()
 export class AvailableSlotsService extends BaseAvailableSlotsService {
@@ -37,6 +38,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       userRepo: userRepository,
       checkBookingLimitsService: new CheckBookingLimitsService(bookingRepository) as any,
       cacheService: new CacheService(featuresRepository),
+      userAvailabilityService: new UserAvailabilityService(oooRepoDependency, bookingRepository, eventTypeRepository)
     });
   }
 }
