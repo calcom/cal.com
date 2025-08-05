@@ -208,10 +208,10 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const getSeatReferenceUid = () => {
-    if (!booking.seatsReferences[0]) {
-      return undefined;
-    }
-    return booking.seatsReferences[0].referenceUid;
+    const seatReferenceUid = booking.seatsReferences.find(
+      (seat) => seat.attendee?.email === userEmail
+    )?.referenceUid;
+    return seatReferenceUid ?? "";
   };
 
   const pendingActions: ActionType[] = [
