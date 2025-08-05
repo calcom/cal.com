@@ -33,6 +33,50 @@ function extractPhoneNumber(responses: BookingInfo["responses"]): string | undef
   return undefined;
 }
 
+interface CreateWorkflowReminderAndExtractPhoneArgs {
+  evt: BookingInfo;
+  workflowStepId: number;
+  scheduledDate: dayjs.Dayjs;
+  seatReferenceUid?: string;
+}
+
+interface CreateWorkflowReminderAndExtractPhoneResult {
+  workflowReminder: { id: number };
+  attendeePhoneNumber: string;
+}
+
+const createWorkflowReminderAndExtractPhone = async (
+  args: CreateWorkflowReminderAndExtractPhoneArgs
+): Promise<CreateWorkflowReminderAndExtractPhoneResult> => {
+  const { evt, workflowStepId, scheduledDate, seatReferenceUid } = args;
+
+  // Create a workflow reminder record
+  const workflowReminder = await prisma.workflowReminder.create({
+    data: {
+      bookingUid: evt.uid as string,
+      workflowStepId: workflowStepId,
+      method: WorkflowMethods.AI_PHONE_CALL,
+      scheduledDate: scheduledDate.toDate(),
+      scheduled: true,
+      seatReferenceId: seatReferenceUid,
+    },
+  });
+
+  let attendeePhoneNumber = extractPhoneNumber(evt.responses);
+
+  if (!attendeePhoneNumber) {
+    // Try to get phone number from attendees if not found in responses
+    const attendeePhone = evt.attendees?.[0]?.phoneNumber;
+    if (attendeePhone) {
+      attendeePhoneNumber = attendeePhone;
+    } else {
+      throw new Error(`No attendee phone number found for workflow step ${workflowStepId}`);
+    }
+  }
+
+  return { workflowReminder, attendeePhoneNumber };
+};
+
 interface ScheduleAIPhoneCallArgs {
   evt: BookingInfo;
   triggerEvent: WorkflowTriggerEvents;
@@ -99,8 +143,6 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     scheduledDate = currentDate;
   }
 
-  console.log("scheduledDate", scheduledDate);
-
   // Determine if we should execute immediately or schedule for later
   const shouldExecuteImmediately =
     // Immediate triggers (NEW_EVENT, EVENT_CANCELLED, etc.)
@@ -109,47 +151,14 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     // Or if the scheduled time has already passed
     (scheduledDate && currentDate.isAfter(scheduledDate));
 
-  console.log("shouldExecuteImmediately", shouldExecuteImmediately, {
-    timeSpan,
-    triggerEvent,
-    scheduledDate: scheduledDate?.toISOString(),
-    currentDate: currentDate.toISOString(),
-  });
-
   if (!shouldExecuteImmediately) {
     try {
-      // Create a workflow reminder record
-      const workflowReminder = await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.AI_PHONE_CALL,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: true,
-          seatReferenceId: seatReferenceUid,
-        },
+      const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+        evt,
+        workflowStepId,
+        scheduledDate,
+        seatReferenceUid,
       });
-
-      let attendeePhoneNumber = extractPhoneNumber(evt.responses);
-
-      console.log("Phone number extraction:", {
-        responses: evt.responses,
-        attendeePhoneNumber,
-        CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-        responsesKeys: evt.responses ? Object.keys(evt.responses) : [],
-      });
-
-      if (!attendeePhoneNumber) {
-        // Try to get phone number from attendees if not found in responses
-        const attendeePhone = evt.attendees?.[0]?.phoneNumber;
-        if (attendeePhone) {
-          attendeePhoneNumber = attendeePhone;
-          console.log("Using phone number from attendee:", attendeePhoneNumber);
-        } else {
-          logger.warn(`No attendee phone number found for workflow step ${workflowStepId}`);
-          return;
-        }
-      }
 
       // Schedule the actual AI phone call
       await scheduleAIPhoneCallTask({
@@ -169,40 +178,13 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     }
   } else {
     // Execute immediately
-    console.log("Executing AI phone call immediately");
     try {
-      // Create a workflow reminder record
-      const workflowReminder = await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.AI_PHONE_CALL,
-          scheduledDate: currentDate.toDate(),
-          scheduled: true,
-          seatReferenceId: seatReferenceUid,
-        },
+      const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+        evt,
+        workflowStepId,
+        scheduledDate: currentDate,
+        seatReferenceUid,
       });
-
-      let attendeePhoneNumber = extractPhoneNumber(evt.responses);
-
-      console.log("Phone number extraction (immediate):", {
-        responses: evt.responses,
-        attendeePhoneNumber,
-        CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-        responsesKeys: evt.responses ? Object.keys(evt.responses) : [],
-      });
-
-      if (!attendeePhoneNumber) {
-        // Try to get phone number from attendees if not found in responses
-        const attendeePhone = evt.attendees?.[0]?.phoneNumber;
-        if (attendeePhone) {
-          attendeePhoneNumber = attendeePhone;
-          console.log("Using phone number from attendee (immediate):", attendeePhoneNumber);
-        } else {
-          logger.warn(`No attendee phone number found for workflow step ${workflowStepId}`);
-          return;
-        }
-      }
 
       // Schedule the actual AI phone call immediately
       await scheduleAIPhoneCallTask({
@@ -246,17 +228,6 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     teamId,
   } = args;
 
-  console.log("Scheduling AI phone call task:", {
-    workflowReminderId,
-    scheduledDate,
-    agentId,
-    phoneNumber,
-    attendeePhoneNumber,
-    bookingUid,
-    userId,
-    teamId,
-  });
-
   if (userId) {
     await checkRateLimitAndThrowError({
       rateLimitingType: "core",
@@ -269,8 +240,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
 
   try {
     if (scheduledTime.diff(currentTime, "minute") <= 5) {
-      console.log("Creating immediate AI phone call task");
-      const taskId = await tasker.create("executeAIPhoneCall", {
+      await tasker.create("executeAIPhoneCall", {
         workflowReminderId,
         agentId,
         fromNumber: phoneNumber,
@@ -279,9 +249,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
         userId,
         teamId,
       });
-      console.log("Immediate AI phone call task created with ID:", taskId);
     } else {
-      console.log("Creating scheduled AI phone call task");
       const taskId = await tasker.create(
         "executeAIPhoneCall",
         {
@@ -298,9 +266,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
           maxAttempts: 1,
         }
       );
-      console.log("Scheduled AI phone call task created with ID:", taskId);
     }
-    console.log("AI phone call task created successfully");
   } catch (error) {
     console.error("Error creating AI phone call task:", error);
     throw error;

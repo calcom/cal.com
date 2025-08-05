@@ -329,11 +329,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && oldStep.agentId) {
-          try {
+          await ctx.prisma.$transaction(async (tx) => {
             const aiPhoneService = createDefaultAIPhoneServiceProvider();
 
-            // Get agent with phone numbers
-            const agent = await ctx.prisma.agent.findUnique({
+            const agent = await tx.agent.findUnique({
               where: { id: oldStep.agentId },
               include: {
                 outboundPhoneNumbers: {
@@ -346,56 +345,107 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               },
             });
 
-            if (agent?.outboundPhoneNumbers) {
+            if (!agent) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: `Agent ${oldStep.agentId} not found for cleanup`,
+              });
+            }
+
+            // Collect all phone number operations
+            const phoneNumberOperations: Promise<any>[] = [];
+
+            if (agent.outboundPhoneNumbers) {
               for (const phoneNumber of agent.outboundPhoneNumbers) {
-                try {
-                  // Check subscription status and handle accordingly
-                  if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-                    // Cancel active subscription
-                    await aiPhoneService.cancelPhoneNumberSubscription({
+                // Check subscription status and handle accordingly
+                if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
+                  // Cancel active subscription
+                  phoneNumberOperations.push(
+                    aiPhoneService.cancelPhoneNumberSubscription({
                       phoneNumberId: phoneNumber.id,
                       userId: user.id,
-                    });
-                  } else if (
-                    phoneNumber.subscriptionStatus === null ||
-                    phoneNumber.subscriptionStatus === undefined
-                  ) {
-                    // Delete imported or inactive phone number (skip cancelled ones)
-                    await aiPhoneService.deletePhoneNumber({
+                    })
+                  );
+                } else if (
+                  phoneNumber.subscriptionStatus === null ||
+                  phoneNumber.subscriptionStatus === undefined
+                ) {
+                  // Delete imported or inactive phone number (skip cancelled ones)
+                  phoneNumberOperations.push(
+                    aiPhoneService.deletePhoneNumber({
                       phoneNumber: phoneNumber.phoneNumber,
                       userId: user.id,
                       deleteFromDB: true,
-                    });
-                  }
-                  // Skip cancelled phone numbers - they don't need any action
-                } catch (error) {
-                  console.error(`Failed to handle phone number ${phoneNumber.phoneNumber}:`, error);
-                  // Continue with deletion even if phone handling fails
+                    })
+                  );
                 }
+                // Skip cancelled phone numbers - they don't need any action
               }
             }
 
+            // Execute all phone number operations
+            try {
+              await Promise.all(phoneNumberOperations);
+            } catch (error) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: `Failed to cleanup phone numbers: ${
+                  error instanceof Error ? error.message : "Unknown error"
+                }`,
+              });
+            }
+
             // Delete the agent
-            if (agent?.id) {
+            try {
               await aiPhoneService.deleteAgent({
                 id: agent.id,
                 userId: user.id,
               });
+            } catch (error) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: `Failed to delete agent: ${
+                  error instanceof Error ? error.message : "Unknown error"
+                }`,
+              });
             }
-          } catch (error) {
-            console.error(`Failed to handle phone cleanup for step ${oldStep.id}:`, error);
-            // Continue with deletion even if cleanup fails
-          }
+
+            // Delete all workflow reminders from deleted steps within transaction
+            await tx.workflowReminder.deleteMany({
+              where: {
+                id: {
+                  in: remindersFromStep.map((reminder) => reminder.id),
+                },
+              },
+            });
+
+            // Delete the workflow step within transaction
+            await tx.workflowStep.delete({
+              where: {
+                id: oldStep.id,
+              },
+            });
+          });
+        } else {
+          // For non-AI phone steps, just delete reminders and step
+          await ctx.prisma.$transaction(async (tx) => {
+            // Delete all workflow reminders from deleted steps
+            await tx.workflowReminder.deleteMany({
+              where: {
+                id: {
+                  in: remindersFromStep.map((reminder) => reminder.id),
+                },
+              },
+            });
+
+            // Delete the workflow step
+            await tx.workflowStep.delete({
+              where: {
+                id: oldStep.id,
+              },
+            });
+          });
         }
-
-        // cancel all workflow reminders from deleted steps
-        await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-
-        await ctx.prisma.workflowStep.delete({
-          where: {
-            id: oldStep.id,
-          },
-        });
       } else if (
         isStepEdited(oldStep, {
           ...newStep,

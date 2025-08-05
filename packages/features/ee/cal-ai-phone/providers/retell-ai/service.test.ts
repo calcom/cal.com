@@ -296,6 +296,7 @@ describe("RetellAIService", () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
       const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
 
       (AgentRepository.findByIdWithUserAccess as any).mockResolvedValue(null);
 
@@ -307,6 +308,18 @@ describe("RetellAIService", () => {
           agentId: "invalid-agent",
         })
       ).rejects.toThrow("Phone number imported but failed to assign to agent.");
+
+      // Verify that createPhoneNumber was called with correct parameters
+      expect(PhoneNumberRepository.createPhoneNumber).toHaveBeenCalledWith({
+        phoneNumber: "+1234567890",
+        userId: 1,
+        provider: "Custom telephony",
+        teamId: undefined,
+      });
+
+      // Verify that no update calls were made after the error
+      expect(PhoneNumberRepository.updatePhoneNumberByUserId).not.toHaveBeenCalled();
+      expect(mockRepository.updatePhoneNumber).not.toHaveBeenCalled();
     });
   });
 

@@ -36,7 +36,7 @@ export class PhoneNumberRepository {
   }
 
   static async findMinimalPhoneNumber({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
-    return await prisma.calAiPhoneNumber.findUniqueOrThrow({
+    return await prisma.calAiPhoneNumber.findFirstOrThrow({
       where: {
         phoneNumber,
         userId,
@@ -46,7 +46,7 @@ export class PhoneNumberRepository {
 
   static async findPhoneNumbersFromUserId({ userId }: { userId: number }) {
     const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
-      SELECT 
+      SELECT
         pn.id,
         pn."phoneNumber",
         pn.provider,
@@ -68,12 +68,12 @@ export class PhoneNumberRepository {
     const agents =
       phoneNumberIds.length > 0
         ? await prisma.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
-        SELECT 
+        SELECT
           a.id,
           a.name,
           a."retellAgentId",
           pn.id as "phoneNumberId",
-          CASE 
+          CASE
             WHEN pn."inboundAgentId" = a.id THEN 'inbound'
             WHEN pn."outboundAgentId" = a.id THEN 'outbound'
           END as "agentType"
@@ -270,7 +270,7 @@ export class PhoneNumberRepository {
     }
 
     const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
-      SELECT 
+      SELECT
         pn.id,
         pn."phoneNumber",
         pn.provider,
@@ -292,12 +292,12 @@ export class PhoneNumberRepository {
     const agents =
       phoneNumberIds.length > 0
         ? await prisma.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
-        SELECT 
+        SELECT
           a.id,
           a.name,
           a."retellAgentId",
           pn.id as "phoneNumberId",
-          CASE 
+          CASE
             WHEN pn."inboundAgentId" = a.id THEN 'inbound'
             WHEN pn."outboundAgentId" = a.id THEN 'outbound'
           END as "agentType"

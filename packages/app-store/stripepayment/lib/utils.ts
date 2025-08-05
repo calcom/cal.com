@@ -20,6 +20,10 @@ export function getPerSeatPlanPrice(): string {
 
 export function getPhoneNumberMonthlyPriceId(): string {
   return STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID;
+  if (!STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID) {
+    throw new Error("STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID env var is not set");
+  }
+  return STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID;
 }
 
 export function getPremiumPlanPriceValue() {

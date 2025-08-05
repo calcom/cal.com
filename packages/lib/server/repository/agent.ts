@@ -252,15 +252,33 @@ export class AgentRepository {
   }
 
   // Optimized version with detailed includes
-  static async findByIdWithUserAccessAndDetails({ id, userId }: { id: string; userId: number }) {
+  static async findByIdWithUserAccessAndDetails({
+    id,
+    userId,
+    teamId,
+  }: {
+    id: string;
+    userId: number;
+    teamId?: number;
+  }) {
     const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
-    if (accessibleTeamIds.length > 0) {
+    if (teamId) {
+      // If teamId is provided, check that the user has access to that specific team
+      if (accessibleTeamIds.includes(teamId)) {
+        whereCondition = Prisma.sql`a.id = ${id} AND a."teamId" = ${teamId}`;
+      } else {
+        // If user doesn't have access to the team, only check for personal agents
+        whereCondition = Prisma.sql`a.id = ${id} AND a."userId" = ${userId}`;
+      }
+    } else if (accessibleTeamIds.length > 0) {
+      // No specific teamId provided, check both personal and team agents
       whereCondition = Prisma.sql`a.id = ${id} AND (a."userId" = ${userId} OR a."teamId" IN (${Prisma.join(
         accessibleTeamIds
       )}))`;
     } else {
+      // User has no team access, only check personal agents
       whereCondition = Prisma.sql`a.id = ${id} AND a."userId" = ${userId}`;
     }
 

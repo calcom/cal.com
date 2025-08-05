@@ -892,20 +892,20 @@ export async function scheduleBookingReminders(
             teamId: teamId,
             verifiedAt: step?.verifiedAt ?? null,
           });
-        } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {
-          await scheduleAIPhoneCall({
-            evt: bookingInfo,
-            triggerEvent: trigger,
-            timeSpan: {
-              time,
-              timeUnit,
-            },
-            workflowStepId: step.id,
-            userId: userId,
-            teamId: teamId,
-            verifiedAt: step?.verifiedAt ?? null,
-          });
         }
+      } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {
+        await scheduleAIPhoneCall({
+          evt: bookingInfo,
+          triggerEvent: trigger,
+          timeSpan: {
+            time,
+            timeUnit,
+          },
+          workflowStepId: step.id,
+          userId,
+          teamId,
+          verifiedAt: step?.verifiedAt ?? null,
+        });
       }
     });
     await Promise.all(promiseScheduleReminders);

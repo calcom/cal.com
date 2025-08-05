@@ -61,6 +61,13 @@ export class AIPhoneServiceRegistry {
   static isProviderRegistered(type: string): boolean {
     return this.factories.has(type);
   }
+
+  /**
+   * Clear all registered providers (mainly for testing purposes)
+   */
+  static clearProviders(): void {
+    this.factories.clear();
+  }
 }
 
 AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, new RetellAIProviderFactory());

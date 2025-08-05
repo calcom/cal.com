@@ -18,6 +18,10 @@ const handler = async (data: Data) => {
     where: {
       stripeSubscriptionId: subscription.id,
     },
+    select: {
+      id: true,
+      phoneNumber: true,
+    },
   });
 
   if (phoneNumber) {
@@ -28,6 +32,9 @@ const handler = async (data: Data) => {
   const app = await prisma.credential.findFirst({
     where: {
       subscriptionId: subscription.id,
+    },
+    select: {
+      id: true,
     },
   });
 
@@ -47,7 +54,12 @@ const handler = async (data: Data) => {
   return { success: true, subscriptionId: subscription.id };
 };
 
-async function handlePhoneNumberSubscriptionUpdate(subscription: any, phoneNumber: any) {
+type Subscription = Data["object"];
+
+async function handlePhoneNumberSubscriptionUpdate(
+  subscription: Subscription,
+  phoneNumber: { id: number; phoneNumber: string }
+) {
   // Map Stripe subscription status to our enum
   const statusMap: Record<string, PhoneNumberSubscriptionStatus> = {
     active: PhoneNumberSubscriptionStatus.ACTIVE,

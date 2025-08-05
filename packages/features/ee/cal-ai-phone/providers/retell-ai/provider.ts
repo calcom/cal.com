@@ -13,15 +13,16 @@ import type {
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParams,
   AIPhoneServiceUpdatePhoneNumberParams,
+  AIPhoneServiceAgentListItem,
 } from "../../interfaces/ai-phone-service.interface";
 import { RetellAIService } from "./service";
-import type { RetellAIRepository } from "./types";
+import type { RetellAIRepository, RetellAgentWithDetails } from "./types";
 
 export class RetellAIProvider implements AIPhoneServiceProvider {
   private service: RetellAIService;
 
-  constructor(repository: RetellAIRepository) {
-    this.service = new RetellAIService(repository);
+  constructor(repository: RetellAIRepository, service?: RetellAIService) {
+    this.service = service || new RetellAIService(repository);
   }
 
   async setupConfiguration(config: AIPhoneServiceConfiguration): Promise<{
@@ -164,12 +165,16 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     scope?: "personal" | "team" | "all";
   }): Promise<{
     totalCount: number;
-    filtered: any[];
+    filtered: AIPhoneServiceAgentListItem[];
   }> {
     return await this.service.listAgents(params);
   }
 
-  async getAgentWithDetails(params: { id: string; userId: number }): Promise<any> {
+  async getAgentWithDetails(params: {
+    id: string;
+    userId: number;
+    teamId?: number;
+  }): Promise<RetellAgentWithDetails> {
     return await this.service.getAgentWithDetails(params);
   }
 

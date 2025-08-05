@@ -40,6 +40,7 @@ export const aiRouter = router({
       return await aiService.getAgentWithDetails({
         id: input.id,
         userId: ctx.user.id,
+        teamId: input.teamId,
       });
     }),
 
@@ -165,7 +166,7 @@ export const aiRouter = router({
         );
       }
 
-      checkRateLimitAndThrowError({
+      await checkRateLimitAndThrowError({
         rateLimitingType: "core",
         identifier: `test-call:${ctx.user.id}`,
       });

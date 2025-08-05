@@ -563,12 +563,13 @@ export class RetellAIService {
     };
   }
 
-  async getAgentWithDetails({ id, userId }: { id: string; userId: number }) {
+  async getAgentWithDetails({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
     const agent = await AgentRepository.findByIdWithUserAccessAndDetails({
       id,
       userId,
+      teamId,
     });
 
     if (!agent) {

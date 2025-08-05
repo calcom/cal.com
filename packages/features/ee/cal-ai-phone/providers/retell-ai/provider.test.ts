@@ -8,14 +8,16 @@ import type {
   AIPhoneServiceImportPhoneNumberParams,
   AIPhoneServiceUpdatePhoneNumberParams,
   AIPhoneServiceUpdateAgentParams,
-  updateLLMConfigurationParams,
+  AIPhoneServiceUpdateModelParams,
 } from "../../interfaces/ai-phone-service.interface";
 import { RetellAIProvider } from "./provider";
+import type { RetellAIService } from "./service";
 import type { RetellAIRepository } from "./types";
 
 describe("RetellAIProvider", () => {
   let mockRepository: RetellAIRepository;
   let provider: RetellAIProvider;
+  let mockService: RetellAIService;
 
   beforeEach(() => {
     mockRepository = {
@@ -41,20 +43,40 @@ describe("RetellAIProvider", () => {
       createPhoneCall: vi.fn().mockResolvedValue({ call_id: "test-call-id" }),
     };
 
-    provider = new RetellAIProvider(mockRepository);
+    // Create a comprehensive mock service
+    mockService = {
+      setupAIConfiguration: vi.fn(),
+      deleteAIConfiguration: vi.fn(),
+      updateLLMConfiguration: vi.fn(),
+      getLLMDetails: vi.fn(),
+      getAgent: vi.fn(),
+      updateAgent: vi.fn(),
+      createPhoneCall: vi.fn(),
+      createPhoneNumber: vi.fn(),
+      importPhoneNumber: vi.fn(),
+      deletePhoneNumber: vi.fn(),
+      getPhoneNumber: vi.fn(),
+      updatePhoneNumber: vi.fn(),
+      generatePhoneNumberCheckoutSession: vi.fn(),
+      cancelPhoneNumberSubscription: vi.fn(),
+      updatePhoneNumberWithAgents: vi.fn(),
+      listAgents: vi.fn(),
+      getAgentWithDetails: vi.fn(),
+      createAgent: vi.fn(),
+      updateAgentConfiguration: vi.fn(),
+      deleteAgent: vi.fn(),
+      createTestCall: vi.fn(),
+    } as unknown as RetellAIService;
+
+    provider = new RetellAIProvider(mockRepository, mockService);
   });
 
   describe("setupConfiguration", () => {
-    const mockService = {
-      setupAIConfiguration: vi.fn().mockResolvedValue({
+    beforeEach(() => {
+      mockService.setupAIConfiguration = vi.fn().mockResolvedValue({
         llmId: "test-llm-id",
         agentId: "test-agent-id",
-      }),
-    };
-
-    beforeEach(() => {
-      // Mock the service property
-      (provider as any).service = mockService;
+      });
     });
 
     it("should setup AI configuration and return llmId and agentId", async () => {
@@ -111,16 +133,12 @@ describe("RetellAIProvider", () => {
   });
 
   describe("deleteConfiguration", () => {
-    const mockService = {
-      deleteAIConfiguration: vi.fn().mockResolvedValue({
+    beforeEach(() => {
+      mockService.deleteAIConfiguration = vi.fn().mockResolvedValue({
         success: true,
         errors: [],
         deleted: { llm: true, agent: true },
-      }),
-    };
-
-    beforeEach(() => {
-      (provider as any).service = mockService;
+      });
     });
 
     it("should delete AI configuration and return result", async () => {
@@ -144,7 +162,7 @@ describe("RetellAIProvider", () => {
     });
 
     it("should handle partial deletion results", async () => {
-      mockService.deleteAIConfiguration.mockResolvedValue({
+      mockService.deleteAIConfiguration = vi.fn().mockResolvedValue({
         success: false,
         errors: ["Failed to delete LLM"],
         deleted: { llm: false, agent: true },
@@ -166,73 +184,181 @@ describe("RetellAIProvider", () => {
   });
 
   describe("updateModelConfiguration", () => {
-    const mockService = {
-      updateLLMConfiguration: vi.fn().mockResolvedValue({ llm_id: "test-llm-id" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let updateLLMConfigurationMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      updateLLMConfigurationMock = vi.fn().mockResolvedValue({ llm_id: "test-llm-id" });
+
+      mockService = {
+        updateLLMConfiguration: updateLLMConfigurationMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should update model configuration", async () => {
       const modelId = "test-llm-id";
-      const updateData: updateLLMConfigurationParams = {
+      const updateData: AIPhoneServiceUpdateModelParams = {
         general_prompt: "Updated prompt",
         begin_message: "Updated begin message",
       };
 
-      const result = await provider.updateModelConfiguration(modelId, updateData);
+      const result = await testProvider.updateModelConfiguration(modelId, updateData);
 
-      expect(mockService.updateLLMConfiguration).toHaveBeenCalledWith(modelId, updateData);
+      expect(updateLLMConfigurationMock).toHaveBeenCalledWith(modelId, updateData);
       expect(result).toEqual({ llm_id: "test-llm-id" });
     });
   });
 
   describe("getModelDetails", () => {
-    const mockService = {
-      getLLMDetails: vi.fn().mockResolvedValue({ llm_id: "test-llm-id", general_prompt: "Test prompt" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let getLLMDetailsMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      getLLMDetailsMock = vi.fn().mockResolvedValue({ llm_id: "test-llm-id", general_prompt: "Test prompt" });
+
+      mockService = {
+        getLLMDetails: getLLMDetailsMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should get model details", async () => {
       const modelId = "test-llm-id";
 
-      const result = await provider.getModelDetails(modelId);
+      const result = await testProvider.getModelDetails(modelId);
 
-      expect(mockService.getLLMDetails).toHaveBeenCalledWith(modelId);
+      expect(getLLMDetailsMock).toHaveBeenCalledWith(modelId);
       expect(result).toEqual({ llm_id: "test-llm-id", general_prompt: "Test prompt" });
     });
   });
 
   describe("getAgent", () => {
-    const mockService = {
-      getAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent-id", agent_name: "Test Agent" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let getAgentMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      getAgentMock = vi.fn().mockResolvedValue({ agent_id: "test-agent-id", agent_name: "Test Agent" });
+
+      mockService = {
+        getAgent: getAgentMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should get agent details", async () => {
       const agentId = "test-agent-id";
 
-      const result = await provider.getAgent(agentId);
+      const result = await testProvider.getAgent(agentId);
 
-      expect(mockService.getAgent).toHaveBeenCalledWith(agentId);
+      expect(getAgentMock).toHaveBeenCalledWith(agentId);
       expect(result).toEqual({ agent_id: "test-agent-id", agent_name: "Test Agent" });
     });
   });
 
   describe("updateAgent", () => {
-    const mockService = {
-      updateAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent-id" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let updateAgentMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      updateAgentMock = vi.fn().mockResolvedValue({ agent_id: "test-agent-id" });
+
+      mockService = {
+        updateAgent: updateAgentMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should update agent", async () => {
@@ -241,20 +367,47 @@ describe("RetellAIProvider", () => {
         agent_name: "Updated Agent Name",
       };
 
-      const result = await provider.updateAgent(agentId, updateData);
+      const result = await testProvider.updateAgent(agentId, updateData);
 
-      expect(mockService.updateAgent).toHaveBeenCalledWith(agentId, updateData);
+      expect(updateAgentMock).toHaveBeenCalledWith(agentId, updateData);
       expect(result).toEqual({ agent_id: "test-agent-id" });
     });
   });
 
   describe("createPhoneCall", () => {
-    const mockService = {
-      createPhoneCall: vi.fn().mockResolvedValue({ call_id: "test-call-id" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let createPhoneCallMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      createPhoneCallMock = vi.fn().mockResolvedValue({ call_id: "test-call-id" });
+
+      mockService = {
+        createPhoneCall: createPhoneCallMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should create phone call", async () => {
@@ -267,9 +420,9 @@ describe("RetellAIProvider", () => {
         },
       };
 
-      const result = await provider.createPhoneCall(callData);
+      const result = await testProvider.createPhoneCall(callData);
 
-      expect(mockService.createPhoneCall).toHaveBeenCalledWith(callData);
+      expect(createPhoneCallMock).toHaveBeenCalledWith(callData);
       expect(result).toEqual({ call_id: "test-call-id" });
     });
 
@@ -279,19 +432,46 @@ describe("RetellAIProvider", () => {
         to_number: "+0987654321",
       };
 
-      await provider.createPhoneCall(callData);
+      await testProvider.createPhoneCall(callData);
 
-      expect(mockService.createPhoneCall).toHaveBeenCalledWith(callData);
+      expect(createPhoneCallMock).toHaveBeenCalledWith(callData);
     });
   });
 
   describe("createPhoneNumber", () => {
-    const mockService = {
-      createPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let createPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      createPhoneNumberMock = vi.fn().mockResolvedValue({ phone_number: "+1234567890" });
+
+      mockService = {
+        createPhoneNumber: createPhoneNumberMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should create phone number with proper parameter mapping", async () => {
@@ -302,9 +482,9 @@ describe("RetellAIProvider", () => {
         outbound_agent_id: "outbound-agent-id",
       };
 
-      const result = await provider.createPhoneNumber(phoneNumberData);
+      const result = await testProvider.createPhoneNumber(phoneNumberData);
 
-      expect(mockService.createPhoneNumber).toHaveBeenCalledWith({
+      expect(createPhoneNumberMock).toHaveBeenCalledWith({
         area_code: 415,
         nickname: "Test Phone",
         inbound_agent_id: "inbound-agent-id",
@@ -318,9 +498,9 @@ describe("RetellAIProvider", () => {
         area_code: 415,
       };
 
-      await provider.createPhoneNumber(minimalData);
+      await testProvider.createPhoneNumber(minimalData);
 
-      expect(mockService.createPhoneNumber).toHaveBeenCalledWith({
+      expect(createPhoneNumberMock).toHaveBeenCalledWith({
         area_code: 415,
         nickname: undefined,
         inbound_agent_id: undefined,
@@ -330,12 +510,39 @@ describe("RetellAIProvider", () => {
   });
 
   describe("importPhoneNumber", () => {
-    const mockService = {
-      importPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let importPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      importPhoneNumberMock = vi.fn().mockResolvedValue({ phone_number: "+1234567890" });
+
+      mockService = {
+        importPhoneNumber: importPhoneNumberMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should import phone number", async () => {
@@ -345,22 +552,50 @@ describe("RetellAIProvider", () => {
         sip_trunk_auth_username: "username",
         sip_trunk_auth_password: "password",
         nickname: "Imported Phone",
+        userId: 123,
       };
 
-      const result = await provider.importPhoneNumber(importData);
+      const result = await testProvider.importPhoneNumber(importData);
 
-      expect(mockService.importPhoneNumber).toHaveBeenCalledWith(importData);
+      expect(importPhoneNumberMock).toHaveBeenCalledWith(importData);
       expect(result).toEqual({ phone_number: "+1234567890" });
     });
   });
 
   describe("deletePhoneNumber", () => {
-    const mockService = {
-      deletePhoneNumber: vi.fn().mockResolvedValue(undefined),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let deletePhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      deletePhoneNumberMock = vi.fn().mockResolvedValue(undefined);
+
+      mockService = {
+        deletePhoneNumber: deletePhoneNumberMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should delete phone number", async () => {
@@ -370,9 +605,9 @@ describe("RetellAIProvider", () => {
         deleteFromDB: true,
       };
 
-      await provider.deletePhoneNumber(deleteParams);
+      await testProvider.deletePhoneNumber(deleteParams);
 
-      expect(mockService.deletePhoneNumber).toHaveBeenCalledWith(deleteParams);
+      expect(deletePhoneNumberMock).toHaveBeenCalledWith(deleteParams);
     });
 
     it("should handle deletion without database cleanup", async () => {
@@ -382,38 +617,92 @@ describe("RetellAIProvider", () => {
         deleteFromDB: false,
       };
 
-      await provider.deletePhoneNumber(deleteParams);
+      await testProvider.deletePhoneNumber(deleteParams);
 
-      expect(mockService.deletePhoneNumber).toHaveBeenCalledWith(deleteParams);
+      expect(deletePhoneNumberMock).toHaveBeenCalledWith(deleteParams);
     });
   });
 
   describe("getPhoneNumber", () => {
-    const mockService = {
-      getPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let getPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      getPhoneNumberMock = vi.fn().mockResolvedValue({ phone_number: "+1234567890" });
+
+      mockService = {
+        getPhoneNumber: getPhoneNumberMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should get phone number details", async () => {
       const phoneNumber = "+1234567890";
 
-      const result = await provider.getPhoneNumber(phoneNumber);
+      const result = await testProvider.getPhoneNumber(phoneNumber);
 
-      expect(mockService.getPhoneNumber).toHaveBeenCalledWith(phoneNumber);
+      expect(getPhoneNumberMock).toHaveBeenCalledWith(phoneNumber);
       expect(result).toEqual({ phone_number: "+1234567890" });
     });
   });
 
   describe("updatePhoneNumber", () => {
-    const mockService = {
-      updatePhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
-    };
+    let mockService: RetellAIService;
+    let testProvider: RetellAIProvider;
+    let updatePhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      (provider as any).service = mockService;
+      updatePhoneNumberMock = vi.fn().mockResolvedValue({ phone_number: "+1234567890" });
+
+      mockService = {
+        updatePhoneNumber: updatePhoneNumberMock,
+        // Add other required methods with default implementations
+        setupAIConfiguration: vi.fn(),
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      testProvider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should update phone number with proper parameter mapping", async () => {
@@ -423,9 +712,9 @@ describe("RetellAIProvider", () => {
         outbound_agent_id: "new-outbound-agent",
       };
 
-      const result = await provider.updatePhoneNumber(phoneNumber, updateData);
+      const result = await testProvider.updatePhoneNumber(phoneNumber, updateData);
 
-      expect(mockService.updatePhoneNumber).toHaveBeenCalledWith(phoneNumber, {
+      expect(updatePhoneNumberMock).toHaveBeenCalledWith(phoneNumber, {
         inbound_agent_id: "new-inbound-agent",
         outbound_agent_id: "new-outbound-agent",
       });
@@ -438,9 +727,9 @@ describe("RetellAIProvider", () => {
         inbound_agent_id: "new-inbound-agent",
       };
 
-      await provider.updatePhoneNumber(phoneNumber, updateData);
+      await testProvider.updatePhoneNumber(phoneNumber, updateData);
 
-      expect(mockService.updatePhoneNumber).toHaveBeenCalledWith(phoneNumber, {
+      expect(updatePhoneNumberMock).toHaveBeenCalledWith(phoneNumber, {
         inbound_agent_id: "new-inbound-agent",
         outbound_agent_id: undefined,
       });
@@ -453,9 +742,9 @@ describe("RetellAIProvider", () => {
         outbound_agent_id: "new-outbound-agent",
       };
 
-      await provider.updatePhoneNumber(phoneNumber, updateData);
+      await testProvider.updatePhoneNumber(phoneNumber, updateData);
 
-      expect(mockService.updatePhoneNumber).toHaveBeenCalledWith(phoneNumber, {
+      expect(updatePhoneNumberMock).toHaveBeenCalledWith(phoneNumber, {
         inbound_agent_id: null,
         outbound_agent_id: "new-outbound-agent",
       });
@@ -464,16 +753,40 @@ describe("RetellAIProvider", () => {
 
   describe("error handling", () => {
     it("should propagate errors from service layer", async () => {
+      const setupAIConfigurationMock = vi.fn().mockRejectedValue(new Error("Service error"));
+
       const mockService = {
-        setupAIConfiguration: vi.fn().mockRejectedValue(new Error("Service error")),
-      };
-      (provider as any).service = mockService;
+        setupAIConfiguration: setupAIConfigurationMock,
+        // Add other required methods with default implementations
+        deleteAIConfiguration: vi.fn(),
+        updateLLMConfiguration: vi.fn(),
+        getLLMDetails: vi.fn(),
+        getAgent: vi.fn(),
+        updateAgent: vi.fn(),
+        createPhoneCall: vi.fn(),
+        createPhoneNumber: vi.fn(),
+        importPhoneNumber: vi.fn(),
+        deletePhoneNumber: vi.fn(),
+        getPhoneNumber: vi.fn(),
+        updatePhoneNumber: vi.fn(),
+        generatePhoneNumberCheckoutSession: vi.fn(),
+        cancelPhoneNumberSubscription: vi.fn(),
+        updatePhoneNumberWithAgents: vi.fn(),
+        listAgents: vi.fn(),
+        getAgentWithDetails: vi.fn(),
+        createAgent: vi.fn(),
+        updateAgentConfiguration: vi.fn(),
+        deleteAgent: vi.fn(),
+        createTestCall: vi.fn(),
+      } as unknown as RetellAIService;
+
+      const testProvider = new RetellAIProvider(mockRepository, mockService);
 
       const config: AIPhoneServiceConfiguration = {
         generalPrompt: "Test prompt",
       };
 
-      await expect(provider.setupConfiguration(config)).rejects.toThrow("Service error");
+      await expect(testProvider.setupConfiguration(config)).rejects.toThrow("Service error");
     });
   });
 });

@@ -46,6 +46,33 @@ export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberPar
 };
 export type AIPhoneServiceUpdateAgentParams = RetellAIUpdateAgentParams;
 export type AIPhoneServiceTools = RetellAITools;
+
+export interface AIPhoneServiceAgentListItem {
+  id: string;
+  name: string;
+  retellAgentId: string;
+  enabled: boolean;
+  userId: number;
+  teamId: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+  outboundPhoneNumbers: {
+    id: number;
+    phoneNumber: string;
+    subscriptionStatus: string | null;
+    provider: string | null;
+  }[];
+  team: {
+    id: number;
+    name: string | null | undefined;
+    slug: string | null | undefined;
+  } | null;
+  user: {
+    id: number;
+    name: string | null | undefined;
+    email: string | undefined;
+  } | null;
+}
 /**
  * Generic interface for AI phone service providers
  * This interface abstracts away provider-specific details
@@ -160,13 +187,17 @@ export interface AIPhoneServiceProvider {
    */
   listAgents(params: { userId: number; teamId?: number; scope?: "personal" | "team" | "all" }): Promise<{
     totalCount: number;
-    filtered: any[];
+    filtered: AIPhoneServiceAgentListItem[];
   }>;
 
   /**
    * Get agent with detailed information
    */
-  getAgentWithDetails(params: { id: string; userId: number }): Promise<RetellAgentWithDetails>;
+  getAgentWithDetails(params: {
+    id: string;
+    userId: number;
+    teamId?: number;
+  }): Promise<RetellAgentWithDetails>;
 
   /**
    * Create a new agent

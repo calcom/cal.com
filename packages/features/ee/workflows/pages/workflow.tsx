@@ -308,7 +308,17 @@ function WorkflowPage({
 
       utils.viewer.workflows.getVerifiedNumbers.invalidate();
     } else {
-      throw new Error("Validation failed");
+      const validationErrors: string[] = [];
+
+      if (isEmpty) {
+        validationErrors.push("One or more workflow steps have empty message content");
+      }
+
+      if (!isVerified) {
+        validationErrors.push("One or more phone numbers or email addresses are not verified");
+      }
+
+      throw new Error(`Workflow validation failed: ${validationErrors.join("; ")}`);
     }
   };
 

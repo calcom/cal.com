@@ -90,6 +90,10 @@ async function handlePhoneNumberSubscription(session: any) {
   // Create the phone number through Retell API
   const retellPhoneNumber = await aiService.createPhoneNumber({ nickname: `${userId}-${Date.now()}` });
 
+  if (!retellPhoneNumber?.phone_number) {
+    throw new HttpCode(500, "Failed to create phone number - invalid response");
+  }
+
   // Extract subscription ID correctly
   const subscriptionId =
     typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
@@ -136,8 +140,12 @@ async function handlePhoneNumberSubscription(session: any) {
         });
       }
     } catch (error) {
-      console.error("Failed to link phone number to agent:", error);
-      // Don't fail the webhook if agent linking fails
+      console.error("Agent linking error details:", {
+        error,
+        agentId,
+        phoneNumber: retellPhoneNumber.phone_number,
+        userId,
+      });
     }
   }
 

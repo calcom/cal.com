@@ -18,6 +18,9 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
     where: {
       stripeSubscriptionId: subscription.id,
     },
+    select: {
+      id: true,
+    },
   });
 
   if (phoneNumber) {

@@ -614,30 +614,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <Button
                       color="secondary"
                       onClick={async () => {
-                        console.log("Before save - step:", step);
-                        console.log(
-                          "Before save - action:",
-                          form.getValues(`steps.${step.stepNumber - 1}.action`)
-                        );
-
                         // save the workflow first to get the step id
                         if (props.onSaveWorkflow) {
                           await props.onSaveWorkflow();
 
-                          console.log(
-                            "After save - action:",
-                            form.getValues(`steps.${step.stepNumber - 1}.action`)
-                          );
-
                           // After saving, get the updated step ID from the form
                           const updatedSteps = form.getValues("steps");
-                          console.log("updatedSteps", updatedSteps);
                           const currentStepIndex = step.stepNumber - 1;
                           const updatedStep = updatedSteps[currentStepIndex];
 
                           // Ensure the action is still set correctly after save
                           if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
-                            console.warn("Action was reset after save, fixing it");
                             form.setValue(
                               `steps.${currentStepIndex}.action`,
                               WorkflowActions.CAL_AI_PHONE_CALL

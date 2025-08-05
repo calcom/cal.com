@@ -122,7 +122,7 @@ This system leverages the existing SMS credit infrastructure:
 
 ### Webhook Endpoint
 
-```
+```http
 POST /api/webhooks/retell-ai
 ```
 

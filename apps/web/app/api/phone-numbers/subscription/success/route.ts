@@ -39,7 +39,6 @@ async function handler(request: NextRequest) {
     const checkoutSession = await getCheckoutSession(session_id);
     validateCheckoutSession(checkoutSession);
     const checkoutSessionMetadata = getCheckoutSessionMetadata(checkoutSession);
-    console.log("checkoutSessionMetadata", checkoutSession, checkoutSessionMetadata);
     // Check if phone number already exists (in case webhook already processed it)
     const subscriptionId =
       typeof checkoutSession.subscription === "string"

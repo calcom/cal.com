@@ -32,7 +32,7 @@ describe("AIPhoneServiceRegistry", () => {
 
   beforeEach(() => {
     // Clear all factories before each test
-    (AIPhoneServiceRegistry as any).factories.clear();
+    AIPhoneServiceRegistry.clearProviders();
 
     // Create mock factory and provider
     mockProvider = {
@@ -40,8 +40,8 @@ describe("AIPhoneServiceRegistry", () => {
       deleteConfiguration: vi
         .fn()
         .mockResolvedValue({ success: true, errors: [], deleted: { llm: true, agent: true } }),
-      updateLLMConfiguration: vi.fn().mockResolvedValue({ llm_id: "test-llm" }),
-      getLLMDetails: vi.fn().mockResolvedValue({ llm_id: "test-llm" }),
+      updateModelConfiguration: vi.fn().mockResolvedValue({ llm_id: "test-llm" }),
+      getModelDetails: vi.fn().mockResolvedValue({ llm_id: "test-llm" }),
       getAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent" }),
       updateAgent: vi.fn().mockResolvedValue({ agent_id: "test-agent" }),
       createPhoneCall: vi.fn().mockResolvedValue({ call_id: "test-call" }),
@@ -50,6 +50,21 @@ describe("AIPhoneServiceRegistry", () => {
       getPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
       updatePhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
       importPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
+      generatePhoneNumberCheckoutSession: vi
+        .fn()
+        .mockResolvedValue({ url: "test-url", message: "test-message" }),
+      cancelPhoneNumberSubscription: vi.fn().mockResolvedValue({ success: true, message: "test-message" }),
+      updatePhoneNumberWithAgents: vi.fn().mockResolvedValue({ message: "test-message" }),
+      listAgents: vi.fn().mockResolvedValue({ totalCount: 1, filtered: [] }),
+      getAgentWithDetails: vi.fn().mockResolvedValue({ agent_id: "test-agent" }),
+      createAgent: vi
+        .fn()
+        .mockResolvedValue({ id: "test-id", providerAgentId: "test-provider-id", message: "test-message" }),
+      updateAgentConfiguration: vi.fn().mockResolvedValue({ message: "test-message" }),
+      deleteAgent: vi.fn().mockResolvedValue({ message: "test-message" }),
+      createTestCall: vi
+        .fn()
+        .mockResolvedValue({ callId: "test-call-id", status: "test-status", message: "test-message" }),
     };
 
     mockFactory = {
@@ -194,13 +209,13 @@ describe("createAIPhoneServiceProvider", () => {
 
   beforeEach(() => {
     // Clear all factories before each test
-    (AIPhoneServiceRegistry as any).factories.clear();
+    AIPhoneServiceRegistry.clearProviders();
 
     mockProvider = {
       setupConfiguration: vi.fn(),
       deleteConfiguration: vi.fn(),
-      updateLLMConfiguration: vi.fn(),
-      getLLMDetails: vi.fn(),
+      updateModelConfiguration: vi.fn(),
+      getModelDetails: vi.fn(),
       getAgent: vi.fn(),
       updateAgent: vi.fn(),
       createPhoneCall: vi.fn(),
@@ -209,6 +224,15 @@ describe("createAIPhoneServiceProvider", () => {
       getPhoneNumber: vi.fn(),
       updatePhoneNumber: vi.fn(),
       importPhoneNumber: vi.fn(),
+      generatePhoneNumberCheckoutSession: vi.fn(),
+      cancelPhoneNumberSubscription: vi.fn(),
+      updatePhoneNumberWithAgents: vi.fn(),
+      listAgents: vi.fn(),
+      getAgentWithDetails: vi.fn(),
+      createAgent: vi.fn(),
+      updateAgentConfiguration: vi.fn(),
+      deleteAgent: vi.fn(),
+      createTestCall: vi.fn(),
     };
 
     mockFactory = {
@@ -271,13 +295,13 @@ describe("createDefaultAIPhoneServiceProvider", () => {
   let mockProvider: AIPhoneServiceProvider;
 
   beforeEach(() => {
-    (AIPhoneServiceRegistry as any).factories.clear();
+    AIPhoneServiceRegistry.clearProviders();
 
     mockProvider = {
       setupConfiguration: vi.fn(),
       deleteConfiguration: vi.fn(),
-      updateLLMConfiguration: vi.fn(),
-      getLLMDetails: vi.fn(),
+      updateModelConfiguration: vi.fn(),
+      getModelDetails: vi.fn(),
       getAgent: vi.fn(),
       updateAgent: vi.fn(),
       createPhoneCall: vi.fn(),
@@ -286,6 +310,15 @@ describe("createDefaultAIPhoneServiceProvider", () => {
       getPhoneNumber: vi.fn(),
       updatePhoneNumber: vi.fn(),
       importPhoneNumber: vi.fn(),
+      generatePhoneNumberCheckoutSession: vi.fn(),
+      cancelPhoneNumberSubscription: vi.fn(),
+      updatePhoneNumberWithAgents: vi.fn(),
+      listAgents: vi.fn(),
+      getAgentWithDetails: vi.fn(),
+      createAgent: vi.fn(),
+      updateAgentConfiguration: vi.fn(),
+      deleteAgent: vi.fn(),
+      createTestCall: vi.fn(),
     };
 
     mockFactory = {

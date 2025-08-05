@@ -21,6 +21,9 @@ export const WEBAPP_URL =
 // So for development purpose, we would stick to localhost only
 export const WEBAPP_URL_FOR_OAUTH = IS_PRODUCTION || IS_DEV ? WEBAPP_URL : "http://localhost:3000";
 
+/**
+ * ⚠️ Server-only! Do NOT import from client-side code.
+ */
 export const RETELL_API_KEY = process.env.RETELL_AI_KEY;
 
 /** @deprecated use `WEBAPP_URL` */

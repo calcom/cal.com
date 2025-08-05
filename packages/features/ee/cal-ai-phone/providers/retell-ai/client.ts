@@ -63,7 +63,6 @@ export class RetellSDKClient implements RetellAIRepository {
   async updateLLM(llmId: string, data: UpdateLLMRequest) {
     try {
       this.logger.info("Updating LLM via SDK", { llmId });
-      console.log("updateLLM", { llmId, general_tools: data?.general_tools });
 
       const response = await this.client.llm.update(llmId, data);
 
@@ -204,7 +203,6 @@ export class RetellSDKClient implements RetellAIRepository {
     phoneNumber: string,
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ) {
-    console.log("updatePhoneNumber", { phoneNumber, data });
     try {
       const response = await this.client.phoneNumber.update(phoneNumber, {
         inbound_agent_id: data.inbound_agent_id,

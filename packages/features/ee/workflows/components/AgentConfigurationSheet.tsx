@@ -184,7 +184,7 @@ export function AgentConfigurationSheet({
 
   const importNumberMutation = trpc.viewer.phoneNumber.import.useMutation({
     onSuccess: async (data: any) => {
-      showToast("Phone number imported and linked to agent successfully", "success");
+      showToast(t("phone_number_imported_successfully"), "success");
       setIsImportDialogOpen(false);
       phoneNumberForm.reset();
 
@@ -216,7 +216,7 @@ export function AgentConfigurationSheet({
 
   const deletePhoneNumberMutation = trpc.viewer.phoneNumber.delete.useMutation({
     onSuccess: async () => {
-      showToast("Phone number deleted successfully", "success");
+      showToast(t("phone_number_deleted_successfully"), "success");
       setNumberToDelete(null);
 
       if (agentId) {
@@ -688,7 +688,7 @@ export function AgentConfigurationSheet({
 
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
         <DialogContent type="creation">
-          <DialogHeader title={t("Import phone number")} subtitle={t("Description")} />
+          <DialogHeader title={t("import_phone_number")} subtitle={t("import_phone_number_description")} />
 
           <Form form={phoneNumberForm} handleSubmit={(values) => handleImportPhoneNumber(values)}>
             <div className="space-y-6">

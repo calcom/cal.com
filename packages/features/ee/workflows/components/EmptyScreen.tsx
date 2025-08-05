@@ -48,7 +48,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not authorized to create this workflow`;
+        const message = `${err.data.code}: ${t("unauthorized_create_workflow")}`;
         showToast(message, "error");
       }
     },

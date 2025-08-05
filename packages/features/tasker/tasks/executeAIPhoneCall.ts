@@ -14,21 +14,28 @@ interface ExecuteAIPhoneCallPayload {
 }
 
 export async function executeAIPhoneCall(payload: string) {
-  const data: ExecuteAIPhoneCallPayload = JSON.parse(payload);
+  let data: ExecuteAIPhoneCallPayload;
+  try {
+    data = JSON.parse(payload);
+  } catch (error) {
+    logger.error("Failed to parse AI phone call payload", { error, payload });
+    throw new Error("Invalid JSON payload");
+  }
 
-  console.log("=== EXECUTING AI PHONE CALL TASK ===");
-  console.log("Payload:", data);
   logger.info(`Executing AI phone call for workflow reminder ${data.workflowReminderId}`, data);
 
   try {
     // Check if the workflow reminder still exists and is scheduled
     const workflowReminder = await prisma.workflowReminder.findUnique({
       where: { id: data.workflowReminderId },
-      include: {
+      select: {
+        id: true,
+        scheduled: true,
+        referenceId: true,
         workflowStep: {
-          include: {
+          select: {
             agent: {
-              include: {
+              select: {
                 outboundPhoneNumbers: {
                   select: {
                     phoneNumber: true,
@@ -39,7 +46,10 @@ export async function executeAIPhoneCall(payload: string) {
           },
         },
         booking: {
-          include: {
+          select: {
+            uid: true,
+            startTime: true,
+            responses: true,
             attendees: {
               select: {
                 name: true,
@@ -61,8 +71,6 @@ export async function executeAIPhoneCall(payload: string) {
         },
       },
     });
-
-    console.log("Workflow reminder found:", workflowReminder);
 
     if (!workflowReminder || !workflowReminder.scheduled) {
       logger.warn(`Workflow reminder ${data.workflowReminderId} not found or not scheduled`);
@@ -110,12 +118,6 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("No booking found");
     }
 
-    console.log("Booking found:", {
-      uid: booking.uid,
-      responses: booking.responses,
-      attendees: booking.attendees,
-    });
-
     const numberToCall = data.toNumber;
 
     if (!numberToCall) {
@@ -134,15 +136,7 @@ export async function executeAIPhoneCall(payload: string) {
       // TODO:Add more dynamic variables
     };
 
-    console.log("Dynamic variables:", dynamicVariables);
-
     const aiService = createDefaultAIPhoneServiceProvider();
-
-    console.log("Creating AI phone call with:", {
-      from_number: data.fromNumber,
-      to_number: numberToCall,
-      dynamicVariables,
-    });
 
     const call = await aiService.createPhoneCall({
       from_number: data.fromNumber,
@@ -150,7 +144,7 @@ export async function executeAIPhoneCall(payload: string) {
       retell_llm_dynamic_variables: dynamicVariables,
     });
 
-    console.log("AI phone call created successfully:", call);
+    logger.info("AI phone call created successfully:", call);
 
     // Update the workflow reminder with the call reference
     await prisma.workflowReminder.update({
@@ -168,8 +162,6 @@ export async function executeAIPhoneCall(payload: string) {
       toNumber: numberToCall,
       bookingUid: data.bookingUid,
     });
-
-    console.log("=== AI PHONE CALL TASK COMPLETED SUCCESSFULLY ===");
   } catch (error) {
     console.error("=== AI PHONE CALL TASK FAILED ===");
     console.error("Error:", error);

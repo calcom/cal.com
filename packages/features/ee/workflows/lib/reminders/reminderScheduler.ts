@@ -183,19 +183,6 @@ const processWorkflowStep = async (
       verifiedAt: step.verifiedAt,
     });
   } else if (isCalAIAction(step.action)) {
-    console.log("isCalAIAction", {
-      evt,
-      triggerEvent: workflow.trigger,
-      timeSpan: {
-        time: workflow.time,
-        timeUnit: workflow.timeUnit,
-      },
-      workflowStepId: step.id,
-      userId: workflow.userId,
-      teamId: workflow.teamId,
-      seatReferenceUid,
-      verifiedAt: step.verifiedAt,
-    });
     await scheduleAIPhoneCall({
       evt,
       triggerEvent: workflow.trigger,
@@ -249,7 +236,6 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
       continue;
     }
     for (const step of workflow.steps) {
-      console.log("step", step);
       await processWorkflowStep(workflow, step, {
         calendarEvent: evt,
         emailAttendeeSendToOverride,
