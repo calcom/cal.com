@@ -7,7 +7,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { TeamFilter } from "../data/team/filters";
 import type { TeamSelect } from "../data/team/selects";
 import { mapToPrismaSelect, mapToPrismaWhere } from "./prisma-mapper";
 import { getParsedTeam } from "./teamUtils";
@@ -178,7 +177,7 @@ export class TeamRepository {
       where: {
         id,
       },
-      select: mapToPrismaSelect(teamSelect),
+      select: teamSelect,
     });
     if (!team) {
       return null;
