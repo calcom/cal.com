@@ -378,6 +378,7 @@ function BookingsContent({ status }: BookingsProps) {
         teamId: false,
         userId: false,
         attendeeName: false,
+        isMine: false,
         attendeeEmail: false,
         dateRange: false,
         bookingUid: false,
