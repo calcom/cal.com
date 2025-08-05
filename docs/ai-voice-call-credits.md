@@ -2,12 +2,11 @@
 
 ## Overview
 
-This document describes the credit system for AI voice calls in Cal.com. The system charges users 1 credit per minute for completed AI voice calls, with a **minimum requirement of 5 credits** to initiate any phone call.
+This document describes the credit system for AI voice calls in Cal.com. The system required with a **minimum requirement of 5 credits** to initiate any phone call.
 
 ## Credit Requirements
 
 - **Minimum Credits**: Users must have at least 5 credits available to initiate a phone call
-- **Billing Rate**: 1 credit per minute of call duration (rounded up)
 - **Credit Check**: The system performs credit validation both on the frontend and backend before allowing calls
 
 ## How It Works
@@ -15,16 +14,9 @@ This document describes the credit system for AI voice calls in Cal.com. The sys
 ### Credit Validation
 
 1. **Frontend Check**: Before initiating a call, the UI validates that the user has at least 5 credits
-2. **Backend Check**: The API endpoint `makeSelfServePhoneCall` validates credits before processing the call
+2. **Backend Check**: The API endpoint `createPhoneCall` validates credits before processing the call
 3. **Real-time Charging**: Once calls complete, credits are charged via the Retell AI webhook
 
-### Credit Calculation Examples
-
-- **30 seconds**: 1 credit (rounded up)
-- **1 minute**: 1 credit
-- **1 minute 30 seconds**: 2 credits (rounded up)
-- **2 minutes**: 2 credits
-- **2 minutes 30 seconds**: 3 credits (rounded up)
 
 ## Integration with Retell AI
 
