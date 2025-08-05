@@ -641,7 +641,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div>
                       <h2 className="text-emphasis text-sm font-medium leading-none">Cal.Ai Agent</h2>
                       <p className="text-muted mt-2 text-sm font-medium leading-none">
-                        {t("no_phone_numnber_connected")}.
+                        {t("no_phone_number_connected")}.
                       </p>
                     </div>
                     <Button
@@ -732,7 +732,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               type="button"
                               StartIcon="pencil"
                               onClick={() => setIsAgentConfigurationSheetOpen(true)}>
-                              {t("Edit")}
+                              {t("edit")}
                             </DropdownItem>
                           </DropdownMenuItem>
                           {getActivePhoneNumbers(agentData.outboundPhoneNumbers).length > 0 && (
@@ -742,7 +742,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 StartIcon="trash"
                                 color="destructive"
                                 onClick={() => setIsUnsubscribeDialogOpen(true)}>
-                                {t("Unsubscribe")}
+                                {t("unsubscribe")}
                               </DropdownItem>
                             </DropdownMenuItem>
                           )}
