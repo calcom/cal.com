@@ -111,7 +111,7 @@
   /* Borders */
   --cal-border-emphasis: hsla(218, 11%, 65%, 1); /* gray.400 - input:hover */
   --cal-border: hsla(216, 12%, 84%, 1); /* gray.300 - inputs */
-  --cal-border-subtle: hsla(220, 13%, 91%, 1); /* gray.200 - container borders */
+  --cal-border-subtle: rgb(235, 239, 242); /* gray.200 - container borders */
   --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
@@ -123,6 +123,7 @@
   --cal-text-subtle: hsla(220, 9%, 46%, 1); /* gray-500 */
   --cal-text-muted: hsla(218, 11%, 65%, 1); /* gray-400 */
   --cal-text-inverted: hsla(0, 0%, 100%, 1); /* white */
+  --cal-text-destructive: hsla(0, 84%, 60%, 1);
 
   /* Content/Text Semantic */
   --cal-text-semantic-info: hsla(236, 80%, 25%, 1); /* blue-800 */
@@ -647,11 +648,15 @@ select:focus {
   border: none;
 }
 
-/* TO Remove */
+/* TO Remove all below*/
 .bg-cal-gradient {
   background-image: var(--cal-bg-gradient);
 }
 
 .bg-cal-active {
   background-color: var(--cal-bg-active);
+}
+
+.text-destructive {
+  color: var(--cal-text-destructive);
 }

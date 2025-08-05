@@ -6,7 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@calid/features/ui/components/DropdownMenu";
+} from "@calid/features/ui/components/dropdown-menu";
 import { useState } from "react";
 
 import { Icon } from "@calcom/ui/components/icon";
@@ -93,7 +93,7 @@ export const Profile = () => {
           <Icon name="settings" className="mr-2 h-4 w-4" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuItem className="">
+        <DropdownMenuItem className="text-destructive">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
           Sign Out
         </DropdownMenuItem>

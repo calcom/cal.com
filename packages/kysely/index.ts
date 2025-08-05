@@ -7,7 +7,12 @@ export type { DB, Booking };
 
 const connectionString = process.env.DATABASE_URL ?? "postgresql://postgres:@localhost:5450/calendso";
 
-const pool = new Pool({ connectionString });
+const pool = new Pool({
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false, // accepts self-signed certs; safe for RDS without custom CA
+  },
+});
 
 // 3. Create the Dialect, passing the configured pool instance
 const dialect = new PostgresDialect({

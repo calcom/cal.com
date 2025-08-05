@@ -82,6 +82,7 @@ export type IconName =
   | "github"
   | "globe"
   | "grid-3x3"
+  | "grip-vertical"
   | "handshake"
   | "info"
   | "italic"

@@ -1,4 +1,4 @@
-import { Profile } from "@calid/features/ui/components/Profile";
+import { Profile } from "@calid/features/ui/Profile";
 
 interface HeaderProps {
   heading: string | any;

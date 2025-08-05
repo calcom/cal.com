@@ -183,6 +183,7 @@ module.exports = {
         subtle: "var(--cal-text-subtle)",
         muted: "var(--cal-text-muted)",
         inverted: "var(--cal-text-inverted)",
+        destructive: "var(--cal-text-destructive)",
 
         // Semantic Text
         semantic: {

@@ -1,5 +1,8 @@
 "use client";
 
+import { Tooltip } from "@calid//features/ui/components/tooltip";
+import { VerticalDivider } from "@calid/features/ui/components/divider";
+import { Switch } from "@calid/features/ui/components/switch";
 import type { SetStateAction, Dispatch } from "react";
 import React, {
   useMemo,
@@ -34,14 +37,11 @@ import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { VerticalDivider } from "@calcom/ui/components/divider";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
@@ -251,7 +251,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
     <div
       className={classNames(
         open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
           : ""
       )}>
       <div
@@ -385,7 +385,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         }
         CTA={
           <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-            <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+            <div className="hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
                   <Skeleton
@@ -449,7 +449,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
                       : ""
                   )}>
                   <div
@@ -517,8 +517,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="min-w-40 col-span-3 space-y-2 px-2 py-4 lg:col-span-1">
-                      <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+                    <div className="col-span-3 min-w-40 space-y-2 px-2 py-4 lg:col-span-1">
+                      <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
                         <div>
                           <Skeleton
                             as={Label}
@@ -651,8 +651,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 />
               )}
             </div>
-            <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
-              <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
+            <div className="col-span-3 hidden min-w-40 space-y-2 md:block lg:col-span-1">
+              <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
                 <div>
                   <Skeleton
                     as={Label}

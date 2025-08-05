@@ -1,4 +1,4 @@
-import { Header } from "@calid/features/ui/components/Header";
+import { Header } from "@calid/features/ui/Header";
 import { ShellMainAppDirBackButton } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDirBackButton";
 import classNames from "classnames";
 

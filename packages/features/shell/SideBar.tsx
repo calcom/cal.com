@@ -1,5 +1,5 @@
 // import { Credits } from "@calcom/ui/components/credits";
-import BottomNav from "@calid/features/ui/components/BottomNav";
+import BottomNav from "@calid/features/ui/BottomNav";
 import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";

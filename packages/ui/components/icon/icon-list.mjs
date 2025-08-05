@@ -79,6 +79,7 @@ export const lucideIconList = new Set([
   "github",
   "globe",
   "grid-3x3",
+  "grip-vertical",
   "handshake",
   "info",
   "italic",
