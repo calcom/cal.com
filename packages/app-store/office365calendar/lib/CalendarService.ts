@@ -140,8 +140,16 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  public getCredential() {
+  private getCredential() {
     return this.credential;
+  }
+
+  public getCredentialId(): number {
+    return this.credential.id;
+  }
+
+  public getUserId(): number {
+    return this.credential.userId;
   }
 
   private getSubscriptionManager() {

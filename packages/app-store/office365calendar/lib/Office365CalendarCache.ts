@@ -59,8 +59,8 @@ export class Office365CalendarCache {
 
   constructor(calendarService: Office365CalendarService) {
     this.calendarService = calendarService;
-    this.credentialId = calendarService.getCredential().id;
-    this.userId = calendarService.getCredential().userId;
+    this.credentialId = calendarService.getCredentialId();
+    this.userId = calendarService.getUserId();
   }
 
   async getCacheOrFetchAvailability(
