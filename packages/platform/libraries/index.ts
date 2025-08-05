@@ -120,4 +120,5 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
+export { TeamService } from "@calcom/lib/server/service/teamService";
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";

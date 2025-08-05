@@ -3,6 +3,8 @@ import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/up
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
+import { TeamService } from "@calcom/platform-libraries";
+
 @Injectable()
 export class TeamsMembershipsService {
   constructor(private readonly teamsMembershipsRepository: TeamsMembershipsRepository) {}
@@ -41,10 +43,15 @@ export class TeamsMembershipsService {
   }
 
   async deleteTeamMembership(teamId: number, membershipId: number) {
-    const teamMembership = await this.teamsMembershipsRepository.deleteTeamMembershipById(
-      teamId,
-      membershipId
-    );
+    // First get the membership to get the userId
+    const teamMembership = await this.teamsMembershipsRepository.findTeamMembership(teamId, membershipId);
+
+    if (!teamMembership) {
+      throw new NotFoundException(`Membership with id ${membershipId} not found in team ${teamId}`);
+    }
+
+    await TeamService.removeMembers({ teamIds: [teamId], userIds: [teamMembership.userId], isOrg: false });
+
     return teamMembership;
   }
 }
