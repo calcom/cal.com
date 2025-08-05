@@ -21,7 +21,7 @@ import type {
   CurrentSeats,
   EventType,
   GetAvailabilityUser,
-  IUserAvailabilityService,
+  UserAvailabilityService,
   IFromUser,
   IToUser,
 } from "@calcom/lib/getUserAvailability";
@@ -103,8 +103,8 @@ export interface IAvailableSlotsService {
   routingFormResponseRepo: RoutingFormResponseRepository;
   cacheService: CacheService;
   checkBookingLimitsService: CheckBookingLimitsService;
+  userAvailabilityService: UserAvailabilityService;
   redisClient: IRedisService;
-  userAvailabilityService: IUserAvailabilityService;
 }
 
 function withSlotsCache(
