@@ -1376,7 +1376,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <Icon name="phone" className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
                       {formatPhoneNumber(
-                        getActivePhoneNumbers(agentData.outboundPhoneNumbers)[0].phoneNumber
+                        getActivePhoneNumbers(agentData?.outboundPhoneNumbers)?.[0]?.phoneNumber
                       )}
                     </span>
                   </div>
