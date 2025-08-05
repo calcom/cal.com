@@ -25,10 +25,15 @@ const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
 
+// Cross-platform command for setting environment variables
+const isWindows = os.platform() === "win32";
+const envPrefix = isWindows
+  ? "set NEXT_PUBLIC_IS_E2E=1 && set NODE_OPTIONS=--dns-result-order=ipv4first &&"
+  : "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first'";
+
 const webServer: PlaywrightTestConfig["webServer"] = [
   {
-    command:
-      "NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
+    command: `${envPrefix} yarn workspace @calcom/web start -p 3000`,
     port: 3000,
     timeout: 60_000,
     reuseExistingServer: !process.env.CI,
