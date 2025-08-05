@@ -108,7 +108,7 @@ export class RetellAIService {
         // Also update the phone number in Retell to link the agent
         try {
           await this.repository.updatePhoneNumber(importedPhoneNumber.phone_number, {
-            outbound_agent_id: agentId,
+            outbound_agent_id: agent.retellAgentId,
           });
         } catch (error) {
           console.error("Failed to update phone number in Retell:", error);

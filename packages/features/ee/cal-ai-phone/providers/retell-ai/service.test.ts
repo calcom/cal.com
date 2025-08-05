@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
@@ -60,6 +60,7 @@ describe("RetellAIService", () => {
   let mockRepository: RetellAIRepository & { [K in keyof RetellAIRepository]: vi.Mock };
 
   beforeEach(() => {
+    vi.clearAllMocks();
     const repository = {
       createLLM: vi.fn(),
       getLLM: vi.fn(),
@@ -79,6 +80,10 @@ describe("RetellAIService", () => {
     mockRepository = repository as unknown as RetellAIRepository;
 
     service = new RetellAIService(mockRepository);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe("setupAIConfiguration", () => {
@@ -264,6 +269,7 @@ describe("RetellAIService", () => {
       (AgentRepository.findByIdWithUserAccess as any).mockResolvedValue({
         id: "agent-123",
         name: "Test Agent",
+        retellAgentId: "retell-agent-456",
       });
 
       const result = await service.importPhoneNumber({
@@ -288,7 +294,7 @@ describe("RetellAIService", () => {
         },
       });
       expect(mockRepository.updatePhoneNumber).toHaveBeenCalledWith("+1234567890", {
-        outbound_agent_id: "agent-123",
+        outbound_agent_id: "retell-agent-456",
       });
     });
 

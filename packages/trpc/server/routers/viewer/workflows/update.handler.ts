@@ -328,7 +328,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
       //step was deleted
       if (!newStep) {
-        if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && oldStep.agentId) {
+        if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
           await ctx.prisma.$transaction(async (tx) => {
             const aiPhoneService = createDefaultAIPhoneServiceProvider();
 
