@@ -139,6 +139,7 @@ const EventType = forwardRef<
       form.reset(currentValues);
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
       onSuccess?.(currentValues);
+      callbacksRef.current?.onSuccess?.();
     },
     async onSettled() {
       return;
@@ -146,8 +147,12 @@ const EventType = forwardRef<
     onError: (err: Error) => {
       const currentValues = form.getValues();
       const message = err?.message;
-      toast({ description: message ? t(message) : t(err.message) });
+      const description = message ? t(message) : t(err.message);
+      toast({ description });
       onError?.(currentValues, err);
+      
+      const errorObj = new Error(description);
+      callbacksRef.current?.onError?.(errorObj);
     },
     teamId: team?.id,
   });
@@ -157,7 +162,6 @@ const EventType = forwardRef<
     onSubmit: (data) => {
       if (!isDryRun) {
         updateMutation.mutate(data);
-        callbacksRef.current?.onSuccess?.();
       } else {
         toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
         callbacksRef.current?.onSuccess?.();
