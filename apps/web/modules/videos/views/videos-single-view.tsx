@@ -389,7 +389,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
                 autoFocus
               />
               <Button
-                color="primary"
+                color="secondary"
                 onClick={handleContinueAsGuest}
                 loading={isLoading}>
                 {t("continue")}
@@ -419,7 +419,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
             </div>
 
             <Button
-              color="secondary"
+              color="primary"
               className="w-full justify-center"
               onClick={handleSignIn}>
               {t("sign_in")}
