@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import type { RetellLLMGeneralTools } from "@calcom/features/ee/cal-ai-phone/providers/retell-ai/types";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
@@ -149,34 +148,13 @@ export const aiRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-      const creditService = new CreditService();
-      const credits = await creditService.getAllCredits({
-        userId: ctx.user.id,
-        teamId: input.teamId,
-      });
-
-      const availableCredits =
-        (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
-      const requiredCredits = 5;
-
-      if (availableCredits < requiredCredits) {
-        throw new Error(
-          `Insufficient credits to make test call. Need ${requiredCredits} credits, have ${availableCredits}. Please purchase more credits.`
-        );
-      }
-
-      await checkRateLimitAndThrowError({
-        rateLimitingType: "core",
-        identifier: `test-call:${ctx.user.id}`,
-      });
-
       const aiService = createDefaultAIPhoneServiceProvider();
 
       return await aiService.createTestCall({
         agentId: input.agentId,
         phoneNumber: input.phoneNumber,
         userId: ctx.user.id,
+        teamId: input.teamId,
       });
     }),
 });

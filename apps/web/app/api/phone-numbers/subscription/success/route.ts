@@ -121,8 +121,8 @@ async function handler(request: NextRequest) {
         successUrl = new URL(`${WEBAPP_URL}/workflows`);
       }
     } else {
-      // Otherwise redirect to phone numbers page
-      successUrl = new URL(`${WEBAPP_URL}/settings/my-account/phone-numbers`);
+      // Otherwise redirect to workflows page
+      successUrl = new URL(`${WEBAPP_URL}/workflows`);
     }
 
     successUrl.searchParams.set("success", "true");
@@ -132,8 +132,8 @@ async function handler(request: NextRequest) {
   } catch (error) {
     console.error("Error handling phone number subscription success:", error);
 
-    // Redirect to phone numbers page with error
-    const errorUrl = new URL(`${WEBAPP_URL}/settings/my-account/phone-numbers`);
+    // Redirect to workflows page with error
+    const errorUrl = new URL(`${WEBAPP_URL}/workflows`);
     errorUrl.searchParams.set("error", "true");
 
     if (error instanceof HttpError) {

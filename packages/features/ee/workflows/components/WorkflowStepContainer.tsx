@@ -91,20 +91,6 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
   return t(triggerMap[trigger]!);
 };
 
-const CalAIAgentSkeleton = () => {
-  return (
-    <div className="bg-muted mt-2 rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <SkeletonText className="h-4 w-24" />
-          <SkeletonText className="mt-2 h-4 w-32" />
-        </div>
-        <SkeletonText className="h-8 w-16" />
-      </div>
-    </div>
-  );
-};
-
 const CalAIAgentDataSkeleton = () => {
   return (
     <div className="bg-muted mt-4 rounded-lg p-4">
@@ -123,6 +109,15 @@ const CalAIAgentDataSkeleton = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const getActivePhoneNumbers = (phoneNumbers?: typeof agentData.outboundPhoneNumbers) => {
+  return (
+    phoneNumbers?.filter(
+      (phone) =>
+        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE || !phone.subscriptionStatus
+    ) || []
   );
 };
 
@@ -644,7 +639,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div>
                       <h2 className="text-emphasis text-sm font-medium leading-none">Cal.Ai Agent</h2>
                       <p className="text-muted mt-2 text-sm font-medium leading-none">
-                        No phone number connected.
+                        {t("no_phone_numnber_connected")}.
                       </p>
                     </div>
                     <Button
@@ -691,21 +686,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-emphasis text-base font-medium">{t("Cal.Ai Agent")}</h3>
-                      {agentData.outboundPhoneNumbers &&
-                      agentData.outboundPhoneNumbers.filter(
-                        (phone) =>
-                          phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                          !phone.subscriptionStatus
-                      ).length > 0 ? (
+                      {getActivePhoneNumbers(agentData.outboundPhoneNumbers).length > 0 ? (
                         <div className="flex items-center gap-2">
                           <Icon name="phone" className="text-emphasis h-4 w-4" />
                           <span className="text-emphasis text-sm">
                             {formatPhoneNumber(
-                              agentData.outboundPhoneNumbers.filter(
-                                (phone) =>
-                                  phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                                  !phone.subscriptionStatus
-                              )[0].phoneNumber
+                              getActivePhoneNumbers(agentData.outboundPhoneNumbers)[0].phoneNumber
                             )}
                           </span>
                           <Badge variant="green" size="sm" withDot>
@@ -723,12 +709,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         color="secondary"
                         onClick={() => setIsTestAgentDialogOpen(true)}
                         disabled={
-                          props.readOnly ||
-                          !agentData.outboundPhoneNumbers?.filter(
-                            (phone) =>
-                              phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                              !phone.subscriptionStatus
-                          ).length
+                          props.readOnly || !getActivePhoneNumbers(agentData.outboundPhoneNumbers).length
                         }>
                         <Icon name="phone" className="mr-2 h-4 w-4" />
                         {t("Test Agent")}
@@ -752,22 +733,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               {t("Edit")}
                             </DropdownItem>
                           </DropdownMenuItem>
-                          {agentData.outboundPhoneNumbers &&
-                            agentData.outboundPhoneNumbers.filter(
-                              (phone) =>
-                                phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                                !phone.subscriptionStatus
-                            ).length > 0 && (
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  StartIcon="trash"
-                                  color="destructive"
-                                  onClick={() => setIsUnsubscribeDialogOpen(true)}>
-                                  {t("Unsubscribe")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                            )}
+                          {getActivePhoneNumbers(agentData.outboundPhoneNumbers).length > 0 && (
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                StartIcon="trash"
+                                color="destructive"
+                                onClick={() => setIsUnsubscribeDialogOpen(true)}>
+                                {t("Unsubscribe")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </Dropdown>
                     </div>
@@ -1389,52 +1365,33 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         {/* Unsubscribe Confirmation Dialog */}
         <Dialog open={isUnsubscribeDialogOpen} onOpenChange={setIsUnsubscribeDialogOpen}>
-          <DialogContent type="creation" title={t("Unsubscribe Phone Number")}>
+          <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
             <div className="space-y-4">
-              <p className="text-default text-sm">
-                {t("Are you sure you want to unsubscribe the phone number from this agent?")}
-              </p>
-              {agentData?.outboundPhoneNumbers &&
-                agentData.outboundPhoneNumbers.filter(
-                  (phone) =>
-                    phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                    !phone.subscriptionStatus
-                ).length > 0 && (
-                  <div className="bg-muted rounded-lg p-3">
-                    <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
-                      <span className="text-emphasis text-sm font-medium">
-                        {formatPhoneNumber(
-                          agentData.outboundPhoneNumbers.filter(
-                            (phone) =>
-                              phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                              !phone.subscriptionStatus
-                          )[0].phoneNumber
-                        )}
-                      </span>
-                    </div>
+              <p className="text-default text-sm">{t("are_you_still_want_to_unsubscribe")}</p>
+              {getActivePhoneNumbers(agentData?.outboundPhoneNumbers).length > 0 && (
+                <div className="bg-muted rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <span className="text-emphasis text-sm font-medium">
+                      {formatPhoneNumber(
+                        getActivePhoneNumbers(agentData.outboundPhoneNumbers)[0].phoneNumber
+                      )}
+                    </span>
                   </div>
-                )}
-              <p className="text-subtle text-sm">
-                {t(
-                  "This action will disconnect the phone number from the agent. The agent will not be able to make calls until a new phone number is connected."
-                )}
-              </p>
+                </div>
+              )}
+              <p className="text-subtle text-sm">{t("the_action_will_disconnect_phone_number")}</p>
             </div>
             <DialogFooter showDivider>
               <Button type="button" color="secondary" onClick={() => setIsUnsubscribeDialogOpen(false)}>
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
               <Button
                 type="button"
                 StartIcon="trash"
                 color="destructive"
                 onClick={() => {
-                  const activePhoneNumbers = agentData?.outboundPhoneNumbers?.filter(
-                    (phone) =>
-                      phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                      !phone.subscriptionStatus
-                  );
+                  const activePhoneNumbers = getActivePhoneNumbers(agentData?.outboundPhoneNumbers);
                   if (activePhoneNumbers?.[0]) {
                     unsubscribePhoneNumberMutation.mutate({
                       phoneNumber: activePhoneNumbers[0].phoneNumber,
@@ -1443,7 +1400,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }
                 }}
                 loading={unsubscribePhoneNumberMutation.isPending}>
-                {t("Unsubscribe")}
+                {t("unsubscribe")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1451,11 +1408,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         {/* Delete Step Confirmation Dialog */}
         <Dialog open={isDeleteStepDialogOpen} onOpenChange={setIsDeleteStepDialogOpen}>
-          <DialogContent type="creation" title={t("Delete Workflow Step")}>
+          <DialogContent type="confirmation" title={t("delete_workflow_step")}>
             <div className="space-y-4">
-              <p className="text-default text-sm">
-                {t("Are you sure you want to delete this workflow step?")}
-              </p>
+              <p className="text-default text-sm">{t("are_you_sure_you_want_to_delete_workflow_step")}</p>
               {(() => {
                 const relevantPhoneNumbers =
                   agentData?.outboundPhoneNumbers?.filter(
@@ -1469,14 +1424,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <div className="flex items-start gap-2">
                           <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
                           <div className="space-y-2">
-                            <p className="text-attention text-sm font-medium">
-                              {t("This action will also:")}
-                            </p>
+                            <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
                             <ul className="text-attention list-inside list-disc space-y-1 text-sm">
                               {relevantPhoneNumbers.some(
                                 (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
-                              ) && <li>{t("Cancel your phone number subscription")}</li>}
-                              <li>{t("Delete the associated phone number")}</li>
+                              ) && <li>{t("cancel_your_phone_number_subscription")}</li>}
+                              <li>{t("delete_associated_phone_number")}</li>
                             </ul>
                           </div>
                         </div>
@@ -1490,7 +1443,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             </span>
                             {phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE && (
                               <Badge variant="green" size="sm" withDot>
-                                {t("Active Subscription")}
+                                {t("active_subscription")}
                               </Badge>
                             )}
                           </div>
@@ -1507,7 +1460,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </Button>
               <Button
                 type="button"
-                StartIcon="trash-2"
+                StartIcon="trash"
                 color="destructive"
                 onClick={() => {
                   // Proceed with deletion

@@ -1,7 +1,9 @@
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -53,16 +55,9 @@ export class RetellAIService {
 
   async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<RetellPhoneNumber> {
     const { userId, agentId, teamId, ...rest } = data;
-    const importedPhoneNumber = await this.repository.importPhoneNumber({
-      phone_number: rest.phone_number,
-      termination_uri: rest.termination_uri,
-      sip_trunk_auth_username: rest.sip_trunk_auth_username,
-      sip_trunk_auth_password: rest.sip_trunk_auth_password,
-      nickname: rest.nickname,
-    });
-    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
+    // Pre-check team permissions outside transaction
     if (teamId) {
       const canManage = await AgentRepository.canManageTeamResources({
         userId,
@@ -76,51 +71,83 @@ export class RetellAIService {
       }
     }
 
-    await PhoneNumberRepository.createPhoneNumber({
-      phoneNumber: importedPhoneNumber.phone_number,
-      userId,
-      provider: "Custom telephony",
-      teamId,
-    });
-
-    // If agentId is provided, assign the phone number to the agent
+    let agent = null;
     if (agentId) {
-      try {
-        // Verify user has access to the agent
-        const agent = await AgentRepository.findByIdWithUserAccess({
-          agentId,
-          userId,
+      agent = await AgentRepository.findByIdWithUserAccess({
+        agentId,
+        userId,
+      });
+
+      if (!agent) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to use the selected agent.",
         });
-
-        if (!agent) {
-          throw new Error("You don't have permission to use the selected agent.");
-        }
-
-        // Update the phone number to link it to the agent
-        await PhoneNumberRepository.updatePhoneNumberByUserId({
-          phoneNumber: importedPhoneNumber.phone_number,
-          userId,
-          data: {
-            outboundAgentId: agent.id,
-          },
-        });
-
-        // Also update the phone number in Retell to link the agent
-        try {
-          await this.repository.updatePhoneNumber(importedPhoneNumber.phone_number, {
-            outbound_agent_id: agent.retellAgentId,
-          });
-        } catch (error) {
-          console.error("Failed to update phone number in Retell:", error);
-          // Don't fail the entire operation if Retell update fails
-        }
-      } catch (error) {
-        console.error("Failed to assign phone number to agent:", error);
-        throw new Error("Phone number imported but failed to assign to agent.");
       }
     }
 
-    return importedPhoneNumber;
+    return await prisma.$transaction(async (tx) => {
+      let importedPhoneNumber: RetellPhoneNumber;
+
+      try {
+        // Step 1: Import phone number in Retell
+        importedPhoneNumber = await this.repository.importPhoneNumber({
+          phone_number: rest.phone_number,
+          termination_uri: rest.termination_uri,
+          sip_trunk_auth_username: rest.sip_trunk_auth_username,
+          sip_trunk_auth_password: rest.sip_trunk_auth_password,
+          nickname: rest.nickname,
+        });
+
+        // Step 2: Create phone number record in database
+        await tx.calAiPhoneNumber.create({
+          data: {
+            phoneNumber: importedPhoneNumber.phone_number,
+            userId,
+            provider: "Custom telephony",
+            teamId,
+            outboundAgentId: agent?.id || null,
+          },
+        });
+
+        // Step 3: If agent is provided, update phone number in Retell
+        if (agent) {
+          try {
+            await this.repository.updatePhoneNumber(importedPhoneNumber.phone_number, {
+              outbound_agent_id: agent.retellAgentId,
+            });
+          } catch (retellError) {
+            console.error("Failed to update phone number in Retell:", retellError);
+            // Throw to trigger transaction rollback
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to configure phone number with agent in Retell service.",
+            });
+          }
+        }
+
+        return importedPhoneNumber;
+      } catch (error) {
+        // If we have an imported phone number but something else failed,
+        // try to clean up the Retell phone number
+        if (importedPhoneNumber) {
+          try {
+            await this.repository.deletePhoneNumber(importedPhoneNumber.phone_number);
+          } catch (cleanupError) {
+            console.error("Failed to cleanup Retell phone number:", cleanupError);
+          }
+        }
+
+        // Re-throw the original error to trigger transaction rollback
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error instanceof Error ? error.message : "Failed to import phone number",
+        });
+      }
+    });
   }
 
   async deleteAIConfiguration(config: AIConfigurationDeletion): Promise<DeletionResult> {
@@ -239,12 +266,11 @@ export class RetellAIService {
   }): Promise<void> {
     const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
 
-    // Find phone number with proper authorization
     const phoneNumberToDelete = teamId
       ? await PhoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
           teamId,
-          userId, // Still check user access within team
+          userId,
         })
       : await PhoneNumberRepository.findMinimalPhoneNumber({
           phoneNumber,
@@ -333,7 +359,7 @@ export class RetellAIService {
         },
       ],
       success_url: `${WEBAPP_URL}/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${WEBAPP_URL}/settings/my-account/phone-numbers`,
+      cancel_url: `${WEBAPP_URL}/workflows/${workflowId}`,
       allow_promotion_codes: true,
       customer_update: {
         address: "auto",
@@ -409,7 +435,6 @@ export class RetellAIService {
     try {
       await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
 
-      // Update the phone number status and disconnect outbound agent
       await PhoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
@@ -520,9 +545,9 @@ export class RetellAIService {
       if (Object.keys(retellUpdateData).length > 0) {
         await this.updatePhoneNumber(phoneNumber, retellUpdateData);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if it's a 404 error (phone number not found in Retell)
-      if (error.message?.includes("404") || error.message?.includes("Not Found")) {
+      if ((error as Error).message?.includes("404") || (error as Error).message?.includes("Not Found")) {
         console.log(`Phone number ${phoneNumber} not found in Retell - updating local database only`);
       } else {
         console.error("Failed to update phone number in AI service:", error);
@@ -531,8 +556,8 @@ export class RetellAIService {
 
     await PhoneNumberRepository.updateAgents({
       id: phoneNumberRecord.id,
-      inboundAgentId,
-      outboundAgentId,
+      inboundRetellAgentId: inboundAgentId,
+      outboundRetellAgentId: outboundAgentId,
     });
 
     return { message: "Phone number updated successfully" };
@@ -595,7 +620,7 @@ export class RetellAIService {
   }
 
   async createAgent({
-    name,
+    name: _name,
     userId,
     teamId,
     workflowStepId,
@@ -615,7 +640,7 @@ export class RetellAIService {
   }) {
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
-    const agentName = name || `Agent - ${userId} ${Math.random().toString(36).substring(2, 15)}`;
+    const agentName = _name || `Agent - ${userId} ${Math.random().toString(36).substring(2, 15)}`;
 
     if (teamId) {
       const canManage = await AgentRepository.canManageTeamResources({
@@ -759,11 +784,34 @@ export class RetellAIService {
     agentId,
     phoneNumber,
     userId,
+    teamId,
   }: {
     agentId: string;
     phoneNumber?: string;
     userId: number;
+    teamId?: number;
   }) {
+    const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
+    const creditService = new CreditService();
+    const credits = await creditService.getAllCredits({
+      userId,
+      teamId,
+    });
+
+    const availableCredits = (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
+    const requiredCredits = 5;
+
+    if (availableCredits < requiredCredits) {
+      throw new Error(
+        `Insufficient credits to make test call. Need ${requiredCredits} credits, have ${availableCredits}. Please purchase more credits.`
+      );
+    }
+
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: `test-call:${userId}`,
+    });
+
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
     const toNumber = phoneNumber;

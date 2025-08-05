@@ -193,7 +193,7 @@ export class AIPhoneService {
     // 4. Link phone number to agent
     await PhoneNumberRepository.updateAgents({
       id: phoneNumber.id,
-      outboundAgentId: savedAgent.id
+      outboundRetellAgentId: savedAgent.retellAgentId
     });
     
     // 5. Return complete setup

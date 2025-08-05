@@ -373,30 +373,50 @@ export class PhoneNumberRepository {
 
   static async updateAgents({
     id,
-    inboundAgentId,
-    outboundAgentId,
+    inboundRetellAgentId,
+    outboundRetellAgentId,
   }: {
     id: number;
-    inboundAgentId?: string | null;
-    outboundAgentId?: string | null;
+    inboundRetellAgentId?: string | null;
+    outboundRetellAgentId?: string | null;
   }) {
     const updateData: Prisma.CalAiPhoneNumberUpdateInput = {};
 
-    if (inboundAgentId !== undefined) {
-      if (inboundAgentId) {
-        updateData.inboundAgent = {
-          connect: { retellAgentId: inboundAgentId },
-        };
+    if (inboundRetellAgentId !== undefined) {
+      if (inboundRetellAgentId) {
+        const agent = await prisma.agent.findFirst({
+          where: {
+            retellAgentId: inboundRetellAgentId,
+          },
+        });
+
+        if (agent) {
+          updateData.inboundAgent = {
+            connect: { id: agent.id },
+          };
+        } else {
+          updateData.inboundAgent = { disconnect: true };
+        }
       } else {
         updateData.inboundAgent = { disconnect: true };
       }
     }
 
-    if (outboundAgentId !== undefined) {
-      if (outboundAgentId) {
-        updateData.outboundAgent = {
-          connect: { retellAgentId: outboundAgentId },
-        };
+    if (outboundRetellAgentId !== undefined) {
+      if (outboundRetellAgentId) {
+        const agent = await prisma.agent.findFirst({
+          where: {
+            retellAgentId: outboundRetellAgentId,
+          },
+        });
+
+        if (agent) {
+          updateData.outboundAgent = {
+            connect: { id: agent.id },
+          };
+        } else {
+          updateData.outboundAgent = { disconnect: true };
+        }
       } else {
         updateData.outboundAgent = { disconnect: true };
       }
