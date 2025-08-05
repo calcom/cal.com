@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -126,9 +126,7 @@ function WorkflowPage({
     });
   }
 
-  const readOnly =
-    workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
-    MembershipRole.MEMBER;
+  const readOnly = !workflow?.permissions.canUpdate;
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 

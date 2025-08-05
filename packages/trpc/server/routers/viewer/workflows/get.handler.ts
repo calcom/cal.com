@@ -1,4 +1,5 @@
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -24,5 +25,12 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     });
   }
 
-  return workflow;
+  if (!workflow) {
+    return workflow;
+  }
+
+  // Add permissions to the workflow
+  const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
+
+  return workflowWithPermissions;
 };
