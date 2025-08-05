@@ -17,4 +17,5 @@ availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSl
   routingFormResponseRepo: DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY,
   cacheService: DI_TOKENS.CACHE_SERVICE,
   checkBookingLimitsService: DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE,
+  userAvailabilityService: DI_TOKENS.GET_USER_AVAILABILITY_SERVICE
 } satisfies Record<keyof IAvailableSlotsService, symbol>);
