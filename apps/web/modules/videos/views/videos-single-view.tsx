@@ -380,7 +380,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
             <div className="flex gap-4">
               <Input
                 type="text"
-                placeholder={t("your_name") || "Your name"}
+                placeholder={t("your_name")}
                 className="w-full flex-1"
                 value={userName}
                 onChange={handleUserNameChange}
