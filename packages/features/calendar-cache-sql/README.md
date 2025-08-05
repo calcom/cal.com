@@ -265,21 +265,16 @@ yarn workspace @calcom/prisma db-migrate
 
 ### 2. Feature Flag Seeding
 
-Seed the feature flags using Prisma migration:
+✅ **Automatic**: Feature flags are automatically seeded when you run database migrations. The migration `20250724210733_seed_calendar_cache_sql_features` creates the required feature flags:
+
+- `calendar-cache-sql-read`
+- `calendar-cache-sql-write`
+- `calendar-cache-sql-cleanup`
+
+No manual action required - they're created when you run:
 
 ```bash
-yarn prisma migrate dev --create-only --name seed_calendar_cache_sql_features
-```
-
-Example migration content:
-
-```sql
--- Add calendar cache SQL features
-INSERT INTO "Feature" ("slug", "enabled", "description", "type") VALUES
-('calendar-cache-sql-read', true, 'Enable reading from SQL calendar cache', 'OPERATIONAL'),
-('calendar-cache-sql-write', true, 'Enable writing to SQL calendar cache', 'OPERATIONAL'),
-('calendar-cache-sql-cleanup', true, 'Enable cleanup of old calendar events', 'OPERATIONAL')
-ON CONFLICT ("slug") DO NOTHING;
+yarn workspace @calcom/prisma db-migrate
 ```
 
 ### 3. Webhook Configuration
@@ -361,7 +356,7 @@ curl -X POST "https://abc123.tunnelmole.net/api/webhook/google-calendar-sql" \
   -H "X-Goog-Resource-ID: test-resource"
 ```
 
-### 4. Environment Variables
+### 3. Environment Variables
 
 Ensure the following environment variables are configured:
 
