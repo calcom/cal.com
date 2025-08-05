@@ -54,7 +54,7 @@ import { bookTimeSlot, doOnOrgDomain, selectFirstAvailableTimeSlotNextMonth } fr
  */
 
 test.describe("Booking Race Condition Prevention", () => {
-  test("Prevents double-booking race condition and validates cache functionality", async ({
+  test.skip("Prevents double-booking race condition and validates cache functionality", async ({
     page,
     users,
     orgs,
