@@ -631,6 +631,7 @@
   "password": "Password",
   "password_updated_successfully": "Password updated successfully",
   "password_has_been_changed": "Your password has been successfully changed.",
+  "phone_number_subscription_cancelled_successfully": "Phone number subscription cancelled successfully",
   "error_changing_password": "Error changing password",
   "session_timeout_changed": "Your session configuration has been updated successfully.",
   "session_timeout_change_error": "Error updating session configuration",
