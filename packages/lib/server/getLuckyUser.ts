@@ -456,7 +456,7 @@ async function getCalendarBusyTimesOfInterval(
   rrTimestampBasis: RRTimestampBasis,
   meetingStartTime?: Date
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
-  return Promise.all(
+  const usersBusyTimesQuery = await Promise.all(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
         user.credentials,
@@ -465,12 +465,19 @@ async function getCalendarBusyTimesOfInterval(
         user.userLevelSelectedCalendars,
         true,
         true
-      ).then((busyTimes) => ({
-        userId: user.id,
-        busyTimes,
-      }))
+      )
     )
   );
+
+  return usersBusyTimesQuery.reduce((usersBusyTime, userBusyTimeQuery, index) => {
+    if (userBusyTimeQuery.success) {
+      usersBusyTime.push({
+        userId: usersWithCredentials[index].id,
+        busyTimes: userBusyTimeQuery.data,
+      });
+    }
+    return usersBusyTime;
+  }, [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]);
 }
 
 async function getBookingsOfInterval({
@@ -490,7 +497,8 @@ async function getBookingsOfInterval({
   rrTimestampBasis: RRTimestampBasis;
   meetingStartTime?: Date;
 }) {
-  return await BookingRepository.getAllBookingsForRoundRobin({
+  const bookingRepo = new BookingRepository(prisma);
+  return await bookingRepo.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
     startDate: getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime }),

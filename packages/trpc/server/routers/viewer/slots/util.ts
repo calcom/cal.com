@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -29,28 +29,29 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
+  BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
-import { BookingRepository as BookingRepo } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import type { TeamRepository } from "@calcom/lib/server/repository/team";
+import type { UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
-import prisma from "@calcom/prisma";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
@@ -92,10 +93,18 @@ export type GetAvailableSlotsResponse = Awaited<
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
   scheduleRepo: ScheduleRepository;
+  selectedSlotRepo: ISelectedSlotRepository;
+  teamRepo: TeamRepository;
+  userRepo: UserRepository;
+  bookingRepo: BookingRepository;
+  eventTypeRepo: EventTypeRepository;
+  routingFormResponseRepo: RoutingFormResponseRepository;
+  cacheService: CacheService;
+  checkBookingLimitsService: CheckBookingLimitsService;
 }
 
 export class AvailableSlotsService {
-  constructor(private readonly dependencies: IAvailableSlotsService) {}
+  constructor(public readonly dependencies: IAvailableSlotsService) {}
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -107,7 +116,7 @@ export class AvailableSlotsService {
     eventTypeId: number;
   }) {
     const currentTimeInUtc = dayjs.utc().format();
-    const slotsRepo = new SelectedSlotsRepository(prisma);
+    const slotsRepo = this.dependencies.selectedSlotRepo;
 
     const unexpiredSelectedSlots =
       (await slotsRepo.findManyUnexpiredSlots({
@@ -142,7 +151,8 @@ export class AvailableSlotsService {
     }
     const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
-    const usersForDynamicEventType = await new UserRepository(prisma).findManyUsersForDynamicEventType({
+    const userRepo = this.dependencies.userRepo;
+    const usersForDynamicEventType = await userRepo.findManyUsersForDynamicEventType({
       currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
       usernameList: Array.isArray(input.usernameList)
         ? input.usernameList
@@ -211,7 +221,8 @@ export class AvailableSlotsService {
       return null;
     }
 
-    return await EventTypeRepository.findForSlots({ id: eventTypeId });
+    const eventTypeRepo = this.dependencies.eventTypeRepo;
+    return await eventTypeRepo.findForSlots({ id: eventTypeId });
   }
 
   private getEventType = withReporting(this._getEventType.bind(this), "getEventType");
@@ -248,7 +259,8 @@ export class AvailableSlotsService {
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
     log.info("getUserIdFromUsername", safeStringify({ organizationDetails, username }));
-    const [user] = await new UserRepository(prisma).findUsersByUsername({
+    const userRepo = this.dependencies.userRepo;
+    const [user] = await userRepo.findUsersByUsername({
       usernameList: [username],
       orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     });
@@ -281,7 +293,8 @@ export class AvailableSlotsService {
         organizationDetails ?? { currentOrgDomain: null, isValidOrgDomain: false }
       );
     }
-    const eventType = await EventTypeRepository.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
+    const eventTypeRepo = this.dependencies.eventTypeRepo;
+    const eventType = await eventTypeRepo.findFirstEventTypeId({ slug: eventTypeSlug, teamId, userId });
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
@@ -293,7 +306,7 @@ export class AvailableSlotsService {
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
   ) {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
-    const teamRepo = new TeamRepository(prisma);
+    const teamRepo = this.dependencies.teamRepo;
     const team = await teamRepo.findFirstBySlugAndParentSlug({
       slug,
       parentSlug: isValidOrgDomain && currentOrgDomain ? currentOrgDomain : null,
@@ -386,8 +399,7 @@ export class AvailableSlotsService {
 
             if (unit === "year") {
               try {
-                // TODO: DI checkBookingLimit
-                await checkBookingLimit({
+                await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                   eventStartDate: periodStart.toDate(),
                   limitingNumber: limit,
                   eventId: eventType.id,
@@ -506,7 +518,8 @@ export class AvailableSlotsService {
       bookingLimits
     );
 
-    const bookings = await BookingRepo.getAllAcceptedTeamBookingsOfUsers({
+    const bookingRepo = this.dependencies.bookingRepo;
+    const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUsers({
       users,
       teamId,
       startDate: limitDateFrom.toDate(),
@@ -585,8 +598,7 @@ export class AvailableSlotsService {
 
           if (unit === "year") {
             try {
-              // TODO: DI checkBookingLimit
-              await checkBookingLimit({
+              await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                 eventStartDate: periodStart.toDate(),
                 limitingNumber: limit,
                 key,
@@ -708,8 +720,9 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
+    const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
-      BookingRepo.findAllExistingBookingsForEventTypeBetween({
+      bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
         eventTypeId: eventType.id,
@@ -719,8 +732,20 @@ export class AvailableSlotsService {
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
     ]);
 
-    const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
-    const durationLimits = parseDurationLimit(eventType?.durationLimits);
+    const bookingLimits =
+      eventType?.bookingLimits &&
+      typeof eventType?.bookingLimits === "object" &&
+      Object.keys(eventType?.bookingLimits).length > 0
+        ? parseBookingLimit(eventType?.bookingLimits)
+        : null;
+
+    const durationLimits =
+      eventType?.durationLimits &&
+      typeof eventType?.durationLimits === "object" &&
+      Object.keys(eventType?.durationLimits).length > 0
+        ? parseDurationLimit(eventType?.durationLimits)
+        : null;
+
     let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
 
     if (eventType && (bookingLimits || durationLimits)) {
@@ -885,8 +910,10 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    // TODO: DI getShouldServeCache
-    const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
+      _shouldServeCache,
+      eventType.team?.id
+    );
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -934,11 +961,13 @@ export class AvailableSlotsService {
 
     let routingFormResponse = null;
     if (routingFormResponseId) {
-      routingFormResponse = await RoutingFormResponseRepository.findFormResponseIncludeForm({
+      const formResponseRepo = this.dependencies.routingFormResponseRepo;
+      routingFormResponse = await formResponseRepo.findFormResponseIncludeForm({
         routingFormResponseId,
       });
     } else if (queuedFormResponseId) {
-      routingFormResponse = await RoutingFormResponseRepository.findQueuedFormResponseIncludeForm({
+      const formResponseRepo = this.dependencies.routingFormResponseRepo;
+      routingFormResponse = await formResponseRepo.findQueuedFormResponseIncludeForm({
         queuedFormResponseId,
       });
     }
@@ -1255,11 +1284,8 @@ export class AvailableSlotsService {
     const mapSlotsToDate = withReporting(_mapSlotsToDate.bind(this), "mapSlotsToDate");
     const slotsMappedToDate = mapSlotsToDate();
 
-    loggerWithEventDetails.debug({ slotsMappedToDate });
-
     const availableDates = Object.keys(slotsMappedToDate);
     const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(availableDates);
-    loggerWithEventDetails.debug({ availableDates });
 
     // timeZone isn't directly set on eventType now(So, it is legacy)
     // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
@@ -1299,6 +1325,22 @@ export class AvailableSlotsService {
             periodLimits,
           });
 
+          let isOutOfBounds = false;
+          try {
+            isOutOfBounds = isTimeOutOfBounds({
+              time: slot.time,
+              minimumBookingNotice: eventType.minimumBookingNotice,
+            });
+          } catch (error) {
+            if (error instanceof BookingDateInPastError) {
+              throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: error.message,
+              });
+            }
+            throw error;
+          }
+
           if (isFutureLimitViolationForTheSlot) {
             foundAFutureLimitViolation = true;
           }
@@ -1306,7 +1348,7 @@ export class AvailableSlotsService {
           return (
             !isFutureLimitViolationForTheSlot &&
             // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-            !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+            !isOutOfBounds
           );
         });
 

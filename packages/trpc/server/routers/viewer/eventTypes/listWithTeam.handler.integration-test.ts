@@ -18,17 +18,18 @@ let eventType4: EventType;
 describe("listWithTeamHandler", () => {
   beforeAll(async () => {
     // Create users, teams and event types
+    const timestamp = Date.now();
     user1 = await prisma.user.create({
       data: {
-        username: "testuser-lwt-1",
-        email: "testuser-lwt-1@example.com",
+        username: `testuser-lwt-1-${timestamp}`,
+        email: `testuser-lwt-1-${timestamp}@example.com`,
         name: "Test User 1",
       },
     });
     user2 = await prisma.user.create({
       data: {
-        username: "testuser-lwt-2",
-        email: "testuser-lwt-2@example.com",
+        username: `testuser-lwt-2-${timestamp}`,
+        email: `testuser-lwt-2-${timestamp}@example.com`,
         name: "Test User 2",
       },
     });
@@ -36,7 +37,7 @@ describe("listWithTeamHandler", () => {
     team1 = await prisma.team.create({
       data: {
         name: "Team 1 lwt",
-        slug: "team-1-lwt",
+        slug: `team-1-lwt-${timestamp}`,
         members: {
           create: {
             userId: user1.id,
@@ -50,14 +51,14 @@ describe("listWithTeamHandler", () => {
     team2 = await prisma.team.create({
       data: {
         name: "Team 2 lwt",
-        slug: "team-2-lwt",
+        slug: `team-2-lwt-${timestamp}`,
       },
     });
 
     eventType1 = await prisma.eventType.create({
       data: {
         title: "User 1 Event",
-        slug: "user1-event-lwt",
+        slug: `user1-event-lwt-${timestamp}`,
         length: 30,
         userId: user1.id,
       },
@@ -66,7 +67,7 @@ describe("listWithTeamHandler", () => {
     eventType2 = await prisma.eventType.create({
       data: {
         title: "Team 1 Event",
-        slug: "team1-event-lwt",
+        slug: `team1-event-lwt-${timestamp}`,
         length: 30,
         teamId: team1.id,
         userId: user1.id,
@@ -76,7 +77,7 @@ describe("listWithTeamHandler", () => {
     eventType3 = await prisma.eventType.create({
       data: {
         title: "User 2 Event",
-        slug: "user2-event-lwt",
+        slug: `user2-event-lwt-${timestamp}`,
         length: 30,
         userId: user2.id,
       },
@@ -85,7 +86,7 @@ describe("listWithTeamHandler", () => {
     eventType4 = await prisma.eventType.create({
       data: {
         title: "Team 2 Event",
-        slug: "team2-event-lwt",
+        slug: `team2-event-lwt-${timestamp}`,
         length: 30,
         teamId: team2.id,
         userId: user2.id,
@@ -94,27 +95,37 @@ describe("listWithTeamHandler", () => {
   });
 
   afterAll(async () => {
-    await prisma.eventType.deleteMany({
-      where: {
-        id: {
-          in: [eventType1.id, eventType2.id, eventType3.id, eventType4.id],
-        },
-      },
-    });
-    await prisma.team.deleteMany({
-      where: {
-        id: {
-          in: [team1.id, team2.id],
-        },
-      },
-    });
-    await prisma.user.deleteMany({
-      where: {
-        id: {
-          in: [user1.id, user2.id],
-        },
-      },
-    });
+    try {
+      if (eventType1?.id || eventType2?.id || eventType3?.id || eventType4?.id) {
+        await prisma.eventType.deleteMany({
+          where: {
+            id: {
+              in: [eventType1?.id, eventType2?.id, eventType3?.id, eventType4?.id].filter(Boolean),
+            },
+          },
+        });
+      }
+      if (team1?.id || team2?.id) {
+        await prisma.team.deleteMany({
+          where: {
+            id: {
+              in: [team1?.id, team2?.id].filter(Boolean),
+            },
+          },
+        });
+      }
+      if (user1?.id || user2?.id) {
+        await prisma.user.deleteMany({
+          where: {
+            id: {
+              in: [user1?.id, user2?.id].filter(Boolean),
+            },
+          },
+        });
+      }
+    } catch (error) {
+      console.warn("Test cleanup failed:", error);
+    }
   });
 
   it("should return user's own event types and event types of teams they are a member of", async () => {
