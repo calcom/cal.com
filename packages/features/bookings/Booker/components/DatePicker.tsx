@@ -74,7 +74,10 @@ export const DatePicker = ({
   scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
-  const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
+  const [month, selectedDate, layout] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.layout],
+    shallow
+  );
 
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
@@ -83,7 +86,7 @@ export const DatePicker = ({
 
   const onMonthChange = (date: Dayjs) => {
     setMonth(date.format("YYYY-MM"));
-    setSelectedDate(date.format("YYYY-MM-DD"));
+    setSelectedDate({ date: date.format("YYYY-MM-DD") });
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
@@ -97,6 +100,9 @@ export const DatePicker = ({
     isLoading: isLoading ?? true,
   });
   moveToNextMonthOnNoAvailability();
+
+  // Determine if this is a compact sidebar view based on layout
+  const isCompact = layout !== "month_view" && layout !== "mobile";
 
   const periodData: PeriodData = {
     ...{
@@ -126,7 +132,11 @@ export const DatePicker = ({
       className={classNames?.datePickerContainer}
       isLoading={isLoading}
       onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
-        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
+        setSelectedDate({
+          date: date === null ? date : date.format("YYYY-MM-DD"),
+          omitUpdatingParams,
+          preventMonthSwitching: !isCompact, // Prevent month switching when in monthly view
+        });
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
@@ -137,6 +147,7 @@ export const DatePicker = ({
       slots={slots}
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
+      isCompact={isCompact}
     />
   );
 };
