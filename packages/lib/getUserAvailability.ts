@@ -9,7 +9,7 @@ import type {
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
@@ -162,6 +162,37 @@ export interface IUserAvailabilityService {
 
 export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
+
+   async getTimezoneFromDelegatedCalendars (user: GetAvailabilityUser): Promise<string | null>  {
+  if (!user.credentials || user.credentials.length === 0) {
+    return null;
+  }
+
+  const delegatedCredentials = user.credentials.filter(
+    (credential) => credential.type.endsWith("_calendar") && Boolean(credential.delegatedToId)
+  );
+
+  if (delegatedCredentials.length === 0) {
+    return null;
+  }
+
+  for (const credential of delegatedCredentials) {
+    try {
+      const calendar = await getCalendar(credential);
+      if (calendar && "getMainTimeZone" in calendar && typeof calendar.getMainTimeZone === "function") {
+        const timezone = await calendar.getMainTimeZone();
+        if (timezone && timezone !== "UTC") {
+          log.debug(`Got timezone ${timezone} from calendar service ${credential.type}`);
+          return timezone;
+        }
+      }
+    } catch (error) {
+      log.warn(`Failed to get timezone from calendar service ${credential.type}:`, error);
+    }
+  }
+
+  return null;
+};
 
   async _getEventType(id: number) {
     const eventType = await this.dependencies.eventTypeRepo.findByIdForUserAvailability({id})
