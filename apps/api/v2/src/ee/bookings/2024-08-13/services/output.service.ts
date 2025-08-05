@@ -104,10 +104,11 @@ export class OutputBookingsService_2024_08_13 {
     const rescheduledToInfo = databaseBooking.rescheduled
       ? await this.getRescheduledToInfo(databaseBooking.uid)
       : undefined;
-    
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled ? rescheduledToInfo?.rescheduledBy : databaseBooking.rescheduledBy;
 
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled
+      ? rescheduledToInfo?.rescheduledBy
+      : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
@@ -157,12 +158,11 @@ export class OutputBookingsService_2024_08_13 {
 
   async getRescheduledToInfo(bookingUid: string): Promise<{ uid?: string; rescheduledBy?: string | null }> {
     const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
-    return { 
-      uid: rescheduledTo?.uid, 
-      rescheduledBy: rescheduledTo?.rescheduledBy 
+    return {
+      uid: rescheduledTo?.uid,
+      rescheduledBy: rescheduledTo?.rescheduledBy,
     };
   }
-
 
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
@@ -279,9 +279,11 @@ export class OutputBookingsService_2024_08_13 {
     const rescheduledToInfo = databaseBooking.rescheduled
       ? await this.getRescheduledToInfo(databaseBooking.uid)
       : undefined;
-    
+
     const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled ? rescheduledToInfo?.rescheduledBy : databaseBooking.rescheduledBy;
+    const rescheduledByEmail = databaseBooking.rescheduled
+      ? rescheduledToInfo?.rescheduledBy
+      : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
