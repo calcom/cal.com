@@ -214,17 +214,12 @@ export class TeamRepository {
     parentSlug: string | null;
     select?: TeamSelect;
   }) {
-    const filter: TeamFilter = { slug, parentSlug };
     return await this.prismaClient.team.findFirst({
-      where: mapToPrismaWhere(filter),
+      where: {
+        slug,
+        parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
+      },
       select: select ? mapToPrismaSelect(select) : teamSelect,
-    });
-  }
-
-  async findTeam(filter: TeamFilter, select: TeamSelect) {
-    return await this.prismaClient.team.findFirst({
-      where: mapToPrismaWhere(filter),
-      select: mapToPrismaSelect(select),
     });
   }
 
