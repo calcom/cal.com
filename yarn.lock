@@ -18756,6 +18756,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@unkey/api@npm:2.0.3":
+  version: 2.0.3
+  resolution: "@unkey/api@npm:2.0.3"
+  dependencies:
+    zod: ^3.20.0
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ">=1.5.0 <1.10.0"
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: 24b876dfc2d83f17889c95891eeb8c18945df6fe75a3fb4582a90c23c9171e1711b48e876c7cf76f596ac66c20424bbe16b1ba810eb450da9f5b654713d02f49
+  languageName: node
+  linkType: hard
+
 "@unkey/api@npm:^0.19.4":
   version: 0.19.4
   resolution: "@unkey/api@npm:0.19.4"
@@ -18771,6 +18787,15 @@ __metadata:
   dependencies:
     "@unkey/api": ^0.19.4
   checksum: ec1d5fcf14787700d0a6e16a64e372683f9edcf08c052dbf84b8ef1c2c798d6d5162e7cb1a954d847381ab53db039747490507c0ed02c88eeea06268c02e4d56
+  languageName: node
+  linkType: hard
+
+"@unkey/ratelimit@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@unkey/ratelimit@npm:2.1.2"
+  dependencies:
+    "@unkey/api": 2.0.3
+  checksum: 645959a8f2e458fc671cc4ea3d51497e76ee9ff967a9c233dacd51caaa7d0fa20386cf47ec138026113c18527cd2a24f6f941d0b0c0bd7723c8bf9e17c87baa5
   languageName: node
   linkType: hard
 
@@ -21550,6 +21575,7 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
+    "@unkey/ratelimit": ^2.1.2
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.1
     c8: ^7.13.0
@@ -47643,6 +47669,13 @@ __metadata:
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.20.0":
+  version: 3.25.76
+  resolution: "zod@npm:3.25.76"
+  checksum: c9a403a62b329188a5f6bd24d5d935d2bba345f7ab8151d1baa1505b5da9f227fb139354b043711490c798e91f3df75991395e40142e6510a4b16409f302b849
   languageName: node
   linkType: hard
 
