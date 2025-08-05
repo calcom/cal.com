@@ -15,6 +15,7 @@ import {
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -230,7 +231,7 @@ export function getSender(
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
-  isWriteOperation?: boolean
+  permission: PermissionString = "workflow.read"
 ) {
   if (!workflow) {
     return false;
@@ -243,10 +244,12 @@ export async function isAuthorized(
 
   // For team workflows, use PBAC
   const permissionService = new PermissionCheckService();
-  const permission = isWriteOperation ? "workflow.update" : "workflow.read";
-  const fallbackRoles = isWriteOperation
-    ? [MembershipRole.ADMIN, MembershipRole.OWNER]
-    : [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER];
+
+  // Determine fallback roles based on permission type
+  const fallbackRoles =
+    permission === "workflow.read"
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER]
+      : [MembershipRole.ADMIN, MembershipRole.OWNER];
 
   return await permissionService.checkPermission({
     userId: currentUserId,
@@ -255,7 +258,6 @@ export async function isAuthorized(
     fallbackRoles,
   });
 }
-
 export async function upsertSmsReminderFieldForEventTypes({
   activeOn,
   workflowId,

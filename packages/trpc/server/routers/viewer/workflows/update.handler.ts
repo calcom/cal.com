@@ -77,7 +77,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
   } else {
-    isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, true);
+    isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, "workflow.update");
   }
 
   if (!isUserAuthorized || !userWorkflow) {

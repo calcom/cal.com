@@ -16,7 +16,7 @@ type GetOptions = {
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   const workflow = await WorkflowRepository.getById({ id: input.id });
 
-  const isUserAuthorized = await isAuthorized(workflow, ctx.user.id);
+  const isUserAuthorized = await isAuthorized(workflow, ctx.user.id, "workflow.read");
 
   if (!isUserAuthorized) {
     throw new TRPCError({
