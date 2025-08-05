@@ -12,6 +12,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -32,7 +33,7 @@ const getCachedTeamRoles = (teamId: number) =>
 const getCachedTeamFeature = (teamId: number, feature: keyof AppFlags) =>
   unstable_cache(
     async () => {
-      const featureRepo = new FeaturesRepository();
+      const featureRepo = new FeaturesRepository(prisma);
       const res = await featureRepo.checkIfTeamHasFeature(teamId, feature);
       return res;
     },

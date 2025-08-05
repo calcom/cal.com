@@ -1,4 +1,12 @@
-## 1.0.114
+## 1.1.2
+
+### Patch Changes
+
+- [#22731](https://github.com/calcom/cal.com/pull/22731) [`ef66187`](https://github.com/calcom/cal.com/commit/ef6618743d5c1367fadf7b98cf15f7ba829535e3) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Added new startTime prop to the Booker component that allows users to decide the first available date when the booker loads
+
+- [#22815](https://github.com/calcom/cal.com/pull/22815) [`dc967cf`](https://github.com/calcom/cal.com/commit/dc967cffbecdf573aa48777ca7a245a6e633356c) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This change fixes an issue in the CalendarSettings atom where the redirect urls were getting only one search param
+
+- [#22701](https://github.com/calcom/cal.com/pull/22701) [`babd514`](https://github.com/calcom/cal.com/commit/babd514c64d0a4b8e05a46619808f201d3e8b0a5) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This change fixes date overrides breaking for availability settings atom
 
 ## 1.1.0
 

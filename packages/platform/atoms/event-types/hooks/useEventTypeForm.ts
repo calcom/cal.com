@@ -59,6 +59,7 @@ export const useEventTypeForm = ({
       seatsShowAttendees: eventType.seatsShowAttendees,
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
+      lockedTimeZone: eventType.lockedTimeZone || null,
       locations: eventType.locations || [],
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,

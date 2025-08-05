@@ -127,7 +127,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 

@@ -203,32 +203,24 @@ test.describe("Insights", async () => {
     await page.keyboard.press("Escape");
 
     // Choose User filter item from dropdown
-    await addFilter(page, "bookingUserId");
+    await addFilter(page, "userId");
 
-    // Wait for the URL to include bookingUserId
-    await page.waitForURL((url) => url.toString().includes("bookingUserId"));
+    // Wait for the URL to include userId
+    await page.waitForURL((url) => url.toString().includes("userId"));
 
     // Click User filter to see a user list
-    await openFilter(page, "bookingUserId");
+    await openFilter(page, "userId");
 
-    await page
-      .locator('[data-testid="select-filter-options-bookingUserId"]')
-      .getByRole("option")
-      .nth(0)
-      .click();
+    await page.locator('[data-testid="select-filter-options-userId"]').getByRole("option").nth(0).click();
 
-    await page
-      .locator('[data-testid="select-filter-options-bookingUserId"]')
-      .getByRole("option")
-      .nth(1)
-      .click();
+    await page.locator('[data-testid="select-filter-options-userId"]').getByRole("option").nth(1).click();
 
     // press escape button to close the filter
     await page.keyboard.press("Escape");
 
     await clearFilters(page);
 
-    await expect(page.url()).not.toContain("bookingUserId");
+    await expect(page.url()).not.toContain("userId");
   });
 
   test("should test download button", async ({ page, users }) => {

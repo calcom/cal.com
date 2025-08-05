@@ -1,6 +1,5 @@
 "use client";
 
-import { ProgressBar } from "@tremor/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -16,6 +15,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
 import { TextField, Label, InputError } from "@calcom/ui/components/form";
+import { ProgressBar } from "@calcom/ui/components/progress-bar";
 import { showToast } from "@calcom/ui/toast";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";

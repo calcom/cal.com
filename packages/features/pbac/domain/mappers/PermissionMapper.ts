@@ -46,7 +46,11 @@ export class PermissionMapper {
       throw new Error(`Invalid permission format: ${permissionString}`);
     }
 
-    const [resource, action] = permissionString.split(".", 2);
+    // Split from the right side to handle resources with dots
+    const lastDotIndex = permissionString.lastIndexOf(".");
+    const resource = permissionString.substring(0, lastDotIndex);
+    const action = permissionString.substring(lastDotIndex + 1);
+
     if (!resource || !action) {
       throw new Error(`Invalid permission format: ${permissionString}`);
     }

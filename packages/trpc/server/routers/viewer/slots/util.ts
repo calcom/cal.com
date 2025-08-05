@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -29,7 +29,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import { checkBookingLimit } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,
@@ -99,10 +99,12 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
+  cacheService: CacheService;
+  checkBookingLimitsService: CheckBookingLimitsService;
 }
 
 export class AvailableSlotsService {
-  constructor(private readonly dependencies: IAvailableSlotsService) {}
+  constructor(public readonly dependencies: IAvailableSlotsService) {}
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -397,8 +399,7 @@ export class AvailableSlotsService {
 
             if (unit === "year") {
               try {
-                // TODO: DI checkBookingLimit
-                await checkBookingLimit({
+                await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                   eventStartDate: periodStart.toDate(),
                   limitingNumber: limit,
                   eventId: eventType.id,
@@ -597,8 +598,7 @@ export class AvailableSlotsService {
 
           if (unit === "year") {
             try {
-              // TODO: DI checkBookingLimit
-              await checkBookingLimit({
+              await this.dependencies.checkBookingLimitsService.checkBookingLimit({
                 eventStartDate: periodStart.toDate(),
                 limitingNumber: limit,
                 key,
@@ -910,8 +910,10 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    // TODO: DI getShouldServeCache
-    const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
+      _shouldServeCache,
+      eventType.team?.id
+    );
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
