@@ -657,11 +657,24 @@ await subscriptionRepo.updateSyncToken(subscriptionId, null);
 
 ### Debugging
 
-Enable debug logging by setting environment variables:
+The system uses Cal.com's standard logger with debug levels. To see debug output:
 
 ```bash
-DEBUG=calendar-cache-sql:* yarn dev
+# Check application logs for debug messages
+yarn dev
+
+# Look for these log prefixes in output:
+# [DEBUG] CalendarCacheService
+# [DEBUG] CalendarSubscriptionService
+# [DEBUG] GoogleCalendarSqlWebhook
 ```
+
+**Debug Information Available:**
+
+- **CalendarCacheService**: Availability queries, subscription lookups, result counts
+- **CalendarSubscriptionService**: Watch/unwatch operations, calendar IDs
+- **GoogleCalendarWebhookService**: Webhook processing, subscription lookups
+- **Cron jobs**: Subscription creation, error handling
 
 ### Monitoring
 
