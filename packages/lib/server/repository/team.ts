@@ -9,7 +9,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TeamFilter } from "../data/team/filters";
 import type { TeamSelect } from "../data/team/selects";
-import { teamBasicSelect } from "../data/team/selects";
 import { mapToPrismaSelect, mapToPrismaWhere } from "./prisma-mapper";
 import { getParsedTeam } from "./teamUtils";
 
@@ -158,6 +157,18 @@ export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   });
 }
 
+const teamSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  logoUrl: true,
+  parentId: true,
+  metadata: true,
+  isOrganization: true,
+  organizationSettings: true,
+  isPlatform: true,
+} satisfies Prisma.TeamSelect;
+
 // TODO: Rename this to `PrismaTeamRepository`
 export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -167,7 +178,7 @@ export class TeamRepository {
       where: {
         id,
       },
-      select: mapToPrismaSelect(teamBasicSelect),
+      select: mapToPrismaSelect(teamSelect),
     });
     if (!team) {
       return null;
@@ -175,37 +186,29 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  async findAllByParentId({ parentId, select = teamBasicSelect }: { parentId: number; select?: TeamSelect }) {
+  async findAllByParentId({ parentId, select }: { parentId: number; select?: TeamSelect }) {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
       },
-      select: mapToPrismaSelect(select),
+      select: select ? mapToPrismaSelect(select) : teamSelect,
     });
   }
 
-  async findByIdAndParentId({
-    id,
-    parentId,
-    select = teamBasicSelect,
-  }: {
-    id: number;
-    parentId: number;
-    select?: TeamSelect;
-  }) {
+  async findByIdAndParentId({ id, parentId, select }: { id: number; parentId: number; select?: TeamSelect }) {
     return await this.prismaClient.team.findFirst({
       where: {
         id,
         parentId,
       },
-      select: mapToPrismaSelect(select),
+      select: select ? mapToPrismaSelect(select) : teamSelect,
     });
   }
 
   async findFirstBySlugAndParentSlug({
     slug,
     parentSlug,
-    select = teamBasicSelect,
+    select,
   }: {
     slug: string;
     parentSlug: string | null;
@@ -214,7 +217,7 @@ export class TeamRepository {
     const filter: TeamFilter = { slug, parentSlug };
     return await this.prismaClient.team.findFirst({
       where: mapToPrismaWhere(filter),
-      select: mapToPrismaSelect(select),
+      select: select ? mapToPrismaSelect(select) : teamSelect,
     });
   }
 
