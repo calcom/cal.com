@@ -187,10 +187,8 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        // utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
         await utils.viewer.workflows.get.invalidate({ id: +workflow.id });
 
-        setFormData(workflow);
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
