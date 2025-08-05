@@ -295,7 +295,6 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  isLoggedIn: boolean;
   bookingUid: string;
   loggedInUserName?: string;
   overrideName?: string;
