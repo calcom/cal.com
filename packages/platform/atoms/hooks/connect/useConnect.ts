@@ -18,6 +18,8 @@ export const useGetRedirectUrl = (
   redir?: string,
   isDryRun?: boolean
 ) => {
+  const redirectUrl = !!redir ? encodeURIComponent(redir) : "";
+
   const authUrl = useQuery({
     queryKey: getQueryKey(calendar),
     staleTime: Infinity,
@@ -25,7 +27,7 @@ export const useGetRedirectUrl = (
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ authUrl: string }>>(
-          `/calendars/${calendar}/connect?redir=${redir ?? ""}&isDryRun=${isDryRun ?? ""}`
+          `/calendars/${calendar}/connect?redir=${redirectUrl}&isDryRun=${isDryRun ?? ""}`
         )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
