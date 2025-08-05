@@ -67,7 +67,7 @@ export async function getTeamPermissions(
 
 function getFallbackPermissions(role: MembershipRole): TeamPermissions {
   const isAdminOrOwner = role === MembershipRole.ADMIN || role === MembershipRole.OWNER;
-  const canEdit = isAdminOrOwner || role === MembershipRole.MEMBER;
+  const canEdit = isAdminOrOwner;
 
   return {
     canCreate: isAdminOrOwner,
