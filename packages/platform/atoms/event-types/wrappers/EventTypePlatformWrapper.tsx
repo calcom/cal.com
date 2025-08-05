@@ -157,8 +157,10 @@ const EventType = forwardRef<
     onSubmit: (data) => {
       if (!isDryRun) {
         updateMutation.mutate(data);
+        callbacksRef.current?.onSuccess?.();
       } else {
         toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+        callbacksRef.current?.onSuccess?.();
       }
     },
     onFormStateChange: onFormStateChange,
@@ -167,11 +169,24 @@ const EventType = forwardRef<
   // Create a ref for the save button to trigger its click
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-  const handleFormSubmit = useCallback(() => {
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+
+  const handleFormSubmit = useCallback((customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+    if (customCallbacks) {
+      callbacksRef.current = customCallbacks;
+    }
+
     if (saveButtonRef.current) {
       saveButtonRef.current.click();
     } else {
-      form.handleSubmit(handleSubmit)();
+      form.handleSubmit((data) => {
+        try {
+          handleSubmit(data);
+          customCallbacks?.onSuccess?.();
+        } catch (error) {
+          customCallbacks?.onError?.(error as Error);
+        }
+      })();
     }
   }, [handleSubmit, form]);
 
