@@ -66,15 +66,3 @@ export type TeamSelect = {
     };
   };
 };
-
-export const teamBasicSelect: TeamSelect = {
-  id: true,
-  name: true,
-  slug: true,
-  logoUrl: true,
-  parentId: true,
-  metadata: true,
-  isOrganization: true,
-  organizationSettings: true,
-  isPlatform: true,
-};
