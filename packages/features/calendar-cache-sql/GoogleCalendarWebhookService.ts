@@ -4,29 +4,27 @@ import type { CalendarCacheSqlService } from "./CalendarCacheSqlService";
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
-export interface WebhookResponse {
-  status: number;
-  body: Record<string, any>;
-}
-
-export interface WebhookServiceDependencies {
-  subscriptionRepo: ICalendarSubscriptionRepository;
-  eventRepo: ICalendarEventRepository;
-  calendarCacheService: CalendarCacheSqlService;
-  getCredentialForCalendarCache: (params: {
-    credentialId: number;
-  }) => Promise<CredentialForCalendarService | null>;
-  logger: {
-    debug: (message: string, data?: any) => void;
-    info: (message: string, data?: any) => void;
-    error: (message: string, data?: any) => void;
-  };
-}
-
 export class GoogleCalendarWebhookService {
-  constructor(private dependencies: WebhookServiceDependencies) {}
+  constructor(
+    private dependencies: {
+      subscriptionRepo: ICalendarSubscriptionRepository;
+      eventRepo: ICalendarEventRepository;
+      calendarCacheService: CalendarCacheSqlService;
+      getCredentialForCalendarCache: (params: {
+        credentialId: number;
+      }) => Promise<CredentialForCalendarService | null>;
+      logger: {
+        debug: (message: string, data?: any) => void;
+        info: (message: string, data?: any) => void;
+        error: (message: string, data?: any) => void;
+      };
+    }
+  ) {}
 
-  async processWebhook(channelId: string): Promise<WebhookResponse> {
+  async processWebhook(channelId: string): Promise<{
+    status: number;
+    body: { message: string } | { error: string };
+  }> {
     const { logger } = this.dependencies;
 
     logger.debug("Processing webhook", { channelId });

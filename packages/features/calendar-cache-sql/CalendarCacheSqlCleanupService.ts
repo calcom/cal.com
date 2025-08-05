@@ -1,16 +1,16 @@
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 
-export interface CalendarCacheSqlCleanupServiceDependencies {
-  eventRepo: ICalendarEventRepository;
-  logger: {
-    info: (message: string, data?: any) => void;
-    error: (message: string, data?: any) => void;
-    debug: (message: string, data?: any) => void;
-  };
-}
-
 export class CalendarCacheSqlCleanupService {
-  constructor(private dependencies: CalendarCacheSqlCleanupServiceDependencies) {}
+  constructor(
+    private dependencies: {
+      eventRepo: ICalendarEventRepository;
+      logger: {
+        info: (message: string, data?: any) => void;
+        error: (message: string, data?: any) => void;
+        debug: (message: string, data?: any) => void;
+      };
+    }
+  ) {}
 
   async runCleanup(): Promise<{ success: boolean; deletedCount?: number; error?: string }> {
     const { eventRepo, logger } = this.dependencies;

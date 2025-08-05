@@ -5,14 +5,17 @@ import type {
   CredentialForCalendarServiceWithEmail,
 } from "@calcom/types/Credential";
 
-import type {
-  GoogleChannelProps,
-  ICalendarSubscriptionService,
-} from "./CalendarSubscriptionService.interface";
+export type GoogleChannelProps = {
+  kind?: string | null;
+  id?: string | null;
+  resourceId?: string | null;
+  resourceUri?: string | null;
+  expiration?: string | null;
+};
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
-export class CalendarSubscriptionService implements ICalendarSubscriptionService {
+export class CalendarSubscriptionService {
   async watchCalendar(
     calendarId: string,
     credential: CredentialForCalendarService
