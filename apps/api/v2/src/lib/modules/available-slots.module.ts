@@ -13,6 +13,7 @@ import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.s
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Module } from "@nestjs/common";
+import { UserAvailabilityService } from "@/lib/services/user-availability.service";
 
 @Module({
   imports: [PrismaModule],
@@ -30,6 +31,7 @@ import { Module } from "@nestjs/common";
     CheckBookingLimitsService,
     CacheService,
     AvailableSlotsService,
+    UserAvailabilityService
   ],
   exports: [AvailableSlotsService],
 })

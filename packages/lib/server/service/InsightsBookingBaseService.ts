@@ -3,6 +3,9 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
+import type { ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { isSingleSelectFilterValue, isMultiSelectFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -43,6 +46,19 @@ export type SelectedFields<T> = T extends undefined
         ? BookingTimeStatusDenormalized[K]
         : never;
     };
+
+type UserStatsData = {
+  userId: number;
+  user: {
+    id: number;
+    username: string | null;
+    name: string | null;
+    email: string;
+    avatarUrl: string;
+  };
+  emailMd5: string;
+  count: number;
+}[];
 
 export const bookingDataSchema = z
   .object({
@@ -105,8 +121,6 @@ export type InsightsBookingServiceOptions = z.infer<typeof insightsBookingServic
 export type InsightsBookingServiceFilterOptions = z.infer<typeof insightsBookingServiceFilterOptionsSchema>;
 
 export const insightsBookingServiceFilterOptionsSchema = z.object({
-  eventTypeId: z.number().optional(),
-  memberUserId: z.number().optional(),
   dateRange: z
     .object({
       target: z.enum(["createdAt", "startTime"]),
@@ -114,13 +128,14 @@ export const insightsBookingServiceFilterOptionsSchema = z.object({
       endDate: z.string(),
     })
     .optional(),
+  columnFilters: z.array(ZColumnFilter).optional(),
 });
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 
 const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
-export class InsightsBookingService {
+export class InsightsBookingBaseService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
   private filters: InsightsBookingServiceFilterOptions | null;
@@ -238,14 +253,14 @@ export class InsightsBookingService {
       return null;
     }
 
-    if (this.filters.eventTypeId) {
-      conditions.push(
-        Prisma.sql`("eventTypeId" = ${this.filters.eventTypeId}) OR ("eventParentId" = ${this.filters.eventTypeId})`
-      );
-    }
-
-    if (this.filters.memberUserId) {
-      conditions.push(Prisma.sql`"userId" = ${this.filters.memberUserId}`);
+    // Process columnFilters using type-safe utility functions
+    if (this.filters.columnFilters) {
+      for (const filter of this.filters.columnFilters) {
+        const condition = this.buildColumnFilterCondition(filter);
+        if (condition) {
+          conditions.push(condition);
+        }
+      }
     }
 
     // Use dateRange object for date filtering
@@ -274,6 +289,29 @@ export class InsightsBookingService {
       if (index === 0) return condition;
       return Prisma.sql`(${acc}) AND (${condition})`;
     });
+  }
+
+  private buildColumnFilterCondition(filter: ColumnFilter): Prisma.Sql | null {
+    const { id, value } = filter;
+
+    if (!value) {
+      return null;
+    }
+
+    if (id === "eventTypeId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
+      return Prisma.sql`("eventTypeId" = ${value.data}) OR ("eventParentId" = ${value.data})`;
+    }
+
+    if (id === "userId" && isSingleSelectFilterValue(value) && typeof value.data === "number") {
+      return Prisma.sql`"userId" = ${value.data}`;
+    }
+
+    if (id === "status" && isMultiSelectFilterValue(value)) {
+      const statusValues = value.data.map((status) => Prisma.sql`${status}::"BookingStatus"`);
+      return Prisma.sql`"status" IN (${Prisma.join(statusValues)})`;
+    }
+
+    return null;
   }
 
   async buildAuthorizationConditions(): Promise<Prisma.Sql> {
@@ -657,8 +695,9 @@ export class InsightsBookingService {
     });
 
     // Transform aggregate data into the expected format
-    const result = dateRanges.map(({ formattedDate }) => {
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
       const eventData = {
+        formattedDateFull: formattedDateFull,
         Month: formattedDate,
         Created: 0,
         Completed: 0,
@@ -764,7 +803,7 @@ export class InsightsBookingService {
   async getMembersStatsWithCount(
     type: "all" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
-  ) {
+  ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
     let additionalCondition = Prisma.sql``;
@@ -832,22 +871,22 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC") {
+  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC"): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
         userId: number;
-        averageRating: number;
+        count: number;
       }>
     >`
       SELECT
         "userId",
-        AVG("rating")::float as "averageRating"
+        AVG("rating")::float as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
       GROUP BY "userId"
-      ORDER BY "averageRating" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
+      ORDER BY "count" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
     `;
 
@@ -885,7 +924,7 @@ export class InsightsBookingService {
           userId: booking.userId,
           user,
           emailMd5: md5(user.email),
-          averageRating: booking.averageRating,
+          count: booking.count,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);

@@ -13,6 +13,7 @@ import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 
 import { AvailableSlotsService as BaseAvailableSlotsService } from "@calcom/platform-libraries/slots";
+import { UserAvailabilityService } from "./user-availability.service";
 
 @Injectable()
 export class AvailableSlotsService extends BaseAvailableSlotsService {
@@ -40,6 +41,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       redisClient: redisService,
       checkBookingLimitsService: new CheckBookingLimitsService(bookingRepository),
       cacheService: new CacheService(featuresRepository),
+      userAvailabilityService: new UserAvailabilityService(oooRepoDependency, bookingRepository, eventTypeRepository)
     });
   }
 }

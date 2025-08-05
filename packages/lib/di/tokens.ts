@@ -23,6 +23,8 @@ export const DI_TOKENS = {
   AVAILABLE_SLOTS_SERVICE_MODULE: Symbol("AvailableSlotsModule"),
   INSIGHTS_ROUTING_SERVICE: Symbol("InsightsRoutingService"),
   INSIGHTS_ROUTING_SERVICE_MODULE: Symbol("InsightsRoutingServiceModule"),
+  INSIGHTS_BOOKING_SERVICE: Symbol("InsightsBookingService"),
+  INSIGHTS_BOOKING_SERVICE_MODULE: Symbol("InsightsBookingServiceModule"),
   FEATURES_REPOSITORY: Symbol("FeaturesRepository"),
   FEATURES_REPOSITORY_MODULE: Symbol("FeaturesRepositoryModule"),
   CACHE_SERVICE: Symbol("CacheService"),
@@ -31,4 +33,6 @@ export const DI_TOKENS = {
   CHECK_BOOKING_LIMITS_SERVICE_MODULE: Symbol("CheckBookingLimitsServiceModule"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE: Symbol("CheckBookingAndDurationLimitsService"),
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE_MODULE: Symbol("CheckBookingAndDurationLimitsServiceModule"),
+  GET_USER_AVAILABILITY_SERVICE: Symbol("GetUserAvailabilityService"),
+  GET_USER_AVAILABILITY_SERVICE_MODULE: Symbol("GetUserAvailabilityModule"),
 };
