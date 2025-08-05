@@ -1,11 +1,12 @@
 import { createInstance } from "i18next";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { i18n } = require("@calcom/config/next-i18next.config");
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { fetchWithTimeout } from "../fetchWithTimeout";
 import logger from "../logger";
+
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { i18n } = require("@calcom/config/next-i18next.config");
 
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
@@ -28,22 +29,28 @@ export async function loadTranslations(_locale: string, _ns: string) {
   }
 
   const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-  const response = await fetchWithTimeout(
-    url,
-    {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    },
-    3000
-  );
+  try {
+    const response = await fetchWithTimeout(
+      url,
+      {
+        cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+      },
+      3000
+    );
 
-  if (!response.ok) {
-    logger.error(`Failed to fetch translations: ${response.status}`);
+    if (!response.ok) {
+      logger.error(`Failed to fetch translations: ${response.status}`);
+      return {};
+    }
+
+    const translations = await response.json();
+    translationCache.set(cacheKey, translations);
+    return translations;
+  } catch (err) {
+    console.error("loadTranslations Error:", err);
+
     return {};
   }
-
-  const translations = await response.json();
-  translationCache.set(cacheKey, translations);
-  return translations;
 }
 
 /**
