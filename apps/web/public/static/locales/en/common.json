@@ -3416,7 +3416,7 @@
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
-  "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",  "buy_number_for_5_per_month": "Buy Number for $5/month",
+  "buy_number_for_5_per_month": "Buy Number for $5/month",
   "phone_number_purchased_successfully": "Phone number purchased successfully",
   "cancel_phone_number_subscription": "Cancel Phone Number Subscription",
   "yes_cancel_subscription": "Yes, Cancel Subscription",

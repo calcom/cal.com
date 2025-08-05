@@ -23,13 +23,24 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     where: {
       id,
     },
-    include: {
-      activeOn: true,
-      activeOnTeams: true,
+    select: {
+      id: true,
+      activeOn: {
+        select: {
+          eventTypeId: true,
+        },
+      },
+      activeOnTeams: {
+        select: {
+          teamId: true,
+        },
+      },
       steps: {
-        include: {
+        select: {
+          action: true,
           agent: {
-            include: {
+            select: {
+              id: true,
               outboundPhoneNumbers: {
                 select: {
                   id: true,
