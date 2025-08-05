@@ -894,6 +894,22 @@ export async function handleExistingUsersInvites({
             role: user.newRole,
           },
         });
+
+        // If auto-accepting into org, also accept any pending sub-team memberships
+        if (shouldAutoAccept) {
+          await prisma.membership.updateMany({
+            where: {
+              userId: user.id,
+              accepted: false,
+              team: {
+                parentId: organization.id,
+              },
+            },
+            data: {
+              accepted: true,
+            },
+          });
+        }
         return {
           ...user,
           profile,

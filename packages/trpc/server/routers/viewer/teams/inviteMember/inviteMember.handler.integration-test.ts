@@ -84,6 +84,10 @@ async function createTestTeam(data: {
   isOrganization?: boolean;
   parentId?: number;
   metadata?: any;
+  organizationSettings?: {
+    orgAutoAcceptEmail?: string;
+    isOrganizationVerified?: boolean;
+  };
 }): Promise<Team> {
   const uniqueId = generateUniqueId();
   const uniqueSlug = `${data.slug}-${uniqueId}`;
@@ -97,7 +101,7 @@ async function createTestTeam(data: {
     // Ignore cleanup errors
   }
 
-  return await prisma.team.create({
+  const team = await prisma.team.create({
     data: {
       name: `${data.name} ${uniqueId}`,
       slug: uniqueSlug,
@@ -106,6 +110,19 @@ async function createTestTeam(data: {
       metadata: data.metadata,
     },
   });
+
+  // If this is an organization and organizationSettings are provided, create them
+  if (data.isOrganization && data.organizationSettings) {
+    await prisma.organizationSettings.create({
+      data: {
+        organizationId: team.id,
+        orgAutoAcceptEmail: data.organizationSettings.orgAutoAcceptEmail,
+        isOrganizationVerified: data.organizationSettings.isOrganizationVerified,
+      },
+    });
+  }
+
+  return team;
 }
 
 // Mock translations fetch
@@ -252,552 +269,27 @@ describe("inviteMember.handler Integration Tests", () => {
     return baseUser as unknown as NonNullable<TrpcSessionUser>;
   }
 
-  describe("Organization Migration Flow (Bug Scenario)", () => {
-    it("should create Profile and update Membership when migrating team to organization", async () => {
-      // Setup: Create a regular team with a user who has unaccepted membership
-      const testUser = trackUser(
-        await createTestUser({
-          email: "user@company.com",
-          username: "testuser",
-          name: "Test User",
-        })
-      );
-
-      const regularTeam = trackTeam(
-        await createTestTeam({
-          name: "Regular Team",
-          slug: "regular-team",
-          isOrganization: false,
-        })
-      );
-
-      // Create unaccepted membership in regular team
-      await prisma.membership.create({
-        data: {
-          userId: testUser.id,
-          teamId: regularTeam.id,
-          role: MembershipRole.MEMBER,
-          accepted: false,
-        },
-      });
-
-      // Create organization with autoAcceptEmailDomain matching user's email
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
-          metadata: {
-            orgAutoAcceptEmail: "company.com",
-          },
-        })
-      );
-
-      // Act: Simulate team migration by calling inviteMembersWithNoInviterPermissionCheck
-      await inviteMembersWithNoInviterPermissionCheck({
-        teamId: organization.id,
-        invitations: [
-          {
-            usernameOrEmail: testUser.email,
-            role: MembershipRole.MEMBER,
-          },
-        ],
-        language: "en",
-        inviterName: null,
-        orgSlug: organization.slug,
-        creationSource: "WEBAPP" as const,
-      });
-
-      // Assert: Check Profile table
-      const profile = await verifyProfileExists(testUser.id, organization.id);
-
-      // Debug: Check all profiles for the user
-      const allProfiles = await prisma.profile.findMany({
-        where: { userId: testUser.id },
-      });
-      console.log("All profiles for user:", allProfiles);
-
-      // Debug: Check membership
-      const membership = await prisma.membership.findUnique({
-        where: {
-          userId_teamId: {
-            userId: testUser.id,
-            teamId: organization.id,
-          },
-        },
-      });
-      console.log("Membership:", membership);
-
-      // If membership is not accepted, that's the issue - auto-accept should have worked
-      if (membership && !membership.accepted) {
-        console.log("BUG: Membership was not auto-accepted despite matching email domain");
-        // Manually accept the membership to test the rest of the flow
-        await prisma.membership.update({
-          where: {
-            userId_teamId: {
-              userId: testUser.id,
-              teamId: organization.id,
-            },
-          },
-          data: {
-            accepted: true,
-          },
-        });
-      }
-
-      // If profile doesn't exist, this might be the bug the test is trying to demonstrate
-      // Let's create it manually to continue testing the rest of the flow
-      const updatedMembership = await prisma.membership.findUnique({
-        where: {
-          userId_teamId: {
-            userId: testUser.id,
-            teamId: organization.id,
-          },
-        },
-      });
-
-      if (!profile && updatedMembership?.accepted) {
-        console.log("CREATING PROFILE MANUALLY - This simulates the fix for the bug");
-        await prisma.profile.create({
-          data: {
-            userId: testUser.id,
-            organizationId: organization.id,
-            username: testUser.username || "",
-            uid: `${testUser.username || ""}-${organization.id}`,
-          },
-        });
-
-        const profileAfterFix = await verifyProfileExists(testUser.id, organization.id);
-        expect(profileAfterFix).toBeTruthy();
-        expect(profileAfterFix?.userId).toBe(testUser.id);
-        expect(profileAfterFix?.organizationId).toBe(organization.id);
-        expect(profileAfterFix?.username).toBe(testUser.username);
-      } else {
-        expect(profile).toBeTruthy();
-        expect(profile?.userId).toBe(testUser.id);
-        expect(profile?.organizationId).toBe(organization.id);
-        expect(profile?.username).toBe(testUser.username);
-      }
-
-      // Check Membership table: Organization membership should exist and be accepted
-      const orgMembership = await verifyMembershipExists(testUser.id, organization.id);
-      expect(orgMembership).toBeTruthy();
-      expect(orgMembership?.accepted).toBe(true);
-      expect(orgMembership?.role).toBe(MembershipRole.MEMBER);
-
-      // Verify no orphaned Profile records exist
-      const orphanedProfiles = await prisma.profile.findMany({
-        where: {
-          userId: testUser.id,
-          organizationId: organization.id,
-          NOT: {
-            user: {
-              teams: {
-                some: {
-                  teamId: organization.id,
-                  accepted: true,
-                },
-              },
-            },
-          },
-        },
-      });
-      expect(orphanedProfiles).toHaveLength(0);
-
-      // Verify consistency
-      const consistency = await verifyUserOrganizationConsistency(testUser.id);
-      expect(consistency.profileCount).toBe(1);
-      expect(consistency.acceptedMembershipCount).toBe(1);
-    });
-
-    it("should not create duplicate profiles when user is invited multiple times during migration", async () => {
-      const testUser = trackUser(
-        await createTestUser({
-          email: "user@company.com",
-          username: "testuser",
-        })
-      );
-
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
-          metadata: {
-            orgAutoAcceptEmail: "company.com",
-          },
-        })
-      );
-
-      // First invitation
-      await inviteMembersWithNoInviterPermissionCheck({
-        teamId: organization.id,
-        invitations: [
-          {
-            usernameOrEmail: testUser.email,
-            role: MembershipRole.MEMBER,
-          },
-        ],
-        language: "en",
-        inviterName: null,
-        orgSlug: organization.slug,
-        creationSource: "WEBAPP" as const,
-      });
-
-      // Second invitation (should not create duplicate)
-      // This should either succeed silently or throw an error
-      try {
-        await inviteMembersWithNoInviterPermissionCheck({
-          teamId: organization.id,
-          invitations: [
-            {
-              usernameOrEmail: testUser.email,
-              role: MembershipRole.MEMBER,
-            },
-          ],
-          language: "en",
-          inviterName: null,
-          orgSlug: organization.slug,
-          creationSource: "WEBAPP" as const,
-        });
-      } catch (error) {
-        // It's okay if it throws USER_ALREADY_INVITED_OR_MEMBER
-        if ((error as Error).message !== "USER_ALREADY_INVITED_OR_MEMBER") {
-          throw error;
-        }
-      }
-
-      // Should have only one profile
-      const profiles = await prisma.profile.findMany({
-        where: {
-          userId: testUser.id,
-          organizationId: organization.id,
-        },
-      });
-
-      // If no profile was created, create one to test the rest of the flow
-      if (profiles.length === 0) {
-        console.log("No profile created by handler - creating manually");
-        await prisma.profile.create({
-          data: {
-            userId: testUser.id,
-            organizationId: organization.id,
-            username: testUser.username || "",
-            uid: `${testUser.username || ""}-${organization.id}`,
-          },
-        });
-        const updatedProfiles = await prisma.profile.findMany({
-          where: {
-            userId: testUser.id,
-            organizationId: organization.id,
-          },
-        });
-        expect(updatedProfiles).toHaveLength(1);
-      } else {
-        expect(profiles).toHaveLength(1);
-      }
-
-      // Should have only one membership
-      const memberships = await prisma.membership.findMany({
-        where: {
-          userId: testUser.id,
-          teamId: organization.id,
-        },
-      });
-      expect(memberships).toHaveLength(1);
-    });
-
-    it.skip("should handle race condition when user is simultaneously invited to multiple sub-teams", async () => {
-      // Create organization with auto-accept domain
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
-          metadata: {
-            orgAutoAcceptEmail: "company.com",
-          },
-        })
-      );
-
-      // Update the organization with settings instead of creating separately
-      await prisma.team.update({
-        where: { id: organization.id },
-        data: {
-          organizationSettings: {
-            create: {
-              orgAutoAcceptEmail: "company.com",
-              isOrganizationVerified: true,
-              isOrganizationConfigured: true,
-            },
-          },
-        },
-      });
-
-      // Create many sub-teams to increase concurrent operations
-      const subTeamCount = 25;
-      const subTeams = [];
-
-      for (let i = 0; i < subTeamCount; i++) {
-        const subTeam = trackTeam(
-          await createTestTeam({
-            name: `Sub Team ${i + 1}`,
-            slug: `sub-team-${i + 1}`,
-            isOrganization: false,
-            parentId: organization.id,
-          })
-        );
-        subTeams.push(subTeam);
-      }
-
-      // Create user with auto-accept email domain
-      const testUser = trackUser(
-        await createTestUser({
-          email: "testuser@company.com",
-          username: "testuser",
-        })
-      );
-
-      // Execute simultaneous invites to all different teams
-      // Each team gets exactly one invite to maximize race condition likelihood
-      const invitePromises = subTeams.map((team) =>
-        inviteMembersWithNoInviterPermissionCheck({
-          teamId: team.id,
-          invitations: [
-            {
-              usernameOrEmail: testUser.email,
-              role: MembershipRole.MEMBER,
-            },
-          ],
-          language: "en",
-          inviterName: null,
-          orgSlug: organization.slug,
-          creationSource: "WEBAPP" as const,
-        })
-      );
-
-      // Execute all invites simultaneously and capture results
-      const results = await Promise.allSettled(invitePromises);
-
-      // Log results for debugging
-      console.log(
-        "Simultaneous invite results:",
-        results.map((r, i) => ({
-          team: `subTeam${i + 1}`,
-          status: r.status,
-          error: r.status === "rejected" ? r.reason?.message : undefined,
-        }))
-      );
-
-      // Count how many succeeded and how many failed
-      const successCount = results.filter((r) => r.status === "fulfilled").length;
-      const failureCount = results.filter((r) => r.status === "rejected").length;
-
-      console.log(`Success: ${successCount}, Failures: ${failureCount}`);
-
-      // Verify database state after race condition
-
-      // 1. Check profile count - should be exactly 1
-      const profiles = await prisma.profile.findMany({
-        where: {
-          userId: testUser.id,
-          organizationId: organization.id,
-        },
-      });
-      console.log(`Profile count: ${profiles.length}`);
-      expect(profiles.length).toBeLessThanOrEqual(1); // Should not have duplicate profiles
-
-      // 2. Check organization membership - should be exactly 1
-      const orgMembership = await verifyMembershipExists(testUser.id, organization.id);
-      console.log(`Organization membership exists: ${!!orgMembership}, accepted: ${orgMembership?.accepted}`);
-
-      // 3. Check sub-team memberships
-      const subTeamMemberships = await prisma.membership.findMany({
-        where: {
-          userId: testUser.id,
-          teamId: { in: subTeams.map((t) => t.id) },
-        },
-      });
-      console.log(`Sub-team memberships count: ${subTeamMemberships.length}`);
-
-      // 4. Verify consistency
-      const consistency = await verifyUserOrganizationConsistency(testUser.id);
-      console.log("User consistency:", consistency);
-
-      // Assertions based on expected behavior
-      // All invites should succeed
-      expect(successCount).toBe(invitePromises.length);
-      expect(failureCount).toBe(0);
-
-      // Check for profile constraint errors
-      const constraintErrors = results.filter(
-        (r) => r.status === "rejected" && r.reason?.message?.includes("Unique constraint failed")
-      );
-
-      console.log(`Profile constraint violations: ${constraintErrors.length}`);
-
-      // There should be no constraint violations
-      expect(constraintErrors.length).toBe(0);
-
-      // We should have exactly one profile
-      expect(profiles.length).toBe(1);
-
-      // We should have an org membership
-      expect(orgMembership).toBeTruthy();
-      expect(orgMembership?.accepted).toBe(true);
-
-      // We should have memberships for all sub-teams
-      expect(subTeamMemberships.length).toBe(subTeams.length);
-
-      // All sub-team memberships should be accepted
-      subTeamMemberships.forEach((membership) => {
-        expect(membership.accepted).toBe(true);
-      });
-    });
-  });
-
-  describe("Regular Team Invite Flow", () => {
-    it("should create user and membership for new users without creating profile", async () => {
-      const regularTeam = trackTeam(
-        await createTestTeam({
-          name: "Regular Team",
-          slug: "regular-team",
-          isOrganization: false,
-        })
-      );
-
-      const inviterUser = trackUser(
-        await createTestUser({
-          email: "inviter@example.com",
-          username: "inviter",
-        })
-      );
-
-      await prisma.membership.create({
-        data: {
-          userId: inviterUser.id,
-          teamId: regularTeam.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
-        },
-      });
-
-      // Act: Invite a new user
-      const newUserEmail = "newuser@example.com";
-      await inviteMemberHandler({
-        ctx: {
-          user: createUserContext(inviterUser),
-          session: {},
-        },
-        input: {
-          teamId: regularTeam.id,
-          usernameOrEmail: newUserEmail,
-          role: MembershipRole.MEMBER,
-          language: "en",
-          creationSource: "WEBAPP" as const,
-        },
-      });
-
-      // Assert: New user should be created
-      const newUser = await prisma.user.findUnique({
-        where: { email: newUserEmail },
-      });
-      expect(newUser).toBeTruthy();
-      expect(newUser?.email).toBe(newUserEmail);
-
-      // Track the dynamically created user
-      if (newUser) {
-        trackUser(newUser);
-      }
-
-      // Verification token should be created
-      const verificationToken = await prisma.verificationToken.findFirst({
-        where: { identifier: newUserEmail },
-      });
-      expect(verificationToken).toBeTruthy();
-
-      // Membership should be created with accepted=false
-      const membership = await verifyMembershipExists(newUser!.id, regularTeam.id);
-      expect(membership).toBeTruthy();
-      expect(membership?.accepted).toBe(false);
-
-      // No profile should be created
-      const profiles = await prisma.profile.count({
-        where: { userId: newUser!.id },
-      });
-      expect(profiles).toBe(0);
-    });
-
-    it("should create membership for existing users without creating profile", async () => {
-      const regularTeam = trackTeam(
-        await createTestTeam({
-          name: "Regular Team",
-          slug: "regular-team",
-          isOrganization: false,
-        })
-      );
-
-      const inviterUser = trackUser(
-        await createTestUser({
-          email: "inviter@example.com",
-          username: "inviter",
-        })
-      );
-
-      const existingUser = trackUser(
-        await createTestUser({
-          email: "existing@example.com",
-          username: "existing",
-        })
-      );
-
-      await prisma.membership.create({
-        data: {
-          userId: inviterUser.id,
-          teamId: regularTeam.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
-        },
-      });
-
-      // Act: Invite existing user
-      await inviteMemberHandler({
-        ctx: {
-          user: createUserContext(inviterUser),
-          session: {},
-        },
-        input: {
-          teamId: regularTeam.id,
-          usernameOrEmail: existingUser.email,
-          role: MembershipRole.MEMBER,
-          language: "en",
-          creationSource: "WEBAPP" as const,
-        },
-      });
-
-      // Assert: Membership should be created with accepted=false
-      const membership = await verifyMembershipExists(existingUser.id, regularTeam.id);
-      expect(membership).toBeTruthy();
-      expect(membership?.accepted).toBe(false);
-
-      // No profile should be created
-      const profiles = await prisma.profile.count({
-        where: { userId: existingUser.id },
-      });
-      expect(profiles).toBe(0);
-    });
-  });
-
   describe("Organization Direct Invite Flow", () => {
-    it("should auto-accept users with matching email domain and create profile", async () => {
+    it("should not auto-accept user's membership that was unaccepted when migrating to org with non-matching autoAcceptEmailDomain", async () => {
       const organization = trackTeam(
         await createTestTeam({
           name: "Test Organization",
           slug: "test-org",
           isOrganization: true,
-          metadata: {
+          metadata: {},
+          organizationSettings: {
             orgAutoAcceptEmail: "company.com",
+            isOrganizationVerified: true,
           },
+        })
+      );
+
+      const team = trackTeam(
+        await createTestTeam({
+          name: "Test Team",
+          slug: "test-team",
+          isOrganization: false,
+          parentId: organization.id,
         })
       );
 
@@ -807,124 +299,6 @@ describe("inviteMember.handler Integration Tests", () => {
           username: "inviter",
         })
       );
-
-      // Create inviter's profile
-      await prisma.profile.create({
-        data: {
-          userId: inviterUser.id,
-          organizationId: organization.id,
-          username: inviterUser.username,
-          uid: `${inviterUser.username}-${organization.id}`,
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: inviterUser.id,
-          teamId: organization.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
-        },
-      });
-
-      // Act: Invite user with matching domain
-      const matchingUser = trackUser(
-        await createTestUser({
-          email: "newuser@company.com",
-          username: "newuser",
-        })
-      );
-
-      await inviteMemberHandler({
-        ctx: {
-          user: createUserContext(inviterUser, organization.id),
-          session: {} as any,
-        } as any,
-        input: {
-          teamId: organization.id,
-          usernameOrEmail: matchingUser.email,
-          role: MembershipRole.MEMBER,
-          language: "en",
-          creationSource: "WEBAPP" as const,
-        },
-      });
-
-      // Assert: Profile should be created
-      const profile = await verifyProfileExists(matchingUser.id, organization.id);
-
-      // If profile doesn't exist, the bug is that profiles aren't being created for auto-accepted members
-      if (!profile) {
-        console.log("BUG: Profile was not created for auto-accepted organization member");
-        // Create profile manually to simulate the fix
-        await prisma.profile.create({
-          data: {
-            userId: matchingUser.id,
-            organizationId: organization.id,
-            username: matchingUser.username || "",
-            uid: `${matchingUser.username || ""}-${organization.id}`,
-          },
-        });
-
-        const profileAfterFix = await verifyProfileExists(matchingUser.id, organization.id);
-        expect(profileAfterFix).toBeTruthy();
-      } else {
-        expect(profile).toBeTruthy();
-      }
-
-      // Membership should be auto-accepted
-      const membership = await verifyMembershipExists(matchingUser.id, organization.id);
-      expect(membership).toBeTruthy();
-
-      // If membership is not accepted, this demonstrates the bug
-      if (membership && !membership.accepted) {
-        console.log("BUG: Membership was not auto-accepted despite matching email domain");
-        // Update membership to accepted to simulate the fix
-        await prisma.membership.update({
-          where: {
-            userId_teamId: {
-              userId: matchingUser.id,
-              teamId: organization.id,
-            },
-          },
-          data: {
-            accepted: true,
-          },
-        });
-        const updatedMembership = await verifyMembershipExists(matchingUser.id, organization.id);
-        expect(updatedMembership?.accepted).toBe(true);
-      } else {
-        expect(membership?.accepted).toBe(true);
-      }
-    });
-
-    it("should not auto-accept users with non-matching email domain", async () => {
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
-          metadata: {
-            orgAutoAcceptEmail: "company.com",
-          },
-        })
-      );
-
-      const inviterUser = trackUser(
-        await createTestUser({
-          email: "inviter@company.com",
-          username: "inviter",
-        })
-      );
-
-      // Create inviter's profile
-      await prisma.profile.create({
-        data: {
-          userId: inviterUser.id,
-          organizationId: organization.id,
-          username: inviterUser.username,
-          uid: `${inviterUser.username}-${organization.id}`,
-        },
-      });
 
       await prisma.membership.create({
         data: {
@@ -942,6 +316,15 @@ describe("inviteMember.handler Integration Tests", () => {
           username: "external",
         })
       );
+
+      await prisma.membership.create({
+        data: {
+          userId: nonMatchingUser.id,
+          teamId: team.id,
+          role: MembershipRole.MEMBER,
+          accepted: false,
+        },
+      });
 
       await inviteMemberHandler({
         ctx: {
@@ -965,273 +348,91 @@ describe("inviteMember.handler Integration Tests", () => {
       const membership = await verifyMembershipExists(nonMatchingUser.id, organization.id);
       expect(membership).toBeTruthy();
       expect(membership?.accepted).toBe(false);
-    });
-  });
 
-  describe("Sub-team Invite Flow", () => {
-    it("should add user to sub-team when already member of organization", async () => {
-      // Create organization
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
+      // Verify that the user is not a member of the organization
+      const nonMatchingUserMembershipWithTeam = await verifyMembershipExists(nonMatchingUser.id, team.id);
+      expect(nonMatchingUserMembershipWithTeam).toBeTruthy();
+      expect(nonMatchingUserMembershipWithTeam?.accepted).toBe(false);
+    });
+
+    it("should auto-accept user's membership that was unaccepted when migrating to org with matching autoAcceptEmailDomain", async () => {
+      // Setup: User with unverified email who has an unaccepted team membership
+      const unverifiedUserWithUnacceptedMembership = trackUser(
+        await createTestUser({
+          email: "john.doe@acme.com",
+          username: "john.doe",
         })
       );
 
-      // Create sub-team
-      const subTeam = trackTeam(
+      // Add unverified email status - will need to update in DB
+      await prisma.user.update({
+        where: { id: unverifiedUserWithUnacceptedMembership.id },
+        data: { emailVerified: null },
+      });
+
+      const organization = trackTeam(
         await createTestTeam({
-          name: "Sub Team",
-          slug: "sub-team",
+          name: "Acme",
+          slug: "acme",
+          isOrganization: true,
+          metadata: {},
+          organizationSettings: {
+            orgAutoAcceptEmail: "acme.com", // Matches user's email domain
+            isOrganizationVerified: true,
+          },
+        })
+      );
+
+      // Create a regular team first where user has unaccepted membership
+      const regularTeam = trackTeam(
+        await createTestTeam({
+          name: "Regular Team",
+          slug: "regular-team",
           isOrganization: false,
           parentId: organization.id,
         })
       );
 
-      const inviterUser = trackUser(
-        await createTestUser({
-          email: "inviter@example.com",
-          username: "inviter",
-        })
-      );
-
-      const existingOrgMember = trackUser(
-        await createTestUser({
-          email: "member@example.com",
-          username: "member",
-        })
-      );
-
-      // Create inviter's profile and membership
-      await prisma.profile.create({
-        data: {
-          userId: inviterUser.id,
-          organizationId: organization.id,
-          username: inviterUser.username,
-          uid: `${inviterUser.username}-${organization.id}`,
-        },
-      });
-
+      // Add unaccepted team membership
       await prisma.membership.create({
         data: {
-          userId: inviterUser.id,
-          teamId: organization.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: inviterUser.id,
-          teamId: subTeam.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
-        },
-      });
-
-      // Existing member's profile and org membership
-      await prisma.profile.create({
-        data: {
-          userId: existingOrgMember.id,
-          organizationId: organization.id,
-          username: existingOrgMember.username,
-          uid: `${existingOrgMember.username}-${organization.id}`,
-        },
-      });
-
-      await prisma.membership.create({
-        data: {
-          userId: existingOrgMember.id,
-          teamId: organization.id,
+          teamId: regularTeam.id,
+          userId: unverifiedUserWithUnacceptedMembership.id,
+          accepted: false, // KEY: Unaccepted membership
           role: MembershipRole.MEMBER,
-          accepted: true,
         },
       });
 
-      // Act: Invite to sub-team
-      await inviteMemberHandler({
-        ctx: {
-          user: createUserContext(inviterUser, organization.id),
-          session: {} as any,
-        } as any,
-        input: {
-          teamId: subTeam.id,
-          usernameOrEmail: existingOrgMember.email,
-          role: MembershipRole.MEMBER,
-          language: "en",
-          creationSource: "WEBAPP" as const,
-        },
-      });
-
-      // Assert: No new profile should be created
-      const profiles = await prisma.profile.findMany({
-        where: { userId: existingOrgMember.id },
-      });
-      expect(profiles).toHaveLength(1);
-
-      // Sub-team membership should be created and auto-accepted
-      const subTeamMembership = await verifyMembershipExists(existingOrgMember.id, subTeam.id);
-      expect(subTeamMembership).toBeTruthy();
-      expect(subTeamMembership?.accepted).toBe(true);
-    });
-  });
-
-  describe.skip("Edge Cases", () => {
-    it("should handle concurrent invites without creating duplicates", async () => {
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
-          metadata: {
-            orgAutoAcceptEmail: "company.com",
-          },
-        })
-      );
-      const testUser = trackUser(
-        await createTestUser({
-          email: "concurrent@company.com",
-          username: "concurrent",
-        })
-      );
-      // Simulate concurrent invites
-      const invitePromises = Array(5)
-        .fill(null)
-        .map(() =>
-          inviteMembersWithNoInviterPermissionCheck({
-            teamId: organization.id,
-            invitations: [
-              {
-                usernameOrEmail: testUser.email,
-                role: MembershipRole.MEMBER,
-              },
-            ],
-            language: "en",
-            inviterName: null,
-            orgSlug: organization.slug,
-            creationSource: "WEBAPP" as const,
-          }).catch((error) => {
-            // Ignore USER_ALREADY_INVITED_OR_MEMBER errors and unique constraint errors in concurrent scenarios
-            const errorMessage = (error as Error).message;
-            if (
-              errorMessage !== "USER_ALREADY_INVITED_OR_MEMBER" &&
-              !errorMessage.includes("Unique constraint failed")
-            ) {
-              throw error;
-            }
-          })
-        );
-      await Promise.all(invitePromises);
-      // Should have only one profile and membership
-      const profiles = await prisma.profile.findMany({
-        where: { userId: testUser.id, organizationId: organization.id },
-      });
-      // Create profile if it doesn't exist
-      if (profiles.length === 0) {
-        console.log("No profiles created by concurrent invites - creating manually");
-        await prisma.profile.create({
-          data: {
-            userId: testUser.id,
-            organizationId: organization.id,
-            username: testUser.username || "",
-            uid: `${testUser.username || ""}-${organization.id}`,
-          },
-        });
-        const updatedProfiles = await prisma.profile.findMany({
-          where: { userId: testUser.id, organizationId: organization.id },
-        });
-        expect(updatedProfiles).toHaveLength(1);
-      } else {
-        expect(profiles).toHaveLength(1);
-      }
-      const memberships = await prisma.membership.findMany({
-        where: { userId: testUser.id, teamId: organization.id },
-      });
-      expect(memberships).toHaveLength(1);
-    });
-    it("should verify transaction consistency between Profile and Membership", async () => {
-      const organization = trackTeam(
-        await createTestTeam({
-          name: "Test Organization",
-          slug: "test-org",
-          isOrganization: true,
-          metadata: {
-            orgAutoAcceptEmail: "company.com",
-          },
-        })
-      );
-      const testUser = trackUser(
-        await createTestUser({
-          email: "txtest@company.com",
-          username: "txtest",
-        })
-      );
+      // Act: Simulate migration by inviting the user to the organization
       await inviteMembersWithNoInviterPermissionCheck({
+        inviterName: null,
         teamId: organization.id,
+        language: "en",
+        creationSource: "WEBAPP" as const,
+        orgSlug: organization.slug,
         invitations: [
           {
-            usernameOrEmail: testUser.email,
+            usernameOrEmail: unverifiedUserWithUnacceptedMembership.email,
             role: MembershipRole.MEMBER,
           },
         ],
-        language: "en",
-        inviterName: null,
-        orgSlug: organization.slug,
-        creationSource: "WEBAPP" as const,
       });
-      // Verify both Profile and Membership exist
-      const profileCount = await prisma.profile.count({
-        where: { userId: testUser.id, organizationId: organization.id },
-      });
-      const membershipCount = await prisma.membership.count({
-        where: { userId: testUser.id, teamId: organization.id },
-      });
-      // Create profile if it doesn't exist (simulating the fix)
-      if (profileCount === 0 && membershipCount === 1) {
-        const membership = await prisma.membership.findUnique({
-          where: {
-            userId_teamId: {
-              userId: testUser.id,
-              teamId: organization.id,
-            },
-          },
-        });
-        if (membership?.accepted) {
-          await prisma.profile.create({
-            data: {
-              userId: testUser.id,
-              organizationId: organization.id,
-              username: testUser.username || "",
-              uid: `${testUser.username}-${organization.id}`,
-            },
-          });
-          const updatedProfileCount = await prisma.profile.count({
-            where: { userId: testUser.id, organizationId: organization.id },
-          });
-          expect(updatedProfileCount).toBe(1);
-        }
-      } else {
-        expect(profileCount).toBe(1);
-      }
-      expect(membershipCount).toBe(1);
-      // Verify no orphaned records
-      const orphanedProfiles = await prisma.profile.findMany({
-        where: {
-          userId: testUser.id,
-          NOT: {
-            user: {
-              teams: {
-                some: {
-                  teamId: organization.id,
-                },
-              },
-            },
-          },
-        },
-      });
-      expect(orphanedProfiles).toHaveLength(0);
+
+      const orgMembership = await verifyMembershipExists(
+        unverifiedUserWithUnacceptedMembership.id,
+        organization.id
+      );
+      const profile = await verifyProfileExists(unverifiedUserWithUnacceptedMembership.id, organization.id);
+
+      expect(profile?.userId).toBe(unverifiedUserWithUnacceptedMembership.id);
+      expect(profile?.organizationId).toBe(organization.id);
+
+      // Verify original team membership is accepted now
+      const originalMembership = await verifyMembershipExists(
+        unverifiedUserWithUnacceptedMembership.id,
+        regularTeam.id
+      );
+      expect(originalMembership?.accepted).toBe(true);
     });
   });
 });
