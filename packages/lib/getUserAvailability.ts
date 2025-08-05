@@ -154,10 +154,9 @@ type GetUsersAvailabilityProps = {
 };
 
 export interface IUserAvailabilityService {
-    eventTypeRepo: EventTypeRepository;
+  eventTypeRepo: EventTypeRepository;
   oooRepo: PrismaOOORepository;
   bookingRepo: BookingRepository;
-
 }
 
 export class UserAvailabilityService {
