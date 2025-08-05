@@ -87,7 +87,7 @@ export class EventGroupBuilder {
     }
 
     // Add team events
-    const teamGroups = await Promise.all(
+    const teamGroupResults = await Promise.allSettled(
       memberships
         .filter((membership) => shouldIncludeTeamMembership(membership, filters))
         .map(async (membership) => {
@@ -111,6 +111,18 @@ export class EventGroupBuilder {
           return createTeamEventGroup(membership, effectiveRole, teamSlug, permissions);
         })
     );
+
+    const teamGroups = teamGroupResults
+      .filter((result): result is PromiseFulfilledResult<EventTypeGroup> => result.status === "fulfilled")
+      .map((result) => result.value);
+
+    const failedTeams = teamGroupResults.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+
+    if (failedTeams.length > 0) {
+      console.warn(`Failed to process ${failedTeams.length} teams:`, failedTeams);
+    }
 
     eventTypeGroups.push(...teamGroups);
 
