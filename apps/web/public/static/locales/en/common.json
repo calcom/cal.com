@@ -3405,6 +3405,7 @@
   "lock_default_availability_description": "When enabled, team members cannot edit their default availability schedule. They can still add new schedules.",
   "availability_lock_updated_successfully": "Default availability lock setting updated successfully",
   "failed_bookings_by_field": "Failed Bookings By Field",
+  "failed_bookings": "Failed bookings",
   "event_type_no_hosts": "No hosts are assigned to event type",
   "default_availability_is_locked": "Default availability is locked",
   "default_availability_locked_message": "Your team admin has locked your default availability. You cannot edit it.",
@@ -3434,5 +3435,7 @@
   "usage_based_expiration_description": "This link can be used for {{count}} booking",
   "usage_based_generic_expiration_description": "This link can be configured to expire after a set number of bookings",
   "usage_based_expiration_description_plural": "This link can be used for {{count}} bookings",
+  "stats": "Stats",
+  "booking_status": "Booking status",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

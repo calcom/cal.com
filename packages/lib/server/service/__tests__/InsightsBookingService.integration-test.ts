@@ -2,10 +2,11 @@ import type { Team, User, Membership } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
-import { InsightsBookingService } from "../../service/insightsBooking";
+import { InsightsBookingBaseService as InsightsBookingService } from "../InsightsBookingBaseService";
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 
@@ -376,7 +377,15 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: testData.eventType.id,
+          columnFilters: [
+            {
+              id: "eventTypeId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.eventType.id,
+              },
+            },
+          ],
         },
       });
 
@@ -388,7 +397,7 @@ describe("InsightsBookingService Integration Tests", () => {
       await testData.cleanup();
     });
 
-    it("should build memberUserId filter conditions", async () => {
+    it("should build userId filter conditions", async () => {
       const testData = await createTestData();
 
       const service = new InsightsBookingService({
@@ -399,7 +408,15 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          memberUserId: testData.user.id,
+          columnFilters: [
+            {
+              id: "userId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.user.id,
+              },
+            },
+          ],
         },
       });
 
@@ -420,14 +437,62 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: testData.eventType.id,
-          memberUserId: testData.user.id,
+          columnFilters: [
+            {
+              id: "eventTypeId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.eventType.id,
+              },
+            },
+            {
+              id: "userId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: testData.user.id,
+              },
+            },
+          ],
         },
       });
 
       const conditions = await service.getFilterConditions();
       expect(conditions).toEqual(
         Prisma.sql`(("eventTypeId" = ${testData.eventType.id}) OR ("eventParentId" = ${testData.eventType.id})) AND ("userId" = ${testData.user.id})`
+      );
+
+      await testData.cleanup();
+    });
+
+    it("should build status filter conditions", async () => {
+      const testData = await createTestData();
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+        filters: {
+          columnFilters: [
+            {
+              id: "status",
+              value: {
+                type: ColumnFilterType.MULTI_SELECT,
+                data: ["pending", "accepted"],
+              },
+            },
+          ],
+        },
+      });
+
+      const conditions = await service.getFilterConditions();
+      expect(conditions).toEqual(
+        Prisma.sql`"status" IN (${Prisma.join([
+          Prisma.sql`${"pending"}::"BookingStatus"`,
+          Prisma.sql`${"accepted"}::"BookingStatus"`,
+        ])})`
       );
 
       await testData.cleanup();
@@ -473,7 +538,15 @@ describe("InsightsBookingService Integration Tests", () => {
           orgId: testData.org.id,
         },
         filters: {
-          eventTypeId: userEventType.id,
+          columnFilters: [
+            {
+              id: "eventTypeId",
+              value: {
+                type: ColumnFilterType.SINGLE_SELECT,
+                data: userEventType.id,
+              },
+            },
+          ],
         },
       });
 
