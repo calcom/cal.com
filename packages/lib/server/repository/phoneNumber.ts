@@ -429,22 +429,4 @@ export class PhoneNumberRepository {
       data: updateData,
     });
   }
-
-  static async updatePhoneNumberByUserId({
-    phoneNumber,
-    userId,
-    data,
-  }: {
-    phoneNumber: string;
-    userId: number;
-    data: { outboundAgentId: string };
-  }) {
-    return await prisma.calAiPhoneNumber.updateMany({
-      where: {
-        phoneNumber,
-        userId,
-      },
-      data,
-    });
-  }
 }
