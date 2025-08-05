@@ -12,6 +12,7 @@ import element_call_config_json from "./element-call/config.json";
 import facetime_config_json from "./facetime/config.json";
 import fathom_config_json from "./fathom/config.json";
 import ga4_config_json from "./ga4/config.json";
+import googlesheets_config_json from "./googlesheets/config.json";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
@@ -57,6 +58,7 @@ export const appStoreMetadata = {
   facetime: facetime_config_json,
   fathom: fathom_config_json,
   ga4: ga4_config_json,
+  googlesheets: googlesheets_config_json,
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
