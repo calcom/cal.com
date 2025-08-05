@@ -1,0 +1,16 @@
+{
+  "name": "BTCPayServer",
+  "slug": "btcpayserver",
+  "type": "btcpayserver_payment",
+  "logo": "icon.svg",
+  "url": "https://btcpayserver.org",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "BTCPay Server Team",
+  "email": "chat.btcpayserver.org",
+  "description": "BTCPay Server is a self-hosted open source Bitcoin payment processor. Start receiving bitcoin payments for your events and bookings.",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card"
+}
