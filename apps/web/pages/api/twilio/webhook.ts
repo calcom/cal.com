@@ -84,6 +84,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         where: {
           userId: parsedUserId,
           accepted: true,
+          team: {
+            slug: { not: null },
+          },
         },
         select: {
           teamId: true,
