@@ -3417,6 +3417,7 @@
   "restriction_schedule_not_found_error": "Restriction schedule not found",
   "converted_image_size_limit_exceed": "Image size limit exceeded, please use a smaller image preferably in JPEG format",
   "buy_number_for_5_per_month": "Buy Number for $5/month",
+  "no_phone_numbers": "No phone numbers",
   "phone_number_purchased_successfully": "Phone number purchased successfully",
   "cancel_phone_number_subscription": "Cancel Phone Number Subscription",
   "yes_cancel_subscription": "Yes, Cancel Subscription",

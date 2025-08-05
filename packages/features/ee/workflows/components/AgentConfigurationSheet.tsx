@@ -616,7 +616,7 @@ export function AgentConfigurationSheet({
                         <Icon name="phone" className="text-subtle h-8 w-8" />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-emphasis text-lg font-semibold">{t("No phone numbers")}</h3>
+                        <h3 className="text-emphasis text-lg font-semibold">{t("no_phone_numbers")}</h3>
                         <p className="text-subtle text-sm">
                           {t("buy_a_phone_number_or_import_one_you_already_have")}
                         </p>
@@ -670,6 +670,7 @@ export function AgentConfigurationSheet({
                 {t("cancel")}
               </Button>
               <Button
+                StartIcon="external-link"
                 onClick={() =>
                   buyNumberMutation.mutate({
                     agentId: agentId,

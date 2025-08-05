@@ -25,6 +25,8 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
     select: {
       id: true,
+      teamId: true,
+      userId: true,
       activeOn: {
         select: {
           eventTypeId: true,
