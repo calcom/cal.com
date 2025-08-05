@@ -149,7 +149,7 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
 
   if (isLink) {
     return (
-      <Link href={href} legacyBehavior>
+      <Link href={href}>
         {content}
       </Link>
     );

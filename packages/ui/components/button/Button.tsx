@@ -333,7 +333,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
+    <Link data-testid="link-component" href={props.href} shallow={shallow && shallow}>
       {element}
     </Link>
   ) : (

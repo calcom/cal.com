@@ -801,8 +801,7 @@ export default function Success(props: PageProps) {
                               <Link
                                 href={`/auth/login?callbackUrl=${encodeURIComponent(
                                   `/booking/${bookingInfo?.uid}`
-                                )}`}
-                                legacyBehavior>
+                                )}`}>
                                 {t("login")}
                               </Link>
                             </span>
@@ -834,8 +833,7 @@ export default function Success(props: PageProps) {
                                           currentUserEmail
                                             ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
                                             : ""
-                                        }`}
-                                        legacyBehavior>
+                                        }`}>
                                         {t("reschedule")}
                                       </Link>
                                     </span>

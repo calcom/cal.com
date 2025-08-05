@@ -138,7 +138,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   ]}
                 />
               </ol>
-              <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
+              <Link href="/apps/installed/automation?hl=zapier">
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>
