@@ -46,6 +46,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -88,6 +89,41 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
   };
   if (!triggerMap[trigger]) return null;
   return t(triggerMap[trigger]!);
+};
+
+const CalAIAgentSkeleton = () => {
+  return (
+    <div className="bg-muted mt-2 rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <SkeletonText className="h-4 w-24" />
+          <SkeletonText className="mt-2 h-4 w-32" />
+        </div>
+        <SkeletonText className="h-8 w-16" />
+      </div>
+    </div>
+  );
+};
+
+const CalAIAgentDataSkeleton = () => {
+  return (
+    <div className="bg-muted mt-4 rounded-lg p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <SkeletonText className="h-5 w-28" />
+          <div className="mt-2 flex items-center gap-2">
+            <SkeletonText className="h-4 w-4" />
+            <SkeletonText className="h-4 w-32" />
+            <SkeletonText className="h-5 w-12" />
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <SkeletonText className="h-8 w-24" />
+          <SkeletonText className="h-8 w-8" />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -649,6 +685,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
 
+              {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
               {stepAgentId && agentData && (
                 <div className="bg-muted mt-4 rounded-lg p-4">
                   <div className="flex items-center justify-between">
