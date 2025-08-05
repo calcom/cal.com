@@ -26,6 +26,7 @@ export class BillingProcessor {
   @Process(INCREMENT_JOB)
   async handleIncrement(job: Job<IncrementJobDataType>) {
     const { userId } = job.data;
+    console.log("WER GET HERE")
     try {
       // get the platform organization of the managed user
       const team = await this.teamsRepository.findPlatformOrgFromUserId(userId);
