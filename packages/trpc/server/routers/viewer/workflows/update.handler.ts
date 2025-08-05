@@ -333,7 +333,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             const aiPhoneService = createDefaultAIPhoneServiceProvider();
 
             const agent = await tx.agent.findUnique({
-              where: { id: oldStep.agentId },
+              where: { id: oldStep.agentId ?? undefined },
               include: {
                 outboundPhoneNumbers: {
                   select: {
