@@ -34,10 +34,14 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   let teamId = input.teamId;
   const settings = input.settings;
 
-  if (id) {
+  const existingForm = await prisma.app_RoutingForms_Form.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (existingForm) {
     // Check PBAC permissions for updating routing forms only
     await checkPermissionOnExistingRoutingForm({
-      formId: id,
+      formId: existingForm.id,
       userId: user.id,
       permission: "routingForm.update",
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
