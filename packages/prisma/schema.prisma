@@ -1635,7 +1635,6 @@ model CalendarEvent {
   @@unique([calendarSubscriptionId, googleEventId])
   @@index([calendarSubscriptionId, start, end])
   @@index([calendarSubscriptionId, iCalUID])
-  @@index([updatedAt, calendarSubscriptionId])
   @@index([start, end, status]) // For availability queries
   @@index([googleEventId])
 }

@@ -63,8 +63,7 @@ CREATE INDEX "CalendarEvent_calendarSubscriptionId_start_end_idx" ON "CalendarEv
 -- CreateIndex
 CREATE INDEX "CalendarEvent_calendarSubscriptionId_iCalUID_idx" ON "CalendarEvent"("calendarSubscriptionId", "iCalUID");
 
--- CreateIndex
-CREATE INDEX "CalendarEvent_updatedAt_calendarSubscriptionId_idx" ON "CalendarEvent"("updatedAt", "calendarSubscriptionId");
+
 
 -- CreateIndex
 CREATE INDEX "CalendarEvent_start_end_status_idx" ON "CalendarEvent"("start", "end", "status");

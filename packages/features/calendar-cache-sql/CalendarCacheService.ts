@@ -35,9 +35,12 @@ export class CalendarCacheService implements Calendar {
     }
 
     // Batch fetch all subscriptions in a single query
-    const selectedCalendarIds = selectedCalendars
-      .map((sc) => sc.id)
-      .filter((id): id is string => id !== undefined);
+    const selectedCalendarIds = selectedCalendars.reduce<string[]>((acc, sc) => {
+      if (sc.id !== undefined) {
+        acc.push(sc.id);
+      }
+      return acc;
+    }, []);
     const subscriptions = await this.subscriptionRepo.findBySelectedCalendarIds(selectedCalendarIds);
     const subscriptionIds = subscriptions.map((subscription) => subscription.id);
 
