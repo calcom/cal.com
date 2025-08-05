@@ -4,7 +4,7 @@ A high-performance SQL-based calendar caching system for Cal.com that provides f
 
 ## Overview
 
-The Calendar Cache SQL system replaces the previous JSONB-based calendar cache with a robust SQL solution that:
+The Calendar Cache SQL system replaces the previous JSONB-based `CalendarCache` table with a robust structured SQL solution that:
 
 - **Caches calendar events** in PostgreSQL for sub-second availability queries
 - **Maintains real-time sync** with Google Calendar via webhooks
@@ -143,6 +143,8 @@ model CalendarSubscription {
 
 ## Feature Flags
 
+⚠️ **IMPORTANT**: This is currently a **team-only feature**. Individual users cannot enable these features directly - they must be part of a team that has the feature flags enabled.
+
 The system uses team-based feature flags for gradual rollouts:
 
 ### Available Flags
@@ -150,6 +152,58 @@ The system uses team-based feature flags for gradual rollouts:
 - **`calendar-cache-sql-read`** - Enable reading from SQL cache
 - **`calendar-cache-sql-write`** - Enable writing to SQL cache
 - **`calendar-cache-sql-cleanup`** - Enable cleanup of old events
+
+### How to Enable Feature Flags
+
+#### 1. Global Feature Flags (Required First)
+
+First, ensure the global feature flags exist in the `Feature` table:
+
+```sql
+-- Check if features exist
+SELECT slug, enabled FROM "Feature" WHERE slug IN (
+  'calendar-cache-sql-read',
+  'calendar-cache-sql-write',
+  'calendar-cache-sql-cleanup'
+);
+
+-- If missing, add them (should be done via migration)
+INSERT INTO "Feature" (slug, enabled, description, "type") VALUES
+('calendar-cache-sql-read', true, 'Enable reading from SQL calendar cache', 'OPERATIONAL'),
+('calendar-cache-sql-write', true, 'Enable writing to SQL calendar cache', 'OPERATIONAL'),
+('calendar-cache-sql-cleanup', true, 'Enable cleanup of old calendar events', 'OPERATIONAL')
+ON CONFLICT (slug) DO NOTHING;
+```
+
+#### 2. Team Feature Flags (Enable for Specific Teams)
+
+Enable features for a specific team by inserting into the `TeamFeatures` table:
+
+```sql
+-- Find your team ID
+SELECT id, name FROM "Team" WHERE name ILIKE '%your-team-name%';
+
+-- Enable calendar cache SQL features for team (replace TEAM_ID with actual ID)
+INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt") VALUES
+(TEAM_ID, 'calendar-cache-sql-read', NOW(), 'manual-setup', NOW()),
+(TEAM_ID, 'calendar-cache-sql-write', NOW(), 'manual-setup', NOW()),
+(TEAM_ID, 'calendar-cache-sql-cleanup', NOW(), 'manual-setup', NOW())
+ON CONFLICT ("teamId", "featureId") DO NOTHING;
+```
+
+#### 3. Verify Feature Flags
+
+```sql
+-- Check team features are enabled
+SELECT tf."teamId", tf."featureId", t.name as team_name
+FROM "TeamFeatures" tf
+JOIN "Team" t ON t.id = tf."teamId"
+WHERE tf."featureId" IN (
+  'calendar-cache-sql-read',
+  'calendar-cache-sql-write',
+  'calendar-cache-sql-cleanup'
+);
+```
 
 ### Usage Pattern
 
@@ -204,6 +258,76 @@ Set up Google Calendar webhooks using the provided cron job:
 ```bash
 # The cron job at /api/cron/calendar-subscriptions will automatically
 # set up webhooks for users with the calendar-cache-sql-write feature enabled
+```
+
+#### Running Subscription Cron Locally
+
+To populate the `CalendarSubscription` table locally:
+
+```bash
+# Method 1: Direct API call (requires CRON_API_KEY)
+curl -X GET "http://localhost:3000/api/cron/calendar-subscriptions?apiKey=YOUR_CRON_API_KEY"
+
+# Method 2: Using authorization header
+curl -X GET "http://localhost:3000/api/cron/calendar-subscriptions" \
+  -H "Authorization: YOUR_CRON_API_KEY"
+
+# Method 3: Using CRON_SECRET (if configured)
+curl -X GET "http://localhost:3000/api/cron/calendar-subscriptions" \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
+
+**Environment Variables Required:**
+
+```bash
+# Add to your .env.local
+CRON_API_KEY=your-secret-key
+# OR
+CRON_SECRET=your-secret-key
+
+# Google Calendar webhook URL (must be publicly accessible for webhooks)
+GOOGLE_WEBHOOK_URL=https://your-domain.com/api/webhook/google-calendar-sql
+```
+
+**What the Cron Does:**
+
+1. **Creates CalendarSubscription records** for eligible SelectedCalendars
+2. **Sets up Google Calendar watch channels** for real-time webhook notifications
+3. **Updates watch details** (channel ID, expiration, etc.) in the database
+4. **Handles errors** and implements backoff strategies for failed subscriptions
+
+#### Setting Up Webhooks for Local Development
+
+For local webhook testing, you need a publicly accessible URL. Use the provided script:
+
+```bash
+# Install tmole (tunnelmole) for webhook tunneling
+brew install tmole
+
+# Run the webhook setup script
+./scripts/test-gcal-webhooks.sh
+```
+
+**What the Script Does:**
+
+1. **Starts tunnelmole** on port 3000 (or reuses existing session)
+2. **Extracts the public URL** from tunnelmole logs
+3. **Updates GOOGLE_WEBHOOK_URL** in your `.env` file automatically
+4. **Keeps the tunnel active** until you stop it with Ctrl+C
+
+**Alternative Manual Setup:**
+
+```bash
+# Start tmole manually
+tmole 3000
+
+# Copy the generated URL and add to .env
+echo "GOOGLE_WEBHOOK_URL=https://abc123.tunnelmole.net" >> .env
+
+# Test webhook endpoint
+curl -X POST "https://abc123.tunnelmole.net/api/webhook/google-calendar-sql" \
+  -H "X-Goog-Channel-ID: test-channel" \
+  -H "X-Goog-Resource-ID: test-resource"
 ```
 
 ### 4. Environment Variables
@@ -401,6 +525,63 @@ yarn type-check:ci
 INSERT INTO "Feature" ("slug", "enabled", "description", "type") VALUES
 ('calendar-cache-sql-read', true, 'Enable reading from SQL calendar cache', 'OPERATIONAL')
 ON CONFLICT ("slug") DO NOTHING;
+```
+
+#### CalendarSubscription Table is Empty
+
+If the subscription cron runs but no records are created:
+
+```sql
+-- Check if there are eligible SelectedCalendars
+SELECT sc.id, sc.integration, sc."userId", u.email
+FROM "SelectedCalendar" sc
+JOIN "users" u ON u.id = sc."userId"
+JOIN "Membership" m ON m."userId" = u.id
+JOIN "TeamFeatures" tf ON tf."teamId" = m."teamId"
+WHERE sc.integration = 'google_calendar'
+  AND tf."featureId" = 'calendar-cache-sql-write';
+
+-- Check if CalendarSubscriptions exist
+SELECT COUNT(*) FROM "CalendarSubscription";
+
+-- Check cron job logs for errors
+```
+
+#### CalendarEvents Table is Empty
+
+If webhooks aren't populating events, check:
+
+1. **Webhook Setup**: Verify Google Calendar webhooks are configured
+2. **Webhook URL**: Ensure `GOOGLE_WEBHOOK_URL` is publicly accessible
+3. **Webhook Processing**: Check webhook endpoint logs
+4. **Manual Trigger**: Test webhook processing manually
+
+```bash
+# Test webhook endpoint (replace with actual channel ID)
+curl -X POST "http://localhost:3000/api/webhook/google-calendar-sql" \
+  -H "X-Goog-Channel-ID: test-channel-id" \
+  -H "X-Goog-Resource-ID: test-resource-id"
+```
+
+#### Feature Flag Not Working
+
+```sql
+-- Debug feature flag chain
+-- 1. Check if global feature exists
+SELECT * FROM "Feature" WHERE slug = 'calendar-cache-sql-write';
+
+-- 2. Check if team has feature
+SELECT tf.*, t.name FROM "TeamFeatures" tf
+JOIN "Team" t ON t.id = tf."teamId"
+WHERE tf."featureId" = 'calendar-cache-sql-write';
+
+-- 3. Check if user belongs to team with feature
+SELECT u.email, m."teamId", tf."featureId"
+FROM "users" u
+JOIN "Membership" m ON m."userId" = u.id
+JOIN "TeamFeatures" tf ON tf."teamId" = m."teamId"
+WHERE u.id = YOUR_USER_ID
+  AND tf."featureId" = 'calendar-cache-sql-write';
 ```
 
 #### Webhook Failures
