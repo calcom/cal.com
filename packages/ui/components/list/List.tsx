@@ -37,7 +37,7 @@ export type ListItemProps = { expanded?: boolean; rounded?: boolean } & ({
 export function ListItem(props: ListItemProps) {
   const { href, expanded, rounded = true, ...passThroughProps } = props;
 
-  const elementType = href ? "a" : "li";
+  const elementType = "li";
 
   const element = createElement(
     elementType,
