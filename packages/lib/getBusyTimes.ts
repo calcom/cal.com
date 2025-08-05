@@ -252,6 +252,10 @@ const _getBusyTimes = async (params: {
     console.log("videoBusyTimes", videoBusyTimes);
     busyTimes.push(...videoBusyTimes);
     */
+  } else {
+    logger.warn(`No credentials found for user ${userId}`, {
+      selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
+    });
   }
   logger.debug(
     "getBusyTimes:",
