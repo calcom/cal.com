@@ -211,7 +211,6 @@ export default function JoinCall(props: PageProps) {
       </div>
       {displayLogInOverlay && !isUserNameConfirmed && (
         <LogInOverlay
-          isLoggedIn={!!loggedInUserName}
           bookingUid={booking.uid}
           loggedInUserName={loggedInUserName ?? undefined}
           overrideName={overrideName}
@@ -320,7 +319,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
     }
 
     setIsLoading(true);
-    setError(null); // clear previous errors
+    setError(null);
 
     try {
       onJoinAsGuest(trimmedName);
@@ -331,7 +330,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : t("failed_to_join_call") || "Failed to join the call. Please try again.";
+          : t("failed_to_join_call");
 
       setError(errorMessage);
     } finally {
