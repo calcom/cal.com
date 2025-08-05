@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.2.0
+
+### Minor Changes
+
+- [#22886](https://github.com/calcom/cal.com/pull/22886) [`fb36497`](https://github.com/calcom/cal.com/commit/fb364971fadc1a6796e739956200f12af74e565c) Thanks [@supalarry](https://github.com/supalarry)! - bundle fonts to fix atoms in non-next apps
+
 ### Patch Changes
 
 - [#22731](https://github.com/calcom/cal.com/pull/22731) [`ef66187`](https://github.com/calcom/cal.com/commit/ef6618743d5c1367fadf7b98cf15f7ba829535e3) Thanks [@devin-ai-integration](https://github.com/apps/devin-ai-integration)! - Added new startTime prop to the Booker component that allows users to decide the first available date when the booker loads
