@@ -167,6 +167,15 @@ model CalendarSubscription {
 
 ⚠️ **IMPORTANT**: This is currently a **team-only feature**. Individual users cannot enable these features directly - they must be part of a team that has the feature flags enabled.
 
+⚠️ **DATA CLEANUP WARNING**: Disabling feature flags will trigger automatic cleanup of calendar cache data. When `calendar-cache-sql-write` is disabled for a team, the system will:
+
+- **Stop creating new CalendarSubscription records**
+- **Unwatch existing Google Calendar webhooks**
+- **Clean up CalendarSubscription and CalendarEvent data** for that team
+- **Permanently delete cached calendar events**
+
+This cleanup process is irreversible. Re-enabling the feature flags will require rebuilding the cache from scratch.
+
 The system uses team-based feature flags for gradual rollouts:
 
 ### Available Flags
@@ -584,6 +593,29 @@ curl -X POST "http://localhost:3000/api/webhook/google-calendar-sql" \
   -H "X-Goog-Channel-ID: test-channel-id" \
   -H "X-Goog-Resource-ID: test-resource-id"
 ```
+
+#### Feature Flag Disabled - Data Cleanup
+
+If you disabled feature flags and lost data:
+
+```sql
+-- Check if cleanup occurred (tables will be empty)
+SELECT COUNT(*) FROM "CalendarSubscription";
+SELECT COUNT(*) FROM "CalendarEvent";
+
+-- Check if team still has feature flags
+SELECT tf."teamId", tf."featureId", t.name
+FROM "TeamFeatures" tf
+JOIN "Team" t ON t.id = tf."teamId"
+WHERE tf."featureId" IN ('calendar-cache-sql-read', 'calendar-cache-sql-write');
+```
+
+**Recovery Steps:**
+
+1. **Re-enable feature flags** for the team (see feature flag setup section)
+2. **Run subscription cron** to recreate CalendarSubscription records
+3. **Wait for webhook events** to repopulate CalendarEvent data
+4. **Or trigger manual sync** by creating/updating events in Google Calendar
 
 #### Feature Flag Not Working
 
