@@ -660,8 +660,8 @@ await subscriptionRepo.updateSyncToken(subscriptionId, null);
 The system uses Cal.com's standard logger with debug levels. To see debug output:
 
 ```bash
-# Check application logs for debug messages
-yarn dev
+# Enable debug logging
+NEXT_PUBLIC_LOGGER_LEVEL=2 yarn dev
 
 # Look for these log prefixes in output:
 # [DEBUG] CalendarCacheService
