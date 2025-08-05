@@ -179,19 +179,33 @@ const _getBusyTimes = async (params: {
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(
+
+    const calendarBusyTimesQuery = await getBusyCalendarTimes(
       credentials,
       startTime,
       endTime,
       selectedCalendars,
       shouldServeCache
     );
+
+    if (!calendarBusyTimesQuery.success) {
+      throw new Error(
+        `Failed to fetch busy calendar times for selected calendars ${selectedCalendars.map(
+          (calendar) => calendar.id
+        )}`
+      );
+    }
+
+    const calendarBusyTimes = calendarBusyTimesQuery.data;
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
       `Connected Calendars get took ${
         endConnectedCalendarsGet - startConnectedCalendarsGet
       } ms for user ${username}`,
       JSON.stringify({
+        eventTypeId,
+        startTimeDate,
+        endTimeDate,
         calendarBusyTimes,
       })
     );
@@ -238,6 +252,10 @@ const _getBusyTimes = async (params: {
     console.log("videoBusyTimes", videoBusyTimes);
     busyTimes.push(...videoBusyTimes);
     */
+  } else {
+    logger.warn(`No credentials found for user ${userId}`, {
+      selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
+    });
   }
   logger.debug(
     "getBusyTimes:",

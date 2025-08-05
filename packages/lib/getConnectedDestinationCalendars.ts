@@ -9,7 +9,7 @@ import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { DestinationCalendarRepository } from "./server/repository/destinationCalendar";
-import { EventTypeRepository } from "./server/repository/eventType";
+import { EventTypeRepository } from "./server/repository/eventTypeRepository";
 import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
@@ -18,8 +18,14 @@ type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCal
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
 export type UserWithCalendars = Pick<User, "id" | "email"> & {
-  allSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
-  userLevelSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
+  allSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  userLevelSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
   destinationCalendar: DestinationCalendar | null;
 };
 

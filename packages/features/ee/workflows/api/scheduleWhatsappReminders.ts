@@ -24,23 +24,17 @@ export async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
   }
 
-  //delete all scheduled whatsapp reminders where scheduled date is past current date
-  await prisma.workflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.WHATSAPP,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-    },
-  });
-
   //find all unscheduled WHATSAPP reminders
   const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
       scheduledDate: {
+        gte: new Date(),
         lte: dayjs().add(2, "hour").toISOString(),
+      },
+      retryCount: {
+        lt: 3, // Don't continue retrying if it's already failed 3 times
       },
     },
     select,

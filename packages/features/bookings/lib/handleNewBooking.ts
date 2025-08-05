@@ -27,7 +27,6 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -52,6 +51,8 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/booking-limits";
+import { getCacheService } from "@calcom/lib/di/containers/cache";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -69,6 +70,7 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
@@ -90,7 +92,6 @@ import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCr
 import getBookingDataSchema from "./getBookingDataSchema";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
-import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
 import type { Booking } from "./handleNewBooking/createBooking";
@@ -379,12 +380,30 @@ export type PlatformParams = {
 };
 
 export type BookingHandlerInput = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bookingData: Record<string, any>;
   userId?: number;
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
 } & PlatformParams;
+
+function formatAvailabilitySnapshot(data: {
+  dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+  oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+}) {
+  return {
+    ...data,
+    dateRanges: data.dateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+    oooExcludedDateRanges: data.oooExcludedDateRanges.map(({ start, end }) => ({
+      start: start.toISOString(),
+      end: end.toISOString(),
+    })),
+  };
+}
 
 async function handler(
   input: BookingHandlerInput,
@@ -538,7 +557,8 @@ async function handler(
     }
   }
 
-  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+  const cacheService = getCacheService();
+  const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -598,6 +618,7 @@ async function handler(
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
+  const crmRecordId: string | undefined = reqBody.crmRecordId ?? undefined;
 
   let routingFormResponse = null;
 
@@ -648,7 +669,8 @@ async function handler(
     location,
   });
 
-  await checkBookingAndDurationLimits({
+  const checkBookingAndDurationLimitsService = getCheckBookingAndDurationLimitsService();
+  await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
@@ -656,6 +678,7 @@ async function handler(
 
   let luckyUserResponse;
   let isFirstSeat = true;
+  let availableUsers: IsFixedAwareUser[] = [];
 
   if (eventType.seatsPerTimeSlot) {
     const booking = await prisma.booking.findFirst({
@@ -755,7 +778,6 @@ async function handler(
     }
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
-      let availableUsers: IsFixedAwareUser[] = [];
       try {
         availableUsers = await ensureAvailableUsers(
           { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
@@ -1128,6 +1150,8 @@ async function handler(
       seatsShowAttendees: eventType.seatsPerTimeSlot ? eventType.seatsShowAttendees : true,
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
+      disableRescheduling: eventType.disableRescheduling ?? false,
+      disableCancelling: eventType.disableCancelling ?? false,
     })
     .withOrganizer({
       id: organizerUser.id,
@@ -1387,6 +1411,15 @@ async function handler(
       if (booking?.userId) {
         const usersRepository = new UsersRepository();
         await usersRepository.updateLastActiveAt(booking.userId);
+        const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
+
+        logger.info(`Booking created`, {
+          bookingUid: booking.uid,
+          selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
+          availabilitySnapshot: organizerUserAvailability?.availabilityData
+            ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
+            : null,
+        });
       }
 
       // If it's a round robin event, record the reason for the host assignment
@@ -1398,6 +1431,7 @@ async function handler(
             teamMemberEmail: contactOwnerEmail,
             recordType: reqBody.crmOwnerRecordType,
             routingFormResponseId,
+            recordId: crmRecordId,
           });
         } else if (routingFormResponseId && teamId) {
           assignmentReason = await AssignmentReasonRecorder.routingFormRoute({
@@ -2122,15 +2156,20 @@ async function handler(
   }
 
   try {
+    const hashedLinkService = new HashedLinkService();
     if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await prisma.hashedLink.delete({
-        where: {
-          link: reqBody.hashedLink as string,
-        },
-      });
+      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
+
+    // Handle repository errors and convert to HttpErrors
+    if (error instanceof Error) {
+      throw new HttpError({ statusCode: 410, message: error.message });
+    }
+
+    // For unexpected errors, provide a generic message
+    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
 
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
