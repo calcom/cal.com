@@ -249,7 +249,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     dynamicEventSlugRef: !eventType.id ? eventType.slug : null,
     dynamicGroupSlugRef: !eventType.id ? (reqBody.user as string).toLowerCase() : null,
     iCalUID: evt.iCalUID ?? "",
-    iCalSequence: evt.iCalSequence ?? 0,
+    iCalSequence: originalRescheduledBooking ? (evt.iCalSequence || 0) + 1 : 0,
     user: {
       connect: {
         id: eventType.organizerUser.id,
