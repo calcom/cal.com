@@ -1342,6 +1342,7 @@
   "log_in_to_cal_com": "Log in to Cal.com",
   "track_your_meetings": "Track your meetings, get notifications, and manage your schedule more effectively.",
   "track_meetings_and_manage_schedule": "Track your meetings and manage your schedule more effectively",
+  "failed_to_join_call": "Failed to join the call. Please try again.",
   "choose_how_you_d_like_to_join_call": "Choose how you'd like to join this call",
   "choose_how_you_d_like_to_appear_on_the_call": "Choose how you'd like to appear on the call",
   "new_event_trigger": "when new event is booked",
