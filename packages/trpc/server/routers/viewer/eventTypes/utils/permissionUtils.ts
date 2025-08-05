@@ -13,17 +13,21 @@ export interface MembershipWithRole {
   membershipRole: MembershipRole;
 }
 
-export function compareMembership(mship1: MembershipRole, mship2: MembershipRole): boolean {
-  const mshipToNumber = (mship: MembershipRole) =>
-    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
-  return mshipToNumber(mship1) > mshipToNumber(mship2);
+const MEMBERSHIP_HIERARCHY: Record<MembershipRole, number> = {
+  [MembershipRole.MEMBER]: 1,
+  [MembershipRole.ADMIN]: 2,
+  [MembershipRole.OWNER]: 3,
+};
+
+export function hasHigherPrivilege(role1: MembershipRole, role2: MembershipRole): boolean {
+  return MEMBERSHIP_HIERARCHY[role1] > MEMBERSHIP_HIERARCHY[role2];
 }
 
 export function getEffectiveRole(
   orgMembership: MembershipRole | undefined,
   membershipRole: MembershipRole
 ): MembershipRole {
-  return orgMembership && compareMembership(orgMembership, membershipRole) ? orgMembership : membershipRole;
+  return orgMembership && hasHigherPrivilege(orgMembership, membershipRole) ? orgMembership : membershipRole;
 }
 
 export async function getTeamPermissions(
