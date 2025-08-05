@@ -242,13 +242,13 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   const disabled = props.disabled || loading;
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
-  const elementType = isLink ? "a" : "button";
+  const elementType = "button";
   const element = React.createElement(
     elementType,
     {
       ...passThroughProps,
       disabled,
-      type: !isLink ? type : undefined,
+      type: type,
       ref: forwardedRef,
       className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
       // if we click a disabled button, we prevent going through the click handler
