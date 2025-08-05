@@ -275,6 +275,22 @@ export class UserRepository {
     return user;
   }
 
+  async findByEmailCaseInsensitive({ email }: { email: string }) {
+    const user = await this.prismaClient.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+    return user;
+  }
+
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await this.prismaClient.user.findUnique({
       where: {
