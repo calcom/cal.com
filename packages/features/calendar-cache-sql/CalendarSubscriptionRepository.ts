@@ -17,12 +17,18 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         select: {
           id: true,
           selectedCalendarId: true,
-          externalId: true,
-          name: true,
-          error: true,
+          googleChannelId: true,
+          googleChannelKind: true,
+          googleChannelResourceId: true,
+          googleChannelResourceUri: true,
+          googleChannelExpiration: true,
+          nextSyncToken: true,
+          lastFullSync: true,
+          syncErrors: true,
+          maxSyncErrors: true,
+          backoffUntil: true,
           createdAt: true,
           updatedAt: true,
-          lastSyncedAt: true,
           selectedCalendar: {
             select: {
               id: true,
