@@ -23,6 +23,14 @@ import WorkflowStepContainer from "./WorkflowStepContainer";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
+interface WorkflowPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canManage: boolean;
+  readOnly: boolean; // Keep for backward compatibility
+}
+
 interface Props {
   form: UseFormReturn<FormValues>;
   workflowId: number;
@@ -33,6 +41,7 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  permissions: WorkflowPermissions;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -160,7 +169,7 @@ export default function WorkflowDetailsPage(props: Props) {
             />
           </div>
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
-          {!props.readOnly && (
+          {!props.permissions.canDelete && (
             <Button
               type="button"
               StartIcon="trash-2"
