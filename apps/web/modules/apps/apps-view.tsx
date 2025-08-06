@@ -1,12 +1,10 @@
 "use client";
 
+import { Profile } from "@calid/features/ui/Profile";
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
 import { AllApps } from "@calcom/features/apps/components/AllApps";
-import { AppStoreCategories } from "@calcom/features/apps/components/Categories";
-import { PopularAppsSlider } from "@calcom/features/apps/components/PopularAppsSlider";
-import { RecentAppsSlider } from "@calcom/features/apps/components/RecentAppsSlider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { AppFrontendPayload } from "@calcom/types/App";
@@ -14,7 +12,6 @@ import classNames from "@calcom/ui/classNames";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
-import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
@@ -72,24 +69,15 @@ export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: 
       subtitle={t("app_store_description")}
       actions={(className) => (
         <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
-          <div className="ltr:mr-2 rtl:ml-2 lg:hidden">
-            <HorizontalTabs tabs={tabs} />
-          </div>
           <div>
-            <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
+            {/* <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} /> */}
+            <Profile />
           </div>
         </div>
       )}
       headerClassName="sm:hidden lg:block hidden"
       emptyStore={!appStore.length}>
       <div className="flex flex-col gap-y-8">
-        {!searchText && (
-          <>
-            <AppStoreCategories categories={categories} />
-            <PopularAppsSlider items={appStore} />
-            <RecentAppsSlider items={appStore} />
-          </>
-        )}
         <AllApps
           apps={appStore}
           searchText={searchText}
