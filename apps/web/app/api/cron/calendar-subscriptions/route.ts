@@ -55,6 +55,9 @@ async function getHandler(req: NextRequest) {
     const subscriptionsToWatch = await subscriptionRepo.getSubscriptionsToWatch(50);
     let watchedCount = 0;
 
+    // Instantiate CalendarSubscriptionService once outside the loop for better performance
+    const calendarSubscriptionService = new CalendarSubscriptionService();
+
     for (const subscription of subscriptionsToWatch) {
       try {
         if (!subscription.selectedCalendar?.credential) {
@@ -79,8 +82,6 @@ async function getHandler(req: NextRequest) {
           errorCount++;
           continue;
         }
-
-        const calendarSubscriptionService = new CalendarSubscriptionService();
 
         const watchResult = await calendarSubscriptionService.watchCalendar(
           subscription.selectedCalendar.externalId,
