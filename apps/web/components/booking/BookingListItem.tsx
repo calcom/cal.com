@@ -1,6 +1,7 @@
+import { Button } from "@calid/features/ui";
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -23,9 +24,9 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
+import { Button as Button2 } from "@calcom/ui/button";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
@@ -53,11 +54,16 @@ import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
-import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
+import { RescheduleDialog as RequestRescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { BookingCancelDialog } from "./BookingCancelDialog";
+import { BookingExpandedCard } from "./BookingExpandedCard";
+import { RescheduleDialog } from "./RescheduleDialog";
 import {
   getPendingActions,
   getCancelEventAction,
+  getRescheduleEventLink,
+  getRescheduleEventAction,
   getEditEventActions,
   getAfterEventActions,
   shouldShowPendingActions,
@@ -71,6 +77,8 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
 export type BookingItemProps = BookingItem & {
+  expandedBooking: number | null;
+  setExpandedBooking: Dispatch<SetStateAction<number | null>>;
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
   loggedInUser: {
@@ -155,6 +163,25 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
+  const getIconFromLocationValue = (value: string) => {
+    switch (value) {
+      case "phone":
+        return <Icon name="phone" className={"h-3.5 w-3.5"} />;
+      case "userPhone":
+        return <Icon name="phone" className={"h-3.5 w-3.5"} />;
+      case "inPerson":
+        return <Icon name="map-pin" className={"h-3.5 w-3.5"} />;
+      case "attendeeInPerson":
+        return <Icon name="map-pin" className={"h-3.5 w-3.5"} />;
+      case "link":
+        return <Icon name="link" className={"h-3.5 w-3.5"} />;
+      case "somewhereElse":
+        return <Icon name="map" className={"h-3.5 w-3.5"} />;
+      default:
+        return <Icon name="video" className={"h-3.5 w-3.5"} />;
+    }
+  };
+
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data?.status === BookingStatus.REJECTED) {
@@ -170,6 +197,9 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
   });
+
+  const [expandedBooking, setExpandedBooking] = useState<number | null>(booking.id);
+  // const {setExpandedBooking } = booking;
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
@@ -269,6 +299,8 @@ function BookingListItem(booking: BookingItemProps) {
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
+  const rescheduleEventLink = getRescheduleEventLink(actionContext);
+
   const RequestSentMessage = () => {
     return (
       <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
@@ -287,7 +319,10 @@ function BookingListItem(booking: BookingItemProps) {
     .format(isUpcoming ? (isDifferentYear ? "ddd, D MMM YYYY" : "ddd, D MMM") : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
+
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
+
+  const [isOpenSetCancellationDialog, setIsOpenCancellationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -354,20 +389,21 @@ function BookingListItem(booking: BookingItemProps) {
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
   const baseEditEventActions = getEditEventActions(actionContext);
+
   const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
     ...action,
     onClick:
-      action.id === "reschedule_request"
-        ? () => setIsOpenRescheduleDialog(true)
-        : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
+      // action.id === "reschedule_request"
+      //   ?
+      // : action.id === "reroute"
+      // ? () => setRerouteDialogIsOpen(true)
+      action.id === "change_location"
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
+        : // : action.id === "reassign"
+          // ? () => setIsOpenReassignDialog(true)
+          undefined,
   })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
@@ -382,6 +418,7 @@ function BookingListItem(booking: BookingItemProps) {
         ? () => setChargeCardDialogIsOpen(true)
         : action.id === "no_show"
         ? () => {
+            console.log("No showing");
             if (attendeeList.length === 1) {
               const attendee = attendeeList[0];
               noShowMutation.mutate({
@@ -401,11 +438,37 @@ function BookingListItem(booking: BookingItemProps) {
 
   return (
     <>
-      <RescheduleDialog
+      {isNoShowDialogOpen && (
+        <NoShowAttendeesDialog
+          bookingUid={booking.uid}
+          attendees={attendeeList}
+          setIsOpen={setIsNoShowDialogOpen}
+          isOpen={isNoShowDialogOpen}
+        />
+      )}
+
+      <RequestRescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
+
+      {/* <RescheduleDialog
+        isOpenDialog={isOpenRescheduleDialog}
+        setIsOpenDialog={setIsOpenRescheduleDialog}
+        bookingUId={booking.uid}
+      /> */}
+
+      {
+        <BookingCancelDialog
+          isOpenDialog={isOpenSetCancellationDialog}
+          setIsOpenDialog={setIsOpenCancellationDialog}
+          seatReferenceUid={getSeatReferenceUid()}
+          bookingUId={booking.uid}
+          {...booking}
+        />
+      }
+
       {isOpenReassignDialog && (
         <ReassignDialog
           isOpenDialog={isOpenReassignDialog}
@@ -415,6 +478,7 @@ function BookingListItem(booking: BookingItemProps) {
           bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
+
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
@@ -452,14 +516,6 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {isNoShowDialogOpen && (
-        <NoShowAttendeesDialog
-          bookingUid={booking.uid}
-          attendees={attendeeList}
-          setIsOpen={setIsNoShowDialogOpen}
-          isOpen={isNoShowDialogOpen}
-        />
-      )}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
           <div>
@@ -489,240 +545,333 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div
-        data-testid="booking-item"
-        data-today={String(booking.isToday)}
-        className="hover:bg-muted group w-full">
-        <div className="flex flex-col sm:flex-row">
-          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+
+      <div className="border-default my-1.5 flex w-full flex-col items-start justify-between rounded-lg border bg-white shadow-sm hover:shadow-md dark:bg-slate-800">
+        <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
+          <div
+            onClick={() => setExpandedBooking(expandedBooking === booking.id ? null : booking.id)}
+            className="cursor-pointer">
+            <div className="flex flex-col pb-4">
+              <div className="flex flex-col sm:flex-row">
+                {/* <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
             <div className="flex h-full items-center">
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
               )}
-              <Link href={bookingLink} className="ml-3">
-                <div className="cursor-pointer py-4">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                  {!isPending && (
-                    <div>
-                      {(provider?.label ||
-                        (typeof locationToDisplay === "string" &&
-                          locationToDisplay?.startsWith("https://"))) &&
-                        locationToDisplay.startsWith("http") && (
-                          <a
-                            href={locationToDisplay}
-                            onClick={(e) => e.stopPropagation()}
-                            target="_blank"
-                            title={locationToDisplay}
-                            rel="noreferrer"
-                            className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
-                            <div className="flex items-center gap-2">
-                              {provider?.iconUrl && (
-                                <img
-                                  src={provider.iconUrl}
-                                  className="h-4 w-4 rounded-sm"
-                                  alt={`${provider?.label} logo`}
-                                />
-                              )}
-                              {provider?.label
-                                ? t("join_event_location", { eventLocationType: provider?.label })
-                                : t("join_meeting")}
-                            </div>
-                          </a>
-                        )}
-                    </div>
-                  )}
-                </div>
-              </Link>
             </div>
-          </div>
-          <div
-            data-testid="title-and-attendees"
-            className={`w-full px-4${isRejected ? " line-through" : ""}`}>
-            <Link href={bookingLink}>
-              {/* Time and Badges for mobile */}
-              <div className="w-full pb-2 pt-4 sm:hidden">
-                <div className="flex w-full items-center justify-between sm:hidden">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle pr-2 text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                </div>
-
-                {isPending && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("unconfirmed")}
-                  </Badge>
-                )}
-                {booking.eventType?.team && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
-                    {booking.eventType.team.name}
-                  </Badge>
-                )}
-                {showPendingPayment && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("pending_payment")}
-                  </Badge>
-                )}
-                {recurringDates !== undefined && (
-                  <div className="text-muted text-sm sm:hidden">
-                    <RecurringBookingsTooltip
-                      userTimeFormat={userTimeFormat}
-                      userTimeZone={userTimeZone}
-                      booking={booking}
-                      recurringDates={recurringDates}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="cursor-pointer py-4">
+          </div> */}
                 <div
-                  title={title}
-                  className={classNames(
-                    "max-w-10/12 sm:max-w-56 text-emphasis text-sm font-medium leading-6 md:max-w-full",
-                    isCancelled ? "line-through" : ""
-                  )}>
-                  {title}
-                  <span> </span>
+                  data-testid="title-and-attendees"
+                  className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+                  {/* <Link href={bookingLink}> */}
+                  {/* Time and Badges for mobile */}
+                  <div className="w-full pb-2 pt-4 sm:hidden">
+                    <div className="flex w-full items-center justify-between sm:hidden">
+                      <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                      <div className="text-subtle pr-2 text-sm">
+                        {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                        {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                        <MeetingTimeInTimezones
+                          timeFormat={userTimeFormat}
+                          userTimezone={userTimeZone}
+                          startTime={booking.startTime}
+                          endTime={booking.endTime}
+                          attendees={booking.attendees}
+                        />
+                      </div>
+                    </div>
 
-                  {showPendingPayment && (
-                    <Badge className="hidden sm:inline-flex" variant="orange">
-                      {t("pending_payment")}
-                    </Badge>
-                  )}
+                    {isPending && (
+                      <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                        {t("unconfirmed")}
+                      </Badge>
+                    )}
+                    {booking.eventType?.team && (
+                      <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                        {booking.eventType.team.name}
+                      </Badge>
+                    )}
+                    {showPendingPayment && (
+                      <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                        {t("pending_payment")}
+                      </Badge>
+                    )}
+                    {recurringDates !== undefined && (
+                      <div className="text-muted text-sm sm:hidden">
+                        <RecurringBookingsTooltip
+                          userTimeFormat={userTimeFormat}
+                          userTimeZone={userTimeZone}
+                          booking={booking}
+                          recurringDates={recurringDates}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex cursor-pointer flex-col items-start justify-start pt-6">
+                    <div
+                      title={title}
+                      className={classNames(
+                        "max-w-10/12 sm:max-w-56 text-emphasis align-top text-base font-bold leading-6 md:max-w-full"
+                      )}>
+                      {/* {title} */}
+                      <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
+                      <span className="align-center px-1 text-xs font-medium text-slate-400 !no-underline">
+                        {" "}
+                        with{" "}
+                      </span>
+
+                      {/* {attendeeList.length !== 0 && (
+                    <DisplayAttendees
+                      attendees={attendeeList}
+                      user={booking.user}
+                      currentEmail={userEmail}
+                      bookingUid={booking.uid}
+                      isBookingInPast={isBookingInPast}
+                    />
+                  )} */}
+
+                      <span className="align-center  !decoration-none text-xs font-bold text-slate-500">
+                        {" "}
+                        {attendeeList[0].name}{" "}
+                      </span>
+                      {attendeeList.length > 1 && (
+                        <span className="align-center text-sm font-bold text-slate-500">
+                          {" "}
+                          + {attendeeList.length - 1} more{" "}
+                        </span>
+                      )}
+                      {showPendingPayment && (
+                        <Badge className="hidden sm:inline-flex" variant="orange">
+                          {t("pending_payment")}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* <Link href={bookingLink} className="my-0 py-0"> */}
+                    <div className="text-subtle flex cursor-pointer flex-row py-2 text-xs font-medium">
+                      <div className="">{booking.isToday ? t("today_capitalized") : startTime}</div>
+
+                      <span className="px-2">{" • "}</span>
+                      <div className="">
+                        {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                        {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                        <MeetingTimeInTimezones
+                          timeFormat={userTimeFormat}
+                          userTimezone={userTimeZone}
+                          startTime={booking.startTime}
+                          endTime={booking.endTime}
+                          attendees={booking.attendees}
+                        />
+                      </div>
+                    </div>
+
+                    {!isPending && (
+                      <div>
+                        {(provider?.label ||
+                          (typeof locationToDisplay === "string" &&
+                            locationToDisplay?.startsWith("https://"))) &&
+                          locationToDisplay.startsWith("http") && (
+                            <a
+                              href={locationToDisplay}
+                              onClick={(e) => e.stopPropagation()}
+                              target="_blank"
+                              title={locationToDisplay}
+                              rel="noreferrer"
+                              className="text-xs leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                              <div className="flex items-center gap-2">
+                                {/* <Icon name={getIconFromLocationValue(location)} className="h-3.5 w-3.5" /> */}
+                                <Icon name="video" className="h-3.5 w-3.5" />
+
+                                {provider?.label
+                                  ? t("join_event_location", { eventLocationType: provider?.label })
+                                  : t("join_meeting")}
+                              </div>
+                            </a>
+                          )}
+                      </div>
+                    )}
+                    {/* </Link> */}
+
+                    {/* {booking.description && (
+                    <div
+                      className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                      title={booking.description}>
+                      &quot;{booking.description}&quot;
+                    </div>
+                  )} */}
+                    {/* {booking.attendees.length !== 0 && (
+                    <DisplayAttendees
+                      attendees={attendeeList}
+                      user={booking.user}
+                      currentEmail={userEmail}
+                      bookingUid={booking.uid}
+                      isBookingInPast={isBookingInPast}
+                    />
+                  )} */}
+                    {isCancelled && booking.rescheduled && (
+                      <div className="mt-2 inline-block md:hidden">
+                        <RequestSentMessage />
+                      </div>
+                    )}
+                  </div>
+                  {/* </Link> */}
                 </div>
-                {booking.description && (
-                  <div
-                    className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
-                    title={booking.description}>
-                    &quot;{booking.description}&quot;
-                  </div>
-                )}
-                {booking.attendees.length !== 0 && (
-                  <DisplayAttendees
-                    attendees={attendeeList}
-                    user={booking.user}
-                    currentEmail={userEmail}
-                    bookingUid={booking.uid}
-                    isBookingInPast={isBookingInPast}
-                  />
-                )}
-                {isCancelled && booking.rescheduled && (
-                  <div className="mt-2 inline-block md:hidden">
-                    <RequestSentMessage />
-                  </div>
-                )}
-              </div>
-            </Link>
-          </div>
-          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
-            {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-            {shouldShowEditActions(actionContext) && (
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    color="secondary"
-                    variant="icon"
-                    StartIcon="ellipsis"
-                    data-testid="booking-actions-dropdown"
-                  />
-                </DropdownMenuTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuContent>
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("edit_event")}</DropdownMenuLabel>
-                    {editEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+
+                <div className="flex flex-col">
+                  <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+                    {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
+
+                    {/* <Button
+                  variant="outline"
+                  onClick={() => setIsOpenRescheduleDialog(true)}
+                  className="flex items-center space-x-2">
+                  <span>{t("reschedule")}</span>
+                </Button> */}
+
+                    {!isCancelled && <RescheduleDialog link={rescheduleEventLink}></RescheduleDialog>}
+
+                    {!isCancelled && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsOpenCancellationDialog(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("cancel")}</span>
+                      </Button>
+                    )}
+
+                    {!isCancelled && (
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="flex items-center space-x-2">
+                            <Icon name="ellipsis" className="h-4 w-4" />
+                          </Button>
+                          {/* <Button2
+                  tooltip={t("edit")}
+                  type="button"
+                  color="secondary"
+                  variant="icon"
+                  StartIcon="ellipsis"
+                  data-testid="booking-actions-dropdown"
+                /> */}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuContent>
+                            <DropdownMenuLabel className="px-2 pb-1 pt-1.5">
+                              {t("edit_event")}
+                            </DropdownMenuLabel>
+                            {editEventActions.map((action) => (
+                              <DropdownMenuItem
+                                className="rounded-lg"
+                                key={action.id}
+                                disabled={action.disabled}>
+                                <DropdownItem
+                                  type="button"
+                                  color={action.color}
+                                  StartIcon={action.icon}
+                                  href={action.href}
+                                  disabled={action.disabled}
+                                  onClick={action.onClick}
+                                  data-bookingid={action.bookingId}
+                                  data-testid={action.id}
+                                  className={action.disabled ? "text-muted" : undefined}>
+                                  {action.label}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ))}
+                            {/* <DropdownMenuSeparator /> */}
+                            {/* <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
+                      {afterEventActions.map((action) => (
+                        <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
+                          <DropdownItem
+                            type="button"
+                            color={action.color}
+                            StartIcon={action.icon}
+                            href={action.href}
+                            onClick={action.onClick}
+                            disabled={action.disabled}
+                            data-bookingid={action.bookingId}
+                            data-testid={action.id}
+                            className={action.disabled ? "text-muted" : undefined}>
+                            {action.label}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                      ))} */}
+                            {/* <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="rounded-lg"
+                        key={cancelEventAction.id}
+                        disabled={cancelEventAction.disabled}>
                         <DropdownItem
                           type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          disabled={action.disabled}
-                          onClick={action.onClick}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
+                          color={cancelEventAction.color}
+                          StartIcon={cancelEventAction.icon}
+                          href={cancelEventAction.href}
+                          onClick={cancelEventAction.onClick}
+                          disabled={cancelEventAction.disabled}
+                          data-bookingid={cancelEventAction.bookingId}
+                          data-testid={cancelEventAction.id}
+                          className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                          {cancelEventAction.label}
                         </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="px-2 pb-1 pt-1.5">{t("after_event")}</DropdownMenuLabel>
-                    {afterEventActions.map((action) => (
-                      <DropdownMenuItem className="rounded-lg" key={action.id} disabled={action.disabled}>
-                        <DropdownItem
-                          type="button"
-                          color={action.color}
-                          StartIcon={action.icon}
-                          href={action.href}
-                          onClick={action.onClick}
-                          disabled={action.disabled}
-                          data-bookingid={action.bookingId}
-                          data-testid={action.id}
-                          className={action.disabled ? "text-muted" : undefined}>
-                          {action.label}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="rounded-lg"
-                      key={cancelEventAction.id}
-                      disabled={cancelEventAction.disabled}>
-                      <DropdownItem
-                        type="button"
-                        color={cancelEventAction.color}
-                        StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.href}
-                        onClick={cancelEventAction.onClick}
-                        disabled={cancelEventAction.disabled}
-                        data-bookingid={cancelEventAction.bookingId}
-                        data-testid={cancelEventAction.id}
-                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                        {cancelEventAction.label}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenuPortal>
-              </Dropdown>
-            )}
-            {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
-            {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
-            {isCancelled && booking.rescheduled && (
-              <div className="hidden h-full items-center md:flex">
-                <RequestSentMessage />
+                      </DropdownMenuItem> */}
+                          </DropdownMenuContent>
+                        </DropdownMenuPortal>
+                      </Dropdown>
+                    )}
+
+                    {/* {shouldShowRecurringCancelAction(actionContext) && (
+                  <TableActions actions={[cancelEventAction]} />
+                )} */}
+                    {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
+                    {isCancelled && booking.rescheduled && (
+                      <div className="hidden h-full items-center md:flex">
+                        <RequestSentMessage />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1"></div>
+
+                  <div className="flex flex-row justify-end pr-4">
+                    <button
+                      className="align-end text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedBooking(expandedBooking === booking.id ? null : booking.id);
+                      }}>
+                      <span>Details</span>
+                      {expandedBooking === booking.id ? (
+                        <Icon name="chevron-up" className="h-4 w-4" />
+                      ) : (
+                        <Icon name="chevron-down" className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
+              <BookingItemBadges
+                booking={booking}
+                isPending={isPending}
+                recurringDates={recurringDates}
+                userTimeFormat={userTimeFormat}
+                userTimeZone={userTimeZone}
+                isRescheduled={isRescheduled}
+              />
+            </div>
+
+            {expandedBooking === booking.id && (
+              <BookingExpandedCard
+                key={booking.id}
+                className="p-4"
+                isToday={booking.isToday}
+                loggedInUser={booking.loggedInUser}
+                listingStatus={booking.status}
+                recurringInfo={booking.recurringInfo}
+                {...booking}></BookingExpandedCard>
             )}
           </div>
         </div>
-        <BookingItemBadges
-          booking={booking}
-          isPending={isPending}
-          recurringDates={recurringDates}
-          userTimeFormat={userTimeFormat}
-          userTimeZone={userTimeZone}
-          isRescheduled={isRescheduled}
-        />
       </div>
 
       {isBookingFromRoutingForm && (
@@ -754,7 +903,7 @@ const BookingItemBadges = ({
   const { t } = useLocale();
 
   return (
-    <div className="hidden h-9 flex-row items-center pb-4 pl-6 sm:flex">
+    <div className="flex-row items-center pb-2 pl-4 sm:flex">
       {isPending && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
@@ -1249,13 +1398,18 @@ const DisplayAttendees = ({
   attendees.sort((a, b) => a.id - b.id);
 
   return (
-    <div className="text-emphasis text-sm">
-      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+    <div className="align-center !decoration-none text-sm font-bold text-slate-500">
+      {/* {user && <FirstAttendee user={user} currentEmail={currentEmail} />} */}
+      {/* {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>} */}
+      <Attendee
+        {...attendees[0]}
+        bookingUid={bookingUid}
+        isBookingInPast={isBookingInPast}
+        className="text-emphasis inline-block text-sm"
+      />
       {attendees.length > 1 && (
         <>
-          <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
+          <div>&nbsp;{t("and")}&nbsp;</div>
           {attendees.length > 2 ? (
             <Tooltip
               content={attendees.slice(1).map((attendee) => (

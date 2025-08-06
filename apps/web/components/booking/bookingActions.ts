@@ -76,6 +76,28 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
   };
 }
 
+export function getRescheduleEventAction(context: BookingActionContext): ActionType {
+  const { booking, isBookingInPast, isDisabledRescheduling, getSeatReferenceUid, t } = context;
+
+  return {
+    id: "reschedule",
+    icon: "clock",
+    label: t("reschedule_booking"),
+    href: `/reschedule/${booking.uid}${
+      booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+    }`,
+    disabled: (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+  };
+}
+
+export function getRescheduleEventLink(context: BookingActionContext): string {
+  const { booking, isBookingInPast, isDisabledRescheduling, getSeatReferenceUid, t } = context;
+
+  return `/reschedule/${booking.uid}${
+    booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+  }`;
+}
+
 export function getVideoOptionsActions(context: BookingActionContext): ActionType[] {
   const { booking, isBookingInPast, isConfirmed, isCalVideoLocation, t } = context;
 
@@ -116,14 +138,14 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       disabled:
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
     },
-    {
-      id: "reschedule_request",
-      icon: "send",
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-    },
+    // {
+    //   id: "reschedule_request",
+    //   icon: "send",
+    //   iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+    //   label: t("send_reschedule_request"),
+    //   disabled:
+    //     (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+    // },
     isBookingFromRoutingForm
       ? {
           id: "reroute",

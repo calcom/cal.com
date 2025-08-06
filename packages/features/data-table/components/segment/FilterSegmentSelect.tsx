@@ -3,7 +3,8 @@ import { useState, useMemo } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import {Icon} from "@calcom/ui/components/icon"
+import {Button} from "@calid/features/ui"
 import {
   Dropdown,
   DropdownItem,
@@ -13,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
 } from "@calcom/ui/components/dropdown";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "../../hooks";
 import type { FilterSegmentOutput } from "../../lib/types";
@@ -101,9 +102,10 @@ export function FilterSegmentSelect() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
-        {t("segment")}
-      </Button>
+        <Button variant="outline" disabled className="flex items-center space-x-2" data-testid="save-filter-segment-button">
+          <Icon name="bookmark" className="h-4 w-4" />
+          <span>{t("segment")}</span>
+        </Button>
     );
   }
 
@@ -111,13 +113,12 @@ export function FilterSegmentSelect() {
     <>
       <Dropdown>
         <DropdownMenuTrigger asChild>
-          <Button
-            color="secondary"
-            StartIcon="list-filter"
-            EndIcon="chevron-down"
-            data-testid="filter-segment-select">
-            {selectedSegment?.name || t("segment")}
-          </Button>
+        <Button variant="outline" className="flex items-center space-x-2"  data-testid="filter-segment-select">
+          <Icon name="list-filter" className="h-4 w-4" />
+          <span>{selectedSegment?.name || t("segment")}</span>
+          <Icon name="chevron-down" className="h-4 w-4" />
+        </Button>
+
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
           <DropdownMenuContent align="start" className="w-60" data-testid="filter-segment-select-content">

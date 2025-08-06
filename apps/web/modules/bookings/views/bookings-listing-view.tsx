@@ -24,10 +24,13 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
+
+import {Icon} from "@calcom/ui/components/icon"
+import {Button} from "@calid/features/ui"
+
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
-import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import type { HorizontalTabItemProps } from "@calid/features/ui";
+import { HorizontalTabs } from "@calid/features/ui";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -80,6 +83,7 @@ type RowData =
 function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const [expandedBooking, setExpandedBooking] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
@@ -128,7 +132,7 @@ function BookingsContent({ status }: BookingsProps) {
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
-  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
+  // const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
 
   const { limit, offset } = useDataTable();
   const [showFilters, setShowFilters] = useState(false);
@@ -143,7 +147,7 @@ function BookingsContent({ status }: BookingsProps) {
       userIds,
       attendeeName,
       attendeeEmail,
-      bookingUid,
+      // bookingUid,
       afterStartDate: dateRange?.startDate
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
@@ -230,21 +234,21 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
-        id: "bookingUid",
-        header: t("booking_uid"),
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-        meta: {
-          filter: {
-            type: ColumnFilterType.TEXT,
-            textOptions: {
-              allowedOperators: ["equals"],
-            },
-          },
-        },
-      }),
+      // columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+      //   id: "bookingUid",
+      //   header: t("booking_uid"),
+      //   enableColumnFilter: true,
+      //   enableSorting: false,
+      //   cell: () => null,
+      //   meta: {
+      //     filter: {
+      //       type: ColumnFilterType.TEXT,
+      //       textOptions: {
+      //         allowedOperators: ["equals"],
+      //       },
+      //     },
+      //   },
+      // }),
       columnHelper.display({
         id: "customView",
         cell: (props) => {
@@ -252,6 +256,8 @@ function BookingsContent({ status }: BookingsProps) {
             const { booking, recurringInfo, isToday } = props.row.original;
             return (
               <BookingListItem
+                expandedBooking={expandedBooking}
+                setExpandedBooking={setExpandedBooking}
                 key={booking.id}
                 isToday={isToday}
                 loggedInUser={{
@@ -267,13 +273,13 @@ function BookingsContent({ status }: BookingsProps) {
             );
           } else if (props.row.original.type === "today") {
             return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+              <p className="w-full py-2 pl-2 text-sm font-semibold uppercase leading-4">
                 {t("today")}
               </p>
             );
           } else if (props.row.original.type === "next") {
             return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+              <p className="w-full py-2 pl-2 text-sm font-semibold capitalize leading-4">
                 {t("next")}
               </p>
             );
@@ -367,7 +373,7 @@ function BookingsContent({ status }: BookingsProps) {
         attendeeName: false,
         attendeeEmail: false,
         dateRange: false,
-        bookingUid: false,
+        // bookingUid: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -385,17 +391,18 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[32px] flex-row">
-          <Button StartIcon="bookmark" color="secondary" onClick={() => setShowFilters((prev) => !prev)}>
-            {t("filter")}
-          </Button>
+        <div className="flex h-[48px] flex-row gap-4">
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
+              <Icon name="filter" className="h-4 w-4" />
+              <span>{t("filter")}</span>
+            </Button>
 
           <DataTableSegment.SaveButton />
           <DataTableSegment.Select />
         </div>
       </div>
       <main className="w-full">
-        <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col  -mt-8">
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
@@ -415,10 +422,14 @@ function BookingsContent({ status }: BookingsProps) {
                 totalRowCount={query.data?.totalCount}
                 variant="compact"
                 paginationMode="standard"
-                ToolbarLeft={<>{showFilters && <DataTableFilters.FilterBar table={table} />}</>}
-                ToolbarRight={
+                ToolbarLeft={
                   <>
-                    <DataTableFilters.ClearFiltersButton />
+                    {showFilters && (
+                      <div className="flex flex-row gap-2">
+                        <DataTableFilters.FilterBar table={table} />
+                        <DataTableFilters.ClearFiltersButton />
+                      </div>
+                    )}
                   </>
                 }
                 LoaderView={<SkeletonLoader />}

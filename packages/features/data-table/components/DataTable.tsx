@@ -107,7 +107,7 @@ export function DataTable<TData>({
   return (
     <div
       className={classNames(
-        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        // !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
         className
       )}
       style={{
@@ -150,7 +150,7 @@ export function DataTable<TData>({
           }}>
           <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
             {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
-              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full border-none">
+              <TableRow key={headerGroup.id} className="flex w-full border-none">
                 {headerGroup.headers.map((header: Header<TData, unknown>) => {
                   const { column } = header;
                   return (
@@ -172,7 +172,7 @@ export function DataTable<TData>({
                           onMouseDown={header.getResizeHandler()}
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
-                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
+                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0",
                             header.column.getIsResizing() && "!opacity-75"
                           )}>
                           <div className="bg-inverted mx-auto h-full w-[1px]" />
@@ -288,7 +288,7 @@ function DataTableBody<TData>({
 
   return (
     <TableBody
-      className="border-subtle relative grid border-t"
+      className="relative grid"
       data-testid={testId}
       style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
@@ -306,7 +306,7 @@ function DataTableBody<TData>({
               width: "100%",
             }),
           }}
-          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+          className={classNames(onRowMouseclick && "group", rowClassName)}>
           {row.getVisibleCells().map((cell) => {
             const column = cell.column;
             return (

@@ -1,8 +1,10 @@
+// import { Button, Input } from "@calid/features/ui";
+
+import { Icon } from "@calcom/ui/components/icon";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
 import { EmailField } from "../form";
-import { Icon } from "../icon";
 import { Tooltip } from "../tooltip";
 
 interface MultiEmailProps {
@@ -17,17 +19,17 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
   const { t } = useLocale();
   value = value || [];
   const inputClassName =
-    "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle";
+    "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle w-full";
   return (
     <>
       {value.length ? (
         <div>
-          <label htmlFor="emails" className="text-default my-2 block text-sm font-medium">
+          {/* <label htmlFor="emails" className="text-default my-2 block text-sm font-medium">
             {label}
-          </label>
-          <ul>
+          </label> */}
+          <ul className="flex flex-row w-full">
             {value.map((field, index) => (
-              <li key={index}>
+              <li className="flex flex-row w-full" key={index}>
                 <EmailField
                   disabled={readOnly}
                   value={field}
@@ -45,16 +47,13 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
                     updatedValue.splice(index, 1);
                     setValue(updatedValue);
                   }}
-                  addOnSuffix={
-                    !readOnly ? (
-                      <Tooltip content="Remove email">
-                        <button className="m-1" type="button">
-                          <Icon name="x" width={12} className="text-default" />
-                        </button>
-                      </Tooltip>
-                    ) : null
-                  }
                 />
+
+                <Tooltip content="Remove email">
+                  <button className="m-1" type="button">
+                    <Icon name="x" width={12} className="text-default" />
+                  </button>
+                </Tooltip>
               </li>
             ))}
           </ul>
@@ -64,7 +63,7 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
               type="button"
               color="minimal"
               StartIcon="user-plus"
-              className="my-2.5"
+              className="my-2.5 w-full"
               onClick={() => {
                 const updatedValue = [...value];
                 updatedValue.push("");
@@ -83,13 +82,13 @@ function MultiEmail({ value, readOnly, label, setValue, placeholder }: MultiEmai
           data-testid="add-emails"
           color="minimal"
           variant="button"
-          StartIcon="user-plus"
           onClick={() => {
             const updatedValue = [...value];
             updatedValue.push("");
             setValue(updatedValue);
           }}
           className="mr-auto">
+          <Icon name="triangle-alert" className="h-5 w-5" />
           {label}
         </Button>
       )}

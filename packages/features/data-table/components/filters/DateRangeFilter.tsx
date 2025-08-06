@@ -1,12 +1,16 @@
 import { format } from "date-fns";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
+import {buttonClasses} from "@calcom/ui/components/button"
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button, buttonClasses } from "@calcom/ui/components/button";
+
+import {Icon} from "@calcom/ui/components/icon"
+import {Button} from "@calid/features/ui"
+
 import {
   Command,
   CommandList,
@@ -15,7 +19,6 @@ import {
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterValue } from "../../hooks";
@@ -152,22 +155,34 @@ export const DateRangeFilter = ({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          color="secondary"
-          className="items-center capitalize"
-          StartIcon="calendar-range"
-          EndIcon="chevron-down"
-          data-testid={`filter-popover-trigger-${column.id}`}>
+
+
+
+            <Button variant="outline" className="flex items-center space-x-2" data-testid={`filter-popover-trigger-${column.id}`}>
+              <Icon name="calendar-range" className="h-4 w-4" />
+
+
           {showColumnName && (
             <>
-              <span>{column.title}</span>
-              <Badge variant="gray" className="ml-2">
-                {selectedValue}
-              </Badge>
             </>
           )}
           {!showColumnName && <span>{selectedValue}</span>}
-        </Button>
+
+              {/* <Badge variant="gray" className="ml-2">
+                {selectedValue}
+              </Badge> */}
+
+
+              <Icon name="chevron-down" className="h-4 w-4" />
+            </Button>
+
+
+        {/* <Button
+          color="secondary"
+          StartIcon="calendar-range"
+          EndIcon="chevron-down"
+          data-testid={`filter-popover-trigger-${column.id}`}>
+        </Button> */}
       </PopoverTrigger>
       <PopoverContent className="flex w-fit p-0" align="end">
         {isCustomPreset && (

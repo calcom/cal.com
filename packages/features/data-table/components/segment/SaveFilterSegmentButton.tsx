@@ -1,4 +1,6 @@
 import { useSession } from "next-auth/react";
+import {Icon} from "@calcom/ui/components/icon"
+import {Button} from "@calid/features/ui"
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
@@ -6,7 +8,6 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { type FilterSegmentScope } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
 import {
   Dialog,
   DialogContent,
@@ -164,21 +165,19 @@ export function SaveFilterSegmentButton() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button StartIcon="bookmark" color="secondary" disabled>
-        {t("save")}
-      </Button>
+        <Button variant="outline" disabled className="flex items-center space-x-2">
+          <Icon name="bookmark" className="h-4 w-4" />
+          <span>{t("save")}</span>
+        </Button>
     );
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button
-          StartIcon="bookmark"
-          color="secondary"
-          disabled={!canSaveSegment}
-          data-testid="save-filter-segment-button">
-          {t("save")}
+        <Button variant="outline" disabled={!canSaveSegment} className="flex items-center space-x-2" data-testid="save-filter-segment-button">
+          <Icon name="bookmark" className="h-4 w-4" />
+          <span>{t("save")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent data-testid="save-filter-segment-dialog">
