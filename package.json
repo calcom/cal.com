@@ -123,6 +123,8 @@
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
     "eslint": "^8.34.0",
+    "eslint-config-next": "^15.4.5",
+    "eslint-plugin-unused-imports": "latest",
     "p-limit": "^6.2.0",
     "turbo": "^1.10.1"
   },
