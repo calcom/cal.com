@@ -90,18 +90,9 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
   ];
   return (
     <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      {/* <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
-        {searchText
-          ? t("search")
-          : t("category_apps", {
-              category:
-                (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
-                t("all"),
-            })}
-      </h2> */}
       <HorizontalTabs tabs={tabs} />
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
+        <button onClick={handleLeft} className="absolute bottom-0 flex lg:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
             <Icon name="chevron-left" className="text-subtle h-4 w-4" />
           </div>
@@ -109,7 +100,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
         </button>
       )}
       <ul
-        className="no-scrollbar mt-3 flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]"
+        className="no-scrollbar flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]"
         onScroll={(e) => calculateScroll(e)}
         ref={ref}>
         <li
@@ -118,7 +109,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-            "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
+            "hover:bg-emphasis min-w-max rounded-md p-2 text-sm font-medium transition hover:cursor-pointer"
           )}>
           {t("all")}
         </li>
@@ -134,7 +125,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
             }}
             className={classNames(
               selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
-              "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
+              "hover:bg-emphasis rounded-md p-2 text-sm font-medium transition hover:cursor-pointer"
             )}>
             {cat[0].toUpperCase() + cat.slice(1)}
           </li>
