@@ -47,5 +47,8 @@ export { Toaster as ToasterComponent } from "./toaster";
 export * from "./toggle-group";
 export * from "./toggle";
 export * from "./tooltip";
+export * from "./HorizontalTabItem";
+export * from "./HorizontalTabs";
+
 // Explicitly re-export 'toast' from './use-toast' with an alias to avoid ambiguity
 export { toast as useToast } from "./use-toast";

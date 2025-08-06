@@ -19,6 +19,7 @@ const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...pr
           <HorizontalTabItem {...tab} key={idx} linkShallow={linkShallow} linkScroll={linkScroll} />
         ))}
       </nav>
+
       {actions && actions}
     </div>
   );
