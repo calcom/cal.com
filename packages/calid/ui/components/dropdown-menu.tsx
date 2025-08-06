@@ -1,6 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import Link from "next/link";
 import * as React from "react";
+import type { ComponentProps } from "react";
 
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -160,6 +162,25 @@ const DropdownMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTML
   return <span className={cn("ml-auto text-xs tracking-widest opacity-60", className)} {...props} />;
 };
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
+
+type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
+
+export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
+  const isLink = typeof href !== "undefined";
+  const ButtonOrLink = isLink ? "a" : "button";
+
+  const content = <ButtonOrLink {...props} />;
+
+  if (isLink) {
+    return (
+      <Link href={href} legacyBehavior>
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
+}
 
 export {
   DropdownMenu,

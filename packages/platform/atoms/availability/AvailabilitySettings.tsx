@@ -1,11 +1,11 @@
 "use client";
 
-import { Tooltip } from "@calid//features/ui/components/tooltip";
 import { cn } from "@calid/features/lib/cn";
 import { Profile } from "@calid/features/ui/Profile";
 import { Button } from "@calid/features/ui/components/button";
 import { VerticalDivider } from "@calid/features/ui/components/divider";
 import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { SetStateAction, Dispatch } from "react";
 import React, {
   useMemo,

@@ -12,6 +12,8 @@ import type { CredentialFrontendPayload as Credential } from "@calcom/types/Cred
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Icon } from "@calcom/ui/components/icon";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import { AppCard } from "./AppCard";
 
@@ -76,9 +78,19 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
     }
   };
 
+  const tabs: HorizontalTabItemProps[] = [
+    {
+      name: "app_store",
+      href: "/apps",
+    },
+    {
+      name: "installed_apps",
+      href: "/apps/installed",
+    },
+  ];
   return (
     <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
+      {/* <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
         {searchText
           ? t("search")
           : t("category_apps", {
@@ -86,7 +98,8 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
                 (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
                 t("all"),
             })}
-      </h2>
+      </h2> */}
+      <HorizontalTabs tabs={tabs} />
       {leftVisible && (
         <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">

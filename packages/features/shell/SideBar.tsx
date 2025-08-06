@@ -1,5 +1,6 @@
 // import { Credits } from "@calcom/ui/components/credits";
 import BottomNav from "@calid/features/ui/BottomNav";
+import { Logo } from "@calid/features/ui/components/logo";
 import type { User as UserAuth } from "next-auth";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { usePathname } from "next/navigation";
 
 // import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import classNames from "@calcom/ui/classNames";
-import { Logo } from "@calcom/ui/components/logo";
 
 import { Navigation } from "./navigation/Navigation";
 
@@ -62,7 +62,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           {/* logo icon for tablet */}
-          <Link href="/event-types" className="text-center md:inline">
+          <Link href="/event-types" className="px-2 text-center md:inline">
             <Logo small icon />
           </Link>
           <Navigation isPlatformNavigation={isPlatformPages} />

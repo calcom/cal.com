@@ -84,6 +84,8 @@ export function ScheduleListItem({
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
+              variant="icon"
+              color="minimal"
               type="button"
               className="hover:bg-muted rounded-md transition-colors">
               <Icon name="ellipsis" />
