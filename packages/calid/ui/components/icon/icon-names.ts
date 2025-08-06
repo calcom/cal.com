@@ -53,6 +53,7 @@ export type IconName =
   | "clipboard"
   | "clock-2"
   | "clock"
+  | "cloud-check"
   | "code"
   | "columns-3"
   | "command"

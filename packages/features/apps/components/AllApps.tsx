@@ -60,11 +60,10 @@ type AllAppsPropsType = {
 interface CategoryTabProps {
   selectedCategory: string | null;
   categories: string[];
-  searchText?: string;
   onCategoryChange: (category: string | null) => void;
 }
 
-function CategoryTab({ selectedCategory, categories, searchText, onCategoryChange }: CategoryTabProps) {
+function CategoryTab({ selectedCategory, categories, onCategoryChange }: CategoryTabProps) {
   const { t } = useLocale();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
 
@@ -184,10 +183,12 @@ export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) 
     {
       name: "app_store",
       href: "/apps",
+      icon: "blocks",
     },
     {
       name: "installed_apps",
       href: "/apps/installed",
+      icon: "circle-check-big",
     },
   ];
 
@@ -198,7 +199,6 @@ export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) 
         <AppsSearch onChange={(e) => setSearchText(e.target.value)} />
         <CategoryTab
           selectedCategory={selectedCategory}
-          searchText={searchText}
           categories={categories}
           onCategoryChange={handleCategoryChange}
         />

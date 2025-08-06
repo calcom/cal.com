@@ -1,8 +1,8 @@
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useMemo } from "react";
 
 import cs from "@calcom/ui/classNames";
-import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import getAppCategories from "../_utils/getAppCategories";
 
@@ -31,7 +31,7 @@ const AppCategoryNavigation = ({
   const appCategories = useMemo(() => getAppCategories(baseURL, useQueryParam), [baseURL, useQueryParam]);
 
   return (
-    <div className={cs("flex flex-col xl:flex-row xl:space-x-6", classNames?.root ?? className)}>
+    <div className={cs("flex flex-col", classNames?.root ?? className)}>
       <div className="block overflow-x-scroll">
         <HorizontalTabs tabs={appCategories} linkShallow />
       </div>
