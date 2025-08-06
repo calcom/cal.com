@@ -14,14 +14,32 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         where: {
           selectedCalendarId,
         },
-        include: {
+        select: {
+          id: true,
+          selectedCalendarId: true,
+          externalId: true,
+          name: true,
+          error: true,
+          createdAt: true,
+          updatedAt: true,
+          lastSyncedAt: true,
           selectedCalendar: {
             select: {
               id: true,
               externalId: true,
               integration: true,
               userId: true,
-              credential: true,
+              credential: {
+                select: {
+                  id: true,
+                  type: true,
+                  userId: true,
+                  teamId: true,
+                  appId: true,
+                  invalid: true,
+                  // Explicitly excluding 'key' field to prevent exposing sensitive data
+                },
+              },
             },
           },
         },
