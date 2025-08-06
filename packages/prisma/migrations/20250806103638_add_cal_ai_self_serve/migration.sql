@@ -59,9 +59,6 @@ CREATE INDEX "Agent_userId_idx" ON "Agent"("userId");
 CREATE INDEX "Agent_teamId_idx" ON "Agent"("teamId");
 
 -- CreateIndex
-CREATE INDEX "Agent_retellAgentId_idx" ON "Agent"("retellAgentId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "CalAiPhoneNumber_phoneNumber_key" ON "CalAiPhoneNumber"("phoneNumber");
 
 -- CreateIndex
@@ -75,9 +72,6 @@ CREATE INDEX "CalAiPhoneNumber_userId_idx" ON "CalAiPhoneNumber"("userId");
 
 -- CreateIndex
 CREATE INDEX "CalAiPhoneNumber_teamId_idx" ON "CalAiPhoneNumber"("teamId");
-
--- CreateIndex
-CREATE INDEX "CalAiPhoneNumber_stripeSubscriptionId_idx" ON "CalAiPhoneNumber"("stripeSubscriptionId");
 
 -- CreateIndex
 CREATE INDEX "CalAiPhoneNumber_inboundAgentId_idx" ON "CalAiPhoneNumber"("inboundAgentId");

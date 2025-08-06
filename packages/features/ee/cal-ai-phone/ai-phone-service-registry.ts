@@ -78,8 +78,15 @@ export function createAIPhoneServiceProvider(
 ): AIPhoneServiceProvider {
   const type = providerType || AIPhoneServiceProviderType.RETELL_AI;
 
+  const apiKey = config?.apiKey || RETELL_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      `API key not configured for provider type: ${type}. Please set RETELL_API_KEY environment variable or provide apiKey in config.`
+    );
+  }
+
   const providerConfig: AIPhoneServiceProviderConfig = {
-    apiKey: RETELL_API_KEY || "",
+    apiKey,
     enableLogging: process.env.NODE_ENV !== "production",
     ...config,
   };

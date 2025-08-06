@@ -1,22 +1,85 @@
-import type {
-  AIConfigurationSetup as RetellAIConfigurationSetup,
-  UpdateLLMRequest as RetellAIUpdateModelParams,
-  RetellLLM as RetellAIModel,
-  RetellAgent as RetellAIAgent,
-  RetellCall as RetellAICall,
-  CreatePhoneCallParams as RetellAICreatePhoneCallParams,
-  RetellPhoneNumber as RetellAIPhoneNumber,
-  UpdatePhoneNumberParams as RetellAIUpdatePhoneNumberParams,
-  CreatePhoneNumberParams as RetellAICreatePhoneNumberParams,
-  ImportPhoneNumberParams as RetellAIImportPhoneNumberParams,
-  UpdateAgentRequest as RetellAIUpdateAgentParams,
-  RetellLLMGeneralTools as RetellAITools,
-  RetellAgentWithDetails,
-} from "../providers/retell-ai/types";
 
-export type AIPhoneServiceConfiguration = RetellAIConfigurationSetup;
-export type AIPhoneServiceUpdateModelParams = RetellAIUpdateModelParams;
-export type AIPhoneServiceModel = RetellAIModel;
+import type { RetellAIProviderTypeMap } from "../providers/retell-ai";
+
+/**
+ * Enum for supported AI phone service providers
+ */
+export enum AIPhoneServiceProviderType {
+  RETELL_AI = "retell-ai",
+  // Add other providers here as needed
+}
+
+/**
+ * Generic type map for provider-specific types
+ * This allows the interface layer to remain provider-agnostic while supporting type safety
+ *
+ * Usage examples:
+ * - Retell AI provider: AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI>
+ * - Generic usage: AIPhoneServiceProvider (defaults to union of all providers)
+ *
+ * Providers implement this by exporting a consolidated type map from their module:
+ * ```typescript
+ * // In providers/retell-ai/index.ts
+ * export interface RetellAIProviderTypeMap {
+ *   Configuration: RetellAIConfigurationSetup;
+ *   Agent: RetellAgent;
+ *   AgentWithDetails: RetellAgentWithDetails;
+ *   // ... other types
+ * }
+ *
+ * // In interfaces/ai-phone-service.interface.ts
+ * import type { RetellAIProviderTypeMap } from "../providers/retell-ai";
+ *
+ * export interface AIPhoneServiceProviderTypeMap {
+ *   [AIPhoneServiceProviderType.RETELL_AI]: RetellAIProviderTypeMap;
+ * }
+ * ```
+ */
+export interface AIPhoneServiceProviderTypeMap {
+  [AIPhoneServiceProviderType.RETELL_AI]: RetellAIProviderTypeMap;
+}
+
+/**
+ * Generic types that resolve to provider-specific types based on the provider type parameter
+ */
+export type AIPhoneServiceConfiguration<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Configuration"];
+
+export type AIPhoneServiceUpdateModelParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["UpdateModelParams"];
+
+export type AIPhoneServiceModel<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Model"];
+
+export type AIPhoneServiceAgent<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Agent"];
+
+export type AIPhoneServiceCall<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Call"];
+
+export type AIPhoneServicePhoneNumber<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["PhoneNumber"];
+
+export type AIPhoneServiceUpdatePhoneNumberParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["UpdatePhoneNumberParams"];
+
+export type AIPhoneServiceCreatePhoneNumberParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["CreatePhoneNumberParams"];
+
+export type AIPhoneServiceImportPhoneNumberParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["ImportPhoneNumberParams"];
+
+export type AIPhoneServiceUpdateAgentParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["UpdateAgentParams"];
+
+export type AIPhoneServiceTools<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["Tools"];
+
+export type AIPhoneServiceCreatePhoneCallParams<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["CreatePhoneCallParams"];
+
+export type AIPhoneServiceAgentWithDetails<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceProviderTypeMap[T]["AgentWithDetails"];
 
 export interface AIPhoneServiceDeletion {
   modelId?: string;
@@ -32,20 +95,16 @@ export interface AIPhoneServiceDeletionResult {
   };
 }
 
-export type AIPhoneServiceCallData = RetellAICreatePhoneCallParams;
-export type AIPhoneServiceAgent = RetellAIAgent;
-export type AIPhoneServiceCall = RetellAICall;
+export type AIPhoneServiceCallData<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceCreatePhoneCallParams<T>;
 
-export type AIPhoneServicePhoneNumber = RetellAIPhoneNumber;
-export type AIPhoneServiceUpdatePhoneNumberParams = RetellAIUpdatePhoneNumberParams;
-export type AIPhoneServiceCreatePhoneNumberParams = RetellAICreatePhoneNumberParams;
-export type AIPhoneServiceImportPhoneNumberParams = RetellAIImportPhoneNumberParams & {
-  userId: number;
-  teamId?: number;
-  agentId?: string | null;
-};
-export type AIPhoneServiceUpdateAgentParams = RetellAIUpdateAgentParams;
-export type AIPhoneServiceTools = RetellAITools;
+// Extended import phone number params with additional fields
+export type AIPhoneServiceImportPhoneNumberParamsExtended<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> =
+  AIPhoneServiceImportPhoneNumberParams<T> & {
+    userId: number;
+    teamId?: number;
+    agentId?: string | null;
+  };
 
 export interface AIPhoneServiceAgentListItem {
   id: string;
@@ -73,15 +132,16 @@ export interface AIPhoneServiceAgentListItem {
     email: string | undefined;
   } | null;
 }
+
 /**
  * Generic interface for AI phone service providers
- * This interface abstracts away provider-specific details
+ * This interface abstracts away provider-specific details using generics
  */
-export interface AIPhoneServiceProvider {
+export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> {
   /**
    * Setup AI configuration
    */
-  setupConfiguration(config: AIPhoneServiceConfiguration): Promise<{
+  setupConfiguration(config: AIPhoneServiceConfiguration<T>): Promise<{
     modelId: string;
     agentId: string;
   }>;
@@ -96,33 +156,33 @@ export interface AIPhoneServiceProvider {
    */
   updateModelConfiguration(
     modelId: string,
-    data: AIPhoneServiceUpdateModelParams
-  ): Promise<AIPhoneServiceModel>;
+    data: AIPhoneServiceUpdateModelParams<T>
+  ): Promise<AIPhoneServiceModel<T>>;
 
   /**
    * Get model details
    */
-  getModelDetails(modelId: string): Promise<AIPhoneServiceModel>;
+  getModelDetails(modelId: string): Promise<AIPhoneServiceModel<T>>;
 
   /**
    * Get agent details
    */
-  getAgent(agentId: string): Promise<AIPhoneServiceAgent>;
+  getAgent(agentId: string): Promise<AIPhoneServiceAgent<T>>;
 
   /**
    * Update agent configuration
    */
-  updateAgent(agentId: string, data: AIPhoneServiceUpdateAgentParams): Promise<AIPhoneServiceAgent>;
+  updateAgent(agentId: string, data: AIPhoneServiceUpdateAgentParams<T>): Promise<AIPhoneServiceAgent<T>>;
 
   /**
    * Create a phone call
    */
-  createPhoneCall(data: AIPhoneServiceCallData): Promise<AIPhoneServiceCall>;
+  createPhoneCall(data: AIPhoneServiceCallData<T>): Promise<AIPhoneServiceCall<T>>;
 
   /**
    * Create a phone number
    */
-  createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<AIPhoneServicePhoneNumber>;
+  createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams<T>): Promise<AIPhoneServicePhoneNumber<T>>;
 
   /**
    * Delete a phone number
@@ -137,20 +197,20 @@ export interface AIPhoneServiceProvider {
   /**
    * Get phone number details
    */
-  getPhoneNumber(phoneNumber: string): Promise<AIPhoneServicePhoneNumber>;
+  getPhoneNumber(phoneNumber: string): Promise<AIPhoneServicePhoneNumber<T>>;
 
   /**
    * Update phone number configuration
    */
   updatePhoneNumber(
     phoneNumber: string,
-    data: AIPhoneServiceUpdatePhoneNumberParams
-  ): Promise<AIPhoneServicePhoneNumber>;
+    data: AIPhoneServiceUpdatePhoneNumberParams<T>
+  ): Promise<AIPhoneServicePhoneNumber<T>>;
 
   /**
    * Import a phone number
    */
-  importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<AIPhoneServicePhoneNumber>;
+  importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParamsExtended<T>): Promise<AIPhoneServicePhoneNumber<T>>;
 
   /**
    * Generate a checkout session for phone number subscription
@@ -197,7 +257,7 @@ export interface AIPhoneServiceProvider {
     id: string;
     userId: number;
     teamId?: number;
-  }): Promise<RetellAgentWithDetails>;
+  }): Promise<AIPhoneServiceAgentWithDetails<T>>;
 
   /**
    * Create a new agent
@@ -209,7 +269,7 @@ export interface AIPhoneServiceProvider {
     workflowStepId?: number;
     generalPrompt?: string;
     beginMessage?: string;
-    generalTools?: AIPhoneServiceTools;
+    generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
     userTimeZone: string;
   }): Promise<{
@@ -228,7 +288,7 @@ export interface AIPhoneServiceProvider {
     enabled?: boolean;
     generalPrompt?: string | null;
     beginMessage?: string | null;
-    generalTools?: AIPhoneServiceTools;
+    generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
   }): Promise<{ message: string }>;
 
@@ -265,14 +325,6 @@ export interface AIPhoneServiceProviderConfig {
 /**
  * Factory interface for creating AI phone service providers
  */
-export interface AIPhoneServiceProviderFactory {
-  create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider;
-}
-
-/**
- * Enum for supported AI phone service providers
- */
-export enum AIPhoneServiceProviderType {
-  RETELL_AI = "retell-ai",
-  // Add other providers here as needed
+export interface AIPhoneServiceProviderFactory<T extends AIPhoneServiceProviderType = AIPhoneServiceProviderType> {
+  create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider<T>;
 }

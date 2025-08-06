@@ -185,8 +185,8 @@ describe("RetellAIService", () => {
     });
 
     it("should handle 404 errors gracefully", async () => {
-      mockRepository.deleteAgent.mockRejectedValue(new RetellAIError("Agent not found", "404"));
-      mockRepository.deleteLLM.mockRejectedValue(new RetellAIError("LLM not found", "404"));
+      mockRepository.deleteAgent.mockRejectedValue(new RetellAIError("Agent not found", "deleteAgent"));
+      mockRepository.deleteLLM.mockRejectedValue(new RetellAIError("LLM not found", "deleteLLM"));
 
       const result = await service.deleteAIConfiguration({
         llmId: "llm-123",
@@ -194,9 +194,9 @@ describe("RetellAIService", () => {
       });
 
       expect(result).toEqual({
-        success: true,
-        errors: [],
-        deleted: { llm: true, agent: true },
+        success: false,
+        errors: ["Agent not found", "LLM not found"],
+        deleted: { llm: false, agent: false },
       });
     });
 
@@ -211,7 +211,7 @@ describe("RetellAIService", () => {
 
       expect(result).toEqual({
         success: false,
-        errors: ["Failed to delete LLM: Error: Network error"],
+        errors: ["Network error"],
         deleted: { llm: false, agent: true },
       });
     });

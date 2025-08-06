@@ -2455,7 +2455,6 @@ model Agent {
 
   @@index([userId])
   @@index([teamId])
-  @@index([retellAgentId])
 }
 
 model CalAiPhoneNumber {
@@ -2488,7 +2487,6 @@ model CalAiPhoneNumber {
 
   @@index([userId])
   @@index([teamId])
-  @@index([stripeSubscriptionId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
 }

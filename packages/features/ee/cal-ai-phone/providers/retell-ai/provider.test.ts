@@ -190,8 +190,6 @@ describe("RetellAIProvider", () => {
   });
 
   describe("updateModelConfiguration", () => {
-    let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
     let updateLLMConfigurationMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -201,7 +199,7 @@ describe("RetellAIProvider", () => {
         updateLLMConfiguration: updateLLMConfigurationMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should update model configuration", async () => {
@@ -211,7 +209,7 @@ describe("RetellAIProvider", () => {
         begin_message: "Updated begin message",
       };
 
-      const result = await testProvider.updateModelConfiguration(modelId, updateData);
+      const result = await provider.updateModelConfiguration(modelId, updateData);
 
       expect(updateLLMConfigurationMock).toHaveBeenCalledWith(modelId, updateData);
       expect(result).toEqual({ llm_id: "test-llm-id" });
@@ -219,8 +217,6 @@ describe("RetellAIProvider", () => {
   });
 
   describe("getModelDetails", () => {
-    let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
     let getLLMDetailsMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -230,13 +226,13 @@ describe("RetellAIProvider", () => {
         getLLMDetails: getLLMDetailsMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should get model details", async () => {
       const modelId = "test-llm-id";
 
-      const result = await testProvider.getModelDetails(modelId);
+      const result = await provider.getModelDetails(modelId);
 
       expect(getLLMDetailsMock).toHaveBeenCalledWith(modelId);
       expect(result).toEqual({ llm_id: "test-llm-id", general_prompt: "Test prompt" });
@@ -244,8 +240,6 @@ describe("RetellAIProvider", () => {
   });
 
   describe("getAgent", () => {
-    let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
     let getAgentMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -255,13 +249,13 @@ describe("RetellAIProvider", () => {
         getAgent: getAgentMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should get agent details", async () => {
       const agentId = "test-agent-id";
 
-      const result = await testProvider.getAgent(agentId);
+      const result = await provider.getAgent(agentId);
 
       expect(getAgentMock).toHaveBeenCalledWith(agentId);
       expect(result).toEqual({ agent_id: "test-agent-id", agent_name: "Test Agent" });
@@ -269,8 +263,6 @@ describe("RetellAIProvider", () => {
   });
 
   describe("updateAgent", () => {
-    let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
     let updateAgentMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -280,7 +272,7 @@ describe("RetellAIProvider", () => {
         updateAgent: updateAgentMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIProvider(mockRepository, mockService);
     });
 
     it("should update agent", async () => {
@@ -289,7 +281,7 @@ describe("RetellAIProvider", () => {
         agent_name: "Updated Agent Name",
       };
 
-      const result = await testProvider.updateAgent(agentId, updateData);
+      const result = await provider.updateAgent(agentId, updateData);
 
       expect(updateAgentMock).toHaveBeenCalledWith(agentId, updateData);
       expect(result).toEqual({ agent_id: "test-agent-id" });

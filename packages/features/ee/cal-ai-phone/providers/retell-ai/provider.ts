@@ -1,5 +1,6 @@
 import type {
   AIPhoneServiceProvider,
+  AIPhoneServiceProviderType,
   AIPhoneServiceConfiguration,
   AIPhoneServiceDeletion,
   AIPhoneServiceDeletionResult,
@@ -14,18 +15,19 @@ import type {
   AIPhoneServiceImportPhoneNumberParams,
   AIPhoneServiceUpdatePhoneNumberParams,
   AIPhoneServiceAgentListItem,
+  AIPhoneServiceAgentWithDetails,
 } from "../../interfaces/ai-phone-service.interface";
 import { RetellAIService } from "./service";
 import type { RetellAIRepository, RetellAgentWithDetails } from "./types";
 
-export class RetellAIProvider implements AIPhoneServiceProvider {
+export class RetellAIProvider implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {
   private service: RetellAIService;
 
   constructor(repository: RetellAIRepository, service?: RetellAIService) {
     this.service = service || new RetellAIService(repository);
   }
 
-  async setupConfiguration(config: AIPhoneServiceConfiguration): Promise<{
+  async setupConfiguration(config: AIPhoneServiceConfiguration<AIPhoneServiceProviderType.RETELL_AI>): Promise<{
     modelId: string;
     agentId: string;
   }> {
@@ -62,34 +64,34 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
 
   async updateModelConfiguration(
     modelId: string,
-    data: AIPhoneServiceUpdateModelParams
-  ): Promise<AIPhoneServiceModel> {
+    data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
+  ): Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.updateLLMConfiguration(modelId, data);
     return result;
   }
 
-  async getModelDetails(modelId: string): Promise<AIPhoneServiceModel> {
+  async getModelDetails(modelId: string): Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.getLLMDetails(modelId);
     return result;
   }
 
-  async getAgent(agentId: string): Promise<AIPhoneServiceAgent> {
+  async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     const agent = await this.service.getAgent(agentId);
     return agent;
   }
 
-  async updateAgent(agentId: string, data: AIPhoneServiceUpdateAgentParams): Promise<AIPhoneServiceAgent> {
+  async updateAgent(agentId: string, data: AIPhoneServiceUpdateAgentParams<AIPhoneServiceProviderType.RETELL_AI>): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     const agent = await this.service.updateAgent(agentId, data);
     return agent;
   }
 
-  async createPhoneCall(data: AIPhoneServiceCallData): Promise<AIPhoneServiceCall> {
+  async createPhoneCall(data: AIPhoneServiceCallData<AIPhoneServiceProviderType.RETELL_AI>): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.createPhoneCall(data);
 
     return result;
   }
 
-  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<AIPhoneServicePhoneNumber> {
+  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams<AIPhoneServiceProviderType.RETELL_AI>): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.createPhoneNumber({
       area_code: data.area_code,
       nickname: data.nickname,
@@ -100,7 +102,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     return result;
   }
 
-  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<AIPhoneServicePhoneNumber> {
+  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams<AIPhoneServiceProviderType.RETELL_AI>): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.importPhoneNumber(data);
     return result;
   }
@@ -109,23 +111,25 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     phoneNumber,
     userId,
     deleteFromDB,
+    teamId,
   }: {
     phoneNumber: string;
     userId: number;
     deleteFromDB: boolean;
+    teamId?: number;
   }): Promise<void> {
-    await this.service.deletePhoneNumber({ phoneNumber, userId, deleteFromDB });
+    await this.service.deletePhoneNumber({ phoneNumber, userId, deleteFromDB, teamId });
   }
 
-  async getPhoneNumber(phoneNumber: string): Promise<AIPhoneServicePhoneNumber> {
+  async getPhoneNumber(phoneNumber: string): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.getPhoneNumber(phoneNumber);
     return result;
   }
 
   async updatePhoneNumber(
     phoneNumber: string,
-    data: AIPhoneServiceUpdatePhoneNumberParams
-  ): Promise<AIPhoneServicePhoneNumber> {
+    data: AIPhoneServiceUpdatePhoneNumberParams<AIPhoneServiceProviderType.RETELL_AI>
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.updatePhoneNumber(phoneNumber, {
       inbound_agent_id: data.inbound_agent_id,
       outbound_agent_id: data.outbound_agent_id,
@@ -146,6 +150,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
   async cancelPhoneNumberSubscription(params: {
     phoneNumberId: number;
     userId: number;
+    teamId?: number;
   }): Promise<{ success: boolean; message: string }> {
     return await this.service.cancelPhoneNumberSubscription(params);
   }
@@ -174,7 +179,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     id: string;
     userId: number;
     teamId?: number;
-  }): Promise<RetellAgentWithDetails> {
+  }): Promise<AIPhoneServiceAgentWithDetails<AIPhoneServiceProviderType.RETELL_AI>> {
     return await this.service.getAgentWithDetails(params);
   }
 

@@ -12,6 +12,54 @@ export type {
   AIConfigurationSetup,
   AIConfigurationDeletion,
   DeletionResult,
+  // Export all the types needed for the interface layer
+  AIConfigurationSetup as RetellAIConfigurationSetup,
+  UpdateLLMRequest as RetellAIUpdateModelParams,
+  RetellLLM as RetellAIModel,
+  RetellAgent as RetellAIAgent,
+  RetellCall as RetellAICall,
+  CreatePhoneCallParams as RetellAICreatePhoneCallParams,
+  RetellPhoneNumber as RetellAIPhoneNumber,
+  UpdatePhoneNumberParams as RetellAIUpdatePhoneNumberParams,
+  CreatePhoneNumberParams as RetellAICreatePhoneNumberParams,
+  ImportPhoneNumberParams as RetellAIImportPhoneNumberParams,
+  UpdateAgentRequest as RetellAIUpdateAgentParams,
+  RetellLLMGeneralTools as RetellAITools,
+  RetellAgentWithDetails,
+} from "./types";
+
+// Consolidated type map for interface layer
+export interface RetellAIProviderTypeMap {
+  Configuration: AIConfigurationSetup;
+  UpdateModelParams: UpdateLLMRequest;
+  Model: RetellLLM;
+  Agent: RetellAgent;
+  Call: RetellCall;
+  PhoneNumber: RetellPhoneNumber;
+  UpdatePhoneNumberParams: UpdatePhoneNumberParams;
+  CreatePhoneNumberParams: CreatePhoneNumberParams;
+  ImportPhoneNumberParams: ImportPhoneNumberParams;
+  UpdateAgentParams: UpdateAgentRequest;
+  Tools: RetellLLMGeneralTools;
+  CreatePhoneCallParams: CreatePhoneCallParams;
+  AgentWithDetails: RetellAgentWithDetails;
+}
+
+// Import the types we need
+import type {
+  AIConfigurationSetup,
+  UpdateLLMRequest,
+  RetellLLM,
+  RetellAgent,
+  RetellCall,
+  CreatePhoneCallParams,
+  RetellPhoneNumber,
+  UpdatePhoneNumberParams,
+  CreatePhoneNumberParams,
+  ImportPhoneNumberParams,
+  UpdateAgentRequest,
+  RetellLLMGeneralTools,
+  RetellAgentWithDetails,
 } from "./types";
 
 // ===== USAGE EXAMPLES =====

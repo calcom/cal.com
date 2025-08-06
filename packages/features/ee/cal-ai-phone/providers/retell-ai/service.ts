@@ -11,10 +11,9 @@ import { TRPCError } from "@trpc/server";
 import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceCreatePhoneNumberParams,
-  AIPhoneServiceImportPhoneNumberParams,
+  AIPhoneServiceImportPhoneNumberParamsExtended,
 } from "../../interfaces/ai-phone-service.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
-import { RetellAIError } from "./errors";
 import { RetellServiceMapper } from "./service-mappers";
 import type {
   RetellLLM,
@@ -30,9 +29,12 @@ import type {
   Language,
 } from "./types";
 import { getLlmId } from "./types";
+const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
 
 export class RetellAIService {
   constructor(private repository: RetellAIRepository) {}
+
+
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
     const generalTools = RetellServiceMapper.buildGeneralTools(config);
@@ -53,7 +55,7 @@ export class RetellAIService {
     return { llmId: llm.llm_id, agentId: agent.agent_id };
   }
 
-  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams): Promise<RetellPhoneNumber> {
+  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParamsExtended): Promise<RetellPhoneNumber> {
     const { userId, agentId, teamId, ...rest } = data;
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
@@ -160,23 +162,15 @@ export class RetellAIService {
       },
     };
 
-    // Delete agent first (depends on LLM)
     if (config.agentId) {
       try {
         await this.repository.deleteAgent(config.agentId);
         result.deleted.agent = true;
       } catch (error) {
         const errorMessage =
-          error instanceof RetellAIError ? error.message : `Failed to delete agent: ${error}`;
+          error instanceof Error ? error.message : `Failed to delete agent: ${error}`;
         result.errors.push(errorMessage);
         result.success = false;
-
-        // If it's a "not found" error, consider it successful
-        if (errorMessage.includes("not found") || errorMessage.includes("404")) {
-          result.deleted.agent = true;
-          result.success = true;
-          result.errors.pop(); // Remove the error
-        }
       }
     } else {
       result.deleted.agent = true;
@@ -189,16 +183,9 @@ export class RetellAIService {
         result.deleted.llm = true;
       } catch (error) {
         const errorMessage =
-          error instanceof RetellAIError ? error.message : `Failed to delete LLM: ${error}`;
+          error instanceof Error ? error.message : `Failed to delete LLM: ${error}`;
         result.errors.push(errorMessage);
         result.success = false;
-
-        // If it's a "not found" error, consider it successful
-        if (errorMessage.includes("not found") || errorMessage.includes("404")) {
-          result.deleted.llm = true;
-          result.success = true;
-          result.errors.pop(); // Remove the error
-        }
       }
     } else {
       result.deleted.llm = true; // No LLM to delete
@@ -302,7 +289,7 @@ export class RetellAIService {
     }
 
     if (deleteFromDB) {
-      await PhoneNumberRepository.deletePhoneNumber({ phoneNumber, userId });
+      await PhoneNumberRepository.deletePhoneNumber({ phoneNumber });
     }
 
     await this.repository.deletePhoneNumber(phoneNumber);
@@ -799,9 +786,8 @@ export class RetellAIService {
     });
 
     const availableCredits = (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
-    const requiredCredits = 5;
 
-    if (availableCredits < requiredCredits) {
+    if (availableCredits < MIN_CREDIT_REQUIRED_FOR_TEST_CALL) {
       throw new Error(
         `Insufficient credits to make test call. Need ${requiredCredits} credits, have ${availableCredits}. Please purchase more credits.`
       );

@@ -6,6 +6,7 @@ import type {
   AIPhoneServiceConfiguration,
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceTools,
+  AIPhoneServiceProviderType,
 } from "../../interfaces/ai-phone-service.interface";
 import type {
   RetellLLMGeneralTools,
@@ -24,7 +25,7 @@ export class RetellServiceMapper {
   /**
    * Maps AI configuration to Retell tools format
    */
-  static buildGeneralTools(config: AIPhoneServiceConfiguration): NonNullable<RetellLLMGeneralTools> {
+  static buildGeneralTools(config: AIPhoneServiceConfiguration<AIPhoneServiceProviderType.RETELL_AI>): NonNullable<RetellLLMGeneralTools> {
     const tools: NonNullable<RetellLLMGeneralTools> = [
       {
         type: "end_call",
@@ -93,7 +94,7 @@ export class RetellServiceMapper {
   /**
    * Maps update model params to Retell format
    */
-  static mapToUpdateLLMRequest(data: AIPhoneServiceUpdateModelParams): UpdateLLMRequest {
+  static mapToUpdateLLMRequest(data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>): UpdateLLMRequest {
     return {
       general_prompt: data.general_prompt,
       begin_message: data.begin_message,
@@ -193,7 +194,7 @@ export class RetellServiceMapper {
   static extractLLMUpdateData(
     generalPrompt?: string | null,
     beginMessage?: string | null,
-    generalTools?: AIPhoneServiceTools
+    generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>
   ): UpdateLLMRequest {
     return {
       general_prompt: generalPrompt,

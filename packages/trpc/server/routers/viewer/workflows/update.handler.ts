@@ -331,7 +331,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
+    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt, agentId: oldStep.agentId })) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =

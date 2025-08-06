@@ -150,7 +150,7 @@ export class PhoneNumberRepository {
     });
   }
 
-  static async deletePhoneNumber({ phoneNumber }: { phoneNumber: string; userId: number }) {
+  static async deletePhoneNumber({ phoneNumber }: { phoneNumber: string }) {
     return await prisma.calAiPhoneNumber.delete({
       where: {
         phoneNumber,
