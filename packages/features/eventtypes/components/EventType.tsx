@@ -86,14 +86,12 @@ export const EventType = ({
   saveButtonRef,
 }: EventTypeComponentProps) => {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-  const teamId = eventType.team?.id;
 
   return (
     <>
       <EventTypeSingleLayout
         eventType={eventType}
         team={team}
-        teamId={teamId ?? null}
         isUpdateMutationLoading={isUpdating}
         formMethods={formMethods}
         // disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}

@@ -44,7 +44,6 @@ type Props = {
   bookerUrl: string;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
-  teamId?: number | null;
   isPlatform?: boolean;
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
@@ -67,7 +66,6 @@ function EventTypeSingleLayout({
   tabsNavigation,
   allowDelete = true,
   saveButtonRef,
-  teamId,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -98,6 +96,7 @@ function EventTypeSingleLayout({
   const [Shell] = useMemo(() => {
     return isPlatform ? [PlatformShell] : [WebShell];
   }, [isPlatform]);
+  const teamId = eventType.team?.id;
 
   return (
     <Shell
