@@ -42,9 +42,8 @@ import logger from "@calcom/lib/logger";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
@@ -55,6 +54,7 @@ import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import { PeriodType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
+import prisma from "@calcom/prisma";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -499,8 +499,8 @@ export class AvailableSlotsService {
             }
 
             if (unit === "year") {
-              // TODO: DI getTotalBookingDuration
-              const totalYearlyDuration = await getTotalBookingDuration({
+              const bookingRepo = new BookingRepository(prisma);
+              const totalYearlyDuration = await bookingRepo.getTotalBookingDuration({
                 eventId: eventType.id,
                 startDate: periodStart.toDate(),
                 endDate: periodStart.endOf(unit).toDate(),
