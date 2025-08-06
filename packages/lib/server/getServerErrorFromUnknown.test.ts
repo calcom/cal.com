@@ -16,6 +16,7 @@ const test400Codes = [
   ErrorCode.BookingNotAllowedByRestrictionSchedule,
   ErrorCode.BookerLimitExceeded,
   ErrorCode.BookerLimitExceededReschedule,
+  ErrorCode.ChargeCardFailure,
 ];
 
 const test404Codes = [
@@ -33,7 +34,6 @@ const test409Codes = [
   ErrorCode.NotEnoughAvailableSeats,
   ErrorCode.BookingConflict,
   ErrorCode.PaymentCreationFailure,
-  ErrorCode.ChargeCardFailure,
 ];
 
 describe("getServerErrorFromUnknown", () => {
