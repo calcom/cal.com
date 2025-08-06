@@ -30,7 +30,7 @@ interface CalendarToggleItemProps {
 function CalendarToggleItem(props: CalendarToggleItemProps) {
   const badgeStatus = props.status === "connected" ? "green" : "orange";
   const badgeText = props.status === "connected" ? "Connected" : "Not found";
-  
+
   // Format cache update time for display
   const formatCacheTime = (date: Date | null) => {
     if (!date) return "Never";
@@ -43,8 +43,11 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
   };
 
   // Create tooltip content for SQL cache data
-  const createSqlCacheTooltipContent = (calendar: CalendarToggleItemProps['calendars'][0]) => {
-    if (!calendar.sqlCacheUpdatedAt && (!calendar.sqlCacheSubscriptionCount || calendar.sqlCacheSubscriptionCount === 0)) {
+  const createSqlCacheTooltipContent = (calendar: NonNullable<CalendarToggleItemProps["calendars"]>[0]) => {
+    if (
+      !calendar.sqlCacheUpdatedAt &&
+      (!calendar.sqlCacheSubscriptionCount || calendar.sqlCacheSubscriptionCount === 0)
+    ) {
       return null;
     }
 
@@ -53,10 +56,14 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
       parts.push(`Last sync: ${formatCacheTime(calendar.sqlCacheUpdatedAt)}`);
     }
     if (calendar.sqlCacheSubscriptionCount && calendar.sqlCacheSubscriptionCount > 0) {
-      parts.push(`${calendar.sqlCacheSubscriptionCount} subscription${calendar.sqlCacheSubscriptionCount > 1 ? 's' : ''}`);
+      parts.push(
+        `${calendar.sqlCacheSubscriptionCount} subscription${
+          calendar.sqlCacheSubscriptionCount > 1 ? "s" : ""
+        }`
+      );
     }
-    
-    return parts.join(', ');
+
+    return parts.join(", ");
   };
 
   return (
@@ -80,7 +87,7 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
           </Badge>
           {/* Legacy Cache Data (at credential level) */}
           {props.cacheData && (
-            <div className="text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs">
               Legacy Cache: {formatCacheTime(props.cacheData.updatedAt)}
             </div>
           )}
@@ -89,14 +96,14 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
       <div className="[&>*]:text-emphasis flex flex-col gap-3">
         {props.calendars?.map((calendar) => {
           const sqlCacheTooltipContent = createSqlCacheTooltipContent(calendar);
-          
+
           return (
             <div key={calendar.name} className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <Switch checked={calendar.active} label={calendar.name} disabled />
                 {sqlCacheTooltipContent && (
                   <Tooltip content={sqlCacheTooltipContent}>
-                    <div className="text-xs text-muted-foreground cursor-help">
+                    <div className="text-muted-foreground cursor-help text-xs">
                       <Icon name="info" className="h-3 w-3" />
                     </div>
                   </Tooltip>

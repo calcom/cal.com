@@ -46,17 +46,21 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
     const enrichedLegacyCache = enrichedWithLegacyCache[index];
 
     // Ensure we always preserve the enriched properties, even if enrichment fails
-    const enrichedCalendars =
-      enrichedCalendar?.calendars ||
-      calendar.calendars?.map((cal) => ({
+    const enrichedCalendars = calendar.calendars?.map((cal) => {
+      const enrichedCal = enrichedCalendar?.calendars?.find(
+        (enriched) => enriched.externalId === cal.externalId
+      );
+
+      return {
         ...cal,
-        sqlCacheUpdatedAt: null,
-        sqlCacheSubscriptionCount: 0,
-      }));
+        sqlCacheUpdatedAt: enrichedCal?.sqlCacheUpdatedAt ?? null,
+        sqlCacheSubscriptionCount: enrichedCal?.sqlCacheSubscriptionCount ?? 0,
+      };
+    });
 
     return {
       ...calendar,
-      cacheUpdatedAt: enrichedLegacyCache?.cacheUpdatedAt || null,
+      cacheUpdatedAt: enrichedLegacyCache?.cacheUpdatedAt ?? null,
       calendars: enrichedCalendars,
     };
   });

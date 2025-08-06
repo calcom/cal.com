@@ -4,8 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 
 import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
 import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
-import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Select } from "@calcom/ui/components/form";
@@ -13,8 +13,8 @@ import { Select } from "@calcom/ui/components/form";
 import { getPlaceholderContent } from "../lib/getPlaceholderContent";
 
 export type DestinationCalendarProps = {
-  connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
-  destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
+  connectedCalendars: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
+  destinationCalendar: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["destinationCalendar"];
   onChange: (value: { externalId: string; integration: string; delegationCredentialId?: string }) => void;
   isPending?: boolean;
   hidePlaceholder?: boolean;
