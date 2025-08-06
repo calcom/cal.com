@@ -8970,15 +8970,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:15.4.5":
-  version: 15.4.5
-  resolution: "@next/eslint-plugin-next@npm:15.4.5"
-  dependencies:
-    fast-glob: 3.3.1
-  checksum: b377bbff604a3aa0a5c1c480077cc2430186abe18f9d0de3b192dca44106f06407509a2c8744f49788a09222f950c4cf67fd08beaad011af5053f410692616c3
-  languageName: node
-  linkType: hard
-
 "@next/swc-darwin-arm64@npm:13.5.7":
   version: 13.5.7
   resolution: "@next/swc-darwin-arm64@npm:13.5.7"
@@ -21593,7 +21584,6 @@ __metadata:
     date-fns-tz: ^3.2.0
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
-    eslint-config-next: ^15.4.5
     husky: ^8.0.0
     i18n-unused: ^0.13.0
     jest-diff: ^29.5.0
@@ -25945,30 +25935,6 @@ __metadata:
     typescript:
       optional: true
   checksum: 6694d86f779f2a6e820873db6641d43cdf446aaa2e9c97b13c0019627369538d217f41e4b7349d7a9308a5378a454c51201e47e8eac2e873fb3f0309985a72d6
-  languageName: node
-  linkType: hard
-
-"eslint-config-next@npm:^15.4.5":
-  version: 15.4.5
-  resolution: "eslint-config-next@npm:15.4.5"
-  dependencies:
-    "@next/eslint-plugin-next": 15.4.5
-    "@rushstack/eslint-patch": ^1.10.3
-    "@typescript-eslint/eslint-plugin": ^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0
-    "@typescript-eslint/parser": ^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0
-    eslint-import-resolver-node: ^0.3.6
-    eslint-import-resolver-typescript: ^3.5.2
-    eslint-plugin-import: ^2.31.0
-    eslint-plugin-jsx-a11y: ^6.10.0
-    eslint-plugin-react: ^7.37.0
-    eslint-plugin-react-hooks: ^5.0.0
-  peerDependencies:
-    eslint: ^7.23.0 || ^8.0.0 || ^9.0.0
-    typescript: ">=3.3.1"
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  checksum: c4f61ee00fc29d669477037481557a282ab080e0276da3e02e187ad54ae543bd2ca22668ee73fbf7212f69ed9d1866cc6fb648a9e5726d7b2c33875b4dd82722
   languageName: node
   linkType: hard
 
