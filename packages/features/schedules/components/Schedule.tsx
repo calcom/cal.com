@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Switch } from "@calid/features/ui/components/switch";
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ArrayPath,
@@ -20,13 +22,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
-
 import cn from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
@@ -292,9 +291,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 }}
               />
             )}
-            {index !== 0 && (
-              <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
-            )}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
           </div>
         </Fragment>
       ))}
@@ -322,7 +319,7 @@ const RemoveTimeButton = ({
       type="button"
       variant="icon"
       color="destructive"
-      StartIcon="trash"
+      StartIcon="trash-2"
       onClick={() => remove(index)}
       className={className}
       tooltip={labels?.deleteTime ?? t("delete")}

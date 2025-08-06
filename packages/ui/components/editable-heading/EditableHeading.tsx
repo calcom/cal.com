@@ -22,7 +22,7 @@ export const EditableHeading = function EditableHeading({
   return (
     <div className="group pointer-events-auto relative truncate" onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
-        <label className="min-w-8 relative inline-block">
+        <label className="relative inline-block min-w-8">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
           <input
             {...passThroughProps}
@@ -47,7 +47,10 @@ export const EditableHeading = function EditableHeading({
             onChange={(e) => onChange && onChange(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
+            <Icon
+              name="pen-line"
+              className="text-subtle group-hover:text-subtle -mt-px ml-2 inline h-4 w-4"
+            />
           )}
         </label>
       </div>

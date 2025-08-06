@@ -1,25 +1,88 @@
 import { cn } from "@calid/features/lib/cn";
+import { useId } from "@radix-ui/react-id";
+import * as Label from "@radix-ui/react-label";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
-import * as React from "react";
+import type { ReactNode } from "react";
+import React from "react";
 
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
->(({ className, ...props }, ref) => (
-  <SwitchPrimitives.Root
-    className={cn(
-      "focus-visible:ring-ring focus-visible:ring-offset-background data-[state=checked]:bg-primary data-[state=unchecked]:bg-input peer inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-      className
-    )}
-    {...props}
-    ref={ref}>
-    <SwitchPrimitives.Thumb
-      className={cn(
-        "bg-background pointer-events-none block h-4 w-4 rounded-full shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
-      )}
-    />
-  </SwitchPrimitives.Root>
-));
-Switch.displayName = SwitchPrimitives.Root.displayName;
+import { Tooltip } from "./tooltip";
 
-export { Switch };
+const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
+  if (!tooltip) {
+    return <>{children}</>;
+  }
+  return <Tooltip content={tooltip}>{children}</Tooltip>;
+};
+export const Switch = (
+  props: React.ComponentProps<typeof SwitchPrimitives.Root> & {
+    label?: string | ReactNode;
+    fitToHeight?: boolean;
+    disabled?: boolean;
+    tooltip?: string;
+    labelOnLeading?: boolean;
+    size?: "base" | "sm";
+    classNames?: {
+      container?: string;
+      thumb?: string;
+    };
+    LockedIcon?: React.ReactNode;
+    padding?: boolean;
+  }
+) => {
+  const {
+    label,
+    fitToHeight,
+    classNames,
+    labelOnLeading,
+    LockedIcon,
+    padding,
+    size = "base",
+    ...primitiveProps
+  } = props;
+  const id = useId();
+  return (
+    <Wrapper tooltip={props.tooltip}>
+      <div
+        className={cn(
+          "flex h-auto w-fit flex-row items-center",
+          fitToHeight && "h-fit",
+          labelOnLeading && "flex-row-reverse",
+          padding && "hover:bg-subtle rounded-md p-1.5",
+          classNames?.container
+        )}>
+        {LockedIcon && <div className="mr-2">{LockedIcon}</div>}
+        <SwitchPrimitives.Root
+          {...primitiveProps}
+          id={id}
+          className={cn(
+            size === "sm" ? "h-3 w-[20px]" : "h-4 w-[28px]",
+            "focus:ring-brand-default data-[state=checked]:bg-brand-default dark:data-[state=checked]:bg-brand-emphasis data-[state=unchecked]:bg-emphasis peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-inner transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            size === "sm" ? "h-4 w-7" : "h-6 w-11",
+            classNames?.container
+          )}>
+          <SwitchPrimitives.Thumb
+            className={cn(
+              "bg-default data-[state=checked]:bg-brand-accent shadow-switch-thumb pointer-events-none block rounded-full shadow-lg ring-0 transition-transform",
+              size === "sm"
+                ? "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
+                : "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
+              classNames?.thumb
+            )}
+          />
+        </SwitchPrimitives.Root>
+        {label && (
+          <Label.Root
+            htmlFor={id}
+            className={cn(
+              "text-emphasis align-text-top font-medium",
+              size === "sm" ? "m-1 text-xs" : "m-2 text-sm",
+              primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
+              labelOnLeading && "flex-1"
+            )}>
+            {label}
+          </Label.Root>
+        )}
+      </div>
+    </Wrapper>
+  );
+};

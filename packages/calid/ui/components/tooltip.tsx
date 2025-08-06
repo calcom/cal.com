@@ -1,27 +1,54 @@
-import { cn } from "@calid/features/lib/cn";
+"use client";
+
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import * as React from "react";
+import React from "react";
 
-const TooltipProvider = TooltipPrimitive.Provider;
+import classNames from "@calcom/ui/classNames";
 
-const Tooltip = TooltipPrimitive.Root;
+export function Tooltip({
+  children,
+  content,
+  open,
+  defaultOpen,
+  onOpenChange,
+  delayDuration,
+  side = "top",
+  ...props
+}: {
+  children: React.ReactNode;
+  content: React.ReactNode;
+  delayDuration?: number;
+  open?: boolean;
+  defaultOpen?: boolean;
+  side?: "top" | "right" | "bottom" | "left";
+  onOpenChange?: (open: boolean) => void;
+} & TooltipPrimitive.TooltipContentProps) {
+  const Content = (
+    <TooltipPrimitive.Content
+      {...props}
+      className={classNames(
+        "calcom-tooltip",
+        side === "top" && "-mt-7",
+        side === "right" && "ml-2",
+        "bg-inverted text-inverted relative z-50 rounded-md px-2 py-1 text-xs font-semibold shadow-lg",
+        props.className && `${props.className}`
+      )}
+      side={side}
+      align="center">
+      {content}
+    </TooltipPrimitive.Content>
+  );
 
-const TooltipTrigger = TooltipPrimitive.Trigger;
+  return (
+    <TooltipPrimitive.Root
+      delayDuration={delayDuration || 50}
+      open={open}
+      defaultOpen={defaultOpen}
+      onOpenChange={onOpenChange}>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>{Content}</TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
+  );
+}
 
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
-    ref={ref}
-    sideOffset={sideOffset}
-    className={cn(
-      "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 overflow-hidden rounded-md border bg-black px-3 py-1.5 text-xs text-white shadow-md",
-      className
-    )}
-    {...props}
-  />
-));
-TooltipContent.displayName = TooltipPrimitive.Content.displayName;
-
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
+export default Tooltip;

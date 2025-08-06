@@ -73,6 +73,8 @@ module.exports = {
         subtle: "var(--cal-bg-subtle)",
         muted: "var(--cal-bg-muted)",
         inverted: "var(--cal-bg-inverted)",
+        gradient: "var(--cal-bg-gradient)",
+        active: "var(--cal-bg-active)",
 
         // Primary Background
         primary: {
@@ -181,6 +183,7 @@ module.exports = {
         subtle: "var(--cal-text-subtle)",
         muted: "var(--cal-text-muted)",
         inverted: "var(--cal-text-inverted)",
+        destructive: "var(--cal-text-destructive)",
 
         // Semantic Text
         semantic: {
