@@ -1,7 +1,7 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { Injectable } from "@nestjs/common";
 
-import { CheckBookingLimitsService as BaseCheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import { CheckBookingLimitsService as BaseCheckBookingLimitsService } from "@calcom/platform-libraries/bookings";
 
 @Injectable()
 export class CheckBookingLimitsService extends BaseCheckBookingLimitsService {

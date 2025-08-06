@@ -31,12 +31,11 @@ export default defineConfig(({ mode }) => {
         entry: [resolve(__dirname, "index.ts")],
         name: "CalAtoms",
         fileName: "cal-atoms",
-        formats: ["es"],
+        
       },
       rollupOptions: {
-        external: ["react", "fs", "path", "os", "react/jsx-runtime", "react-dom", "react-dom/client"],
+        external: ["react", "fs", "path", "os", "react/jsx-runtime", "react-dom", "react-dom/client", "react-awesome-query-builder", "react-awesome-query-builder", "react-awesome-query-builder", "react-awesome-query-builder"],
         output: {
-          format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",

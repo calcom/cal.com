@@ -1,7 +1,7 @@
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
-import { PrismaSelectedSlotRepository as PrismaSelectedSlotRepositoryLib } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
+import { PrismaSelectedSlotRepository as PrismaSelectedSlotRepositoryLib } from "@calcom/platform-libraries/repositories";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()

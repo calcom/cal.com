@@ -1,52 +1,15 @@
-const createMockFn = () => {
-  if (typeof jest !== "undefined" && jest.fn) {
-    return jest.fn;
-  }
-  return (impl?: any) => impl || (() => {});
-};
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
-const mockFn = createMockFn();
+import dayjs from "@calcom/dayjs";
 
-const mockDayjsInstance = {
-  format: mockFn(() => "2024-01-01T00:00:00Z"),
-  toISOString: mockFn(() => "2024-01-01T00:00:00Z"),
-  valueOf: mockFn(() => 1704067200000),
-  toString: mockFn(() => "2024-01-01T00:00:00Z"),
-  utc: mockFn(() => mockDayjsInstance),
-  tz: mockFn(() => mockDayjsInstance),
-  add: mockFn(() => mockDayjsInstance),
-  subtract: mockFn(() => mockDayjsInstance),
-  startOf: mockFn(() => mockDayjsInstance),
-  endOf: mockFn(() => mockDayjsInstance),
-  isBefore: mockFn(() => false),
-  isAfter: mockFn(() => false),
-  isSame: mockFn(() => false),
-  isBetween: mockFn(() => false),
-  isToday: mockFn(() => false),
-  diff: mockFn(() => 0),
-  clone: mockFn(() => mockDayjsInstance),
-};
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockDayjs: any = Object.assign(
-  mockFn(() => mockDayjsInstance),
-  {
-    utc: mockFn(() => mockDayjsInstance),
-    tz: Object.assign(
-      mockFn(() => mockDayjsInstance),
-      {
-        setDefault: mockFn(),
-      }
-    ),
-    extend: mockFn(),
-    locale: mockFn(),
-    isDayjs: mockFn(() => true),
-  }
-);
+const mockDayjs = vi.fn((date) => dayjs(date));
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Dayjs = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ConfigType = any;
+mockDayjs.utc = vi.fn((date) => dayjs.utc(date));
+mockDayjs.tz = vi.fn();
+mockDayjs.extend = vi.fn();
 
 export default mockDayjs;
