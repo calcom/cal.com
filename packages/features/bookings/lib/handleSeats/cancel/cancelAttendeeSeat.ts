@@ -150,14 +150,14 @@ async function cancelAttendeeSeat(
   try {
     const orgId = await getOrgIdFromMemberOrTeamId({
       memberId: bookingToDelete.userId,
-      teamId: bookingToDelete.eventType?.teamId,
+      teamId: bookingToDelete.eventType?.team?.id,
     });
 
     await WebhookService.sendWebhook({
       userId: bookingToDelete.userId,
       eventTypeId: bookingToDelete.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
-      teamId: bookingToDelete.eventType?.teamId,
+      teamId: bookingToDelete.eventType?.team?.id,
       orgId,
     }, payload);
   } catch (error) {
