@@ -3,7 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
 import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
-import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
+import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";

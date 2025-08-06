@@ -677,4 +677,21 @@ export default class Office365CalendarService implements Calendar {
 
     return response.json();
   };
+
+  async getMainTimeZone(): Promise<string> {
+    try {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
+      const timezone = await handleErrorsJson<string>(response);
+
+      if (!timezone) {
+        this.log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
+        return "Europe/London";
+      }
+
+      return timezone;
+    } catch (error) {
+      this.log.error("Error getting main timezone from Office365 Calendar", { error });
+      throw error;
+    }
+  }
 }
