@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -7,16 +8,27 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { Icon } from "@calcom/ui/components/icon";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
-// adjust path based on your structure
+interface ProfileProps {
+  small?: boolean;
+}
 
-export const Profile = () => {
+export const Profile = ({ small }: ProfileProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showHelpOptions, setShowHelpOptions] = useState(false);
+  const { t } = useLocale();
+  const { data: user, isPending } = useMeQuery();
+
+  // Stop the dropdown from rendering if the user is not available.
+  if (!user && !isPending) {
+    return null;
+  }
 
   const handleHelpClick = (action: string) => {
     switch (action) {
@@ -32,6 +44,7 @@ export const Profile = () => {
   return (
     <DropdownMenu
       open={menuOpen}
+      disabled={isPending}
       onOpenChange={(isOpen) => {
         setMenuOpen(isOpen);
         if (!isOpen) {
@@ -41,9 +54,24 @@ export const Profile = () => {
       <DropdownMenuTrigger asChild>
         <button className="flex hidden w-full items-center space-x-3 rounded-lg transition-colors sm:flex">
           <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full">
-            <span className="text-primary-foreground text-xs font-medium">SY</span>
+            <span className="text-primary-foreground text-xs font-medium">
+              <Avatar
+                size={small ? "xs" : "xsm"}
+                imageSrc={user?.avatarUrl ?? user?.avatar}
+                alt={user?.username ? `${user.username} Avatar` : "Nameless User Avatar"}
+                className="overflow-hidden"
+              />
+            </span>
           </div>
-          <span className="text-foreground text-sm font-medium">Sanskar Yadav</span>
+          {!small && (
+            <span className="flex flex-grow items-center gap-2">
+              <span className="w-24 flex-shrink-0 text-sm leading-none">
+                <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
+                  {isPending ? "Loading..." : user?.name ?? "Nameless User"}
+                </span>
+              </span>
+            </span>
+          )}
           <Icon
             name="chevron-down"
             className={`ml-auto h-4 w-4 transition-transform ${menuOpen ? "rotate-180" : ""}`}
