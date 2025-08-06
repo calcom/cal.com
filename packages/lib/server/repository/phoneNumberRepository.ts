@@ -41,6 +41,20 @@ export class PhoneNumberRepository {
         phoneNumber,
         userId,
       },
+      select: {
+        id: true,
+        phoneNumber: true,
+        userId: true,
+        teamId: true,
+        subscriptionStatus: true,
+        stripeSubscriptionId: true,
+        stripeCustomerId: true,
+        provider: true,
+        inboundAgentId: true,
+        outboundAgentId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -120,7 +134,6 @@ export class PhoneNumberRepository {
     }));
   }
 
-
   static async createPhoneNumber({
     phoneNumber,
     provider,
@@ -178,6 +191,20 @@ export class PhoneNumberRepository {
       where: {
         id,
         teamId,
+      },
+      select: {
+        id: true,
+        phoneNumber: true,
+        userId: true,
+        teamId: true,
+        subscriptionStatus: true,
+        stripeSubscriptionId: true,
+        stripeCustomerId: true,
+        provider: true,
+        inboundAgentId: true,
+        outboundAgentId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }

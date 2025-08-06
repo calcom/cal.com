@@ -11,7 +11,6 @@ vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
     createPhoneNumber: vi.fn(),
     findByPhoneNumberAndUserId: vi.fn(),
     deletePhoneNumber: vi.fn(),
-    findByPhoneNumberAndUserId: vi.fn(),
     updateAgents: vi.fn(),
     findById: vi.fn(),
     updateSubscriptionStatus: vi.fn(),
