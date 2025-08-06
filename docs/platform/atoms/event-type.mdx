@@ -220,12 +220,12 @@ export function EventTypeWithValidation(eventTypeId: number) {
   const handleSubmit = () => {
     eventTypeRef.current?.handleFormSubmit({
       onSuccess: () => {
-        console.log('Event type updated successfully');
         // Additional success handling logic here
+        console.log('Event type updated successfully');
       },
       onError: (error) => {
-        console.error('Error updating event type:', error);
         // Additional error handling logic here
+        console.error('Error updating event type:', error);
       }
     });
   };

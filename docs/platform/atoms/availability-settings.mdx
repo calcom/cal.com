@@ -158,12 +158,12 @@ export function AvailabilityWithValidation() {
   const handleSubmit = () => {
     availabilityRef.current?.handleFormSubmit({
       onSuccess: () => {
-        console.log('Availability updated successfully');
         // Additional success handling logic here
+        console.log('Availability updated successfully');
       },
       onError: (error) => {
-        console.error('Error updating availability:', error);
         // Additional error handling logic here
+        console.error('Error updating availability:', error);
       }
     });
   };
