@@ -244,7 +244,7 @@ export default function Booker( props : BookerProps ) {
       namespace: string;
     }) => {
       return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
-    elementOrSelector:"#my-cal-inline",
+    elementOrSelector:"#my-cal-inline-${namespace}",
     config: ${JSON.stringify(previewState.config)},
     calLink: "${calLink}",
   });

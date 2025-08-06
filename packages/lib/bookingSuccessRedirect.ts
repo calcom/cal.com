@@ -10,12 +10,17 @@ import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 import { getSafe } from "./getSafe";
 
-function getNewSearchParams(args: {
+export function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
+  isEmbed?: boolean;
 }) {
-  const { query, searchParams } = args;
+  const { query, searchParams, isEmbed } = args;
   const newSearchParams = new URLSearchParams(searchParams);
+
+  if (isEmbed) {
+    newSearchParams.delete("embed");
+  }
   Object.entries(query).forEach(([key, value]) => {
     if (value === null || value === undefined) {
       return;
@@ -184,6 +189,7 @@ export const useBookingSuccessRedirect = () => {
         query: {
           ...query,
           ...bookingExtraParams,
+          isEmbed,
         },
         searchParams: new URLSearchParams(searchParams.toString()),
       });
