@@ -10,7 +10,7 @@ export interface NavTabProps {
 
 const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...props }: NavTabProps) {
   return (
-    <div className="max-w-full">
+    <div className="mb-4 max-w-full lg:mb-5">
       <nav
         className="no-scrollbar flex space-x-0.5 overflow-x-scroll rounded-md"
         aria-label="Tabs"
@@ -19,7 +19,6 @@ const HorizontalTabs = function ({ tabs, linkShallow, linkScroll, actions, ...pr
           <HorizontalTabItem {...tab} key={idx} linkShallow={linkShallow} linkScroll={linkScroll} />
         ))}
       </nav>
-
       {actions && actions}
     </div>
   );

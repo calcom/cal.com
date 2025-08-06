@@ -80,17 +80,17 @@ export const Profile = ({ small }: ProfileProps) => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent side="bottom" align="end" className="w-48 bg-white">
-        <DropdownMenuItem onClick={() => (window.location.href = "/settings/profile")}>
+        <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/profile")}>
           <Icon name="user" className="mr-2 h-4 w-4" />
-          My Profile
+          {t("my_profile")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => (window.location.href = "/settings/out-of-office")}>
+        <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/out-of-office")}>
           <Icon name="moon" className="mr-2 h-4 w-4" />
-          Out of Office
+          {t("out_of_office")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.open("https://roadmap.onehash.ai/", "_blank")}>
           <Icon name="map-pin" className="mr-2 h-4 w-4" />
-          Roadmap
+          {t("visit_roadmap")}
         </DropdownMenuItem>
         <div
           onClick={(e) => {
@@ -99,7 +99,7 @@ export const Profile = ({ small }: ProfileProps) => {
           }}
           className="hover:bg-subtle flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm">
           <Icon name="circle-help" className="mr-2 h-4 w-4" />
-          Help & Support
+          {t("help")}
           <Icon
             name="chevron-down"
             className={`ml-auto h-4 w-4 transition-transform ${showHelpOptions ? "rotate-180" : ""}`}
@@ -114,23 +114,25 @@ export const Profile = ({ small }: ProfileProps) => {
               transition={{ duration: 0.3 }}>
               <DropdownMenuItem onClick={() => handleHelpClick("docs")}>
                 <Icon name="file" className="mr-2 h-4 w-4" />
-                Documentation
+                {t("documentation")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleHelpClick("contact")}>
                 <Icon name="mail" className="mr-2 h-4 w-4" />
-                Contact Us
+                {t("contact")}
               </DropdownMenuItem>
             </motion.div>
           )}
         </AnimatePresence>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => (window.location.href = "/settings")}>
+        <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/profile")}>
           <Icon name="settings" className="mr-2 h-4 w-4" />
-          Settings
+          {t("settings")}
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive hover:border-semantic-error hover:bg-error">
+        <DropdownMenuItem
+          onClick={() => (window.location.href = "/auth/logout")}
+          className="text-destructive hover:border-semantic-error hover:bg-error">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
-          Sign Out
+          {t("sign_out")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

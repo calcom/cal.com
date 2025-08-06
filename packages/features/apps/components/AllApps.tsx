@@ -1,9 +1,13 @@
 "use client";
 
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import type { HorizontalTabItemProps } from "@calid/features/ui/components/navigation";
+import { HorizontalTabs } from "@calid/features/ui/components/navigation";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import type { ChangeEventHandler } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
@@ -11,9 +15,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
-import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
-import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { TextField } from "@calcom/ui/components/form";
 
 import { AppCard } from "./AppCard";
 
@@ -78,29 +80,20 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
     }
   };
 
-  const tabs: HorizontalTabItemProps[] = [
-    {
-      name: "app_store",
-      href: "/apps",
-    },
-    {
-      name: "installed_apps",
-      href: "/apps/installed",
-    },
-  ];
   return (
-    <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      <HorizontalTabs tabs={tabs} />
+    <div className="relative flex w-1/2 flex-col justify-between lg:flex-row lg:items-center">
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute bottom-0 flex lg:left-1/2">
+        <button onClick={handleLeft} className="absolute left-0 top-1/2 z-10 flex -translate-y-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            <div className="flex h-5 w-5 items-center justify-center rounded-full border bg-white">
+              <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+            </div>
           </div>
           <div className="to-default flex h-12 w-5 bg-gradient-to-l from-transparent" />
         </button>
       )}
       <ul
-        className="no-scrollbar flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]"
+        className="no-scrollbar flex space-x-1 overflow-x-auto lg:mt-0"
         onScroll={(e) => calculateScroll(e)}
         ref={ref}>
         <li
@@ -132,10 +125,12 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
         ))}
       </ul>
       {rightVisible && (
-        <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
+        <button onClick={handleRight} className="absolute right-0 top-1/2 z-10 flex -translate-y-1/2">
           <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
-            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            <div className="flex h-5 w-5 items-center justify-center rounded-full border bg-white">
+              <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+            </div>
           </div>
         </button>
       )}
@@ -143,10 +138,26 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
   );
 }
 
-export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
+function AppsSearch({ onChange }: { onChange: ChangeEventHandler<HTMLInputElement>; className?: string }) {
+  const { t } = useLocale();
+  return (
+    <TextField
+      addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+      addOnClassname="!border-muted"
+      containerClassName={classNames("focus:!ring-offset-0")}
+      type="search"
+      autoComplete="false"
+      onChange={onChange}
+      placeholder={t("search")}
+    />
+  );
+}
+
+export function AllApps({ apps, categories, userAdminTeams }: AllAppsPropsType) {
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
+  const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
   const handleCategoryChange = (category: string | null) => {
     const validCategory =
@@ -169,14 +180,29 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
       return 0;
     });
 
+  const tabs: HorizontalTabItemProps[] = [
+    {
+      name: "app_store",
+      href: "/apps",
+    },
+    {
+      name: "installed_apps",
+      href: "/apps/installed",
+    },
+  ];
+
   return (
     <div>
-      <CategoryTab
-        selectedCategory={selectedCategory}
-        searchText={searchText}
-        categories={categories}
-        onCategoryChange={handleCategoryChange}
-      />
+      <HorizontalTabs tabs={tabs} />
+      <div className="mb-4 flex justify-between gap-4">
+        <AppsSearch onChange={(e) => setSearchText(e.target.value)} />
+        <CategoryTab
+          selectedCategory={selectedCategory}
+          searchText={searchText}
+          categories={categories}
+          onCategoryChange={handleCategoryChange}
+        />
+      </div>
       {filteredApps.length ? (
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"
