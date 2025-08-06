@@ -1,5 +1,8 @@
 import { CalendarCacheService } from "@calcom/features/calendar-cache/calendar-cache.service";
-import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/calendar-cache-sql.service";
+import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/CalendarCacheSqlService";
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
+import { CalendarEventRepository } from "@calcom/features/calendar-cache-sql/CalendarEventRepository";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -27,7 +30,10 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
 
   // Use cache services independently
   const cacheService = new CalendarCacheService();
-  const sqlCacheService = new CalendarCacheSqlService();
+  const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
+  const eventRepo = new CalendarEventRepository(prisma);
+  const selectedCalendarRepo = new SelectedCalendarRepository();
+  const sqlCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo, selectedCalendarRepo);
   
   const [enrichedWithLegacyCache, enrichedWithSqlCache] = await Promise.all([
     cacheService.enrichCalendarsWithCacheData(connectedCalendars),
