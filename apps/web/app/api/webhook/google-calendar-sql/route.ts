@@ -7,8 +7,8 @@ import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-
 import { GoogleCalendarWebhookService } from "@calcom/features/calendar-cache-sql/GoogleCalendarWebhookService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import logger from "@calcom/lib/logger";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import prisma from "@calcom/prisma";
 
 import { defaultResponderForAppDir } from "../../../api/defaultResponderForAppDir";

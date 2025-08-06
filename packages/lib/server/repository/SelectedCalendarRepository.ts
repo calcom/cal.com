@@ -11,4 +11,4 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
     const result = await StaticSelectedCalendarRepository.findFirst(args);
     return result ? { id: result.id } : null;
   }
-} 
+}
