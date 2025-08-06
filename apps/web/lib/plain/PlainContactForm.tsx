@@ -144,7 +144,7 @@ const PlainContactForm = () => {
   };
 
   return (
-    <div className="absolute bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-[120]">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild className="enabled:hover:bg-subtle bg-subtle shadow-none">
           <Button
