@@ -459,7 +459,7 @@ export class AgentRepository {
       WHERE "userId" = ${userId}
         AND "teamId" = ${teamId}
         AND accepted = true
-        AND role IN (${Prisma.join([MembershipRole.ADMIN, MembershipRole.OWNER])})
+        AND role IN ('ADMIN', 'OWNER')
     `;
 
     return Number(result[0].count) > 0;
