@@ -11,7 +11,7 @@ export class RedisService implements IRedisService {
       throw new Error("Attempted to initialize Upstash Redis client without url or token.");
     }
     this.redis = Redis.fromEnv({
-      signal: () => AbortSignal.timeout(2000),
+      signal: AbortSignal.timeout(2000),
     });
   }
 
