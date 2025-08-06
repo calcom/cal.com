@@ -43,27 +43,27 @@ export type RoutingFormWithUserTeamAndOrg = {
   name: string;
   fields: any;
   updatedById: number | null;
-  userId: number | null;
+  userId: number;
   teamId: number | null;
   disabled: boolean;
   settings: any;
   user: {
     id: number;
+    metadata: any;
+    organization: {
+      slug: string | null;
+    } | null;
     username: string | null;
     email: string;
     movedToProfileId: number | null;
-    metadata: any;
-    organization: {
-      slug: string;
-    } | null;
-  } | null;
+  };
   team: {
+    metadata: any;
+    slug: string | null;
     parentId: number | null;
     parent: {
-      slug: string;
+      slug: string | null;
     } | null;
-    slug: string;
-    metadata: any;
   } | null;
 };
 
