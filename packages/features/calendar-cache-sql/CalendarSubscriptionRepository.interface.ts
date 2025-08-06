@@ -1,10 +1,7 @@
-import type { Prisma, CalendarSubscription } from "@prisma/client";
+import type { Prisma, CalendarSubscription, Credential } from "@prisma/client";
 
 // Safe credential type that excludes sensitive fields
-export type SafeCredential = Pick<
-  Prisma.CredentialSelect,
-  "id" | "type" | "userId" | "teamId" | "appId" | "invalid"
->;
+export type SafeCredential = Pick<Credential, "id" | "type" | "userId" | "teamId" | "appId" | "invalid">;
 
 export interface ICalendarSubscriptionRepository {
   findBySelectedCalendar(selectedCalendarId: string): Promise<CalendarSubscription | null>;

@@ -3,10 +3,7 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type {
-  ICalendarSubscriptionRepository,
-  SafeCredential,
-} from "./CalendarSubscriptionRepository.interface";
+import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
 // Safe credential select that excludes sensitive fields
 const safeCredentialSelectForCalendarCache = {
@@ -17,7 +14,7 @@ const safeCredentialSelectForCalendarCache = {
   appId: true,
   invalid: true,
   // Explicitly excluding sensitive fields: key, subscriptionId, paymentStatus, billingCycleStart, delegationCredentialId
-} satisfies SafeCredential;
+} satisfies Prisma.CredentialSelect;
 
 export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
   constructor(private prismaClient: PrismaClient) {}
