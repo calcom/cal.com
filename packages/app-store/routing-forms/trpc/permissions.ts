@@ -1,6 +1,6 @@
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/RoutingFormRepository";
+import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -17,7 +17,7 @@ export async function checkPermissionOnExistingRoutingForm({
   fallbackRoles: MembershipRole[];
 }) {
   // First get the form to check its team context
-  const form = await RoutingFormRepository.findById(formId, {
+  const form = await PrismaRoutingFormRepository.findById(formId, {
     select: { teamId: true, userId: true },
   });
 

@@ -21,7 +21,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { RoutingFormRepository } from "@calcom/lib/server/repository/RoutingFormRepository";
+import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -94,7 +94,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form = await RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+  const form = await PrismaRoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {

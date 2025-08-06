@@ -17,7 +17,7 @@ const defaultSelect = {
   settings: true,
 } as const;
 
-export class RoutingFormRepository {
+export class PrismaRoutingFormRepository {
   static async findById<T extends Partial<typeof defaultSelect> = typeof defaultSelect>(
     id: string,
     options?: {
