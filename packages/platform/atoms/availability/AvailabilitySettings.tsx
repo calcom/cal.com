@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
-import { Profile } from "@calid/features/ui/Profile";
 import { Button } from "@calid/features/ui/components/button";
 import { VerticalDivider } from "@calid/features/ui/components/divider";
 import { Switch } from "@calid/features/ui/components/switch";
@@ -592,7 +591,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               color="secondary"
               onClick={() => setOpenSidebar(true)}
             />
-            <Profile />
           </div>
         }>
         <div className="mt-4 w-full md:mt-0">

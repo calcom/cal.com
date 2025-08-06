@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useMemo } from "react";
 
 import cs from "@calcom/ui/classNames";
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 
 import getAppCategories from "../_utils/getAppCategories";
 
@@ -32,10 +32,7 @@ const AppCategoryNavigation = ({
 
   return (
     <div className={cs("flex flex-col xl:flex-row xl:space-x-6", classNames?.root ?? className)}>
-      <div className="hidden xl:block">
-        <VerticalTabs tabs={appCategories} sticky linkShallow itemClassname={classNames?.verticalTabsItem} />
-      </div>
-      <div className="block overflow-x-scroll xl:hidden">
+      <div className="block overflow-x-scroll">
         <HorizontalTabs tabs={appCategories} linkShallow />
       </div>
       <main className={classNames?.container ?? containerClassname} ref={animationRef}>

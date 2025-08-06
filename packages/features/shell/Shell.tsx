@@ -1,5 +1,6 @@
 "use client";
 
+import { Profile } from "@calid/features/ui/Profile";
 import { Button } from "@calid/features/ui/components/button";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -87,6 +88,7 @@ export type LayoutProps = {
   afterHeading?: ReactNode;
   smallHeading?: boolean;
   isPlatformUser?: boolean;
+  profile?: ReactElement;
 };
 
 const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
@@ -183,6 +185,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
+              <Profile />
             </header>
           )}
         </div>
