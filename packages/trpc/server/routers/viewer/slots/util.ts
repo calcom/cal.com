@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -64,6 +65,7 @@ import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -101,7 +103,47 @@ export interface IAvailableSlotsService {
   routingFormResponseRepo: RoutingFormResponseRepository;
   cacheService: CacheService;
   checkBookingLimitsService: CheckBookingLimitsService;
-  userAvailabilityService: UserAvailabilityService
+  userAvailabilityService: UserAvailabilityService;
+  redisClient: IRedisService;
+}
+
+function withSlotsCache(
+  redisClient: IRedisService,
+  func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>
+) {
+  return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
+    const cacheKey = `${JSON.stringify(args.input)}`;
+    let success = false;
+    let cachedResult: IGetAvailableSlots | null = null;
+    const startTime = process.hrtime();
+    try {
+      cachedResult = await redisClient.get(cacheKey);
+      success = true;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "TimeoutError") {
+        const endTime = process.hrtime(startTime);
+        log.error(`Redis request timed out after ${endTime[0]}${endTime[1] / 1e6}ms`);
+      } else {
+        throw err;
+      }
+    }
+
+    if (!success) {
+      // If the cache request fails, we proceed to call the function directly
+      return await func(args);
+    }
+    if (cachedResult) {
+      log.info("[CACHE HIT] Available slots", { cacheKey });
+      return cachedResult;
+    }
+    const result = await func(args);
+    const ttl = parseInt(process.env.SLOTS_CACHE_TTL ?? "", 10) || DEFAULT_SLOTS_CACHE_TTL;
+    // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
+    // this is to already start responding to the client.
+    redisClient.set(cacheKey, result, { ttl });
+    log.info("[CACHE MISS] Available slots", { cacheKey, ttl });
+    return result;
+  };
 }
 
 export class AvailableSlotsService {
@@ -884,7 +926,10 @@ export class AvailableSlotsService {
     "getRegularOrDynamicEventType"
   );
 
-  getAvailableSlots = withReporting(this._getAvailableSlots.bind(this), "getAvailableSlots");
+  getAvailableSlots = withReporting(
+    withSlotsCache(this.dependencies.redisClient, this._getAvailableSlots.bind(this)),
+    "getAvailableSlots"
+  );
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
