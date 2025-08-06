@@ -7,6 +7,7 @@ import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-
 import { GoogleCalendarWebhookService } from "@calcom/features/calendar-cache-sql/GoogleCalendarWebhookService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
@@ -14,11 +15,12 @@ import { defaultResponderForAppDir } from "../../../api/defaultResponderForAppDi
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSqlWebhook"] });
 
-async function postHandler(request: NextRequest, { params }: { params: Promise<Record<string, string | string[]>> }) {
+async function postHandler(request: NextRequest) {
   const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
   const eventRepo = new CalendarEventRepository(prisma);
+  const selectedCalendarRepo = new SelectedCalendarRepository();
   const featuresRepo = new FeaturesRepository(prisma);
-  const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo);
+  const calendarCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo, selectedCalendarRepo);
 
   const isSqlWriteEnabled = await featuresRepo.checkIfFeatureIsEnabledGlobally("calendar-cache-sql-write");
   if (!isSqlWriteEnabled) {
