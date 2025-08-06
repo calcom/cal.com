@@ -1,13 +1,16 @@
-import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
+import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
-import { cleanupOrphanedSelectedCalendars } from "../calendar/cleanupOrphanedSelectedCalendars";
-import type { UserWithCalendars } from "../calendar/cleanupOrphanedSelectedCalendars";
+import { cleanupOrphanedSelectedCalendars } from "../cleanupOrphanedSelectedCalendars";
+import type { UserWithCalendars } from "../cleanupOrphanedSelectedCalendars";
 
-vi.mock("../server/repository/selectedCalendar", () => ({
-  SelectedCalendarRepository: {
-    findMany: vi.fn(),
+vi.mock("@calcom/prisma", () => ({
+  default: {
+    selectedCalendar: {
+      findMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   },
 }));
 
@@ -17,6 +20,7 @@ vi.mock("@calcom/lib/logger", () => ({
       info: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
+      error: vi.fn(),
     }),
   },
 }));
@@ -37,12 +41,14 @@ describe("cleanupOrphanedSelectedCalendars", () => {
   test("should return early if no connected calendars", async () => {
     const connectedCalendars = [];
 
+    const prisma = (await import("@calcom/prisma")).default;
+
     await cleanupOrphanedSelectedCalendars({
       user: mockUser,
       connectedCalendars,
     });
 
-    expect(prismaMock.selectedCalendar.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.selectedCalendar.deleteMany).not.toHaveBeenCalled();
   });
 
   test("should cleanup orphaned calendars for Google Calendar", async () => {
@@ -62,22 +68,21 @@ describe("cleanupOrphanedSelectedCalendars", () => {
       { id: "3", externalId: "orphaned@gmail.com" },
     ];
 
-    const { SelectedCalendarRepository } = await import("../server/repository/selectedCalendar");
-    vi.mocked(SelectedCalendarRepository.findMany).mockResolvedValue(mockSelectedCalendars);
-
-    prismaMock.selectedCalendar.deleteMany.mockResolvedValue({ count: 1 });
+    const prisma = (await import("@calcom/prisma")).default;
+    vi.mocked(prisma.selectedCalendar.findMany).mockResolvedValue(mockSelectedCalendars);
+    vi.mocked(prisma.selectedCalendar.deleteMany).mockResolvedValue({ count: 1 });
 
     await cleanupOrphanedSelectedCalendars({
       user: mockUser,
       connectedCalendars,
     });
 
-    expect(SelectedCalendarRepository.findMany).toHaveBeenCalledWith({
+    expect(prisma.selectedCalendar.findMany).toHaveBeenCalledWith({
       where: { userId: mockUser.id },
       select: { id: true, externalId: true },
     });
 
-    expect(prismaMock.selectedCalendar.deleteMany).toHaveBeenCalledWith({
+    expect(prisma.selectedCalendar.deleteMany).toHaveBeenCalledWith({
       where: {
         id: {
           in: ["3"],
@@ -99,17 +104,16 @@ describe("cleanupOrphanedSelectedCalendars", () => {
       { id: "2", externalId: "orphaned@outlook.com" },
     ];
 
-    const { SelectedCalendarRepository } = await import("../server/repository/selectedCalendar");
-    vi.mocked(SelectedCalendarRepository.findMany).mockResolvedValue(mockSelectedCalendars);
-
-    prismaMock.selectedCalendar.deleteMany.mockResolvedValue({ count: 1 });
+    const prisma = (await import("@calcom/prisma")).default;
+    vi.mocked(prisma.selectedCalendar.findMany).mockResolvedValue(mockSelectedCalendars);
+    vi.mocked(prisma.selectedCalendar.deleteMany).mockResolvedValue({ count: 1 });
 
     await cleanupOrphanedSelectedCalendars({
       user: mockUser,
       connectedCalendars,
     });
 
-    expect(prismaMock.selectedCalendar.deleteMany).toHaveBeenCalledWith({
+    expect(prisma.selectedCalendar.deleteMany).toHaveBeenCalledWith({
       where: {
         id: {
           in: ["2"],
@@ -137,17 +141,16 @@ describe("cleanupOrphanedSelectedCalendars", () => {
       { id: "4", externalId: "orphaned@outlook.com" },
     ];
 
-    const { SelectedCalendarRepository } = await import("../server/repository/selectedCalendar");
-    vi.mocked(SelectedCalendarRepository.findMany).mockResolvedValue(mockSelectedCalendars);
-
-    prismaMock.selectedCalendar.deleteMany.mockResolvedValue({ count: 2 });
+    const prisma = (await import("@calcom/prisma")).default;
+    vi.mocked(prisma.selectedCalendar.findMany).mockResolvedValue(mockSelectedCalendars);
+    vi.mocked(prisma.selectedCalendar.deleteMany).mockResolvedValue({ count: 2 });
 
     await cleanupOrphanedSelectedCalendars({
       user: mockUser,
       connectedCalendars,
     });
 
-    expect(prismaMock.selectedCalendar.deleteMany).toHaveBeenCalledWith({
+    expect(prisma.selectedCalendar.deleteMany).toHaveBeenCalledWith({
       where: {
         id: {
           in: ["3", "4"],
@@ -172,15 +175,15 @@ describe("cleanupOrphanedSelectedCalendars", () => {
       { id: "2", externalId: "calendar2@gmail.com" },
     ];
 
-    const { SelectedCalendarRepository } = await import("../server/repository/selectedCalendar");
-    vi.mocked(SelectedCalendarRepository.findMany).mockResolvedValue(mockSelectedCalendars);
+    const prisma = (await import("@calcom/prisma")).default;
+    vi.mocked(prisma.selectedCalendar.findMany).mockResolvedValue(mockSelectedCalendars);
 
     await cleanupOrphanedSelectedCalendars({
       user: mockUser,
       connectedCalendars,
     });
 
-    expect(prismaMock.selectedCalendar.deleteMany).not.toHaveBeenCalled();
+    expect(prisma.selectedCalendar.deleteMany).not.toHaveBeenCalled();
   });
 
   test("should handle errors gracefully", async () => {
@@ -191,8 +194,8 @@ describe("cleanupOrphanedSelectedCalendars", () => {
       },
     ];
 
-    const { SelectedCalendarRepository } = await import("../server/repository/selectedCalendar");
-    vi.mocked(SelectedCalendarRepository.findMany).mockRejectedValue(new Error("Database error"));
+    const prisma = (await import("@calcom/prisma")).default;
+    vi.mocked(prisma.selectedCalendar.findMany).mockRejectedValue(new Error("Database error"));
 
     await expect(
       cleanupOrphanedSelectedCalendars({

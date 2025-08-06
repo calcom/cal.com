@@ -8,6 +8,7 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import type { UserWithCalendars as UserWithCalendarsType } from "./calendar/cleanupOrphanedSelectedCalendars";
 import { DestinationCalendarRepository } from "./server/repository/destinationCalendar";
 import { EventTypeRepository } from "./server/repository/eventTypeRepository";
 import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
@@ -17,17 +18,7 @@ const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndE
 type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
-export type UserWithCalendars = Pick<User, "id" | "email"> & {
-  allSelectedCalendars: Pick<
-    SelectedCalendar,
-    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
-  >[];
-  userLevelSelectedCalendars: Pick<
-    SelectedCalendar,
-    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
-  >[];
-  destinationCalendar: DestinationCalendar | null;
-};
+export type UserWithCalendars = UserWithCalendarsType;
 
 export type ConnectedDestinationCalendars = Awaited<
   ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
@@ -264,56 +255,7 @@ function getSelectedCalendars({
   return user.userLevelSelectedCalendars;
 }
 
-export async function cleanupOrphanedSelectedCalendars({
-  user,
-  connectedCalendars,
-}: {
-  user: UserWithCalendars;
-  connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
-}) {
-  try {
-    if (connectedCalendars.length === 0) {
-      return;
-    }
-
-    const existingCalendarIds = new Set<string>();
-    connectedCalendars.forEach((integration) => {
-      integration.calendars?.forEach((cal) => {
-        existingCalendarIds.add(cal.externalId);
-      });
-    });
-
-    const userSelectedCalendars = await SelectedCalendarRepository.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        id: true,
-        externalId: true,
-      },
-    });
-
-    const orphanedCalendars = userSelectedCalendars.filter(
-      (selectedCal) => !existingCalendarIds.has(selectedCal.externalId)
-    );
-
-    if (orphanedCalendars.length > 0) {
-      log.info(`Cleaning up orphaned calendar records for user ${user.id}`);
-
-      const orphanedCalendarsId = orphanedCalendars.map((cal) => cal.id);
-
-      await prisma.selectedCalendar.deleteMany({
-        where: {
-          id: {
-            in: orphanedCalendarsId,
-          },
-        },
-      });
-    }
-  } catch (error) {
-    log.warn("Failed to cleanup orphaned selected calendars:", error);
-  }
-}
+export { cleanupOrphanedSelectedCalendars } from "./calendar/cleanupOrphanedSelectedCalendars";
 
 /**
  * Fetches the calendars for the authenticated user or the event-type if provided
@@ -424,10 +366,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     loggedInUser: { email: user.email },
   });
 
-  await cleanupOrphanedSelectedCalendars({
-    user,
-    connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
-  });
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
     destinationCalendar: {
