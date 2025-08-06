@@ -2500,7 +2500,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.283"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.286"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -2836,7 +2836,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.52.0
     "@typescript-eslint/parser": ^5.52.0
     eslint: ^8.34.0
-    eslint-config-next: ^15.4.5
+    eslint-config-next: ^13.2.1
     eslint-config-prettier: ^8.6.0
     eslint-config-turbo: ^0.0.7
     eslint-plugin-playwright: ^0.12.0
@@ -3556,13 +3556,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.283":
-  version: 0.0.283
-  resolution: "@calcom/platform-libraries@npm:0.0.283"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.286":
+  version: 0.0.286
+  resolution: "@calcom/platform-libraries@npm:0.0.286"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 7d741bd13ac050f8552855658b2348cba0999529c12ca6741e5f802a7bc9ce4e29c9ac69a17306c42beb392f17acb7b5f8a0554b8d2ea9b5fc6d963950d0fca8
+  checksum: b6402b589456fdc7f0aa86368e75dfcab4ec2c9c813c6bd30efcb7b2c58634441908856a9893788055ca5a71b655a9632ed9f559af7d23bd59293924adcbfe4d
   languageName: node
   linkType: hard
 
@@ -4076,7 +4076,7 @@ __metadata:
     "@types/turndown": ^5.0.1
     "@types/uuid": 8.3.1
     "@unkey/ratelimit": ^0.1.1
-    "@upstash/redis": ^1.21.0
+    "@upstash/redis": ^1.35.2
     "@vercel/edge-config": ^0.1.1
     "@vercel/edge-functions-ui": ^0.2.1
     "@vercel/og": ^0.6.3
@@ -8943,6 +8943,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@next/eslint-plugin-next@npm:13.5.11":
+  version: 13.5.11
+  resolution: "@next/eslint-plugin-next@npm:13.5.11"
+  dependencies:
+    glob: 7.1.7
+  checksum: ee960ee89b5bc056c00ba667bcdab69469d792ebf682996a5a7abc34366cf350c45f0cfbbac8311e28ec86766d087c968b40d51a84f1eb9f589a4ff1104a708c
+  languageName: node
+  linkType: hard
+
 "@next/eslint-plugin-next@npm:14.0.4":
   version: 14.0.4
   resolution: "@next/eslint-plugin-next@npm:14.0.4"
@@ -8958,15 +8967,6 @@ __metadata:
   dependencies:
     fast-glob: 3.3.1
   checksum: e519faaab2bef3995d369d9e84043e1c1d806085077b7107f5c7e5c923f9c4ee0c530277ef1bb1239b8ed34caa43d8b2b29182dacd786729f00e4627c84021df
-  languageName: node
-  linkType: hard
-
-"@next/eslint-plugin-next@npm:15.4.5":
-  version: 15.4.5
-  resolution: "@next/eslint-plugin-next@npm:15.4.5"
-  dependencies:
-    fast-glob: 3.3.1
-  checksum: b377bbff604a3aa0a5c1c480077cc2430186abe18f9d0de3b192dca44106f06407509a2c8744f49788a09222f950c4cf67fd08beaad011af5053f410692616c3
   languageName: node
   linkType: hard
 
@@ -18756,6 +18756,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@unkey/api@npm:2.0.3":
+  version: 2.0.3
+  resolution: "@unkey/api@npm:2.0.3"
+  dependencies:
+    zod: ^3.20.0
+  peerDependencies:
+    "@modelcontextprotocol/sdk": ">=1.5.0 <1.10.0"
+  peerDependenciesMeta:
+    "@modelcontextprotocol/sdk":
+      optional: true
+  bin:
+    mcp: bin/mcp-server.js
+  checksum: 24b876dfc2d83f17889c95891eeb8c18945df6fe75a3fb4582a90c23c9171e1711b48e876c7cf76f596ac66c20424bbe16b1ba810eb450da9f5b654713d02f49
+  languageName: node
+  linkType: hard
+
 "@unkey/api@npm:^0.19.4":
   version: 0.19.4
   resolution: "@unkey/api@npm:0.19.4"
@@ -18774,6 +18790,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@unkey/ratelimit@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@unkey/ratelimit@npm:2.1.2"
+  dependencies:
+    "@unkey/api": 2.0.3
+  checksum: 645959a8f2e458fc671cc4ea3d51497e76ee9ff967a9c233dacd51caaa7d0fa20386cf47ec138026113c18527cd2a24f6f941d0b0c0bd7723c8bf9e17c87baa5
+  languageName: node
+  linkType: hard
+
 "@unkey/rbac@npm:^0.1.11":
   version: 0.1.11
   resolution: "@unkey/rbac@npm:0.1.11"
@@ -18784,12 +18809,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@upstash/redis@npm:^1.21.0":
-  version: 1.30.1
-  resolution: "@upstash/redis@npm:1.30.1"
+"@upstash/redis@npm:^1.35.2":
+  version: 1.35.2
+  resolution: "@upstash/redis@npm:1.35.2"
   dependencies:
-    crypto-js: ^4.2.0
-  checksum: 1d8083650fbc1760fe4c58d263c62f9c658d08035480927316932df2757f4e987799f7ce752579e7dd871155e96996bb4caf8ad1034af3ab18965d7ca76421cf
+    uncrypto: ^0.1.3
+  checksum: 1d54217589418873702f08bdc27d9455ea44df0fce30ace612b5637a1c4c261b762a80fb85d7b3c72d3213e82b8938bb57c413ae44f9f1e713eeab3f31d5539a
   languageName: node
   linkType: hard
 
@@ -21550,6 +21575,7 @@ __metadata:
     "@snaplet/copycat": ^4.1.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^16.0.1
+    "@unkey/ratelimit": ^2.1.2
     "@vercel/functions": ^1.4.0
     "@vitest/ui": ^2.1.1
     c8: ^7.13.0
@@ -23316,13 +23342,6 @@ __metadata:
     randombytes: ^2.0.0
     randomfill: ^1.0.3
   checksum: c1609af82605474262f3eaa07daa0b2140026bd264ab316d4bf1170272570dbe02f0c49e29407fe0d3634f96c507c27a19a6765fb856fed854a625f9d15618e2
-  languageName: node
-  linkType: hard
-
-"crypto-js@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "crypto-js@npm:4.2.0"
-  checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
   languageName: node
   linkType: hard
 
@@ -25896,27 +25915,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-next@npm:^15.4.5":
-  version: 15.4.5
-  resolution: "eslint-config-next@npm:15.4.5"
+"eslint-config-next@npm:^13.2.1":
+  version: 13.5.11
+  resolution: "eslint-config-next@npm:13.5.11"
   dependencies:
-    "@next/eslint-plugin-next": 15.4.5
-    "@rushstack/eslint-patch": ^1.10.3
-    "@typescript-eslint/eslint-plugin": ^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0
-    "@typescript-eslint/parser": ^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0
+    "@next/eslint-plugin-next": 13.5.11
+    "@rushstack/eslint-patch": ^1.3.3
+    "@typescript-eslint/parser": ^5.4.2 || ^6.0.0
     eslint-import-resolver-node: ^0.3.6
     eslint-import-resolver-typescript: ^3.5.2
-    eslint-plugin-import: ^2.31.0
-    eslint-plugin-jsx-a11y: ^6.10.0
-    eslint-plugin-react: ^7.37.0
-    eslint-plugin-react-hooks: ^5.0.0
+    eslint-plugin-import: ^2.28.1
+    eslint-plugin-jsx-a11y: ^6.7.1
+    eslint-plugin-react: ^7.33.2
+    eslint-plugin-react-hooks: ^4.5.0 || 5.0.0-canary-7118f5dd7-20230705
   peerDependencies:
-    eslint: ^7.23.0 || ^8.0.0 || ^9.0.0
+    eslint: ^7.23.0 || ^8.0.0
     typescript: ">=3.3.1"
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: c4f61ee00fc29d669477037481557a282ab080e0276da3e02e187ad54ae543bd2ca22668ee73fbf7212f69ed9d1866cc6fb648a9e5726d7b2c33875b4dd82722
+  checksum: 6694d86f779f2a6e820873db6641d43cdf446aaa2e9c97b13c0019627369538d217f41e4b7349d7a9308a5378a454c51201e47e8eac2e873fb3f0309985a72d6
   languageName: node
   linkType: hard
 
@@ -45439,6 +45457,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uncrypto@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "uncrypto@npm:0.1.3"
+  checksum: 07160e08806dd6cea16bb96c3fd54cd70fc801e02fc3c6f86980144d15c9ebbd1c55587f7280a207b3af6cd34901c0d0b77ada5a02c2f7081a033a05acf409e2
+  languageName: node
+  linkType: hard
+
 "undici-types@npm:~6.19.2":
   version: 6.19.8
   resolution: "undici-types@npm:6.19.8"
@@ -47643,6 +47668,13 @@ __metadata:
   version: 3.22.4
   resolution: "zod@npm:3.22.4"
   checksum: 80bfd7f8039b24fddeb0718a2ec7c02aa9856e4838d6aa4864335a047b6b37a3273b191ef335bf0b2002e5c514ef261ffcda5a589fb084a48c336ffc4cdbab7f
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.20.0":
+  version: 3.25.76
+  resolution: "zod@npm:3.25.76"
+  checksum: c9a403a62b329188a5f6bd24d5d935d2bba345f7ab8151d1baa1505b5da9f227fb139354b043711490c798e91f3df75991395e40142e6510a4b16409f302b849
   languageName: node
   linkType: hard
 
