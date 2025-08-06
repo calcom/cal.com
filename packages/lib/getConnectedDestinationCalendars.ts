@@ -8,7 +8,6 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import type { UserWithCalendars as UserWithCalendarsType } from "./calendar/cleanupOrphanedSelectedCalendars";
 import { DestinationCalendarRepository } from "./server/repository/destinationCalendar";
 import { EventTypeRepository } from "./server/repository/eventTypeRepository";
 import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
@@ -18,7 +17,17 @@ const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndE
 type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
-export type UserWithCalendars = UserWithCalendarsType;
+export type UserWithCalendars = Pick<User, "id" | "email"> & {
+  allSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  userLevelSelectedCalendars: Pick<
+    SelectedCalendar,
+    "externalId" | "integration" | "eventTypeId" | "updatedAt" | "googleChannelId"
+  >[];
+  destinationCalendar: DestinationCalendar | null;
+};
 
 export type ConnectedDestinationCalendars = Awaited<
   ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
@@ -255,8 +264,6 @@ function getSelectedCalendars({
   return user.userLevelSelectedCalendars;
 }
 
-export { cleanupOrphanedSelectedCalendars } from "./calendar/cleanupOrphanedSelectedCalendars";
-
 /**
  * Fetches the calendars for the authenticated user or the event-type if provided
  * It also takes care of updating the destination calendar in some edge cases
@@ -365,7 +372,6 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     connectedCalendars,
     loggedInUser: { email: user.email },
   });
-
   return {
     connectedCalendars: noConflictingNonDelegatedConnectedCalendars,
     destinationCalendar: {
