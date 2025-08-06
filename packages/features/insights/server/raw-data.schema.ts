@@ -69,3 +69,12 @@ export const routingRepositoryBaseInputSchema = z.object({
   endDate: z.string(),
   columnFilters: z.array(ZColumnFilter).optional(),
 });
+
+export const bookingRepositoryBaseInputSchema = z.object({
+  scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
+  selectedTeamId: z.number().optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  timeZone: z.string(),
+  columnFilters: z.array(ZColumnFilter).optional(),
+});
