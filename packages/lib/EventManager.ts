@@ -401,10 +401,14 @@ export default class EventManager {
       results.push(result);
     }
 
+    const activeReferences = booking.references.filter((reference) => !reference.deleted);
+    
     // Update the calendar event with the proper video call data
-    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
+    const calendarReference = activeReferences.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
-      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+      // Create a booking object with filtered references for updateAllCalendarEvents
+      const bookingWithActiveReferences = { ...booking, references: activeReferences };
+      results.push(...(await this.updateAllCalendarEvents(evt, bookingWithActiveReferences)));
     }
 
     const referencesToCreate = results.map((result) => {
@@ -706,7 +710,9 @@ export default class EventManager {
       crmReferences = [],
       allPromises = [];
 
-    for (const reference of bookingReferences) {
+    const activeReferences = bookingReferences.filter((reference) => !reference.deleted);
+
+    for (const reference of activeReferences) {
       if (reference.type.includes("_calendar") && !reference.type.includes("other_calendar")) {
         calendarReferences.push(reference);
         allPromises.push(
