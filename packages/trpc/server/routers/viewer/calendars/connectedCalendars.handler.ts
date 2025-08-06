@@ -1,4 +1,5 @@
-import { CalendarCacheRepository } from "@calcom/features/calendar-cache/calendar-cache.repository";
+import { CalendarCacheService } from "@calcom/features/calendar-cache/calendar-cache.service";
+import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/calendar-cache-sql.service";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -24,19 +25,24 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
       prisma,
     });
 
-  const credentialIds = connectedCalendars.map((cal) => cal.credentialId);
-  const cacheRepository = new CalendarCacheRepository();
-  const cacheStatuses = await cacheRepository.getCacheStatusByCredentialIds(credentialIds);
+  // Use cache services independently
+  const cacheService = new CalendarCacheService();
+  const sqlCacheService = new CalendarCacheSqlService();
+  
+  const [enrichedWithLegacyCache, enrichedWithSqlCache] = await Promise.all([
+    cacheService.enrichCalendarsWithCacheData(connectedCalendars),
+    sqlCacheService.enrichCalendarsWithSqlCacheData(connectedCalendars),
+  ]);
 
-  const cacheStatusMap = new Map(cacheStatuses.map((cache) => [cache.credentialId, cache.updatedAt]));
-
-  const enrichedConnectedCalendars = connectedCalendars.map((calendar) => ({
+  // Merge the results
+  const finalCalendars = connectedCalendars.map((calendar, index) => ({
     ...calendar,
-    cacheUpdatedAt: cacheStatusMap.get(calendar.credentialId) || null,
+    cacheUpdatedAt: enrichedWithLegacyCache[index]?.cacheUpdatedAt || null,
+    calendars: enrichedWithSqlCache[index]?.calendars || calendar.calendars,
   }));
 
   return {
-    connectedCalendars: enrichedConnectedCalendars,
+    connectedCalendars: finalCalendars,
     destinationCalendar,
   };
 };

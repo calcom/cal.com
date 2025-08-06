@@ -3,6 +3,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
 
@@ -16,11 +17,47 @@ interface CalendarToggleItemProps {
   calendars?: {
     active?: boolean;
     name?: string;
+    sqlCacheUpdatedAt?: Date | null;
+    sqlCacheSubscriptionCount?: number;
   }[];
+  // Legacy cache data props (at credential level)
+  cacheData?: {
+    updatedAt: Date | null;
+  };
 }
+
 function CalendarToggleItem(props: CalendarToggleItemProps) {
   const badgeStatus = props.status === "connected" ? "green" : "orange";
   const badgeText = props.status === "connected" ? "Connected" : "Not found";
+  
+  // Format cache update time for display
+  const formatCacheTime = (date: Date | null) => {
+    if (!date) return "Never";
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
+
+  // Create tooltip content for SQL cache data
+  const createSqlCacheTooltipContent = (calendar: CalendarToggleItemProps['calendars'][0]) => {
+    if (!calendar.sqlCacheUpdatedAt && (!calendar.sqlCacheSubscriptionCount || calendar.sqlCacheSubscriptionCount === 0)) {
+      return null;
+    }
+
+    const parts = [];
+    if (calendar.sqlCacheUpdatedAt) {
+      parts.push(`Last sync: ${formatCacheTime(calendar.sqlCacheUpdatedAt)}`);
+    }
+    if (calendar.sqlCacheSubscriptionCount && calendar.sqlCacheSubscriptionCount > 0) {
+      parts.push(`${calendar.sqlCacheSubscriptionCount} subscription${calendar.sqlCacheSubscriptionCount > 1 ? 's' : ''}`);
+    }
+    
+    return parts.join(', ');
+  };
+
   return (
     <TroubleshooterListItemContainer
       title={props.title}
@@ -36,15 +73,36 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
         </>
       }
       suffixSlot={
-        <div>
+        <div className="flex flex-col items-end gap-1">
           <Badge variant={badgeStatus} withDot size="sm">
             {badgeText}
           </Badge>
+          {/* Legacy Cache Data (at credential level) */}
+          {props.cacheData && (
+            <div className="text-xs text-muted-foreground">
+              Legacy Cache: {formatCacheTime(props.cacheData.updatedAt)}
+            </div>
+          )}
         </div>
       }>
       <div className="[&>*]:text-emphasis flex flex-col gap-3">
         {props.calendars?.map((calendar) => {
-          return <Switch key={calendar.name} checked={calendar.active} label={calendar.name} disabled />;
+          const sqlCacheTooltipContent = createSqlCacheTooltipContent(calendar);
+          
+          return (
+            <div key={calendar.name} className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <Switch checked={calendar.active} label={calendar.name} disabled />
+                {sqlCacheTooltipContent && (
+                  <Tooltip content={sqlCacheTooltipContent}>
+                    <div className="text-xs text-muted-foreground cursor-help">
+                      ℹ️
+                    </div>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
+          );
         })}
       </div>
     </TroubleshooterListItemContainer>
@@ -107,8 +165,14 @@ export function CalendarToggleContainer() {
                   return {
                     active: item.isSelected,
                     name: item.name,
+                    sqlCacheUpdatedAt: item.sqlCacheUpdatedAt,
+                    sqlCacheSubscriptionCount: item.sqlCacheSubscriptionCount,
                   };
                 })}
+                // Legacy cache data (at credential level)
+                cacheData={{
+                  updatedAt: calendar.cacheUpdatedAt,
+                }}
               />
             );
           })}
