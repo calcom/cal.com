@@ -338,9 +338,15 @@ export const getRichDescriptionHTML = (
   // Convert the manage link to a clickable hyperlink
   const manageLinkText = getManageLink(calEvent, t);
   const manageLinkHtml = manageLinkText
-    ? `<p><strong>${t("need_to_reschedule_or_cancel")}</strong> <a href="${manageLinkText
-        .split(" ")
-        .pop()}">${manageLinkText.split(" ").pop()}</a></p>`
+    ? (() => {
+        const words = manageLinkText.split(" ");
+        const lastWord = words.pop();
+        if (lastWord && lastWord.includes("http")) {
+          const textWithoutLink = words.join(" ").trim();
+          return `<p><strong>${textWithoutLink}</strong> <a href="${lastWord}">Click here</a></p>`;
+        }
+        return `<p>${manageLinkText}</p>`;
+      })()
     : "";
 
   // Build the HTML content for each section

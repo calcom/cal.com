@@ -251,30 +251,28 @@ export default class EventManager {
     return matches;
   }
 
-  private updateVideoCallData(
+  private updateMSTeamsVideoCallData(
     evt: CalendarEvent,
     results: Array<EventResult<Exclude<Event, AdditionalInformation>>>
   ) {
-    if (evt.location === MSTeamsLocationType) {
-      const office365CalendarWithTeams = results.find(
-        (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
-      );
-      if (office365CalendarWithTeams) {
-        evt.videoCallData = {
-          type: "office365_video",
-          id: office365CalendarWithTeams.createdEvent?.id,
-          password: "",
-          url: office365CalendarWithTeams.createdEvent?.url,
+    const office365CalendarWithTeams = results.find(
+      (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+    );
+    if (office365CalendarWithTeams) {
+      evt.videoCallData = {
+        type: "office365_video",
+        id: office365CalendarWithTeams.createdEvent?.id,
+        password: "",
+        url: office365CalendarWithTeams.createdEvent?.url,
+      };
+      if (evt.location && evt.responses) {
+        evt.responses["location"] = {
+          ...(evt.responses["location"] ?? {}),
+          value: {
+            optionValue: "",
+            value: evt.location,
+          },
         };
-        if (evt.location && evt.responses) {
-          evt.responses["location"] = {
-            ...(evt.responses["location"] ?? {}),
-            value: {
-              optionValue: "",
-              value: evt.location,
-            },
-          };
-        }
       }
     }
   }
@@ -362,7 +360,9 @@ export default class EventManager {
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
 
-    this.updateVideoCallData(evt, results);
+    if (evt.location === MSTeamsLocationType) {
+      this.updateMSTeamsVideoCallData(evt, results);
+    }
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -439,7 +439,9 @@ export default class EventManager {
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
 
-      this.updateVideoCallData(evt, results);
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
     }
 
     const referencesToCreate = results.map((result) => {
