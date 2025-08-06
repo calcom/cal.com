@@ -146,6 +146,16 @@ export class PhoneNumberRepository {
     teamId?: number;
   }) {
     return await prisma.calAiPhoneNumber.create({
+      select: {
+        id: true,
+        phoneNumber: true,
+        provider: true,
+        userId: true,
+        teamId: true,
+        subscriptionStatus: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       data: {
         provider,
         userId,

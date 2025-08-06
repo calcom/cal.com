@@ -65,7 +65,15 @@ export class AgentRepository {
     }
 
     const agents = await prisma.$queryRaw<_AgentRawResult[]>`
-      SELECT *
+      SELECT
+        id,
+        name,
+        "retellAgentId",
+        enabled,
+        "userId",
+        "teamId",
+        "createdAt",
+        "updatedAt"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1
@@ -93,7 +101,15 @@ export class AgentRepository {
     }
 
     const agents = await prisma.$queryRaw<_AgentRawResult[]>`
-      SELECT *
+      SELECT
+        id,
+        name,
+        "retellAgentId",
+        enabled,
+        "userId",
+        "teamId",
+        "createdAt",
+        "updatedAt"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1
@@ -104,6 +120,16 @@ export class AgentRepository {
 
   static async findById({ id }: { id: string }) {
     return await prisma.agent.findUnique({
+      select: {
+        id: true,
+        name: true,
+        retellAgentId: true,
+        enabled: true,
+        userId: true,
+        teamId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       where: {
         id,
       },
@@ -112,6 +138,16 @@ export class AgentRepository {
 
   static async findByRetellAgentId({ retellAgentId }: { retellAgentId: string }) {
     return await prisma.agent.findUnique({
+      select: {
+        id: true,
+        name: true,
+        retellAgentId: true,
+        enabled: true,
+        userId: true,
+        teamId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       where: {
         retellAgentId,
       },
@@ -387,7 +423,15 @@ export class AgentRepository {
     }
 
     const agents = await prisma.$queryRaw<_AgentRawResult[]>`
-      SELECT *
+      SELECT
+        id,
+        name,
+        "retellAgentId",
+        enabled,
+        "userId",
+        "teamId",
+        "createdAt",
+        "updatedAt"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1
@@ -409,7 +453,15 @@ export class AgentRepository {
     }
 
     const agents = await prisma.$queryRaw<_AgentRawResult[]>`
-      SELECT *
+      SELECT
+        a.id,
+        a.name,
+        a."retellAgentId",
+        a.enabled,
+        a."userId",
+        a."teamId",
+        a."createdAt",
+        a."updatedAt"
       FROM "Agent" a
       WHERE ${whereCondition}
       LIMIT 1
