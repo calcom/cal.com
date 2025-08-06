@@ -13,7 +13,7 @@ import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema }
 export interface IFilterSegmentRepository {
   get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }): Promise<{
     segments: FilterSegmentOutput[];
-    preferredSegmentId: number | null;
+    preferredSegmentId: number | string | null;
   }>;
 
   create({
@@ -41,7 +41,7 @@ export interface IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: number | null;
+    segmentId: number | string | null;
   }): Promise<UserFilterSegmentPreference | null>;
 }
 
@@ -124,12 +124,13 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       },
       select: {
         segmentId: true,
+        defaultSegmentId: true,
       },
     });
 
     return {
       segments: parsedSegments,
-      preferredSegmentId: preference?.segmentId || null,
+      preferredSegmentId: preference?.segmentId ?? preference?.defaultSegmentId ?? null,
     };
   }
 
@@ -282,7 +283,7 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: number | null;
+    segmentId: number | string | null;
   }) {
     if (segmentId === null) {
       await prisma.userFilterSegmentPreference.deleteMany({
@@ -294,6 +295,18 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       return null;
     }
 
+    const isDefaultSegment = typeof segmentId === "string";
+
+    const updateData = isDefaultSegment
+      ? {
+          segmentId: null,
+          defaultSegmentId: segmentId,
+        }
+      : {
+          segmentId: segmentId,
+          defaultSegmentId: null,
+        };
+
     const preference = await prisma.userFilterSegmentPreference.upsert({
       where: {
         userId_tableIdentifier: {
@@ -301,13 +314,11 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
           tableIdentifier,
         },
       },
-      update: {
-        segmentId,
-      },
+      update: updateData,
       create: {
         userId,
         tableIdentifier,
-        segmentId,
+        ...updateData,
       },
     });
 

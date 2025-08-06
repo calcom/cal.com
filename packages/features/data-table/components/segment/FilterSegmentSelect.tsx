@@ -16,7 +16,7 @@ import {
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "../../hooks";
-import type { FilterSegmentOutput } from "../../lib/types";
+import type { FilterSegmentOutput, CombinedFilterSegment, DefaultFilterSegment } from "../../lib/types";
 import { DeleteSegmentDialog } from "./DeleteSegmentDialog";
 import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
 import { RenameSegmentDialog } from "./RenameSegmentDialog";
@@ -59,44 +59,61 @@ export function FilterSegmentSelect() {
   ];
 
   const segmentGroups = useMemo(() => {
-    const sortFn = (a: FilterSegmentOutput, b: FilterSegmentOutput) => a.name.localeCompare(b.name);
+    const sortFn = (a: CombinedFilterSegment, b: CombinedFilterSegment) =>
+      a.name.localeCompare(b.name);
 
-    const personalSegments = segments?.filter((segment) => !segment.team) || [];
+    const defaultSegments =
+      segments?.filter((s): s is DefaultFilterSegment => "isDefault" in s && (s as any).isDefault) || [];
+    const personalSegments =
+      segments?.filter((s): s is FilterSegmentOutput => !("isDefault" in s) && !s.team) || [];
     const teamSegments =
       segments?.filter(
-        (segment): segment is FilterSegmentOutput & { team: NonNullable<FilterSegmentOutput["team"]> } =>
-          segment.team !== null
+        (s): s is FilterSegmentOutput & { team: NonNullable<FilterSegmentOutput["team"]> } =>
+          !("isDefault" in s) && s.team !== null
       ) || [];
 
-    // Group team segments by team name
-    const teamSegmentsByTeam = teamSegments.reduce<{ [teamName: string]: FilterSegmentOutput[] }>(
-      (acc, segment) => {
-        const teamName = segment.team.name;
-        if (!acc[teamName]) {
-          acc[teamName] = [];
-        }
-        acc[teamName].push(segment);
-        return acc;
-      },
-      {}
-    );
+    const groups = [];
 
-    return [
-      ...(personalSegments.length > 0
-        ? [
-            {
-              label: t("personal"),
-              segments: personalSegments.sort(sortFn),
-            },
-          ]
-        : []),
+    if (defaultSegments.length > 0) {
+      groups.push({
+        label: t("default"),
+        segments: defaultSegments.sort(sortFn),
+        isDefault: true,
+      });
+    }
+
+    // Personal segments
+    if (personalSegments.length > 0) {
+      groups.push({
+        label: t("personal"),
+        segments: personalSegments.sort(sortFn),
+        isDefault: false,
+      });
+    }
+
+    // Team segments (existing grouping logic)
+    const teamSegmentsByTeam = teamSegments.reduce<{
+      [teamName: string]: FilterSegmentOutput[];
+    }>((acc, segment) => {
+      const teamName = segment.team!.name;
+      if (!acc[teamName]) {
+        acc[teamName] = [];
+      }
+      acc[teamName].push(segment);
+      return acc;
+    }, {});
+
+    groups.push(
       ...Object.entries(teamSegmentsByTeam)
         .map(([teamName, segments]) => ({
           label: teamName,
           segments: segments.sort(sortFn),
+          isDefault: false,
         }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    ];
+        .sort((a, b) => a.label.localeCompare(b.label))
+    );
+
+    return groups;
   }, [segments, t]);
 
   if (!isSegmentEnabled) {
@@ -131,7 +148,7 @@ export function FilterSegmentSelect() {
                 {group.segments.map((segment) => (
                   <DropdownItemWithSubmenu
                     key={segment.id}
-                    submenuItems={submenuItems}
+                    submenuItems={group.isDefault ? [] : submenuItems}
                     segment={segment}
                     onSelect={() => {
                       if (segmentId === segment.id) {
@@ -141,6 +158,12 @@ export function FilterSegmentSelect() {
                       }
                     }}>
                     {segment.id === segmentId && <Icon name="check" className="ml-3 h-4 w-4" />}
+                    {"icon" in segment && segment.icon && (
+                      <Icon
+                        name={segment.icon as any}
+                        className="ml-3 h-4 w-4 text-muted-foreground"
+                      />
+                    )}
                     <span className="ml-3">{segment.name}</span>
                   </DropdownItemWithSubmenu>
                 ))}
@@ -175,7 +198,7 @@ function DropdownItemWithSubmenu({
   children,
 }: {
   onSelect: () => void;
-  segment: FilterSegmentOutput;
+  segment: CombinedFilterSegment;
   submenuItems: SubmenuItem[];
   children: React.ReactNode;
 }) {
@@ -186,7 +209,11 @@ function DropdownItemWithSubmenu({
 
   // Filter submenu items based on segment type and user role
   const filteredSubmenuItems = submenuItems.filter((item) => {
-    if (!segment.team) {
+    if ("isDefault" in segment && segment.isDefault) {
+      return false;
+    }
+
+    if (!("team" in segment) || !segment.team) {
       // Personal segments: show all actions
       return true;
     }
@@ -227,7 +254,9 @@ function DropdownItemWithSubmenu({
                     StartIcon={item.iconName}
                     onClick={(event) => {
                       event.preventDefault();
-                      item.onClick(segment);
+                      if (!("isDefault" in segment)) {
+                        item.onClick(segment as FilterSegmentOutput);
+                      }
                       setIsOpen(false);
                     }}>
                     {t(item.labelKey)}

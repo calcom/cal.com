@@ -116,10 +116,13 @@ export function SaveFilterSegmentButton() {
         showToast(t("segment_not_found"), "error");
         return;
       }
-      const scope = selectedSegment.scope;
-      if (scope === "TEAM") {
+      const scope = "isDefault" in selectedSegment ? "USER" : selectedSegment.scope;
+      if ("isDefault" in selectedSegment) {
+        showToast(t("cannot_update_default_segment"), "error");
+        return;
+      } else if (scope === "TEAM") {
         updateSegment({
-          id: selectedSegment.id,
+          id: selectedSegment.id as number,
           scope,
           teamId: selectedSegment.teamId || 0,
           name: selectedSegment.name,
@@ -127,7 +130,7 @@ export function SaveFilterSegmentButton() {
         });
       } else {
         updateSegment({
-          id: selectedSegment.id,
+          id: selectedSegment.id as number,
           scope,
           name: selectedSegment.name,
           ...segmentData,
@@ -184,7 +187,7 @@ export function SaveFilterSegmentButton() {
       <DialogContent data-testid="save-filter-segment-dialog">
         <DialogHeader title={t("save_segment")} />
         <Form form={form} handleSubmit={onSubmit}>
-          {selectedSegment ? (
+          {selectedSegment && !("isDefault" in selectedSegment) ? (
             <div className="mb-4">
               <RadioGroup
                 defaultValue="update"

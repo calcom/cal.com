@@ -17,6 +17,7 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
+  type DefaultFilterSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -58,8 +59,62 @@ type BookingsProps = {
 };
 
 export default function Bookings(props: BookingsProps) {
+  const { data: user } = useMeQuery();
+
+  const defaultSegments: DefaultFilterSegment[] = useMemo(() => {
+    if (!user) return [];
+
+    const segments: DefaultFilterSegment[] = [
+      {
+        id: "my-bookings",
+        name: "My Bookings",
+        description: "Bookings where I am the host",
+        icon: "user",
+        isDefault: true,
+        activeFilters: [
+          {
+            f: "userId",
+            v: {
+              type: ColumnFilterType.MULTI_SELECT,
+              data: [user.id],
+            },
+          },
+        ],
+        sorting: [{ id: "startTime", desc: false }],
+        perPage: 10,
+      },
+      {
+        id: "upcoming-bookings",
+        name: "Upcoming Bookings",
+        description: "All future bookings",
+        icon: "calendar",
+        isDefault: true,
+        activeFilters: [
+          {
+            f: "dateRange",
+            v: {
+              type: ColumnFilterType.DATE_RANGE,
+              data: {
+                startDate: null,
+                endDate: null,
+                preset: "upcoming",
+              },
+            },
+          },
+        ],
+        perPage: 10,
+      },
+    ];
+
+
+    return segments;
+  }, [user]);
+
   return (
-    <DataTableProvider useSegments={useSegments}>
+    <DataTableProvider
+      useSegments={useSegments}
+      defaultSegments={defaultSegments}
+    >
       <BookingsContent {...props} />
     </DataTableProvider>
   );

@@ -28,6 +28,7 @@ export const useSegments: UseSegments = ({
   setSearchTerm,
   segments: providedSegments,
   preferredSegmentId,
+  defaultSegments = [],
 }) => {
   const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery(
     {
@@ -40,12 +41,11 @@ export const useSegments: UseSegments = ({
 
   const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation();
 
-  // Recalculate date ranges based on the current timestamp
   const segments = useMemo(() => {
     const segmentsSource = providedSegments || rawSegments?.segments;
-    if (!segmentsSource) return [];
+    const userSegments = segmentsSource || [];
 
-    return segmentsSource.map((segment) => ({
+    const processedDefaultSegments = defaultSegments.map((segment) => ({
       ...segment,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
@@ -57,14 +57,35 @@ export const useSegments: UseSegments = ({
         return filter;
       }),
     }));
-  }, [rawSegments, providedSegments]);
+
+    const processedUserSegments = userSegments.map((segment) => ({
+      ...segment,
+      activeFilters: segment.activeFilters.map((filter) => {
+        if (isDateRangeFilterValue(filter.v)) {
+          return {
+            ...filter,
+            v: recalculateDateRange(filter.v),
+          };
+        }
+        return filter;
+      }),
+    }));
+
+    return [...processedDefaultSegments, ...processedUserSegments];
+  }, [rawSegments, providedSegments, defaultSegments]);
 
   const selectedSegment = useMemo(() => {
-    return segments?.find((segment) => segment.id === segmentId);
+    return segments?.find((segment) => {
+      if ("isDefault" in segment && segment.isDefault) {
+        return segment.id === segmentId;
+      } else {
+        return segment.id === segmentId;
+      }
+    });
   }, [segments, segmentId]);
 
   useEffect(() => {
-    if (segments && segmentId > 0 && !isFetchingSegments) {
+    if (segments && segmentId && segmentId !== "" && !isFetchingSegments) {
       const segment = segments.find((segment) => segment.id === segmentId);
       if (!segment) {
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
@@ -90,11 +111,11 @@ export const useSegments: UseSegments = ({
     if (selectedSegment) {
       // segment is selected, so we apply the filters, sorting, etc. from the segment
       setActiveFilters(selectedSegment.activeFilters);
-      setSorting(selectedSegment.sorting);
-      setColumnVisibility(selectedSegment.columnVisibility);
-      setColumnSizing(selectedSegment.columnSizing);
-      setPageSize(selectedSegment.perPage);
-      setSearchTerm(selectedSegment.searchTerm);
+      setSorting(selectedSegment.sorting || []);
+      setColumnVisibility(selectedSegment.columnVisibility || {});
+      setColumnSizing(selectedSegment.columnSizing || {});
+      setPageSize(selectedSegment.perPage || defaultPageSize);
+      setSearchTerm(selectedSegment.searchTerm || null);
       setPageIndex(0);
     }
   }, [
@@ -142,7 +163,7 @@ export const useSegments: UseSegments = ({
   ]);
 
   const setAndPersistSegmentId = useCallback(
-    (segmentId: number | null) => {
+    (segmentId: number | string | null) => {
       setSegmentId(segmentId);
       setPreference({
         tableIdentifier,

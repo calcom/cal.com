@@ -22,6 +22,8 @@ import {
 import {
   type FilterValue,
   type FilterSegmentOutput,
+  type DefaultFilterSegment,
+  type CombinedFilterSegment,
   type ActiveFilters,
   type UseSegments,
 } from "./lib/types";
@@ -55,10 +57,10 @@ export type DataTableContextType = {
   offset: number;
   limit: number;
 
-  segments: FilterSegmentOutput[];
-  selectedSegment: FilterSegmentOutput | undefined;
-  segmentId: number | undefined;
-  setSegmentId: (id: number | null) => void;
+  segments: CombinedFilterSegment[];
+  selectedSegment: CombinedFilterSegment | undefined;
+  segmentId: number | string | undefined;
+  setSegmentId: (id: number | string | null) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -78,7 +80,8 @@ interface DataTableProviderProps {
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
   timeZone?: string;
-  preferredSegmentId?: number | null;
+  preferredSegmentId?: number | string | null;
+  defaultSegments?: DefaultFilterSegment[];
 }
 
 export function DataTableProvider({
@@ -90,6 +93,7 @@ export function DataTableProvider({
   segments: providedSegments,
   timeZone,
   preferredSegmentId,
+  defaultSegments,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -99,10 +103,23 @@ export function DataTableProvider({
     columnVisibilityParser
   );
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
-  const [segmentId, setSegmentId] = useQueryState(
-    "segment",
-    segmentIdParser.withDefault(preferredSegmentId ?? -1)
-  );
+  const [segmentIdString, setSegmentIdString] = useQueryState("segment", segmentIdParser);
+  
+  const segmentId = useMemo(() => {
+    if (!segmentIdString || segmentIdString === "") {
+      return preferredSegmentId || "";
+    }
+    const numericId = parseInt(segmentIdString, 10);
+    return isNaN(numericId) ? segmentIdString : numericId;
+  }, [segmentIdString, preferredSegmentId]);
+
+  const setSegmentId = useCallback((id: number | string | null) => {
+    if (id === null) {
+      setSegmentIdString("");
+    } else {
+      setSegmentIdString(String(id));
+    }
+  }, [setSegmentIdString]);
   const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
   const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
   const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
@@ -195,6 +212,7 @@ export function DataTableProvider({
       setSearchTerm,
       segments: providedSegments,
       preferredSegmentId,
+      defaultSegments,
     }
   );
 

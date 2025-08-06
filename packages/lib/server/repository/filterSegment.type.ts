@@ -60,7 +60,7 @@ export type TCreateFilterSegmentInputSchema = z.infer<typeof ZCreateFilterSegmen
 
 export const ZSetFilterSegmentPreferenceInputSchema = z.object({
   tableIdentifier: z.string(),
-  segmentId: z.number().nullable(),
+  segmentId: z.union([z.number(), z.string()]).nullable(),
 });
 
 export type TSetFilterSegmentPreferenceInputSchema = z.infer<typeof ZSetFilterSegmentPreferenceInputSchema>;
