@@ -15,6 +15,7 @@ import type {
   AIPhoneServiceImportPhoneNumberParams,
   AIPhoneServiceUpdatePhoneNumberParams,
   AIPhoneServiceAgentListItem,
+  AIPhoneServiceImportPhoneNumberParamsExtended,
   AIPhoneServiceAgentWithDetails,
 } from "../../interfaces/ai-phone-service.interface";
 import { RetellAIService } from "./service";
@@ -102,7 +103,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider<AIPhoneServicePr
     return result;
   }
 
-  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParams<AIPhoneServiceProviderType.RETELL_AI>): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParamsExtended<AIPhoneServiceProviderType.RETELL_AI>): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     const result = await this.service.importPhoneNumber(data);
     return result;
   }
