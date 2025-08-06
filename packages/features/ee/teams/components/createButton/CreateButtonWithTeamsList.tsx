@@ -19,7 +19,6 @@ export function CreateButtonWithTeamsList(
     };
   }
 ) {
-  console.log({ props });
   const query = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery({
     includeOrg: props.includeOrg,
     withPermission: props.withPermission
