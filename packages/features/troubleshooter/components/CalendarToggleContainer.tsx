@@ -21,10 +21,6 @@ interface CalendarToggleItemProps {
     sqlCacheUpdatedAt?: Date | null;
     sqlCacheSubscriptionCount?: number;
   }[];
-  // Legacy cache data props (at credential level)
-  cacheData?: {
-    updatedAt: Date | null;
-  };
 }
 
 function CalendarToggleItem(props: CalendarToggleItemProps) {
@@ -171,10 +167,6 @@ export function CalendarToggleContainer() {
                     sqlCacheSubscriptionCount: item.sqlCacheSubscriptionCount,
                   };
                 })}
-                // Legacy cache data (at credential level)
-                cacheData={{
-                  updatedAt: calendar.cacheUpdatedAt,
-                }}
               />
             );
           })}

@@ -201,25 +201,4 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       },
     });
   }
-
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Use the new calendar-cache-sql feature instead.
-   */
-  async getCacheStatusByCredentialIds(credentialIds: number[]) {
-    const cacheStatuses = await prisma.calendarCache.groupBy({
-      by: ["credentialId"],
-      where: {
-        credentialId: { in: credentialIds },
-      },
-      _max: {
-        updatedAt: true,
-      },
-    });
-
-    return cacheStatuses.map((cache) => ({
-      credentialId: cache.credentialId,
-      updatedAt: cache._max.updatedAt,
-    }));
-  }
 }

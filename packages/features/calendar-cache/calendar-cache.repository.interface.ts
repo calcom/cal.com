@@ -51,11 +51,4 @@ export interface ICalendarCacheRepository {
     userId: number | null;
     args: FreeBusyArgs;
   }): Promise<CalendarCache | null>;
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Use the new calendar-cache-sql feature instead.
-   */
-  getCacheStatusByCredentialIds(
-    credentialIds: number[]
-  ): Promise<{ credentialId: number; updatedAt: Date | null }[]>;
 }

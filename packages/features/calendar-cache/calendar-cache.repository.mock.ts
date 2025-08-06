@@ -47,13 +47,4 @@ export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
   async deleteManyByCredential() {
     log.info(`Skipping deleteManyByCredential due to calendar-cache being disabled`);
   }
-
-  /**
-   * @deprecated This method is deprecated and will be removed in a future version.
-   * Use the new calendar-cache-sql feature instead.
-   */
-  async getCacheStatusByCredentialIds() {
-    log.info(`Skipping getCacheStatusByCredentialIds due to calendar-cache being disabled`);
-    return [];
-  }
 }
