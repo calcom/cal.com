@@ -869,4 +869,26 @@ export class BookingRepository {
       },
     });
   }
+
+  async findAcceptedBookingByEventTypeId({eventTypeId, dateFrom, dateTo}: {eventTypeId?: number, dateFrom: string, dateTo: string}) {
+    return  this.prismaClient.booking.findMany({
+          where: {
+            eventTypeId,
+            startTime: {
+              gte: dateFrom,
+              lte: dateTo,
+            },
+            status: BookingStatus.ACCEPTED,
+          },
+          select: {
+            uid: true,
+            startTime: true,
+            attendees: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        });
+  }
 }

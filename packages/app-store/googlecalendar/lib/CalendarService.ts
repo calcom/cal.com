@@ -1114,4 +1114,18 @@ export default class GoogleCalendarService implements Calendar {
       throw error;
     }
   }
+
+  async getMainTimeZone(): Promise<string> {
+    try {
+      const primaryCalendar = await this.getPrimaryCalendar();
+      if (!primaryCalendar?.timeZone) {
+        this.log.warn("No timezone found in primary calendar, defaulting to UTC");
+        return "UTC";
+      }
+      return primaryCalendar.timeZone;
+    } catch (error) {
+      this.log.error("Error getting main timezone from Google Calendar", { error });
+      throw error;
+    }
+  }
 }
