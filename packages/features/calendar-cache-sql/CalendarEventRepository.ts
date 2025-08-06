@@ -59,6 +59,11 @@ export class CalendarEventRepository implements ICalendarEventRepository {
             },
           ],
         },
+        select: {
+          start: true,
+          end: true,
+          summary: true,
+        },
         orderBy: { start: "asc" },
       });
     } catch (err) {
@@ -87,6 +92,11 @@ export class CalendarEventRepository implements ICalendarEventRepository {
               end: { gt: end },
             },
           ],
+        },
+        select: {
+          start: true,
+          end: true,
+          summary: true,
         },
         orderBy: { start: "asc" },
       });

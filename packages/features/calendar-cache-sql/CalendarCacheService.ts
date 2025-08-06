@@ -8,9 +8,11 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CalendarServiceEvent, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-import type { CalendarEvent as PrismaCalendarEvent } from "@prisma/client";
 
-import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
+import type {
+  ICalendarEventRepository,
+  CalendarEventForAvailability,
+} from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheService"] });
@@ -24,7 +26,7 @@ class CalendarCachePresenter {
   /**
    * Transforms raw calendar events into EventBusyDate format for availability responses
    */
-  static presentAvailabilityData(events: PrismaCalendarEvent[]): EventBusyDate[] {
+  static presentAvailabilityData(events: CalendarEventForAvailability[]): EventBusyDate[] {
     return events.map((event) => ({
       start: event.start.toISOString(),
       end: event.end.toISOString(),
@@ -75,7 +77,7 @@ export class CalendarCacheService implements Calendar {
 
     // Use presenter to transform calendar IDs
     const selectedCalendarIds = CalendarCachePresenter.presentCalendarIds(selectedCalendars);
-    
+
     // Batch fetch all subscriptions in a single query
     const subscriptions = await this.subscriptionRepo.findBySelectedCalendarIds(selectedCalendarIds);
     const subscriptionIds = CalendarCachePresenter.presentSubscriptionIds(subscriptions);
