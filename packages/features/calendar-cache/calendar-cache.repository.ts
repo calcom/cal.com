@@ -15,6 +15,10 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 const CACHING_TIME = ONE_MONTH_IN_MS;
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 function parseKeyForCache(args: FreeBusyArgs): string {
   // Ensure that calendarIds are unique
   const uniqueItems = uniqueBy(args.items, ["id"]);
@@ -31,6 +35,8 @@ type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] 
 /**
  * It means that caller can only work with DB Credentials
  * In-memory delegation credentials aren't supported here. Delegation User Credentials, that are in DB and have credential.delegationCredential relation can be used though
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
  */
 function assertCalendarHasDbCredential(calendar: Calendar | null) {
   if (!calendar?.getCredentialId) {
@@ -43,16 +49,30 @@ function assertCalendarHasDbCredential(calendar: Calendar | null) {
 }
 /**
  * It means that caller can work with in-memory credential
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
  */
 function declareCanWorkWithInMemoryCredential() {
   // No assertion required here, it is for readability who reads the caller's code
 }
 
+/**
+ * @deprecated This class is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 export class CalendarCacheRepository implements ICalendarCacheRepository {
   calendar: Calendar | null;
+  /**
+   * @deprecated This constructor is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds } = args;
@@ -65,6 +85,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     await this.calendar?.watchCalendar({ calendarId, eventTypeIds });
   }
 
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   async unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     assertCalendarHasDbCredential(this.calendar);
     const { calendarId, eventTypeIds } = args;
@@ -78,6 +102,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     return response;
   }
 
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   async getCachedAvailability({
     credentialId,
     userId,
@@ -134,6 +162,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     );
     return cached;
   }
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   async upsertCachedAvailability({
     credentialId,
     userId,
@@ -170,6 +202,10 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     });
   }
 
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   async getCacheStatusByCredentialIds(credentialIds: number[]) {
     const cacheStatuses = await prisma.calendarCache.groupBy({
       by: ["credentialId"],

@@ -12,6 +12,10 @@ import { CalendarCache } from "../calendar-cache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheCron"] });
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 const validateRequest = (req: NextApiRequest) => {
   const apiKey = req.headers.authorization || req.query.apiKey;
   if (![process.env.CRON_API_KEY, `Bearer ${process.env.CRON_SECRET}`].includes(`${apiKey}`)) {
@@ -19,12 +23,20 @@ const validateRequest = (req: NextApiRequest) => {
   }
 };
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 function logRejected(result: PromiseSettledResult<unknown>) {
   if (result.status === "rejected") {
     console.error(result.reason);
   }
 }
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 function getUniqueCalendarsByExternalId<
   T extends {
     externalId: string;
@@ -58,6 +70,10 @@ function getUniqueCalendarsByExternalId<
   );
 }
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 const handleCalendarsToUnwatch = async () => {
   const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
@@ -107,6 +123,10 @@ const handleCalendarsToUnwatch = async () => {
   return result;
 };
 
+/**
+ * @deprecated This function is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 const handleCalendarsToWatch = async () => {
   const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
@@ -150,6 +170,10 @@ const handleCalendarsToWatch = async () => {
 };
 
 // This cron is used to activate and renew calendar subscriptions
+/**
+ * @deprecated This handler is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);

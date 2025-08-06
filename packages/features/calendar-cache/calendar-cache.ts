@@ -12,7 +12,15 @@ import { CalendarCacheRepositoryMock } from "./calendar-cache.repository.mock";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCache"] });
 
+/**
+ * @deprecated This class is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 export class CalendarCache {
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   static async initFromCredentialId(credentialId: number): Promise<ICalendarCacheRepository> {
     log.debug("initFromCredentialId", safeStringify({ credentialId }));
     const credentialForCalendarCache = await getCredentialForCalendarCache({ credentialId });
@@ -20,6 +28,10 @@ export class CalendarCache {
     const calendarForCalendarCache = await getCalendar(credentialForCalendarCache);
     return await CalendarCache.init(calendarForCalendarCache);
   }
+  /**
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   static async init(calendar: Calendar | null): Promise<ICalendarCacheRepository> {
     const featureRepo = new FeaturesRepository(prisma);
     const isCalendarCacheEnabledGlobally = await featureRepo.checkIfFeatureIsEnabledGlobally(

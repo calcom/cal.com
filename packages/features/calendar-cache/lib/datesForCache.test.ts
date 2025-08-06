@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { getTimeMin, getTimeMax } from "./datesForCache";
 
+/**
+ * @deprecated These tests are deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 describe("getTimeMin", () => {
   // Tested on multiple dates
   vi.setSystemTime("2025-04-24T00:00:13Z");
@@ -30,6 +34,10 @@ describe("getTimeMin", () => {
   });
 });
 
+/**
+ * @deprecated These tests are deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 describe("getTimeMax", () => {
   it("should return the start of the overnext month when no date is passed", () => {
     const result = getTimeMax();

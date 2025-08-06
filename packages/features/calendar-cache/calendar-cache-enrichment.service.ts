@@ -1,10 +1,18 @@
 import { CalendarCacheService } from "./calendar-cache.service";
 import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/calendar-cache-sql.service";
 
+/**
+ * @deprecated This class is deprecated and will be removed in a future version.
+ * Use the new calendar-cache-sql feature instead.
+ */
 export class CalendarCacheEnrichmentService {
   private legacyCacheService: CalendarCacheService;
   private sqlCacheService: CalendarCacheSqlService;
 
+  /**
+   * @deprecated This constructor is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
+   */
   constructor() {
     this.legacyCacheService = new CalendarCacheService();
     this.sqlCacheService = new CalendarCacheSqlService();
@@ -12,6 +20,8 @@ export class CalendarCacheEnrichmentService {
 
   /**
    * Enriches calendar data with both legacy and SQL cache information
+   * @deprecated This method is deprecated and will be removed in a future version.
+   * Use the new calendar-cache-sql feature instead.
    */
   async enrichCalendarsWithAllCacheData<T extends { credentialId: number }>(
     calendars: T[]
