@@ -9,8 +9,8 @@ import {
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { getInsightsBookingService } from "@calcom/lib/di/containers/insights-booking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
-import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -316,14 +316,13 @@ const BATCH_SIZE = 1000; // Adjust based on your needs
  * Helper function to create InsightsBookingService with standardized parameters
  */
 function createInsightsBookingService(
-  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  ctx: { user: { id: number; organizationId: number | null } },
   input: z.infer<typeof bookingRepositoryBaseInputSchema>,
   dateTarget: "createdAt" | "startTime" = "createdAt"
 ) {
   const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
 
-  return new InsightsBookingService({
-    prisma: ctx.insightsDb,
+  return getInsightsBookingService({
     options: {
       scope,
       userId: ctx.user.id,
