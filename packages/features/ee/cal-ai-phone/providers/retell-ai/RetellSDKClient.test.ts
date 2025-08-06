@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import logger from "@calcom/lib/logger";
 
-import { RetellSDKClient } from "./client";
+import { RetellSDKClient } from "./RetellSDKClient";
 import type {
   CreateLLMRequest,
   UpdateLLMRequest,
@@ -120,7 +120,7 @@ describe("RetellSDKClient", () => {
       }));
 
       vi.resetModules();
-      const { RetellSDKClient: TestRetellSDKClient } = await import("./client");
+      const { RetellSDKClient: TestRetellSDKClient } = await import("./RetellSDKClient");
 
       expect(() => {
         new TestRetellSDKClient();

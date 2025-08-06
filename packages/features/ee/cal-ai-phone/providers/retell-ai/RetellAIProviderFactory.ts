@@ -6,8 +6,8 @@ import type {
   AIPhoneServiceProviderConfig,
   AIPhoneServiceProviderType,
 } from "../../interfaces/ai-phone-service.interface";
-import { RetellSDKClient } from "./client";
-import { RetellAIProvider } from "./provider";
+import { RetellSDKClient } from "./RetellSDKClient";
+import { RetellAIProvider } from "./RetellAIProvider";
 
 export class RetellAIProviderFactory implements AIPhoneServiceProviderFactory<AIPhoneServiceProviderType.RETELL_AI> {
   create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {

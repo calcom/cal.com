@@ -3,9 +3,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import logger from "@calcom/lib/logger";
 
 import type { AIPhoneServiceProviderConfig } from "../../interfaces/ai-phone-service.interface";
-import { RetellSDKClient } from "./client";
-import { RetellAIProviderFactory } from "./factory";
-import { RetellAIProvider } from "./provider";
+import { RetellSDKClient } from "./RetellSDKClient";
+import { RetellAIProviderFactory } from "./RetellAIProviderFactory";
+import { RetellAIProvider } from "./RetellAIProvider";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -18,7 +18,7 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-vi.mock("./client", () => ({
+vi.mock("./RetellSDKClient", () => ({
   RetellSDKClient: vi.fn().mockImplementation((logger) => ({
     logger,
     createLLM: vi.fn(),
@@ -38,7 +38,7 @@ vi.mock("./client", () => ({
   })),
 }));
 
-vi.mock("./provider", () => ({
+vi.mock("./RetellAIProvider", () => ({
   RetellAIProvider: vi.fn().mockImplementation((repository) => ({
     repository,
     setupConfiguration: vi.fn(),

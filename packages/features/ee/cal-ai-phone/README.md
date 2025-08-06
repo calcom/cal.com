@@ -93,7 +93,7 @@ The architecture implements multiple design patterns to create a maintainable, s
 - **Repository Classes** (`/packages/lib/server/repository/`)
   - `AgentRepository` - Manages agent data access
   - `PhoneNumberRepository` - Handles phone number operations
-- **Service Classes** (`providers/retell-ai/service.ts`)
+- **Service Classes** (`providers/retell-ai/RetellAIService.ts`)
   - Business logic orchestration
   - External API integration
 - **Mapper Functions**

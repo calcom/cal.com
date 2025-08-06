@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { RetellAIError } from "./errors";
-import { RetellAIService } from "./service";
+import { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
 
 vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
@@ -16,7 +16,6 @@ vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
     findByIdAndUserId: vi.fn(),
   },
 }));
-
 vi.mock("@calcom/lib/server/repository/agent", () => ({
   AgentRepository: {
     findByIdWithUserAccess: vi.fn(),

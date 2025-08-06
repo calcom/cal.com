@@ -18,7 +18,7 @@ import type {
   AIPhoneServiceImportPhoneNumberParamsExtended,
   AIPhoneServiceAgentWithDetails,
 } from "../../interfaces/ai-phone-service.interface";
-import { RetellAIService } from "./service";
+import { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository, RetellAgentWithDetails } from "./types";
 
 export class RetellAIProvider implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {

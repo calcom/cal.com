@@ -10,8 +10,8 @@ import type {
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceUpdateModelParams,
 } from "../../interfaces/ai-phone-service.interface";
-import { RetellAIProvider } from "./provider";
-import type { RetellAIService } from "./service";
+import { RetellAIProvider } from "./RetellAIProvider";
+import type { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
 
 function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): RetellAIService {
