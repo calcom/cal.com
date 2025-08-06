@@ -4,6 +4,8 @@
 
 The user requested to add new cache data to the CalendarToggleContainer component while maintaining separation of concerns. The goal is to display cache update information for connected calendars from both the legacy `calendar-cache` system and the newer `calendar-cache-sql` system without removing existing functionality.
 
+**Latest Update**: Implemented presenter pattern in CalendarCacheService to improve data transformation and separation of concerns.
+
 ## Key Challenges and Analysis
 
 1. **Dual Cache Systems**: Need to handle both legacy JSONB-based cache and new SQL-based cache
@@ -14,6 +16,7 @@ The user requested to add new cache data to the CalendarToggleContainer componen
 6. **System Independence**: Each cache system should be completely independent and not depend on the other
 7. **Service Containment**: Keep services self-contained with minimal public API
 8. **Calendar-Level Granularity**: Each individual calendar should have its own cache status, not just at the credential level
+9. **Data Transformation**: Need to separate data transformation logic from business logic using presenter pattern
 
 ## High-level Task Breakdown
 
@@ -43,7 +46,12 @@ The user requested to add new cache data to the CalendarToggleContainer componen
   - Status: ✅ Completed
 
 - [x] **Task 6**: Implement calendar-level cache status granularity
+
   - Success Criteria: Each individual calendar shows its own cache status, not just at credential level
+  - Status: ✅ Completed
+
+- [x] **Task 7**: Implement presenter pattern in CalendarCacheService
+  - Success Criteria: Data transformation logic is separated from business logic using presenter pattern
   - Status: ✅ Completed
 
 ## Project Status Board
@@ -59,10 +67,11 @@ The user requested to add new cache data to the CalendarToggleContainer componen
 - [x] Fixed typing signatures and improved service containment
 - [x] Implemented robust credentialId-based data merging
 - [x] Implemented calendar-level cache status granularity
+- [x] **Implemented presenter pattern** in CalendarCacheService for better data transformation
 
 ### Current Status / Progress Tracking
 
-**Current Phase**: Implementation Complete
+**Current Phase**: Implementation Complete with Presenter Pattern
 
 - All core functionality implemented
 - Both legacy and SQL cache data are now displayed in the UI
@@ -73,6 +82,7 @@ The user requested to add new cache data to the CalendarToggleContainer componen
 - **Proper typing** - clean, contained service APIs
 - **Robust data merging** - credentialId-based lookup instead of fragile array indices
 - **Calendar-level granularity** - each individual calendar shows its own cache status
+- **Presenter pattern implemented** - data transformation logic separated from business logic
 
 ## Executor's Feedback or Assistance Requests
 
@@ -87,6 +97,7 @@ The implementation is complete and follows the requirements:
 7. **Service Containment**: Services are self-contained with minimal public API
 8. **Robust Data Merging**: Uses credentialId-based lookup for reliable data merging
 9. **Calendar-Level Granularity**: Each individual calendar shows its own cache status
+10. **Presenter Pattern**: Implemented `CalendarCachePresenter` class to handle data transformation logic
 
 The cache data is now displayed as:
 
@@ -124,6 +135,17 @@ This provides users with comprehensive visibility into both cache systems and th
 - Legacy cache status remains at credential level (as designed)
 - UI clearly shows which cache system applies to which level
 
+**Presenter Pattern**: Implemented data transformation separation:
+
+- `CalendarCachePresenter` class handles all data transformation logic
+- Static methods for specific transformation tasks:
+  - `presentAvailabilityData()` - transforms raw events to EventBusyDate format
+  - `presentCalendarIds()` - transforms calendar IDs to clean array format
+  - `presentSubscriptionIds()` - transforms subscription data to ID array
+- Business logic remains in the service class
+- Clean separation of concerns between data transformation and business logic
+- Follows existing codebase patterns for presenter implementation
+
 ## Lessons
 
 - When adding new data to existing components, use namespaced props to maintain clear separation
@@ -137,3 +159,6 @@ This provides users with comprehensive visibility into both cache systems and th
 - **Service containment** - keep services focused with minimal public API
 - **Data merging strategy** - use credentialId-based lookup instead of array indices for robustness
 - **Granularity matters** - understand the data model and show cache status at the appropriate level
+- **Presenter pattern** - separate data transformation logic from business logic for better maintainability
+- **Type safety** - use proper TypeScript types and interfaces for robust data handling
+- **Testing** - update tests when changing data transformation logic to ensure compatibility

@@ -82,6 +82,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         title: event.title ?? `Busy`,
         start: new Date(event.start),
         end: new Date(event.end),
+        source: event.source,
         options: {
           borderColor:
             event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",

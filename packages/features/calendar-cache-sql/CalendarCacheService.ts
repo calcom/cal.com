@@ -8,11 +8,50 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CalendarServiceEvent, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CalendarEvent as PrismaCalendarEvent } from "@prisma/client";
 
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheService"] });
+
+/**
+ * Presenter for transforming calendar cache data into UI-friendly format.
+ * This helps us ship less JavaScript to the client, prevent leaking sensitive properties,
+ * and slim down the amount of data we're sending back to the client.
+ */
+class CalendarCachePresenter {
+  /**
+   * Transforms raw calendar events into EventBusyDate format for availability responses
+   */
+  static presentAvailabilityData(events: PrismaCalendarEvent[]): EventBusyDate[] {
+    return events.map((event) => ({
+      start: event.start.toISOString(),
+      end: event.end.toISOString(),
+      source: "calendar-cache-sql",
+      title: event.summary || "Busy",
+    }));
+  }
+
+  /**
+   * Transforms calendar IDs into a clean array format
+   */
+  static presentCalendarIds(selectedCalendars: IntegrationCalendar[]): string[] {
+    return selectedCalendars.reduce<string[]>((acc, sc) => {
+      if (sc.id !== undefined) {
+        acc.push(sc.id);
+      }
+      return acc;
+    }, []);
+  }
+
+  /**
+   * Transforms subscription data into a clean array of IDs
+   */
+  static presentSubscriptionIds(subscriptions: Array<{ id: string }>): string[] {
+    return subscriptions.map((subscription) => subscription.id);
+  }
+}
 
 export class CalendarCacheService implements Calendar {
   constructor(
@@ -34,15 +73,12 @@ export class CalendarCacheService implements Calendar {
       return [];
     }
 
+    // Use presenter to transform calendar IDs
+    const selectedCalendarIds = CalendarCachePresenter.presentCalendarIds(selectedCalendars);
+    
     // Batch fetch all subscriptions in a single query
-    const selectedCalendarIds = selectedCalendars.reduce<string[]>((acc, sc) => {
-      if (sc.id !== undefined) {
-        acc.push(sc.id);
-      }
-      return acc;
-    }, []);
     const subscriptions = await this.subscriptionRepo.findBySelectedCalendarIds(selectedCalendarIds);
-    const subscriptionIds = subscriptions.map((subscription) => subscription.id);
+    const subscriptionIds = CalendarCachePresenter.presentSubscriptionIds(subscriptions);
 
     if (subscriptionIds.length === 0) {
       log.debug("No subscriptions found, returning empty results");
@@ -56,12 +92,8 @@ export class CalendarCacheService implements Calendar {
       new Date(dateTo)
     );
 
-    // Convert all events to EventBusyDate format
-    const results = allEvents.map((event) => ({
-      start: event.start.toISOString(),
-      end: event.end.toISOString(),
-      source: "calendar-cache-sql",
-    }));
+    // Use presenter to transform events to EventBusyDate format
+    const results = CalendarCachePresenter.presentAvailabilityData(allEvents);
 
     log.debug(`Returning ${results.length} busy dates from cache`);
     return results;

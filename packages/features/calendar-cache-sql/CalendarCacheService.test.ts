@@ -173,11 +173,13 @@ describe("CalendarCacheService", () => {
           start: "2024-01-01T10:00:00.000Z",
           end: "2024-01-01T11:00:00.000Z",
           source: "calendar-cache-sql",
+          title: "Meeting 1",
         },
         {
           start: "2024-01-01T14:00:00.000Z",
           end: "2024-01-01T15:00:00.000Z",
           source: "calendar-cache-sql",
+          title: "Meeting 2",
         },
       ]);
 

@@ -1,8 +1,8 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { CalendarEvent } from "../../types/events";
 
@@ -66,7 +66,7 @@ export function Event({
   const Component = onEventClick ? "button" : "div";
 
   return (
-    <Tooltip content={event.title}>
+    <Tooltip content={`Source: ${event.source}`}>
       <Component
         onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
         className={classNames(
