@@ -40,7 +40,7 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
     type: String,
   })
-  @Get("/:calendar/event/:eventUid")
+  @Get("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -77,7 +77,7 @@ export class CalUnifiedCalendarsController {
       "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
     type: String,
   })
-  @Patch("/:calendar/event/:eventUid")
+  @Patch("/:calendar/events/:eventUid")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)

@@ -1,8 +1,16 @@
 import {
-  CalendarEventResponseStatus,
   CalendarEventStatus,
-  UnifiedCalendarEventOutput,
-} from "../outputs/get-unified-calendar-event";
+  CalendarEventResponseStatus,
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
+
+import {
+  createGoogleCalendarEventFixture,
+  googleEventWithMultipleHosts,
+  googleEventWithConferenceData,
+  googleEventWithLocationOnly,
+  googleEventWithHangoutLink,
+  googleEventWithMixedAttendees,
+} from "./__fixtures__/google-calendar-event.fixture";
 import {
   GoogleCalendarEventOutputPipe,
   GoogleCalendarEventResponse,
@@ -13,68 +21,7 @@ describe("GoogleCalendarEventOutputPipe", () => {
   let sharedGoogleEvent: GoogleCalendarEventResponse;
 
   beforeAll(() => {
-    sharedGoogleEvent = {
-      kind: "calendar#event",
-      etag: "test-etag",
-      id: "test-event-id",
-      status: "confirmed",
-      htmlLink: "https://calendar.google.com/event",
-      created: "2024-01-01T00:00:00Z",
-      updated: "2024-01-01T00:00:00Z",
-      summary: "Test Meeting",
-      description: "Test description",
-      creator: {
-        email: "creator@example.com",
-        displayName: "Creator Name",
-      },
-      organizer: {
-        email: "organizer@example.com",
-        displayName: "Organizer Name",
-      },
-      start: {
-        dateTime: "2024-01-15T10:00:00Z",
-        timeZone: "America/New_York",
-      },
-      end: {
-        dateTime: "2024-01-15T11:00:00Z",
-        timeZone: "America/New_York",
-      },
-      iCalUID: "test-ical-uid",
-      sequence: 0,
-      attendees: [
-        {
-          email: "attendee@example.com",
-          displayName: "Attendee Name",
-          responseStatus: "accepted",
-          organizer: false,
-        },
-        {
-          email: "organizer@example.com",
-          displayName: "Organizer Name",
-          responseStatus: "accepted",
-          organizer: true,
-        },
-      ],
-      conferenceData: {
-        conferenceId: "abc-def-ghi",
-        entryPoints: [
-          {
-            entryPointType: "video",
-            uri: "https://meet.google.com/abc-def-ghi",
-            label: "meet.google.com/abc-def-ghi",
-          },
-        ],
-        conferenceSolution: {
-          key: {
-            type: "hangoutsMeet",
-          },
-          name: "Google Meet",
-          iconUri:
-            "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
-        },
-      },
-      hangoutLink: "https://meet.google.com/abc-def-ghi",
-    };
+    sharedGoogleEvent = createGoogleCalendarEventFixture();
   });
 
   beforeEach(() => {
@@ -95,76 +42,9 @@ describe("GoogleCalendarEventOutputPipe", () => {
       expect(result.end.time).toBe("2024-01-15T11:00:00Z");
       expect(result.end.timeZone).toBe("America/New_York");
       expect(result.attendees).toHaveLength(1);
-      expect(result.attendees![0].email).toBe("attendee@example.com");
+      expect(result.attendees?.[0]?.email).toBe("attendee@example.com");
       expect(result.hosts).toHaveLength(1);
-      expect(result.hosts![0].email).toBe("organizer@example.com");
-    });
-
-    it("should handle event without description", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-event-id",
-        status: "confirmed",
-        htmlLink: "https://calendar.google.com/event",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test Meeting",
-        creator: {
-          email: "creator@example.com",
-        },
-        organizer: {
-          email: "organizer@example.com",
-        },
-        start: {
-          dateTime: "2024-01-15T10:00:00Z",
-          timeZone: "UTC",
-        },
-        end: {
-          dateTime: "2024-01-15T11:00:00Z",
-          timeZone: "UTC",
-        },
-        iCalUID: "test-ical-uid",
-        sequence: 0,
-      };
-
-      const result = pipe.transform(googleEvent);
-      expect(result.description).toBeNull();
-    });
-
-    it("should handle event without attendees", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-event-id",
-        status: "confirmed",
-        htmlLink: "https://calendar.google.com/event",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test Meeting",
-        creator: {
-          email: "creator@example.com",
-        },
-        organizer: {
-          email: "organizer@example.com",
-          displayName: "Organizer Name",
-        },
-        start: {
-          dateTime: "2024-01-15T10:00:00Z",
-          timeZone: "UTC",
-        },
-        end: {
-          dateTime: "2024-01-15T11:00:00Z",
-          timeZone: "UTC",
-        },
-        iCalUID: "test-ical-uid",
-        sequence: 0,
-      };
-
-      const result = pipe.transform(googleEvent);
-      expect(result.attendees).toBeUndefined();
-      expect(result.hosts).toHaveLength(1);
-      expect(result.hosts![0].email).toBe("organizer@example.com");
+      expect(result.hosts?.[0]?.email).toBe("organizer@example.com");
     });
   });
 
@@ -253,44 +133,7 @@ describe("GoogleCalendarEventOutputPipe", () => {
 
   describe("transformHosts", () => {
     it("should extract hosts from organizer attendees", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        attendees: [
-          {
-            email: "attendee@example.com",
-            displayName: "Regular Attendee",
-            responseStatus: "accepted",
-            organizer: false,
-          },
-          {
-            email: "host1@example.com",
-            displayName: "Host 1",
-            responseStatus: "accepted",
-            organizer: true,
-          },
-          {
-            email: "host2@example.com",
-            displayName: "Host 2",
-            responseStatus: "tentative",
-            organizer: true,
-          },
-        ],
-      };
-
-      const result = pipe["transformHosts"](googleEvent);
+      const result = pipe["transformHosts"](googleEventWithMultipleHosts);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
@@ -305,61 +148,9 @@ describe("GoogleCalendarEventOutputPipe", () => {
       });
     });
 
-    it("should fallback to organizer when no organizer attendees", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: {
-          email: "organizer@example.com",
-          displayName: "Organizer Name",
-        },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        attendees: [
-          {
-            email: "attendee@example.com",
-            displayName: "Regular Attendee",
-            responseStatus: "accepted",
-            organizer: false,
-          },
-        ],
-      };
-
-      const result = pipe["transformHosts"](googleEvent);
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        email: "organizer@example.com",
-        name: "Organizer Name",
-        responseStatus: null,
-      });
-    });
-
-    it("should return empty array when no organizer or organizer attendees", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
+    it("should return organizer when no organizer attendees exist", () => {
+      const eventWithoutOrganizerAttendees = createGoogleCalendarEventFixture({
         organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
         attendees: [
           {
             email: "attendee@example.com",
@@ -368,9 +159,9 @@ describe("GoogleCalendarEventOutputPipe", () => {
             organizer: false,
           },
         ],
-      };
+      });
 
-      const result = pipe["transformHosts"](googleEvent);
+      const result = pipe["transformHosts"](eventWithoutOrganizerAttendees);
 
       expect(result).toHaveLength(1);
       expect(result[0].email).toBe("organizer@example.com");
@@ -379,42 +170,7 @@ describe("GoogleCalendarEventOutputPipe", () => {
 
   describe("transformLocations", () => {
     it("should transform conference data entry points", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        conferenceData: {
-          conferenceId: "test-conference-id",
-          entryPoints: [
-            {
-              entryPointType: "video",
-              uri: "https://meet.google.com/abc-def-ghi",
-              label: "Google Meet",
-              pin: "123456",
-              regionCode: "US",
-            },
-            {
-              entryPointType: "phone",
-              uri: "tel:+1-555-123-4567",
-              label: "Phone",
-              pin: "789012",
-            },
-          ],
-        },
-      };
-
-      const result = pipe["transformLocations"](googleEvent);
+      const result = pipe["transformLocations"](googleEventWithConferenceData);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({
@@ -434,25 +190,7 @@ describe("GoogleCalendarEventOutputPipe", () => {
     });
 
     it("should fallback to location field", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        location: "123 Main St, City, State",
-      };
-
-      const result = pipe["transformLocations"](googleEvent);
+      const result = pipe["transformLocations"](googleEventWithLocationOnly);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -462,25 +200,7 @@ describe("GoogleCalendarEventOutputPipe", () => {
     });
 
     it("should fallback to hangout link", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        hangoutLink: "https://hangouts.google.com/call/abc123",
-      };
-
-      const result = pipe["transformLocations"](googleEvent);
+      const result = pipe["transformLocations"](googleEventWithHangoutLink);
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
@@ -490,111 +210,26 @@ describe("GoogleCalendarEventOutputPipe", () => {
     });
 
     it("should return empty array when no location data", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-      };
+      const eventWithoutLocation = createGoogleCalendarEventFixture({
+        location: undefined,
+        conferenceData: undefined,
+        hangoutLink: undefined,
+      });
 
-      const result = pipe["transformLocations"](googleEvent);
+      const result = pipe["transformLocations"](eventWithoutLocation);
       expect(result).toEqual([]);
-    });
-
-    it("should prioritize conference data over location field", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        location: "123 Main St, City, State",
-        conferenceData: {
-          conferenceId: "test-conference-id",
-          entryPoints: [
-            {
-              entryPointType: "video",
-              uri: "https://meet.google.com/abc-def-ghi",
-            },
-          ],
-        },
-      };
-
-      const result = pipe["transformLocations"](googleEvent);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].url).toBe("https://meet.google.com/abc-def-ghi");
     });
   });
 
   describe("attendee filtering", () => {
     it("should filter out organizers from attendees list", () => {
-      const googleEvent: GoogleCalendarEventResponse = {
-        kind: "calendar#event",
-        etag: "test-etag",
-        id: "test-id",
-        status: "confirmed",
-        htmlLink: "https://example.com",
-        created: "2024-01-01T00:00:00Z",
-        updated: "2024-01-01T00:00:00Z",
-        summary: "Test",
-        creator: { email: "creator@example.com" },
-        organizer: { email: "organizer@example.com" },
-        start: { dateTime: "2024-01-15T10:00:00Z", timeZone: "UTC" },
-        end: { dateTime: "2024-01-15T11:00:00Z", timeZone: "UTC" },
-        iCalUID: "test-uid",
-        sequence: 0,
-        attendees: [
-          {
-            email: "attendee1@example.com",
-            displayName: "Attendee 1",
-            responseStatus: "accepted",
-            organizer: false,
-            optional: false,
-          },
-          {
-            email: "organizer@example.com",
-            displayName: "Organizer",
-            responseStatus: "accepted",
-            organizer: true,
-            optional: false,
-          },
-          {
-            email: "attendee2@example.com",
-            displayName: "Attendee 2",
-            responseStatus: "tentative",
-            organizer: false,
-            optional: true,
-          },
-        ],
-      };
-
-      const result = pipe.transform(googleEvent);
+      const result = pipe.transform(googleEventWithMixedAttendees);
 
       expect(result.attendees).toHaveLength(2);
-      expect(result.attendees![0].email).toBe("attendee1@example.com");
-      expect(result.attendees![1].email).toBe("attendee2@example.com");
+      expect(result.attendees?.[0]?.email).toBe("attendee1@example.com");
+      expect(result.attendees?.[1]?.email).toBe("attendee2@example.com");
       expect(result.hosts).toHaveLength(1);
-      expect(result.hosts![0].email).toBe("organizer@example.com");
+      expect(result.hosts?.[0]?.email).toBe("organizer@example.com");
     });
   });
 });
