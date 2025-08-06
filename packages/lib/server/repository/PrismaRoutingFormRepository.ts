@@ -1,5 +1,11 @@
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+
+import type {
+  RoutingFormSelect,
+  SelectedFields,
+  FindByIdOptions,
+  RoutingFormWithUserTeamAndOrg,
+} from "./PrismaRoutingFormRepositoryInterface";
 
 const defaultSelect = {
   id: true,
@@ -18,21 +24,21 @@ const defaultSelect = {
 } as const;
 
 export class PrismaRoutingFormRepository {
-  static async findById<T extends Partial<typeof defaultSelect> = typeof defaultSelect>(
+  static async findById<T extends RoutingFormSelect | undefined = undefined>(
     id: string,
-    options?: {
-      select?: T;
-    }
-  ) {
-    const select = options?.select ?? (defaultSelect as T);
+    options?: FindByIdOptions<T>
+  ): Promise<SelectedFields<T> | null> {
+    const select = options?.select ?? defaultSelect;
     return (await prisma.app_RoutingForms_Form.findUnique({
       where: { id },
       select,
-    })) as Promise<Prisma.App_RoutingForms_FormGetPayload<{ select: T }> | null>;
+    })) as SelectedFields<T> | null;
   }
 
-  static async findFormByIdIncludeUserTeamAndOrg(formId: string) {
-    return await prisma.app_RoutingForms_Form.findUnique({
+  static async findFormByIdIncludeUserTeamAndOrg(
+    formId: string
+  ): Promise<RoutingFormWithUserTeamAndOrg | null> {
+    return (await prisma.app_RoutingForms_Form.findUnique({
       where: {
         id: formId,
       },
@@ -64,6 +70,6 @@ export class PrismaRoutingFormRepository {
           },
         },
       },
-    });
+    })) as RoutingFormWithUserTeamAndOrg | null;
   }
 }
