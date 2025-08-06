@@ -35,7 +35,7 @@ export class PhoneNumberRepository {
     return result.map((row) => row.teamId);
   }
 
-  static async findMinimalPhoneNumber({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
+  static async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
     return await prisma.calAiPhoneNumber.findFirstOrThrow({
       where: {
         phoneNumber,
@@ -120,14 +120,6 @@ export class PhoneNumberRepository {
     }));
   }
 
-  static async findUnassignedPhoneNumbersFromUserId({ userId }: { userId: number }) {
-    return await prisma.calAiPhoneNumber.findMany({
-      where: {
-        userId,
-        subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
-      },
-    });
-  }
 
   static async createPhoneNumber({
     phoneNumber,

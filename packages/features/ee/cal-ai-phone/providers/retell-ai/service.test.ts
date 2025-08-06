@@ -9,7 +9,7 @@ import type { RetellAIRepository } from "./types";
 vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
   PhoneNumberRepository: {
     createPhoneNumber: vi.fn(),
-    findMinimalPhoneNumber: vi.fn(),
+    findByPhoneNumberAndUserId: vi.fn(),
     deletePhoneNumber: vi.fn(),
     findByPhoneNumberAndUserId: vi.fn(),
     updateAgents: vi.fn(),
@@ -220,7 +220,7 @@ describe("RetellAIService", () => {
   describe("deletePhoneNumber", () => {
     it("should throw error if phone number is active", async () => {
       const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      (PhoneNumberRepository.findMinimalPhoneNumber as any).mockResolvedValue({
+      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       });
 
@@ -235,7 +235,7 @@ describe("RetellAIService", () => {
 
     it("should throw error if phone number is cancelled", async () => {
       const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      (PhoneNumberRepository.findMinimalPhoneNumber as any).mockResolvedValue({
+      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
       });
 
@@ -250,7 +250,7 @@ describe("RetellAIService", () => {
 
     it("should delete from both DB and provider when deleteFromDB is true", async () => {
       const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      (PhoneNumberRepository.findMinimalPhoneNumber as any).mockResolvedValue({
+      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         subscriptionStatus: PhoneNumberSubscriptionStatus.INCOMPLETE,
       });
 

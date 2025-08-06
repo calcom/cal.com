@@ -259,7 +259,7 @@ export class RetellAIService {
           teamId,
           userId,
         })
-      : await PhoneNumberRepository.findMinimalPhoneNumber({
+      : await PhoneNumberRepository.findByPhoneNumberAndUserId({
           phoneNumber,
           userId,
         });
