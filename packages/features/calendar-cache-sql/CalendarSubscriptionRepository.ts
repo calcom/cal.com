@@ -5,6 +5,8 @@ import type { PrismaClient } from "@calcom/prisma";
 
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
 
+const CALENDAR_CACHE_SQL_WRITE_FEATURE = "calendar-cache-sql-write";
+
 // Safe credential select that excludes sensitive fields
 const safeCredentialSelectForCalendarCache = {
   id: true,
@@ -239,7 +241,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
                   team: {
                     features: {
                       some: {
-                        featureId: "calendar-cache-sql-write",
+                        featureId: CALENDAR_CACHE_SQL_WRITE_FEATURE,
                       },
                     },
                   },
