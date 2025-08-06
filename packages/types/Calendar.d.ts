@@ -57,7 +57,7 @@ export type EventBusyDate = {
   start: Date | string;
   end: Date | string;
   source?: string | null;
-  title?: string | null;
+  title?: string;
 };
 
 export type EventBusyDetails = EventBusyDate & {
