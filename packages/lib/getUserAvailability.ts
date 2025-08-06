@@ -8,10 +8,11 @@ import type {
 } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { getWorkingHours } from "@calcom/lib/availability";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
@@ -27,15 +28,17 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import { getBusyTimes } from "./getBusyTimes";
+import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "./sentryWrapper";
-import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z
@@ -55,9 +58,7 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-export type EventType = Awaited<
-  ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>
->;
+export type EventType = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>>;
 
 type GetUser = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getUser"]>>;
 
@@ -157,13 +158,71 @@ export interface IUserAvailabilityService {
   eventTypeRepo: EventTypeRepository;
   oooRepo: PrismaOOORepository;
   bookingRepo: BookingRepository;
+  redisClient: IRedisService;
 }
 
 export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
 
+  // Fetch timezones from outlook or google using delegated credentials (formely known as domain wide delegatiion)
+  async getTimezoneFromDelegatedCalendars(user: GetAvailabilityUser): Promise<string | null> {
+    if (!user.credentials || user.credentials.length === 0) {
+      return null;
+    }
+
+    const delegatedCredentials = user.credentials.filter(
+      (credential) => credential.type.endsWith("_calendar") && Boolean(credential.delegatedToId)
+    );
+
+    if (!delegatedCredentials || delegatedCredentials.length === 0) {
+      return null;
+    }
+
+    const cacheKey = `user-timezone:${user.id}`;
+
+    try {
+      const cachedTimezone = await this.dependencies.redisClient.get<string>(cacheKey);
+
+      if (cachedTimezone) {
+        log.debug(`Got timezone ${cachedTimezone} from Redis cache for user ${user.id}`);
+        return cachedTimezone;
+      }
+    } catch (error) {
+      log.warn(`Failed to get timezone from Redis cache for user ${user.id}:`, error);
+    }
+
+    if (delegatedCredentials.length === 0) {
+      return null;
+    }
+
+    for (const credential of delegatedCredentials) {
+      try {
+        const calendar = await getCalendar(credential);
+        if (calendar && "getMainTimeZone" in calendar && typeof calendar.getMainTimeZone === "function") {
+          const timezone = await calendar.getMainTimeZone();
+          if (timezone && timezone !== "UTC") {
+            log.debug(`Got timezone ${timezone} from calendar service ${credential.type}`);
+
+            try {
+              await this.dependencies.redisClient.set<string>(cacheKey, timezone, { ttl: 3600 * 6 * 1000 }); // 6 hours ttl in ms;
+              log.debug(`Cached timezone ${timezone} in Redis for user ${user.id}`);
+            } catch (error) {
+              log.warn(`Failed to set timezone in Redis cache for user ${user.id}:`, error);
+            }
+
+            return timezone;
+          }
+        }
+      } catch (error) {
+        log.warn(`Failed to get timezone from calendar service ${credential.type}:`, error);
+      }
+    }
+
+    return null;
+  }
+
   async _getEventType(id: number) {
-    const eventType = await this.dependencies.eventTypeRepo.findByIdForUserAvailability({id})
+    const eventType = await this.dependencies.eventTypeRepo.findByIdForUserAvailability({ id });
     if (!eventType) {
       return eventType;
     }
@@ -200,9 +259,11 @@ export class UserAvailabilityService {
       schedulingType === SchedulingType.ROUND_ROBIN ||
       schedulingType === SchedulingType.COLLECTIVE;
 
-    const bookings = await this.dependencies.bookingRepo.findAcceptedBookingByEventTypeId({eventTypeId: id, dateFrom: dateFrom.format(), dateTo: dateTo.format()})
-    
-  
+    const bookings = await this.dependencies.bookingRepo.findAcceptedBookingByEventTypeId({
+      eventTypeId: id,
+      dateFrom: dateFrom.format(),
+      dateTo: dateTo.format(),
+    });
 
     return bookings.map((booking) => {
       const attendees = isTeamEvent
@@ -290,10 +351,15 @@ export class UserAvailabilityService {
       timeZone: fallbackTimezoneIfScheduleIsMissing,
     };
 
-    const schedule =
-      (eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule) ??
-      fallbackSchedule;
-    const timeZone = schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+    // possible timezones that have been set by or for a user
+    const potentialSchedule = eventType?.schedule
+      ? eventType.schedule
+      : hostSchedule
+      ? hostSchedule
+      : userSchedule;
+
+    // if no schedules set by or for a user, use fallbackSchedule
+    const schedule = potentialSchedule ?? fallbackSchedule;
 
     const bookingLimits =
       eventType?.bookingLimits &&
@@ -309,6 +375,25 @@ export class UserAvailabilityService {
         ? parseDurationLimit(eventType.durationLimits)
         : null;
 
+    // TODO: only query what we need after applying limits (shrink date range)
+    const getBusyTimesStart = dateFrom.toISOString();
+    const getBusyTimesEnd = dateTo.toISOString();
+
+    const selectedCalendars = eventType?.useEventLevelSelectedCalendars
+      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+      : user.userLevelSelectedCalendars;
+
+    const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
+
+    // this timezone is synced with google/outlook calendars timezone usingg delegated credentials
+    // it's a fallback for delegated credentials users who want to sync their timezone with third party calendars
+    const calendarTimezone = !isTimezoneSet ? await this.getTimezoneFromDelegatedCalendars(user) : null;
+
+    const finalTimezone =
+      !isTimezoneSet && calendarTimezone
+        ? calendarTimezone
+        : schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
+
     let busyTimesFromLimits: EventBusyDetails[] = [];
 
     if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
@@ -318,12 +403,12 @@ export class UserAvailabilityService {
       busyTimesFromLimits = await getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
-        dateFrom.tz(timeZone),
-        dateTo.tz(timeZone),
+        dateFrom.tz(finalTimezone),
+        dateTo.tz(finalTimezone),
         duration,
         eventType,
         initialData?.busyTimesFromLimitsBookings ?? [],
-        timeZone,
+        finalTimezone,
         initialData?.rescheduleUid ?? undefined
       );
     }
@@ -344,22 +429,14 @@ export class UserAvailabilityService {
       busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
         user,
         teamBookingLimits,
-        dateFrom.tz(timeZone),
-        dateTo.tz(timeZone),
+        dateFrom.tz(finalTimezone),
+        dateTo.tz(finalTimezone),
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
-        timeZone,
+        finalTimezone,
         initialData?.rescheduleUid ?? undefined
       );
     }
-
-    // TODO: only query what we need after applying limits (shrink date range)
-    const getBusyTimesStart = dateFrom.toISOString();
-    const getBusyTimesEnd = dateTo.toISOString();
-
-    const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
-      : user.userLevelSelectedCalendars;
 
     let busyTimes = [];
     try {
@@ -385,7 +462,7 @@ export class UserAvailabilityService {
       log.error(`Error fetching busy times for user ${username}:`, error);
       return {
         busy: [],
-        timeZone,
+        timeZone: finalTimezone,
         dateRanges: [],
         oooExcludedDateRanges: [],
         workingHours: [],
@@ -434,7 +511,7 @@ export class UserAvailabilityService {
       userId: user.id,
     }));
 
-    const workingHours = getWorkingHours({ timeZone }, availability);
+    const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
 
     const dateOverrides: TimeRange[] = [];
     // NOTE: getSchedule is currently calling this function for every user in a team event
@@ -466,7 +543,11 @@ export class UserAvailabilityService {
 
     const outOfOfficeDays =
       initialData?.outOfOfficeDays ??
-      (await this.dependencies.oooRepo.findUserOOODays({userId: user.id, dateFrom: dateFrom.toISOString(), dateTo: dateTo.toISOString()}));
+      (await this.dependencies.oooRepo.findUserOOODays({
+        userId: user.id,
+        dateFrom: dateFrom.toISOString(),
+        dateTo: dateTo.toISOString(),
+      }));
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
@@ -474,7 +555,7 @@ export class UserAvailabilityService {
       dateFrom,
       dateTo,
       availability,
-      timeZone,
+      timeZone: finalTimezone,
       travelSchedules: isDefaultSchedule
         ? user.travelSchedules.map((schedule) => {
             return {
@@ -497,7 +578,7 @@ export class UserAvailabilityService {
 
     const result = {
       busy: detailedBusyTimes,
-      timeZone,
+      timeZone: finalTimezone,
       dateRanges: dateRangesInWhichUserIsAvailable,
       oooExcludedDateRanges: dateRangesInWhichUserIsAvailableWithoutOOO,
       workingHours,
@@ -515,25 +596,9 @@ export class UserAvailabilityService {
 
   getUserAvailability = withReporting(this._getUserAvailability.bind(this), "getUserAvailability");
 
-  _getPeriodStartDatesBetween(
-    dateFrom: Dayjs,
-    dateTo: Dayjs,
-    period: IntervalLimitUnit,
-    timeZone?: string
-  ): Dayjs[] {
-    const dates = [];
-    let startDate = timeZone ? dayjs(dateFrom).tz(timeZone).startOf(period) : dayjs(dateFrom).startOf(period);
-    const endDate = timeZone ? dayjs(dateTo).tz(timeZone).endOf(period) : dayjs(dateTo).endOf(period);
-
-    while (startDate.isBefore(endDate)) {
-      dates.push(startDate);
-      startDate = startDate.add(1, period);
-    }
-    return dates;
-  }
-
   getPeriodStartDatesBetween = withReporting(
-    this._getPeriodStartDatesBetween.bind(this),
+    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string) => 
+      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone),
     "getPeriodStartDatesBetween"
   );
 
