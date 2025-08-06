@@ -252,6 +252,9 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   primaryEmail?: string;
   credentialId?: number | null;
   integrationTitle?: string;
+  // SQL cache enrichment properties
+  sqlCacheUpdatedAt?: Date | null;
+  sqlCacheSubscriptionCount?: number;
 }
 
 /**

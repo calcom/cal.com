@@ -1,9 +1,9 @@
-import { CalendarCacheService } from "@calcom/features/calendar-cache/calendar-cache.service";
 import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/CalendarCacheSqlService";
-import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
 import { CalendarEventRepository } from "@calcom/features/calendar-cache-sql/CalendarEventRepository";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
+import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
+import { CalendarCacheService } from "@calcom/features/calendar-cache/calendar-cache.service";
 import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -34,7 +34,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
   const eventRepo = new CalendarEventRepository(prisma);
   const selectedCalendarRepo = new SelectedCalendarRepository();
   const sqlCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo, selectedCalendarRepo);
-  
+
   const [enrichedWithLegacyCache, enrichedWithSqlCache] = await Promise.all([
     cacheService.enrichCalendarsWithCacheData(connectedCalendars),
     sqlCacheService.enrichCalendarsWithSqlCacheData(connectedCalendars),
@@ -43,10 +43,21 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
   // Merge the results
   const finalCalendars = connectedCalendars.map((calendar, index) => {
     const enrichedCalendar = enrichedWithSqlCache[index];
+    const enrichedLegacyCache = enrichedWithLegacyCache[index];
+
+    // Ensure we always preserve the enriched properties, even if enrichment fails
+    const enrichedCalendars =
+      enrichedCalendar?.calendars ||
+      calendar.calendars?.map((cal) => ({
+        ...cal,
+        sqlCacheUpdatedAt: null,
+        sqlCacheSubscriptionCount: 0,
+      }));
+
     return {
       ...calendar,
-      cacheUpdatedAt: enrichedWithLegacyCache[index]?.cacheUpdatedAt || null,
-      calendars: enrichedCalendar?.calendars || calendar.calendars,
+      cacheUpdatedAt: enrichedLegacyCache?.cacheUpdatedAt || null,
+      calendars: enrichedCalendars,
     };
   });
 
