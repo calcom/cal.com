@@ -3,6 +3,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TroubleshooterListItemContainer } from "./TroubleshooterListItemContainer";
@@ -96,7 +97,7 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
                 {sqlCacheTooltipContent && (
                   <Tooltip content={sqlCacheTooltipContent}>
                     <div className="text-xs text-muted-foreground cursor-help">
-                      ℹ️
+                      <Icon name="info" className="h-3 w-3" />
                     </div>
                   </Tooltip>
                 )}
