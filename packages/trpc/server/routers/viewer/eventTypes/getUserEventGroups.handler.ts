@@ -61,4 +61,4 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
 };
 
 // Re-export the compareMembership function for backward compatibility
-export { compareMembership } from "./utils/permissionUtils";
+export { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
