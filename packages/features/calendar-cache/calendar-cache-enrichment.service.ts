@@ -1,5 +1,4 @@
 import { CalendarCacheService } from "./calendar-cache.service";
-import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/calendar-cache-sql.service";
 
 /**
  * @deprecated This class is deprecated and will be removed in a future version.
@@ -7,7 +6,6 @@ import { CalendarCacheSqlService } from "@calcom/features/calendar-cache-sql/cal
  */
 export class CalendarCacheEnrichmentService {
   private legacyCacheService: CalendarCacheService;
-  private sqlCacheService: CalendarCacheSqlService;
 
   /**
    * @deprecated This constructor is deprecated and will be removed in a future version.
@@ -15,11 +13,10 @@ export class CalendarCacheEnrichmentService {
    */
   constructor() {
     this.legacyCacheService = new CalendarCacheService();
-    this.sqlCacheService = new CalendarCacheSqlService();
   }
 
   /**
-   * Enriches calendar data with both legacy and SQL cache information
+   * Enriches calendar data with legacy cache information only
    * @deprecated This method is deprecated and will be removed in a future version.
    * Use the new calendar-cache-sql feature instead.
    */
@@ -34,37 +31,18 @@ export class CalendarCacheEnrichmentService {
       return [];
     }
 
-    // Enrich with both cache systems independently
-    const [enrichedWithLegacyCache, enrichedWithSqlCache] = await Promise.all([
-      this.legacyCacheService.enrichCalendarsWithCacheData(calendars),
-      this.sqlCacheService.enrichCalendarsWithSqlCacheData(calendars),
-    ]);
+    // Enrich with legacy cache only since this service is deprecated
+    const enrichedWithLegacyCache = await this.legacyCacheService.enrichCalendarsWithCacheData(calendars);
 
-    // Create maps for efficient lookup by credentialId
-    const legacyCacheMap = new Map(
-      enrichedWithLegacyCache.map((calendar) => [calendar.credentialId, calendar.cacheUpdatedAt])
-    );
-    
-    const sqlCacheMap = new Map(
-      enrichedWithSqlCache.map((calendar) => [
-        calendar.credentialId, 
-        { 
-          sqlCacheUpdatedAt: calendar.sqlCacheUpdatedAt, 
-          sqlCacheSubscriptionCount: calendar.sqlCacheSubscriptionCount 
-        }
-      ])
-    );
-
-    // Merge the cache data from both systems
+    // Return calendars with legacy cache data and null SQL cache data
     return calendars.map((calendar) => {
-      const legacyCacheData = legacyCacheMap.get(calendar.credentialId);
-      const sqlCacheData = sqlCacheMap.get(calendar.credentialId);
+      const legacyCacheData = enrichedWithLegacyCache.find(c => c.credentialId === calendar.credentialId);
       
       return {
         ...calendar,
-        cacheUpdatedAt: legacyCacheData || null,
-        sqlCacheUpdatedAt: sqlCacheData?.sqlCacheUpdatedAt || null,
-        sqlCacheSubscriptionCount: sqlCacheData?.sqlCacheSubscriptionCount || 0,
+        cacheUpdatedAt: legacyCacheData?.cacheUpdatedAt || null,
+        sqlCacheUpdatedAt: null, // SQL cache functionality removed from deprecated service
+        sqlCacheSubscriptionCount: 0, // SQL cache functionality removed from deprecated service
       };
     });
   }
