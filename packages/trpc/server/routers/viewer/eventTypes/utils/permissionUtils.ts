@@ -71,11 +71,11 @@ export async function getTeamPermissions(
 
 function getFallbackPermissions(role: MembershipRole): TeamPermissions {
   const isAdminOrOwner = role === MembershipRole.ADMIN || role === MembershipRole.OWNER;
-  const canEdit = isAdminOrOwner;
+  const isMember = role === MembershipRole.MEMBER;
 
   return {
     canCreate: isAdminOrOwner,
-    canEdit,
+    canEdit: isAdminOrOwner || isMember,
     canDelete: isAdminOrOwner,
   };
 }
