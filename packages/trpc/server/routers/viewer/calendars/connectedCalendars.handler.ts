@@ -34,8 +34,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
 
   const enrichedWithSqlCache = await sqlCacheService.enrichCalendarsWithSqlCacheData(connectedCalendars);
 
-  // Merge the results
-  const finalCalendars = connectedCalendars.map((calendar, index) => {
+  const enrichedConnectedCalendars = connectedCalendars.map((calendar, index) => {
     const enrichedCalendar = enrichedWithSqlCache[index];
 
     // Ensure we always preserve the enriched properties, even if enrichment fails
@@ -58,7 +57,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
   });
 
   return {
-    connectedCalendars: finalCalendars,
+    connectedCalendars: enrichedConnectedCalendars,
     destinationCalendar,
   };
 };
