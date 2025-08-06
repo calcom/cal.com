@@ -16,6 +16,27 @@ export type GoogleChannelProps = {
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
 export class CalendarSubscriptionService {
+  private validateAndTransformCredential(
+    credential: CredentialForCalendarService
+  ): CredentialForCalendarServiceWithEmail {
+    if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
+      throw new Error("Delegation credential missing required client_email");
+    }
+
+    return {
+      ...credential,
+      delegatedTo: credential.delegatedTo
+        ? {
+            serviceAccountKey: {
+              client_email: credential.delegatedTo.serviceAccountKey.client_email!,
+              client_id: credential.delegatedTo.serviceAccountKey.client_id,
+              private_key: credential.delegatedTo.serviceAccountKey.private_key,
+            },
+          }
+        : null,
+    };
+  }
+
   async watchCalendar(
     calendarId: string,
     credential: CredentialForCalendarService
@@ -23,22 +44,7 @@ export class CalendarSubscriptionService {
     log.debug("watchCalendar", safeStringify({ calendarId }));
 
     try {
-      if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
-        throw new Error("Delegation credential missing required client_email");
-      }
-
-      const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
-        ...credential,
-        delegatedTo: credential.delegatedTo
-          ? {
-              serviceAccountKey: {
-                client_email: credential.delegatedTo.serviceAccountKey.client_email!,
-                client_id: credential.delegatedTo.serviceAccountKey.client_id,
-                private_key: credential.delegatedTo.serviceAccountKey.private_key,
-              },
-            }
-          : null,
-      };
+      const credentialWithEmail = this.validateAndTransformCredential(credential);
 
       const { CalendarSubscriptionService } = await import(
         "@calcom/app-store/googlecalendar/lib/CalendarSubscriptionService"
@@ -61,22 +67,7 @@ export class CalendarSubscriptionService {
     log.debug("unwatchCalendar", safeStringify({ calendarId, channelId, resourceId }));
 
     try {
-      if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
-        throw new Error("Delegation credential missing required client_email");
-      }
-
-      const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
-        ...credential,
-        delegatedTo: credential.delegatedTo
-          ? {
-              serviceAccountKey: {
-                client_email: credential.delegatedTo.serviceAccountKey.client_email!,
-                client_id: credential.delegatedTo.serviceAccountKey.client_id,
-                private_key: credential.delegatedTo.serviceAccountKey.private_key,
-              },
-            }
-          : null,
-      };
+      const credentialWithEmail = this.validateAndTransformCredential(credential);
 
       const { CalendarSubscriptionService } = await import(
         "@calcom/app-store/googlecalendar/lib/CalendarSubscriptionService"
