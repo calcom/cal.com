@@ -421,6 +421,8 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  calAiPhoneNumbers              CalAiPhoneNumber[]
+  agents                         Agent[]
 
   @@unique([email])
   @@unique([email, username])
@@ -531,6 +533,8 @@ model Team {
   delegationCredentials  DelegationCredential[]
   domainWideDelegations  DomainWideDelegation[]
   roles                  Role[] // Added for Role relation
+  calAiPhoneNumbers      CalAiPhoneNumber[]
+  agents                 Agent[]
 
   features TeamFeatures[]
 
@@ -1319,6 +1323,7 @@ enum WorkflowActions {
   EMAIL_ADDRESS
   WHATSAPP_ATTENDEE
   WHATSAPP_NUMBER
+  CAL_AI_PHONE_CALL
 }
 
 model WorkflowStep {
@@ -1337,6 +1342,8 @@ model WorkflowStep {
   numberVerificationPending Boolean            @default(true)
   includeCalendarEvent      Boolean            @default(false)
   verifiedAt                DateTime?
+  agentId                   String?            @unique
+  agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
@@ -1474,6 +1481,7 @@ enum WorkflowMethods {
   EMAIL
   SMS
   WHATSAPP
+  AI_PHONE_CALL
 }
 
 model BookingSeat {
@@ -2411,4 +2419,76 @@ model RolePermission {
   @@index([roleId])
   // TODO: come back to this with indexs.
   @@index([action])
+}
+
+enum PhoneNumberSubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  UNPAID
+}
+
+// Cal AI Voice Agent
+model Agent {
+  id   String @id @default(uuid())
+  name String
+
+  // Either user-owned OR team-owned
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // Retell AI agent ID - this is the main reference to Retell's system
+  retellAgentId String @unique
+
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
+  outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
+  workflowStep         WorkflowStep?
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([retellAgentId])
+}
+
+model CalAiPhoneNumber {
+  id Int @id @default(autoincrement())
+
+  // Either user-owned OR team-owned
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  phoneNumber String  @unique
+  provider    String? @default("retell")
+
+  // Retell phone number ID
+  retellPhoneNumberId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stripeCustomerId     String?
+  stripeSubscriptionId String?                        @unique
+  subscriptionStatus   PhoneNumberSubscriptionStatus?
+
+  // Agent associations
+  inboundAgentId  String?
+  inboundAgent    Agent?  @relation("InboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+  outboundAgentId String?
+  outboundAgent   Agent?  @relation("OutboundAgent", fields: [outboundAgentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([teamId])
+  @@index([stripeSubscriptionId])
+  @@index([inboundAgentId])
+  @@index([outboundAgentId])
 }
