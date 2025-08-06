@@ -169,7 +169,7 @@ export default function WorkflowDetailsPage(props: Props) {
             />
           </div>
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
-          {!props.permissions.canDelete && (
+          {props.permissions.canDelete && (
             <Button
               type="button"
               StartIcon="trash-2"
