@@ -41,11 +41,14 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
   ]);
 
   // Merge the results
-  const finalCalendars = connectedCalendars.map((calendar, index) => ({
-    ...calendar,
-    cacheUpdatedAt: enrichedWithLegacyCache[index]?.cacheUpdatedAt || null,
-    calendars: enrichedWithSqlCache[index]?.calendars || calendar.calendars,
-  }));
+  const finalCalendars = connectedCalendars.map((calendar, index) => {
+    const enrichedCalendar = enrichedWithSqlCache[index];
+    return {
+      ...calendar,
+      cacheUpdatedAt: enrichedWithLegacyCache[index]?.cacheUpdatedAt || null,
+      calendars: enrichedCalendar?.calendars || calendar.calendars,
+    };
+  });
 
   return {
     connectedCalendars: finalCalendars,

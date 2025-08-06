@@ -14,7 +14,7 @@ import { defaultResponderForAppDir } from "../../../api/defaultResponderForAppDi
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSqlWebhook"] });
 
-async function postHandler(request: NextRequest, { params }: { params: Promise<any> }) {
+async function postHandler(request: NextRequest, { params }: { params: Promise<Record<string, string | string[]>> }) {
   const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
   const eventRepo = new CalendarEventRepository(prisma);
   const featuresRepo = new FeaturesRepository(prisma);
