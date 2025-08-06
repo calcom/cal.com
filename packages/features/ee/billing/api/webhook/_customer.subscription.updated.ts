@@ -24,34 +24,11 @@ const handler = async (data: Data) => {
     },
   });
 
-  if (phoneNumber) {
-    return await handlePhoneNumberSubscriptionUpdate(subscription, phoneNumber);
+  if (!phoneNumber) {
+    throw new HttpCode(202, "Phone number not found");
   }
 
-  // Fall back to handling regular app subscriptions
-  const app = await prisma.credential.findFirst({
-    where: {
-      subscriptionId: subscription.id,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!app) {
-    throw new HttpCode(202, "Subscription not found");
-  }
-
-  await prisma.credential.update({
-    where: {
-      id: app.id,
-    },
-    data: {
-      paymentStatus: subscription.status,
-    },
-  });
-
-  return { success: true, subscriptionId: subscription.id };
+  return await handlePhoneNumberSubscriptionUpdate(subscription, phoneNumber);
 };
 
 type Subscription = Data["object"];

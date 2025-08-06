@@ -4,12 +4,9 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
-import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
-import { prisma } from "@calcom/prisma";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
@@ -35,189 +32,63 @@ type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
 async function handler(request: NextRequest) {
   try {
     const { session_id } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
-
     const checkoutSession = await getCheckoutSession(session_id);
-    validateCheckoutSession(checkoutSession);
-    const checkoutSessionMetadata = getCheckoutSessionMetadata(checkoutSession);
-    // Check if phone number already exists (in case webhook already processed it)
-    const subscriptionId =
-      typeof checkoutSession.subscription === "string"
-        ? checkoutSession.subscription
-        : checkoutSession.subscription?.id;
+    const metadata = validateAndExtractMetadata(checkoutSession);
 
-    if (!subscriptionId) {
-      throw new HttpError({ statusCode: 400, message: "Invalid subscription data" });
-    }
-
-    const existingPhoneNumber = await prisma.calAiPhoneNumber.findFirst({
-      where: {
-        stripeSubscriptionId: subscriptionId,
-      },
-    });
-
-    let phoneNumber = existingPhoneNumber;
-
-    if (!phoneNumber) {
-      // Create the phone number if it doesn't exist yet
-      phoneNumber = await createPhoneNumber(checkoutSession, checkoutSessionMetadata);
-    }
-
-    // If agentId is provided, link it to the agent
-    if (checkoutSessionMetadata.agentId && phoneNumber) {
-      try {
-        // Verify the agent exists and user has permission
-        const agent = await prisma.agent.findFirst({
-          where: {
-            id: checkoutSessionMetadata.agentId,
-            OR: [
-              { userId: checkoutSessionMetadata.userId },
-              {
-                team: {
-                  members: {
-                    some: {
-                      userId: checkoutSessionMetadata.userId,
-                      accepted: true,
-                    },
-                  },
-                },
-              },
-            ],
-            // If teamId is provided, ensure agent belongs to the same team
-            ...(checkoutSessionMetadata.teamId ? { teamId: checkoutSessionMetadata.teamId } : {}),
-          },
-        });
-
-        if (agent) {
-          const aiService = createDefaultAIPhoneServiceProvider();
-
-          // Assign agent to the new number via Retell API
-          await aiService.updatePhoneNumber(phoneNumber.phoneNumber, {
-            outbound_agent_id: agent.retellAgentId,
-          });
-
-          // Link the new number to the agent in our database
-          await prisma.calAiPhoneNumber.update({
-            where: { id: phoneNumber.id },
-            data: {
-              outboundAgent: {
-                connect: { id: checkoutSessionMetadata.agentId },
-              },
-            },
-          });
-        }
-      } catch (error) {
-        console.error("Failed to link phone number to agent:", error);
-        // Don't fail the success page if agent linking fails
-      }
-    }
-
-    // Redirect based on context
-    let successUrl: URL;
-    if (checkoutSessionMetadata.agentId) {
-      // If this was part of a workflow setup, redirect back to workflow
-      if (checkoutSessionMetadata.workflowId) {
-        successUrl = new URL(`${WEBAPP_URL}/workflows/${checkoutSessionMetadata.workflowId}`);
-      } else {
-        successUrl = new URL(`${WEBAPP_URL}/workflows`);
-      }
-    } else {
-      // Otherwise redirect to workflows page
-      successUrl = new URL(`${WEBAPP_URL}/workflows`);
-    }
-
-    successUrl.searchParams.set("success", "true");
-    successUrl.searchParams.set("phone_number", phoneNumber?.phoneNumber || "");
-
-    return NextResponse.redirect(successUrl.toString());
+    return redirectToSuccess(metadata);
   } catch (error) {
-    console.error("Error handling phone number subscription success:", error);
-
-    // Redirect to workflows page with error
-    const errorUrl = new URL(`${WEBAPP_URL}/workflows`);
-    errorUrl.searchParams.set("error", "true");
-
-    if (error instanceof HttpError) {
-      errorUrl.searchParams.set("message", error.message);
-      return NextResponse.redirect(errorUrl.toString());
-    }
-
-    errorUrl.searchParams.set("message", "An error occurred while processing your subscription");
-    return NextResponse.redirect(errorUrl.toString());
+    return handleError(error);
   }
 }
 
 async function getCheckoutSession(sessionId: string) {
-  const checkoutSession = await stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ["subscription"],
-  });
-
-  if (!checkoutSession) {
+  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
+  if (!session) {
     throw new HttpError({ statusCode: 404, message: "Checkout session not found" });
   }
-
-  return checkoutSession;
+  return session;
 }
 
-function validateCheckoutSession(checkoutSession: Stripe.Response<Stripe.Checkout.Session>) {
-  if (checkoutSession.payment_status !== "paid") {
+function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutSessionMetadata {
+  if (session.payment_status !== "paid") {
     throw new HttpError({ statusCode: 402, message: "Payment required" });
   }
-
-  if (!checkoutSession.subscription) {
+  if (!session.subscription) {
     throw new HttpError({ statusCode: 400, message: "No subscription found in checkout session" });
   }
-}
 
-function getCheckoutSessionMetadata(
-  checkoutSession: Stripe.Response<Stripe.Checkout.Session>
-): CheckoutSessionMetadata {
-  const parseCheckoutSessionMetadata = checkoutSessionMetadataSchema.safeParse(checkoutSession.metadata);
-
-  if (!parseCheckoutSessionMetadata.success) {
+  const result = checkoutSessionMetadataSchema.safeParse(session.metadata);
+  if (!result.success) {
     throw new HttpError({
       statusCode: 400,
-      message: `Incorrect metadata in checkout session. Error: ${parseCheckoutSessionMetadata.error}`,
+      message: `Invalid checkout session metadata: ${result.error}`,
     });
   }
 
-  return parseCheckoutSessionMetadata.data;
+  return result.data;
 }
 
-async function createPhoneNumber(
-  checkoutSession: Stripe.Response<Stripe.Checkout.Session>,
-  metadata: CheckoutSessionMetadata
-) {
-  const aiService = createDefaultAIPhoneServiceProvider();
+function redirectToSuccess(metadata: CheckoutSessionMetadata) {
+  const basePath = metadata.workflowId
+    ? `${WEBAPP_URL}/workflows/${metadata.workflowId}`
+    : `${WEBAPP_URL}/workflows`;
 
-  // Create the phone number through Retell API
-  const retellPhoneNumber = await aiService.createPhoneNumber({
-    nickname: `${metadata.userId}-${Date.now()}`,
-  });
+  return NextResponse.redirect(basePath);
+}
 
-  // Extract subscription ID correctly
-  const subscriptionId =
-    typeof checkoutSession.subscription === "string"
-      ? checkoutSession.subscription
-      : checkoutSession.subscription?.id;
+function handleError(error: unknown) {
+  console.error("Error handling phone number subscription success:", error);
 
-  if (!subscriptionId) {
-    throw new HttpError({ statusCode: 400, message: "Invalid subscription data" });
+  const url = new URL(`${WEBAPP_URL}/workflows`);
+  url.searchParams.set("error", "true");
+
+  if (error instanceof HttpError) {
+    url.searchParams.set("message", error.message);
+  } else {
+    url.searchParams.set("message", "An error occurred while processing your subscription");
   }
 
-  // Create the phone number in our database with subscription details
-  const newNumber = await prisma.calAiPhoneNumber.create({
-    data: {
-      userId: metadata.userId,
-      teamId: metadata.teamId,
-      phoneNumber: retellPhoneNumber.phone_number,
-      provider: "retell",
-      stripeCustomerId: checkoutSession.customer as string,
-      stripeSubscriptionId: subscriptionId,
-      subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
-    },
-  });
-
-  return newNumber;
+  return NextResponse.redirect(url.toString());
 }
 
 export const GET = defaultResponderForAppDir(handler);

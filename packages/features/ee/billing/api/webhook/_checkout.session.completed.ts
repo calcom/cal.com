@@ -87,14 +87,12 @@ async function handlePhoneNumberSubscription(session: any) {
 
   const aiService = createDefaultAIPhoneServiceProvider();
 
-  // Create the phone number through Retell API
   const retellPhoneNumber = await aiService.createPhoneNumber({ nickname: `${userId}-${Date.now()}` });
 
   if (!retellPhoneNumber?.phone_number) {
     throw new HttpCode(500, "Failed to create phone number - invalid response");
   }
 
-  // Extract subscription ID correctly
   const subscriptionId =
     typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
 
@@ -102,7 +100,6 @@ async function handlePhoneNumberSubscription(session: any) {
     throw new HttpCode(400, "Invalid subscription data");
   }
 
-  // Create the phone number in our database with subscription details
   const newNumber = await prisma.calAiPhoneNumber.create({
     data: {
       userId,
@@ -123,22 +120,24 @@ async function handlePhoneNumberSubscription(session: any) {
         userId,
       });
 
-      if (agent) {
-        // Assign agent to the new number via Retell API
-        await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
-          outbound_agent_id: agent.retellAgentId,
-        });
-
-        // Link the new number to the agent in our database
-        await prisma.calAiPhoneNumber.update({
-          where: { id: newNumber.id },
-          data: {
-            outboundAgent: {
-              connect: { id: agentId },
-            },
-          },
-        });
+      if (!agent) {
+        throw new HttpCode(404, "Agent not found or user does not have access to it");
       }
+
+      // Assign agent to the new number via Retell API
+      await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
+        outbound_agent_id: agent.retellAgentId,
+      });
+
+      // Link the new number to the agent in our database
+      await prisma.calAiPhoneNumber.update({
+        where: { id: newNumber.id },
+        data: {
+          outboundAgent: {
+            connect: { id: agentId },
+          },
+        },
+      });
     } catch (error) {
       console.error("Agent linking error details:", {
         error,
