@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TeamSelect } from "../data/team/selects";
-import { mapToPrismaSelect, mapToPrismaWhere } from "./prisma-mapper";
+import { mapToPrismaSelect } from "./prisma-mapper";
 import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
