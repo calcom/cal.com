@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { ZSingleSelectFilterValue, ZDateRangeFilterValue } from "@calcom/features/data-table";
+import { ZDateRangeFilterValue } from "@calcom/features/data-table";
 import { useChangeTimeZoneWithPreservedLocalTime } from "@calcom/features/data-table/hooks/useChangeTimeZoneWithPreservedLocalTime";
+import { useColumnFilters } from "@calcom/features/data-table/hooks/useColumnFilters";
 import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
 import { useFilterValue } from "@calcom/features/data-table/hooks/useFilterValue";
 import { getDefaultStartDate, getDefaultEndDate } from "@calcom/features/data-table/lib/dateRange";
@@ -14,8 +15,6 @@ export function useInsightsBookingParameters() {
   const { scope, selectedTeamId } = useInsightsOrgTeams();
   const { timeZone } = useDataTable();
 
-  const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
-  const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   // TODO for future: this preserving local time & startOf & endOf should be handled
   // from DateRangeFilter out of the box.
@@ -34,6 +33,7 @@ export function useInsightsBookingParameters() {
         .toISOString();
     }, [createdAtRange?.endDate])
   );
+  const columnFilters = useColumnFilters({ exclude: ["createdAt"] });
 
   return {
     scope,
@@ -41,7 +41,6 @@ export function useInsightsBookingParameters() {
     startDate,
     endDate,
     timeZone: timeZone || CURRENT_TIMEZONE,
-    eventTypeId,
-    memberUserId,
+    columnFilters,
   };
 }
