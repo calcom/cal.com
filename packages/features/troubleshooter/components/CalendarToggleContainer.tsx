@@ -81,16 +81,10 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
         </>
       }
       suffixSlot={
-        <div className="flex flex-col items-end gap-1">
+        <div>
           <Badge variant={badgeStatus} withDot size="sm">
             {badgeText}
           </Badge>
-          {/* Legacy Cache Data (at credential level) */}
-          {props.cacheData && (
-            <div className="text-muted-foreground text-xs">
-              Legacy Cache: {formatCacheTime(props.cacheData.updatedAt)}
-            </div>
-          )}
         </div>
       }>
       <div className="[&>*]:text-emphasis flex flex-col gap-3">
@@ -103,8 +97,8 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
                 <Switch checked={calendar.active} label={calendar.name} disabled />
                 {sqlCacheTooltipContent && (
                   <Tooltip content={sqlCacheTooltipContent}>
-                    <div className="text-muted-foreground cursor-help text-xs">
-                      <Icon name="info" className="h-3 w-3" />
+                    <div className="text-muted-foreground ml-auto cursor-help text-xs">
+                      <Icon name="info" />
                     </div>
                   </Tooltip>
                 )}
