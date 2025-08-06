@@ -1,6 +1,7 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
 
+import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
@@ -8,7 +9,6 @@ import type {
 
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
-import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 
 export class CalendarCacheSqlService {
   constructor(
@@ -86,50 +86,11 @@ export class CalendarCacheSqlService {
 
       // Process current events
       if (currentEventsResponse.data.items) {
-        const events = currentEventsResponse.data.items.reduce((acc, event: calendar_v3.Schema$Event) => {
-          if (!event.id) return acc;
-
-          const start = event.start?.dateTime
-            ? new Date(event.start.dateTime)
-            : event.start?.date
-            ? new Date(event.start.date)
-            : new Date();
-
-          const end = event.end?.dateTime
-            ? new Date(event.end.dateTime)
-            : event.end?.date
-            ? new Date(event.end.date)
-            : new Date();
-
-          const isAllDay = !event.start?.dateTime && !!event.start?.date;
-
-          acc.push({
-            calendarSubscription: { connect: { id: subscription.id } },
-            googleEventId: event.id!,
-            iCalUID: event.iCalUID || null,
-            etag: event.etag || "",
-            sequence: event.sequence || 0,
-            summary: event.summary || null,
-            description: event.description || null,
-            location: event.location || null,
-            start,
-            end,
-            isAllDay,
-            status: event.status || "confirmed",
-            transparency: event.transparency || "opaque",
-            visibility: event.visibility || "default",
-            recurringEventId: event.recurringEventId || null,
-            originalStartTime: event.originalStartTime?.dateTime
-              ? new Date(event.originalStartTime.dateTime)
-              : event.originalStartTime?.date
-              ? new Date(event.originalStartTime.date)
-              : null,
-            googleCreatedAt: event.created ? new Date(event.created) : null,
-            googleUpdatedAt: event.updated ? new Date(event.updated) : null,
-          });
-
-          return acc;
-        }, [] as Prisma.CalendarEventCreateInput[]);
+        const events = this.parseCalendarEvents(
+          currentEventsResponse.data.items,
+          subscription.id,
+          false // Don't filter past events as we already fetched from timeMin=now
+        );
 
         if (events.length > 0) {
           await this.eventRepo.bulkUpsertEvents(events, subscription.id);
@@ -185,60 +146,11 @@ export class CalendarCacheSqlService {
 
     // Process and save each event
     if (eventsResponse.data.items) {
-      const events = eventsResponse.data.items.reduce((acc, event: calendar_v3.Schema$Event) => {
-        if (!event.id) return acc;
-
-        // For full sync (no syncToken), only process events from now onwards
-        if (!subscription.nextSyncToken) {
-          const eventStart = event.start?.dateTime
-            ? new Date(event.start.dateTime)
-            : event.start?.date
-            ? new Date(event.start.date)
-            : new Date();
-          if (eventStart < now) return acc;
-        }
-
-        const start = event.start?.dateTime
-          ? new Date(event.start.dateTime)
-          : event.start?.date
-          ? new Date(event.start.date)
-          : new Date();
-
-        const end = event.end?.dateTime
-          ? new Date(event.end.dateTime)
-          : event.end?.date
-          ? new Date(event.end.date)
-          : new Date();
-
-        const isAllDay = !event.start?.dateTime && !!event.start?.date;
-
-        acc.push({
-          calendarSubscription: { connect: { id: subscription.id } },
-          googleEventId: event.id!,
-          iCalUID: event.iCalUID || null,
-          etag: event.etag || "",
-          sequence: event.sequence || 0,
-          summary: event.summary || null,
-          description: event.description || null,
-          location: event.location || null,
-          start,
-          end,
-          isAllDay,
-          status: event.status || "confirmed",
-          transparency: event.transparency || "opaque",
-          visibility: event.visibility || "default",
-          recurringEventId: event.recurringEventId || null,
-          originalStartTime: event.originalStartTime?.dateTime
-            ? new Date(event.originalStartTime.dateTime)
-            : event.originalStartTime?.date
-            ? new Date(event.originalStartTime.date)
-            : null,
-          googleCreatedAt: event.created ? new Date(event.created) : null,
-          googleUpdatedAt: event.updated ? new Date(event.updated) : null,
-        });
-
-        return acc;
-      }, [] as Prisma.CalendarEventCreateInput[]);
+      const events = this.parseCalendarEvents(
+        eventsResponse.data.items,
+        subscription.id,
+        !subscription.nextSyncToken // Filter past events only if this is still part of initial sync
+      );
 
       // Bulk upsert all events at once
       if (events.length > 0) {
@@ -248,29 +160,99 @@ export class CalendarCacheSqlService {
   }
 
   /**
+   * Parses and transforms raw Google Calendar events into Prisma-compatible event objects
+   * @param rawEvents - Array of raw events from Google Calendar API
+   * @param subscriptionId - ID of the calendar subscription
+   * @param filterPastEvents - Whether to filter out events that start before now
+   * @returns Array of Prisma CalendarEventCreateInput objects
+   */
+  private parseCalendarEvents(
+    rawEvents: calendar_v3.Schema$Event[],
+    subscriptionId: string,
+    filterPastEvents = false
+  ): Prisma.CalendarEventCreateInput[] {
+    const now = new Date();
+
+    return rawEvents.reduce((acc, event: calendar_v3.Schema$Event) => {
+      if (!event.id) return acc;
+
+      const start = event.start?.dateTime
+        ? new Date(event.start.dateTime)
+        : event.start?.date
+        ? new Date(event.start.date)
+        : new Date();
+
+      // Filter past events if requested
+      if (filterPastEvents && start < now) {
+        return acc;
+      }
+
+      const end = event.end?.dateTime
+        ? new Date(event.end.dateTime)
+        : event.end?.date
+        ? new Date(event.end.date)
+        : new Date();
+
+      const isAllDay = !event.start?.dateTime && !!event.start?.date;
+
+      acc.push({
+        calendarSubscription: { connect: { id: subscriptionId } },
+        googleEventId: event.id!,
+        iCalUID: event.iCalUID || null,
+        etag: event.etag || "",
+        sequence: event.sequence || 0,
+        summary: event.summary || null,
+        description: event.description || null,
+        location: event.location || null,
+        start,
+        end,
+        isAllDay,
+        status: event.status || "confirmed",
+        transparency: event.transparency || "opaque",
+        visibility: event.visibility || "default",
+        recurringEventId: event.recurringEventId || null,
+        originalStartTime: event.originalStartTime?.dateTime
+          ? new Date(event.originalStartTime.dateTime)
+          : event.originalStartTime?.date
+          ? new Date(event.originalStartTime.date)
+          : null,
+        googleCreatedAt: event.created ? new Date(event.created) : null,
+        googleUpdatedAt: event.updated ? new Date(event.updated) : null,
+      });
+
+      return acc;
+    }, [] as Prisma.CalendarEventCreateInput[]);
+  }
+
+  /**
    * Enriches calendar data with SQL cache information at the individual calendar level
    */
-  async enrichCalendarsWithSqlCacheData<T extends { 
-    credentialId: number; 
-    calendars?: { externalId: string; name?: string }[] 
-  }>(
+  async enrichCalendarsWithSqlCacheData<
+    T extends {
+      credentialId: number;
+      calendars?: { externalId: string; name?: string }[];
+    }
+  >(
     calendars: T[]
-  ): Promise<(T & { 
-    calendars?: ({ externalId: string; name?: string } & { 
-      sqlCacheUpdatedAt: Date | null; 
-      sqlCacheSubscriptionCount: number;
-    })[] 
-  })[]> {
+  ): Promise<
+    (T & {
+      calendars?: ({ externalId: string; name?: string } & {
+        sqlCacheUpdatedAt: Date | null;
+        sqlCacheSubscriptionCount: number;
+      })[];
+    })[]
+  > {
     if (calendars.length === 0) {
       return [];
     }
 
     // Get all unique external IDs and credential IDs
-    const calendarLookups = calendars
-      .flatMap(cal => (cal.calendars || []).map(calendar => ({
+    const calendarLookups = calendars.flatMap((cal) =>
+      (cal.calendars || []).map((calendar) => ({
         externalId: calendar.externalId,
         credentialId: cal.credentialId,
-      })));
+      }))
+    );
 
     // Find SelectedCalendar records for each external ID and credential ID combination
     const selectedCalendarIds = await Promise.all(
@@ -291,13 +273,13 @@ export class CalendarCacheSqlService {
 
     // Get subscriptions for each selected calendar ID that exists
     const validSelectedCalendarIds = selectedCalendarIds
-      .filter(item => item.selectedCalendarId !== null)
-      .map(item => item.selectedCalendarId!);
+      .filter((item) => item.selectedCalendarId !== null)
+      .map((item) => item.selectedCalendarId!);
 
     const cacheStatuses = await Promise.all(
       validSelectedCalendarIds.map(async (selectedCalendarId) => {
         const subscription = await this.subscriptionRepo.findBySelectedCalendar(selectedCalendarId);
-        
+
         return {
           selectedCalendarId,
           lastSyncAt: subscription?.updatedAt || null,
@@ -305,11 +287,11 @@ export class CalendarCacheSqlService {
         };
       })
     );
-    
+
     const cacheStatusMap = new Map(
       cacheStatuses.map((cache) => [
-        cache.selectedCalendarId, 
-        { updatedAt: cache.lastSyncAt, subscriptionCount: cache.subscriptionCount }
+        cache.selectedCalendarId,
+        { updatedAt: cache.lastSyncAt, subscriptionCount: cache.subscriptionCount },
       ])
     );
 
@@ -323,10 +305,10 @@ export class CalendarCacheSqlService {
     });
 
     return calendars.map((calendar) => {
-      const enrichedCalendars = calendar.calendars?.map(cal => {
+      const enrichedCalendars = calendar.calendars?.map((cal) => {
         const cacheKey = `${cal.externalId}_${calendar.credentialId}`;
         const cacheInfo = externalIdCredentialIdToCacheMap.get(cacheKey);
-        
+
         return {
           ...cal,
           sqlCacheUpdatedAt: cacheInfo?.updatedAt || null,
