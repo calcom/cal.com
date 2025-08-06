@@ -1,5 +1,6 @@
 import { createContainer } from "@evyweb/ioctopus";
 
+import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -16,8 +17,10 @@ import { scheduleRepositoryModule } from "../modules/schedule";
 import { selectedSlotsRepositoryModule } from "../modules/selectedSlots";
 import { teamRepositoryModule } from "../modules/team";
 import { userRepositoryModule } from "../modules/user";
+import { getUserAvailabilityModule } from "../modules/get-user-availability";
 
 const container = createContainer();
+container.load(DI_TOKENS.REDIS_CLIENT, redisModule);
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
 container.load(DI_TOKENS.OOO_REPOSITORY_MODULE, oooRepositoryModule);
 container.load(DI_TOKENS.SCHEDULE_REPOSITORY_MODULE, scheduleRepositoryModule);
@@ -31,7 +34,7 @@ container.load(DI_TOKENS.FEATURES_REPOSITORY_MODULE, featuresRepositoryModule);
 container.load(DI_TOKENS.CACHE_SERVICE_MODULE, cacheModule);
 container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimitsModule);
 container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
-
+container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule)
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
 }
