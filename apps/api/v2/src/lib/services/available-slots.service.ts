@@ -28,7 +28,8 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     eventTypeRepository: PrismaEventTypeRepository,
     userRepository: PrismaUserRepository,
     redisService: RedisService,
-    featuresRepository: PrismaFeaturesRepository
+    featuresRepository: PrismaFeaturesRepository,
+    cacheService: CacheService
   ) {
     super({
       oooRepo: oooRepoDependency,
@@ -41,7 +42,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       userRepo: userRepository,
       redisClient: redisService,
       checkBookingLimitsService: new CheckBookingLimitsService(bookingRepository),
-      cacheService: new CacheService(featuresRepository),
+      cacheService: cacheService,
       userAvailabilityService: new UserAvailabilityService(
         oooRepoDependency,
         bookingRepository,
