@@ -3,8 +3,17 @@ import type { Prisma, CalendarEvent } from "@prisma/client";
 // Minimal fields needed for availability calculations
 export type CalendarEventForAvailability = Pick<CalendarEvent, "start" | "end" | "summary">;
 
+// Minimal fields returned by upsertEvent for performance optimization
+export type CalendarEventUpsertResult = Pick<
+  CalendarEvent,
+  "id" | "googleEventId" | "etag" | "start" | "end" | "summary" | "status" | "updatedAt"
+>;
+
 export interface ICalendarEventRepository {
-  upsertEvent(data: Prisma.CalendarEventCreateInput, subscriptionId: string): Promise<CalendarEvent>;
+  upsertEvent(
+    data: Prisma.CalendarEventCreateInput,
+    subscriptionId: string
+  ): Promise<CalendarEventUpsertResult>;
   getEventsForAvailability(
     calendarSubscriptionId: string,
     start: Date,

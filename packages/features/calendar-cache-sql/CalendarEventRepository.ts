@@ -3,7 +3,10 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
+import type {
+  ICalendarEventRepository,
+  CalendarEventUpsertResult,
+} from "./CalendarEventRepository.interface";
 
 export class CalendarEventRepository implements ICalendarEventRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -12,7 +15,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     data: Prisma.CalendarEventCreateInput,
     subscriptionId: string,
     tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
-  ) {
+  ): Promise<CalendarEventUpsertResult> {
     try {
       const client = tx || this.prismaClient;
       return await client.calendarEvent.upsert({
@@ -30,6 +33,16 @@ export class CalendarEventRepository implements ICalendarEventRepository {
         update: {
           ...data,
           updatedAt: new Date(),
+        },
+        select: {
+          id: true,
+          googleEventId: true,
+          etag: true,
+          start: true,
+          end: true,
+          summary: true,
+          status: true,
+          updatedAt: true,
         },
       });
     } catch (err) {

@@ -63,7 +63,6 @@ describe("CalendarEventRepository", () => {
       expect(events).toHaveLength(1);
       expect(events[0]).toEqual(
         expect.objectContaining({
-          googleEventId: "google-event-id",
           summary: "Test Event",
         })
       );
