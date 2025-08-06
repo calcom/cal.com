@@ -3,7 +3,21 @@ import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
+import type {
+  ICalendarSubscriptionRepository,
+  SafeCredential,
+} from "./CalendarSubscriptionRepository.interface";
+
+// Safe credential select that excludes sensitive fields
+const safeCredentialSelectForCalendarCache = {
+  id: true,
+  type: true,
+  userId: true,
+  teamId: true,
+  appId: true,
+  invalid: true,
+  // Explicitly excluding sensitive fields: key, subscriptionId, paymentStatus, billingCycleStart, delegationCredentialId
+} satisfies SafeCredential;
 
 export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -36,15 +50,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
               integration: true,
               userId: true,
               credential: {
-                select: {
-                  id: true,
-                  type: true,
-                  userId: true,
-                  teamId: true,
-                  appId: true,
-                  invalid: true,
-                  // Explicitly excluding 'key' field to prevent exposing sensitive data
-                },
+                select: safeCredentialSelectForCalendarCache,
               },
             },
           },
@@ -99,7 +105,9 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
               externalId: true,
               integration: true,
               userId: true,
-              credential: true,
+              credential: {
+                select: safeCredentialSelectForCalendarCache,
+              },
             },
           },
         },
@@ -224,7 +232,9 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
               externalId: true,
               integration: true,
               userId: true,
-              credential: true,
+              credential: {
+                select: safeCredentialSelectForCalendarCache,
+              },
             },
           },
         },
