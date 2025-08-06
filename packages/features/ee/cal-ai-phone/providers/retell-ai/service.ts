@@ -29,12 +29,11 @@ import type {
   Language,
 } from "./types";
 import { getLlmId } from "./types";
+
 const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
 
 export class RetellAIService {
   constructor(private repository: RetellAIRepository) {}
-
-
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
     const generalTools = RetellServiceMapper.buildGeneralTools(config);
@@ -167,8 +166,7 @@ export class RetellAIService {
         await this.repository.deleteAgent(config.agentId);
         result.deleted.agent = true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : `Failed to delete agent: ${error}`;
+        const errorMessage = error instanceof Error ? error.message : `Failed to delete agent: ${error}`;
         result.errors.push(errorMessage);
         result.success = false;
       }
@@ -182,8 +180,7 @@ export class RetellAIService {
         await this.repository.deleteLLM(config.llmId);
         result.deleted.llm = true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : `Failed to delete LLM: ${error}`;
+        const errorMessage = error instanceof Error ? error.message : `Failed to delete LLM: ${error}`;
         result.errors.push(errorMessage);
         result.success = false;
       }
@@ -400,7 +397,7 @@ export class RetellAIService {
           teamId,
           userId,
         })
-      : await PhoneNumberRepository.findById({
+      : await PhoneNumberRepository.findByIdAndUserId({
           id: phoneNumberId,
           userId,
         });

@@ -163,11 +163,25 @@ export class PhoneNumberRepository {
     });
   }
 
-  static async findById({ id, userId }: { id: number; userId: number }) {
+  static async findByIdAndUserId({ id, userId }: { id: number; userId: number }) {
     return await prisma.calAiPhoneNumber.findFirst({
       where: {
         id,
         userId,
+      },
+      select: {
+        id: true,
+        phoneNumber: true,
+        userId: true,
+        teamId: true,
+        subscriptionStatus: true,
+        stripeSubscriptionId: true,
+        stripeCustomerId: true,
+        provider: true,
+        inboundAgentId: true,
+        outboundAgentId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -209,15 +223,6 @@ export class PhoneNumberRepository {
     });
   }
 
-  static async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
-    return await prisma.calAiPhoneNumber.findFirst({
-      where: {
-        phoneNumber,
-        userId,
-      },
-    });
-  }
-
   static async findByPhoneNumberAndTeamId({
     phoneNumber,
     teamId,
@@ -237,6 +242,19 @@ export class PhoneNumberRepository {
       where: {
         phoneNumber,
         teamId,
+      },
+      select: {
+        id: true,
+        phoneNumber: true,
+        userId: true,
+        teamId: true,
+        subscriptionStatus: true,
+        stripeCustomerId: true,
+        provider: true,
+        inboundAgentId: true,
+        outboundAgentId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }

@@ -46,7 +46,7 @@ export class AgentRepository {
       FROM "Membership"
       WHERE "userId" = ${userId}
         AND accepted = true
-        AND role IN (${Prisma.join([MembershipRole.ADMIN, MembershipRole.OWNER])})
+        AND role IN ('ADMIN', 'OWNER')
     `;
 
     return result.map((row) => row.teamId);
@@ -251,7 +251,6 @@ export class AgentRepository {
     }));
   }
 
-  // Optimized version with detailed includes
   static async findByIdWithUserAccessAndDetails({
     id,
     userId,
@@ -311,7 +310,6 @@ export class AgentRepository {
 
     const agent = agents[0];
 
-    // Get phone numbers for this agent
     const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
       SELECT
         pn.id,
@@ -355,7 +353,6 @@ export class AgentRepository {
     };
   }
 
-  // Keep create method as Prisma ORM
   static async create({
     name,
     retellAgentId,
@@ -377,7 +374,6 @@ export class AgentRepository {
     });
   }
 
-  // Optimized admin access check
   static async findByIdWithAdminAccess({ id, userId }: { id: string; userId: number }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
@@ -425,7 +421,6 @@ export class AgentRepository {
 
     const agent = agents[0];
 
-    // Get phone numbers for this agent
     const phoneNumbers = await prisma.$queryRaw<{ phoneNumber: string }[]>`
       SELECT "phoneNumber"
       FROM "CalAiPhoneNumber"
@@ -438,14 +433,12 @@ export class AgentRepository {
     };
   }
 
-  // Keep delete method as Prisma ORM
   static async delete({ id }: { id: string }) {
     return await prisma.agent.delete({
       where: { id },
     });
   }
 
-  // Keep workflow link method as Prisma ORM
   static async linkToWorkflowStep({ workflowStepId, agentId }: { workflowStepId: number; agentId: string }) {
     return await prisma.workflowStep.update({
       where: { id: workflowStepId },

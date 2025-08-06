@@ -12,8 +12,8 @@ vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
     findByPhoneNumberAndUserId: vi.fn(),
     deletePhoneNumber: vi.fn(),
     updateAgents: vi.fn(),
-    findById: vi.fn(),
     updateSubscriptionStatus: vi.fn(),
+    findByIdAndUserId: vi.fn(),
   },
 }));
 
@@ -553,7 +553,7 @@ describe("RetellAIService", () => {
       const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
 
-      (PhoneNumberRepository.findById as any).mockResolvedValue({
+      (PhoneNumberRepository.findByIdAndUserId as any).mockResolvedValue({
         phoneNumber: "+14155551234",
         stripeSubscriptionId: "sub_123",
       });

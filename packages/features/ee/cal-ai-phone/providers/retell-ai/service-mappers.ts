@@ -25,7 +25,9 @@ export class RetellServiceMapper {
   /**
    * Maps AI configuration to Retell tools format
    */
-  static buildGeneralTools(config: AIPhoneServiceConfiguration<AIPhoneServiceProviderType.RETELL_AI>): NonNullable<RetellLLMGeneralTools> {
+  static buildGeneralTools(
+    config: AIPhoneServiceConfiguration<AIPhoneServiceProviderType.RETELL_AI>
+  ): NonNullable<RetellLLMGeneralTools> {
     const tools: NonNullable<RetellLLMGeneralTools> = [
       {
         type: "end_call",
@@ -94,7 +96,9 @@ export class RetellServiceMapper {
   /**
    * Maps update model params to Retell format
    */
-  static mapToUpdateLLMRequest(data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>): UpdateLLMRequest {
+  static mapToUpdateLLMRequest(
+    data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
+  ): UpdateLLMRequest {
     return {
       general_prompt: data.general_prompt,
       begin_message: data.begin_message,
