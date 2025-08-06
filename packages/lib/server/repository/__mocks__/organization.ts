@@ -1,23 +1,23 @@
 import { vi, beforeEach } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type * as organization from "@calcom/lib/server/repository/organization";
+import type * as organization from "@calcom/lib/server/repository/PrismaOrganizationRepository";
 
-vi.mock("@calcom/lib/server/repository/organization", () => organizationMock);
+vi.mock("@calcom/lib/server/repository/PrismaOrganizationRepository", () => organizationMock);
 type OrganizationModule = typeof organization;
 beforeEach(() => {
   mockReset(organizationMock);
 });
 
 const organizationMock = mockDeep<OrganizationModule>();
-const OrganizationRepository = organizationMock.OrganizationRepository;
+const PrismaOrganizationRepository = organizationMock.PrismaOrganizationRepository;
 
 export const organizationScenarios = {
-  OrganizationRepository: {
+  PrismaOrganizationRepository: {
     findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fakeReturnOrganization: (org: any, forInput: any) => {
-        OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
+        PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
           (arg) => {
             if (forInput.email === arg.email) {
               return org;
@@ -29,10 +29,12 @@ export const organizationScenarios = {
         );
       },
       fakeNoMatch: () => {
-        OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
+        PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(
+          null
+        );
       },
     },
-  } satisfies Partial<Record<keyof OrganizationModule["OrganizationRepository"], unknown>>,
+  } satisfies Partial<Record<keyof OrganizationModule["PrismaOrganizationRepository"], unknown>>,
 } satisfies Partial<Record<keyof OrganizationModule, unknown>>;
 
 export default organizationMock;

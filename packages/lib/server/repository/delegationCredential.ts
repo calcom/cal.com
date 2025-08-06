@@ -10,7 +10,7 @@ import {
 } from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
 
-import { OrganizationRepository } from "./organization";
+import { PrismaOrganizationRepository } from "./PrismaOrganizationRepository";
 
 export type { ServiceAccountKey };
 const repositoryLogger = logger.getSubLogger({ prefix: ["DelegationCredentialRepository"] });
@@ -138,7 +138,7 @@ export class DelegationCredentialRepository {
       prefix: ["findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey"],
     });
     log.debug("called with", { email });
-    const organization = await OrganizationRepository.findByMemberEmail({ email });
+    const organization = await PrismaOrganizationRepository.findByMemberEmail({ email });
     if (!organization) {
       log.debug("Email not found in any organization:", email);
       return null;

@@ -10,7 +10,7 @@ import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -25,7 +25,7 @@ describe("Organizations User OOO Endpoints", () => {
     let app: INestApplication;
     let oooCreatedViaApiId: number;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -54,7 +54,7 @@ describe("Organizations User OOO Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);

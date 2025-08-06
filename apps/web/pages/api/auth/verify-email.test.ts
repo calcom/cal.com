@@ -19,7 +19,7 @@ describe("moveUserToMatchingOrg", () => {
   });
 
   it("should not proceed if no matching organization is found", async () => {
-    organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
+    organizationScenarios.PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
 
     await moveUserToMatchingOrg({ email });
 
@@ -46,7 +46,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );
@@ -67,7 +67,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.PrismaOrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );

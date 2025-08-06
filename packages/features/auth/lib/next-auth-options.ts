@@ -31,9 +31,9 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/PrismaOrganizationRepository";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -363,7 +363,9 @@ if (isSAMLLoginEnabled) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            const org = await PrismaOrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(
+              domain
+            );
             if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],

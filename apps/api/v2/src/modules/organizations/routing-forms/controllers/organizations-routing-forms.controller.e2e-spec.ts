@@ -8,11 +8,11 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { App_RoutingForms_Form, App_RoutingForms_FormResponse, Team, User } from "@prisma/client";
+import { App_RoutingForms_Form, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -27,13 +27,11 @@ describe("OrganizationsRoutingFormController", () => {
   let team: Team;
   let apiKeyString: string;
   let routingForm: App_RoutingForms_Form;
-  let routingFormResponse: App_RoutingForms_FormResponse;
-  let routingFormResponse2: App_RoutingForms_FormResponse;
 
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
 
   let user: User;
   const userEmail = `OrganizationsRoutingFormsResponsesController-key-bookings-2024-08-13-user-${randomString()}@api.com`;
@@ -51,7 +49,7 @@ describe("OrganizationsRoutingFormController", () => {
     prismaWriteService = moduleRef.get<PrismaWriteService>(PrismaWriteService);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
 
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     org = await organizationsRepositoryFixture.create({

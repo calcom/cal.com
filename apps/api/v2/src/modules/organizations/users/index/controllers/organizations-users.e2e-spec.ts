@@ -14,7 +14,7 @@ import * as request from "supertest";
 import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -22,7 +22,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, EventType, AttributeOption } from "@calcom/prisma/client";
+import { User, Team, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   const bio = "I am a bio";
@@ -32,7 +32,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
@@ -49,7 +49,7 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
@@ -122,7 +122,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = `organizations-users-admin-${randomString()}@api.com`;
@@ -157,7 +157,7 @@ describe("Organizations Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
@@ -405,7 +405,7 @@ describe("Organizations Users Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -414,7 +414,6 @@ describe("Organizations Users Endpoints", () => {
     let user: User;
     let org: Team;
     let team: Team;
-    let managedEventType: EventType;
     let createdUser: User;
 
     beforeAll(async () => {
@@ -427,7 +426,7 @@ describe("Organizations Users Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
 
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
@@ -475,19 +474,6 @@ describe("Organizations Users Endpoints", () => {
         title: "Collective Event Type",
         slug: "collective-event-type",
         length: 30,
-        assignAllTeamMembers: true,
-        bookingFields: [],
-        locations: [],
-      });
-
-      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
-        schedulingType: "MANAGED",
-        team: {
-          connect: { id: team.id },
-        },
-        title: "Managed Event Type",
-        slug: "managed-event-type",
-        length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
         locations: [],
@@ -545,7 +531,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let teamsRepositoryFixtures: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -571,7 +557,7 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixtures = new TeamRepositoryFixture(moduleRef);
 
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
@@ -651,7 +637,6 @@ describe("Organizations Users Endpoints", () => {
         type: "TEXT",
         slug: `test-attribute-2-${randomString()}`,
       });
-      const attributeId = attribute.id;
 
       assignedOption1 = await attributeRepositoryFixture.createOption({
         slug: "option1",

@@ -12,7 +12,7 @@ import {
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/PrismaOrganizationRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
@@ -227,7 +227,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
-    const data = await OrganizationRepository.createWithNonExistentOwner({
+    const data = await PrismaOrganizationRepository.createWithNonExistentOwner({
       orgData,
       owner: {
         email: orgOwnerEmail,
@@ -284,7 +284,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
-    const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
+    const { organization, ownerProfile } = await PrismaOrganizationRepository.createWithExistingUserAsOwner({
       orgData,
       owner: {
         id: orgOwner.id,

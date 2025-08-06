@@ -4,9 +4,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/PrismaOrganizationRepository";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { SMSLockState } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -182,7 +182,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
+    vi.mocked(PrismaOrganizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
   });
 
   it("should return empty array when no DelegationCredential found", async () => {

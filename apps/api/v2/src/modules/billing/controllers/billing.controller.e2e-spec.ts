@@ -12,14 +12,13 @@ import Stripe from "stripe";
 import * as request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { Team, PlatformOAuthClient, PlatformBilling } from "@calcom/prisma/client";
+import { Team, PlatformBilling } from "@calcom/prisma/client";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;
@@ -27,11 +26,9 @@ describe("Platform Billing Controller (e2e)", () => {
   let user: UserWithProfile;
   let billing: PlatformBilling;
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
   let profileRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
-  let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
-  let oAuthClient: PlatformOAuthClient;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let organization: Team;
 
@@ -43,9 +40,8 @@ describe("Platform Billing Controller (e2e)", () => {
       })
     ).compile();
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-    oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
     organization = await organizationsRepositoryFixture.create({
@@ -118,7 +114,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async () => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing?.plan).toEqual("FREE");
       });
@@ -146,7 +142,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async () => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing?.overdue).toEqual(true);
       });
@@ -176,7 +172,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async () => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing?.overdue).toEqual(false);
       });
@@ -209,7 +205,7 @@ describe("Platform Billing Controller (e2e)", () => {
       .post("/v2/billing/webhook")
       .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
-      .then(async (res) => {
+      .then(async () => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
         expect(billing).toBeNull();
       });

@@ -9,7 +9,7 @@ import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -26,7 +26,7 @@ describe("Organizations Teams Schedules Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let scheduleRepositoryFixture: SchedulesRepositoryFixture;
@@ -58,7 +58,7 @@ describe("Organizations Teams Schedules Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       scheduleRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);

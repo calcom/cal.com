@@ -17,7 +17,7 @@ import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -38,7 +38,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
     const sharedUsername = `slots-2024-09-04-shared-username-${randomString()}`;
@@ -88,7 +88,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);

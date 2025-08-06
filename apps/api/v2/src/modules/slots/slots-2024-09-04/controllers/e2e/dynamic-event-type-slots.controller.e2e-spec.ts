@@ -17,7 +17,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { Profile, User } from "@prisma/client";
 import * as request from "supertest";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -33,7 +33,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const userEmailOne = `slots-2024-09-04-user-1-dynamic-slots-${randomString()}@api.com`;
@@ -67,7 +67,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       const orgSlug = `slots-2024-09-04-org-${randomString()}`;

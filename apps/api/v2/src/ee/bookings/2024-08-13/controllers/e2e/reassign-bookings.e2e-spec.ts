@@ -17,7 +17,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -25,7 +25,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
-import { CreateBookingInput_2024_08_13, BookingOutput_2024_08_13 } from "@calcom/platform-types";
+import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
@@ -43,7 +43,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let hostsRepositoryFixture: HostsRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const teamUserEmail = `reassign-bookings-2024-08-13-user1-${randomString()}@api.com`;
@@ -73,7 +73,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
@@ -319,10 +319,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
       return client;
-    }
-
-    function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-      return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
     }
 
     afterAll(async () => {

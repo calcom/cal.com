@@ -27,7 +27,7 @@ import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billi
 import { ManagedOrganizationsRepositoryFixture } from "test/fixtures/repository/managed-organizations.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -47,7 +47,6 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -55,8 +54,7 @@ describe("Organizations Organizations Endpoints", () => {
   let app: INestApplication;
 
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-  let teamsRepositoryFixture: TeamRepositoryFixture;
+  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let managedOrganizationsRepositoryFixture: ManagedOrganizationsRepositoryFixture;
@@ -89,7 +87,7 @@ describe("Organizations Organizations Endpoints", () => {
     }).compile();
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
     teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
