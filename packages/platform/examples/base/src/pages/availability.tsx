@@ -9,7 +9,6 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Availability(props: { calUsername: string; calEmail: string }) {
   const availabilityRef = useRef<AvailabilitySettingsFormRef>(null);
-  const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
 
   const handleFormStateChange = useCallback((formState: unknown) => {
     console.log(formState, "formStateeeeee");
@@ -23,12 +22,10 @@ export default function Availability(props: { calUsername: string; calEmail: str
   const handleSubmit = () => {
     availabilityRef.current?.handleFormSubmit({
       onSuccess: () => {
-        console.log("Form submitted successfully via callback");
-        setSubmissionStatus("Form submitted successfully!");
+        console.log("Form submitted successfully");
       },
       onError: (error) => {
-        console.error("Form submission failed via callback:", error);
-        setSubmissionStatus(`Form submission failed: ${error.message}`);
+        console.error("Form submission failed:", error);
       },
     });
   };
@@ -40,11 +37,6 @@ export default function Availability(props: { calUsername: string; calEmail: str
         <h1 className="mx-10 my-4 text-2xl font-semibold">Availability Settings</h1>
 
         <div className="mx-10 mb-4 flex flex-col gap-4">
-          {submissionStatus && (
-            <div className={`p-4 rounded-md ${submissionStatus.includes("failed") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-              {submissionStatus}
-            </div>
-          )}
           <button
             onClick={handleValidate}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
