@@ -28,7 +28,7 @@ export const SeatsAvailabilityText = ({
   variant = "whole",
 }: Props) => {
   const { t } = useLocale();
-  const availableSeats = totalSeats - bookedSeats;
+  const availableSeats = Math.max(0, totalSeats - bookedSeats);
   const isHalfFull = bookedSeats / totalSeats >= 0.5;
   const isNearlyFull = bookedSeats / totalSeats >= 0.83;
 

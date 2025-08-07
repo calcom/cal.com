@@ -12,6 +12,7 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+import prismaMock from "../../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, test, vi, expect } from "vitest";
 
@@ -21,6 +22,148 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 describe("Seated Round Robin Events", () => {
   setupAndTeardown();
+
+  test("Round robin rotation: 2 hosts, 2 seats - bookings 1&2 to host1, bookings 3&4 to host2, creates 2 separate bookings", async () => {
+    const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+    const host1 = getOrganizer({
+      name: "Host 1",
+      email: "host1@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const host2 = {
+      name: "Host 2",
+      username: "host2",
+      timeZone: Timezones["+5:30"],
+      defaultScheduleId: null,
+      email: "host2@example.com",
+      id: 102,
+      schedules: [TestData.schedules.IstWorkHours],
+    };
+
+    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+    const bookingStartTime = `${plus1DateString}T04:00:00Z`;
+    const bookingEndTime = `${plus1DateString}T04:30:00Z`;
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "seated-round-robin-event",
+            slotInterval: 30,
+            length: 30,
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            users: [{ id: host1.id }, { id: host2.id }],
+            hosts: [
+              { userId: host1.id, isFixed: false },
+              { userId: host2.id, isFixed: false },
+            ],
+            seatsPerTimeSlot: 2,
+            seatsShowAttendees: false,
+          },
+        ],
+        organizer: host1,
+        usersApartFromOrganizer: [host2],
+      })
+    );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+      videoMeetingData: {
+        id: "MOCK_ID",
+        password: "MOCK_PASS",
+        url: `http://mock-dailyvideo.example.com/meeting-1`,
+      },
+    });
+
+    const booking1Result = await handleNewBooking({
+      bookingData: getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: bookingStartTime,
+          end: bookingEndTime,
+          responses: {
+            email: "seat1@example.com",
+            name: "Seat 1",
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+        },
+      }),
+    });
+
+    expect(booking1Result.userId).toBe(host1.id);
+
+    const booking2Result = await handleNewBooking({
+      bookingData: getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: bookingStartTime,
+          end: bookingEndTime,
+          responses: {
+            email: "seat2@example.com",
+            name: "Seat 2",
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+          bookingUid: booking1Result.uid,
+        },
+      }),
+    });
+
+    expect(booking2Result.userId).toBe(host1.id);
+    expect(booking2Result.id).toBe(booking1Result.id);
+
+    const booking3Result = await handleNewBooking({
+      bookingData: getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: bookingStartTime,
+          end: bookingEndTime,
+          responses: {
+            email: "seat3@example.com",
+            name: "Seat 3",
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+        },
+      }),
+    });
+
+    expect(booking3Result.userId).toBe(host2.id);
+    expect(booking3Result.id).not.toBe(booking1Result.id);
+
+    const booking4Result = await handleNewBooking({
+      bookingData: getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          start: bookingStartTime,
+          end: bookingEndTime,
+          responses: {
+            email: "seat4@example.com",
+            name: "Seat 4",
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+          bookingUid: booking3Result.uid,
+        },
+      }),
+    });
+
+    expect(booking4Result.userId).toBe(host2.id);
+    expect(booking4Result.id).toBe(booking3Result.id);
+
+    const allBookings = await prismaMock.booking.findMany({
+      where: {
+        eventTypeId: 1,
+        startTime: new Date(bookingStartTime),
+      },
+      include: { attendees: true },
+    });
+
+    expect(allBookings).toHaveLength(2);
+    expect(allBookings.find(b => b.userId === host1.id)?.attendees).toHaveLength(2);
+    expect(allBookings.find(b => b.userId === host2.id)?.attendees).toHaveLength(2);
+  });
 
   test("For second seat booking, organizer remains the same with no team members included", async () => {
     const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;

@@ -51,6 +51,7 @@ export type AvailableTimesProps = {
   // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   unavailableTimeSlots?: string[];
+  isRoundRobin?: boolean;
 } & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
@@ -76,6 +77,7 @@ type SlotItemProps = {
   unavailableTimeSlots?: string[];
   confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
+  isRoundRobin?: boolean;
 };
 
 const SlotItem = ({
@@ -97,6 +99,7 @@ const SlotItem = ({
   unavailableTimeSlots = [],
   confirmButtonDisabled,
   confirmStepClassNames,
+  isRoundRobin = false,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -117,7 +120,7 @@ const SlotItem = ({
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
-  const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
+  const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot && !isRoundRobin);
   const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
   const isNearlyFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.83;
   const colorClass = isNearlyFull ? "bg-rose-600" : isHalfFull ? "bg-yellow-500" : "bg-emerald-400";
@@ -264,6 +267,7 @@ export const AvailableTimes = ({
   slots,
   showTimeFormatToggle = true,
   className,
+  isRoundRobin = false,
   ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
@@ -293,7 +297,7 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
         {slots.map((slot) => {
           if (slot.away) return null;
-          return <SlotItem key={slot.time} slot={slot} {...props} />;
+          return <SlotItem key={slot.time} slot={slot} isRoundRobin={isRoundRobin} {...props} />;
         })}
         {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>

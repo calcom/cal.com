@@ -13,6 +13,7 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
@@ -240,7 +241,10 @@ const _ensureAvailableUsers = async (
         time: startDateTimeUtc,
         eventLength: duration,
       });
-      if (!foundConflict) {
+      
+      const isSeatedRoundRobin = eventType.seatsPerTimeSlot && eventType.schedulingType === "ROUND_ROBIN";
+      
+      if (!foundConflict || isSeatedRoundRobin) {
         availableUsers.push({ ...user, availabilityData: userAvailability });
       }
     } catch (error) {
