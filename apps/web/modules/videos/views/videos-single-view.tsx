@@ -54,8 +54,6 @@ export default function JoinCall(props: PageProps) {
       let callFrame: DailyCall | undefined;
 
       try {
-        const shouldShowUserNameChangeUI = !displayLogInOverlay;
-
         callFrame = DailyIframe.createFrame({
           theme: {
             colors: {
@@ -71,38 +69,11 @@ export default function JoinCall(props: PageProps) {
               supportiveText: "#FFF",
             },
           },
-        },
-        showLeaveButton: true,
-        iframeStyle: {
-          position: "fixed",
-          width: "100%",
-          height: "100%",
-        },
-        url: meetingUrl,
-        userName: overrideName ?? loggedInUserName ?? undefined,
-        ...(typeof meetingPassword === "string" && { token: meetingPassword }),
-        ...(hasTeamPlan && {
-          customTrayButtons: {
-            ...(showRecordingButton
-              ? {
-                  recording: {
-                    label: "Record",
-                    tooltip: "Start or stop recording",
-                    iconPath: RECORDING_DEFAULT_ICON,
-                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
-                  },
-                }
-              : {}),
-            ...(showTranscriptionButton
-              ? {
-                  transcription: {
-                    label: "Transcribe",
-                    tooltip: "Transcription powered by AI",
-                    iconPath: TRANSCRIPTION_STOPPED_ICON,
-                    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
-                  },
-                }
-              : {}),
+          showLeaveButton: true,
+          iframeStyle: {
+            position: "fixed",
+            width: "100%",
+            height: "100%",
           },
           url: meetingUrl,
           userName: userName,
@@ -122,7 +93,7 @@ export default function JoinCall(props: PageProps) {
               ...(showTranscriptionButton
                 ? {
                     transcription: {
-                      label: "Cal.ai",
+                      label: "Transcribe",
                       tooltip: "Transcription powered by AI",
                       iconPath: TRANSCRIPTION_STOPPED_ICON,
                       iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
@@ -142,15 +113,7 @@ export default function JoinCall(props: PageProps) {
         return DailyIframe.getCallInstance();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      meetingUrl,
-      meetingPassword,
-      hasTeamPlan,
-      showRecordingButton,
-      showTranscriptionButton,
-      displayLogInOverlay,
-    ]
+    [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton]
   );
 
   useEffect(() => {
@@ -181,7 +144,6 @@ export default function JoinCall(props: PageProps) {
       setDaily(null);
       setIsCallFrameReady(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayLogInOverlay, isUserNameConfirmed, userNameForCall, createCallFrame]);
 
   const handleJoinAsGuest = useCallback((guestName: string) => {
@@ -237,6 +199,7 @@ export default function JoinCall(props: PageProps) {
       </div>
       {displayLogInOverlay && !isUserNameConfirmed && (
         <LogInOverlay
+          isLoggedIn={!!loggedInUserName}
           bookingUid={booking.uid}
           loggedInUserName={loggedInUserName ?? undefined}
           overrideName={overrideName}
@@ -302,7 +265,6 @@ function ProgressBar(props: ProgressBarProps) {
         intervalRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startingTime]);
 
   const prev = startDuration - duration;
@@ -321,6 +283,7 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
+  isLoggedIn: boolean;
   bookingUid: string;
   loggedInUserName?: string;
   overrideName?: string;
@@ -330,9 +293,10 @@ interface LogInOverlayProps {
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { bookingUid, loggedInUserName, overrideName, onJoinAsGuest, onUserNameConfirmed } = props;
+  const { bookingUid, isLoggedIn, loggedInUserName, overrideName, onJoinAsGuest, onUserNameConfirmed } =
+    props;
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(!isLoggedIn);
   const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -352,17 +316,13 @@ export function LogInOverlay(props: LogInOverlayProps) {
       setIsOpen(false);
     } catch (error) {
       console.error("Error joining as guest:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : t("failed_to_join_call");
+      const errorMessage = error instanceof Error ? error.message : t("failed_to_join_call");
 
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userName, onJoinAsGuest, onUserNameConfirmed]);
+  }, [userName, onJoinAsGuest, onUserNameConfirmed, t]);
 
   const handleSignIn = useCallback(() => {
     const callbackUrl = `${WEBAPP_URL}/video/${bookingUid}`;
@@ -412,10 +372,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
                 disabled={isLoading}
                 autoFocus
               />
-              <Button
-                color="secondary"
-                onClick={handleContinueAsGuest}
-                loading={isLoading}>
+              <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
                 {t("continue")}
               </Button>
             </div>
@@ -436,16 +393,15 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
           <div className="mt-5 space-y-4">
             <div>
-              <h4 className="text-base font-semibold text-black dark:text-white">{t("sign_in_to_cal_com")}</h4>
+              <h4 className="text-base font-semibold text-black dark:text-white">
+                {t("sign_in_to_cal_com")}
+              </h4>
               <p className="text-sm text-[#6B7280] dark:text-gray-300">
                 {t("track_meetings_and_manage_schedule")}
               </p>
             </div>
 
-            <Button
-              color="primary"
-              className="w-full justify-center"
-              onClick={handleSignIn}>
+            <Button color="primary" className="w-full justify-center" onClick={handleSignIn}>
               {t("sign_in")}
             </Button>
           </div>
