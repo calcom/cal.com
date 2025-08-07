@@ -7,9 +7,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 export interface RoleColorPickerProps {
   value: string;
   onChange: (color: string) => void;
+  disabled?: boolean;
 }
 
-export default function RoleColorPicker({ value, onChange }: RoleColorPickerProps) {
+export default function RoleColorPicker({ value, onChange, disabled }: RoleColorPickerProps) {
   const { t } = useLocale();
   const [, setCustomColor] = useState(value);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -21,7 +22,9 @@ export default function RoleColorPicker({ value, onChange }: RoleColorPickerProp
   };
 
   const handleColorSquareClick = () => {
-    colorInputRef.current?.click();
+    if (!disabled) {
+      colorInputRef.current?.click();
+    }
   };
 
   return (
@@ -29,7 +32,8 @@ export default function RoleColorPicker({ value, onChange }: RoleColorPickerProp
       <button
         type="button"
         onClick={handleColorSquareClick}
-        className="bg-default text-default border-default hover:bg-muted hover:text-emphasis focus:bg-subtle focus-visible:shadow-outline-gray-focused shadow-outline-gray-rested enabled:hover:shadow-outline-gray-hover enabled:active:shadow-outline-gray-active flex h-8 w-8 items-center justify-center gap-2 rounded-[10px] border text-sm transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-0">
+        disabled={disabled}
+        className="bg-default text-default border-default hover:bg-muted hover:text-emphasis focus:bg-subtle focus-visible:shadow-outline-gray-focused shadow-outline-gray-rested enabled:hover:shadow-outline-gray-hover enabled:active:shadow-outline-gray-active flex h-8 w-8 items-center justify-center gap-2 rounded-[10px] border text-sm transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50">
         <div
           className="h-5 w-5 rounded border shadow-sm"
           style={{ backgroundColor: value }}

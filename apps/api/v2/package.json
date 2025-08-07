@@ -25,9 +25,9 @@
     "test:watch": "yarn dev:build && jest --watch",
     "test:cov": "yarn dev:build && jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "yarn dev:build && NODE_OPTIONS='--max_old_space_size=8192 --experimental-vm-modules' jest --ci --forceExit --config ./jest-e2e.json",
+    "test:e2e": "yarn dev:build && NODE_OPTIONS='--max_old_space_size=8192 --experimental-vm-modules' jest --ci --forceExit --config ./jest-e2e.ts",
     "test:e2e:local": "yarn test:e2e --maxWorkers=4",
-    "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.json --watch",
+    "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.ts --watch",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts",
@@ -38,7 +38,7 @@
     "@axiomhq/winston": "^1.2.0",
     "@calcom/platform-constants": "*",
     "@calcom/platform-enums": "*",
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.257",
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.287",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
@@ -108,7 +108,7 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.9.0-beta"
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"
