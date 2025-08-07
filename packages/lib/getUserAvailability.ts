@@ -571,10 +571,19 @@ export class UserAvailabilityService {
     const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
       start: dayjs(busy.start),
       end: dayjs(busy.end),
+      source: busy.source,
     }));
 
-    const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
-    const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
+    const isSeatedRoundRobin =
+      initialData?.eventType?.seatsPerTimeSlot &&
+      initialData?.eventType?.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    const busyTimesToSubtract = isSeatedRoundRobin
+      ? formattedBusyTimes.filter((busy) => !busy.source?.includes(`eventType-${eventTypeId}-booking`))
+      : formattedBusyTimes;
+
+    const dateRangesInWhichUserIsAvailable = subtract(dateRanges, busyTimesToSubtract);
+    const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, busyTimesToSubtract);
 
     const result = {
       busy: detailedBusyTimes,
