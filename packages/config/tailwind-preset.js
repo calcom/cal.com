@@ -10,7 +10,6 @@ module.exports = {
     "../../apps/web/app/**/*.{js,ts,jsx,tsx}",
     "../../apps/web/modules/**/*.{js,ts,jsx,tsx}",
     "../../apps/web/components/**/*.{js,ts,jsx,tsx}",
-    "../../apps/web/lib/**/*.{js,ts,jsx,tsx}",
     "../../packages/app-store/!(node_modules)/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
     "../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
