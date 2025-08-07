@@ -126,16 +126,7 @@ export default function MyApp() {
       embedCalOrigin: string;
       namespace: string;
     }) => {
-      return code`
-/* 
- * Headless Routing API
- * 
- * For headless routing implementation, please refer to our documentation:
- * https://cal.com/help/routing/headless-routing
- * 
- * This allows you to use your own forms and submit data directly to Cal.com's
- * routing API without using our embed widgets.
- */`;
+      return null;
     },
   },
   "react-atom": {
@@ -267,16 +258,7 @@ export default function Booker( props : BookerProps ) {
       embedCalOrigin: string;
       namespace: string;
     }) => {
-      return code`
-/* 
- * Headless Routing API
- * 
- * For headless routing implementation, please refer to our documentation:
- * https://cal.com/help/routing/headless-routing
- * 
- * This allows you to use your own forms and submit data directly to Cal.com's
- * routing API without using our embed widgets.
- */`;
+      return null;
     },
   },
   HTML: {
@@ -358,16 +340,7 @@ export default function Booker( props : BookerProps ) {
       embedCalOrigin: string;
       namespace: string;
     }) => {
-      return code`
-/* 
- * Headless Routing API
- * 
- * For headless routing implementation, please refer to our documentation:
- * https://cal.com/help/routing/headless-routing
- * 
- * This allows you to use your own forms and submit data directly to Cal.com's
- * routing API without using our embed widgets.
- */`;
+      return null;
     },
   },
 };
