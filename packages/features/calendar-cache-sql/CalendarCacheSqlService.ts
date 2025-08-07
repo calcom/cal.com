@@ -34,14 +34,32 @@ export class CalendarCacheSqlService {
     }));
   }
 
-  async processWebhookEvents(channelId: string, credential: CredentialForCalendarService) {
-    const subscription = await this.subscriptionRepo.findByChannelId(channelId);
+  async processWebhookEvents(channelIdOrSubscriptionId: string, credential: CredentialForCalendarService) {
+    let subscription;
+
+    if (credential.type === "office365_calendar") {
+      subscription = await this.subscriptionRepo.findByOffice365SubscriptionId(channelIdOrSubscriptionId);
+    } else {
+      subscription = await this.subscriptionRepo.findByChannelId(channelIdOrSubscriptionId);
+    }
+
     if (!subscription) {
       throw new Error("Calendar subscription not found");
     }
 
     console.info("Got subscription", subscription);
 
+    if (credential.type === "office365_calendar") {
+      await this.processOffice365WebhookEvents(subscription, credential);
+    } else {
+      await this.processGoogleWebhookEvents(subscription, credential);
+    }
+  }
+
+  private async processGoogleWebhookEvents(
+    subscription: CalendarSubscription,
+    credential: CredentialForCalendarService
+  ) {
     if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
       throw new Error("Delegation credential missing required client_email");
     }
@@ -51,7 +69,7 @@ export class CalendarCacheSqlService {
       delegatedTo: credential.delegatedTo
         ? {
             serviceAccountKey: {
-              client_email: credential.delegatedTo.serviceAccountKey.client_email!,
+              client_email: credential.delegatedTo.serviceAccountKey.client_email || "",
               client_id: credential.delegatedTo.serviceAccountKey.client_id,
               private_key: credential.delegatedTo.serviceAccountKey.private_key,
             },
@@ -59,7 +77,6 @@ export class CalendarCacheSqlService {
         : null,
     };
 
-    // Import Google Calendar service to fetch events
     const { default: GoogleCalendarService } = await import(
       "@calcom/app-store/googlecalendar/lib/CalendarService"
     );
@@ -70,39 +87,30 @@ export class CalendarCacheSqlService {
     const calendarId = subscription.selectedCalendar.externalId;
     const now = new Date();
 
-    // For initial sync, first get current events with time range, then get a sync token
     if (!subscription.nextSyncToken) {
       console.info("Initial sync: Getting current events with time range");
 
-      // First, get current events (now to +30 days) to avoid past events
       const currentEventsResponse = await calendar.events.list({
         calendarId,
         singleEvents: true,
         timeMin: now.toISOString(),
-        timeMax: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        timeMax: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
 
       console.info("Got current events:", currentEventsResponse.data.items?.length || 0);
 
-      // Process current events
       if (currentEventsResponse.data.items) {
-        const events = this.parseCalendarEvents(
-          currentEventsResponse.data.items,
-          subscription.id,
-          false // Don't filter past events as we already fetched from timeMin=now
-        );
+        const events = this.parseCalendarEvents(currentEventsResponse.data.items, subscription.id, false);
 
         if (events.length > 0) {
           await this.eventRepo.bulkUpsertEvents(events, subscription.id);
         }
       }
 
-      // Now do a full sync to get a nextSyncToken for future incremental syncs
       console.info("Initial sync: Getting sync token for future incremental syncs");
       const syncTokenResponse = await calendar.events.list({
         calendarId,
         singleEvents: true,
-        // No time constraints to get a sync token
       });
 
       if (syncTokenResponse.data.nextSyncToken) {
@@ -113,7 +121,6 @@ export class CalendarCacheSqlService {
       return;
     }
 
-    // For incremental sync, use the existing sync token
     console.info("Incremental sync: Using existing sync token");
     const eventsResponse = await calendar.events.list({
       calendarId,
@@ -135,7 +142,6 @@ export class CalendarCacheSqlService {
       timeRange: subscription.nextSyncToken ? "incremental" : "now to +30 days",
     });
 
-    // Update the syncToken for next sync
     if (eventsResponse.data.nextSyncToken) {
       await this.subscriptionRepo.updateSyncToken(subscription.id, eventsResponse.data.nextSyncToken);
     } else {
@@ -144,19 +150,101 @@ export class CalendarCacheSqlService {
       );
     }
 
-    // Process and save each event
     if (eventsResponse.data.items) {
       const events = this.parseCalendarEvents(
         eventsResponse.data.items,
         subscription.id,
-        !subscription.nextSyncToken // Filter past events only if this is still part of initial sync
+        !subscription.nextSyncToken
       );
 
-      // Bulk upsert all events at once
       if (events.length > 0) {
         await this.eventRepo.bulkUpsertEvents(events, subscription.id);
       }
     }
+  }
+
+  private async processOffice365WebhookEvents(
+    subscription: CalendarSubscription,
+    credential: CredentialForCalendarService
+  ) {
+    const { default: Office365CalendarService } = await import(
+      "@calcom/app-store/office365calendar/lib/CalendarService"
+    );
+
+    const credentialWithTenantId = credential as CredentialForCalendarService & {
+      key: { tenant_id: string; client_id: string; client_secret: string };
+    };
+    const calendarService = new Office365CalendarService(credentialWithTenantId);
+    const calendarId = subscription.selectedCalendar.externalId;
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const userEndpoint = await calendarService.getUserEndpoint();
+    const eventsUrl =
+      calendarId === "primary" || !calendarId
+        ? `${userEndpoint}/calendar/calendarView`
+        : `${userEndpoint}/calendars/${calendarId}/calendarView`;
+
+    const filter = `?startDateTime=${encodeURIComponent(now.toISOString())}&endDateTime=${encodeURIComponent(
+      thirtyDaysFromNow.toISOString()
+    )}`;
+
+    const response = await calendarService["fetcher"](`${eventsUrl}${filter}`);
+    const responseData = await response.json();
+
+    console.info("Got Office365 events:", responseData.value?.length || 0);
+
+    if (responseData.value) {
+      const events = this.parseOffice365Events(responseData.value, subscription.id);
+
+      if (events.length > 0) {
+        await this.eventRepo.bulkUpsertEvents(events, subscription.id);
+      }
+    }
+  }
+
+  private parseOffice365Events(
+    rawEvents: unknown[],
+    subscriptionId: string
+  ): Prisma.CalendarEventCreateInput[] {
+    return rawEvents.reduce((acc, event: unknown) => {
+      const eventObj = event as Record<string, unknown>;
+      if (!eventObj.id) return acc;
+
+      const startObj = eventObj.start as Record<string, unknown> | undefined;
+      const endObj = eventObj.end as Record<string, unknown> | undefined;
+      const start = startObj?.dateTime ? new Date(startObj.dateTime as string) : new Date();
+      const end = endObj?.dateTime ? new Date(endObj.dateTime as string) : new Date();
+      const isAllDay = !startObj?.dateTime && !!startObj?.date;
+
+      const bodyObj = eventObj.body as Record<string, unknown> | undefined;
+      const locationObj = eventObj.location as Record<string, unknown> | undefined;
+
+      acc.push({
+        calendarSubscription: { connect: { id: subscriptionId } },
+        googleEventId: eventObj.id as string,
+        iCalUID: (eventObj.iCalUId as string) || null,
+        etag: (eventObj["@odata.etag"] as string) || "",
+        sequence: 0,
+        summary: (eventObj.subject as string) || null,
+        description: (bodyObj?.content as string) || null,
+        location: (locationObj?.displayName as string) || null,
+        start,
+        end,
+        isAllDay,
+        status: eventObj.isCancelled ? "cancelled" : "confirmed",
+        transparency: eventObj.showAs === "free" ? "transparent" : "opaque",
+        visibility: "default",
+        recurringEventId: (eventObj.seriesMasterId as string) || null,
+        originalStartTime: null,
+        googleCreatedAt: eventObj.createdDateTime ? new Date(eventObj.createdDateTime as string) : null,
+        googleUpdatedAt: eventObj.lastModifiedDateTime
+          ? new Date(eventObj.lastModifiedDateTime as string)
+          : null,
+      });
+
+      return acc;
+    }, [] as Prisma.CalendarEventCreateInput[]);
   }
 
   /**
@@ -197,7 +285,7 @@ export class CalendarCacheSqlService {
 
       acc.push({
         calendarSubscription: { connect: { id: subscriptionId } },
-        googleEventId: event.id!,
+        googleEventId: event.id || "",
         iCalUID: event.iCalUID || null,
         etag: event.etag || "",
         sequence: event.sequence || 0,

@@ -88,14 +88,23 @@ async function getHandler(req: NextRequest) {
           credentialForCalendarCache
         );
 
-        if (watchResult?.id && watchResult?.expiration) {
-          await subscriptionRepo.updateWatchDetails(subscription.id, {
-            googleChannelId: watchResult.id,
-            googleChannelKind: watchResult.kind || "",
-            googleChannelResourceId: watchResult.resourceId || "",
-            googleChannelResourceUri: watchResult.resourceUri || "",
-            googleChannelExpiration: watchResult.expiration,
-          });
+        if (watchResult?.id) {
+          if ("expiration" in watchResult) {
+            await subscriptionRepo.updateWatchDetails(subscription.id, {
+              googleChannelId: watchResult.id,
+              googleChannelKind: watchResult.kind || "",
+              googleChannelResourceId: watchResult.resourceId || "",
+              googleChannelResourceUri: watchResult.resourceUri || "",
+              googleChannelExpiration: watchResult.expiration || undefined,
+            });
+          } else if ("expirationDateTime" in watchResult) {
+            await subscriptionRepo.updateWatchDetails(subscription.id, {
+              office365SubscriptionId: watchResult.id,
+              office365SubscriptionExpiration: watchResult.expirationDateTime || undefined,
+              office365SubscriptionResource: watchResult.resource || undefined,
+              office365SubscriptionChangeType: watchResult.changeType || undefined,
+            });
+          }
         }
 
         await subscriptionRepo.clearWatchError(subscription.id);

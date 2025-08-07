@@ -61,6 +61,10 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
           googleChannelResourceId: true,
           googleChannelResourceUri: true,
           googleChannelExpiration: true,
+          office365SubscriptionId: true,
+          office365SubscriptionExpiration: true,
+          office365SubscriptionResource: true,
+          office365SubscriptionChangeType: true,
           nextSyncToken: true,
           lastFullSync: true,
           syncErrors: true,
@@ -122,6 +126,32 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       return await this.prismaClient.calendarSubscription.findFirst({
         where: {
           googleChannelId: channelId,
+        },
+        include: {
+          selectedCalendar: {
+            select: {
+              id: true,
+              externalId: true,
+              integration: true,
+              userId: true,
+              credential: {
+                select: safeCredentialSelectForCalendarCache,
+              },
+            },
+          },
+        },
+      });
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async findByOffice365SubscriptionId(subscriptionId: string) {
+    try {
+      return await this.prismaClient.calendarSubscription.findFirst({
+        where: {
+          office365SubscriptionId: subscriptionId,
         },
         include: {
           selectedCalendar: {
@@ -205,20 +235,40 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
   async updateWatchDetails(
     id: string,
     details: {
-      googleChannelId: string;
+      googleChannelId?: string;
       googleChannelKind?: string;
       googleChannelResourceId?: string;
       googleChannelResourceUri?: string;
-      googleChannelExpiration: string;
+      googleChannelExpiration?: string;
+      office365SubscriptionId?: string;
+      office365SubscriptionExpiration?: string;
+      office365SubscriptionResource?: string;
+      office365SubscriptionChangeType?: string;
     }
   ) {
     try {
+      const updateData: Partial<Prisma.CalendarSubscriptionUpdateInput> = {
+        updatedAt: new Date(),
+      };
+
+      if (details.googleChannelId !== undefined) {
+        updateData.googleChannelId = details.googleChannelId;
+        updateData.googleChannelKind = details.googleChannelKind;
+        updateData.googleChannelResourceId = details.googleChannelResourceId;
+        updateData.googleChannelResourceUri = details.googleChannelResourceUri;
+        updateData.googleChannelExpiration = details.googleChannelExpiration;
+      }
+
+      if (details.office365SubscriptionId !== undefined) {
+        updateData.office365SubscriptionId = details.office365SubscriptionId;
+        updateData.office365SubscriptionExpiration = details.office365SubscriptionExpiration;
+        updateData.office365SubscriptionResource = details.office365SubscriptionResource;
+        updateData.office365SubscriptionChangeType = details.office365SubscriptionChangeType;
+      }
+
       await this.prismaClient.calendarSubscription.update({
         where: { id },
-        data: {
-          ...details,
-          updatedAt: new Date(),
-        },
+        data: updateData,
       });
     } catch (err) {
       captureException(err);
@@ -248,10 +298,15 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
                 },
               },
             },
-            integration: "google_calendar",
+            integration: { in: ["google_calendar", "office365_calendar"] },
           },
           syncErrors: { lt: 5 },
-          OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+          OR: [
+            { googleChannelExpiration: null },
+            { googleChannelExpiration: { lt: tomorrowTimestamp } },
+            { office365SubscriptionExpiration: null },
+            { office365SubscriptionExpiration: { lt: tomorrowTimestamp } },
+          ],
         },
         include: {
           selectedCalendar: {

@@ -3,6 +3,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
+  CredentialForCalendarServiceWithTenantId,
 } from "@calcom/types/Credential";
 
 export type GoogleChannelProps = {
@@ -11,6 +12,14 @@ export type GoogleChannelProps = {
   resourceId?: string | null;
   resourceUri?: string | null;
   expiration?: string | null;
+};
+
+export type Office365SubscriptionProps = {
+  id?: string | null;
+  resource?: string | null;
+  changeType?: string | null;
+  expirationDateTime?: string | null;
+  notificationUrl?: string | null;
 };
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
@@ -40,18 +49,25 @@ export class CalendarSubscriptionService {
   async watchCalendar(
     calendarId: string,
     credential: CredentialForCalendarService
-  ): Promise<GoogleChannelProps | undefined> {
+  ): Promise<GoogleChannelProps | Office365SubscriptionProps | undefined> {
     log.debug("watchCalendar", safeStringify({ calendarId }));
 
     try {
-      const credentialWithEmail = this.validateAndTransformCredential(credential);
-
-      const { CalendarSubscriptionService } = await import(
-        "@calcom/app-store/googlecalendar/lib/CalendarSubscriptionService"
-      );
-      const subscriptionService = new CalendarSubscriptionService(credentialWithEmail);
-
-      return await subscriptionService.watchCalendar(calendarId);
+      if (credential.type === "office365_calendar") {
+        const credentialWithTenantId = credential as CredentialForCalendarServiceWithTenantId;
+        const { CalendarSubscriptionService } = await import(
+          "@calcom/app-store/office365calendar/lib/CalendarSubscriptionService"
+        );
+        const subscriptionService = new CalendarSubscriptionService(credentialWithTenantId);
+        return await subscriptionService.watchCalendar(calendarId);
+      } else {
+        const credentialWithEmail = this.validateAndTransformCredential(credential);
+        const { CalendarSubscriptionService } = await import(
+          "@calcom/app-store/googlecalendar/lib/CalendarSubscriptionService"
+        );
+        const subscriptionService = new CalendarSubscriptionService(credentialWithEmail);
+        return await subscriptionService.watchCalendar(calendarId);
+      }
     } catch (error) {
       log.error(`Failed to watch calendar ${calendarId}`, safeStringify(error));
       throw error;
@@ -67,14 +83,21 @@ export class CalendarSubscriptionService {
     log.debug("unwatchCalendar", safeStringify({ calendarId, channelId, resourceId }));
 
     try {
-      const credentialWithEmail = this.validateAndTransformCredential(credential);
-
-      const { CalendarSubscriptionService } = await import(
-        "@calcom/app-store/googlecalendar/lib/CalendarSubscriptionService"
-      );
-      const subscriptionService = new CalendarSubscriptionService(credentialWithEmail);
-
-      await subscriptionService.unwatchCalendar(calendarId, channelId, resourceId);
+      if (credential.type === "office365_calendar") {
+        const credentialWithTenantId = credential as CredentialForCalendarServiceWithTenantId;
+        const { CalendarSubscriptionService } = await import(
+          "@calcom/app-store/office365calendar/lib/CalendarSubscriptionService"
+        );
+        const subscriptionService = new CalendarSubscriptionService(credentialWithTenantId);
+        await subscriptionService.unwatchCalendar(calendarId, channelId);
+      } else {
+        const credentialWithEmail = this.validateAndTransformCredential(credential);
+        const { CalendarSubscriptionService } = await import(
+          "@calcom/app-store/googlecalendar/lib/CalendarSubscriptionService"
+        );
+        const subscriptionService = new CalendarSubscriptionService(credentialWithEmail);
+        await subscriptionService.unwatchCalendar(calendarId, channelId, resourceId);
+      }
       log.info(`Successfully unwatched calendar ${calendarId}`);
     } catch (error) {
       log.error(`Failed to unwatch calendar ${calendarId}`, safeStringify(error));
