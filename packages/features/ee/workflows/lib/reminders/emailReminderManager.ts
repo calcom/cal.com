@@ -245,7 +245,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       type: evt.eventType?.slug || "",
       organizer: { ...evt.organizer, language: { ...evt.organizer.language, translate: organizerT } },
       attendees: [attendee],
-      // Resolve video call URL from metadata, similar to scheduleEmailReminders.ts line 334
       location: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || evt.location,
     };
 
