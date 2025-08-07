@@ -325,7 +325,7 @@ function WorkflowPage({ workflow: workflowId }: PageProps) {
                 {isAllDataLoaded && user ? (
                   <>
                     <WorkflowDetailsPage
-                      permissions={workflow.permissions}
+                      permissions={workflow?.permissions}
                       form={form}
                       workflowId={+workflowId}
                       user={user}
