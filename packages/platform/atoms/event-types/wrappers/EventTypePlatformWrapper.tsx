@@ -36,7 +36,7 @@ import EventAvailabilityTabPlatformWrapper from "./EventAvailabilityTabPlatformW
 import EventLimitsTabPlatformWrapper from "./EventLimitsTabPlatformWrapper";
 import EventPaymentsTabPlatformWrapper from "./EventPaymentsTabPlatformWrapper";
 import EventRecurringTabPlatformWrapper from "./EventRecurringTabPlatformWrapper";
-import SetupTab from "./EventSetupTabPlatformWrapper";
+import EventSetupTabPlatformWrapper from "./EventSetupTabPlatformWrapper";
 import EventTeamAssignmentTabPlatformWrapper from "./EventTeamAssignmentTabPlatformWrapper";
 import type { PlatformTabs } from "./types";
 
@@ -220,7 +220,7 @@ const EventType = forwardRef<
 
   const tabMap = {
     setup: tabs.includes("setup") ? (
-      <SetupTab
+      <EventSetupTabPlatformWrapper
         eventType={eventType}
         locationOptions={locationOptions}
         team={team}
