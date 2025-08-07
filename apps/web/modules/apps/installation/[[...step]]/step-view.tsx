@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
@@ -100,6 +100,27 @@ type TUpdateObject = {
   locations?: LocationObject[];
 };
 
+const useAutoSelectAccount = (
+  currentStep: AppOnboardingSteps,
+  personalAccount: PersonalAccountProps,
+  teams: TTeams | undefined,
+  isPending: boolean,
+  onSelectAccount: (teamId?: number) => Promise<void>
+) => {
+  useEffect(() => {
+    if (currentStep !== AppOnboardingSteps.ACCOUNTS_STEP || isPending) {
+      return;
+    }
+
+    const availablePersonalAccount = personalAccount.alreadyInstalled ? null : personalAccount;
+    const availableTeams = teams?.filter((team) => !team.alreadyInstalled) || [];
+
+    if (availablePersonalAccount && availableTeams.length === 0) {
+      onSelectAccount();
+    }
+  }, [currentStep, personalAccount.alreadyInstalled, teams, isPending, onSelectAccount]);
+};
+
 const OnboardingPage = ({
   step,
   teams,
@@ -172,6 +193,30 @@ const OnboardingPage = ({
     },
   });
 
+  const handleSelectAccount = useCallback(
+    async (teamId?: number) => {
+      mutation.mutate({
+        type: appMetadata.type,
+        variant: appMetadata.variant,
+        slug: appMetadata.slug,
+        ...(teamId && { teamId }),
+        // for oAuth apps
+        ...(showEventTypesStep && {
+          returnTo:
+            WEBAPP_URL +
+            getAppOnboardingUrl({
+              slug: appMetadata.slug,
+              teamId,
+              step: AppOnboardingSteps.EVENT_TYPES_STEP,
+            }),
+        }),
+      });
+    },
+    [appMetadata.type, appMetadata.variant, appMetadata.slug, showEventTypesStep, mutation]
+  );
+
+  useAutoSelectAccount(currentStep, personalAccount, teams, mutation.isPending, handleSelectAccount);
+
   useEffect(() => {
     eventTypeGroups && formMethods.setValue("eventTypeGroups", eventTypeGroups);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,25 +251,6 @@ const OnboardingPage = ({
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
-
-  const handleSelectAccount = async (teamId?: number) => {
-    mutation.mutate({
-      type: appMetadata.type,
-      variant: appMetadata.variant,
-      slug: appMetadata.slug,
-      ...(teamId && { teamId }),
-      // for oAuth apps
-      ...(showEventTypesStep && {
-        returnTo:
-          WEBAPP_URL +
-          getAppOnboardingUrl({
-            slug: appMetadata.slug,
-            teamId,
-            step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
-      }),
-    });
-  };
 
   const handleSetUpLater = () => {
     router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
