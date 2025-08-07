@@ -7,7 +7,8 @@ import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -20,10 +21,10 @@ import type {
   CurrentSeats,
   EventType,
   GetAvailabilityUser,
+  UserAvailabilityService,
   IFromUser,
   IToUser,
 } from "@calcom/lib/getUserAvailability";
-import { getPeriodStartDatesBetween, getUsersAvailability } from "@calcom/lib/getUserAvailability";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -41,7 +42,6 @@ import logger from "@calcom/lib/logger";
 import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
@@ -64,6 +64,7 @@ import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 import type { GetScheduleOptions } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<GetAvailabilityUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -99,7 +100,49 @@ export interface IAvailableSlotsService {
   bookingRepo: BookingRepository;
   eventTypeRepo: EventTypeRepository;
   routingFormResponseRepo: RoutingFormResponseRepository;
+  cacheService: CacheService;
   checkBookingLimitsService: CheckBookingLimitsService;
+  userAvailabilityService: UserAvailabilityService;
+  redisClient: IRedisService;
+}
+
+function withSlotsCache(
+  redisClient: IRedisService,
+  func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>
+) {
+  return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
+    const cacheKey = `${JSON.stringify(args.input)}`;
+    let success = false;
+    let cachedResult: IGetAvailableSlots | null = null;
+    const startTime = process.hrtime();
+    try {
+      cachedResult = await redisClient.get(cacheKey);
+      success = true;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "TimeoutError") {
+        const endTime = process.hrtime(startTime);
+        log.error(`Redis request timed out after ${endTime[0]}${endTime[1] / 1e6}ms`);
+      } else {
+        throw err;
+      }
+    }
+
+    if (!success) {
+      // If the cache request fails, we proceed to call the function directly
+      return await func(args);
+    }
+    if (cachedResult) {
+      log.info("[CACHE HIT] Available slots", { cacheKey });
+      return cachedResult;
+    }
+    const result = await func(args);
+    const ttl = parseInt(process.env.SLOTS_CACHE_TTL ?? "", 10) || DEFAULT_SLOTS_CACHE_TTL;
+    // we do not wait for the cache to complete setting; we fire and forget, and hope it'll finish.
+    // this is to already start responding to the client.
+    redisClient.set(cacheKey, result, { ttl });
+    log.info("[CACHE MISS] Available slots", { cacheKey, ttl });
+    return result;
+  };
 }
 
 export class AvailableSlotsService {
@@ -143,10 +186,8 @@ export class AvailableSlotsService {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
     // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
     if (!input.eventTypeSlug) {
-      throw new TRPCError({
-        message: "eventTypeSlug is required for dynamic booking",
-        code: "BAD_REQUEST",
-      });
+      // never happens as it's guarded by our Zod Schema refine, but for clear type safety we throw an Error if the eventTypeSlug isn't given.
+      throw new Error("Event type slug is required in dynamic booking.");
     }
     const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
@@ -356,7 +397,12 @@ export class AvailableSlotsService {
         if (!limit) continue;
 
         const unit = intervalLimitKeyToUnit(key);
-        const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+        const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+          dateFrom,
+          dateTo,
+          unit,
+          timeZone
+        );
 
         for (const periodStart of periodStartDates) {
           if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -391,7 +437,12 @@ export class AvailableSlotsService {
           if (!limit) continue;
 
           const unit = intervalLimitKeyToUnit(key);
-          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+          const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+            dateFrom,
+            dateTo,
+            unit,
+            timeZone
+          );
 
           for (const periodStart of periodStartDates) {
             if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -442,7 +493,12 @@ export class AvailableSlotsService {
           if (!limit) continue;
 
           const unit = intervalLimitKeyToUnit(key);
-          const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+          const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+            dateFrom,
+            dateTo,
+            unit,
+            timeZone
+          );
 
           for (const periodStart of periodStartDates) {
             if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -455,8 +511,7 @@ export class AvailableSlotsService {
             }
 
             if (unit === "year") {
-              // TODO: DI getTotalBookingDuration
-              const totalYearlyDuration = await getTotalBookingDuration({
+              const totalYearlyDuration = await this.dependencies.bookingRepo.getTotalBookingDuration({
                 eventId: eventType.id,
                 startDate: periodStart.toDate(),
                 endDate: periodStart.endOf(unit).toDate(),
@@ -542,7 +597,12 @@ export class AvailableSlotsService {
       if (!limit) continue;
 
       const unit = intervalLimitKeyToUnit(key);
-      const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+      const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+        dateFrom,
+        dateTo,
+        unit,
+        timeZone
+      );
 
       for (const periodStart of periodStartDates) {
         if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -572,25 +632,17 @@ export class AvailableSlotsService {
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
-      const bookingLimitsParams = {
-        bookings: userBusyTimes,
-        bookingLimits,
-        dateFrom,
-        dateTo,
-        limitManager,
-        rescheduleUid,
-        teamId,
-        user,
-        includeManagedEvents,
-        timeZone,
-      };
-
       for (const key of descendingLimitKeys) {
         const limit = bookingLimits?.[key];
         if (!limit) continue;
 
         const unit = intervalLimitKeyToUnit(key);
-        const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit, timeZone);
+        const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
+          dateFrom,
+          dateTo,
+          unit,
+          timeZone
+        );
 
         for (const periodStart of periodStartDates) {
           if (limitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
@@ -817,7 +869,7 @@ export class AvailableSlotsService {
     const users = enrichUsersWithData();
 
     // TODO: DI getUsersAvailability
-    const premappedUsersAvailability = await getUsersAvailability({
+    const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
       users,
       query: {
         dateFrom: startTime.format(),
@@ -882,7 +934,10 @@ export class AvailableSlotsService {
     "getRegularOrDynamicEventType"
   );
 
-  getAvailableSlots = withReporting(this._getAvailableSlots.bind(this), "getAvailableSlots");
+  getAvailableSlots = withReporting(
+    withSlotsCache(this.dependencies.redisClient, this._getAvailableSlots.bind(this)),
+    "getAvailableSlots"
+  );
 
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
@@ -909,8 +964,10 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    // TODO: DI getShouldServeCache
-    const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
+    const shouldServeCache = await this.dependencies.cacheService.getShouldServeCache(
+      _shouldServeCache,
+      eventType.team?.id
+    );
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -939,10 +996,6 @@ export class AvailableSlotsService {
     );
     const endTime =
       input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
-
-    if (!startTime.isValid() || !endTime.isValid()) {
-      throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
-    }
     // when an empty array is given we should prefer to have it handled as if this wasn't given at all
     // we don't want to return no availability in this case.
     const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
@@ -1092,11 +1145,9 @@ export class AvailableSlotsService {
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {
+        // runtime error preventing misconfiguration when restrictionSchedule timeZone must be used.
         if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-          throw new TRPCError({
-            message: "No timezone is set for the restricted schedule",
-            code: "BAD_REQUEST",
-          });
+          throw new Error("No timezone is set for the restricted schedule");
         }
 
         const restrictionTimezone = eventType.useBookerTimezone

@@ -48,6 +48,7 @@ import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
@@ -131,7 +132,7 @@ const providers: Provider[] = [
       }
 
       await checkRateLimitAndThrowError({
-        identifier: user.email,
+        identifier: hashEmail(user.email),
       });
 
       if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {

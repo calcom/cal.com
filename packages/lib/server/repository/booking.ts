@@ -522,13 +522,15 @@ export class BookingRepository {
 
   async updateLocationById({
     where: { id },
-    data: { location, metadata, referencesToCreate },
+    data: { location, metadata, referencesToCreate, responses, iCalSequence },
   }: {
     where: { id: number };
     data: {
       location: string;
       metadata: Record<string, unknown>;
       referencesToCreate: Prisma.BookingReferenceCreateInput[];
+      responses?: Record<string, unknown>;
+      iCalSequence?: number;
     };
   }) {
     await this.prismaClient.booking.update({
@@ -538,6 +540,8 @@ export class BookingRepository {
       data: {
         location,
         metadata,
+        ...(responses && { responses }),
+        ...(iCalSequence !== undefined && { iCalSequence }),
         references: {
           create: referencesToCreate,
         },
@@ -864,5 +868,71 @@ export class BookingRepository {
         },
       },
     });
+  }
+
+  async findAcceptedBookingByEventTypeId({
+    eventTypeId,
+    dateFrom,
+    dateTo,
+  }: {
+    eventTypeId?: number;
+    dateFrom: string;
+    dateTo: string;
+  }) {
+    return this.prismaClient.booking.findMany({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: dateFrom,
+          lte: dateTo,
+        },
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getTotalBookingDuration({
+    eventId,
+    startDate,
+    endDate,
+    rescheduleUid,
+  }: {
+    eventId: number;
+    startDate: Date;
+    endDate: Date;
+    rescheduleUid?: string;
+  }) {
+    let totalBookingTime;
+
+    if (rescheduleUid) {
+      [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+      SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+      FROM "Booking"
+      WHERE "status" = 'accepted'
+        AND "eventTypeId" = ${eventId}
+        AND "startTime" >= ${startDate}
+        AND "endTime" <= ${endDate}
+        AND "uid" != ${rescheduleUid};
+    `;
+    } else {
+      [totalBookingTime] = await this.prismaClient.$queryRaw<[{ totalMinutes: number | null }]>`
+      SELECT SUM(EXTRACT(EPOCH FROM ("endTime" - "startTime")) / 60) as "totalMinutes"
+      FROM "Booking"
+      WHERE "status" = 'accepted'
+        AND "eventTypeId" = ${eventId}
+        AND "startTime" >= ${startDate}
+        AND "endTime" <= ${endDate};
+    `;
+    }
+    return totalBookingTime.totalMinutes ?? 0;
   }
 }
