@@ -113,6 +113,30 @@ export default function MyApp() {
   >Click me</button>;
 };`;
     },
+    headless: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: any;
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+/* 
+ * Headless Routing API
+ * 
+ * For headless routing implementation, please refer to our documentation:
+ * https://cal.com/help/routing/headless-routing
+ * 
+ * This allows you to use your own forms and submit data directly to Cal.com's
+ * routing API without using our embed widgets.
+ */`;
+    },
   },
   "react-atom": {
     inline: ({
@@ -230,17 +254,43 @@ export default function Booker( props : BookerProps ) {
   );
 };`;
     },
+    headless: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: any;
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+/* 
+ * Headless Routing API
+ * 
+ * For headless routing implementation, please refer to our documentation:
+ * https://cal.com/help/routing/headless-routing
+ * 
+ * This allows you to use your own forms and submit data directly to Cal.com's
+ * routing API without using our embed widgets.
+ */`;
+    },
   },
   HTML: {
     inline: ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["inline"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
@@ -251,16 +301,17 @@ export default function Booker( props : BookerProps ) {
 
   ${uiInstructionCode}`;
     },
-
     "floating-popup": ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["floatingPopup"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       const floatingButtonArg = JSON.stringify({
@@ -277,11 +328,13 @@ export default function Booker( props : BookerProps ) {
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`
@@ -291,6 +344,30 @@ export default function Booker( props : BookerProps ) {
   // \`data-cal-config='${JSON.stringify(previewState.config)}'\`
 
   ${uiInstructionCode}`;
+    },
+    headless: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: any;
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+/* 
+ * Headless Routing API
+ * 
+ * For headless routing implementation, please refer to our documentation:
+ * https://cal.com/help/routing/headless-routing
+ * 
+ * This allows you to use your own forms and submit data directly to Cal.com's
+ * routing API without using our embed widgets.
+ */`;
     },
   },
 };
