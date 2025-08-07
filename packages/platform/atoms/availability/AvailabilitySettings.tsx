@@ -68,6 +68,9 @@ export type CustomClassNames = {
   subtitlesClassName?: string;
   scheduleClassNames?: scheduleClassNames;
   overridesModalClassNames?: string;
+  dateOverrideClassNames?: {
+    container?: string;
+  };
   hiddenSwitchClassname?: {
     container?: string;
     thumb?: string;
@@ -180,6 +183,7 @@ const DateOverride = ({
   travelSchedules,
   weekStart,
   overridesModalClassNames,
+  classNames,
   handleSubmit,
 }: {
   workingHours: WorkingHours[];
@@ -187,6 +191,9 @@ const DateOverride = ({
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
+  classNames?: {
+    container?: string;
+  };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
@@ -202,7 +209,7 @@ const DateOverride = ({
   };
 
   return (
-    <div className="p-6">
+    <div className={cn("p-6", classNames?.container)}>
       <h3 className="text-emphasis font-medium leading-6">
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
@@ -318,24 +325,27 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
 
-    const handleFormSubmit = useCallback((customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-      if (customCallbacks) {
-        callbacksRef.current = customCallbacks;
-      }
+    const handleFormSubmit = useCallback(
+      (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+        if (customCallbacks) {
+          callbacksRef.current = customCallbacks;
+        }
 
-      if (saveButtonRef.current) {
-        saveButtonRef.current.click();
-      } else {
-        form.handleSubmit(async (data) => {
-          try {
-            await handleSubmit(data);
-            callbacksRef.current?.onSuccess?.();
-          } catch (error) {
-            callbacksRef.current?.onError?.(error as Error);
-          }
-        })();
-      }
-    }, [form, handleSubmit]);
+        if (saveButtonRef.current) {
+          saveButtonRef.current.click();
+        } else {
+          form.handleSubmit(async (data) => {
+            try {
+              await handleSubmit(data);
+              callbacksRef.current?.onSuccess?.();
+            } catch (error) {
+              callbacksRef.current?.onError?.(error as Error);
+            }
+          })();
+        }
+      },
+      [form, handleSubmit]
+    );
 
     const validateForm = useCallback(async () => {
       const isValid = await form.trigger();
@@ -661,6 +671,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                     ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                   }
                   overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                  classNames={customClassNames?.dateOverrideClassNames}
                 />
               )}
             </div>
