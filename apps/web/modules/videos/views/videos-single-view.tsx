@@ -71,12 +71,38 @@ export default function JoinCall(props: PageProps) {
               supportiveText: "#FFF",
             },
           },
-          showLeaveButton: true,
-          showUserNameChangeUI: shouldShowUserNameChangeUI,
-          iframeStyle: {
-            position: "fixed",
-            width: "100%",
-            height: "100%",
+        },
+        showLeaveButton: true,
+        iframeStyle: {
+          position: "fixed",
+          width: "100%",
+          height: "100%",
+        },
+        url: meetingUrl,
+        userName: overrideName ?? loggedInUserName ?? undefined,
+        ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+        ...(hasTeamPlan && {
+          customTrayButtons: {
+            ...(showRecordingButton
+              ? {
+                  recording: {
+                    label: "Record",
+                    tooltip: "Start or stop recording",
+                    iconPath: RECORDING_DEFAULT_ICON,
+                    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+                  },
+                }
+              : {}),
+            ...(showTranscriptionButton
+              ? {
+                  transcription: {
+                    label: "Transcribe",
+                    tooltip: "Transcription powered by AI",
+                    iconPath: TRANSCRIPTION_STOPPED_ICON,
+                    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+                  },
+                }
+              : {}),
           },
           url: meetingUrl,
           userName: userName,
