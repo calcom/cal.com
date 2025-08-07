@@ -26,13 +26,17 @@ export interface AgentRawResult {
 
 export class PrismaPhoneNumberRepository {
   private static async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
-    const result = await prisma.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT "teamId"
-      FROM "Membership"
-      WHERE "userId" = ${userId} AND accepted = true
-    `;
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
 
-    return result.map((row) => row.teamId);
+    return memberships.map((membership) => membership.teamId);
   }
 
   static async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {

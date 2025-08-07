@@ -31,25 +31,34 @@ interface _PhoneNumberRawResult {
 
 export class PrismaAgentRepository {
   private static async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
-    const result = await prisma.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT "teamId"
-      FROM "Membership"
-      WHERE "userId" = ${userId} AND accepted = true
-    `;
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
 
-    return result.map((row) => row.teamId);
+    return memberships.map((membership) => membership.teamId);
   }
 
   private static async getUserAdminTeamIds(userId: number): Promise<number[]> {
-    const result = await prisma.$queryRaw<{ teamId: number }[]>`
-      SELECT DISTINCT "teamId"
-      FROM "Membership"
-      WHERE "userId" = ${userId}
-        AND accepted = true
-        AND role IN ('ADMIN', 'OWNER')
-    `;
+    const memberships = await prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
 
-    return result.map((row) => row.teamId);
+    return memberships.map((membership) => membership.teamId);
   }
 
   static async findByIdWithUserAccess({ agentId, userId }: { agentId: string; userId: number }) {

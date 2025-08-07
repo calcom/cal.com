@@ -17,12 +17,13 @@ import type {
   AIPhoneServiceAgentListItem,
   AIPhoneServiceImportPhoneNumberParamsExtended,
   AIPhoneServiceAgentWithDetails,
+  AIPhoneServiceTools
 } from "../../interfaces/ai-phone-service.interface";
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
-import type { RetellAIRepository, RetellAgentWithDetails } from "./types";
+import type { RetellAIRepository, RetellAgentWithDetails, RetellLLMGeneralTools } from "./types";
 
 export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {
   private service: RetellAIService;
@@ -201,7 +202,7 @@ export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPh
     workflowStepId?: number;
     generalPrompt?: string;
     beginMessage?: string;
-    generalTools?: any;
+    generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
     userTimeZone: string;
   }): Promise<{
@@ -224,7 +225,7 @@ export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPh
     enabled?: boolean;
     generalPrompt?: string | null;
     beginMessage?: string | null;
-    generalTools?: any;
+    generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;;
     voiceId?: string;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
