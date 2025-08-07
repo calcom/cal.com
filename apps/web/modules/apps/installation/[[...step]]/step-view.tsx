@@ -177,6 +177,10 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
+    if (mutation.isPending) {
+      return;
+    }
+
     mutation.mutate({
       type: appMetadata.type,
       variant: appMetadata.variant,
@@ -201,11 +205,14 @@ const OnboardingPage = ({
 
   useEffect(() => {
     // Auto-skip accounts step if only personal account is available
-    // This should only happen on initial load when user navigates directly to accounts step
+    // Replace URL to make it look like user came from app page
     if (isOnlySingleAccountToSelect && !mutation.isPending && step === AppOnboardingSteps.ACCOUNTS_STEP) {
+      // Replace current URL with app page using Next.js router
+      router.replace(`/apps/${appMetadata.slug}`);
+
       handleSelectAccount();
     }
-  }, [isOnlySingleAccountToSelect, handleSelectAccount, mutation.isPending, step]);
+  }, [isOnlySingleAccountToSelect, handleSelectAccount, mutation.isPending, step, appMetadata.slug]);
 
   if (mutation.isPending) {
     return (
