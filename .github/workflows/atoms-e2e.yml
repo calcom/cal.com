@@ -28,7 +28,7 @@ jobs:
   atoms-e2e:
     timeout-minutes: 15
     name: Atoms E2E Tests
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: docker/login-action@v3
         with:
