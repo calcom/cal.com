@@ -1,10 +1,11 @@
 import type { calendar_v3 } from "@googleapis/calendar";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, CalendarSubscription } from "@prisma/client";
 
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
+  CredentialForCalendarServiceWithTenantId,
 } from "@calcom/types/Credential";
 
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
@@ -57,7 +58,14 @@ export class CalendarCacheSqlService {
   }
 
   private async processGoogleWebhookEvents(
-    subscription: CalendarSubscription,
+    subscription: CalendarSubscription & {
+      selectedCalendar: {
+        credential: any | null;
+        externalId: string;
+        integration: string;
+        userId: number;
+      };
+    },
     credential: CredentialForCalendarService
   ) {
     if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
@@ -164,16 +172,21 @@ export class CalendarCacheSqlService {
   }
 
   private async processOffice365WebhookEvents(
-    subscription: CalendarSubscription,
+    subscription: CalendarSubscription & {
+      selectedCalendar: {
+        credential: any | null;
+        externalId: string;
+        integration: string;
+        userId: number;
+      };
+    },
     credential: CredentialForCalendarService
   ) {
     const { default: Office365CalendarService } = await import(
       "@calcom/app-store/office365calendar/lib/CalendarService"
     );
 
-    const credentialWithTenantId = credential as CredentialForCalendarService & {
-      key: { tenant_id: string; client_id: string; client_secret: string };
-    };
+    const credentialWithTenantId = credential as CredentialForCalendarServiceWithTenantId;
     const calendarService = new Office365CalendarService(credentialWithTenantId);
     const calendarId = subscription.selectedCalendar.externalId;
     const now = new Date();
@@ -207,7 +220,7 @@ export class CalendarCacheSqlService {
     rawEvents: unknown[],
     subscriptionId: string
   ): Prisma.CalendarEventCreateInput[] {
-    return rawEvents.reduce((acc, event: unknown) => {
+    return rawEvents.reduce((acc: Prisma.CalendarEventCreateInput[], event: unknown) => {
       const eventObj = event as Record<string, unknown>;
       if (!eventObj.id) return acc;
 
