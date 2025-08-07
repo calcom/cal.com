@@ -37,6 +37,7 @@ import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar
 import type { TimeRange } from "@calcom/types/schedule";
 
 import { getBusyTimes } from "./getBusyTimes";
+import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
@@ -595,25 +596,9 @@ export class UserAvailabilityService {
 
   getUserAvailability = withReporting(this._getUserAvailability.bind(this), "getUserAvailability");
 
-  _getPeriodStartDatesBetween(
-    dateFrom: Dayjs,
-    dateTo: Dayjs,
-    period: IntervalLimitUnit,
-    timeZone?: string
-  ): Dayjs[] {
-    const dates = [];
-    let startDate = timeZone ? dayjs(dateFrom).tz(timeZone).startOf(period) : dayjs(dateFrom).startOf(period);
-    const endDate = timeZone ? dayjs(dateTo).tz(timeZone).endOf(period) : dayjs(dateTo).endOf(period);
-
-    while (startDate.isBefore(endDate)) {
-      dates.push(startDate);
-      startDate = startDate.add(1, period);
-    }
-    return dates;
-  }
-
   getPeriodStartDatesBetween = withReporting(
-    this._getPeriodStartDatesBetween.bind(this),
+    (dateFrom: Dayjs, dateTo: Dayjs, period: IntervalLimitUnit, timeZone?: string) => 
+      getPeriodStartDatesBetweenUtil(dateFrom, dateTo, period, timeZone),
     "getPeriodStartDatesBetween"
   );
 
