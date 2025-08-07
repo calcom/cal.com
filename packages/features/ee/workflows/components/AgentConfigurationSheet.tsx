@@ -688,7 +688,7 @@ export function AgentConfigurationSheet({
       </Dialog>
 
       <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
-        <DialogContent type="creation">
+        <DialogContent enableOverflow type="creation">
           <DialogHeader title={t("import_phone_number")} subtitle={t("import_phone_number_description")} />
 
           <Form form={phoneNumberForm} handleSubmit={(values) => handleImportPhoneNumber(values)}>
@@ -710,7 +710,7 @@ export function AgentConfigurationSheet({
                     value={value}
                     required
                     type="text"
-                    placeholder="+12088782105"
+                    placeholder="eg:- +12088782105"
                     onChange={(e) => {
                       phoneNumberForm.setValue("phoneNumber", e?.target.value, { shouldDirty: true });
                     }}

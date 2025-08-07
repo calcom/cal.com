@@ -235,7 +235,7 @@ export interface AIPhoneServiceProvider {
   /**
    * Delete an agent
    */
-  deleteAgent(params: { id: string; userId: number }): Promise<{ message: string }>;
+  deleteAgent(params: { id: string; userId: number; teamId?: number }): Promise<{ message: string }>;
 
   /**
    * Create a test call

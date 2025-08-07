@@ -113,6 +113,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
           await aiPhoneService.deleteAgent({
             id: step.agent.id,
             userId: ctx.user.id,
+            teamId: workflowToDelete.teamId,
           });
         } catch (error) {
           console.error(`Failed to delete agent ${step.agent.id}:`, error);

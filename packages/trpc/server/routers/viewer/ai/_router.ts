@@ -136,6 +136,7 @@ export const aiRouter = router({
       return await aiService.deleteAgent({
         id: input.id,
         userId: ctx.user.id,
+        teamId: input.teamId,
       });
     }),
 

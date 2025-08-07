@@ -214,7 +214,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider {
     return await this.service.updateAgentConfiguration(params);
   }
 
-  async deleteAgent(params: { id: string; userId: number }): Promise<{ message: string }> {
+  async deleteAgent(params: { id: string; userId: number; teamId?: number }): Promise<{ message: string }> {
     return await this.service.deleteAgent(params);
   }
 

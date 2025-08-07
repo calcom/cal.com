@@ -258,3 +258,47 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     throw error;
   }
 };
+
+export const deleteScheduledAIPhoneCall = async (reminderId: number, referenceId: string | null) => {
+  const workflowReminder = await prisma.workflowReminder.findUnique({
+    where: {
+      id: reminderId,
+    },
+  });
+
+  if (!workflowReminder) {
+    logger.error("AI Phone Call workflow reminder not found");
+    return;
+  }
+
+  const { uuid } = workflowReminder;
+  if (uuid) {
+    try {
+      const taskId = await tasker.cancelWithReference(uuid, "executeAIPhoneCall");
+      if (taskId) {
+        await prisma.workflowReminder.delete({
+          where: {
+            id: reminderId,
+          },
+        });
+
+        logger.info(`AI phone call reminder ${reminderId} cancelled and deleted`);
+        return;
+      }
+    } catch (error) {
+      logger.error(`Error canceling/deleting AI phone call reminder with tasker. Error: ${error}`);
+    }
+  }
+
+  // Fallback: If tasker cancellation fails or uuid is not found, just delete the reminder
+  try {
+    await prisma.workflowReminder.delete({
+      where: {
+        id: reminderId,
+      },
+    });
+    logger.info(`AI phone call reminder ${reminderId} deleted (no task to cancel)`);
+  } catch (error) {
+    logger.error(`Error deleting AI phone call reminder ${reminderId}: ${error}`);
+  }
+};
