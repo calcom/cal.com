@@ -829,39 +829,13 @@ export const insightsRouter = router({
   routingFormsByStatus: userBelongsToTeamProcedure
     .input(insightsRoutingServiceInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = new InsightsRoutingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope: input.scope,
-          teamId: input.selectedTeamId,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId,
-        },
-        filters: {
-          startDate: input.startDate,
-          endDate: input.endDate,
-          columnFilters: input.columnFilters,
-        },
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getRoutingFormStats();
     }),
   routingFormResponses: userBelongsToTeamProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      const insightsRoutingService = new InsightsRoutingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope: input.scope,
-          teamId: input.selectedTeamId,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId,
-        },
-        filters: {
-          startDate: input.startDate,
-          endDate: input.endDate,
-          columnFilters: input.columnFilters,
-        },
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
@@ -881,20 +855,7 @@ export const insightsRouter = router({
           | undefined,
       });
 
-      const insightsRoutingService = new InsightsRoutingService({
-        prisma: ctx.insightsDb,
-        options: {
-          scope: input.scope,
-          teamId: input.selectedTeamId,
-          userId: ctx.user.id,
-          orgId: ctx.user.organizationId,
-        },
-        filters: {
-          startDate: input.startDate,
-          endDate: input.endDate,
-          columnFilters: input.columnFilters,
-        },
-      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
       const dataPromise = insightsRoutingService.getTableData({
         sorting: input.sorting,
         limit: input.limit,
