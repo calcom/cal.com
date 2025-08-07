@@ -22,7 +22,7 @@ vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
 vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
   PrismaAgentRepository: {
     findByIdWithUserAccess: vi.fn(),
-    findByRetellAgentIdWithUserAccess: vi.fn(),
+    findByProviderAgentIdWithUserAccess: vi.fn(),
     findManyWithUserAccess: vi.fn(),
     findByIdWithUserAccessAndDetails: vi.fn(),
     canManageTeamResources: vi.fn(),
@@ -107,7 +107,7 @@ describe("RetellAIService", () => {
     const agentRepository = {
       canManageTeamResources: vi.fn(),
       findByIdWithUserAccess: vi.fn(),
-      findByRetellAgentIdWithUserAccess: vi.fn(),
+      findByProviderAgentIdWithUserAccess: vi.fn(),
       findManyWithUserAccess: vi.fn(),
       findByIdWithUserAccessAndDetails: vi.fn(),
       create: vi.fn(),
@@ -376,7 +376,7 @@ describe("RetellAIService", () => {
       mockAgentRepository.findByIdWithUserAccess.mockResolvedValue({
         id: "agent-123",
         name: "Test Agent",
-        retellAgentId: "retell-agent-456",
+        providerAgentId: "retell-agent-456",
         enabled: true,
         userId: 1,
         teamId: null,
@@ -717,10 +717,10 @@ describe("RetellAIService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      mockAgentRepository.findByRetellAgentIdWithUserAccess.mockResolvedValue({
+      mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue({
         id: "agent-123",
         name: "Test Agent",
-        retellAgentId: "retell-agent-456",
+        providerAgentId: "retell-agent-456",
         enabled: true,
         userId: 1,
         teamId: null,

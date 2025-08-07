@@ -45,7 +45,7 @@ export class PhoneNumberService {
         await txContext.phoneNumberRepository.createPhoneNumber({
           phoneNumber: transactionState.retellPhoneNumber.phone_number,
           userId,
-          provider: "Custom telephony",
+          provider: "custom-telephony",
           teamId,
           outboundAgentId: agent?.id || null,
         });
@@ -53,7 +53,7 @@ export class PhoneNumberService {
 
         if (agent) {
           await this.retellRepository.updatePhoneNumber(transactionState.retellPhoneNumber.phone_number, {
-            outbound_agent_id: agent.retellAgentId,
+            outbound_agent_id: agent.providerAgentId,
           });
           transactionState.agentAssigned = true;
         }
@@ -232,8 +232,8 @@ export class PhoneNumberService {
     type: "inbound" | "outbound"
   ) {
     if (agentId) {
-      const agent = await this.agentRepository.findByRetellAgentIdWithUserAccess({
-        retellAgentId: agentId,
+      const agent = await this.agentRepository.findByProviderAgentIdWithUserAccess({
+        providerAgentId: agentId,
         userId,
       });
 

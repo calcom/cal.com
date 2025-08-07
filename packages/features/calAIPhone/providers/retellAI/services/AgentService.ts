@@ -113,7 +113,7 @@ export class AgentService {
 
     const agent = await this.agentRepository.create({
       name: agentName,
-      retellAgentId: llmConfig.agentId,
+      providerAgentId: llmConfig.agentId,
       userId,
       teamId,
     });

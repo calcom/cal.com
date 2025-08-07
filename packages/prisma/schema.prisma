@@ -2442,8 +2442,8 @@ model Agent {
   teamId Int?
   team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  // Retell AI agent ID - this is the main reference to Retell's system
-  retellAgentId String @unique
+  // Provider-specific agent ID (e.g., Retell AI agent ID)
+  providerAgentId String @unique
 
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -2467,10 +2467,10 @@ model CalAiPhoneNumber {
   team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   phoneNumber String  @unique
-  provider    String? @default("retell")
+  provider String
 
-  // Retell phone number ID
-  retellPhoneNumberId String? @unique
+  // Provider-specific phone number ID (e.g., Retell phone number ID)
+  providerPhoneNumberId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

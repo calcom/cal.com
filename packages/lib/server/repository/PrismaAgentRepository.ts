@@ -6,7 +6,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 interface _AgentRawResult {
   id: string;
   name: string;
-  retellAgentId: string;
+  providerAgentId: string;
   enabled: boolean;
   userId: number;
   teamId: number | null;
@@ -68,7 +68,7 @@ export class PrismaAgentRepository {
       SELECT
         id,
         name,
-        "retellAgentId",
+        "providerAgentId",
         enabled,
         "userId",
         "teamId",
@@ -82,29 +82,29 @@ export class PrismaAgentRepository {
     return agents.length > 0 ? agents[0] : null;
   }
 
-  static async findByRetellAgentIdWithUserAccess({
-    retellAgentId,
+  static async findByProviderAgentIdWithUserAccess({
+    providerAgentId,
     userId,
   }: {
-    retellAgentId: string;
+    providerAgentId: string;
     userId: number;
   }) {
     const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
     if (accessibleTeamIds.length > 0) {
-      whereCondition = Prisma.sql`"retellAgentId" = ${retellAgentId} AND ("userId" = ${userId} OR "teamId" IN (${Prisma.join(
+      whereCondition = Prisma.sql`"providerAgentId" = ${providerAgentId} AND ("userId" = ${userId} OR "teamId" IN (${Prisma.join(
         accessibleTeamIds
       )}))`;
     } else {
-      whereCondition = Prisma.sql`"retellAgentId" = ${retellAgentId} AND "userId" = ${userId}`;
+      whereCondition = Prisma.sql`"providerAgentId" = ${providerAgentId} AND "userId" = ${userId}`;
     }
 
     const agents = await prisma.$queryRaw<_AgentRawResult[]>`
       SELECT
         id,
         name,
-        "retellAgentId",
+        "providerAgentId",
         enabled,
         "userId",
         "teamId",
@@ -123,7 +123,7 @@ export class PrismaAgentRepository {
       select: {
         id: true,
         name: true,
-        retellAgentId: true,
+        providerAgentId: true,
         enabled: true,
         userId: true,
         teamId: true,
@@ -136,12 +136,12 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findByRetellAgentId({ retellAgentId }: { retellAgentId: string }) {
+  static async findByProviderAgentId({ providerAgentId }: { providerAgentId: string }) {
     return await prisma.agent.findUnique({
       select: {
         id: true,
         name: true,
-        retellAgentId: true,
+        providerAgentId: true,
         enabled: true,
         userId: true,
         teamId: true,
@@ -149,7 +149,7 @@ export class PrismaAgentRepository {
         updatedAt: true,
       },
       where: {
-        retellAgentId,
+        providerAgentId,
       },
     });
   }
@@ -205,7 +205,7 @@ export class PrismaAgentRepository {
       SELECT
         a.id,
         a.name,
-        a."retellAgentId",
+        a."providerAgentId",
         a.enabled,
         a."userId",
         a."teamId",
@@ -262,7 +262,7 @@ export class PrismaAgentRepository {
     return agents.map((agent) => ({
       id: agent.id,
       name: agent.name,
-      retellAgentId: agent.retellAgentId,
+      providerAgentId: agent.providerAgentId,
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,
@@ -321,7 +321,7 @@ export class PrismaAgentRepository {
       SELECT
         a.id,
         a.name,
-        a."retellAgentId",
+        a."providerAgentId",
         a.enabled,
         a."userId",
         a."teamId",
@@ -360,7 +360,7 @@ export class PrismaAgentRepository {
     return {
       id: agent.id,
       name: agent.name,
-      retellAgentId: agent.retellAgentId,
+      providerAgentId: agent.providerAgentId,
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,
@@ -391,19 +391,19 @@ export class PrismaAgentRepository {
 
   static async create({
     name,
-    retellAgentId,
+    providerAgentId,
     userId,
     teamId,
   }: {
     name: string;
-    retellAgentId: string;
+    providerAgentId: string;
     userId: number;
     teamId?: number;
   }) {
     return await prisma.agent.create({
       data: {
         name,
-        retellAgentId,
+        providerAgentId,
         userId,
         teamId,
       },
@@ -434,7 +434,7 @@ export class PrismaAgentRepository {
       SELECT
         id,
         name,
-        "retellAgentId",
+        "providerAgentId",
         enabled,
         "userId",
         "teamId",
@@ -464,7 +464,7 @@ export class PrismaAgentRepository {
       SELECT
         a.id,
         a.name,
-        a."retellAgentId",
+        a."providerAgentId",
         a.enabled,
         a."userId",
         a."teamId",

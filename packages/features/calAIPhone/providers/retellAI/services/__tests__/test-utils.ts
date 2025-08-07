@@ -60,7 +60,7 @@ export const createMockCall = (overrides: Partial<RetellCall> = {}): RetellCall 
 export const createMockDatabaseAgent = (overrides: any = {}) => ({
   id: "db-agent-123",
   name: "Test Agent",
-  retellAgentId: "agent-123",
+  providerAgentId: "agent-123",
   userId: 1,
   teamId: null,
   enabled: true,
@@ -74,7 +74,7 @@ export const createMockPhoneNumberRecord = (overrides: any = {}) => ({
   phoneNumber: "+1234567890",
   userId: 1,
   teamId: null,
-  provider: "Custom telephony",
+  provider: "retell", // Default to retell provider for regular phone numbers
   stripeSubscriptionId: "sub_123",
   subscriptionStatus: "ACTIVE",
   outboundAgentId: null,
@@ -83,6 +83,10 @@ export const createMockPhoneNumberRecord = (overrides: any = {}) => ({
   updatedAt: new Date(),
   ...overrides,
 });
+
+// Helper for creating custom telephony phone number records
+export const createMockCustomTelephonyPhoneNumberRecord = (overrides: any = {}) => 
+  createMockPhoneNumberRecord({ provider: "custom-telephony", ...overrides });
 
 // Repository Mock Factories
 export const createMockRetellRepository = (): RetellAIRepository & { [K in keyof RetellAIRepository]: vi.Mock } => {
@@ -108,7 +112,7 @@ export const createMockAgentRepository = (): AgentRepositoryInterface & { [K in 
   return {
     canManageTeamResources: vi.fn(),
     findByIdWithUserAccess: vi.fn(),
-    findByRetellAgentIdWithUserAccess: vi.fn(),
+    findByProviderAgentIdWithUserAccess: vi.fn(),
     findManyWithUserAccess: vi.fn(),
     findByIdWithUserAccessAndDetails: vi.fn(),
     create: vi.fn(),

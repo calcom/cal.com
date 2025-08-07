@@ -22,7 +22,7 @@ CREATE TABLE "Agent" (
     "name" TEXT NOT NULL,
     "userId" INTEGER,
     "teamId" INTEGER,
-    "retellAgentId" TEXT NOT NULL,
+    "providerAgentId" TEXT NOT NULL,
     "enabled" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -36,8 +36,8 @@ CREATE TABLE "CalAiPhoneNumber" (
     "userId" INTEGER,
     "teamId" INTEGER,
     "phoneNumber" TEXT NOT NULL,
-    "provider" TEXT DEFAULT 'retell',
-    "retellPhoneNumberId" TEXT,
+    "provider" TEXT NOT NULL,
+    "providerPhoneNumberId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "stripeCustomerId" TEXT,
@@ -50,7 +50,7 @@ CREATE TABLE "CalAiPhoneNumber" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Agent_retellAgentId_key" ON "Agent"("retellAgentId");
+CREATE UNIQUE INDEX "Agent_providerAgentId_key" ON "Agent"("providerAgentId");
 
 -- CreateIndex
 CREATE INDEX "Agent_userId_idx" ON "Agent"("userId");
@@ -62,7 +62,7 @@ CREATE INDEX "Agent_teamId_idx" ON "Agent"("teamId");
 CREATE UNIQUE INDEX "CalAiPhoneNumber_phoneNumber_key" ON "CalAiPhoneNumber"("phoneNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "CalAiPhoneNumber_retellPhoneNumberId_key" ON "CalAiPhoneNumber"("retellPhoneNumberId");
+CREATE UNIQUE INDEX "CalAiPhoneNumber_providerPhoneNumberId_key" ON "CalAiPhoneNumber"("providerPhoneNumberId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CalAiPhoneNumber_stripeSubscriptionId_key" ON "CalAiPhoneNumber"("stripeSubscriptionId");
@@ -102,3 +102,11 @@ ALTER TABLE "CalAiPhoneNumber" ADD CONSTRAINT "CalAiPhoneNumber_inboundAgentId_f
 
 -- AddForeignKey
 ALTER TABLE "CalAiPhoneNumber" ADD CONSTRAINT "CalAiPhoneNumber_outboundAgentId_fkey" FOREIGN KEY ("outboundAgentId") REFERENCES "Agent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Add check constraint for Agent table to ensure at least one owner
+ALTER TABLE "Agent" ADD CONSTRAINT "Agent_owner_check" 
+  CHECK ("userId" IS NOT NULL OR "teamId" IS NOT NULL);
+
+-- Add check constraint for CalAiPhoneNumber table to ensure at least one owner
+ALTER TABLE "CalAiPhoneNumber" ADD CONSTRAINT "CalAiPhoneNumber_owner_check"
+  CHECK ("userId" IS NOT NULL OR "teamId" IS NOT NULL);

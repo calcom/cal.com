@@ -21,7 +21,7 @@ interface _PhoneNumberRawResult {
 export interface AgentRawResult {
   id: string;
   name: string;
-  retellAgentId: string;
+  providerAgentId: string;
 }
 
 export class PrismaPhoneNumberRepository {
@@ -85,7 +85,7 @@ export class PrismaPhoneNumberRepository {
         SELECT
           a.id,
           a.name,
-          a."retellAgentId",
+          a."providerAgentId",
           pn.id as "phoneNumberId",
           CASE
             WHEN pn."inboundAgentId" = a.id THEN 'inbound'
@@ -106,7 +106,7 @@ export class PrismaPhoneNumberRepository {
       const agentData = {
         id: agent.id,
         name: agent.name,
-        retellAgentId: agent.retellAgentId,
+        providerAgentId: agent.providerAgentId,
       };
 
       if (agent.agentType === "inbound") {
@@ -341,7 +341,7 @@ export class PrismaPhoneNumberRepository {
         SELECT
           a.id,
           a.name,
-          a."retellAgentId",
+          a."providerAgentId",
           pn.id as "phoneNumberId",
           CASE
             WHEN pn."inboundAgentId" = a.id THEN 'inbound'
@@ -362,7 +362,7 @@ export class PrismaPhoneNumberRepository {
       const agentData = {
         id: agent.id,
         name: agent.name,
-        retellAgentId: agent.retellAgentId,
+        providerAgentId: agent.providerAgentId,
       };
 
       if (agent.agentType === "inbound") {
@@ -432,7 +432,7 @@ export class PrismaPhoneNumberRepository {
       if (inboundRetellAgentId) {
         const agent = await prisma.agent.findFirst({
           where: {
-            retellAgentId: inboundRetellAgentId,
+            providerAgentId: inboundRetellAgentId,
           },
         });
 
@@ -452,7 +452,7 @@ export class PrismaPhoneNumberRepository {
       if (outboundRetellAgentId) {
         const agent = await prisma.agent.findFirst({
           where: {
-            retellAgentId: outboundRetellAgentId,
+            providerAgentId: outboundRetellAgentId,
           },
         });
 

@@ -75,7 +75,7 @@ describe("PhoneNumberService", () => {
       expect(result).toEqual(mockPhoneNumber);
       expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith(
         "+1234567890",
-        { outbound_agent_id: "agent-123" }
+        { outbound_agent_id: mockAgent.providerAgentId }
       );
     });
 
@@ -232,7 +232,7 @@ describe("PhoneNumberService", () => {
       const mockAgent = createMockDatabaseAgent();
       
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
-      mocks.mockAgentRepository.findByRetellAgentIdWithUserAccess.mockResolvedValue(mockAgent);
+      mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.getPhoneNumber.mockResolvedValue(createMockPhoneNumber());
 
       const result = await service.updatePhoneNumberWithAgents({
@@ -254,7 +254,7 @@ describe("PhoneNumberService", () => {
       const mockRecord = createMockPhoneNumberRecord();
       
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
-      mocks.mockAgentRepository.findByRetellAgentIdWithUserAccess.mockResolvedValue(null);
+      mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(null);
 
       await expect(
         service.updatePhoneNumberWithAgents({
@@ -270,7 +270,7 @@ describe("PhoneNumberService", () => {
       const mockAgent = createMockDatabaseAgent();
       
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
-      mocks.mockAgentRepository.findByRetellAgentIdWithUserAccess.mockResolvedValue(mockAgent);
+      mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.getPhoneNumber.mockRejectedValue(new TestError("404 Not Found"));
 
       // Should not throw - should handle gracefully

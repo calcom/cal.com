@@ -21,7 +21,7 @@ interface _PhoneNumberRawResult {
 export interface AgentRawResult {
   id: string;
   name: string;
-  retellAgentId: string;
+  providerAgentId: string;
 }
 
 export class PrismaPhoneNumberRepository {
