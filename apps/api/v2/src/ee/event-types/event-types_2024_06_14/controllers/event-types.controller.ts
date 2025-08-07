@@ -6,6 +6,7 @@ import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { PrivateLinksService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/private-links.service";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -41,6 +42,12 @@ import {
   GetEventTypesQuery_2024_06_14,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+  CreatePrivateLinkInput_2024_06_14,
+  UpdatePrivateLinkInput_2024_06_14,
+  CreatePrivateLinkOutput_2024_06_14,
+  GetPrivateLinksOutput_2024_06_14,
+  UpdatePrivateLinkOutput_2024_06_14,
+  DeletePrivateLinkOutput_2024_06_14,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -62,7 +69,8 @@ export class EventTypesController_2024_06_14 {
   constructor(
     private readonly eventTypesService: EventTypesService_2024_06_14,
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
-    private readonly eventTypeResponseTransformPipe: EventTypeResponseTransformPipe
+    private readonly eventTypeResponseTransformPipe: EventTypeResponseTransformPipe,
+    private readonly privateLinksService: PrivateLinksService_2024_06_14
   ) {}
 
   @Post("/")
@@ -183,6 +191,84 @@ export class EventTypesController_2024_06_14 {
         lengthInMinutes: eventType.length,
         slug: eventType.slug,
         title: eventType.title,
+      },
+    };
+  }
+
+  // Private Links Endpoints
+
+  @Post("/:eventTypeId/private-links")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Create a private link for an event type" })
+  async createPrivateLink(
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @Body() body: CreatePrivateLinkInput_2024_06_14,
+    @GetUser("id") userId: number
+  ): Promise<CreatePrivateLinkOutput_2024_06_14> {
+    const privateLink = await this.privateLinksService.createPrivateLink(eventTypeId, userId, body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: privateLink,
+    };
+  }
+
+  @Get("/:eventTypeId/private-links")
+  @Permissions([EVENT_TYPE_READ])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Get all private links for an event type" })
+  async getPrivateLinks(
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @GetUser("id") userId: number
+  ): Promise<GetPrivateLinksOutput_2024_06_14> {
+    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId, userId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: privateLinks,
+    };
+  }
+
+  @Patch("/:eventTypeId/private-links/:linkId")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Update a private link for an event type" })
+  async updatePrivateLink(
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @Param("linkId") linkId: string,
+    @Body() body: Omit<UpdatePrivateLinkInput_2024_06_14, "linkId">,
+    @GetUser("id") userId: number
+  ): Promise<UpdatePrivateLinkOutput_2024_06_14> {
+    const updateInput = { ...body, linkId };
+    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, userId, updateInput);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: privateLink,
+    };
+  }
+
+  @Delete("/:eventTypeId/private-links/:linkId")
+  @Permissions([EVENT_TYPE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Delete a private link for an event type" })
+  async deletePrivateLink(
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @Param("linkId") linkId: string,
+    @GetUser("id") userId: number
+  ): Promise<DeletePrivateLinkOutput_2024_06_14> {
+    await this.privateLinksService.deletePrivateLink(eventTypeId, userId, linkId);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: {
+        linkId,
+        message: "Private link deleted successfully",
       },
     };
   }

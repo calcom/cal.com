@@ -9632,6 +9632,228 @@
         ]
       }
     },
+    "/v2/event-types/{eventTypeId}/private-links": {
+      "post": {
+        "operationId": "EventTypesController_2024_06_14_createPrivateLink",
+        "summary": "Create a private link for an event type",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-06-14",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-06-14"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivateLinkInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePrivateLinkOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypesController_2024_06_14_getPrivateLinks",
+        "summary": "Get all private links for an event type",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-06-14",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-06-14"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPrivateLinksOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
+      "patch": {
+        "operationId": "EventTypesController_2024_06_14_updatePrivateLink",
+        "summary": "Update a private link for an event type",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-06-14",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-06-14"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypesController_2024_06_14_deletePrivateLink",
+        "summary": "Delete a private link for an event type",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-06-14",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-06-14"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePrivateLinkOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types"
+        ]
+      }
+    },
     "/v2/event-types/{eventTypeId}/webhooks": {
       "post": {
         "operationId": "EventTypeWebhooksController_createEventTypeWebhook",
@@ -18064,6 +18286,171 @@
           },
           "data": {
             "$ref": "#/components/schemas/DeleteData_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreatePrivateLinkInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used",
+            "example": 10,
+            "minimum": 1
+          }
+        }
+      },
+      "PrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "link": {
+            "type": "string",
+            "description": "The private link hash",
+            "example": "abc123def456"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true,
+            "description": "Expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "nullable": true,
+            "description": "Maximum number of times the link can be used. Only present for usage-based links (not time-based expiration links)",
+            "example": 10
+          },
+          "usageCount": {
+            "type": "number",
+            "description": "Current usage count. Only present for usage-based links (not time-based expiration links)",
+            "example": 3
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "example": "https://cal.com/d/abc123def456/30min"
+          }
+        },
+        "required": [
+          "id",
+          "link",
+          "eventTypeId",
+          "isExpired",
+          "bookingUrl"
+        ]
+      },
+      "CreatePrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PrivateLinkOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetPrivateLinksOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Array of private links for the event type",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrivateLinkOutput_2024_06_14"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdatePrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PrivateLinkOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeletePrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
           }
         },
         "required": [
