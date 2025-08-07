@@ -159,6 +159,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider<AIPhoneServicePr
   async updatePhoneNumberWithAgents(params: {
     phoneNumber: string;
     userId: number;
+    teamId?: number;
     inboundAgentId?: string | null;
     outboundAgentId?: string | null;
   }): Promise<{ message: string }> {
@@ -220,7 +221,7 @@ export class RetellAIProvider implements AIPhoneServiceProvider<AIPhoneServicePr
     return await this.service.updateAgentConfiguration(params);
   }
 
-  async deleteAgent(params: { id: string; userId: number }): Promise<{ message: string }> {
+  async deleteAgent(params: { id: string; userId: number; teamId?: number }): Promise<{ message: string }> {
     return await this.service.deleteAgent(params);
   }
 

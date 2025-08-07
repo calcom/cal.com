@@ -732,12 +732,13 @@ export class RetellAIService {
     return { message: "Agent updated successfully" };
   }
 
-  async deleteAgent({ id, userId }: { id: string; userId: number }) {
+  async deleteAgent({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
     const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
 
     const agent = await AgentRepository.findByIdWithAdminAccess({
       id,
       userId,
+      teamId,
     });
 
     if (!agent) {

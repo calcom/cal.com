@@ -410,11 +410,19 @@ export class AgentRepository {
     });
   }
 
-  static async findByIdWithAdminAccess({ id, userId }: { id: string; userId: number }) {
+  static async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
-    if (adminTeamIds.length > 0) {
+    if (teamId) {
+      // If teamId is specified, check that user has admin access to that specific team
+      if (adminTeamIds.includes(teamId)) {
+        whereCondition = Prisma.sql`id = ${id} AND "teamId" = ${teamId}`;
+      } else {
+        // If user doesn't have admin access to the team, only check for personal agents
+        whereCondition = Prisma.sql`id = ${id} AND "userId" = ${userId}`;
+      }
+    } else if (adminTeamIds.length > 0) {
       whereCondition = Prisma.sql`id = ${id} AND ("userId" = ${userId} OR "teamId" IN (${Prisma.join(
         adminTeamIds
       )}))`;
