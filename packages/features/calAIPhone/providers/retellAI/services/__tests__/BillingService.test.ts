@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { TRPCError } from "@trpc/server";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+
+import { TRPCError } from "@trpc/server";
+
+import { BillingService } from "../BillingService";
+import { setupBasicMocks, createMockPhoneNumberRecord, TestError } from "./test-utils";
 
 vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "https://app.cal.com",
@@ -31,13 +35,6 @@ vi.mock("@calcom/app-store/stripepayment/lib/utils", () => ({
   getPhoneNumberMonthlyPriceId: vi.fn().mockReturnValue("price_123"),
 }));
 
-import { BillingService } from "../BillingService";
-import {
-  setupBasicMocks,
-  createMockPhoneNumberRecord,
-  TestError,
-} from "./test-utils";
-
 describe("BillingService", () => {
   let service: BillingService;
   let mocks: ReturnType<typeof setupBasicMocks>;
@@ -52,10 +49,7 @@ describe("BillingService", () => {
     });
     stripe.subscriptions.cancel.mockResolvedValue({});
 
-    service = new BillingService(
-      mocks.mockPhoneNumberRepository,
-      mocks.mockRetellRepository
-    );
+    service = new BillingService(mocks.mockPhoneNumberRepository, mocks.mockRetellRepository);
   });
 
   afterEach(() => {
@@ -80,7 +74,8 @@ describe("BillingService", () => {
       expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
         expect.objectContaining({
           mode: "subscription",
-          success_url: "https://app.cal.com/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}",
+          success_url:
+            "https://app.cal.com/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}",
           cancel_url: "https://app.cal.com/workflows/workflow-123",
           metadata: expect.objectContaining({
             userId: "1",
@@ -115,18 +110,18 @@ describe("BillingService", () => {
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       stripe.checkout.sessions.create.mockResolvedValue({ url: null });
 
-      await expect(
-        service.generatePhoneNumberCheckoutSession(validCheckoutData)
-      ).rejects.toThrow("Failed to create checkout session");
+      await expect(service.generatePhoneNumberCheckoutSession(validCheckoutData)).rejects.toThrow(
+        "Failed to create checkout session"
+      );
     });
 
     it("should throw error if price ID not configured", async () => {
       const { getPhoneNumberMonthlyPriceId } = await import("@calcom/app-store/stripepayment/lib/utils");
       vi.mocked(getPhoneNumberMonthlyPriceId).mockReturnValue(null);
 
-      await expect(
-        service.generatePhoneNumberCheckoutSession(validCheckoutData)
-      ).rejects.toThrow("Phone number price ID not configured");
+      await expect(service.generatePhoneNumberCheckoutSession(validCheckoutData)).rejects.toThrow(
+        "Phone number price ID not configured"
+      );
     });
 
     it("should throw error if customer creation fails", async () => {
@@ -136,9 +131,9 @@ describe("BillingService", () => {
       const { getStripeCustomerIdFromUserId } = await import("@calcom/app-store/stripepayment/lib/customer");
       vi.mocked(getStripeCustomerIdFromUserId).mockResolvedValue(null);
 
-      await expect(
-        service.generatePhoneNumberCheckoutSession(validCheckoutData)
-      ).rejects.toThrow("Failed to create Stripe customer");
+      await expect(service.generatePhoneNumberCheckoutSession(validCheckoutData)).rejects.toThrow(
+        "Failed to create Stripe customer"
+      );
     });
   });
 
@@ -198,9 +193,9 @@ describe("BillingService", () => {
     it("should throw error if phone number not found", async () => {
       mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(null);
 
-      await expect(
-        service.cancelPhoneNumberSubscription(validCancelData)
-      ).rejects.toThrow("Phone number not found or you don't have permission to cancel it");
+      await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
+        "Phone number not found or you don't have permission to cancel it"
+      );
     });
 
     it("should throw error if no active subscription", async () => {
@@ -210,9 +205,9 @@ describe("BillingService", () => {
 
       mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
 
-      await expect(
-        service.cancelPhoneNumberSubscription(validCancelData)
-      ).rejects.toThrow("Phone number doesn't have an active subscription");
+      await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
+        "Phone number doesn't have an active subscription"
+      );
     });
 
     it("should handle Stripe cancellation failure", async () => {
@@ -224,9 +219,9 @@ describe("BillingService", () => {
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
       stripe.subscriptions.cancel.mockRejectedValue(new TestError("Stripe API error"));
 
-      await expect(
-        service.cancelPhoneNumberSubscription(validCancelData)
-      ).rejects.toThrow("Failed to cancel subscription");
+      await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
+        "Failed to cancel subscription"
+      );
     });
 
     it("should handle Retell deletion failure gracefully", async () => {
@@ -252,11 +247,13 @@ describe("BillingService", () => {
       });
 
       mocks.mockPhoneNumberRepository.findByIdAndUserId.mockResolvedValue(mockPhoneNumber);
-      mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockRejectedValue(new TestError("Database error"));
+      mocks.mockPhoneNumberRepository.updateSubscriptionStatus.mockRejectedValue(
+        new TestError("Database error")
+      );
 
-      await expect(
-        service.cancelPhoneNumberSubscription(validCancelData)
-      ).rejects.toThrow("Failed to cancel subscription");
+      await expect(service.cancelPhoneNumberSubscription(validCancelData)).rejects.toThrow(
+        "Failed to cancel subscription"
+      );
     });
   });
 });

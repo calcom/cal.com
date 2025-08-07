@@ -10,14 +10,18 @@ This directory contains the refactored RetellAI services that follow the Single 
 ## Services
 
 ### 1. AIConfigurationService
+
 **Responsibility**: LLM and Agent configuration management
+
 - `setupAIConfiguration()` - Create LLM and Agent
 - `deleteAIConfiguration()` - Clean up AI resources
 - `updateLLMConfiguration()` - Update LLM settings
 - `getLLMDetails()` - Retrieve LLM information
 
-### 2. AgentService  
+### 2. AgentService
+
 **Responsibility**: Agent CRUD operations
+
 - `createAgent()` - Create new agents
 - `updateAgent()` - Update agent properties
 - `deleteAgent()` - Remove agents
@@ -25,17 +29,23 @@ This directory contains the refactored RetellAI services that follow the Single 
 - `getAgentWithDetails()` - Get detailed agent info
 
 ### 3. BillingService
+
 **Responsibility**: Stripe payments and subscriptions
+
 - `generatePhoneNumberCheckoutSession()` - Create Stripe checkout
 - `cancelPhoneNumberSubscription()` - Cancel subscriptions
 
 ### 4. CallService
+
 **Responsibility**: Phone call operations
+
 - `createPhoneCall()` - Initiate calls
 - `createTestCall()` - Create test calls with credit validation
 
 ### 5. PhoneNumberService
+
 **Responsibility**: Phone number management with transaction integrity
+
 - `importPhoneNumber()` - Import with compensating transactions
 - `deletePhoneNumber()` - Remove phone numbers
 - `updatePhoneNumberWithAgents()` - Assign agents
@@ -46,12 +56,12 @@ This directory contains the refactored RetellAI services that follow the Single 
 ### Direct Service Usage (Advanced)
 
 ```typescript
-import { 
+import {
   AIConfigurationService,
   AgentService,
   BillingService,
   CallService,
-  PhoneNumberService 
+  PhoneNumberService
 } from './services';
 
 // Initialize dependencies
@@ -84,27 +94,22 @@ const agent = await agentService.createAgent({
 ### Main Service Usage (Recommended)
 
 ```typescript
-import { RetellAIService } from '../RetellAIService';
+import { RetellAIService } from "../RetellAIService";
 
 // Initialize main service
-const service = new RetellAIService(
-  repository,
-  agentRepository, 
-  phoneNumberRepository,
-  transactionManager
-);
+const service = new RetellAIService(repository, agentRepository, phoneNumberRepository, transactionManager);
 
 // Use composed interface - same as before but internally organized
 const { llmId, agentId } = await service.setupAIConfiguration({
-  calApiKey: 'cal_live_123...',
-  timeZone: 'America/New_York',
+  calApiKey: "cal_live_123...",
+  timeZone: "America/New_York",
 });
 
 const phoneNumber = await service.importPhoneNumber({
-  phone_number: '+1234567890',
-  termination_uri: 'https://example.com/webhook',
+  phone_number: "+1234567890",
+  termination_uri: "https://example.com/webhook",
   userId: 1,
-  agentId: 'agent-123',
+  agentId: "agent-123",
 });
 ```
 
@@ -115,7 +120,7 @@ const phoneNumber = await service.importPhoneNumber({
 ✅ **Better Maintainability** - Changes to billing don't affect phone operations  
 ✅ **Reusability** - Compose services differently for different use cases  
 ✅ **Code Navigation** - ~150 lines per service vs 849 lines  
-✅ **Backward Compatibility** - Existing code continues to work  
+✅ **Backward Compatibility** - Existing code continues to work
 
 ## Testing
 
@@ -127,12 +132,7 @@ const aiConfigService = new AIConfigurationService(mockRepository);
 await aiConfigService.setupAIConfiguration(config);
 
 // Test main service with all composed services
-const service = new RetellAIService(
-  mockRepository, 
-  mockAgentRepo, 
-  mockPhoneRepo, 
-  mockTransaction
-);
+const service = new RetellAIService(mockRepository, mockAgentRepo, mockPhoneRepo, mockTransaction);
 ```
 
 ## Migration Guide

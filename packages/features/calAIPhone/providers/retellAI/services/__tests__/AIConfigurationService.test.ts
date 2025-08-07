@@ -1,12 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { AIConfigurationService } from "../AIConfigurationService";
-import {
-  setupBasicMocks,
-  createMockLLM,
-  createMockAgent,
-  TestError,
-} from "./test-utils";
+import { setupBasicMocks, createMockLLM, createMockAgent, TestError } from "./test-utils";
 
 describe("AIConfigurationService", () => {
   let service: AIConfigurationService;
@@ -15,7 +10,7 @@ describe("AIConfigurationService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks = setupBasicMocks();
-    
+
     service = new AIConfigurationService(mocks.mockRetellRepository);
   });
 
@@ -33,7 +28,7 @@ describe("AIConfigurationService", () => {
     it("should successfully setup AI configuration", async () => {
       const mockLLM = createMockLLM();
       const mockAgent = createMockAgent();
-      
+
       mocks.mockRetellRepository.createLLM.mockResolvedValue(mockLLM);
       mocks.mockRetellRepository.createAgent.mockResolvedValue(mockAgent);
 
@@ -51,8 +46,7 @@ describe("AIConfigurationService", () => {
     it("should handle LLM creation failure", async () => {
       mocks.mockRetellRepository.createLLM.mockRejectedValue(new TestError("LLM creation failed"));
 
-      await expect(service.setupAIConfiguration(validConfig))
-        .rejects.toThrow("LLM creation failed");
+      await expect(service.setupAIConfiguration(validConfig)).rejects.toThrow("LLM creation failed");
     });
   });
 

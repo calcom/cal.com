@@ -3,9 +3,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import logger from "@calcom/lib/logger";
 
 import type { AIPhoneServiceProviderConfig } from "../../interfaces/ai-phone-service.interface";
-import { RetellSDKClient } from "./RetellSDKClient";
-import { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
+import { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";
+import { RetellSDKClient } from "./RetellSDKClient";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -39,24 +39,26 @@ vi.mock("./RetellSDKClient", () => ({
 }));
 
 vi.mock("./RetellAIPhoneServiceProvider", () => ({
-  RetellAIPhoneServiceProvider: vi.fn().mockImplementation((repository, agentRepository, phoneNumberRepository, transactionManager) => ({
-    repository,
-    agentRepository,
-    phoneNumberRepository,
-    transactionManager,
-    setupConfiguration: vi.fn(),
-    deleteConfiguration: vi.fn(),
-    updateLLMConfiguration: vi.fn(),
-    getLLMDetails: vi.fn(),
-    getAgent: vi.fn(),
-    updateAgent: vi.fn(),
-    createPhoneCall: vi.fn(),
-    createPhoneNumber: vi.fn(),
-    deletePhoneNumber: vi.fn(),
-    getPhoneNumber: vi.fn(),
-    updatePhoneNumber: vi.fn(),
-    importPhoneNumber: vi.fn(),
-  })),
+  RetellAIPhoneServiceProvider: vi
+    .fn()
+    .mockImplementation((repository, agentRepository, phoneNumberRepository, transactionManager) => ({
+      repository,
+      agentRepository,
+      phoneNumberRepository,
+      transactionManager,
+      setupConfiguration: vi.fn(),
+      deleteConfiguration: vi.fn(),
+      updateLLMConfiguration: vi.fn(),
+      getLLMDetails: vi.fn(),
+      getAgent: vi.fn(),
+      updateAgent: vi.fn(),
+      createPhoneCall: vi.fn(),
+      createPhoneNumber: vi.fn(),
+      deletePhoneNumber: vi.fn(),
+      getPhoneNumber: vi.fn(),
+      updatePhoneNumber: vi.fn(),
+      importPhoneNumber: vi.fn(),
+    })),
 }));
 
 vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
@@ -154,10 +156,10 @@ describe("RetellAIPhoneServiceProviderFactory", () => {
 
       const clientInstance = (RetellSDKClient as any).mock.results[0].value;
       expect(RetellAIPhoneServiceProvider).toHaveBeenCalledWith(
-        clientInstance, 
+        clientInstance,
         expect.any(Object), // PrismaAgentRepositoryAdapter
-        expect.any(Object), // PrismaPhoneNumberRepositoryAdapter  
-        expect.any(Object)  // PrismaTransactionAdapter
+        expect.any(Object), // PrismaPhoneNumberRepositoryAdapter
+        expect.any(Object) // PrismaTransactionAdapter
       );
     });
   });

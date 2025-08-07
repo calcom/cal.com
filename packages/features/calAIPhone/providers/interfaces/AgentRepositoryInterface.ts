@@ -7,18 +7,12 @@ export interface AgentRepositoryInterface {
   /**
    * Check if user can manage team resources
    */
-  canManageTeamResources(params: {
-    userId: number;
-    teamId: number;
-  }): Promise<boolean>;
+  canManageTeamResources(params: { userId: number; teamId: number }): Promise<boolean>;
 
   /**
    * Find agent by ID with user access validation
    */
-  findByIdWithUserAccess(params: {
-    agentId: string;
-    userId: number;
-  }): Promise<AgentData | null>;
+  findByIdWithUserAccess(params: { agentId: string; userId: number }): Promise<AgentData | null>;
 
   /**
    * Find agent by provider agent ID with user access validation
@@ -59,19 +53,12 @@ export interface AgentRepositoryInterface {
   /**
    * Find agent by ID with admin access validation
    */
-  findByIdWithAdminAccess(params: {
-    id: string;
-    userId: number;
-    teamId?: number;
-  }): Promise<AgentData | null>;
+  findByIdWithAdminAccess(params: { id: string; userId: number; teamId?: number }): Promise<AgentData | null>;
 
   /**
    * Find agent by ID with call access validation
    */
-  findByIdWithCallAccess(params: {
-    id: string;
-    userId: number;
-  }): Promise<AgentWithPhoneNumbersData | null>;
+  findByIdWithCallAccess(params: { id: string; userId: number }): Promise<AgentWithPhoneNumbersData | null>;
 
   /**
    * Delete agent by ID
@@ -81,10 +68,7 @@ export interface AgentRepositoryInterface {
   /**
    * Link agent to workflow step
    */
-  linkToWorkflowStep(params: {
-    workflowStepId: number;
-    agentId: string;
-  }): Promise<void>;
+  linkToWorkflowStep(params: { workflowStepId: number; agentId: string }): Promise<void>;
 }
 
 /**

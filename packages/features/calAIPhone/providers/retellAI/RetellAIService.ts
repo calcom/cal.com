@@ -6,6 +6,11 @@ import type {
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
+import { AIConfigurationService } from "./services/AIConfigurationService";
+import { AgentService } from "./services/AgentService";
+import { BillingService } from "./services/BillingService";
+import { CallService } from "./services/CallService";
+import { PhoneNumberService } from "./services/PhoneNumberService";
 import type {
   RetellLLM,
   RetellCall,
@@ -19,12 +24,6 @@ import type {
   RetellLLMGeneralTools,
   Language,
 } from "./types";
-
-import { AIConfigurationService } from "./services/AIConfigurationService";
-import { AgentService } from "./services/AgentService";
-import { BillingService } from "./services/BillingService";
-import { CallService } from "./services/CallService";
-import { PhoneNumberService } from "./services/PhoneNumberService";
 
 export class RetellAIService {
   private aiConfigurationService: AIConfigurationService;
@@ -122,11 +121,7 @@ export class RetellAIService {
     return this.agentService.updateAgent(agentId, data);
   }
 
-  async listAgents(params: {
-    userId: number;
-    teamId?: number;
-    scope?: "personal" | "team" | "all";
-  }) {
+  async listAgents(params: { userId: number; teamId?: number; scope?: "personal" | "team" | "all" }) {
     return this.agentService.listAgents(params);
   }
 
@@ -146,14 +141,15 @@ export class RetellAIService {
   }) {
     return this.agentService.createAgent({
       ...params,
-      setupAIConfiguration: () => this.setupAIConfiguration({
-        calApiKey: undefined,
-        timeZone: params.userTimeZone,
-        eventTypeId: undefined,
-        generalPrompt: params.generalPrompt,
-        beginMessage: params.beginMessage,
-        generalTools: params.generalTools,
-      })
+      setupAIConfiguration: () =>
+        this.setupAIConfiguration({
+          calApiKey: undefined,
+          timeZone: params.userTimeZone,
+          eventTypeId: undefined,
+          generalPrompt: params.generalPrompt,
+          beginMessage: params.beginMessage,
+          generalTools: params.generalTools,
+        }),
     });
   }
 
@@ -168,14 +164,14 @@ export class RetellAIService {
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,
-      updateLLMConfiguration: (llmId: string, data: any) => this.updateLLMConfiguration(llmId, data)
+      updateLLMConfiguration: (llmId: string, data: any) => this.updateLLMConfiguration(llmId, data),
     });
   }
 
   async deleteAgent(params: { id: string; userId: number; teamId?: number }) {
     return this.agentService.deleteAgent({
       ...params,
-      deleteAIConfiguration: (config) => this.deleteAIConfiguration(config)
+      deleteAIConfiguration: (config) => this.deleteAIConfiguration(config),
     });
   }
 
@@ -187,12 +183,7 @@ export class RetellAIService {
     return this.callService.createPhoneCall(data);
   }
 
-  async createTestCall(params: {
-    agentId: string;
-    phoneNumber?: string;
-    userId: number;
-    teamId?: number;
-  }) {
+  async createTestCall(params: { agentId: string; phoneNumber?: string; userId: number; teamId?: number }) {
     return this.callService.createTestCall(params);
   }
 
@@ -205,11 +196,7 @@ export class RetellAIService {
     return this.billingService.generatePhoneNumberCheckoutSession(params);
   }
 
-  async cancelPhoneNumberSubscription(params: {
-    phoneNumberId: number;
-    userId: number;
-    teamId?: number;
-  }) {
+  async cancelPhoneNumberSubscription(params: { phoneNumberId: number; userId: number; teamId?: number }) {
     return this.billingService.cancelPhoneNumberSubscription(params);
   }
 }

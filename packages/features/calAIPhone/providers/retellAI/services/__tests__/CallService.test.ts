@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { TRPCError } from "@trpc/server";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+
+import { TRPCError } from "@trpc/server";
+
+import { CallService } from "../CallService";
+import { setupBasicMocks, createMockCall, createMockDatabaseAgent, TestError } from "./test-utils";
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
   CreditService: vi.fn(),
@@ -10,14 +14,6 @@ vi.mock("@calcom/features/ee/billing/credit-service", () => ({
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
 }));
-
-import { CallService } from "../CallService";
-import {
-  setupBasicMocks,
-  createMockCall,
-  createMockDatabaseAgent,
-  TestError
-} from "./test-utils";
 
 describe("CallService", () => {
   let service: CallService;
@@ -40,10 +36,7 @@ describe("CallService", () => {
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
-    service = new CallService(
-      mocks.mockRetellRepository,
-      mocks.mockAgentRepository
-    );
+    service = new CallService(mocks.mockRetellRepository, mocks.mockAgentRepository);
   });
 
   afterEach(() => {
@@ -86,8 +79,7 @@ describe("CallService", () => {
     it("should handle Retell API errors", async () => {
       mocks.mockRetellRepository.createPhoneCall.mockRejectedValue(new TestError("Retell API error"));
 
-      await expect(service.createPhoneCall(validCallData))
-        .rejects.toThrow("Retell API error");
+      await expect(service.createPhoneCall(validCallData)).rejects.toThrow("Retell API error");
     });
   });
 
@@ -99,9 +91,11 @@ describe("CallService", () => {
     };
 
     const mockAgentWithPhoneNumber = createMockDatabaseAgent({
-      outboundPhoneNumbers: [{
-        phoneNumber: "+1234567890",
-      }],
+      outboundPhoneNumbers: [
+        {
+          phoneNumber: "+1234567890",
+        },
+      ],
     });
 
     it("should successfully create test call", async () => {
@@ -149,8 +143,9 @@ describe("CallService", () => {
         }),
       }));
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Insufficient credits to make test call. Need 5 credits, have 3");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Insufficient credits to make test call. Need 5 credits, have 3"
+      );
     });
 
     it("should throw error if no phone number provided", async () => {
@@ -165,8 +160,9 @@ describe("CallService", () => {
     it("should throw error if agent not found", async () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(null);
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Agent not found or you don't have permission to use it");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Agent not found or you don't have permission to use it"
+      );
     });
 
     it("should throw error if agent has no phone number", async () => {
@@ -176,26 +172,25 @@ describe("CallService", () => {
 
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(agentWithoutPhoneNumber);
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Agent must have a phone number assigned to make calls");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Agent must have a phone number assigned to make calls"
+      );
     });
 
     it("should handle call creation failure", async () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(mockAgentWithPhoneNumber);
       mocks.mockRetellRepository.createPhoneCall.mockRejectedValue(new TestError("Call creation failed"));
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Call creation failed");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow("Call creation failed");
     });
 
-                    it("should handle rate limiting errors", async () => {
+    it("should handle rate limiting errors", async () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(mockAgentWithPhoneNumber);
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
       vi.mocked(checkRateLimitAndThrowError).mockRejectedValue(new Error("Rate limit exceeded"));
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Rate limit exceeded");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow("Rate limit exceeded");
 
       expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
         rateLimitingType: "core",
@@ -220,7 +215,7 @@ describe("CallService", () => {
       });
     });
 
-            it("should handle credit service errors", async () => {
+    it("should handle credit service errors", async () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(mockAgentWithPhoneNumber);
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
@@ -229,11 +224,10 @@ describe("CallService", () => {
         getAllCredits: vi.fn().mockRejectedValue(new TestError("Credit service unavailable")),
       }));
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Credit service unavailable");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow("Credit service unavailable");
     });
 
-            it("should handle insufficient credits properly", async () => {
+    it("should handle insufficient credits properly", async () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(mockAgentWithPhoneNumber);
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
@@ -245,11 +239,12 @@ describe("CallService", () => {
         }),
       }));
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Insufficient credits to make test call. Need 5 credits, have 3");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Insufficient credits to make test call. Need 5 credits, have 3"
+      );
     });
 
-            it("should handle null credit values gracefully", async () => {
+    it("should handle null credit values gracefully", async () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(mockAgentWithPhoneNumber);
       mocks.mockRetellRepository.createPhoneCall.mockResolvedValue(createMockCall());
 
@@ -261,8 +256,9 @@ describe("CallService", () => {
         }),
       }));
 
-      await expect(service.createTestCall(validTestCallData))
-        .rejects.toThrow("Insufficient credits to make test call. Need 5 credits, have 0");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Insufficient credits to make test call. Need 5 credits, have 0"
+      );
     });
   });
 });

@@ -1,10 +1,11 @@
+import { v4 as uuidv4 } from "uuid";
+
 import { TRPCError } from "@trpc/server";
 
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, RetellAgent, RetellLLM, RetellLLMGeneralTools } from "../types";
 import { getLlmId, Language } from "../types";
-import { v4 as uuidv4 } from "uuid";
 
 export class AgentService {
   constructor(
@@ -200,7 +201,7 @@ export class AgentService {
     id,
     userId,
     teamId,
-    deleteAIConfiguration
+    deleteAIConfiguration,
   }: {
     id: string;
     userId: number;

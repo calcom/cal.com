@@ -3,13 +3,7 @@ import { vi } from "vitest";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";
-import type {
-  RetellAIRepository,
-  RetellAgent,
-  RetellLLM,
-  RetellPhoneNumber,
-  RetellCall
-} from "../types";
+import type { RetellAIRepository, RetellAgent, RetellLLM, RetellPhoneNumber, RetellCall } from "../types";
 
 /**
  * Shared testing utilities and mock factories for service tests
@@ -85,11 +79,13 @@ export const createMockPhoneNumberRecord = (overrides: any = {}) => ({
 });
 
 // Helper for creating custom telephony phone number records
-export const createMockCustomTelephonyPhoneNumberRecord = (overrides: any = {}) => 
+export const createMockCustomTelephonyPhoneNumberRecord = (overrides: any = {}) =>
   createMockPhoneNumberRecord({ provider: "custom-telephony", ...overrides });
 
 // Repository Mock Factories
-export const createMockRetellRepository = (): RetellAIRepository & { [K in keyof RetellAIRepository]: vi.Mock } => {
+export const createMockRetellRepository = (): RetellAIRepository & {
+  [K in keyof RetellAIRepository]: vi.Mock;
+} => {
   return {
     createLLM: vi.fn(),
     getLLM: vi.fn(),
@@ -108,7 +104,9 @@ export const createMockRetellRepository = (): RetellAIRepository & { [K in keyof
   };
 };
 
-export const createMockAgentRepository = (): AgentRepositoryInterface & { [K in keyof AgentRepositoryInterface]: vi.Mock } => {
+export const createMockAgentRepository = (): AgentRepositoryInterface & {
+  [K in keyof AgentRepositoryInterface]: vi.Mock;
+} => {
   return {
     canManageTeamResources: vi.fn(),
     findByIdWithUserAccess: vi.fn(),
@@ -123,7 +121,9 @@ export const createMockAgentRepository = (): AgentRepositoryInterface & { [K in 
   };
 };
 
-export const createMockPhoneNumberRepository = (): PhoneNumberRepositoryInterface & { [K in keyof PhoneNumberRepositoryInterface]: vi.Mock } => {
+export const createMockPhoneNumberRepository = (): PhoneNumberRepositoryInterface & {
+  [K in keyof PhoneNumberRepositoryInterface]: vi.Mock;
+} => {
   return {
     createPhoneNumber: vi.fn(),
     findByPhoneNumberAndUserId: vi.fn(),
@@ -136,7 +136,9 @@ export const createMockPhoneNumberRepository = (): PhoneNumberRepositoryInterfac
   };
 };
 
-export const createMockTransactionManager = (): TransactionInterface & { [K in keyof TransactionInterface]: vi.Mock } => {
+export const createMockTransactionManager = (): TransactionInterface & {
+  [K in keyof TransactionInterface]: vi.Mock;
+} => {
   return {
     executeInTransaction: vi.fn().mockImplementation(async (callback) => {
       // Default successful transaction simulation

@@ -107,6 +107,7 @@ The architecture implements multiple design patterns to create a maintainable, s
 The repository pattern provides an abstraction layer over data access, making the system database-agnostic and testable.
 
 **Benefits:**
+
 - **Separation of Concerns**: Business logic separated from data access
 - **Testability**: Easy to mock for unit tests
 - **Flexibility**: Can switch between Prisma ORM and raw SQL
@@ -117,6 +118,7 @@ The repository pattern provides an abstraction layer over data access, making th
 The factory pattern enables dynamic creation of provider instances without exposing instantiation logic.
 
 **Benefits:**
+
 - **Loose Coupling**: Client code doesn't depend on concrete classes
 - **Extensibility**: Easy to add new providers
 - **Configuration Management**: Centralized provider setup
@@ -126,6 +128,7 @@ The factory pattern enables dynamic creation of provider instances without expos
 Service layer orchestrates business operations and coordinates between multiple repositories and external services.
 
 **Benefits:**
+
 - **Business Logic Encapsulation**: Complex operations in one place
 - **Transaction Management**: Coordinates multiple operations
 - **Reusability**: Common workflows available to all consumers
@@ -135,6 +138,7 @@ Service layer orchestrates business operations and coordinates between multiple 
 The registry pattern manages provider registration and lookup, acting as a service locator.
 
 **Benefits:**
+
 - **Dynamic Provider Management**: Add/remove providers at runtime
 - **Centralized Configuration**: Single point for provider management
 - **Dependency Injection**: Supports IoC principles
@@ -144,6 +148,7 @@ The registry pattern manages provider registration and lookup, acting as a servi
 Mappers transform data between different representations (database models, DTOs, API responses).
 
 **Benefits:**
+
 - **Data Transformation**: Clean separation between layers
 - **Flexibility**: Different representations for different contexts
 - **Maintainability**: Changes in one layer don't affect others
@@ -153,6 +158,7 @@ Mappers transform data between different representations (database models, DTOs,
 The strategy pattern allows switching between different AI providers seamlessly.
 
 **Benefits:**
+
 - **Provider Independence**: Switch providers without changing client code
 - **Extensibility**: Add new providers easily
 - **Testing**: Mock providers for testing
@@ -232,6 +238,7 @@ To prevent abuse, workflow AI calls are rate-limited.
 ## Usage Examples
 
 For complete usage examples, please refer to:
+
 - **Basic Usage**: See commented examples in [`index.ts`](./index.ts)
 - **Provider Setup**: Check provider factories in [`providers/`](./providers/)
 - **Workflow Integration**: Review [`packages/features/handleCreatePhoneCall.ts`](../handleCreatePhoneCall.ts)
@@ -239,6 +246,7 @@ For complete usage examples, please refer to:
 ### Field Types
 
 Supported field types include:
+
 - `text`, `textarea`, `number`, `email`, `phone`
 - `address`, `multiemail`, `select`, `multiselect`
 - `checkbox`, `radio`, `radioInput`, `boolean`
@@ -246,6 +254,7 @@ Supported field types include:
 ### Template Variables
 
 Templates support dynamic variables:
+
 - `{{scheduler_name}}` - Name of the scheduler
 - `{{name}}` - Guest name
 - `{{email}}` - Guest email
@@ -281,7 +290,7 @@ The AI Phone system automatically deducts credits from user or team accounts whe
 1. AI Phone Call Completes
    ↓
 2. Provider sends "call_analyzed" webhook
-   ↓  
+   ↓
 3. Webhook verifies signature for security
    ↓
 4. System looks up phone number owner (user/team)
@@ -336,7 +345,6 @@ The webhook processes call completion events that contain the final usage data a
 - [Retell AI Provider](./providers/retellAI/README.md) - Complete Retell AI integration
 - [Example Provider](./providers/example-future-provider/README.md) - Template for new providers
 
-
 ## Future Enhancements
 
 - Multi-language template support
@@ -348,4 +356,4 @@ The webhook processes call completion events that contain the final usage data a
 - Template marketplace and sharing
 - Advanced agent training and optimization tools
 - Integration with more AI service providers
-- Voice cloning and customization options 
+- Voice cloning and customization options

@@ -84,13 +84,7 @@ export class CallService {
     };
   }
 
-  private async validateCreditsForTestCall({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId?: number;
-  }) {
+  private async validateCreditsForTestCall({ userId, teamId }: { userId: number; teamId?: number }) {
     const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
     const creditService = new CreditService();
     const credits = await creditService.getAllCredits({

@@ -26,10 +26,7 @@ export interface PhoneNumberRepositoryInterface {
   /**
    * Find phone number by ID and user ID
    */
-  findByIdAndUserId(params: {
-    id: number;
-    userId: number;
-  }): Promise<PhoneNumberData | null>;
+  findByIdAndUserId(params: { id: number; userId: number }): Promise<PhoneNumberData | null>;
 
   /**
    * Find phone number by ID with team access validation
@@ -50,7 +47,6 @@ export interface PhoneNumberRepositoryInterface {
     teamId?: number;
     outboundAgentId?: string | null;
   }): Promise<PhoneNumberData>;
-
 
   /**
    * Delete phone number by phone number

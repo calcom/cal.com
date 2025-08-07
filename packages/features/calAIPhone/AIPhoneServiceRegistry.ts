@@ -115,7 +115,6 @@ export class AIPhoneServiceRegistry {
   static isInitialized(): boolean {
     return this.initialized;
   }
-
 }
 
 /**
@@ -139,7 +138,7 @@ function resolveApiKey(providerType: string, config?: Partial<AIPhoneServiceProv
   if (!apiKey) {
     throw new Error(
       `API key not configured for provider type: ${providerType}. ` +
-      `Please set the API key in the config or provide the appropriate environment variable.`
+        `Please set the API key in the config or provide the appropriate environment variable.`
     );
   }
 
@@ -156,9 +155,7 @@ interface CreateProviderOptions {
   config?: Partial<AIPhoneServiceProviderConfig>;
 }
 
-export function createAIPhoneServiceProvider(
-  options: CreateProviderOptions = {}
-): AIPhoneServiceProvider {
+export function createAIPhoneServiceProvider(options: CreateProviderOptions = {}): AIPhoneServiceProvider {
   // Require explicit initialization
   if (!AIPhoneServiceRegistry.isInitialized()) {
     throw new Error(

@@ -9,20 +9,29 @@ import type {
 import { PrismaAgentRepositoryAdapter } from "../adapters/PrismaAgentRepositoryAdapter";
 import { PrismaPhoneNumberRepositoryAdapter } from "../adapters/PrismaPhoneNumberRepositoryAdapter";
 import { PrismaTransactionAdapter } from "../adapters/PrismaTransactionAdapter";
-import { RetellSDKClient } from "./RetellSDKClient";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
+import { RetellSDKClient } from "./RetellSDKClient";
 
-export class RetellAIPhoneServiceProviderFactory implements AIPhoneServiceProviderFactory<AIPhoneServiceProviderType.RETELL_AI> {
+export class RetellAIPhoneServiceProviderFactory
+  implements AIPhoneServiceProviderFactory<AIPhoneServiceProviderType.RETELL_AI>
+{
   create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {
     const log =
-      config.enableLogging !== false ? logger.getSubLogger({ prefix: ["RetellAIPhoneServiceProvider:"] }) : undefined;
+      config.enableLogging !== false
+        ? logger.getSubLogger({ prefix: ["RetellAIPhoneServiceProvider:"] })
+        : undefined;
 
     const sdkClient = new RetellSDKClient(log);
     const agentRepository = new PrismaAgentRepositoryAdapter();
     const phoneNumberRepository = new PrismaPhoneNumberRepositoryAdapter();
     const transactionManager = new PrismaTransactionAdapter();
-    
-    return new RetellAIPhoneServiceProvider(sdkClient, agentRepository, phoneNumberRepository, transactionManager);
+
+    return new RetellAIPhoneServiceProvider(
+      sdkClient,
+      agentRepository,
+      phoneNumberRepository,
+      transactionManager
+    );
   }
 
   static createWithConfig(config?: {
@@ -38,7 +47,12 @@ export class RetellAIPhoneServiceProviderFactory implements AIPhoneServiceProvid
     const agentRepository = new PrismaAgentRepositoryAdapter();
     const phoneNumberRepository = new PrismaPhoneNumberRepositoryAdapter();
     const transactionManager = new PrismaTransactionAdapter();
-    
-    return new RetellAIPhoneServiceProvider(sdkClient, agentRepository, phoneNumberRepository, transactionManager);
+
+    return new RetellAIPhoneServiceProvider(
+      sdkClient,
+      agentRepository,
+      phoneNumberRepository,
+      transactionManager
+    );
   }
 }

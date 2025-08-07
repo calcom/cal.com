@@ -1,12 +1,12 @@
 import type { AIPhoneServiceUpdateModelParams } from "../../../interfaces/ai-phone-service.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../../promptTemplates";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
-import type { 
-  RetellAIRepository, 
+import type {
+  RetellAIRepository,
   RetellLLM,
   AIConfigurationSetup,
   AIConfigurationDeletion,
-  DeletionResult 
+  DeletionResult,
 } from "../types";
 
 export class AIConfigurationService {

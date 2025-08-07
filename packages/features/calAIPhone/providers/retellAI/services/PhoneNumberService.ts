@@ -29,7 +29,7 @@ export class PhoneNumberService {
     let transactionState = {
       retellPhoneNumber: null as RetellPhoneNumber | null,
       databaseRecordCreated: false,
-      agentAssigned: false
+      agentAssigned: false,
     };
 
     try {
@@ -176,7 +176,10 @@ export class PhoneNumberService {
     try {
       await this.getPhoneNumber(phoneNumber);
 
-      const retellUpdateData = RetellAIServiceMapper.mapPhoneNumberUpdateData(inboundAgentId, outboundAgentId);
+      const retellUpdateData = RetellAIServiceMapper.mapPhoneNumberUpdateData(
+        inboundAgentId,
+        outboundAgentId
+      );
 
       if (Object.keys(retellUpdateData).length > 0) {
         await this.updatePhoneNumber(phoneNumber, retellUpdateData);
@@ -270,13 +273,21 @@ export class PhoneNumberService {
   ) {
     if (transactionState.retellPhoneNumber?.phone_number) {
       try {
-        console.warn(`Attempting cleanup of Retell phone number ${transactionState.retellPhoneNumber.phone_number} due to transaction failure`);
+        console.warn(
+          `Attempting cleanup of Retell phone number ${transactionState.retellPhoneNumber.phone_number} due to transaction failure`
+        );
         await this.retellRepository.deletePhoneNumber(transactionState.retellPhoneNumber.phone_number);
-        console.info(`Successfully cleaned up Retell phone number ${transactionState.retellPhoneNumber.phone_number}`);
+        console.info(
+          `Successfully cleaned up Retell phone number ${transactionState.retellPhoneNumber.phone_number}`
+        );
       } catch (cleanupError) {
-        const compensationFailureMessage = `CRITICAL: Failed to cleanup Retell phone number ${transactionState.retellPhoneNumber.phone_number} after transaction failure. This will cause billing leaks. Original error: ${(error as Error).message}. Cleanup error: ${(cleanupError as Error).message}`;
+        const compensationFailureMessage = `CRITICAL: Failed to cleanup Retell phone number ${
+          transactionState.retellPhoneNumber.phone_number
+        } after transaction failure. This will cause billing leaks. Original error: ${
+          (error as Error).message
+        }. Cleanup error: ${(cleanupError as Error).message}`;
 
-        console.error('🚨 BILLING LEAK ALERT 🚨', {
+        console.error("🚨 BILLING LEAK ALERT 🚨", {
           phoneNumber: transactionState.retellPhoneNumber.phone_number,
           userId: context.userId,
           teamId: context.teamId,
@@ -286,15 +297,15 @@ export class PhoneNumberService {
           transactionState: {
             retellCreated: !!transactionState.retellPhoneNumber,
             databaseCreated: transactionState.databaseRecordCreated,
-            agentAssigned: transactionState.agentAssigned
+            agentAssigned: transactionState.agentAssigned,
           },
           timestamp: new Date().toISOString(),
-          requiresManualCleanup: true
+          requiresManualCleanup: true,
         });
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: compensationFailureMessage
+          message: compensationFailureMessage,
         });
       }
     }

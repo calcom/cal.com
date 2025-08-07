@@ -299,11 +299,11 @@ describe("createAIPhoneServiceProvider", () => {
   it("should throw error when registry is not initialized", () => {
     // Registry starts uninitialized
     expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
-    
+
     // Should throw error for uninitialized registry
     expect(() => {
       createAIPhoneServiceProvider({
-        config: { apiKey: "test-key" }
+        config: { apiKey: "test-key" },
       });
     }).toThrow("AIPhoneServiceRegistry not initialized");
 
@@ -319,7 +319,7 @@ describe("createAIPhoneServiceProvider", () => {
     // For custom providers, we must provide API key in config since there's no env var mapping
     const provider = createAIPhoneServiceProvider({
       providerType: "custom-provider",
-      config: { apiKey: "custom-key", enableLogging: false }
+      config: { apiKey: "custom-key", enableLogging: false },
     });
 
     expect(mockFactory.create).toHaveBeenCalledWith({
@@ -351,7 +351,7 @@ describe("createAIPhoneServiceProvider", () => {
 
     createAIPhoneServiceProvider({
       providerType: AIPhoneServiceProviderType.RETELL_AI,
-      config: { enableLogging: false }
+      config: { enableLogging: false },
     });
 
     expect(mockFactory.create).toHaveBeenCalledWith({
@@ -367,7 +367,7 @@ describe("createAIPhoneServiceProvider", () => {
 
     createAIPhoneServiceProvider({
       providerType: AIPhoneServiceProviderType.RETELL_AI,
-      config: { apiKey: "override-key" }
+      config: { apiKey: "override-key" },
     });
 
     expect(mockFactory.create).toHaveBeenCalledWith({

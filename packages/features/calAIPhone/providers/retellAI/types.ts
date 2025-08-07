@@ -88,7 +88,9 @@ export type RetellLLMGeneralTools = Retell.LlmCreateParams["general_tools"];
 export type CreateAgentRequest = Retell.AgentCreateParams;
 export type UpdateLLMRequest = Retell.LlmUpdateParams;
 export type UpdateAgentRequest = Retell.AgentUpdateParams;
-export type Agent = NonNullable<Awaited<ReturnType<typeof PrismaAgentRepository.findByIdWithUserAccessAndDetails>>>;
+export type Agent = NonNullable<
+  Awaited<ReturnType<typeof PrismaAgentRepository.findByIdWithUserAccessAndDetails>>
+>;
 
 export type RetellAgentWithDetails = {
   id: string;

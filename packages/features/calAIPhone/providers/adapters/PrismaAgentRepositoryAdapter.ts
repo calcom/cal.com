@@ -1,27 +1,22 @@
+import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
+
 import type {
   AgentRepositoryInterface,
   AgentData,
   AgentWithDetailsData,
   AgentWithPhoneNumbersData,
 } from "../interfaces/AgentRepositoryInterface";
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 
 /**
  * Adapter that bridges the provider interface to the Prisma implementation
  * This adapter provides a clean abstraction layer between provider and application
  */
 export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
-  async canManageTeamResources(params: {
-    userId: number;
-    teamId: number;
-  }): Promise<boolean> {
+  async canManageTeamResources(params: { userId: number; teamId: number }): Promise<boolean> {
     return await PrismaAgentRepository.canManageTeamResources(params);
   }
 
-  async findByIdWithUserAccess(params: {
-    agentId: string;
-    userId: number;
-  }): Promise<AgentData | null> {
+  async findByIdWithUserAccess(params: { agentId: string; userId: number }): Promise<AgentData | null> {
     return await PrismaAgentRepository.findByIdWithUserAccess(params);
   }
 
@@ -76,10 +71,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     await PrismaAgentRepository.delete(params);
   }
 
-  async linkToWorkflowStep(params: {
-    workflowStepId: number;
-    agentId: string;
-  }): Promise<void> {
+  async linkToWorkflowStep(params: { workflowStepId: number; agentId: string }): Promise<void> {
     await PrismaAgentRepository.linkToWorkflowStep(params);
   }
 }

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { TRPCError } from "@trpc/server";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+
+import { TRPCError } from "@trpc/server";
 
 import { PhoneNumberService } from "../PhoneNumberService";
 import {
@@ -19,7 +20,7 @@ describe("PhoneNumberService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks = setupBasicMocks();
-    
+
     service = new PhoneNumberService(
       mocks.mockRetellRepository,
       mocks.mockAgentRepository,
@@ -62,7 +63,7 @@ describe("PhoneNumberService", () => {
     it("should successfully import phone number with agent", async () => {
       const mockPhoneNumber = createMockPhoneNumber();
       const mockAgent = createMockDatabaseAgent();
-      
+
       mocks.mockRetellRepository.importPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mocks.mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.updatePhoneNumber.mockResolvedValue(mockPhoneNumber);
@@ -73,10 +74,9 @@ describe("PhoneNumberService", () => {
       });
 
       expect(result).toEqual(mockPhoneNumber);
-      expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith(
-        "+1234567890",
-        { outbound_agent_id: mockAgent.providerAgentId }
-      );
+      expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith("+1234567890", {
+        outbound_agent_id: mockAgent.providerAgentId,
+      });
     });
 
     it("should validate team permissions when teamId provided", async () => {
@@ -126,8 +126,7 @@ describe("PhoneNumberService", () => {
         return await callback(mockContext);
       });
 
-      await expect(service.importPhoneNumber(validImportData))
-        .rejects.toThrow("Database connection failed");
+      await expect(service.importPhoneNumber(validImportData)).rejects.toThrow("Database connection failed");
 
       // Verify cleanup was attempted
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
@@ -136,7 +135,7 @@ describe("PhoneNumberService", () => {
     it("should handle compensation failure and throw critical error", async () => {
       const mockPhoneNumber = createMockPhoneNumber();
       mocks.mockRetellRepository.importPhoneNumber.mockResolvedValue(mockPhoneNumber);
-      
+
       // Mock both database failure and cleanup failure
       mocks.mockTransactionManager.executeInTransaction.mockImplementation(async (callback) => {
         const mockContext = {
@@ -148,8 +147,9 @@ describe("PhoneNumberService", () => {
       });
       mocks.mockRetellRepository.deletePhoneNumber.mockRejectedValue(new TestError("Retell API unavailable"));
 
-      await expect(service.importPhoneNumber(validImportData))
-        .rejects.toThrow("CRITICAL: Failed to cleanup Retell phone number");
+      await expect(service.importPhoneNumber(validImportData)).rejects.toThrow(
+        "CRITICAL: Failed to cleanup Retell phone number"
+      );
 
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
@@ -168,10 +168,10 @@ describe("PhoneNumberService", () => {
         deleteFromDB: false,
       });
 
-      expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith(
-        "+1234567890",
-        { inbound_agent_id: null, outbound_agent_id: null }
-      );
+      expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith("+1234567890", {
+        inbound_agent_id: null,
+        outbound_agent_id: null,
+      });
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
 
@@ -230,7 +230,7 @@ describe("PhoneNumberService", () => {
     it("should successfully update phone number with agents", async () => {
       const mockRecord = createMockPhoneNumberRecord();
       const mockAgent = createMockDatabaseAgent();
-      
+
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
       mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.getPhoneNumber.mockResolvedValue(createMockPhoneNumber());
@@ -252,7 +252,7 @@ describe("PhoneNumberService", () => {
 
     it("should validate agent permissions", async () => {
       const mockRecord = createMockPhoneNumberRecord();
-      
+
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
       mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(null);
 
@@ -268,7 +268,7 @@ describe("PhoneNumberService", () => {
     it("should handle phone number not found in Retell gracefully", async () => {
       const mockRecord = createMockPhoneNumberRecord();
       const mockAgent = createMockDatabaseAgent();
-      
+
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(mockRecord);
       mocks.mockAgentRepository.findByProviderAgentIdWithUserAccess.mockResolvedValue(mockAgent);
       mocks.mockRetellRepository.getPhoneNumber.mockRejectedValue(new TestError("404 Not Found"));
@@ -308,13 +308,10 @@ describe("PhoneNumberService", () => {
       });
 
       expect(result).toEqual(mockPhoneNumber);
-      expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith(
-        "+1234567890",
-        {
-          inbound_agent_id: "inbound-123",
-          outbound_agent_id: "outbound-123",
-        }
-      );
+      expect(mocks.mockRetellRepository.updatePhoneNumber).toHaveBeenCalledWith("+1234567890", {
+        inbound_agent_id: "inbound-123",
+        outbound_agent_id: "outbound-123",
+      });
     });
   });
 });

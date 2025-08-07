@@ -5,8 +5,8 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
-import { RetellAIError } from "./errors";
 import { RetellAIService } from "./RetellAIService";
+import { RetellAIError } from "./errors";
 import type { RetellAIRepository } from "./types";
 
 vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
@@ -161,7 +161,12 @@ describe("RetellAIService", () => {
       return await callback(mockContext);
     });
 
-    service = new RetellAIService(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager);
+    service = new RetellAIService(
+      mockRepository,
+      mockAgentRepository,
+      mockPhoneNumberRepository,
+      mockTransactionManager
+    );
   });
 
   afterEach(() => {
@@ -454,7 +459,7 @@ describe("RetellAIService", () => {
 
       // Verify that the phone number was imported from Retell
       expect(mockRepository.importPhoneNumber).toHaveBeenCalled();
-      
+
       // Verify that cleanup was attempted and succeeded
       expect(mockRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
@@ -462,7 +467,7 @@ describe("RetellAIService", () => {
     it("should handle compensation failure and throw critical error", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
-      
+
       // Mock compensation failure
       mockRepository.deletePhoneNumber.mockRejectedValue(new Error("Retell API unavailable"));
 
@@ -484,13 +489,14 @@ describe("RetellAIService", () => {
           sip_trunk_auth_password: "pass",
           userId: 1,
         })
-      ).rejects.toThrow("CRITICAL: Failed to cleanup Retell phone number +1234567890 after transaction failure. This will cause billing leaks");
+      ).rejects.toThrow(
+        "CRITICAL: Failed to cleanup Retell phone number +1234567890 after transaction failure. This will cause billing leaks"
+      );
 
       // Verify both operations were attempted
       expect(mockRepository.importPhoneNumber).toHaveBeenCalled();
       expect(mockRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");
     });
-
   });
 
   describe("createPhoneCall", () => {

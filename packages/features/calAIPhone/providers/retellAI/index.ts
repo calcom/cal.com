@@ -9,7 +9,7 @@ export { PhoneNumberService } from "./services/PhoneNumberService";
 export { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 export { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";
 export { RetellSDKClient } from "./RetellSDKClient";
-export { RetellAIError } from "./errors";  
+export { RetellAIError } from "./errors";
 export { PrismaAgentRepositoryAdapter } from "../adapters/PrismaAgentRepositoryAdapter";
 export { PrismaPhoneNumberRepositoryAdapter } from "../adapters/PrismaPhoneNumberRepositoryAdapter";
 export { PrismaTransactionAdapter } from "../adapters/PrismaTransactionAdapter";
