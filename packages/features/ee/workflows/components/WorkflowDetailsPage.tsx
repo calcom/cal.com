@@ -59,11 +59,11 @@ export default function WorkflowDetailsPage(props: Props) {
   const router = useRouter();
 
   const permissions = _permissions || {
-    canView: !props.readOnly,
-    canUpdate: !props.readOnly,
-    canDelete: !props.readOnly,
-    canManage: !props.readOnly,
-    readOnly: props.readOnly,
+    canView: !teamId ? true : !props.readOnly,
+    canUpdate: !teamId ? true : !props.readOnly,
+    canDelete: !teamId ? true : !props.readOnly,
+    canManage: !teamId ? true : !props.readOnly,
+    readOnly: !teamId ? false : props.readOnly,
   };
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
