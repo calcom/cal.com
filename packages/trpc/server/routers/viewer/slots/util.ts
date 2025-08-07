@@ -1147,11 +1147,9 @@ export class AvailableSlotsService {
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {
+        // runtime error preventing misconfiguration when restrictionSchedule timeZone must be used.
         if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-          throw new TRPCError({
-            message: "No timezone is set for the restricted schedule",
-            code: "BAD_REQUEST",
-          });
+          throw new Error("No timezone is set for the restricted schedule");
         }
 
         const restrictionTimezone = eventType.useBookerTimezone
