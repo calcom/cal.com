@@ -63,7 +63,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
             <div className="mt-4 block items-center justify-start sm:flex sm:space-x-2">
               <TextField
                 label={t("price")}
-                className="text-black"
                 addOnClassname="h-[38px]"
                 min="1"
                 type="number"
@@ -88,7 +87,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 variant="default"
                 options={currencyOptions}
                 value={selectedCurrency}
-                className="text-black"
                 defaultValue={selectedCurrency}
                 onChange={(e) => {
                   if (e) {
@@ -132,3 +130,4 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 };
 
 export default EventTypeAppSettingsInterface;
+
