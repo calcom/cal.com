@@ -105,7 +105,7 @@ export class CalendarSubscriptionService {
     }
   }
 
-  async unwatchCalendar(calendarId: string, subscriptionId: string): Promise<void> {
+  async unwatchCalendar(calendarId: string, subscriptionId: string, resourceId?: string): Promise<void> {
     try {
       await this.stopWatchingCalendarInOffice365(subscriptionId);
       log.info(`Successfully unwatched Office365 calendar ${calendarId}`);

@@ -98,7 +98,7 @@ export class CalendarSubscriptionService {
     }
   }
 
-  async unwatchCalendar(calendarId: string, channelId: string, resourceId: string): Promise<void> {
+  async unwatchCalendar(calendarId: string, channelId: string, resourceId?: string): Promise<void> {
     try {
       await this.stopWatchingCalendarsInGoogle([
         {
