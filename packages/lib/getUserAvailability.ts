@@ -347,6 +347,7 @@ export class UserAvailabilityService {
         },
       ],
       id: 0,
+
       timeZone: fallbackTimezoneIfScheduleIsMissing,
     };
 
