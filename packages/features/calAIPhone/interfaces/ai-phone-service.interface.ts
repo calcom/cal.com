@@ -1,11 +1,11 @@
 
-import type { RetellAIProviderTypeMap } from "../providers/retell-ai";
+import type { RetellAIPhoneServiceProviderTypeMap } from "../providers/retellAI";
 
 /**
  * Enum for supported AI phone service providers
  */
 export enum AIPhoneServiceProviderType {
-  RETELL_AI = "retell-ai",
+  RETELL_AI = "retellAI",
   // Add other providers here as needed
 }
 
@@ -19,8 +19,8 @@ export enum AIPhoneServiceProviderType {
  *
  * Providers implement this by exporting a consolidated type map from their module:
  * ```typescript
- * // In providers/retell-ai/index.ts
- * export interface RetellAIProviderTypeMap {
+ * // In providers/retellAI/index.ts
+ * export interface RetellAIPhoneServiceProviderTypeMap {
  *   Configuration: RetellAIConfigurationSetup;
  *   Agent: RetellAgent;
  *   AgentWithDetails: RetellAgentWithDetails;
@@ -28,15 +28,15 @@ export enum AIPhoneServiceProviderType {
  * }
  *
  * // In interfaces/ai-phone-service.interface.ts
- * import type { RetellAIProviderTypeMap } from "../providers/retell-ai";
+ * import type { RetellAIPhoneServiceProviderTypeMap } from "../providers/retellAI";
  *
  * export interface AIPhoneServiceProviderTypeMap {
- *   [AIPhoneServiceProviderType.RETELL_AI]: RetellAIProviderTypeMap;
+ *   [AIPhoneServiceProviderType.RETELL_AI]: RetellAIPhoneServiceProviderTypeMap;
  * }
  * ```
  */
 export interface AIPhoneServiceProviderTypeMap {
-  [AIPhoneServiceProviderType.RETELL_AI]: RetellAIProviderTypeMap;
+  [AIPhoneServiceProviderType.RETELL_AI]: RetellAIPhoneServiceProviderTypeMap;
 }
 
 /**

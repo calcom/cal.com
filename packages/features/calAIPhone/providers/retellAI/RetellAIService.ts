@@ -14,7 +14,7 @@ import type {
   AIPhoneServiceImportPhoneNumberParamsExtended,
 } from "../../interfaces/ai-phone-service.interface";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "../../promptTemplates";
-import { RetellServiceMapper } from "./service-mappers";
+import { RetellAIServiceMapper } from "./RetellAIServiceMapper";
 import type {
   RetellLLM,
   RetellCall,
@@ -36,9 +36,9 @@ export class RetellAIService {
   constructor(private repository: RetellAIRepository) {}
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
-    const generalTools = RetellServiceMapper.buildGeneralTools(config);
+    const generalTools = RetellAIServiceMapper.buildGeneralTools(config);
 
-    const llmRequest = RetellServiceMapper.mapToCreateLLMRequest(
+    const llmRequest = RetellAIServiceMapper.mapToCreateLLMRequest(
       {
         ...config,
         generalPrompt: config.generalPrompt || DEFAULT_PROMPT_VALUE,
@@ -48,7 +48,7 @@ export class RetellAIService {
     );
     const llm = await this.repository.createLLM(llmRequest);
 
-    const agentRequest = RetellServiceMapper.mapToCreateAgentRequest(llm.llm_id, config.eventTypeId);
+    const agentRequest = RetellAIServiceMapper.mapToCreateAgentRequest(llm.llm_id, config.eventTypeId);
     const agent = await this.repository.createAgent(agentRequest);
 
     return { llmId: llm.llm_id, agentId: agent.agent_id };
@@ -56,11 +56,11 @@ export class RetellAIService {
 
   async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParamsExtended): Promise<RetellPhoneNumber> {
     const { userId, agentId, teamId, ...rest } = data;
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
     // Pre-check team permissions outside transaction
     if (teamId) {
-      const canManage = await AgentRepository.canManageTeamResources({
+      const canManage = await PrismaAgentRepository.canManageTeamResources({
         userId,
         teamId,
       });
@@ -74,7 +74,7 @@ export class RetellAIService {
 
     let agent = null;
     if (agentId) {
-      agent = await AgentRepository.findByIdWithUserAccess({
+      agent = await PrismaAgentRepository.findByIdWithUserAccess({
         agentId,
         userId,
       });
@@ -195,7 +195,7 @@ export class RetellAIService {
    * Update LLM configuration (for existing configurations)
    */
   async updateLLMConfiguration(llmId: string, data: AIPhoneServiceUpdateModelParams): Promise<RetellLLM> {
-    const updateRequest = RetellServiceMapper.mapToUpdateLLMRequest(data);
+    const updateRequest = RetellAIServiceMapper.mapToUpdateLLMRequest(data);
     return this.repository.updateLLM(llmId, updateRequest);
   }
 
@@ -217,7 +217,7 @@ export class RetellAIService {
       interruption_sensitivity?: number;
     }
   ): Promise<RetellAgent> {
-    const updateRequest = RetellServiceMapper.mapToUpdateAgentRequest(data);
+    const updateRequest = RetellAIServiceMapper.mapToUpdateAgentRequest(data);
     return this.repository.updateAgent(agentId, updateRequest);
   }
 
@@ -248,15 +248,15 @@ export class RetellAIService {
     teamId?: number;
     deleteFromDB: boolean;
   }): Promise<void> {
-    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+    const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
 
     const phoneNumberToDelete = teamId
-      ? await PhoneNumberRepository.findByPhoneNumberAndTeamId({
+      ? await PrismaPhoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
           teamId,
           userId,
         })
-      : await PhoneNumberRepository.findByPhoneNumberAndUserId({
+      : await PrismaPhoneNumberRepository.findByPhoneNumberAndUserId({
           phoneNumber,
           userId,
         });
@@ -286,7 +286,7 @@ export class RetellAIService {
     }
 
     if (deleteFromDB) {
-      await PhoneNumberRepository.deletePhoneNumber({ phoneNumber });
+      await PrismaPhoneNumberRepository.deletePhoneNumber({ phoneNumber });
     }
 
     await this.repository.deletePhoneNumber(phoneNumber);
@@ -388,16 +388,16 @@ export class RetellAIService {
     userId: number;
     teamId?: number;
   }) {
-    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+    const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
 
     // Find phone number with proper team authorization
     const phoneNumber = teamId
-      ? await PhoneNumberRepository.findByIdWithTeamAccess({
+      ? await PrismaPhoneNumberRepository.findByIdWithTeamAccess({
           id: phoneNumberId,
           teamId,
           userId,
         })
-      : await PhoneNumberRepository.findByIdAndUserId({
+      : await PrismaPhoneNumberRepository.findByIdAndUserId({
           id: phoneNumberId,
           userId,
         });
@@ -419,7 +419,7 @@ export class RetellAIService {
     try {
       await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
 
-      await PhoneNumberRepository.updateSubscriptionStatus({
+      await PrismaPhoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
         disconnectOutboundAgent: true,
@@ -458,16 +458,16 @@ export class RetellAIService {
     inboundAgentId?: string | null;
     outboundAgentId?: string | null;
   }) {
-    const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
     const phoneNumberRecord = teamId
-      ? await PhoneNumberRepository.findByPhoneNumberAndTeamId({
+      ? await PrismaPhoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
           teamId,
           userId,
         })
-      : await PhoneNumberRepository.findByPhoneNumberAndUserId({
+      : await PrismaPhoneNumberRepository.findByPhoneNumberAndUserId({
           phoneNumber,
           userId,
         });
@@ -480,7 +480,7 @@ export class RetellAIService {
     }
 
     if (inboundAgentId) {
-      const inboundAgent = await AgentRepository.findByRetellAgentIdWithUserAccess({
+      const inboundAgent = await PrismaAgentRepository.findByRetellAgentIdWithUserAccess({
         retellAgentId: inboundAgentId,
         userId,
       });
@@ -501,7 +501,7 @@ export class RetellAIService {
     }
 
     if (outboundAgentId) {
-      const outboundAgent = await AgentRepository.findByRetellAgentIdWithUserAccess({
+      const outboundAgent = await PrismaAgentRepository.findByRetellAgentIdWithUserAccess({
         retellAgentId: outboundAgentId,
         userId,
       });
@@ -524,7 +524,7 @@ export class RetellAIService {
     try {
       await this.getPhoneNumber(phoneNumber);
 
-      const retellUpdateData = RetellServiceMapper.mapPhoneNumberUpdateData(inboundAgentId, outboundAgentId);
+      const retellUpdateData = RetellAIServiceMapper.mapPhoneNumberUpdateData(inboundAgentId, outboundAgentId);
 
       if (Object.keys(retellUpdateData).length > 0) {
         await this.updatePhoneNumber(phoneNumber, retellUpdateData);
@@ -538,7 +538,7 @@ export class RetellAIService {
       }
     }
 
-    await PhoneNumberRepository.updateAgents({
+    await PrismaPhoneNumberRepository.updateAgents({
       id: phoneNumberRecord.id,
       inboundRetellAgentId: inboundAgentId,
       outboundRetellAgentId: outboundAgentId,
@@ -556,15 +556,15 @@ export class RetellAIService {
     teamId?: number;
     scope?: "personal" | "team" | "all";
   }) {
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-    const agents = await AgentRepository.findManyWithUserAccess({
+    const agents = await PrismaAgentRepository.findManyWithUserAccess({
       userId,
       teamId,
       scope,
     });
 
-    const formattedAgents = agents.map((agent) => RetellServiceMapper.formatAgentForList(agent));
+    const formattedAgents = agents.map((agent) => RetellAIServiceMapper.formatAgentForList(agent));
 
     return {
       totalCount: formattedAgents.length,
@@ -573,9 +573,9 @@ export class RetellAIService {
   }
 
   async getAgentWithDetails({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-    const agent = await AgentRepository.findByIdWithUserAccessAndDetails({
+    const agent = await PrismaAgentRepository.findByIdWithUserAccessAndDetails({
       id,
       userId,
       teamId,
@@ -600,7 +600,7 @@ export class RetellAIService {
 
     const llmDetails = await this.getLLMDetails(llmId);
 
-    return RetellServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
+    return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
   }
 
   async createAgent({
@@ -622,12 +622,12 @@ export class RetellAIService {
     generalTools?: RetellLLMGeneralTools;
     userTimeZone: string;
   }) {
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
     const agentName = _name || `Agent - ${userId} ${Math.random().toString(36).substring(2, 15)}`;
 
     if (teamId) {
-      const canManage = await AgentRepository.canManageTeamResources({
+      const canManage = await PrismaAgentRepository.canManageTeamResources({
         userId,
         teamId,
       });
@@ -648,7 +648,7 @@ export class RetellAIService {
       generalTools,
     });
 
-    const agent = await AgentRepository.create({
+    const agent = await PrismaAgentRepository.create({
       name: agentName,
       retellAgentId: llmConfig.agentId,
       userId,
@@ -656,7 +656,7 @@ export class RetellAIService {
     });
 
     if (workflowStepId) {
-      await AgentRepository.linkToWorkflowStep({
+      await PrismaAgentRepository.linkToWorkflowStep({
         workflowStepId,
         agentId: agent.id,
       });
@@ -686,9 +686,9 @@ export class RetellAIService {
     generalTools?: RetellLLMGeneralTools;
     voiceId?: string;
   }) {
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-    const agent = await AgentRepository.findByIdWithAdminAccess({
+    const agent = await PrismaAgentRepository.findByIdWithAdminAccess({
       id,
       userId,
     });
@@ -714,7 +714,7 @@ export class RetellAIService {
         llmId &&
         (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
       ) {
-        const llmUpdateData = RetellServiceMapper.extractLLMUpdateData(
+        const llmUpdateData = RetellAIServiceMapper.extractLLMUpdateData(
           generalPrompt,
           beginMessage,
           generalTools
@@ -733,9 +733,9 @@ export class RetellAIService {
   }
 
   async deleteAgent({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-    const agent = await AgentRepository.findByIdWithAdminAccess({
+    const agent = await PrismaAgentRepository.findByIdWithAdminAccess({
       id,
       userId,
       teamId,
@@ -760,7 +760,7 @@ export class RetellAIService {
       console.error("Failed to delete from Retell:", error);
     }
 
-    await AgentRepository.delete({ id });
+    await PrismaAgentRepository.delete({ id });
 
     return { message: "Agent deleted successfully" };
   }
@@ -796,7 +796,7 @@ export class RetellAIService {
       identifier: `test-call:${userId}`,
     });
 
-    const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+    const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
     const toNumber = phoneNumber;
     if (!toNumber) {
@@ -806,7 +806,7 @@ export class RetellAIService {
       });
     }
 
-    const agent = await AgentRepository.findByIdWithCallAccess({
+    const agent = await PrismaAgentRepository.findByIdWithCallAccess({
       id: agentId,
       userId,
     });

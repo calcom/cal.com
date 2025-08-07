@@ -6,8 +6,8 @@ import { RetellAIError } from "./errors";
 import { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
 
-vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
-  PhoneNumberRepository: {
+vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
+  PrismaPhoneNumberRepository: {
     createPhoneNumber: vi.fn(),
     findByPhoneNumberAndUserId: vi.fn(),
     deletePhoneNumber: vi.fn(),
@@ -16,8 +16,8 @@ vi.mock("@calcom/lib/server/repository/phoneNumber", () => ({
     findByIdAndUserId: vi.fn(),
   },
 }));
-vi.mock("@calcom/lib/server/repository/agent", () => ({
-  AgentRepository: {
+vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
+  PrismaAgentRepository: {
     findByIdWithUserAccess: vi.fn(),
     findByRetellAgentIdWithUserAccess: vi.fn(),
     findManyWithUserAccess: vi.fn(),
@@ -217,8 +217,8 @@ describe("RetellAIService", () => {
 
   describe("deletePhoneNumber", () => {
     it("should throw error if phone number is active", async () => {
-      const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
+      const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
+      (PrismaPhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
       });
 
@@ -232,8 +232,8 @@ describe("RetellAIService", () => {
     });
 
     it("should throw error if phone number is cancelled", async () => {
-      const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
+      const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
+      (PrismaPhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
       });
 
@@ -247,8 +247,8 @@ describe("RetellAIService", () => {
     });
 
     it("should delete from both DB and provider when deleteFromDB is true", async () => {
-      const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
+      const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
+      (PrismaPhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         subscriptionStatus: PhoneNumberSubscriptionStatus.INCOMPLETE,
       });
 
@@ -258,7 +258,7 @@ describe("RetellAIService", () => {
         deleteFromDB: true,
       });
 
-      expect(PhoneNumberRepository.deletePhoneNumber).toHaveBeenCalled();
+      expect(PrismaPhoneNumberRepository.deletePhoneNumber).toHaveBeenCalled();
       expect(mockRepository.deletePhoneNumber).toHaveBeenCalled();
     });
   });
@@ -290,9 +290,9 @@ describe("RetellAIService", () => {
     it("should import phone number and assign to agent if agentId provided", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-      (AgentRepository.findByIdWithUserAccess as any).mockResolvedValue({
+      (PrismaAgentRepository.findByIdWithUserAccess as any).mockResolvedValue({
         id: "agent-123",
         name: "Test Agent",
         retellAgentId: "retell-agent-456",
@@ -308,7 +308,7 @@ describe("RetellAIService", () => {
       });
 
       expect(result).toEqual(mockImportedNumber);
-      expect(AgentRepository.findByIdWithUserAccess).toHaveBeenCalledWith({
+      expect(PrismaAgentRepository.findByIdWithUserAccess).toHaveBeenCalledWith({
         agentId: "agent-123",
         userId: 1,
       });
@@ -319,9 +319,9 @@ describe("RetellAIService", () => {
     });
 
     it("should throw error when agent not found during import", async () => {
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-      (AgentRepository.findByIdWithUserAccess as any).mockResolvedValue(null);
+      (PrismaAgentRepository.findByIdWithUserAccess as any).mockResolvedValue(null);
 
       await expect(
         service.importPhoneNumber({
@@ -333,7 +333,7 @@ describe("RetellAIService", () => {
       ).rejects.toThrow("You don't have permission to use the selected agent.");
 
       // Verify that the agent permission check was called
-      expect(AgentRepository.findByIdWithUserAccess).toHaveBeenCalledWith({
+      expect(PrismaAgentRepository.findByIdWithUserAccess).toHaveBeenCalledWith({
         agentId: "invalid-agent",
         userId: 1,
       });
@@ -549,10 +549,10 @@ describe("RetellAIService", () => {
 
   describe("cancelPhoneNumberSubscription", () => {
     it("should cancel subscription successfully", async () => {
-      const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
+      const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
       const stripe = (await import("@calcom/features/ee/payments/server/stripe")).default;
 
-      (PhoneNumberRepository.findByIdAndUserId as any).mockResolvedValue({
+      (PrismaPhoneNumberRepository.findByIdAndUserId as any).mockResolvedValue({
         phoneNumber: "+14155551234",
         stripeSubscriptionId: "sub_123",
       });
@@ -567,7 +567,7 @@ describe("RetellAIService", () => {
         success: true,
         message: "Phone number subscription cancelled successfully.",
       });
-      expect(PhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
+      expect(PrismaPhoneNumberRepository.updateSubscriptionStatus).toHaveBeenCalledWith({
         id: 1,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
         disconnectOutboundAgent: true,
@@ -577,14 +577,14 @@ describe("RetellAIService", () => {
 
   describe("updatePhoneNumberWithAgents", () => {
     it("should update phone number with agents", async () => {
-      const { PhoneNumberRepository } = await import("@calcom/lib/server/repository/phoneNumber");
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaPhoneNumberRepository } = await import("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-      (PhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
+      (PrismaPhoneNumberRepository.findByPhoneNumberAndUserId as any).mockResolvedValue({
         id: 1,
         phoneNumber: "+14155551234",
       });
-      (AgentRepository.findByRetellAgentIdWithUserAccess as any).mockResolvedValue({
+      (PrismaAgentRepository.findByRetellAgentIdWithUserAccess as any).mockResolvedValue({
         id: "agent-123",
       });
       mockRepository.getPhoneNumber.mockResolvedValue({ phone_number: "+14155551234" });
@@ -598,13 +598,13 @@ describe("RetellAIService", () => {
 
       expect(result).toEqual({ message: "Phone number updated successfully" });
       expect(mockRepository.updatePhoneNumber).toHaveBeenCalled();
-      expect(PhoneNumberRepository.updateAgents).toHaveBeenCalled();
+      expect(PrismaPhoneNumberRepository.updateAgents).toHaveBeenCalled();
     });
   });
 
   describe("listAgents", () => {
     it("should list agents with user access", async () => {
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
       const mockAgents = [
         {
           id: "1",
@@ -617,7 +617,7 @@ describe("RetellAIService", () => {
         },
       ];
 
-      (AgentRepository.findManyWithUserAccess as any).mockResolvedValue(mockAgents);
+      (PrismaAgentRepository.findManyWithUserAccess as any).mockResolvedValue(mockAgents);
 
       const result = await service.listAgents({
         userId: 1,
@@ -626,7 +626,7 @@ describe("RetellAIService", () => {
 
       expect(result.totalCount).toBe(1);
       expect(result.filtered).toHaveLength(1);
-      expect(AgentRepository.findManyWithUserAccess).toHaveBeenCalledWith({
+      expect(PrismaAgentRepository.findManyWithUserAccess).toHaveBeenCalledWith({
         userId: 1,
         teamId: undefined,
         scope: "all",
@@ -636,11 +636,11 @@ describe("RetellAIService", () => {
 
   describe("createAgent", () => {
     it("should create agent successfully", async () => {
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       mockRepository.createLLM.mockResolvedValue({ llm_id: "llm-123" });
       mockRepository.createAgent.mockResolvedValue({ agent_id: "agent-123" });
-      (AgentRepository.create as any).mockResolvedValue({
+      (PrismaAgentRepository.create as any).mockResolvedValue({
         id: "db-agent-123",
         retellAgentId: "agent-123",
       });
@@ -661,9 +661,9 @@ describe("RetellAIService", () => {
 
   describe("deleteAgent", () => {
     it("should delete agent successfully", async () => {
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
-      (AgentRepository.findByIdWithAdminAccess as any).mockResolvedValue({
+      (PrismaAgentRepository.findByIdWithAdminAccess as any).mockResolvedValue({
         id: "1",
         retellAgentId: "agent-123",
       });
@@ -678,7 +678,7 @@ describe("RetellAIService", () => {
       });
 
       expect(result).toEqual({ message: "Agent deleted successfully" });
-      expect(AgentRepository.delete).toHaveBeenCalledWith({ id: "1" });
+      expect(PrismaAgentRepository.delete).toHaveBeenCalledWith({ id: "1" });
     });
   });
 
@@ -686,7 +686,7 @@ describe("RetellAIService", () => {
     it("should create test call successfully with sufficient credits", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       // Mock credit service to return sufficient credits
       const mockGetAllCredits = vi.fn().mockResolvedValue({
@@ -698,7 +698,7 @@ describe("RetellAIService", () => {
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
-      (AgentRepository.findByIdWithCallAccess as any).mockResolvedValue({
+      (PrismaAgentRepository.findByIdWithCallAccess as any).mockResolvedValue({
         id: "1",
         outboundPhoneNumbers: [{ phoneNumber: "+14155551234" }],
       });
@@ -803,7 +803,7 @@ describe("RetellAIService", () => {
     it("should throw error if agent not found", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       // Mock sufficient credits
       const mockGetAllCredits = vi.fn().mockResolvedValue({
@@ -815,7 +815,7 @@ describe("RetellAIService", () => {
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
-      (AgentRepository.findByIdWithCallAccess as any).mockResolvedValue(null);
+      (PrismaAgentRepository.findByIdWithCallAccess as any).mockResolvedValue(null);
 
       await expect(
         service.createTestCall({
@@ -829,7 +829,7 @@ describe("RetellAIService", () => {
     it("should throw error if agent has no phone numbers", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
-      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+      const { PrismaAgentRepository } = await import("@calcom/lib/server/repository/PrismaAgentRepository");
 
       // Mock sufficient credits
       const mockGetAllCredits = vi.fn().mockResolvedValue({
@@ -841,7 +841,7 @@ describe("RetellAIService", () => {
       }));
 
       (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
-      (AgentRepository.findByIdWithCallAccess as any).mockResolvedValue({
+      (PrismaAgentRepository.findByIdWithCallAccess as any).mockResolvedValue({
         id: "1",
         outboundPhoneNumbers: [],
       });

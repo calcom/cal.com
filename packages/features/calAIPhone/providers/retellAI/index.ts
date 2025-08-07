@@ -1,6 +1,6 @@
 export { RetellAIService } from "./RetellAIService";
-export { RetellAIProvider } from "./RetellAIProvider";
-export { RetellAIProviderFactory } from "./RetellAIProviderFactory";
+export { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
+export { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";
 export { RetellSDKClient } from "./RetellSDKClient";
 export { RetellAIError } from "./errors";
 
@@ -29,7 +29,7 @@ export type {
 } from "./types";
 
 // Consolidated type map for interface layer
-export interface RetellAIProviderTypeMap {
+export interface RetellAIPhoneServiceProviderTypeMap {
   Configuration: AIConfigurationSetup;
   UpdateModelParams: UpdateLLMRequest;
   Model: RetellLLM;

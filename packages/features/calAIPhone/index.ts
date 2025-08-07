@@ -20,16 +20,22 @@ export {
   AIPhoneServiceRegistry,
   createAIPhoneServiceProvider,
   createDefaultAIPhoneServiceProvider,
-} from "./ai-phone-service-registry";
+} from "./AIPhoneServiceRegistry";
+
+// Registry Initialization
+export {
+  initializeAIPhoneServiceRegistry,
+  ensureAIPhoneServiceRegistryInitialized,
+} from "./initializeRegistry";
 
 // Provider Implementations
 export {
-  RetellAIProvider,
-  RetellAIProviderFactory,
+  RetellAIPhoneServiceProvider,
+  RetellAIPhoneServiceProviderFactory,
   RetellAIService,
   RetellSDKClient,
   RetellAIError,
-} from "./providers/retell-ai";
+} from "./providers/retellAI";
 
 export type {
   RetellAIRepository,
@@ -39,7 +45,7 @@ export type {
   AIConfigurationSetup,
   AIConfigurationDeletion,
   DeletionResult,
-} from "./providers/retell-ai";
+} from "./providers/retellAI";
 
 // Legacy exports for backward compatibility
 export { RetellAIService as LegacyRetellAIService } from "./retellAIService";
@@ -55,7 +61,7 @@ export * from "./zod-utils";
 // ===== USAGE EXAMPLES =====
 /*
 // Recommended usage with provider abstraction
-import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
+import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 
 const aiPhoneService = createDefaultAIPhoneServiceProvider();
 
@@ -78,15 +84,18 @@ const call = await aiPhoneService.createPhoneCall({
 });
 
 // Using a specific provider
-import { createAIPhoneServiceProvider, AIPhoneServiceProviderType } from "@calcom/features/ee/cal-ai-phone";
+import { createAIPhoneServiceProvider, AIPhoneServiceProviderType } from "@calcom/features/calAIPhone";
 
-const retellAIService = createAIPhoneServiceProvider(AIPhoneServiceProviderType.RETELL_AI, {
-  apiKey: "your-retell-ai-key",
-  enableLogging: true,
+const retellAIService = createAIPhoneServiceProvider({
+  providerType: AIPhoneServiceProviderType.RETELL_AI,
+  config: {
+    apiKey: "your-retell-ai-key",
+    enableLogging: true,
+  }
 });
 
 // Legacy usage (still supported)
-import { RetellAIServiceFactory } from "@calcom/features/ee/cal-ai-phone";
+import { RetellAIPhoneServiceProviderFactory } from "@calcom/features/calAIPhone";
 
-const legacyService = RetellAIServiceFactory.create();
+const legacyService = RetellAIPhoneServiceProviderFactory.createWithConfig();
 */

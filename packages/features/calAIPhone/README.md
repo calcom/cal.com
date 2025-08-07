@@ -51,7 +51,7 @@ The architecture implements multiple design patterns to create a maintainable, s
 - Phone number management interfaces
 - Agent and LLM management interfaces
 
-### 2. Provider Registry (`ai-phone-service-registry.ts`)
+### 2. Provider Registry (`AIPhoneServiceRegistry.ts`)
 
 - `AIPhoneServiceRegistry` - Central registry for managing providers
 - `createAIPhoneServiceProvider()` - Helper function to create providers
@@ -68,7 +68,7 @@ The architecture implements multiple design patterns to create a maintainable, s
 
 ### 4. Provider Implementations (`providers/`)
 
-- `retell-ai/` - Complete Retell AI implementation with:
+- `retellAI/` - Complete Retell AI implementation with:
   - Provider class with full interface implementation
   - Factory for provider creation
   - SDK client for API communication
@@ -91,9 +91,9 @@ The architecture implements multiple design patterns to create a maintainable, s
 ### 7. Data Layer Components
 
 - **Repository Classes** (`/packages/lib/server/repository/`)
-  - `AgentRepository` - Manages agent data access
-  - `PhoneNumberRepository` - Handles phone number operations
-- **Service Classes** (`providers/retell-ai/RetellAIService.ts`)
+  - `PrismaAgentRepository` - Manages agent data access
+  - `PrismaPhoneNumberRepository` - Handles phone number operations
+- **Service Classes** (`providers/retellAI/RetellAIService.ts`)
   - Business logic orchestration
   - External API integration
 - **Mapper Functions**
@@ -106,33 +106,6 @@ The architecture implements multiple design patterns to create a maintainable, s
 
 The repository pattern provides an abstraction layer over data access, making the system database-agnostic and testable.
 
-```typescript
-// AgentRepository example
-export class AgentRepository {
-  // Encapsulates complex queries with access control
-  static async findManyWithUserAccess({
-    userId,
-    teamId,
-    scope = "all"
-  }: {
-    userId: number;
-    teamId?: number;
-    scope?: "personal" | "team" | "all";
-  }) {
-    // Pre-fetch accessible teams for performance
-    const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
-    
-    // Build optimized query based on scope
-    // Returns agents with proper access control
-  }
-  
-  // Single responsibility: data access only
-  static async create(data: CreateAgentData) {
-    return await prisma.agent.create({ data });
-  }
-}
-```
-
 **Benefits:**
 - **Separation of Concerns**: Business logic separated from data access
 - **Testability**: Easy to mock for unit tests
@@ -143,26 +116,6 @@ export class AgentRepository {
 
 The factory pattern enables dynamic creation of provider instances without exposing instantiation logic.
 
-```typescript
-// Provider Factory Interface
-export interface AIPhoneServiceProviderFactory {
-  create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider;
-}
-
-// Concrete Factory Implementation
-export class RetellAIProviderFactory implements AIPhoneServiceProviderFactory {
-  create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider {
-    // Validates configuration
-    // Creates appropriate provider instance
-    // Handles initialization logic
-    return new RetellAIProvider(config);
-  }
-}
-
-// Usage through registry
-const provider = AIPhoneServiceRegistry.createProvider("retell-ai", config);
-```
-
 **Benefits:**
 - **Loose Coupling**: Client code doesn't depend on concrete classes
 - **Extensibility**: Easy to add new providers
@@ -171,36 +124,6 @@ const provider = AIPhoneServiceRegistry.createProvider("retell-ai", config);
 ### Service Pattern
 
 Service layer orchestrates business operations and coordinates between multiple repositories and external services.
-
-```typescript
-// AI Phone Service coordinating multiple operations
-export class AIPhoneService {
-  async setupAgentWithPhoneNumber(config: SetupConfig) {
-    // 1. Create AI agent via provider
-    const agent = await this.provider.createAgent(config.agentConfig);
-    
-    // 2. Store in database via repository
-    const savedAgent = await AgentRepository.create({
-      ...agent,
-      userId: config.userId
-    });
-    
-    // 3. Provision phone number
-    const phoneNumber = await this.provider.createPhoneNumber({
-      areaCode: config.areaCode
-    });
-    
-    // 4. Link phone number to agent
-    await PhoneNumberRepository.updateAgents({
-      id: phoneNumber.id,
-      outboundRetellAgentId: savedAgent.retellAgentId
-    });
-    
-    // 5. Return complete setup
-    return { agent: savedAgent, phoneNumber };
-  }
-}
-```
 
 **Benefits:**
 - **Business Logic Encapsulation**: Complex operations in one place
@@ -211,29 +134,6 @@ export class AIPhoneService {
 
 The registry pattern manages provider registration and lookup, acting as a service locator.
 
-```typescript
-export class AIPhoneServiceRegistry {
-  private static providers = new Map<string, AIPhoneServiceProviderFactory>();
-  private static defaultProvider: string = "retell-ai";
-  
-  static registerProvider(name: string, factory: AIPhoneServiceProviderFactory) {
-    this.providers.set(name, factory);
-  }
-  
-  static createProvider(name: string, config: any): AIPhoneServiceProvider {
-    const factory = this.providers.get(name);
-    if (!factory) {
-      throw new Error(`Provider ${name} not found`);
-    }
-    return factory.create(config);
-  }
-  
-  static getAvailableProviders(): string[] {
-    return Array.from(this.providers.keys());
-  }
-}
-```
-
 **Benefits:**
 - **Dynamic Provider Management**: Add/remove providers at runtime
 - **Centralized Configuration**: Single point for provider management
@@ -243,33 +143,6 @@ export class AIPhoneServiceRegistry {
 
 Mappers transform data between different representations (database models, DTOs, API responses).
 
-```typescript
-// Transform raw database result to domain model
-export class AgentMapper {
-  static toDomain(dbAgent: PrismaAgent): DomainAgent {
-    return {
-      id: dbAgent.id,
-      name: dbAgent.name,
-      retellAgentId: dbAgent.retellAgentId,
-      // Transform nested relations
-      phoneNumbers: dbAgent.phoneNumbers?.map(PhoneNumberMapper.toDomain) || [],
-      // Add computed properties
-      isActive: dbAgent.enabled && dbAgent.subscriptionStatus === 'ACTIVE'
-    };
-  }
-  
-  static toDTO(domain: DomainAgent): AgentDTO {
-    return {
-      id: domain.id,
-      name: domain.name,
-      // Flatten for API response
-      phoneNumberCount: domain.phoneNumbers.length,
-      status: domain.isActive ? 'active' : 'inactive'
-    };
-  }
-}
-```
-
 **Benefits:**
 - **Data Transformation**: Clean separation between layers
 - **Flexibility**: Different representations for different contexts
@@ -278,31 +151,6 @@ export class AgentMapper {
 ### Strategy Pattern
 
 The strategy pattern allows switching between different AI providers seamlessly.
-
-```typescript
-// Common interface for all providers
-export interface AIPhoneServiceProvider {
-  setupConfiguration(config: AIPhoneServiceConfiguration): Promise<SetupResult>;
-  createPhoneCall(data: CallData): Promise<Call>;
-  createAgent(data: AgentData): Promise<Agent>;
-  // ... other common operations
-}
-
-// Different provider implementations
-export class RetellAIProvider implements AIPhoneServiceProvider {
-  async createPhoneCall(data: CallData): Promise<Call> {
-    // Retell-specific implementation
-    return await this.retellClient.createCall(data);
-  }
-}
-
-export class TwilioAIProvider implements AIPhoneServiceProvider {
-  async createPhoneCall(data: CallData): Promise<Call> {
-    // Twilio-specific implementation
-    return await this.twilioClient.calls.create(data);
-  }
-}
-```
 
 **Benefits:**
 - **Provider Independence**: Switch providers without changing client code
@@ -329,22 +177,7 @@ The AI Phone system is designed specifically for Cal.com's workflow automation, 
 
 ### Workflow Step Configuration
 
-AI Phone calls are configured as workflow steps with specific triggers:
-
-```typescript
-// Workflow Step Definition
-export interface AIPhoneWorkflowStep {
-  id: number;
-  stepNumber: number;
-  action: WorkflowActions.AI_PHONE_CALL;
-  template: "CHECK_IN_APPOINTMENT" | "CUSTOM_TEMPLATE";
-  agentId: string; // AI agent to handle the call
-  sendTo: string; // Phone number to call
-  trigger: WorkflowTriggerEvents; // When to make the call
-  time: number; // Minutes before/after event
-  timeUnit: TimeUnit;
-}
-```
+AI Phone calls are configured as workflow steps with specific triggers.
 
 ### Supported Workflow Triggers
 
@@ -355,61 +188,6 @@ AI Phone calls can be triggered by various workflow events:
 - **NEW_EVENT**: Welcome calls for new bookings
 - **RESCHEDULE_EVENT**: Notify about schedule changes
 - **CANCELLED_EVENT**: Handle cancellation calls
-
-### Example: Appointment Reminder Workflow
-
-```typescript
-// 1. Create an AI Agent for appointment reminders
-const agent = await AgentRepository.create({
-  name: "Appointment Reminder Agent",
-  templateType: "CHECK_IN_APPOINTMENT",
-  userId: user.id,
-  // Agent configured with appointment check-in template
-});
-
-// 2. Link Agent to Workflow Step
-await prisma.workflowStep.create({
-  data: {
-    workflowId: workflow.id,
-    action: WorkflowActions.AI_PHONE_CALL,
-    stepNumber: 1,
-    agentId: agent.id,
-    template: "CHECK_IN_APPOINTMENT",
-    trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-    time: 24, // 24 hours before
-    timeUnit: TimeUnit.HOUR,
-  }
-});
-
-// 3. When workflow triggers, system executes AI phone call
-export async function executeAIPhoneCall(workflowStep: WorkflowStep, booking: Booking) {
-  const aiService = createDefaultAIPhoneServiceProvider();
-  
-  // Get phone number from booking attendee
-  const phoneNumber = booking.attendees[0]?.phoneNumber;
-  
-  // Dynamic variables for the call
-  const dynamicVariables = {
-    guestName: booking.attendees[0]?.name,
-    eventName: booking.eventType?.title,
-    eventDate: booking.startTime.toISOString(),
-    schedulerName: booking.user?.name,
-  };
-  
-  // Execute the AI phone call
-  const call = await aiService.createPhoneCall({
-    from_number: workflowStep.agent.phoneNumber,
-    to_number: phoneNumber,
-    retell_llm_dynamic_variables: dynamicVariables,
-  });
-  
-  // Log call for workflow tracking
-  await prisma.workflowReminder.update({
-    where: { id: workflowReminder.id },
-    data: { referenceId: call.call_id }
-  });
-}
-```
 
 ### Workflow Execution Flow
 
@@ -429,15 +207,7 @@ export async function executeAIPhoneCall(workflowStep: WorkflowStep, booking: Bo
 
 ### Rate Limiting for Workflows
 
-To prevent abuse, workflow AI calls are rate-limited:
-
-```typescript
-// Rate limiting check in workflow execution
-await checkRateLimitAndThrowError({
-  rateLimitingType: "core",
-  identifier: `ai-phone-call:${userId}`,
-});
-```
+To prevent abuse, workflow AI calls are rate-limited.
 
 ## Data Flow Architecture
 
@@ -461,99 +231,10 @@ await checkRateLimitAndThrowError({
 
 ## Usage Examples
 
-### Using the Default Provider (Recommended)
-
-```typescript
-import { createDefaultAIPhoneServiceProvider } from "@calcom/features/ee/cal-ai-phone";
-
-const aiPhoneService = createDefaultAIPhoneServiceProvider();
-
-// Setup AI configuration
-const { llmId, agentId } = await aiPhoneService.setupConfiguration({
-  generalPrompt: "Your AI assistant prompt...",
-  beginMessage: "Hi! How can I help you today?",
-  calApiKey: "cal_live_123...",
-  eventTypeId: 12345,
-  loggedInUserTimeZone: "America/New_York",
-  generalTools: [
-    {
-      type: "check_availability_cal",
-      name: "check_availability",
-      cal_api_key: "your-cal-api-key",
-      event_type_id: 12345,
-      timezone: "America/New_York"
-    }
-  ]
-});
-
-// Create phone call
-const call = await aiPhoneService.createPhoneCall({
-  fromNumber: "+1234567890",
-  toNumber: "+0987654321",
-  retellLlmDynamicVariables: {
-    name: "John Doe",
-    company: "Acme Corp",
-    email: "john@acme.com"
-  }
-});
-```
-
-### Using a Specific Provider
-
-```typescript
-import { 
-  createAIPhoneServiceProvider, 
-  AIPhoneServiceProviderType 
-} from "@calcom/features/ee/cal-ai-phone";
-
-const retellAIService = createAIPhoneServiceProvider(
-  AIPhoneServiceProviderType.RETELL_AI,
-  {
-    apiKey: "your-retell-ai-key",
-    enableLogging: true,
-  }
-);
-
-// Full provider API available
-const agent = await retellAIService.getAgent("agent-id");
-const phoneNumber = await retellAIService.createPhoneNumber({
-  areaCode: 415,
-  nickname: "Sales Line"
-});
-```
-
-
-### Phone Number Management
-
-```typescript
-const aiPhoneService = createDefaultAIPhoneServiceProvider();
-
-// Create a new phone number
-const phoneNumber = await aiPhoneService.createPhoneNumber({
-  areaCode: 415,
-  nickname: "Support Line"
-});
-
-// Update phone number configuration
-const updatedNumber = await aiPhoneService.updatePhoneNumber("+14155551234", {
-  nickname: "Updated Support Line",
-  inboundAgentId: "agent-123"
-});
-
-// Import existing phone number
-const importedNumber = await aiPhoneService.importPhoneNumber({
-  phoneNumber: "+14155559999",
-  nickname: "Imported Line",
-  userId: 123
-});
-
-// Delete phone number
-await aiPhoneService.deletePhoneNumber({ 
-  phoneNumber: "+14155551234", 
-  userId: 123,
-  deleteFromDB: true 
-});
-```
+For complete usage examples, please refer to:
+- **Basic Usage**: See commented examples in [`index.ts`](./index.ts)
+- **Provider Setup**: Check provider factories in [`providers/`](./providers/)
+- **Workflow Integration**: Review [`packages/features/handleCreatePhoneCall.ts`](../handleCreatePhoneCall.ts)
 
 ### Field Types
 
@@ -574,71 +255,7 @@ Templates support dynamic variables:
 
 ## Adding New Providers
 
-Adding a new AI service provider follows the established pattern:
-
-### 1. Create Provider Implementation
-
-```typescript
-// providers/new-provider/provider.ts
-import type { AIPhoneServiceProvider } from "../../interfaces/ai-phone-service.interface";
-
-export class NewAIProvider implements AIPhoneServiceProvider {
-  constructor(private config: AIPhoneServiceProviderConfig) {}
-
-  async setupConfiguration(config: AIPhoneServiceConfiguration) {
-    // Implementation for setting up LLM and agent
-    return { llmId: "new-llm-id", agentId: "new-agent-id" };
-  }
-  
-  async createPhoneCall(data: AIPhoneServiceCallData) {
-    // Implementation for creating phone calls
-    return { callId: "new-call-id", /* other properties */ };
-  }
-  
-  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams) {
-    // Implementation for phone number management
-  }
-  
-  // ... implement all required methods
-}
-```
-
-### 2. Create Factory
-
-```typescript
-// providers/new-provider/factory.ts
-import type { AIPhoneServiceProviderFactory } from "../../interfaces/ai-phone-service.interface";
-
-export class NewAIProviderFactory implements AIPhoneServiceProviderFactory {
-  create(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider {
-    return new NewAIProvider(config);
-  }
-}
-```
-
-### 3. Register Provider
-
-```typescript
-import { AIPhoneServiceRegistry } from "@calcom/features/ee/cal-ai-phone";
-import { NewAIProviderFactory } from "./providers/new-provider";
-
-AIPhoneServiceRegistry.registerProvider(
-  "new-provider",
-  new NewAIProviderFactory()
-);
-```
-
-### 4. Update Provider Types
-
-```typescript
-// interfaces/ai-phone-service.interface.ts
-export enum AIPhoneServiceProviderType {
-  RETELL_AI = "retell-ai",
-  NEW_PROVIDER = "new-provider", // Add new provider
-}
-```
-
-
+For detailed instructions on adding new providers, see the [example provider implementation](./providers/example-future-provider/).
 
 ## Environment Variables
 
@@ -648,23 +265,7 @@ export enum AIPhoneServiceProviderType {
 
 ### Stripe Integration
 
-The AI Phone system integrates with Stripe for phone number billing. When users purchase phone numbers through the workflow system, they're redirected to Stripe checkout:
-
-```typescript
-// Phone number purchase flow
-const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
-  userId,
-  teamId: input?.teamId,
-  agentId: input?.agentId,
-  workflowId: input?.workflowId,
-});
-
-// Returns Stripe checkout URL
-return {
-  checkoutUrl: checkoutSession.url,
-  message: checkoutSession.message,
-};
-```
+The AI Phone system integrates with Stripe for phone number billing. When users purchase phone numbers through the workflow system, they're redirected to Stripe checkout.
 
 The `STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID` should be set to your Stripe price ID that represents the monthly subscription cost for AI phone numbers. This price ID is created in your Stripe dashboard and determines how much customers are charged monthly for each phone number.
 
@@ -672,7 +273,7 @@ The `STRIPE_PHONE_NUMBER_MONTHLY_PRICE_ID` should be set to your Stripe price ID
 
 ### Webhook-Based Credit Deduction
 
-The AI Phone system automatically deducts credits from user or team accounts when calls are completed. This is handled by the webhook at `apps/web/app/api/webhooks/retell-ai/route.ts`.
+The AI Phone system automatically deducts credits from user or team accounts when calls are completed. This is handled by the webhook at `apps/web/app/api/webhooks/retellAI/route.ts`.
 
 #### Credit Deduction Flow
 
@@ -715,21 +316,7 @@ The webhook requires proper configuration:
 
 #### Credit Service Integration
 
-The webhook integrates with Cal.com's credit system:
-
-```typescript
-const creditService = new CreditService();
-
-// Check if user/team has sufficient credits
-const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
-
-// Deduct credits after call completion
-await creditService.chargeCredits({
-  userId: userId ?? undefined,
-  teamId: teamId ?? undefined, 
-  credits: creditsToDeduct,
-});
-```
+The webhook integrates with Cal.com's credit system to check and deduct credits appropriately.
 
 #### Error Handling
 
@@ -746,7 +333,7 @@ The webhook processes call completion events that contain the final usage data a
 
 ## Provider-Specific Documentation
 
-- [Retell AI Provider](./providers/retell-ai/README.md) - Complete Retell AI integration
+- [Retell AI Provider](./providers/retellAI/README.md) - Complete Retell AI integration
 - [Example Provider](./providers/example-future-provider/README.md) - Template for new providers
 
 

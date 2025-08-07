@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {

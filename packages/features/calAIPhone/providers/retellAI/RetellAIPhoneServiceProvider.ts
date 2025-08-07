@@ -21,7 +21,7 @@ import type {
 import { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository, RetellAgentWithDetails } from "./types";
 
-export class RetellAIProvider implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {
+export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {
   private service: RetellAIService;
 
   constructor(repository: RetellAIRepository, service?: RetellAIService) {

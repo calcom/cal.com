@@ -10,7 +10,7 @@ import type {
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceUpdateModelParams,
 } from "../../interfaces/ai-phone-service.interface";
-import { RetellAIProvider } from "./RetellAIProvider";
+import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import type { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
 
@@ -42,9 +42,9 @@ function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): Re
   return { ...defaultMocks, ...overrides } as unknown as RetellAIService;
 }
 
-describe("RetellAIProvider", () => {
+describe("RetellAIPhoneServiceProvider", () => {
   let mockRepository: RetellAIRepository;
-  let provider: RetellAIProvider;
+  let provider: RetellAIPhoneServiceProvider;
   let mockService: RetellAIService;
 
   beforeEach(() => {
@@ -74,7 +74,7 @@ describe("RetellAIProvider", () => {
     // Create a comprehensive mock service using helper function
     mockService = createMockRetellAIService();
 
-    provider = new RetellAIProvider(mockRepository, mockService);
+    provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
   });
 
   describe("setupConfiguration", () => {
@@ -199,7 +199,7 @@ describe("RetellAIProvider", () => {
         updateLLMConfiguration: updateLLMConfigurationMock,
       });
 
-      provider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should update model configuration", async () => {
@@ -226,7 +226,7 @@ describe("RetellAIProvider", () => {
         getLLMDetails: getLLMDetailsMock,
       });
 
-      provider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should get model details", async () => {
@@ -249,7 +249,7 @@ describe("RetellAIProvider", () => {
         getAgent: getAgentMock,
       });
 
-      provider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should get agent details", async () => {
@@ -272,7 +272,7 @@ describe("RetellAIProvider", () => {
         updateAgent: updateAgentMock,
       });
 
-      provider = new RetellAIProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should update agent", async () => {
@@ -290,7 +290,7 @@ describe("RetellAIProvider", () => {
 
   describe("createPhoneCall", () => {
     let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
+    let testProvider: RetellAIPhoneServiceProvider;
     let createPhoneCallMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -300,7 +300,7 @@ describe("RetellAIProvider", () => {
         createPhoneCall: createPhoneCallMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should create phone call", async () => {
@@ -333,7 +333,7 @@ describe("RetellAIProvider", () => {
 
   describe("createPhoneNumber", () => {
     let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
+    let testProvider: RetellAIPhoneServiceProvider;
     let createPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -343,7 +343,7 @@ describe("RetellAIProvider", () => {
         createPhoneNumber: createPhoneNumberMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should create phone number with proper parameter mapping", async () => {
@@ -383,7 +383,7 @@ describe("RetellAIProvider", () => {
 
   describe("importPhoneNumber", () => {
     let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
+    let testProvider: RetellAIPhoneServiceProvider;
     let importPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -393,7 +393,7 @@ describe("RetellAIProvider", () => {
         importPhoneNumber: importPhoneNumberMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should import phone number", async () => {
@@ -415,7 +415,7 @@ describe("RetellAIProvider", () => {
 
   describe("deletePhoneNumber", () => {
     let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
+    let testProvider: RetellAIPhoneServiceProvider;
     let deletePhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -425,7 +425,7 @@ describe("RetellAIProvider", () => {
         deletePhoneNumber: deletePhoneNumberMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should delete phone number", async () => {
@@ -455,7 +455,7 @@ describe("RetellAIProvider", () => {
 
   describe("getPhoneNumber", () => {
     let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
+    let testProvider: RetellAIPhoneServiceProvider;
     let getPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -465,7 +465,7 @@ describe("RetellAIProvider", () => {
         getPhoneNumber: getPhoneNumberMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should get phone number details", async () => {
@@ -480,7 +480,7 @@ describe("RetellAIProvider", () => {
 
   describe("updatePhoneNumber", () => {
     let mockService: RetellAIService;
-    let testProvider: RetellAIProvider;
+    let testProvider: RetellAIPhoneServiceProvider;
     let updatePhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
@@ -490,7 +490,7 @@ describe("RetellAIProvider", () => {
         updatePhoneNumber: updatePhoneNumberMock,
       });
 
-      testProvider = new RetellAIProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
     });
 
     it("should update phone number with proper parameter mapping", async () => {
@@ -547,7 +547,7 @@ describe("RetellAIProvider", () => {
         setupAIConfiguration: setupAIConfigurationMock,
       });
 
-      const testProvider = new RetellAIProvider(mockRepository, mockService);
+      const testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
 
       const config: AIPhoneServiceConfiguration = {
         generalPrompt: "Test prompt",

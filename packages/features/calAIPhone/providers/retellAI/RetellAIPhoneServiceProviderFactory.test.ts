@@ -4,8 +4,8 @@ import logger from "@calcom/lib/logger";
 
 import type { AIPhoneServiceProviderConfig } from "../../interfaces/ai-phone-service.interface";
 import { RetellSDKClient } from "./RetellSDKClient";
-import { RetellAIProviderFactory } from "./RetellAIProviderFactory";
-import { RetellAIProvider } from "./RetellAIProvider";
+import { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";
+import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -38,8 +38,8 @@ vi.mock("./RetellSDKClient", () => ({
   })),
 }));
 
-vi.mock("./RetellAIProvider", () => ({
-  RetellAIProvider: vi.fn().mockImplementation((repository) => ({
+vi.mock("./RetellAIPhoneServiceProvider", () => ({
+  RetellAIPhoneServiceProvider: vi.fn().mockImplementation((repository) => ({
     repository,
     setupConfiguration: vi.fn(),
     deleteConfiguration: vi.fn(),
@@ -56,12 +56,12 @@ vi.mock("./RetellAIProvider", () => ({
   })),
 }));
 
-describe("RetellAIProviderFactory", () => {
-  let factory: RetellAIProviderFactory;
+describe("RetellAIPhoneServiceProviderFactory", () => {
+  let factory: RetellAIPhoneServiceProviderFactory;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    factory = new RetellAIProviderFactory();
+    factory = new RetellAIPhoneServiceProviderFactory();
   });
 
   describe("create", () => {
@@ -72,7 +72,7 @@ describe("RetellAIProviderFactory", () => {
 
       const provider = factory.create(config);
 
-      expect(logger.getSubLogger).toHaveBeenCalledWith({ prefix: ["retellAIProvider:"] });
+      expect(logger.getSubLogger).toHaveBeenCalledWith({ prefix: ["RetellAIPhoneServiceProvider:"] });
       const mockLoggerInstance = (logger.getSubLogger as any).mock.results[0].value;
       expect(RetellSDKClient).toHaveBeenCalledWith(mockLoggerInstance);
       expect(provider).toBeDefined();
@@ -100,7 +100,7 @@ describe("RetellAIProviderFactory", () => {
         debug: vi.fn(),
       } as unknown as ReturnType<typeof logger.getSubLogger>;
 
-      const provider = RetellAIProviderFactory.createWithConfig({
+      const provider = RetellAIPhoneServiceProviderFactory.createWithConfig({
         enableLogging: true,
         logger: customLogger,
       });
@@ -116,7 +116,7 @@ describe("RetellAIProviderFactory", () => {
       factory.create({});
 
       const clientInstance = (RetellSDKClient as any).mock.results[0].value;
-      expect(RetellAIProvider).toHaveBeenCalledWith(clientInstance);
+      expect(RetellAIPhoneServiceProvider).toHaveBeenCalledWith(clientInstance);
     });
   });
 });

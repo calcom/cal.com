@@ -4,7 +4,7 @@ import {
   AIPhoneServiceRegistry,
   createAIPhoneServiceProvider,
   createDefaultAIPhoneServiceProvider,
-} from "./ai-phone-service-registry";
+} from "./AIPhoneServiceRegistry";
 import type {
   AIPhoneServiceProvider,
   AIPhoneServiceProviderFactory,
@@ -12,12 +12,11 @@ import type {
 } from "./interfaces/ai-phone-service.interface";
 import { AIPhoneServiceProviderType } from "./interfaces/ai-phone-service.interface";
 
-vi.mock("@calcom/lib/constants", () => ({
-  RETELL_API_KEY: "test-api-key",
-}));
+// Mock environment variables
+vi.stubEnv("RETELL_AI_KEY", "test-api-key");
 
-vi.mock("./providers/retell-ai", () => ({
-  RetellAIProviderFactory: vi.fn().mockImplementation(() => ({
+vi.mock("./providers/retellAI", () => ({
+  RetellAIPhoneServiceProviderFactory: vi.fn().mockImplementation(() => ({
     create: vi.fn().mockReturnValue({
       setupConfiguration: vi.fn(),
       createPhoneCall: vi.fn(),
@@ -72,12 +71,53 @@ describe("AIPhoneServiceRegistry", () => {
     };
   });
 
+  describe("initialize", () => {
+    it("should initialize with provided configuration", () => {
+      AIPhoneServiceRegistry.initialize({
+        defaultProvider: "test-provider",
+        providers: [
+          { type: "test-provider", factory: mockFactory },
+          { type: "another-provider", factory: mockFactory },
+        ],
+      });
+
+      expect(AIPhoneServiceRegistry.isInitialized()).toBe(true);
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe("test-provider");
+      expect(AIPhoneServiceRegistry.getAvailableProviders()).toContain("test-provider");
+      expect(AIPhoneServiceRegistry.getAvailableProviders()).toContain("another-provider");
+    });
+
+    it("should set first provider as default if defaultProvider not specified", () => {
+      AIPhoneServiceRegistry.initialize({
+        providers: [
+          { type: "first-provider", factory: mockFactory },
+          { type: "second-provider", factory: mockFactory },
+        ],
+      });
+
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe("first-provider");
+    });
+
+    it("should allow initialization without providers", () => {
+      AIPhoneServiceRegistry.initialize();
+
+      expect(AIPhoneServiceRegistry.isInitialized()).toBe(true);
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBeNull();
+    });
+  });
+
   describe("registerProvider", () => {
     it("should register a provider factory", () => {
       AIPhoneServiceRegistry.registerProvider("test-provider", mockFactory);
 
       expect(AIPhoneServiceRegistry.isProviderRegistered("test-provider")).toBe(true);
       expect(AIPhoneServiceRegistry.getAvailableProviders()).toContain("test-provider");
+    });
+
+    it("should set first registered provider as default", () => {
+      AIPhoneServiceRegistry.registerProvider("test-provider", mockFactory);
+
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe("test-provider");
     });
 
     it("should allow overriding existing provider", () => {
@@ -139,12 +179,23 @@ describe("AIPhoneServiceRegistry", () => {
   describe("createDefaultProvider", () => {
     it("should create provider using default provider type", () => {
       const config: AIPhoneServiceProviderConfig = { apiKey: "test-key" };
-      AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, mockFactory);
+      AIPhoneServiceRegistry.initialize({
+        defaultProvider: "test-provider",
+        providers: [{ type: "test-provider", factory: mockFactory }],
+      });
 
       const provider = AIPhoneServiceRegistry.createDefaultProvider(config);
 
       expect(mockFactory.create).toHaveBeenCalledWith(config);
       expect(provider).toBe(mockProvider);
+    });
+
+    it("should throw error when no default provider is set", () => {
+      const config: AIPhoneServiceProviderConfig = { apiKey: "test-key" };
+
+      expect(() => {
+        AIPhoneServiceRegistry.createDefaultProvider(config);
+      }).toThrow("No default provider set");
     });
   });
 
@@ -166,11 +217,16 @@ describe("AIPhoneServiceRegistry", () => {
 
   describe("getDefaultProvider", () => {
     it("should return current default provider", () => {
-      // Reset to default provider before testing
-      AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, mockFactory);
-      (AIPhoneServiceRegistry as any).defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
+      AIPhoneServiceRegistry.initialize({
+        defaultProvider: "test-provider",
+        providers: [{ type: "test-provider", factory: mockFactory }],
+      });
 
-      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe(AIPhoneServiceProviderType.RETELL_AI);
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBe("test-provider");
+    });
+
+    it("should return null when no default provider is set", () => {
+      expect(AIPhoneServiceRegistry.getDefaultProvider()).toBeNull();
     });
   });
 
@@ -240,11 +296,31 @@ describe("createAIPhoneServiceProvider", () => {
     };
   });
 
-  it("should create provider with specified type and config", () => {
-    AIPhoneServiceRegistry.registerProvider("custom-provider", mockFactory);
+  it("should throw error when registry is not initialized", () => {
+    // Registry starts uninitialized
+    expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
+    
+    // Should throw error for uninitialized registry
+    expect(() => {
+      createAIPhoneServiceProvider({
+        config: { apiKey: "test-key" }
+      });
+    }).toThrow("AIPhoneServiceRegistry not initialized");
 
-    const customConfig = { apiKey: "custom-key", enableLogging: false };
-    const provider = createAIPhoneServiceProvider("custom-provider", customConfig);
+    // Registry should still be uninitialized
+    expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
+  });
+
+  it("should create provider with specified type and config", () => {
+    AIPhoneServiceRegistry.initialize({
+      providers: [{ type: "custom-provider", factory: mockFactory }],
+    });
+
+    // For custom providers, we must provide API key in config since there's no env var mapping
+    const provider = createAIPhoneServiceProvider({
+      providerType: "custom-provider",
+      config: { apiKey: "custom-key", enableLogging: false }
+    });
 
     expect(mockFactory.create).toHaveBeenCalledWith({
       apiKey: "custom-key",
@@ -253,8 +329,11 @@ describe("createAIPhoneServiceProvider", () => {
     expect(provider).toBe(mockProvider);
   });
 
-  it("should use RETELL_AI as default provider type", () => {
-    AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, mockFactory);
+  it("should use default provider when type not specified", () => {
+    AIPhoneServiceRegistry.initialize({
+      defaultProvider: AIPhoneServiceProviderType.RETELL_AI, // Use RETELL_AI as default since we have its API key
+      providers: [{ type: AIPhoneServiceProviderType.RETELL_AI, factory: mockFactory }],
+    });
 
     const provider = createAIPhoneServiceProvider();
 
@@ -266,10 +345,14 @@ describe("createAIPhoneServiceProvider", () => {
   });
 
   it("should merge provided config with defaults", () => {
-    AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, mockFactory);
+    AIPhoneServiceRegistry.initialize({
+      providers: [{ type: AIPhoneServiceProviderType.RETELL_AI, factory: mockFactory }],
+    });
 
-    const customConfig = { enableLogging: false };
-    createAIPhoneServiceProvider(undefined, customConfig);
+    createAIPhoneServiceProvider({
+      providerType: AIPhoneServiceProviderType.RETELL_AI,
+      config: { enableLogging: false }
+    });
 
     expect(mockFactory.create).toHaveBeenCalledWith({
       apiKey: "test-api-key",
@@ -278,15 +361,27 @@ describe("createAIPhoneServiceProvider", () => {
   });
 
   it("should override default apiKey with provided config", () => {
-    AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, mockFactory);
+    AIPhoneServiceRegistry.initialize({
+      providers: [{ type: AIPhoneServiceProviderType.RETELL_AI, factory: mockFactory }],
+    });
 
-    const customConfig = { apiKey: "override-key" };
-    createAIPhoneServiceProvider(undefined, customConfig);
+    createAIPhoneServiceProvider({
+      providerType: AIPhoneServiceProviderType.RETELL_AI,
+      config: { apiKey: "override-key" }
+    });
 
     expect(mockFactory.create).toHaveBeenCalledWith({
       apiKey: "override-key",
       enableLogging: true,
     });
+  });
+
+  it("should throw error when no provider type and no default provider", () => {
+    AIPhoneServiceRegistry.initialize(); // Initialize without providers
+
+    expect(() => {
+      createAIPhoneServiceProvider();
+    }).toThrow("No provider type specified and no default provider configured");
   });
 });
 
@@ -325,7 +420,10 @@ describe("createDefaultAIPhoneServiceProvider", () => {
       create: vi.fn().mockReturnValue(mockProvider),
     };
 
-    AIPhoneServiceRegistry.registerProvider(AIPhoneServiceProviderType.RETELL_AI, mockFactory);
+    AIPhoneServiceRegistry.initialize({
+      defaultProvider: AIPhoneServiceProviderType.RETELL_AI,
+      providers: [{ type: AIPhoneServiceProviderType.RETELL_AI, factory: mockFactory }],
+    });
   });
 
   it("should create provider using default configuration", () => {

@@ -21,7 +21,7 @@ import type {
   RetellLLM,
 } from "./types";
 
-export class RetellServiceMapper {
+export class RetellAIServiceMapper {
   /**
    * Maps AI configuration to Retell tools format
    */
