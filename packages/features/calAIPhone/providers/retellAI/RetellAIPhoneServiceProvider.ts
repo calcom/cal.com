@@ -225,7 +225,7 @@ export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPh
     enabled?: boolean;
     generalPrompt?: string | null;
     beginMessage?: string | null;
-    generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;;
+    generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
