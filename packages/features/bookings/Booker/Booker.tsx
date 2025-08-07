@@ -10,6 +10,10 @@ import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
+import {
+  BookerStoreProvider,
+  useBookerStoreContext,
+} from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
@@ -39,7 +43,6 @@ import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
-import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "./utils/isTimeslotAvailable";
@@ -83,9 +86,14 @@ const BookerComponent = ({
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-  const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
+  const [bookerState, setBookerState] = useBookerStoreContext(
+    (state) => [state.state, state.setState],
+    shallow
+  );
 
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
+  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
+
   const {
     shouldShowFormInDialog,
     hasDarkBackground,
@@ -98,12 +106,15 @@ const BookerComponent = ({
     bookerLayouts,
   } = bookerLayout;
 
-  const [seatedEventData, setSeatedEventData] = useBookerStore(
+  const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
   const { selectedTimeslot, setSelectedTimeslot, allSelectedTimeslots } = slots;
-  const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+  const [dayCount, setDayCount] = useBookerStoreContext(
+    (state) => [state.dayCount, state.setDayCount],
+    shallow
+  );
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
@@ -310,9 +321,7 @@ const BookerComponent = ({
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
-
       {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
-
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -547,7 +556,6 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
-
       <>
         {verifyCode && formEmail ? (
           <VerifyCodeDialog
@@ -566,7 +574,6 @@ const BookerComponent = ({
           <></>
         )}
       </>
-
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
@@ -580,7 +587,9 @@ const BookerComponent = ({
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
   return (
     <LazyMotion strict features={framerFeatures}>
-      <BookerComponent {...props} />
+      <BookerStoreProvider>
+        <BookerComponent {...props} />
+      </BookerStoreProvider>
     </LazyMotion>
   );
 };
