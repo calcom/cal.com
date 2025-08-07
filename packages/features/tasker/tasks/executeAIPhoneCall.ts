@@ -138,6 +138,8 @@ export async function executeAIPhoneCall(payload: string) {
 
     const aiService = createDefaultAIPhoneServiceProvider();
 
+    // Update general tools before making the call
+
     const call = await aiService.createPhoneCall({
       from_number: data.fromNumber,
       to_number: numberToCall,
