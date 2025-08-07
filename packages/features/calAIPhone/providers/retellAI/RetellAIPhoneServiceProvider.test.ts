@@ -10,6 +10,9 @@ import type {
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceUpdateModelParams,
 } from "../../interfaces/ai-phone-service.interface";
+import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
+import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
+import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import type { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
@@ -44,6 +47,9 @@ function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): Re
 
 describe("RetellAIPhoneServiceProvider", () => {
   let mockRepository: RetellAIRepository;
+  let mockAgentRepository: AgentRepositoryInterface;
+  let mockPhoneNumberRepository: PhoneNumberRepositoryInterface;
+  let mockTransactionManager: TransactionInterface;
   let provider: RetellAIPhoneServiceProvider;
   let mockService: RetellAIService;
 
@@ -71,10 +77,42 @@ describe("RetellAIPhoneServiceProvider", () => {
       createPhoneCall: vi.fn().mockResolvedValue({ call_id: "test-call-id" }),
     };
 
+    // Mock agent repository
+    mockAgentRepository = {
+      canManageTeamResources: vi.fn(),
+      findByIdWithUserAccess: vi.fn(),
+      findByRetellAgentIdWithUserAccess: vi.fn(),
+      findManyWithUserAccess: vi.fn(),
+      findByIdWithUserAccessAndDetails: vi.fn(),
+      create: vi.fn(),
+      findByIdWithAdminAccess: vi.fn(),
+      findByIdWithCallAccess: vi.fn(),
+      delete: vi.fn(),
+      linkToWorkflowStep: vi.fn(),
+    } as unknown as AgentRepositoryInterface;
+
+    // Mock phone number repository
+    mockPhoneNumberRepository = {
+      findByPhoneNumberAndUserId: vi.fn(),
+      findByPhoneNumberAndTeamId: vi.fn(),
+      findByIdAndUserId: vi.fn(),
+      findByIdWithTeamAccess: vi.fn(),
+      createPhoneNumber: vi.fn(),
+      deletePhoneNumber: vi.fn(),
+      updateSubscriptionStatus: vi.fn(),
+      updateAgents: vi.fn(),
+    } as unknown as PhoneNumberRepositoryInterface;
+
+    // Mock transaction manager
+    mockTransactionManager = {
+      executeInTransaction: vi.fn(),
+    } as unknown as TransactionInterface;
+
     // Create a comprehensive mock service using helper function
     mockService = createMockRetellAIService();
 
-    provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+    // Pass the mock service as the 5th parameter to ensure it's used instead of creating a new one
+    provider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
   });
 
   describe("setupConfiguration", () => {
@@ -199,7 +237,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         updateLLMConfiguration: updateLLMConfigurationMock,
       });
 
-      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should update model configuration", async () => {
@@ -226,7 +264,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         getLLMDetails: getLLMDetailsMock,
       });
 
-      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should get model details", async () => {
@@ -249,7 +287,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         getAgent: getAgentMock,
       });
 
-      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should get agent details", async () => {
@@ -272,7 +310,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         updateAgent: updateAgentMock,
       });
 
-      provider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      provider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should update agent", async () => {
@@ -300,7 +338,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         createPhoneCall: createPhoneCallMock,
       });
 
-      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should create phone call", async () => {
@@ -343,7 +381,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         createPhoneNumber: createPhoneNumberMock,
       });
 
-      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should create phone number with proper parameter mapping", async () => {
@@ -393,7 +431,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         importPhoneNumber: importPhoneNumberMock,
       });
 
-      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should import phone number", async () => {
@@ -425,7 +463,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         deletePhoneNumber: deletePhoneNumberMock,
       });
 
-      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should delete phone number", async () => {
@@ -465,7 +503,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         getPhoneNumber: getPhoneNumberMock,
       });
 
-      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should get phone number details", async () => {
@@ -490,7 +528,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         updatePhoneNumber: updatePhoneNumberMock,
       });
 
-      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
     });
 
     it("should update phone number with proper parameter mapping", async () => {
@@ -547,7 +585,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         setupAIConfiguration: setupAIConfigurationMock,
       });
 
-      const testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockService);
+      const testProvider = new RetellAIPhoneServiceProvider(mockRepository, mockAgentRepository, mockPhoneNumberRepository, mockTransactionManager, mockService);
 
       const config: AIPhoneServiceConfiguration = {
         generalPrompt: "Test prompt",

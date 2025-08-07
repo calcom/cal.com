@@ -1,0 +1,36 @@
+import type {
+  TransactionInterface,
+  TransactionContext,
+  TransactionalPhoneNumberRepository,
+} from "../interfaces/TransactionInterface";
+import prisma from "@calcom/prisma";
+
+/**
+ * Prisma implementation of the transaction interface
+ * This adapter handles Prisma-specific transaction logic while keeping the provider decoupled
+ */
+export class PrismaTransactionAdapter implements TransactionInterface {
+  async executeInTransaction<T>(operations: (context: TransactionContext) => Promise<T>): Promise<T> {
+    return await prisma.$transaction(async (tx) => {
+      const transactionalPhoneNumberRepo: TransactionalPhoneNumberRepository = {
+        async createPhoneNumber(params) {
+          await tx.calAiPhoneNumber.create({
+            data: {
+              phoneNumber: params.phoneNumber,
+              userId: params.userId,
+              provider: params.provider,
+              teamId: params.teamId,
+              outboundAgentId: params.outboundAgentId,
+            },
+          });
+        },
+      };
+
+      const context: TransactionContext = {
+        phoneNumberRepository: transactionalPhoneNumberRepo,
+      };
+
+      return await operations(context);
+    });
+  }
+}

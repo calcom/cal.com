@@ -18,14 +18,23 @@ import type {
   AIPhoneServiceImportPhoneNumberParamsExtended,
   AIPhoneServiceAgentWithDetails,
 } from "../../interfaces/ai-phone-service.interface";
+import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
+import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
+import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository, RetellAgentWithDetails } from "./types";
 
 export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI> {
   private service: RetellAIService;
 
-  constructor(repository: RetellAIRepository, service?: RetellAIService) {
-    this.service = service || new RetellAIService(repository);
+  constructor(
+    repository: RetellAIRepository,
+    agentRepository: AgentRepositoryInterface,
+    phoneNumberRepository: PhoneNumberRepositoryInterface,
+    transactionManager: TransactionInterface,
+    service?: RetellAIService
+  ) {
+    this.service = service || new RetellAIService(repository, agentRepository, phoneNumberRepository, transactionManager);
   }
 
   async setupConfiguration(config: AIPhoneServiceConfiguration<AIPhoneServiceProviderType.RETELL_AI>): Promise<{

@@ -39,8 +39,11 @@ vi.mock("./RetellSDKClient", () => ({
 }));
 
 vi.mock("./RetellAIPhoneServiceProvider", () => ({
-  RetellAIPhoneServiceProvider: vi.fn().mockImplementation((repository) => ({
+  RetellAIPhoneServiceProvider: vi.fn().mockImplementation((repository, agentRepository, phoneNumberRepository, transactionManager) => ({
     repository,
+    agentRepository,
+    phoneNumberRepository,
+    transactionManager,
     setupConfiguration: vi.fn(),
     deleteConfiguration: vi.fn(),
     updateLLMConfiguration: vi.fn(),
@@ -53,6 +56,40 @@ vi.mock("./RetellAIPhoneServiceProvider", () => ({
     getPhoneNumber: vi.fn(),
     updatePhoneNumber: vi.fn(),
     importPhoneNumber: vi.fn(),
+  })),
+}));
+
+vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
+  PrismaAgentRepositoryAdapter: vi.fn().mockImplementation(() => ({
+    canManageTeamResources: vi.fn(),
+    findByIdWithUserAccess: vi.fn(),
+    findByRetellAgentIdWithUserAccess: vi.fn(),
+    findManyWithUserAccess: vi.fn(),
+    findByIdWithUserAccessAndDetails: vi.fn(),
+    create: vi.fn(),
+    findByIdWithAdminAccess: vi.fn(),
+    findByIdWithCallAccess: vi.fn(),
+    delete: vi.fn(),
+    linkToWorkflowStep: vi.fn(),
+  })),
+}));
+
+vi.mock("../adapters/PrismaPhoneNumberRepositoryAdapter", () => ({
+  PrismaPhoneNumberRepositoryAdapter: vi.fn().mockImplementation(() => ({
+    findByPhoneNumberAndUserId: vi.fn(),
+    findByPhoneNumberAndTeamId: vi.fn(),
+    findByIdAndUserId: vi.fn(),
+    findByIdWithTeamAccess: vi.fn(),
+    createPhoneNumber: vi.fn(),
+    deletePhoneNumber: vi.fn(),
+    updateSubscriptionStatus: vi.fn(),
+    updateAgents: vi.fn(),
+  })),
+}));
+
+vi.mock("../adapters/PrismaTransactionAdapter", () => ({
+  PrismaTransactionAdapter: vi.fn().mockImplementation(() => ({
+    executeInTransaction: vi.fn(),
   })),
 }));
 
@@ -116,7 +153,12 @@ describe("RetellAIPhoneServiceProviderFactory", () => {
       factory.create({});
 
       const clientInstance = (RetellSDKClient as any).mock.results[0].value;
-      expect(RetellAIPhoneServiceProvider).toHaveBeenCalledWith(clientInstance);
+      expect(RetellAIPhoneServiceProvider).toHaveBeenCalledWith(
+        clientInstance, 
+        expect.any(Object), // PrismaAgentRepositoryAdapter
+        expect.any(Object), // PrismaPhoneNumberRepositoryAdapter  
+        expect.any(Object)  // PrismaTransactionAdapter
+      );
     });
   });
 });

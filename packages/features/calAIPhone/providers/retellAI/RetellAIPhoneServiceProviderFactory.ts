@@ -6,6 +6,9 @@ import type {
   AIPhoneServiceProviderConfig,
   AIPhoneServiceProviderType,
 } from "../../interfaces/ai-phone-service.interface";
+import { PrismaAgentRepositoryAdapter } from "../adapters/PrismaAgentRepositoryAdapter";
+import { PrismaPhoneNumberRepositoryAdapter } from "../adapters/PrismaPhoneNumberRepositoryAdapter";
+import { PrismaTransactionAdapter } from "../adapters/PrismaTransactionAdapter";
 import { RetellSDKClient } from "./RetellSDKClient";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 
@@ -15,7 +18,11 @@ export class RetellAIPhoneServiceProviderFactory implements AIPhoneServiceProvid
       config.enableLogging !== false ? logger.getSubLogger({ prefix: ["RetellAIPhoneServiceProvider:"] }) : undefined;
 
     const sdkClient = new RetellSDKClient(log);
-    return new RetellAIPhoneServiceProvider(sdkClient);
+    const agentRepository = new PrismaAgentRepositoryAdapter();
+    const phoneNumberRepository = new PrismaPhoneNumberRepositoryAdapter();
+    const transactionManager = new PrismaTransactionAdapter();
+    
+    return new RetellAIPhoneServiceProvider(sdkClient, agentRepository, phoneNumberRepository, transactionManager);
   }
 
   static createWithConfig(config?: {
@@ -28,6 +35,10 @@ export class RetellAIPhoneServiceProviderFactory implements AIPhoneServiceProvid
       : undefined;
 
     const sdkClient = new RetellSDKClient(log);
-    return new RetellAIPhoneServiceProvider(sdkClient);
+    const agentRepository = new PrismaAgentRepositoryAdapter();
+    const phoneNumberRepository = new PrismaPhoneNumberRepositoryAdapter();
+    const transactionManager = new PrismaTransactionAdapter();
+    
+    return new RetellAIPhoneServiceProvider(sdkClient, agentRepository, phoneNumberRepository, transactionManager);
   }
 }
