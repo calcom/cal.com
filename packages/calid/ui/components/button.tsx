@@ -50,30 +50,17 @@ export const buttonClasses = cva(
       color: {
         primary: [
           // Base colors
-          "bg-brand-default",
-          "text-brand",
-          // Hover state
-          "enabled:hover:bg-brand-emphasis",
-          // Focus state
-          "focus-visible:outline-none",
-          "focus-visible:ring-0",
-          "focus-visible:shadow-button-solid-brand-focused",
-          // Border
-          "border border-brand-default",
+          "bg-cal-active",
+          "text-white",
           // Disabled
           "disabled:opacity-30",
           // Shadows and effects
-          "shadow-button-solid-brand-default",
-          "enabled:active:shadow-button-solid-brand-active",
           "enabled:hover:shadow-button-solid-brand-hover",
-          "transition-shadow",
-          "transition-transform",
-          "duration-100",
         ],
 
         secondary: [
           // Base colors and border
-          "bg-default",
+          "bg-white",
           "text-default",
           "border",
           "border-default",

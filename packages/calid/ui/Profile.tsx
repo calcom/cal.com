@@ -79,7 +79,7 @@ export const Profile = ({ small }: ProfileProps) => {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent side="bottom" align="end" className="w-48 bg-white">
+      <DropdownMenuContent side="bottom" align="end" className="w-48">
         <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/profile")}>
           <Icon name="user" className="mr-2 h-4 w-4" />
           {t("my_profile")}

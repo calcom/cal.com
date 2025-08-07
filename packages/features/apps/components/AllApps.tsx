@@ -143,7 +143,7 @@ function AppsSearch({ onChange }: { onChange: ChangeEventHandler<HTMLInputElemen
     <TextField
       addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
-      containerClassName={classNames("focus:!ring-offset-0")}
+      containerClassName={classNames("focus:!ring-offset-0 py-2")}
       type="search"
       autoComplete="false"
       onChange={onChange}

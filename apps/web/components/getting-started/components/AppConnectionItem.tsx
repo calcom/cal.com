@@ -1,3 +1,5 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -8,8 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface IAppConnectionItem {

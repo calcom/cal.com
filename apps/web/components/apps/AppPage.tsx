@@ -1,3 +1,6 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
@@ -15,9 +18,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonButton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -270,7 +270,7 @@ export const AppPage = ({
   return (
     <div className="relative mt-4 flex-1 flex-col items-start justify-start px-4 md:mt-0 md:flex md:px-8 lg:flex-row lg:px-0">
       {hasDescriptionItems && (
-        <div className="align-center bg-subtle -ml-4 -mr-4 mb-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap p-4  md:-ml-8 md:-mr-8 md:mb-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
+        <div className="align-center -ml-4 -mr-4 mb-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap rounded-md border p-2 md:-ml-8 md:-mr-8 md:mb-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center">
           {descriptionItems ? (
             descriptionItems.map((descriptionItem, index) =>
               typeof descriptionItem === "object" ? (
@@ -302,7 +302,7 @@ export const AppPage = ({
           <header>
             <div className="mb-4 flex items-center">
               <img
-                className={classNames(logo.includes("-dark") && "dark:invert", "min-h-16 min-w-16 h-16 w-16")}
+                className={classNames(logo.includes("-dark") && "dark:invert", "h-16 min-h-16 w-16 min-w-16")}
                 src={logo}
                 alt={name}
               />
@@ -450,7 +450,7 @@ export const AppPage = ({
         <span className="leading-1 text-subtle block text-xs">
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
-        <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
+        <a className="text-destructive mt-2 block text-xs" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
           <Icon name="flag" className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
