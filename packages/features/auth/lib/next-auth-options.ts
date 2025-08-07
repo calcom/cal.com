@@ -31,6 +31,7 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -48,7 +49,6 @@ import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: ["next-auth-options"] });
 const GOOGLE_API_CREDENTIALS = process.env.GOOGLE_API_CREDENTIALS || "{}";
@@ -293,10 +293,32 @@ if (isSAMLLoginEnabled) {
       locale?: string;
     }) => {
       log.debug("BoxyHQ:profile", safeStringify({ profile }));
+
+      log.info("SAML OAuth profile processing", {
+        samlUserId: profile.id,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+      });
+
       const userRepo = new UserRepository(prisma);
       const user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
+
+      if (user) {
+        log.info("SAML OAuth: Existing user found", {
+          userId: user.id,
+          email: profile.email,
+          samlUserId: profile.id,
+        });
+      } else {
+        log.warn("SAML OAuth: No existing user found", {
+          email: profile.email,
+          samlUserId: profile.id,
+        });
+      }
+
       return {
         id: profile.id || 0,
         firstName: profile.firstName || "",
@@ -337,61 +359,112 @@ if (isSAMLLoginEnabled) {
 
         const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
 
-        // Fetch access token
-        const { access_token } = await oauthController.token({
-          code,
-          grant_type: "authorization_code",
-          redirect_uri: `${process.env.NEXTAUTH_URL}`,
-          client_id: "dummy",
-          client_secret: clientSecretVerifier,
-        });
+        try {
+          // Fetch access token
+          const { access_token } = await oauthController.token({
+            code,
+            grant_type: "authorization_code",
+            redirect_uri: `${process.env.NEXTAUTH_URL}`,
+            client_id: "dummy",
+            client_secret: clientSecretVerifier,
+          });
 
-        if (!access_token) {
-          return null;
-        }
-        // Fetch user info
-        const userInfo = await oauthController.userInfo(access_token);
-
-        if (!userInfo) {
-          return null;
-        }
-
-        const { id, firstName, lastName } = userInfo;
-        const email = userInfo.email.toLowerCase();
-        const userRepo = new UserRepository(prisma);
-        let user = !email ? undefined : await userRepo.findByEmailAndIncludeProfilesAndPassword({ email });
-        if (!user) {
-          const hostedCal = Boolean(HOSTED_CAL_FEATURES);
-          if (hostedCal && email) {
-            const domain = getDomainFromEmail(email);
-            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
-            if (org) {
-              const createUsersAndConnectToOrgProps = {
-                emailsToCreate: [email],
-                identityProvider: IdentityProvider.SAML,
-                identityProviderId: email,
-              };
-              await createUsersAndConnectToOrg({
-                createUsersAndConnectToOrgProps,
-                org,
-              });
-              user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
-                email: email,
-              });
-            }
+          if (!access_token) {
+            log.error("SAML IdP login failed: No access token received");
+            return null;
           }
-          if (!user) throw new Error(ErrorCode.UserNotFound);
+
+          // Fetch user info
+          const userInfo = await oauthController.userInfo(access_token);
+
+          if (!userInfo) {
+            log.error("SAML IdP login failed: No user info received");
+            return null;
+          }
+
+          const { id, firstName, lastName } = userInfo;
+          const email = userInfo.email.toLowerCase();
+
+          log.info("SAML IdP login: User info retrieved", {
+            samlUserId: id,
+            email: email,
+            firstName: firstName,
+            lastName: lastName,
+          });
+
+          const userRepo = new UserRepository(prisma);
+          let user = !email ? undefined : await userRepo.findByEmailAndIncludeProfilesAndPassword({ email });
+
+          if (!user) {
+            const hostedCal = Boolean(HOSTED_CAL_FEATURES);
+            if (hostedCal && email) {
+              const domain = getDomainFromEmail(email);
+              const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+              if (org) {
+                log.info("SAML IdP login: Creating user and connecting to organization", {
+                  email: email,
+                  orgId: org.id,
+                  domain: domain,
+                });
+
+                const createUsersAndConnectToOrgProps = {
+                  emailsToCreate: [email],
+                  identityProvider: IdentityProvider.SAML,
+                  identityProviderId: email,
+                };
+                await createUsersAndConnectToOrg({
+                  createUsersAndConnectToOrgProps,
+                  org,
+                });
+                user = await userRepo.findByEmailAndIncludeProfilesAndPassword({
+                  email: email,
+                });
+
+                log.info("SAML IdP login: User created and connected to organization", {
+                  userId: user?.id,
+                  orgId: org.id,
+                  email: email,
+                });
+              } else {
+                log.warn("SAML IdP login: No organization found for domain", {
+                  email: email,
+                  domain: domain,
+                });
+              }
+            }
+            if (!user) {
+              log.error("SAML IdP login failed: User not found and could not be created", {
+                email: email,
+                samlUserId: id,
+              });
+              throw new Error(ErrorCode.UserNotFound);
+            }
+          } else {
+            log.info("SAML IdP login: Existing user found", {
+              userId: user.id,
+              email: email,
+              samlUserId: id,
+            });
+          }
+
+          const [userProfile] = user?.allProfiles;
+          return {
+            id: id as unknown as number,
+            firstName,
+            lastName,
+            email,
+            name: `${firstName} ${lastName}`.trim(),
+            email_verified: true,
+            profile: userProfile,
+          };
+        } catch (error) {
+          log.error("SAML IdP login error", {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            code: code,
+          });
+          throw error;
         }
-        const [userProfile] = user?.allProfiles;
-        return {
-          id: id as unknown as number,
-          firstName,
-          lastName,
-          email,
-          name: `${firstName} ${lastName}`.trim(),
-          email_verified: true,
-          profile: userProfile,
-        };
       },
     })
   );

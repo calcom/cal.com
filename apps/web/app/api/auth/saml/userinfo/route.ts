@@ -5,6 +5,7 @@ import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 
 const extractAuthToken = (req: NextRequest) => {
   const authHeader = req.headers.get("authorization");
@@ -26,9 +27,31 @@ const requestQuery = z.object({
 
 async function handler(req: NextRequest) {
   const { oauthController } = await jackson();
-  const token = extractAuthToken(req);
-  const userInfo = await oauthController.userInfo(token);
-  return NextResponse.json(userInfo);
+
+  try {
+    const token = extractAuthToken(req);
+
+    logger.info("SAML userinfo request initiated", {
+      hasToken: !!token,
+    });
+
+    const userInfo = await oauthController.userInfo(token);
+
+    logger.info("SAML userinfo retrieved", {
+      userId: userInfo?.id,
+      email: userInfo?.email,
+      firstName: userInfo?.firstName,
+      lastName: userInfo?.lastName,
+    });
+
+    return NextResponse.json(userInfo);
+  } catch (error) {
+    logger.error("SAML userinfo error", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw error;
+  }
 }
 
 export const GET = defaultResponderForAppDir(handler);
