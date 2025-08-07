@@ -58,17 +58,17 @@ type BookingsProps = {
   status: (typeof validStatuses)[number];
 };
 
-export default function Bookings(props: BookingsProps) {
+function useDefaultSegments() {
   const { data: user } = useMeQuery();
+  const { t } = useLocale();
 
   const defaultSegments: DefaultFilterSegment[] = useMemo(() => {
     if (!user) return [];
 
     const segments: DefaultFilterSegment[] = [
       {
-        id: "my-bookings",
-        name: "My Bookings",
-        description: "Bookings where I am the host",
+        id: "my_bookings",
+        name: t("my_bookings"),
         icon: "user",
         isDefault: true,
         activeFilters: [
@@ -83,38 +83,18 @@ export default function Bookings(props: BookingsProps) {
         sorting: [{ id: "startTime", desc: false }],
         perPage: 10,
       },
-      {
-        id: "upcoming-bookings",
-        name: "Upcoming Bookings",
-        description: "All future bookings",
-        icon: "calendar",
-        isDefault: true,
-        activeFilters: [
-          {
-            f: "dateRange",
-            v: {
-              type: ColumnFilterType.DATE_RANGE,
-              data: {
-                startDate: null,
-                endDate: null,
-                preset: "upcoming",
-              },
-            },
-          },
-        ],
-        perPage: 10,
-      },
     ];
-
 
     return segments;
   }, [user]);
 
+  return defaultSegments;
+}
+
+export default function Bookings(props: BookingsProps) {
+  const defaultSegments = useDefaultSegments();
   return (
-    <DataTableProvider
-      useSegments={useSegments}
-      defaultSegments={defaultSegments}
-    >
+    <DataTableProvider useSegments={useSegments} defaultSegments={defaultSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );

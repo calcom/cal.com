@@ -258,7 +258,6 @@ export type FilterSegmentOutput = {
 export type DefaultFilterSegment = {
   id: string;
   name: string;
-  description?: string;
   icon?: IconName;
   activeFilters: ActiveFilters;
   sorting?: SortingState;
