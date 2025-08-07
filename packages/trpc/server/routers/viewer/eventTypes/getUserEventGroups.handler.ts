@@ -10,6 +10,7 @@ import type { TEventTypeInputSchema } from "./getByViewer.schema";
 import { TeamAccessUseCase } from "./teamAccessUseCase";
 import { EventGroupBuilder } from "./usecases/EventGroupBuilder";
 import { ProfilePermissionProcessor } from "./usecases/ProfilePermissionProcessor";
+import { EventTypeGroupFilter } from "./utils/EventTypeGroupFilter";
 
 type GetByViewerOptions = {
   ctx: {
@@ -50,12 +51,16 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
     forRoutingForms: input?.forRoutingForms,
   });
 
+  const filteredEventTypeGroups = new EventTypeGroupFilter(eventTypeGroups, teamPermissionsMap)
+    .has("eventType.read")
+    .get();
+
   // Process profiles with permissions
   const profileProcessor = new ProfilePermissionProcessor();
   const profiles = profileProcessor.processProfiles(eventTypeGroups, teamPermissionsMap);
 
   return {
-    eventTypeGroups,
+    eventTypeGroups: filteredEventTypeGroups,
     profiles,
   };
 };
