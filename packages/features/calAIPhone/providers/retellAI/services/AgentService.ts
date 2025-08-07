@@ -3,7 +3,8 @@ import { TRPCError } from "@trpc/server";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository, RetellAgent, RetellLLM, RetellLLMGeneralTools } from "../types";
-import { getLlmId } from "../types";
+import { getLlmId, Language } from "../types";
+import { v4 as uuidv4 } from "uuid";
 
 export class AgentService {
   constructor(
@@ -20,7 +21,7 @@ export class AgentService {
     data: {
       agent_name?: string | null;
       voice_id?: string;
-      language?: any;
+      language?: Language;
       responsiveness?: number;
       interruption_sensitivity?: number;
     }
@@ -66,7 +67,7 @@ export class AgentService {
       });
     }
 
-    const retellAgent = await this.getAgent(agent.retellAgentId);
+    const retellAgent = await this.getAgent(agent.providerAgentId);
     const llmId = getLlmId(retellAgent);
 
     if (!llmId) {
@@ -94,7 +95,7 @@ export class AgentService {
     workflowStepId?: number;
     setupAIConfiguration: () => Promise<{ llmId: string; agentId: string }>;
   }) {
-    const agentName = _name || `Agent - ${userId} ${Math.random().toString(36).substring(2, 15)}`;
+    const agentName = _name || `Agent - ${userId} ${uuidv4()}`;
 
     if (teamId) {
       const canManage = await this.agentRepository.canManageTeamResources({
@@ -127,7 +128,7 @@ export class AgentService {
 
     return {
       id: agent.id,
-      retellAgentId: agent.retellAgentId,
+      providerAgentId: agent.providerAgentId,
       message: "Agent created successfully",
     };
   }
@@ -170,7 +171,7 @@ export class AgentService {
       voiceId !== undefined;
 
     if (hasRetellUpdates) {
-      const retellAgent = await this.getAgent(agent.retellAgentId);
+      const retellAgent = await this.getAgent(agent.providerAgentId);
       const llmId = getLlmId(retellAgent);
 
       if (
@@ -186,7 +187,7 @@ export class AgentService {
       }
 
       if (voiceId) {
-        await this.updateAgent(agent.retellAgentId, {
+        await this.updateAgent(agent.providerAgentId, {
           voice_id: voiceId,
         });
       }
@@ -195,14 +196,14 @@ export class AgentService {
     return { message: "Agent updated successfully" };
   }
 
-  async deleteAgent({ 
-    id, 
-    userId, 
+  async deleteAgent({
+    id,
+    userId,
     teamId,
-    deleteAIConfiguration 
-  }: { 
-    id: string; 
-    userId: number; 
+    deleteAIConfiguration
+  }: {
+    id: string;
+    userId: number;
     teamId?: number;
     deleteAIConfiguration: (config: { agentId: string; llmId?: string }) => Promise<void>;
   }) {
@@ -220,11 +221,11 @@ export class AgentService {
     }
 
     try {
-      const retellAgent = await this.getAgent(agent.retellAgentId);
+      const retellAgent = await this.getAgent(agent.providerAgentId);
       const llmId = getLlmId(retellAgent);
 
       await deleteAIConfiguration({
-        agentId: agent.retellAgentId,
+        agentId: agent.providerAgentId,
         llmId: llmId || undefined,
       });
     } catch (error) {

@@ -5,39 +5,18 @@ import { RetellAIPhoneServiceProviderFactory } from "./providers/retellAI";
 /**
  * Initialize the AI Phone Service Registry
  * This function should be called during application startup
- * 
- * The configuration can be customized based on environment variables or
- * application configuration to support different deployment scenarios
  */
 export function initializeAIPhoneServiceRegistry(): void {
-  // Determine default provider from environment or use a sensible default
-  const defaultProvider = process.env.DEFAULT_AI_PHONE_PROVIDER || AIPhoneServiceProviderType.RETELL_AI;
+  // Use Retell AI as the default provider
+  const defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
 
-  // Get enabled providers from environment (comma-separated list)
-  // Example: ENABLED_AI_PHONE_PROVIDERS=retellAI,twilioAI,vonageAI
-  const enabledProvidersEnv = process.env.ENABLED_AI_PHONE_PROVIDERS;
-  const enabledProviders = enabledProvidersEnv 
-    ? enabledProvidersEnv.split(',').map(p => p.trim())
-    : [AIPhoneServiceProviderType.RETELL_AI]; // Default to RetellAI if not specified
-
-  // Build providers configuration
-  const providers = [];
-
-  // Only register providers that are explicitly enabled
-  if (enabledProviders.includes(AIPhoneServiceProviderType.RETELL_AI)) {
-    providers.push({
+  // Build providers configuration - only Retell AI for now
+  const providers = [
+    {
       type: AIPhoneServiceProviderType.RETELL_AI,
       factory: new RetellAIPhoneServiceProviderFactory(),
-    });
-  }
-
-  // Add more providers here as they are implemented
-  // if (enabledProviders.includes(AIPhoneServiceProviderType.TWILIO_AI)) {
-  //   providers.push({
-  //     type: AIPhoneServiceProviderType.TWILIO_AI,
-  //     factory: new TwilioAIProviderFactory(),
-  //   });
-  // }
+    },
+  ];
 
   // Initialize the registry
   AIPhoneServiceRegistry.initialize({

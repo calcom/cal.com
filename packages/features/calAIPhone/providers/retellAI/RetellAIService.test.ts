@@ -748,7 +748,7 @@ describe("RetellAIService", () => {
         {
           id: "1",
           name: "Agent 1",
-          retellAgentId: "retell-1",
+          providerAgentId: "retell-1",
           enabled: true,
           userId: 1,
           teamId: null,
@@ -784,7 +784,7 @@ describe("RetellAIService", () => {
       mockAgentRepository.create.mockResolvedValue({
         id: "db-agent-123",
         name: "Test Agent",
-        retellAgentId: "agent-123",
+        providerAgentId: "agent-123",
         enabled: true,
         userId: 1,
         teamId: null,
@@ -800,7 +800,7 @@ describe("RetellAIService", () => {
 
       expect(result).toEqual({
         id: "db-agent-123",
-        retellAgentId: "agent-123",
+        providerAgentId: "agent-123",
         message: "Agent created successfully",
       });
     });
@@ -811,7 +811,7 @@ describe("RetellAIService", () => {
       mockAgentRepository.findByIdWithAdminAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",
-        retellAgentId: "agent-123",
+        providerAgentId: "agent-123",
         enabled: true,
         userId: 1,
         teamId: null,
@@ -851,7 +851,7 @@ describe("RetellAIService", () => {
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",
-        retellAgentId: "agent-123",
+        providerAgentId: "agent-123",
         enabled: true,
         userId: 1,
         teamId: null,
@@ -1000,7 +1000,7 @@ describe("RetellAIService", () => {
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",
-        retellAgentId: "agent-123",
+        providerAgentId: "agent-123",
         enabled: true,
         userId: 1,
         teamId: null,

@@ -21,10 +21,10 @@ export interface AgentRepositoryInterface {
   }): Promise<AgentData | null>;
 
   /**
-   * Find agent by Retell agent ID with user access validation
+   * Find agent by provider agent ID with user access validation
    */
-  findByRetellAgentIdWithUserAccess(params: {
-    retellAgentId: string;
+  findByProviderAgentIdWithUserAccess(params: {
+    providerAgentId: string;
     userId: number;
   }): Promise<AgentData | null>;
 
@@ -51,7 +51,7 @@ export interface AgentRepositoryInterface {
    */
   create(params: {
     name: string;
-    retellAgentId: string;
+    providerAgentId: string;
     userId: number;
     teamId?: number;
   }): Promise<AgentData>;
@@ -93,7 +93,7 @@ export interface AgentRepositoryInterface {
 export interface AgentData {
   id: string;
   name: string;
-  retellAgentId: string;
+  providerAgentId: string;
   enabled: boolean;
   userId: number;
   teamId: number | null;

@@ -25,11 +25,11 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
     return await PrismaAgentRepository.findByIdWithUserAccess(params);
   }
 
-  async findByRetellAgentIdWithUserAccess(params: {
-    retellAgentId: string;
+  async findByProviderAgentIdWithUserAccess(params: {
+    providerAgentId: string;
     userId: number;
   }): Promise<AgentData | null> {
-    return await PrismaAgentRepository.findByRetellAgentIdWithUserAccess(params);
+    return await PrismaAgentRepository.findByProviderAgentIdWithUserAccess(params);
   }
 
   async findManyWithUserAccess(params: {
@@ -50,7 +50,7 @@ export class PrismaAgentRepositoryAdapter implements AgentRepositoryInterface {
 
   async create(params: {
     name: string;
-    retellAgentId: string;
+    providerAgentId: string;
     userId: number;
     teamId?: number;
   }): Promise<AgentData> {

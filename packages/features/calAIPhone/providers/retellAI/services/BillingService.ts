@@ -2,6 +2,7 @@ import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/l
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -10,6 +11,8 @@ import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumbe
 import type { RetellAIRepository } from "../types";
 
 export class BillingService {
+  private logger = logger.getSubLogger({ prefix: ["BillingService"] });
+
   constructor(
     private phoneNumberRepository: PhoneNumberRepositoryInterface,
     private retellRepository: RetellAIRepository
@@ -138,15 +141,14 @@ export class BillingService {
       try {
         await this.retellRepository.deletePhoneNumber(phoneNumber.phoneNumber);
       } catch (error) {
-        console.error(
-          "Failed to delete phone number from AI service, but subscription was cancelled:",
-          error
-        );
+        this.logger.error("Failed to delete phone number from AI service, but subscription was cancelled:", {
+          error,
+        });
       }
 
       return { success: true, message: "Phone number subscription cancelled successfully." };
     } catch (error) {
-      console.error("Error cancelling phone number subscription:", error);
+      this.logger.error("Error cancelling phone number subscription:", { error });
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to cancel subscription. Please try again or contact support.",

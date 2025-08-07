@@ -71,8 +71,8 @@ export interface PhoneNumberRepositoryInterface {
    */
   updateAgents(params: {
     id: number;
-    inboundRetellAgentId?: string | null;
-    outboundRetellAgentId?: string | null;
+    inboundProviderAgentId?: string | null;
+    outboundProviderAgentId?: string | null;
   }): Promise<void>;
 }
 

@@ -100,10 +100,16 @@ export class PhoneNumberService {
     }
 
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-      throw new Error("Phone number is still active");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is still active",
+      });
     }
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.CANCELLED) {
-      throw new Error("Phone number is already cancelled");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is already cancelled",
+      });
     }
 
     try {
@@ -115,11 +121,11 @@ export class PhoneNumberService {
       console.error("Failed to remove agents from phone number in Retell:", error);
     }
 
+    await this.retellRepository.deletePhoneNumber(phoneNumber);
+
     if (deleteFromDB) {
       await this.phoneNumberRepository.deletePhoneNumber({ phoneNumber });
     }
-
-    await this.retellRepository.deletePhoneNumber(phoneNumber);
   }
 
   async getPhoneNumber(phoneNumber: string): Promise<RetellPhoneNumber> {
@@ -185,8 +191,8 @@ export class PhoneNumberService {
 
     await this.phoneNumberRepository.updateAgents({
       id: phoneNumberRecord.id,
-      inboundRetellAgentId: inboundAgentId,
-      outboundRetellAgentId: outboundAgentId,
+      inboundProviderAgentId: inboundAgentId,
+      outboundProviderAgentId: outboundAgentId,
     });
 
     return { message: "Phone number updated successfully" };
@@ -226,9 +232,9 @@ export class PhoneNumberService {
   }
 
   private async validateAgentAccess(
-    userId: number, 
-    teamId: number | undefined, 
-    agentId: string | null | undefined, 
+    userId: number,
+    teamId: number | undefined,
+    agentId: string | null | undefined,
     type: "inbound" | "outbound"
   ) {
     if (agentId) {
@@ -269,7 +275,7 @@ export class PhoneNumberService {
         console.info(`Successfully cleaned up Retell phone number ${transactionState.retellPhoneNumber.phone_number}`);
       } catch (cleanupError) {
         const compensationFailureMessage = `CRITICAL: Failed to cleanup Retell phone number ${transactionState.retellPhoneNumber.phone_number} after transaction failure. This will cause billing leaks. Original error: ${(error as Error).message}. Cleanup error: ${(cleanupError as Error).message}`;
-        
+
         console.error('🚨 BILLING LEAK ALERT 🚨', {
           phoneNumber: transactionState.retellPhoneNumber.phone_number,
           userId: context.userId,

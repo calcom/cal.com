@@ -146,7 +146,7 @@ export class RetellAIServiceMapper {
     return {
       id: agent.id,
       name: agent.name,
-      retellAgentId: agent.retellAgentId,
+      providerAgentId: agent.providerAgentId,
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,
@@ -169,7 +169,7 @@ export class RetellAIServiceMapper {
     return {
       id: agent.id,
       name: agent.name,
-      retellAgentId: agent.retellAgentId,
+      providerAgentId: agent.providerAgentId,
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,

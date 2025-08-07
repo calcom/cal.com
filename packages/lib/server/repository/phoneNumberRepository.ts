@@ -85,7 +85,7 @@ export class PrismaPhoneNumberRepository {
         SELECT
           a.id,
           a.name,
-          a."retellAgentId",
+          a."providerAgentId",
           pn.id as "phoneNumberId",
           CASE
             WHEN pn."inboundAgentId" = a.id THEN 'inbound'
@@ -106,7 +106,7 @@ export class PrismaPhoneNumberRepository {
       const agentData = {
         id: agent.id,
         name: agent.name,
-        retellAgentId: agent.retellAgentId,
+        providerAgentId: agent.providerAgentId,
       };
 
       if (agent.agentType === "inbound") {
@@ -341,7 +341,7 @@ export class PrismaPhoneNumberRepository {
         SELECT
           a.id,
           a.name,
-          a."retellAgentId",
+          a."providerAgentId",
           pn.id as "phoneNumberId",
           CASE
             WHEN pn."inboundAgentId" = a.id THEN 'inbound'
@@ -362,7 +362,7 @@ export class PrismaPhoneNumberRepository {
       const agentData = {
         id: agent.id,
         name: agent.name,
-        retellAgentId: agent.retellAgentId,
+        providerAgentId: agent.providerAgentId,
       };
 
       if (agent.agentType === "inbound") {
@@ -419,20 +419,23 @@ export class PrismaPhoneNumberRepository {
 
   static async updateAgents({
     id,
-    inboundRetellAgentId,
-    outboundRetellAgentId,
+    inboundProviderAgentId,
+    outboundProviderAgentId,
   }: {
     id: number;
-    inboundRetellAgentId?: string | null;
-    outboundRetellAgentId?: string | null;
+    inboundProviderAgentId?: string | null;
+    outboundProviderAgentId?: string | null;
   }) {
     const updateData: Prisma.CalAiPhoneNumberUpdateInput = {};
 
-    if (inboundRetellAgentId !== undefined) {
-      if (inboundRetellAgentId) {
+    if (inboundProviderAgentId !== undefined) {
+      if (inboundProviderAgentId) {
         const agent = await prisma.agent.findFirst({
+          select: {
+            id: true,
+          },
           where: {
-            retellAgentId: inboundRetellAgentId,
+            providerAgentId: inboundProviderAgentId,
           },
         });
 
@@ -448,11 +451,11 @@ export class PrismaPhoneNumberRepository {
       }
     }
 
-    if (outboundRetellAgentId !== undefined) {
-      if (outboundRetellAgentId) {
+    if (outboundProviderAgentId !== undefined) {
+      if (outboundProviderAgentId) {
         const agent = await prisma.agent.findFirst({
           where: {
-            retellAgentId: outboundRetellAgentId,
+            providerAgentId: outboundProviderAgentId,
           },
         });
 

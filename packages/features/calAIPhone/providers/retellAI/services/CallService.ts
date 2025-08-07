@@ -101,9 +101,10 @@ export class CallService {
     const availableCredits = (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
 
     if (availableCredits < MIN_CREDIT_REQUIRED_FOR_TEST_CALL) {
-      throw new Error(
-        `Insufficient credits to make test call. Need ${MIN_CREDIT_REQUIRED_FOR_TEST_CALL} credits, have ${availableCredits}. Please purchase more credits.`
-      );
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `Insufficient credits to make test call. Need ${MIN_CREDIT_REQUIRED_FOR_TEST_CALL} credits, have ${availableCredits}. Please purchase more credits.`,
+      });
     }
   }
 }

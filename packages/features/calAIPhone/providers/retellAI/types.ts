@@ -93,7 +93,7 @@ export type Agent = NonNullable<Awaited<ReturnType<typeof PrismaAgentRepository.
 export type RetellAgentWithDetails = {
   id: string;
   name: string;
-  retellAgentId: string;
+  providerAgentId: string;
   enabled: boolean;
   userId: number;
   teamId: number | null;

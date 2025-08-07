@@ -1,5 +1,6 @@
 
 import type { RetellAIPhoneServiceProviderTypeMap } from "../providers/retellAI";
+import type { Logger } from "tslog";
 
 /**
  * Enum for supported AI phone service providers
@@ -109,7 +110,7 @@ export type AIPhoneServiceImportPhoneNumberParamsExtended<T extends AIPhoneServi
 export interface AIPhoneServiceAgentListItem {
   id: string;
   name: string;
-  retellAgentId: string;
+  providerAgentId: string;
   enabled: boolean;
   userId: number;
   teamId: number | null;
@@ -319,7 +320,7 @@ export interface AIPhoneServiceProviderConfig {
   apiKey?: string;
   baseUrl?: string;
   enableLogging?: boolean;
-  logger?: any; // Logger instance
+  logger?: Logger<unknown>;
 }
 
 /**

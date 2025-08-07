@@ -63,7 +63,7 @@ vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
   PrismaAgentRepositoryAdapter: vi.fn().mockImplementation(() => ({
     canManageTeamResources: vi.fn(),
     findByIdWithUserAccess: vi.fn(),
-    findByRetellAgentIdWithUserAccess: vi.fn(),
+    findByProviderAgentIdWithUserAccess: vi.fn(),
     findManyWithUserAccess: vi.fn(),
     findByIdWithUserAccessAndDetails: vi.fn(),
     create: vi.fn(),

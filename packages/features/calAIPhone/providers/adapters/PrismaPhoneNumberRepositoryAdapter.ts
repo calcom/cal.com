@@ -1,10 +1,11 @@
+import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import prisma from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+
 import type {
   PhoneNumberRepositoryInterface,
   PhoneNumberData,
 } from "../interfaces/PhoneNumberRepositoryInterface";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-import prisma from "@calcom/prisma";
 
 /**
  * Adapter that bridges the provider interface to the Prisma implementation
@@ -15,12 +16,7 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     phoneNumber: string;
     userId: number;
   }): Promise<PhoneNumberData | null> {
-    try {
-      return await PrismaPhoneNumberRepository.findByPhoneNumberAndUserId(params);
-    } catch (error) {
-      // Return null if not found instead of throwing
-      return null;
-    }
+    return await PrismaPhoneNumberRepository.findByPhoneNumberAndUserId(params);
   }
 
   async findByPhoneNumberAndTeamId(params: {
@@ -31,10 +27,7 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     return await PrismaPhoneNumberRepository.findByPhoneNumberAndTeamId(params);
   }
 
-  async findByIdAndUserId(params: {
-    id: number;
-    userId: number;
-  }): Promise<PhoneNumberData | null> {
+  async findByIdAndUserId(params: { id: number; userId: number }): Promise<PhoneNumberData | null> {
     return await PrismaPhoneNumberRepository.findByIdAndUserId(params);
   }
 
@@ -53,24 +46,14 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     teamId?: number;
     outboundAgentId?: string | null;
   }): Promise<PhoneNumberData> {
-    // Map the interface to the actual implementation parameters
     const createParams = {
       phoneNumber: params.phoneNumber,
       provider: params.provider,
       userId: params.userId,
       teamId: params.teamId,
     };
-    
-    const result = await PrismaPhoneNumberRepository.createPhoneNumber(createParams);
-    
-    // Transform the result to match the interface
-    return {
-      ...result,
-      stripeCustomerId: null,
-      stripeSubscriptionId: null,
-      inboundAgentId: null,
-      outboundAgentId: params.outboundAgentId || null,
-    };
+
+    return await PrismaPhoneNumberRepository.createPhoneNumber(createParams);
   }
 
   async deletePhoneNumber(params: { phoneNumber: string }): Promise<void> {
@@ -87,10 +70,13 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
 
   async updateAgents(params: {
     id: number;
-    inboundRetellAgentId?: string | null;
-    outboundRetellAgentId?: string | null;
+    inboundProviderAgentId?: string | null;
+    outboundProviderAgentId?: string | null;
   }): Promise<void> {
-    await PrismaPhoneNumberRepository.updateAgents(params);
+    await PrismaPhoneNumberRepository.updateAgents({
+      id: params.id,
+      inboundProviderAgentId: params.inboundProviderAgentId,
+      outboundProviderAgentId: params.outboundProviderAgentId,
+    });
   }
-
 }

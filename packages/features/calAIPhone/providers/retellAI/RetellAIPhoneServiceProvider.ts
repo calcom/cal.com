@@ -212,7 +212,7 @@ export class RetellAIPhoneServiceProvider implements AIPhoneServiceProvider<AIPh
     const result = await this.service.createAgent(params);
     return {
       id: result.id,
-      providerAgentId: result.retellAgentId,
+      providerAgentId: result.providerAgentId,
       message: result.message,
     };
   }

@@ -245,8 +245,8 @@ describe("PhoneNumberService", () => {
       expect(result.message).toBe("Phone number updated successfully");
       expect(mocks.mockPhoneNumberRepository.updateAgents).toHaveBeenCalledWith({
         id: 1,
-        inboundRetellAgentId: "inbound-agent-123",
-        outboundRetellAgentId: "outbound-agent-123",
+        inboundProviderAgentId: "inbound-agent-123",
+        outboundProviderAgentId: "outbound-agent-123",
       });
     });
 

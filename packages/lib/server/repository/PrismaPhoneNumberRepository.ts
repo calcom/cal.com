@@ -419,20 +419,20 @@ export class PrismaPhoneNumberRepository {
 
   static async updateAgents({
     id,
-    inboundRetellAgentId,
-    outboundRetellAgentId,
+    inboundProviderAgentId,
+    outboundProviderAgentId,
   }: {
     id: number;
-    inboundRetellAgentId?: string | null;
-    outboundRetellAgentId?: string | null;
+    inboundProviderAgentId?: string | null;
+    outboundProviderAgentId?: string | null;
   }) {
     const updateData: Prisma.CalAiPhoneNumberUpdateInput = {};
 
-    if (inboundRetellAgentId !== undefined) {
-      if (inboundRetellAgentId) {
+    if (inboundProviderAgentId !== undefined) {
+      if (inboundProviderAgentId) {
         const agent = await prisma.agent.findFirst({
           where: {
-            providerAgentId: inboundRetellAgentId,
+            providerAgentId: inboundProviderAgentId,
           },
         });
 
@@ -448,11 +448,11 @@ export class PrismaPhoneNumberRepository {
       }
     }
 
-    if (outboundRetellAgentId !== undefined) {
-      if (outboundRetellAgentId) {
+    if (outboundProviderAgentId !== undefined) {
+      if (outboundProviderAgentId) {
         const agent = await prisma.agent.findFirst({
           where: {
-            providerAgentId: outboundRetellAgentId,
+            providerAgentId: outboundProviderAgentId,
           },
         });
 
