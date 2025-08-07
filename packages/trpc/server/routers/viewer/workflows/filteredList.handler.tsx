@@ -66,8 +66,10 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
   // Add permissions to each workflow
   const workflowsWithPermissions = await addPermissionsToWorkflows(result.filtered, ctx.user.id);
 
+  const filteredWorkflows = workflowsWithPermissions.filter((workflow) => workflow.permissions.canView);
+
   return {
     ...result,
-    filtered: workflowsWithPermissions,
+    filtered: filteredWorkflows,
   };
 };
