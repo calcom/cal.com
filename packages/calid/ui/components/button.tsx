@@ -107,10 +107,12 @@ export const buttonClasses = cva(
 
         destructive: [
           // Base colors
-          "text-destructive",
+          "border",
+          "border-default",
           // Hover state
           "dark:hover:text-red-600",
           "hover:border-semantic-error",
+          "hover:text-destructive",
           "hover:bg-error",
           // Focus state
           "focus-visible:text-red-700",

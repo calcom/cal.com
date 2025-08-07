@@ -46,7 +46,9 @@ export default function DisconnectIntegrationModal({
         </DialogHeader>
 
         <DialogFooter className="mt-6">
-          <Button onClick={handleModelClose}>{t("cancel")}</Button>
+          <Button color="minimal" onClick={handleModelClose}>
+            {t("cancel")}
+          </Button>
 
           <Button
             color="destructive"

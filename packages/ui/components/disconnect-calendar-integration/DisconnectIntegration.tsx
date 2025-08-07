@@ -58,7 +58,7 @@ export const DisconnectIntegrationComponent = ({
             <Button onClick={onDeletionConfirmation} color="destructive">
               {t("yes_remove_app")}
             </Button>
-            <Button variant="button">{t("close")}</Button>
+            <Button color="secondary">{t("close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
