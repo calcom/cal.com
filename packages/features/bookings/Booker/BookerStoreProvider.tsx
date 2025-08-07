@@ -21,12 +21,15 @@ export const BookerStoreProvider = ({ children }: BookerStoreProviderProps) => {
   return <BookerStoreContext.Provider value={storeRef.current}>{children}</BookerStoreContext.Provider>;
 };
 
-export const useBookerStoreContext = <T,>(selector: (store: BookerStore) => T): T => {
+export const useBookerStoreContext = <T,>(
+  selector: (store: BookerStore) => T,
+  equalityFn?: (a: T, b: T) => boolean
+): T => {
   const bookerStoreContext = useContext(BookerStoreContext);
 
   if (!bookerStoreContext) {
     throw new Error("useBookerStoreContext must be used within BookerStoreProvider");
   }
 
-  return useStore(bookerStoreContext, selector);
+  return useStore(bookerStoreContext, selector, equalityFn);
 };
