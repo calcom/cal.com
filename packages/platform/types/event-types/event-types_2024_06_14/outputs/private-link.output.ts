@@ -1,12 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-export class PrivateLinkOutput_2024_06_14 {
+// Base class with common properties
+abstract class BasePrivateLinkOutput_2024_06_14 {
   @ApiProperty({
     description: "The private link ID",
     type: String,
     example: "abc123def456",
   })
-  id!: string;
+  linkId!: string;
 
   @ApiProperty({
     description: "The private link hash",
@@ -14,27 +15,6 @@ export class PrivateLinkOutput_2024_06_14 {
     example: "abc123def456",
   })
   link!: string;
-
-  @ApiPropertyOptional({
-    description: "Expiration date for time-based links",
-    type: Date,
-    example: "2024-12-31T23:59:59.000Z",
-  })
-  expiresAt?: Date | null;
-
-  @ApiPropertyOptional({
-    description: "Maximum number of times the link can be used. Only present for usage-based links (not time-based expiration links)",
-    type: Number,
-    example: 10,
-  })
-  maxUsageCount?: number | null;
-
-  @ApiPropertyOptional({
-    description: "Current usage count. Only present for usage-based links (not time-based expiration links)",
-    type: Number,
-    example: 3,
-  })
-  usageCount?: number;
 
   @ApiProperty({
     description: "Event type ID this link belongs to",
@@ -58,6 +38,36 @@ export class PrivateLinkOutput_2024_06_14 {
   bookingUrl!: string;
 }
 
+// Time-based private link (expires at a specific date)
+export class TimeBasedPrivateLinkOutput_2024_06_14 extends BasePrivateLinkOutput_2024_06_14 {
+  @ApiProperty({
+    description: "Expiration date for this time-based link",
+    type: Date,
+    example: "2024-12-31T23:59:59.000Z",
+  })
+  expiresAt!: Date;
+}
+
+// Usage-based private link (expires after N uses)
+export class UsageBasedPrivateLinkOutput_2024_06_14 extends BasePrivateLinkOutput_2024_06_14 {
+  @ApiProperty({
+    description: "Maximum number of times this link can be used",
+    type: Number,
+    example: 10,
+  })
+  maxUsageCount!: number;
+
+  @ApiProperty({
+    description: "Current usage count for this link",
+    type: Number,
+    example: 3,
+  })
+  usageCount!: number;
+}
+
+// Union type for either time-based or usage-based links
+export type PrivateLinkOutput_2024_06_14 = TimeBasedPrivateLinkOutput_2024_06_14 | UsageBasedPrivateLinkOutput_2024_06_14;
+
 export class CreatePrivateLinkOutput_2024_06_14 {
   @ApiProperty({
     description: "Response status",
@@ -66,8 +76,11 @@ export class CreatePrivateLinkOutput_2024_06_14 {
   status!: string;
 
   @ApiProperty({
-    description: "Created private link data",
-    type: PrivateLinkOutput_2024_06_14,
+    description: "Created private link data (either time-based or usage-based)",
+    oneOf: [
+      { $ref: "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14" },
+      { $ref: "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14" },
+    ],
   })
   data!: PrivateLinkOutput_2024_06_14;
 }
@@ -80,8 +93,14 @@ export class GetPrivateLinksOutput_2024_06_14 {
   status!: string;
 
   @ApiProperty({
-    description: "Array of private links for the event type",
-    type: [PrivateLinkOutput_2024_06_14],
+    description: "Array of private links for the event type (mix of time-based and usage-based)",
+    type: "array",
+    items: {
+      oneOf: [
+        { $ref: "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14" },
+        { $ref: "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14" },
+      ],
+    },
   })
   data!: PrivateLinkOutput_2024_06_14[];
 }
@@ -94,8 +113,11 @@ export class UpdatePrivateLinkOutput_2024_06_14 {
   status!: string;
 
   @ApiProperty({
-    description: "Updated private link data",
-    type: PrivateLinkOutput_2024_06_14,
+    description: "Updated private link data (either time-based or usage-based)",
+    oneOf: [
+      { $ref: "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14" },
+      { $ref: "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14" },
+    ],
   })
   data!: PrivateLinkOutput_2024_06_14;
 }

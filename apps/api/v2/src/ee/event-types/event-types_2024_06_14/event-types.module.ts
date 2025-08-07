@@ -1,12 +1,15 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types.controller";
+import { EventTypesPrivateLinksController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types-private-links.controller";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { PrivateLinksService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/private-links.service";
+import { PrivateLinksInputService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/private-links-input.service";
+import { PrivateLinksOutputService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/private-links-output.service";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -26,6 +29,8 @@ import { Module } from "@nestjs/common";
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
     PrivateLinksService_2024_06_14,
+    PrivateLinksInputService_2024_06_14,
+    PrivateLinksOutputService_2024_06_14,
     UsersRepository,
     UsersService,
     SchedulesRepository_2024_06_11,
@@ -35,7 +40,7 @@ import { Module } from "@nestjs/common";
     AppsRepository,
     CalendarsRepository,
   ],
-  controllers: [EventTypesController_2024_06_14],
+  controllers: [EventTypesController_2024_06_14, EventTypesPrivateLinksController_2024_06_14],
   exports: [
     EventTypesService_2024_06_14,
     EventTypesRepository_2024_06_14,

@@ -2,6 +2,10 @@ import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { isLinkExpired as utilsIsLinkExpired } from "@calcom/lib/hashedLinksUtils";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
+import type { 
+  CreatePrivateLinkInput_2024_06_14,
+  UpdatePrivateLinkInput_2024_06_14
+} from "@calcom/platform-types";
 
 export type PrivateLinkData = {
   id: string | number;
@@ -14,30 +18,13 @@ export type PrivateLinkData = {
   bookingUrl: string;
 };
 
-export type CreatePrivateLinkInput = {
-  expiresAt?: Date | null;
-  maxUsageCount?: number | null;
-};
 
-export type UpdatePrivateLinkInput = {
-  linkId: string;
-  expiresAt?: Date | null;
-  maxUsageCount?: number | null;
-};
-
-export type BulkUpdatePrivateLinkInput = {
-  privateLinks: Array<{
-    link: string;
-    expiresAt?: Date | null;
-    maxUsageCount?: number | null;
-  }>;
-};
 
 /**
- * Platform library service for managing private links
+ * Internal service for managing private links
  * This wraps the existing HashedLinkService and HashedLinkRepository
  */
-export class PlatformPrivateLinksService {
+class PlatformPrivateLinksService {
   private readonly hashedLinkService: HashedLinkService;
   private readonly hashedLinkRepository: HashedLinkRepository;
 
@@ -49,7 +36,7 @@ export class PlatformPrivateLinksService {
   async createPrivateLink(
     eventTypeId: number,
     userId: number,
-    input: CreatePrivateLinkInput
+    input: CreatePrivateLinkInput_2024_06_14
   ): Promise<PrivateLinkData> {
     // Generate a new hashed link ID
     const linkId = generateHashedLink(userId);
@@ -76,7 +63,7 @@ export class PlatformPrivateLinksService {
   async updatePrivateLink(
     eventTypeId: number,
     userId: number,
-    input: UpdatePrivateLinkInput
+    input: UpdatePrivateLinkInput_2024_06_14
   ): Promise<PrivateLinkData> {
     // First verify that the user has permission to update this link
     await this.checkUserPermission(eventTypeId, userId);
@@ -120,34 +107,7 @@ export class PlatformPrivateLinksService {
     await this.hashedLinkRepository.deleteLinks(eventTypeId, [linkId]);
   }
 
-  async bulkUpdatePrivateLinks(
-    eventTypeId: number,
-    userId: number,
-    input: BulkUpdatePrivateLinkInput
-  ): Promise<PrivateLinkData[]> {
-    // First verify that the user has permission
-    await this.checkUserPermission(eventTypeId, userId);
 
-    // Get existing links for this event type
-    const existingLinks = await this.hashedLinkRepository.findLinksByEventTypeId(eventTypeId);
-    const existingLinkIds = existingLinks.map((link) => link.link);
-
-    // Use the HashedLinkService to handle the bulk operation
-    const normalizedLinks = input.privateLinks.map((linkData) => ({
-      link: linkData.link,
-      expiresAt: linkData.expiresAt || null,
-      maxUsageCount: linkData.maxUsageCount || null,
-    }));
-
-    await this.hashedLinkService.handleMultiplePrivateLinks({
-      eventTypeId,
-      multiplePrivateLinks: normalizedLinks,
-      connectedMultiplePrivateLinks: existingLinkIds,
-    });
-
-    // Return the updated links
-    return this.getPrivateLinks(eventTypeId, userId);
-  }
 
   private async checkUserPermission(eventTypeId: number, userId: number): Promise<void> {
     // This is a simplified check - in a real implementation, you might want to
@@ -197,18 +157,24 @@ export class PlatformPrivateLinksService {
   }
 }
 
-// Export the service instance
-export const platformPrivateLinksService = new PlatformPrivateLinksService();
+// Internal service instance (not exported)
+const platformPrivateLinksService = new PlatformPrivateLinksService();
 
 // Export individual functions for convenience
-export const createPrivateLink = (eventTypeId: number, userId: number, input: CreatePrivateLinkInput) =>
-  platformPrivateLinksService.createPrivateLink(eventTypeId, userId, input);
+export const createPrivateLink = (
+  eventTypeId: number, 
+  userId: number, 
+  input: CreatePrivateLinkInput_2024_06_14
+) => platformPrivateLinksService.createPrivateLink(eventTypeId, userId, input);
 
 export const getPrivateLinks = (eventTypeId: number, userId: number) =>
   platformPrivateLinksService.getPrivateLinks(eventTypeId, userId);
 
-export const updatePrivateLink = (eventTypeId: number, userId: number, input: UpdatePrivateLinkInput) =>
-  platformPrivateLinksService.updatePrivateLink(eventTypeId, userId, input);
+export const updatePrivateLink = (
+  eventTypeId: number, 
+  userId: number, 
+  input: UpdatePrivateLinkInput_2024_06_14
+) => platformPrivateLinksService.updatePrivateLink(eventTypeId, userId, input);
 
 export const deletePrivateLink = (eventTypeId: number, userId: number, linkId: string) =>
   platformPrivateLinksService.deletePrivateLink(eventTypeId, userId, linkId);

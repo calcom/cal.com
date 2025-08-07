@@ -5,9 +5,6 @@ import {
   getPrivateLinks,
   updatePrivateLink,
   deletePrivateLink,
-  type PrivateLinkData,
-  type CreatePrivateLinkInput,
-  type UpdatePrivateLinkInput,
 } from "@calcom/platform-libraries/private-links";
 import {
   CreatePrivateLinkInput_2024_06_14,
@@ -15,49 +12,15 @@ import {
   PrivateLinkOutput_2024_06_14,
 } from "@calcom/platform-types";
 
+import { PrivateLinksInputService_2024_06_14 } from "./private-links-input.service";
+import { PrivateLinksOutputService_2024_06_14 } from "./private-links-output.service";
+
 @Injectable()
 export class PrivateLinksService_2024_06_14 {
-  constructor() {}
-
-  /**
-   * Transform platform library input to API v2 input
-   */
-  private transformInputToLibrary(input: CreatePrivateLinkInput_2024_06_14): CreatePrivateLinkInput {
-    return {
-      expiresAt: input.expiresAt,
-      maxUsageCount: input.maxUsageCount,
-    };
-  }
-
-  /**
-   * Transform platform library output to API v2 output
-   */
-  private transformOutputFromLibrary(data: PrivateLinkData): PrivateLinkOutput_2024_06_14 {
-    const result: PrivateLinkOutput_2024_06_14 = {
-      id: data.id.toString(),
-      link: data.link,
-      eventTypeId: data.eventTypeId,
-      isExpired: data.isExpired,
-      bookingUrl: data.bookingUrl,
-    };
-
-    // Only include expiresAt if it has a value
-    if (data.expiresAt !== null && data.expiresAt !== undefined) {
-      result.expiresAt = data.expiresAt;
-    }
-
-    // Only include maxUsageCount and usageCount if this is not a time-based expiration link
-    if (!data.expiresAt) {
-      if (data.maxUsageCount !== null && data.maxUsageCount !== undefined) {
-        result.maxUsageCount = data.maxUsageCount;
-      }
-      if (data.usageCount !== null && data.usageCount !== undefined) {
-        result.usageCount = data.usageCount;
-      }
-    }
-
-    return result;
-  }
+  constructor(
+    private readonly inputService: PrivateLinksInputService_2024_06_14,
+    private readonly outputService: PrivateLinksOutputService_2024_06_14
+  ) {}
 
   async createPrivateLink(
     eventTypeId: number,
@@ -65,9 +28,9 @@ export class PrivateLinksService_2024_06_14 {
     input: CreatePrivateLinkInput_2024_06_14
   ): Promise<PrivateLinkOutput_2024_06_14> {
     try {
-      const libraryInput = this.transformInputToLibrary(input);
-      const result = await createPrivateLink(eventTypeId, userId, libraryInput);
-      return this.transformOutputFromLibrary(result);
+      const transformedInput = this.inputService.transformCreateInput(input);
+      const result = await createPrivateLink(eventTypeId, userId, transformedInput);
+      return this.outputService.transformToOutput(result);
     } catch (error) {
       if (error instanceof Error) {
         throw new BadRequestException(error.message);
@@ -79,7 +42,7 @@ export class PrivateLinksService_2024_06_14 {
   async getPrivateLinks(eventTypeId: number, userId: number): Promise<PrivateLinkOutput_2024_06_14[]> {
     try {
       const results = await getPrivateLinks(eventTypeId, userId);
-      return results.map((result) => this.transformOutputFromLibrary(result));
+      return this.outputService.transformArrayToOutput(results);
     } catch (error) {
       if (error instanceof Error) {
         throw new BadRequestException(error.message);
@@ -94,13 +57,9 @@ export class PrivateLinksService_2024_06_14 {
     input: UpdatePrivateLinkInput_2024_06_14
   ): Promise<PrivateLinkOutput_2024_06_14> {
     try {
-      const libraryInput: UpdatePrivateLinkInput = {
-        linkId: input.linkId,
-        expiresAt: input.expiresAt,
-        maxUsageCount: input.maxUsageCount,
-      };
-      const result = await updatePrivateLink(eventTypeId, userId, libraryInput);
-      return this.transformOutputFromLibrary(result);
+      const transformedInput = this.inputService.transformUpdateInput(input);
+      const result = await updatePrivateLink(eventTypeId, userId, transformedInput);
+      return this.outputService.transformToOutput(result);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("not found")) {
