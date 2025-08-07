@@ -146,7 +146,7 @@ export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: Timezone[];
-  roundRobinHideOrgAndTeam: false;
+  roundRobinHideOrgAndTeam?: boolean;
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
