@@ -7,6 +7,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
+import { prisma } from "@calcom/prisma";
 
 import { sanitizeDisplayName } from "../lib/sanitizeDisplayName";
 
@@ -29,7 +30,7 @@ export default class BaseEmail {
     return {};
   }
   public async sendEmail() {
-    const featuresRepository = new FeaturesRepository();
+    const featuresRepository = new FeaturesRepository(prisma);
     const emailsDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("emails");
     /** If email kill switch exists and is active, we prevent emails being sent. */
     if (emailsDisabled) {
