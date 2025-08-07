@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import type { Prisma, User } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 type Booking = Prisma.BookingGetPayload<{
   include: {
@@ -15,7 +16,7 @@ type Booking = Prisma.BookingGetPayload<{
 }>;
 
 export function getiCalEventAsString(
-  booking: Pick<Booking, "startTime" | "endTime" | "description" | "location" | "attendees"> & {
+  booking: Pick<Booking, "startTime" | "endTime" | "description" | "location" | "attendees" | "metadata"> & {
     eventType: { recurringEvent?: Prisma.JsonValue; title?: string } | null;
     user: Partial<User> | null;
   }
@@ -27,6 +28,13 @@ export function getiCalEventAsString(
   }
 
   const uid = uuidv4();
+
+  let location = booking.location || "";
+
+  const videoCallUrl = bookingMetadataSchema.parse(booking.metadata || {})?.videoCallUrl;
+  if (videoCallUrl) {
+    location = videoCallUrl;
+  }
 
   const icsEvent = createEvent({
     uid,
@@ -44,7 +52,7 @@ export function getiCalEventAsString(
     },
     title: booking.eventType?.title || "",
     description: booking.description || "",
-    location: booking.location || "",
+    location,
     organizer: {
       email: booking.user?.email || "",
       name: booking.user?.name || "",
