@@ -13,7 +13,7 @@ import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema }
 export interface IFilterSegmentRepository {
   get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }): Promise<{
     segments: FilterSegmentOutput[];
-    preferredSegmentId: number | string | null;
+    preferredSegmentId: { id: string; type: "default" } | { id: number; type: "custom" } | null;
   }>;
 
   create({
@@ -41,7 +41,7 @@ export interface IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: number | string | null;
+    segmentId: { id: string; type: "default" } | { id: number; type: "custom" } | null;
   }): Promise<UserFilterSegmentPreference | null>;
 }
 
@@ -128,9 +128,15 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       },
     });
 
+    const preferredSegmentId = preference?.segmentId
+      ? { id: preference.segmentId, type: "custom" as const }
+      : preference?.defaultSegmentId
+      ? { id: preference.defaultSegmentId, type: "default" as const }
+      : null;
+
     return {
       segments: parsedSegments,
-      preferredSegmentId: preference?.segmentId ?? preference?.defaultSegmentId ?? null,
+      preferredSegmentId,
     };
   }
 
@@ -283,7 +289,7 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: number | string | null;
+    segmentId: { id: string; type: "default" } | { id: number; type: "custom" } | null;
   }) {
     if (segmentId === null) {
       await prisma.userFilterSegmentPreference.deleteMany({
@@ -295,15 +301,15 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       return null;
     }
 
-    const isDefaultSegment = typeof segmentId === "string";
+    const isDefaultSegment = segmentId.type === "default";
 
     const updateData = isDefaultSegment
       ? {
           segmentId: null,
-          defaultSegmentId: segmentId,
+          defaultSegmentId: segmentId.id,
         }
       : {
-          segmentId: segmentId,
+          segmentId: segmentId.id,
           defaultSegmentId: null,
         };
 

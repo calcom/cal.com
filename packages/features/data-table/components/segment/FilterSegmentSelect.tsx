@@ -16,7 +16,12 @@ import {
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 import { useDataTable } from "../../hooks";
-import type { FilterSegmentOutput, CombinedFilterSegment, DefaultFilterSegment } from "../../lib/types";
+import type {
+  FilterSegmentOutput,
+  CombinedFilterSegment,
+  DefaultFilterSegment,
+  CustomFilterSegment,
+} from "../../lib/types";
 import { DeleteSegmentDialog } from "./DeleteSegmentDialog";
 import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
 import { RenameSegmentDialog } from "./RenameSegmentDialog";
@@ -59,17 +64,15 @@ export function FilterSegmentSelect() {
   ];
 
   const segmentGroups = useMemo(() => {
-    const sortFn = (a: CombinedFilterSegment, b: CombinedFilterSegment) =>
-      a.name.localeCompare(b.name);
+    const sortFn = (a: CombinedFilterSegment, b: CombinedFilterSegment) => a.name.localeCompare(b.name);
 
-    const defaultSegments =
-      segments?.filter((s): s is DefaultFilterSegment => "isDefault" in s && (s as any).isDefault) || [];
+    const defaultSegments = segments?.filter((s): s is DefaultFilterSegment => s.type === "default") || [];
     const personalSegments =
-      segments?.filter((s): s is FilterSegmentOutput => !("isDefault" in s) && !s.team) || [];
+      segments?.filter((s): s is CustomFilterSegment => s.type === "custom" && !s.team) || [];
     const teamSegments =
       segments?.filter(
-        (s): s is FilterSegmentOutput & { team: NonNullable<FilterSegmentOutput["team"]> } =>
-          !("isDefault" in s) && s.team !== null
+        (s): s is CustomFilterSegment & { team: NonNullable<FilterSegmentOutput["team"]> } =>
+          s.type === "custom" && s.team !== null
       ) || [];
 
     const groups = [];
@@ -93,7 +96,7 @@ export function FilterSegmentSelect() {
 
     // Team segments (existing grouping logic)
     const teamSegmentsByTeam = teamSegments.reduce<{
-      [teamName: string]: FilterSegmentOutput[];
+      [teamName: string]: CustomFilterSegment[];
     }>((acc, segment) => {
       const teamName = segment.team!.name;
       if (!acc[teamName]) {
@@ -151,18 +154,21 @@ export function FilterSegmentSelect() {
                     submenuItems={group.isDefault ? [] : submenuItems}
                     segment={segment}
                     onSelect={() => {
-                      if (segmentId === segment.id) {
+                      if (segmentId && segmentId.type === segment.type && segmentId.id === segment.id) {
                         setSegmentId(null);
                       } else {
-                        setSegmentId(segment.id);
+                        if (segment.type === "default") {
+                          setSegmentId({ id: segment.id, type: "default" });
+                        } else {
+                          setSegmentId({ id: segment.id, type: "custom" });
+                        }
                       }
                     }}>
-                    {segment.id === segmentId && <Icon name="check" className="ml-3 h-4 w-4" />}
-                    {"icon" in segment && segment.icon && (
-                      <Icon
-                        name={segment.icon as any}
-                        className="ml-3 h-4 w-4 text-muted-foreground"
-                      />
+                    {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
+                      <Icon name="check" className="ml-3 h-4 w-4" />
+                    )}
+                    {segment.type === "default" && segment.icon && (
+                      <Icon name={segment.icon as any} className="text-muted-foreground ml-3 h-4 w-4" />
                     )}
                     <span className="ml-3">{segment.name}</span>
                   </DropdownItemWithSubmenu>
@@ -209,11 +215,11 @@ function DropdownItemWithSubmenu({
 
   // Filter submenu items based on segment type and user role
   const filteredSubmenuItems = submenuItems.filter((item) => {
-    if ("isDefault" in segment && segment.isDefault) {
+    if (segment.type === "default") {
       return false;
     }
 
-    if (!("team" in segment) || !segment.team) {
+    if (!segment.team) {
       // Personal segments: show all actions
       return true;
     }
@@ -254,8 +260,8 @@ function DropdownItemWithSubmenu({
                     StartIcon={item.iconName}
                     onClick={(event) => {
                       event.preventDefault();
-                      if (!("isDefault" in segment)) {
-                        item.onClick(segment as FilterSegmentOutput);
+                      if (segment.type === "custom") {
+                        item.onClick(segment);
                       }
                       setIsOpen(false);
                     }}>

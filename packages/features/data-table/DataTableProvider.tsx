@@ -24,6 +24,7 @@ import {
   type FilterSegmentOutput,
   type DefaultFilterSegment,
   type CombinedFilterSegment,
+  type SegmentIdentifier,
   type ActiveFilters,
   type UseSegments,
 } from "./lib/types";
@@ -59,8 +60,8 @@ export type DataTableContextType = {
 
   segments: CombinedFilterSegment[];
   selectedSegment: CombinedFilterSegment | undefined;
-  segmentId: number | string | undefined;
-  setSegmentId: (id: number | string | null) => void;
+  segmentId: SegmentIdentifier;
+  setSegmentId: (id: SegmentIdentifier) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -80,7 +81,7 @@ interface DataTableProviderProps {
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
   timeZone?: string;
-  preferredSegmentId?: number | string | null;
+  preferredSegmentId?: SegmentIdentifier;
   defaultSegments?: DefaultFilterSegment[];
 }
 
@@ -104,22 +105,29 @@ export function DataTableProvider({
   );
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
   const [segmentIdString, setSegmentIdString] = useQueryState("segment", segmentIdParser);
-  
-  const segmentId = useMemo(() => {
+
+  const segmentId = useMemo((): SegmentIdentifier => {
     if (!segmentIdString || segmentIdString === "") {
-      return preferredSegmentId || "";
+      return preferredSegmentId || null;
     }
     const numericId = parseInt(segmentIdString, 10);
-    return isNaN(numericId) ? segmentIdString : numericId;
+    if (isNaN(numericId)) {
+      return { id: segmentIdString, type: "default" };
+    } else {
+      return { id: numericId, type: "custom" };
+    }
   }, [segmentIdString, preferredSegmentId]);
 
-  const setSegmentId = useCallback((id: number | string | null) => {
-    if (id === null) {
-      setSegmentIdString("");
-    } else {
-      setSegmentIdString(String(id));
-    }
-  }, [setSegmentIdString]);
+  const setSegmentId = useCallback(
+    (id: SegmentIdentifier) => {
+      if (id === null) {
+        setSegmentIdString("");
+      } else {
+        setSegmentIdString(String(id.id));
+      }
+    },
+    [setSegmentIdString]
+  );
   const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
   const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
   const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
@@ -261,7 +269,7 @@ export function DataTableProvider({
         offset: pageIndex * pageSize,
         segments,
         selectedSegment,
-        segmentId: segmentId || undefined,
+        segmentId,
         setSegmentId: setAndPersistSegmentId,
         canSaveSegment,
         isSegmentEnabled,

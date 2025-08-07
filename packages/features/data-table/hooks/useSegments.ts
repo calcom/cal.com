@@ -5,7 +5,7 @@ import { useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { recalculateDateRange } from "../lib/dateRange";
-import { type UseSegments } from "../lib/types";
+import { type UseSegments, type SegmentIdentifier } from "../lib/types";
 import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({
@@ -47,6 +47,7 @@ export const useSegments: UseSegments = ({
 
     const processedDefaultSegments = defaultSegments.map((segment) => ({
       ...segment,
+      type: "default" as const,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
           return {
@@ -60,6 +61,7 @@ export const useSegments: UseSegments = ({
 
     const processedUserSegments = userSegments.map((segment) => ({
       ...segment,
+      type: "custom" as const,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
           return {
@@ -75,18 +77,26 @@ export const useSegments: UseSegments = ({
   }, [rawSegments, providedSegments, defaultSegments]);
 
   const selectedSegment = useMemo(() => {
+    if (!segmentId) return undefined;
+
     return segments?.find((segment) => {
-      if ("isDefault" in segment && segment.isDefault) {
-        return segment.id === segmentId;
+      if (segment.type === "default") {
+        return segmentId.type === "default" && segment.id === segmentId.id;
       } else {
-        return segment.id === segmentId;
+        return segmentId.type === "custom" && segment.id === segmentId.id;
       }
     });
   }, [segments, segmentId]);
 
   useEffect(() => {
-    if (segments && segmentId && segmentId !== "" && !isFetchingSegments) {
-      const segment = segments.find((segment) => segment.id === segmentId);
+    if (segments && segmentId && !isFetchingSegments) {
+      const segment = segments.find((segment) => {
+        if (segment.type === "default") {
+          return segmentId.type === "default" && segment.id === segmentId.id;
+        } else {
+          return segmentId.type === "custom" && segment.id === segmentId.id;
+        }
+      });
       if (!segment) {
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
         // but we still keep all the other states like activeFilters, etc.
@@ -103,7 +113,13 @@ export const useSegments: UseSegments = ({
 
   useEffect(() => {
     if (memoizedPreferredSegmentId) {
-      setSegmentId(memoizedPreferredSegmentId);
+      if (typeof memoizedPreferredSegmentId === "object") {
+        setSegmentId(memoizedPreferredSegmentId);
+      } else if (typeof memoizedPreferredSegmentId === "string") {
+        setSegmentId({ id: memoizedPreferredSegmentId, type: "default" });
+      } else if (typeof memoizedPreferredSegmentId === "number") {
+        setSegmentId({ id: memoizedPreferredSegmentId, type: "custom" });
+      }
     }
   }, [memoizedPreferredSegmentId, setSegmentId]);
 
@@ -163,7 +179,7 @@ export const useSegments: UseSegments = ({
   ]);
 
   const setAndPersistSegmentId = useCallback(
-    (segmentId: number | string | null) => {
+    (segmentId: SegmentIdentifier) => {
       setSegmentId(segmentId);
       setPreference({
         tableIdentifier,

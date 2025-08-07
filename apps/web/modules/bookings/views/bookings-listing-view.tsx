@@ -70,7 +70,7 @@ function useDefaultSegments() {
         id: "my_bookings",
         name: t("my_bookings"),
         icon: "user",
-        isDefault: true,
+        type: "default",
         activeFilters: [
           {
             f: "userId",
@@ -81,6 +81,26 @@ function useDefaultSegments() {
           },
         ],
         sorting: [{ id: "startTime", desc: false }],
+        perPage: 10,
+      },
+      {
+        id: "upcoming-bookings",
+        name: "Upcoming Bookings",
+        icon: "calendar",
+        type: "default",
+        activeFilters: [
+          {
+            f: "dateRange",
+            v: {
+              type: ColumnFilterType.DATE_RANGE,
+              data: {
+                startDate: null,
+                endDate: null,
+                preset: "upcoming",
+              },
+            },
+          },
+        ],
         perPage: 10,
       },
     ];
