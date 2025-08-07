@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
@@ -22,6 +22,7 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { HttpError } from "@lib/core/http/error";
@@ -32,7 +33,9 @@ import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCa
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
-import { STEPS } from "~/apps/installation/[[...step]]/constants";
+import type { STEPS } from "~/apps/installation/[[...step]]/constants";
+
+import { useStepManager } from "./useStepManager";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
@@ -65,15 +68,6 @@ export type TEventTypesForm = {
 };
 
 type StepType = (typeof STEPS)[number];
-
-type StepObj = Record<
-  StepType,
-  {
-    getTitle: (appName: string) => string;
-    getDescription: (appName: string) => string;
-    stepNumber: number;
-  }
->;
 
 export type TTeams = (Pick<Team, "id" | "name" | "logoUrl" | "isOrganization"> & {
   alreadyInstalled: boolean;
@@ -116,42 +110,17 @@ const OnboardingPage = ({
   const pathname = usePathname();
   const router = useRouter();
 
-  const STEPS_MAP: StepObj = {
-    [AppOnboardingSteps.ACCOUNTS_STEP]: {
-      getTitle: () => `${t("select_account_header")}`,
-      getDescription: (appName) =>
-        `${t("select_account_description", { appName, interpolation: { escapeValue: false } })}`,
-      stepNumber: 1,
-    },
-    [AppOnboardingSteps.EVENT_TYPES_STEP]: {
-      getTitle: () => `${t("select_event_types_header")}`,
-      getDescription: (appName) =>
-        `${t("select_event_types_description", { appName, interpolation: { escapeValue: false } })}`,
-      stepNumber: installableOnTeams ? 2 : 1,
-    },
-    [AppOnboardingSteps.CONFIGURE_STEP]: {
-      getTitle: (appName) =>
-        `${t("configure_app_header", { appName, interpolation: { escapeValue: false } })}`,
-      getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: installableOnTeams ? 3 : 2,
-    },
-  } as const;
   const [configureStep, setConfigureStep] = useState(false);
 
-  const currentStep: AppOnboardingSteps = useMemo(() => {
-    if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
-      return AppOnboardingSteps.CONFIGURE_STEP;
-    }
-    return step;
-  }, [step, configureStep]);
-  const stepObj = STEPS_MAP[currentStep];
+  const isOnlySingleAccountToSelect = !teams?.length || !installableOnTeams;
 
-  const maxSteps = useMemo(() => {
-    if (!showEventTypesStep) {
-      return 1;
-    }
-    return installableOnTeams ? STEPS.length : STEPS.length - 1;
-  }, [showEventTypesStep, installableOnTeams]);
+  const stepManager = useStepManager({
+    step,
+    configureStep,
+    showEventTypesStep,
+    isOnlySingleAccountToSelect,
+    appName: appMetadata.name,
+  });
 
   const utils = trpc.useContext();
 
@@ -230,6 +199,22 @@ const OnboardingPage = ({
     router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
   };
 
+  useEffect(() => {
+    // Auto-skip accounts step if only personal account is available
+    // This should only happen on initial load when user navigates directly to accounts step
+    if (isOnlySingleAccountToSelect && !mutation.isPending && step === AppOnboardingSteps.ACCOUNTS_STEP) {
+      handleSelectAccount();
+    }
+  }, [isOnlySingleAccountToSelect, handleSelectAccount, mutation.isPending, step]);
+
+  if (mutation.isPending) {
+    return (
+      <div className="absolute inset-0 z-10 flex items-center justify-center">
+        <SkeletonText className="h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div
       key={pathname}
@@ -286,12 +271,14 @@ const OnboardingPage = ({
                   console.error(err);
                 }
               }}>
-              <StepHeader
-                title={stepObj.getTitle(appMetadata.name)}
-                subtitle={stepObj.getDescription(appMetadata.name)}>
-                <Steps maxSteps={maxSteps} currentStep={stepObj.stepNumber} disableNavigation />
+              <StepHeader title={stepManager.title} subtitle={stepManager.description}>
+                <Steps
+                  maxSteps={stepManager.maxSteps}
+                  currentStep={stepManager.stepNumber}
+                  disableNavigation
+                />
               </StepHeader>
-              {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
+              {stepManager.currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
                 <AccountsStepCard
                   teams={teams}
                   personalAccount={personalAccount}
@@ -300,7 +287,7 @@ const OnboardingPage = ({
                   installableOnTeams={installableOnTeams}
                 />
               )}
-              {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
+              {stepManager.currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
                 eventTypeGroups &&
                 Boolean(eventTypeGroups?.length) && (
                   <EventTypesStepCard
@@ -309,7 +296,7 @@ const OnboardingPage = ({
                     handleSetUpLater={handleSetUpLater}
                   />
                 )}
-              {currentStep === AppOnboardingSteps.CONFIGURE_STEP &&
+              {stepManager.currentStep === AppOnboardingSteps.CONFIGURE_STEP &&
                 formPortalRef.current &&
                 eventTypeGroups && (
                   <ConfigureStepCard
