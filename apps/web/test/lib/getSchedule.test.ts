@@ -16,8 +16,8 @@ import {
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
-import { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
@@ -31,7 +31,7 @@ vi.mock("@calcom/lib/constants", () => ({
 }));
 
 describe("getSchedule", () => {
-  const availableSlotsService = new AvailableSlotsService();
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
 
   // TODO: Move these inside describe('Team Event')
@@ -1281,12 +1281,15 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({
+        success: true,
+        data: [
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ],
+      });
 
       const scenarioData = {
         eventTypes: [
@@ -1347,12 +1350,15 @@ describe("getSchedule", () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({
+        success: true,
+        data: [
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ],
+      });
 
       const scenarioData = {
         eventTypes: [
@@ -1421,7 +1427,7 @@ describe("getSchedule", () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
 
       const scenarioData = {
         eventTypes: [

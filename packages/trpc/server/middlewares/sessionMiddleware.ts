@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -24,7 +25,8 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const userFromDb = await UserRepository.findUnlockedUserForSession({ userId: session.user.id });
+  const userRepo = new UserRepository(prisma);
+  const userFromDb = await userRepo.findUnlockedUserForSession({ userId: session.user.id });
 
   // some hacks to make sure `username` and `email` are never inferred as `null`
   if (!userFromDb) {
@@ -33,7 +35,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const upId = session.upId;
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const user = await userRepo.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });
@@ -54,7 +56,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const locale = user?.locale ?? ctx.locale;
   const { members = [], ..._organization } = user.profile?.organization || {};
-  const isOrgAdmin = members.some((member) => ["OWNER", "ADMIN"].includes(member.role));
+  const isOrgAdmin = members.some((member: any) => ["OWNER", "ADMIN"].includes(member.role));
 
   if (isOrgAdmin) {
     logger.debug("User is an org admin", safeStringify({ userId: user.id }));

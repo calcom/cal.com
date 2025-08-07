@@ -116,7 +116,7 @@ export const findUsersByUsername = async ({
   usernameList: string[];
 }) => {
   log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+  const { where, profiles } = await new UserRepository(prisma)._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });

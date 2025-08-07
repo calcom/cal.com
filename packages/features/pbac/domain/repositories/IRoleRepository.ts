@@ -1,9 +1,4 @@
-import type { Transaction } from "kysely";
-
-import type { DB } from "@calcom/kysely";
-
-import type { Role, CreateRoleData } from "../models/Role";
-import type { PermissionString } from "../types/permission-registry";
+import type { Role, CreateRoleData, RolePermission, PermissionChange } from "../models/Role";
 
 export interface IRoleRepository {
   findByName(name: string, teamId?: number): Promise<Role | null>;
@@ -14,12 +9,15 @@ export interface IRoleRepository {
   delete(id: string): Promise<void>;
   update(
     roleId: string,
-    permissions: PermissionString[],
+    permissionChanges: {
+      toAdd: PermissionChange[];
+      toRemove: PermissionChange[];
+    },
     updates?: {
       color?: string;
       name?: string;
       description?: string;
     }
   ): Promise<Role>;
-  transaction<T>(callback: (repository: IRoleRepository, trx: Transaction<DB>) => Promise<T>): Promise<T>;
+  getPermissions(roleId: string): Promise<RolePermission[]>;
 }
