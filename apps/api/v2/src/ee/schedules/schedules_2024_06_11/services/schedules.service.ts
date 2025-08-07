@@ -74,6 +74,11 @@ export class SchedulesService_2024_06_11 {
     );
   }
 
+  async getSchedulesByUserIds(userIds: number[], skip: number, take: number) {
+    const schedules = await this.schedulesRepository.getSchedulesByUserIds(userIds, skip, take);
+    return schedules;
+  }
+
   async updateUserSchedule(userId: number, scheduleId: number, bodySchedule: UpdateScheduleInput_2024_06_11) {
     const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
