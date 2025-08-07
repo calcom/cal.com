@@ -284,10 +284,7 @@ const getEmbedTypeSpecificString = ({
       previewState: previewState.elementClick,
     });
   } else if (embedType === "headless") {
-    return frameworkCodes[embedType]({
-      ...codeGeneratorInput,
-      previewState: {},
-    });
+    return frameworkCodes[embedType]();
   }
   return "";
 };

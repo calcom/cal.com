@@ -113,19 +113,7 @@ export default function MyApp() {
   >Click me</button>;
 };`;
     },
-    headless: ({
-      calLink,
-      uiInstructionCode,
-      previewState,
-      embedCalOrigin,
-      namespace,
-    }: {
-      calLink: string;
-      uiInstructionCode: string;
-      previewState: any;
-      embedCalOrigin: string;
-      namespace: string;
-    }) => {
+    headless: () => {
       return null;
     },
   },
@@ -245,19 +233,7 @@ export default function Booker( props : BookerProps ) {
   );
 };`;
     },
-    headless: ({
-      calLink,
-      uiInstructionCode,
-      previewState,
-      embedCalOrigin,
-      namespace,
-    }: {
-      calLink: string;
-      uiInstructionCode: string;
-      previewState: any;
-      embedCalOrigin: string;
-      namespace: string;
-    }) => {
+    headless: () => {
       return null;
     },
   },
@@ -327,19 +303,7 @@ export default function Booker( props : BookerProps ) {
 
   ${uiInstructionCode}`;
     },
-    headless: ({
-      calLink,
-      uiInstructionCode,
-      previewState,
-      embedCalOrigin,
-      namespace,
-    }: {
-      calLink: string;
-      uiInstructionCode: string;
-      previewState: any;
-      embedCalOrigin: string;
-      namespace: string;
-    }) => {
+    headless: () => {
       return null;
     },
   },
