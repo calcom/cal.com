@@ -400,7 +400,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               await aiPhoneService.deleteAgent({
                 id: agent.id,
                 userId: user.id,
-                teamId: userWorkflow.teamId,
+                teamId: userWorkflow.teamId ?? undefined,
               });
             } catch (error) {
               throw new TRPCError({

@@ -682,6 +682,29 @@ describe("RetellAIService", () => {
       expect(result).toEqual({ message: "Agent deleted successfully" });
       expect(AgentRepository.delete).toHaveBeenCalledWith({ id: "1" });
     });
+
+    it("should delete agent successfully with teamId", async () => {
+      const { AgentRepository } = await import("@calcom/lib/server/repository/agent");
+
+      (AgentRepository.findByIdWithAdminAccess as any).mockResolvedValue({
+        id: "1",
+        retellAgentId: "agent-123",
+      });
+      mockRepository.getAgent.mockResolvedValue({
+        agent_id: "agent-123",
+        response_engine: { type: "retell-llm", llm_id: "llm-123" },
+      });
+
+      const result = await service.deleteAgent({
+        id: "1",
+        userId: 1,
+        teamId: 5,
+      });
+
+      expect(result).toEqual({ message: "Agent deleted successfully" });
+      expect(AgentRepository.findByIdWithAdminAccess).toHaveBeenCalledWith({ id: "1", userId: 1 });
+      expect(AgentRepository.delete).toHaveBeenCalledWith({ id: "1" });
+    });
   });
 
   describe("createTestCall", () => {
