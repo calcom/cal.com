@@ -171,7 +171,7 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
             event.preventDefault();
             handleSetUpLater();
           }}
-          className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+          className="mt-2 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
           {t("set_up_later")}
         </Button>
       </div>

@@ -1,20 +1,28 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@calid/features/ui/components/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  ButtonOrLink,
+} from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Dialog } from "@calcom/ui/components/dialog";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface CredentialActionsDropdownProps {
@@ -74,14 +82,14 @@ export default function CredentialActionsDropdown({
 
   return (
     <>
-      <Dropdown open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           {hasCache && (
             <>
-              <DropdownMenuItem className="focus:ring-muted">
+              <DropdownMenuItem className="focus:ring-muted" disabled>
                 <div className="px-2 py-1">
                   <div className="text-sm font-medium text-gray-900 dark:text-white">{t("cache_status")}</div>
                   <div className="text-xs text-gray-500 dark:text-white">
@@ -95,62 +103,84 @@ export default function CredentialActionsDropdown({
                   </div>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem className="outline-none">
-                <DropdownItem
+              <DropdownMenuItem className="outline-none" asChild>
+                <ButtonOrLink
                   type="button"
                   color="destructive"
-                  StartIcon="trash"
+                  className="flex w-full items-center gap-2 text-sm text-red-600"
                   onClick={() => {
                     setDeleteModalOpen(true);
                     setDropdownOpen(false);
                   }}>
+                  <Icon name="trash" className="h-4 w-4" />
                   {t("delete_cached_data")}
-                </DropdownItem>
+                </ButtonOrLink>
               </DropdownMenuItem>
             </>
           )}
-          {canDisconnect && hasCache && <hr className="my-1" />}
+
+          {canDisconnect && hasCache && <DropdownMenuSeparator />}
+
           {canDisconnect && (
-            <DropdownMenuItem className="outline-none">
-              <DropdownItem
+            <DropdownMenuItem className="outline-none" asChild>
+              <ButtonOrLink
                 type="button"
                 color="destructive"
-                StartIcon="trash"
+                className="flex w-full items-center gap-2 text-sm text-red-600"
                 onClick={() => {
                   setDisconnectModalOpen(true);
                   setDropdownOpen(false);
                 }}>
+                <Icon name="trash" className="h-4 w-4" />
                 {t("remove_app")}
-              </DropdownItem>
+              </ButtonOrLink>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
-      </Dropdown>
+      </DropdownMenu>
 
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("delete_cached_data")}
-          confirmBtnText={t("yes_delete_cache")}
-          onConfirm={() => {
-            deleteCacheMutation.mutate({ credentialId });
-            setDeleteModalOpen(false);
-          }}>
-          {t("confirm_delete_cache")}
-        </ConfirmationDialogContent>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("delete_cached_data")}</DialogTitle>
+            <DialogDescription>{t("confirm_delete_cache")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" onClick={() => setDeleteModalOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                deleteCacheMutation.mutate({ credentialId });
+                setDeleteModalOpen(false);
+              }}>
+              {t("yes_delete_cache")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       <Dialog open={disconnectModalOpen} onOpenChange={setDisconnectModalOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("remove_app")}
-          confirmBtnText={t("yes_remove_app")}
-          onConfirm={() => {
-            disconnectMutation.mutate({ id: credentialId });
-            setDisconnectModalOpen(false);
-          }}>
-          {t("are_you_sure_you_want_to_remove_this_app")}
-        </ConfirmationDialogContent>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("remove_app")}</DialogTitle>
+            <DialogDescription>{t("are_you_sure_you_want_to_remove_this_app")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button type="button" onClick={() => setDisconnectModalOpen(false)}>
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                disconnectMutation.mutate({ id: credentialId });
+                setDisconnectModalOpen(false);
+              }}>
+              {t("yes_remove_app")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

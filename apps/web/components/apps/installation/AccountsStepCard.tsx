@@ -1,3 +1,4 @@
+import { StepCard } from "@calid/features/ui/components/card/stepcard";
 import type { FC } from "react";
 import React, { useState } from "react";
 
@@ -6,7 +7,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { StepCard } from "@calcom/ui/components/card";
 
 import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
 
@@ -42,7 +42,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
   return (
     <div
       className={classNames(
-        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
+        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 rounded-md p-1",
         (alreadyInstalled || loading) && "cursor-not-allowed",
         selected && loading && "bg-muted animate-pulse"
       )}

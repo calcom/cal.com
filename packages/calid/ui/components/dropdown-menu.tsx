@@ -170,7 +170,7 @@ DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
 
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
 
-export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
+const ButtonOrLink = ({ href, ...props }: ButtonOrLinkProps) => {
   const isLink = typeof href !== "undefined";
   const ButtonOrLink = isLink ? "a" : "button";
 
@@ -185,7 +185,7 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   }
 
   return content;
-}
+};
 
 export {
   DropdownMenu,
@@ -203,4 +203,5 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuRadioGroup,
+  ButtonOrLink,
 };
