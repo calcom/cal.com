@@ -79,12 +79,6 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  // For personal forms (teamId = null), check if the form belongs to the current user
-  if (!form.teamId && form.userId !== user.id) {
-    return {
-      notFound: true, // Don't reveal that the form exists to unauthorized users
-    };
-  }
   const { user: u, ...formWithoutUser } = form;
 
   const formWithoutProfileInfo = {
@@ -107,13 +101,29 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
 
   // Get PBAC permissions for team-scoped routing forms
   let permissions = {
-    canCreate: true,
-    canRead: true,
-    canEdit: true,
-    canDelete: true,
+    canCreate: false,
+    canRead: false,
+    canEdit: false,
+    canDelete: false,
   };
 
-  if (form.teamId) {
+  if (!form.teamId) {
+    // For personal forms (teamId = null),
+    // check if the form belongs to the current user
+    if (form.userId !== user.id) {
+      return {
+        notFound: true,
+      };
+    }
+
+    permissions = {
+      canCreate: true,
+      canRead: true,
+      canEdit: true,
+      canDelete: true,
+    };
+  } else {
+    // team-scoped routing form
     // Get user's role in the team
     const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
       userId: user.id,
