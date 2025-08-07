@@ -10,7 +10,7 @@ import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { RateLimitRepositoryFixture } from "test/fixtures/repository/rate-limit.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -30,7 +30,7 @@ describe("AppController", () => {
 
     let organization: Team;
     let oAuthClient: PlatformOAuthClient;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
 
@@ -94,7 +94,7 @@ describe("AppController", () => {
         4000
       );
 
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       organization = await organizationsRepositoryFixture.create({
         name: `app-rate-limits-organization-${randomString()}`,
       });

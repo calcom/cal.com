@@ -16,7 +16,7 @@ import * as request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
@@ -41,7 +41,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
   let otherOAuthClientWebhook: Webhook;
   let membershipRepositoryFixture: MembershipRepositoryFixture;
   let profileRepositoryFixture: ProfileRepositoryFixture;
-  let orgRepositoryFixture: PrismaOrganizationRepositoryFixture;
+  let orgRepositoryFixture: OrganizationRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
 
   let webhook: OAuthClientWebhookOutputResponseDto["data"];
@@ -56,7 +56,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     webhookRepositoryFixture = new WebhookRepositoryFixture(moduleRef);
     oAuthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-    orgRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+    orgRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
     membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);

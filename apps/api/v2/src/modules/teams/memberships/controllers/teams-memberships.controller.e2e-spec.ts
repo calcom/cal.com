@@ -17,7 +17,7 @@ import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -72,7 +72,7 @@ describe("Teams Memberships Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 

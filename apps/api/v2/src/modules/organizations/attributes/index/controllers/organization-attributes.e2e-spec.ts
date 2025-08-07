@@ -10,7 +10,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -22,7 +22,7 @@ describe("Organizations Attributes Endpoints", () => {
   describe("User lacks required role", () => {
     let app: INestApplication;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = `organization-attributes-member-${randomString()}@api.com`;
@@ -39,7 +39,7 @@ describe("Organizations Attributes Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
@@ -86,7 +86,7 @@ describe("Organizations Attributes Endpoints", () => {
   describe("User has required role", () => {
     let app: INestApplication;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = `organization-attributes-admin-${randomString()}@api.com`;
@@ -113,7 +113,7 @@ describe("Organizations Attributes Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({

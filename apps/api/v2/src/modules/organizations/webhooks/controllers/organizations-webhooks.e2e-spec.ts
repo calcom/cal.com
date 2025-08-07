@@ -14,7 +14,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -27,7 +27,7 @@ describe("WebhooksController (e2e)", () => {
   const userEmail = `organizations-webhooks-admin-${randomString()}@api.com`;
   let org: Team;
 
-  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
   let webhookRepositoryFixture: WebhookRepositoryFixture;
   let userRepositoryFixture: UserRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
@@ -44,7 +44,7 @@ describe("WebhooksController (e2e)", () => {
     ).compile();
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     webhookRepositoryFixture = new WebhookRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 

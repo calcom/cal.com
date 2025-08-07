@@ -16,7 +16,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -59,7 +59,7 @@ describe("OAuthFlow Endpoints", () => {
     let app: INestApplication;
 
     let usersRepositoryFixtures: UserRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
 
@@ -85,7 +85,7 @@ describe("OAuthFlow Endpoints", () => {
       await app.init();
 
       oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       usersRepositoryFixtures = new UserRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 

@@ -12,7 +12,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { RoutingFormsRepositoryFixture } from "test/fixtures/repository/routing-forms.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
@@ -27,7 +27,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
   let prismaWriteService: PrismaWriteService;
 
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
 
   let teamsRepositoryFixture: TeamRepositoryFixture;
   let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -70,7 +70,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
 
     prismaWriteService = moduleRef.get<PrismaWriteService>(PrismaWriteService);
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     routingFormsRepositoryFixture = new RoutingFormsRepositoryFixture(moduleRef);

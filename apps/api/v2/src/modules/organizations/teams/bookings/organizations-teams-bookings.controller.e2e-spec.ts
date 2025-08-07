@@ -15,7 +15,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -52,7 +52,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let hostsRepositoryFixture: HostsRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const teamUserEmail = "orgUser1team1@api.com";
@@ -80,7 +80,7 @@ describe("Organizations TeamsBookings Endpoints 2024-08-13", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);

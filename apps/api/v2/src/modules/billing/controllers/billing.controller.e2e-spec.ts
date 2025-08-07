@@ -12,7 +12,7 @@ import Stripe from "stripe";
 import * as request from "supertest";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -26,7 +26,7 @@ describe("Platform Billing Controller (e2e)", () => {
   let user: UserWithProfile;
   let billing: PlatformBilling;
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
   let profileRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
@@ -40,7 +40,7 @@ describe("Platform Billing Controller (e2e)", () => {
       })
     ).compile();
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);

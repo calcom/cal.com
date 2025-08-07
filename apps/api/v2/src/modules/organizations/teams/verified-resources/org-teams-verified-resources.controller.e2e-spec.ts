@@ -22,7 +22,7 @@ import { totp } from "otplib";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -56,7 +56,7 @@ describe("Organizations Teams Verified Resources", () => {
   let app: INestApplication;
 
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
   let verifiedResourcesRepositoryFixtures: VerifiedResourcesRepositoryFixtures;
   let teamsRepositoryFixture: TeamRepositoryFixture;
   let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -80,7 +80,7 @@ describe("Organizations Teams Verified Resources", () => {
 
     verifiedResourcesRepositoryFixtures = new VerifiedResourcesRepositoryFixtures(moduleRef);
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
     teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);

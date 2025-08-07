@@ -12,7 +12,7 @@ import { App_RoutingForms_Form, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -31,7 +31,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let userRepositoryFixture: UserRepositoryFixture;
-  let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+  let organizationsRepositoryFixture: OrganizationRepositoryFixture;
 
   let user: User;
   const userEmail = `OrganizationsRoutingFormsResponsesController-key-bookings-2024-08-13-user-${randomString()}@api.com`;
@@ -49,7 +49,7 @@ describe("OrganizationsRoutingFormsResponsesController", () => {
     prismaWriteService = moduleRef.get<PrismaWriteService>(PrismaWriteService);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
     profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-    organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+    organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
 
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     org = await organizationsRepositoryFixture.create({

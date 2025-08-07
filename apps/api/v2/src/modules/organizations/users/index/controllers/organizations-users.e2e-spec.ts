@@ -14,7 +14,7 @@ import * as request from "supertest";
 import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { PrismaOrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -32,7 +32,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
@@ -49,7 +49,7 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
@@ -122,7 +122,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = `organizations-users-admin-${randomString()}@api.com`;
@@ -157,7 +157,7 @@ describe("Organizations Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
@@ -405,7 +405,7 @@ describe("Organizations Users Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -426,7 +426,7 @@ describe("Organizations Users Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
 
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
@@ -531,7 +531,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: PrismaOrganizationRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let teamsRepositoryFixtures: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -557,7 +557,7 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new PrismaOrganizationRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixtures = new TeamRepositoryFixture(moduleRef);
 
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
