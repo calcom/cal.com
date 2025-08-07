@@ -3,10 +3,9 @@ import dayjs from "@calcom/dayjs";
 import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/booking-limits";
 import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
-import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
+import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
@@ -181,7 +180,8 @@ const _getBusyTimesFromDurationLimits = async (
 
       // special handling of yearly limits to improve performance
       if (unit === "year") {
-        const totalYearlyDuration = await getTotalBookingDuration({
+        const bookingRepo = new BookingRepository(prisma);
+        const totalYearlyDuration = await bookingRepo.getTotalBookingDuration({
           eventId: eventType.id,
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf(unit).toDate(),
