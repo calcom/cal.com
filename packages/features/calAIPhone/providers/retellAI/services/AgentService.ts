@@ -1,20 +1,43 @@
 import { v4 as uuidv4 } from "uuid";
 
+import logger from "@calcom/lib/logger";
+
 import { TRPCError } from "@trpc/server";
 
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
+import type {
+  AIPhoneServiceUpdateModelParams,
+  AIPhoneServiceProviderType,
+  AIPhoneServiceAgent,
+  AIPhoneServiceModel,
+  AIPhoneServiceTools,
+} from "../../interfaces/ai-phone-service.interface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
-import type { RetellAIRepository, RetellAgent, RetellLLM, RetellLLMGeneralTools } from "../types";
+import type { RetellAIRepository } from "../types";
 import { getLlmId, Language } from "../types";
 
 export class AgentService {
+  private logger = logger.getSubLogger({ prefix: ["AgentService"] });
+
   constructor(
     private retellRepository: RetellAIRepository,
     private agentRepository: AgentRepositoryInterface
   ) {}
 
-  async getAgent(agentId: string): Promise<RetellAgent> {
-    return this.retellRepository.getAgent(agentId);
+  async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
+    if (!agentId?.trim()) {
+      throw new Error("Agent ID is required and cannot be empty");
+    }
+
+    try {
+      return await this.retellRepository.getAgent(agentId);
+    } catch (error) {
+      this.logger.error("Failed to get agent from external AI service", {
+        agentId,
+        error,
+      });
+      throw new Error(`Failed to get agent ${agentId}`);
+    }
   }
 
   async updateAgent(
@@ -26,9 +49,26 @@ export class AgentService {
       responsiveness?: number;
       interruption_sensitivity?: number;
     }
-  ): Promise<RetellAgent> {
-    const updateRequest = RetellAIServiceMapper.mapToUpdateAgentRequest(data);
-    return this.retellRepository.updateAgent(agentId, updateRequest);
+  ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
+    if (!agentId?.trim()) {
+      throw new Error("Agent ID is required and cannot be empty");
+    }
+
+    if (!data || Object.keys(data).length === 0) {
+      throw new Error("Update data is required");
+    }
+
+    try {
+      const updateRequest = RetellAIServiceMapper.mapToUpdateAgentRequest(data);
+      return await this.retellRepository.updateAgent(agentId, updateRequest);
+    } catch (error) {
+      this.logger.error("Failed to update agent in external AI service", {
+        agentId,
+        data,
+        error,
+      });
+      throw new Error(`Failed to update agent ${agentId}`);
+    }
   }
 
   async listAgents({
@@ -68,19 +108,37 @@ export class AgentService {
       });
     }
 
-    const retellAgent = await this.getAgent(agent.providerAgentId);
-    const llmId = getLlmId(retellAgent);
+    try {
+      const retellAgent = await this.getAgent(agent.providerAgentId);
+      const llmId = getLlmId(retellAgent);
 
-    if (!llmId) {
+      if (!llmId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Agent does not have an LLM configured.",
+        });
+      }
+
+      const llmDetails = await this.retellRepository.getLLM(llmId);
+
+      return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+
+      this.logger.error("Failed to get agent details from external AI service", {
+        agentId: id,
+        providerAgentId: agent.providerAgentId,
+        userId,
+        teamId,
+        error,
+      });
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Agent does not have an LLM configured.",
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Unable to fetch agent details. Please try again.",
       });
     }
-
-    const llmDetails = await this.retellRepository.getLLM(llmId);
-
-    return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
   }
 
   async createAgent({
@@ -149,9 +207,12 @@ export class AgentService {
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;
-    generalTools?: RetellLLMGeneralTools;
+    generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
-    updateLLMConfiguration: (llmId: string, data: any) => Promise<RetellLLM>;
+    updateLLMConfiguration: (
+      llmId: string,
+      data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
+    ) => Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>>;
   }) {
     const agent = await this.agentRepository.findByIdWithAdminAccess({
       id,
@@ -172,24 +233,48 @@ export class AgentService {
       voiceId !== undefined;
 
     if (hasRetellUpdates) {
-      const retellAgent = await this.getAgent(agent.providerAgentId);
-      const llmId = getLlmId(retellAgent);
+      try {
+        const retellAgent = await this.getAgent(agent.providerAgentId);
+        const llmId = getLlmId(retellAgent);
 
-      if (
-        llmId &&
-        (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
-      ) {
-        const llmUpdateData = RetellAIServiceMapper.extractLLMUpdateData(
-          generalPrompt,
-          beginMessage,
-          generalTools
-        );
-        await updateLLMConfiguration(llmId, llmUpdateData);
-      }
+        if (
+          llmId &&
+          (generalPrompt !== undefined || beginMessage !== undefined || generalTools !== undefined)
+        ) {
+          const llmUpdateData = RetellAIServiceMapper.extractLLMUpdateData(
+            generalPrompt,
+            beginMessage,
+            generalTools
+          );
+          await updateLLMConfiguration(llmId, llmUpdateData);
+        }
 
-      if (voiceId) {
-        await this.updateAgent(agent.providerAgentId, {
-          voice_id: voiceId,
+        if (voiceId) {
+          await this.updateAgent(agent.providerAgentId, {
+            voice_id: voiceId,
+          });
+        }
+      } catch (error) {
+        this.logger.error("Failed to update agent configuration in external AI service", {
+          agentId: id,
+          providerAgentId: agent.providerAgentId,
+          userId,
+          updates: {
+            generalPrompt: !!generalPrompt,
+            beginMessage: !!beginMessage,
+            generalTools: !!generalTools,
+            voiceId: !!voiceId,
+          },
+          error,
+        });
+
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to update agent configuration. Please try again.",
         });
       }
     }
@@ -230,7 +315,13 @@ export class AgentService {
         llmId: llmId || undefined,
       });
     } catch (error) {
-      console.error("Failed to delete from Retell:", error);
+      this.logger.error("Failed to delete agent from external AI service", {
+        agentId: id,
+        providerAgentId: agent.providerAgentId,
+        userId,
+        teamId,
+        error,
+      });
     }
 
     await this.agentRepository.delete({ id });

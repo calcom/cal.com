@@ -182,6 +182,7 @@ export class RetellSDKClient implements RetellAIRepository {
 
   async deletePhoneNumber(phoneNumber: string) {
     try {
+      this.logger.info("Deleting phone number via SDK", { phoneNumber });
       await this.client.phoneNumber.delete(phoneNumber);
     } catch (error) {
       this.logger.error("Failed to delete phone number", { error, phoneNumber });

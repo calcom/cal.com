@@ -79,7 +79,9 @@ describe("CallService", () => {
     it("should handle Retell API errors", async () => {
       mocks.mockRetellRepository.createPhoneCall.mockRejectedValue(new TestError("Retell API error"));
 
-      await expect(service.createPhoneCall(validCallData)).rejects.toThrow("Retell API error");
+      await expect(service.createPhoneCall(validCallData)).rejects.toThrow(
+        "Failed to create phone call from +1234567890 to +0987654321"
+      );
     });
   });
 
@@ -154,7 +156,7 @@ describe("CallService", () => {
           agentId: "agent-123",
           userId: 1,
         })
-      ).rejects.toThrow("No phone number provided for test call");
+      ).rejects.toThrow("Phone number is required for test call");
     });
 
     it("should throw error if agent not found", async () => {
@@ -181,7 +183,9 @@ describe("CallService", () => {
       mocks.mockAgentRepository.findByIdWithCallAccess.mockResolvedValue(mockAgentWithPhoneNumber);
       mocks.mockRetellRepository.createPhoneCall.mockRejectedValue(new TestError("Call creation failed"));
 
-      await expect(service.createTestCall(validTestCallData)).rejects.toThrow("Call creation failed");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Failed to create phone call from +1234567890 to +0987654321"
+      );
     });
 
     it("should handle rate limiting errors", async () => {
@@ -224,7 +228,9 @@ describe("CallService", () => {
         getAllCredits: vi.fn().mockRejectedValue(new TestError("Credit service unavailable")),
       }));
 
-      await expect(service.createTestCall(validTestCallData)).rejects.toThrow("Credit service unavailable");
+      await expect(service.createTestCall(validTestCallData)).rejects.toThrow(
+        "Unable to validate credits. Please try again."
+      );
     });
 
     it("should handle insufficient credits properly", async () => {

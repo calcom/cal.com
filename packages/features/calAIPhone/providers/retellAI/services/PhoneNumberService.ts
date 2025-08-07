@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -5,14 +6,18 @@ import { TRPCError } from "@trpc/server";
 import type {
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParamsExtended,
+  AIPhoneServiceProviderType,
+  AIPhoneServicePhoneNumber,
 } from "../../../interfaces/ai-phone-service.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
-import type { RetellAIRepository, RetellPhoneNumber } from "../types";
+import type { RetellAIRepository } from "../types";
 
 export class PhoneNumberService {
+  private logger = logger.getSubLogger({ prefix: ["PhoneNumberService"] });
+
   constructor(
     private retellRepository: RetellAIRepository,
     private agentRepository: AgentRepositoryInterface,
@@ -20,14 +25,20 @@ export class PhoneNumberService {
     private transactionManager: TransactionInterface
   ) {}
 
-  async importPhoneNumber(data: AIPhoneServiceImportPhoneNumberParamsExtended): Promise<RetellPhoneNumber> {
+  async importPhoneNumber(
+    data: AIPhoneServiceImportPhoneNumberParamsExtended
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+    if (!data || !data.phone_number?.trim()) {
+      throw new Error("Phone number is required and cannot be empty");
+    }
+
     const { userId, agentId, teamId, ...rest } = data;
 
     await this.validateTeamPermissions(userId, teamId);
     const agent = await this.validateAgentPermissions(userId, agentId);
 
     let transactionState = {
-      retellPhoneNumber: null as RetellPhoneNumber | null,
+      retellPhoneNumber: null as AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> | null,
       databaseRecordCreated: false,
       agentAssigned: false,
     };
@@ -66,8 +77,22 @@ export class PhoneNumberService {
     }
   }
 
-  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<RetellPhoneNumber> {
-    return this.retellRepository.createPhoneNumber(data);
+  async createPhoneNumber(
+    data: AIPhoneServiceCreatePhoneNumberParams
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+    if (!data) {
+      throw new Error("Phone number data is required");
+    }
+
+    try {
+      return await this.retellRepository.createPhoneNumber(data);
+    } catch (error) {
+      this.logger.error("Failed to create phone number in external AI service", {
+        data,
+        error,
+      });
+      throw new Error("Failed to create phone number");
+    }
   }
 
   async deletePhoneNumber({
@@ -81,6 +106,10 @@ export class PhoneNumberService {
     teamId?: number;
     deleteFromDB: boolean;
   }): Promise<void> {
+    if (!phoneNumber?.trim()) {
+      throw new Error("Phone number is required and cannot be empty");
+    }
+
     const phoneNumberToDelete = teamId
       ? await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
@@ -118,7 +147,10 @@ export class PhoneNumberService {
         outbound_agent_id: null,
       });
     } catch (error) {
-      console.error("Failed to remove agents from phone number in Retell:", error);
+      this.logger.error("Failed to remove agents from phone number in Retell", {
+        phoneNumber,
+        error,
+      });
     }
 
     await this.retellRepository.deletePhoneNumber(phoneNumber);
@@ -128,15 +160,46 @@ export class PhoneNumberService {
     }
   }
 
-  async getPhoneNumber(phoneNumber: string): Promise<RetellPhoneNumber> {
-    return this.retellRepository.getPhoneNumber(phoneNumber);
+  async getPhoneNumber(
+    phoneNumber: string
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+    if (!phoneNumber?.trim()) {
+      throw new Error("Phone number is required and cannot be empty");
+    }
+
+    try {
+      return await this.retellRepository.getPhoneNumber(phoneNumber);
+    } catch (error) {
+      this.logger.error("Failed to get phone number from external AI service", {
+        phoneNumber,
+        error,
+      });
+      throw new Error(`Failed to get phone number '${phoneNumber}'`);
+    }
   }
 
   async updatePhoneNumber(
     phoneNumber: string,
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
-  ): Promise<RetellPhoneNumber> {
-    return this.retellRepository.updatePhoneNumber(phoneNumber, data);
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+    if (!phoneNumber?.trim()) {
+      throw new Error("Phone number is required and cannot be empty");
+    }
+
+    if (!data || Object.keys(data).length === 0) {
+      throw new Error("Update data is required and cannot be empty");
+    }
+
+    try {
+      return await this.retellRepository.updatePhoneNumber(phoneNumber, data);
+    } catch (error) {
+      this.logger.error("Failed to update phone number in external AI service", {
+        phoneNumber,
+        data,
+        error,
+      });
+      throw new Error(`Failed to update phone number '${phoneNumber}'`);
+    }
   }
 
   async updatePhoneNumberWithAgents({
@@ -152,6 +215,10 @@ export class PhoneNumberService {
     inboundAgentId?: string | null;
     outboundAgentId?: string | null;
   }) {
+    if (!phoneNumber?.trim()) {
+      throw new Error("Phone number is required and cannot be empty");
+    }
+
     const phoneNumberRecord = teamId
       ? await this.phoneNumberRepository.findByPhoneNumberAndTeamId({
           phoneNumber,
@@ -185,11 +252,11 @@ export class PhoneNumberService {
         await this.updatePhoneNumber(phoneNumber, retellUpdateData);
       }
     } catch (error: unknown) {
-      if ((error as Error).message?.includes("404") || (error as Error).message?.includes("Not Found")) {
-        console.log(`Phone number ${phoneNumber} not found in Retell - updating local database only`);
-      } else {
-        console.error("Failed to update phone number in AI service:", error);
-      }
+      this.logger.error("Failed to update phone number in external AI service", {
+        phoneNumber,
+        error,
+        note: "Continuing with local database update only",
+      });
     }
 
     await this.phoneNumberRepository.updateAgents({
@@ -264,7 +331,7 @@ export class PhoneNumberService {
 
   private async handleCompensatingTransaction(
     transactionState: {
-      retellPhoneNumber: RetellPhoneNumber | null;
+      retellPhoneNumber: AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> | null;
       databaseRecordCreated: boolean;
       agentAssigned: boolean;
     },
@@ -273,33 +340,28 @@ export class PhoneNumberService {
   ) {
     if (transactionState.retellPhoneNumber?.phone_number) {
       try {
-        console.warn(
-          `Attempting cleanup of Retell phone number ${transactionState.retellPhoneNumber.phone_number} due to transaction failure`
-        );
+        this.logger.warn("Attempting cleanup of Retell phone number due to transaction failure", {
+          phoneNumber: transactionState.retellPhoneNumber.phone_number,
+        });
         await this.retellRepository.deletePhoneNumber(transactionState.retellPhoneNumber.phone_number);
-        console.info(
-          `Successfully cleaned up Retell phone number ${transactionState.retellPhoneNumber.phone_number}`
-        );
+        this.logger.info("Successfully cleaned up Retell phone number", {
+          phoneNumber: transactionState.retellPhoneNumber.phone_number,
+        });
       } catch (cleanupError) {
-        const compensationFailureMessage = `CRITICAL: Failed to cleanup Retell phone number ${
-          transactionState.retellPhoneNumber.phone_number
-        } after transaction failure. This will cause billing leaks. Original error: ${
-          (error as Error).message
-        }. Cleanup error: ${(cleanupError as Error).message}`;
+        const compensationFailureMessage = `Failed to cleanup Retell phone number ${transactionState.retellPhoneNumber.phone_number} after transaction failure. Manual cleanup required.`;
 
-        console.error("🚨 BILLING LEAK ALERT 🚨", {
+        this.logger.error(compensationFailureMessage, {
           phoneNumber: transactionState.retellPhoneNumber.phone_number,
           userId: context.userId,
           teamId: context.teamId,
           agentId: context.agentId,
-          originalError: (error as Error).message,
-          cleanupError: (cleanupError as Error).message,
+          originalError: error,
+          cleanupError: cleanupError,
           transactionState: {
             retellCreated: !!transactionState.retellPhoneNumber,
             databaseCreated: transactionState.databaseRecordCreated,
             agentAssigned: transactionState.agentAssigned,
           },
-          timestamp: new Date().toISOString(),
           requiresManualCleanup: true,
         });
 

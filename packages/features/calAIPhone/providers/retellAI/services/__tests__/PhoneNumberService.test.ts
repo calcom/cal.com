@@ -148,7 +148,7 @@ describe("PhoneNumberService", () => {
       mocks.mockRetellRepository.deletePhoneNumber.mockRejectedValue(new TestError("Retell API unavailable"));
 
       await expect(service.importPhoneNumber(validImportData)).rejects.toThrow(
-        "CRITICAL: Failed to cleanup Retell phone number"
+        "Failed to cleanup Retell phone number +1234567890 after transaction failure. Manual cleanup required."
       );
 
       expect(mocks.mockRetellRepository.deletePhoneNumber).toHaveBeenCalledWith("+1234567890");

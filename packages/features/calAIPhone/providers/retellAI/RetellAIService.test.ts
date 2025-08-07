@@ -490,7 +490,7 @@ describe("RetellAIService", () => {
           userId: 1,
         })
       ).rejects.toThrow(
-        "CRITICAL: Failed to cleanup Retell phone number +1234567890 after transaction failure. This will cause billing leaks"
+        "Failed to cleanup Retell phone number +1234567890 after transaction failure. Manual cleanup required."
       );
 
       // Verify both operations were attempted
@@ -960,7 +960,7 @@ describe("RetellAIService", () => {
           agentId: "1",
           userId: 1,
         })
-      ).rejects.toThrow("No phone number provided for test call.");
+      ).rejects.toThrow("Phone number is required for test call");
     });
 
     it("should throw error if agent not found", async () => {
