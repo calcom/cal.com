@@ -3,13 +3,13 @@ import { z } from "zod";
 
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
-const isDateString = (val: string) => !isNaN(Date.parse(val));
+const isValidDateString = (val: string) => !isNaN(Date.parse(val));
 
 export const getScheduleSchemaObject = z.object({
-  startTime: z.string().refine(isDateString, {
+  startTime: z.string().refine(isValidDateString, {
     message: "startTime must be a valid date string",
   }),
-  endTime: z.string().refine(isDateString, {
+  endTime: z.string().refine(isValidDateString, {
     message: "endTime must be a valid date string",
   }),
   // Event type ID
@@ -55,7 +55,11 @@ export const getScheduleSchema = getScheduleSchemaObject
   .refine(
     (data) => !!data.eventTypeId || (!!data.usernameList && !!data.eventTypeSlug),
     "You need to either pass an eventTypeId OR an usernameList/eventTypeSlug combination"
-  );
+  )
+  .refine(({ startTime, endTime }) => new Date(endTime).getTime() > new Date(startTime).getTime(), {
+    message: "endTime must be after startTime",
+    path: ["endTime"],
+  });
 
 export const reserveSlotSchema = z
   .object({
