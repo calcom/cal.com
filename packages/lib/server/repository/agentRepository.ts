@@ -407,6 +407,16 @@ export class PrismaAgentRepository {
         userId,
         teamId,
       },
+      select: {
+        id: true,
+        name: true,
+        providerAgentId: true,
+        enabled: true,
+        userId: true,
+        teamId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
