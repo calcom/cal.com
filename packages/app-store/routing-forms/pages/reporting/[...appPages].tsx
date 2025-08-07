@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState, useEffect } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import type {
   BuilderProps,
   Config,
@@ -19,7 +19,6 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
-import SingleForm from "../../components/SingleForm";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/getServerSidePropsSingleForm";
 import {
   withRaqbSettingsAndWidgets,
@@ -264,27 +263,3 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
     </div>
   );
 };
-
-export default function ReporterWrapper({
-  ...props
-}: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    // It isn't possible to render Reporter without hydration errors if it is rendered on the server.
-    // This is because the RAQB generates some dynamic ids on elements which change b/w client and server.
-    // This is a workaround to render the Reporter on the client only.
-    setIsClient(true);
-  }, []);
-
-  return (
-    <SingleForm
-      {...props}
-      Page={({ form }) => (
-        <div className="route-config bg-default fixed inset-0 w-full overflow-scroll pt-12 ltr:mr-2 rtl:ml-2 sm:pt-0">
-          {isClient && <Reporter form={form} />}
-        </div>
-      )}
-    />
-  );
-}
