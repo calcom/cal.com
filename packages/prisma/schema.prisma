@@ -1613,6 +1613,8 @@ model CalendarEvent {
   start       DateTime
   end         DateTime
   isAllDay    Boolean  @default(false)
+  // Event timezone (from event payload or inferred from calendar)
+  timeZone    String?
 
   // Event metadata
   status       String @default("confirmed") // confirmed, tentative, cancelled

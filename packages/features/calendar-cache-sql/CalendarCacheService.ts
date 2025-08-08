@@ -53,6 +53,18 @@ class CalendarCachePresenter {
   static presentSubscriptionIds(subscriptions: Array<{ id: string }>): string[] {
     return subscriptions.map((subscription) => subscription.id);
   }
+
+  static presentAvailabilityDataWithTimezones(
+    events: CalendarEventForAvailability[]
+  ): { start: string; end: string; timeZone: string }[] {
+    return events.map((event) => ({
+      start: event.start.toISOString(),
+      end: event.end.toISOString(),
+      timeZone: event.timeZone || "",
+      source: "calendar-cache-sql",
+      title: event.summary || "Busy",
+    }));
+  }
 }
 
 export class CalendarCacheService implements Calendar {
@@ -62,23 +74,21 @@ export class CalendarCacheService implements Calendar {
     private eventRepo: ICalendarEventRepository
   ) {}
 
-  async getAvailability(
+  /**
+   * Internal helper to resolve events for a set of selected calendars within a date range.
+   * Keeps public methods DRY.
+   */
+  private async loadEventsForSelectedCalendars(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[],
-    shouldServeCache?: boolean,
-    fallbackToPrimary?: boolean
-  ): Promise<EventBusyDate[]> {
-    log.debug("Getting availability from cache", safeStringify({ dateFrom, dateTo, selectedCalendars }));
-
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<CalendarEventForAvailability[]> {
     if (selectedCalendars.length === 0) {
       return [];
     }
 
-    // Use presenter to transform calendar IDs
     const selectedCalendarIds = CalendarCachePresenter.presentCalendarIds(selectedCalendars);
 
-    // Batch fetch all subscriptions in a single query
     const subscriptions = await this.subscriptionRepo.findBySelectedCalendarIds(selectedCalendarIds);
     const subscriptionIds = CalendarCachePresenter.presentSubscriptionIds(subscriptions);
 
@@ -87,12 +97,25 @@ export class CalendarCacheService implements Calendar {
       return [];
     }
 
-    // Batch fetch all events in a single query
     const allEvents = await this.eventRepo.getEventsForAvailabilityBatch(
       subscriptionIds,
       new Date(dateFrom),
       new Date(dateTo)
     );
+
+    return allEvents;
+  }
+
+  async getAvailability(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    _shouldServeCache?: boolean,
+    _fallbackToPrimary?: boolean
+  ): Promise<EventBusyDate[]> {
+    log.debug("Getting availability from cache", safeStringify({ dateFrom, dateTo, selectedCalendars }));
+
+    const allEvents = await this.loadEventsForSelectedCalendars(dateFrom, dateTo, selectedCalendars);
 
     // Use presenter to transform events to EventBusyDate format
     const results = CalendarCachePresenter.presentAvailabilityData(allEvents);
@@ -101,24 +124,45 @@ export class CalendarCacheService implements Calendar {
     return results;
   }
 
+  // for OOO calibration (only google calendar for now)
+  async getAvailabilityWithTimeZones(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    _fallbackToPrimary?: boolean
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+    log.debug(
+      "Getting availability with timezones from cache",
+      safeStringify({ dateFrom, dateTo, selectedCalendars })
+    );
+
+    const events = await this.loadEventsForSelectedCalendars(dateFrom, dateTo, selectedCalendars);
+
+    return CalendarCachePresenter.presentAvailabilityDataWithTimezones(events);
+  }
+
   // Implement other Calendar interface methods with appropriate fallbacks or empty implementations
   async createEvent(
-    event: CalendarServiceEvent,
-    credentialId: number,
-    externalCalendarId?: string
+    _event: CalendarServiceEvent,
+    _credentialId: number,
+    _externalCalendarId?: string
   ): Promise<NewCalendarEventType> {
     throw new Error("CalendarCacheService does not support creating events");
   }
 
   async updateEvent(
-    uid: string,
-    event: CalendarServiceEvent,
-    externalCalendarId?: string | null
+    _uid: string,
+    _event: CalendarServiceEvent,
+    _externalCalendarId?: string | null
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     throw new Error("CalendarCacheService does not support updating events");
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown> {
+  async deleteEvent(
+    _uid: string,
+    _event: CalendarEvent,
+    _externalCalendarId?: string | null
+  ): Promise<unknown> {
     throw new Error("CalendarCacheService does not support deleting events");
   }
 

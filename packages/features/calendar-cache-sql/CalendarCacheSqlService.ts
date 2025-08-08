@@ -31,6 +31,8 @@ export class CalendarCacheSqlService {
       end: event.end.toISOString(),
       title: event.summary || "Busy",
       source: "calendar-cache-sql",
+      // Keep compatibility if other code paths ever use this directly
+      timeZone: event.timeZone || undefined,
     }));
   }
 
