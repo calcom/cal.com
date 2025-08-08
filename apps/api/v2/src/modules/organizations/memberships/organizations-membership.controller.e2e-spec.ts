@@ -17,7 +17,6 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { Attribute, AttributeOption, User } from "@prisma/client";
 import * as request from "supertest";
-import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -34,7 +33,6 @@ describe("Organizations Memberships Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
-    let attributesRepositoryFixture: AttributeRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -77,7 +75,6 @@ describe("Organizations Memberships Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-      attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -444,7 +441,6 @@ describe("Organizations Memberships Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
-    let attributesRepositoryFixture: AttributeRepositoryFixture;
 
     let org: Team;
     let membership: Membership;
@@ -463,7 +459,6 @@ describe("Organizations Memberships Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-      attributesRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,

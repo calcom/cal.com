@@ -47,7 +47,6 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
 import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -56,7 +55,6 @@ describe("Organizations Organizations Endpoints", () => {
 
   let userRepositoryFixture: UserRepositoryFixture;
   let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-  let teamsRepositoryFixture: TeamRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let managedOrganizationsRepositoryFixture: ManagedOrganizationsRepositoryFixture;

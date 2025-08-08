@@ -11,9 +11,9 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
+import { PrismaOrganizationRepository } from "@calcom/lib/server/repository/PrismaOrganizationRepository";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
@@ -168,7 +168,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : null;
 
   const calVideoLogo = profile?.organization
-    ? await OrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
+    ? await PrismaOrganizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
     : null;
 
   //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals

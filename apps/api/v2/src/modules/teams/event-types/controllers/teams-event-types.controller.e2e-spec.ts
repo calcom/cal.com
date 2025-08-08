@@ -39,10 +39,8 @@ describe("Organizations Event Types Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
-    let profileRepositoryFixture: ProfileRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     let team: Team;

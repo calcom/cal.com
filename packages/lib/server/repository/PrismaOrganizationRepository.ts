@@ -19,7 +19,7 @@ const orgSelect = {
   logoUrl: true,
 };
 
-export class OrganizationRepository {
+export class PrismaOrganizationRepository {
   static async createWithExistingUserAsOwner({
     orgData,
     owner,
