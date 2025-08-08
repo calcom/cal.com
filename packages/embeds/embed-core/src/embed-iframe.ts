@@ -278,14 +278,23 @@ export const useEmbedType = () => {
   return state;
 };
 
-function makeBodyVisible() {
+let makeBodyVisibleTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+function makeBodyVisible(): () => void {
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
   // Ensure that it stays visible and not reverted by React
-  runAsap(() => {
+  makeBodyVisibleTimeoutId = runAsap(() => {
     makeBodyVisible();
   });
+
+  return () => {
+    if (makeBodyVisibleTimeoutId) {
+      clearTimeout(makeBodyVisibleTimeoutId);
+      makeBodyVisibleTimeoutId = null;
+    }
+  };
 }
 
 /**
