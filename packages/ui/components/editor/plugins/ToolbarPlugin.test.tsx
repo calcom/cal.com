@@ -24,10 +24,26 @@ vi.mock("../../button", () => ({
 }));
 
 vi.mock("../../dropdown", () => ({
-  Dropdown: ({ children }: any) => <div data-testid="dropdown">{children}</div>,
-  DropdownMenuTrigger: ({ children }: any) => <div data-testid="dropdown-trigger">{children}</div>,
-  DropdownMenuContent: ({ children }: any) => <div data-testid="dropdown-content">{children}</div>,
-  DropdownMenuItem: ({ children }: any) => <div data-testid="dropdown-item">{children}</div>,
+  Dropdown: ({ children, ...props }: any) => (
+    <div data-testid="dropdown" {...props}>
+      {children}
+    </div>
+  ),
+  DropdownMenuTrigger: ({ children, ...props }: any) => (
+    <button data-testid="dropdown-trigger" type="button" {...props}>
+      {children}
+    </button>
+  ),
+  DropdownMenuContent: ({ children, ...props }: any) => (
+    <div data-testid="dropdown-content" {...props}>
+      {children}
+    </div>
+  ),
+  DropdownMenuItem: ({ children, ...props }: any) => (
+    <button data-testid="dropdown-item" type="button" {...props}>
+      {children}
+    </button>
+  ),
 }));
 
 vi.mock("./AddVariablesDropdown", () => ({
@@ -111,20 +127,30 @@ describe("ToolbarPlugin", () => {
     expect(screen.getByTestId("button-link")).toBeDefined();
   });
 
-  it("changes block type when dropdown item is clicked", () => {
+  it("changes block type when dropdown item is clicked", async () => {
+    const setText = vi.fn();
     render(
       <TestWrapper>
-        <ToolbarPlugin {...defaultProps} />
+        <ToolbarPlugin {...defaultProps} setText={setText} />
       </TestWrapper>
     );
 
-    // Open the block type dropdown using the correct test id
+    // Open the block type dropdown
     const dropdownTrigger = screen.getByTestId("dropdown-trigger");
     fireEvent.click(dropdownTrigger);
 
-    // Find the "Large Heading" button inside the dropdown
+    // Find and click "Large Heading" button
     const largeHeadingButton = screen.getByText("Large Heading");
     fireEvent.click(largeHeadingButton);
+
+    // Wait for the editor to update
+    await waitFor(() => {
+      // Verify setText was called after changing the block type
+      expect(setText).toHaveBeenCalled();
+    });
+
+    // Additional verification - can look for specific HTML structure if needed
+    // For example: expect(setText).toHaveBeenCalledWith(expect.stringContaining("<h1"));
   });
 
   it("toggles bold formatting when bold button is clicked", () => {
