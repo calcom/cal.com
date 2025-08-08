@@ -27,6 +27,7 @@ import {
   type SegmentIdentifier,
   type ActiveFilters,
   type UseSegments,
+  SYSTEM_SEGMENT_PREFIX,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
@@ -107,15 +108,24 @@ export function DataTableProvider({
   const [segmentIdString, setSegmentIdString] = useQueryState("segment", segmentIdParser);
 
   const segmentId = useMemo((): SegmentIdentifier | null => {
+    const fallback = preferredSegmentId ?? { id: -1, type: "user" };
     if (!segmentIdString || segmentIdString === "") {
-      return preferredSegmentId ?? { id: -1, type: "custom" };
+      return fallback;
     }
+
+    if (segmentIdString && segmentIdString.startsWith(SYSTEM_SEGMENT_PREFIX)) {
+      return {
+        id: segmentIdString,
+        type: "system",
+      };
+    }
+
     const numericId = parseInt(segmentIdString, 10);
-    if (isNaN(numericId)) {
-      return { id: segmentIdString, type: "system" };
-    } else {
+    if (!isNaN(numericId)) {
       return { id: numericId, type: "user" };
     }
+
+    return fallback;
   }, [segmentIdString, preferredSegmentId]);
 
   const setSegmentId = useCallback(

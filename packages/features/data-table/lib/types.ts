@@ -5,6 +5,8 @@ import type { IconName } from "@calcom/ui/components/icon";
 
 export type { SortingState } from "@tanstack/react-table";
 
+export const SYSTEM_SEGMENT_PREFIX = "system_";
+
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",
   MULTI_SELECT = "ms",

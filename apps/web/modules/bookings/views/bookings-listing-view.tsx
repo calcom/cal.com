@@ -67,7 +67,7 @@ function useDefaultSegments() {
 
     return [
       {
-        id: "system-my_bookings",
+        id: "my_bookings",
         name: t("my_bookings"),
         icon: "user",
         type: "system",

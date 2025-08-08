@@ -5,7 +5,7 @@ import { useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { recalculateDateRange } from "../lib/dateRange";
-import { type UseSegments, type SegmentIdentifier } from "../lib/types";
+import { type UseSegments, type SegmentIdentifier, SYSTEM_SEGMENT_PREFIX } from "../lib/types";
 import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({
@@ -47,6 +47,7 @@ export const useSegments: UseSegments = ({
 
     const processedDefaultSegments = defaultSegments.map((segment) => ({
       ...segment,
+      id: `${SYSTEM_SEGMENT_PREFIX}${segment.id}`,
       type: "system" as const,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
