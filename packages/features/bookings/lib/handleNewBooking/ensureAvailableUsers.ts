@@ -6,7 +6,7 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getBusyTimesForLimitChecks } from "@calcom/lib/getBusyTimes";
-import { getUsersAvailability } from "@calcom/lib/getUserAvailability";
+import { getUserAvailabilityService } from "@calcom/lib/di/containers/get-user-availability";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -62,6 +62,7 @@ const _ensureAvailableUsers = async (
   shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
+  const userAvailabilityService = getUserAvailabilityService()
   const availableUsers: IsFixedAwareUser[] = [];
 
   const startDateTimeUtc = getDateTimeInUtc(input.dateFrom, input.timeZone);
@@ -86,7 +87,7 @@ const _ensureAvailableUsers = async (
         })
       : [];
 
-  const usersAvailability = await getUsersAvailability({
+  const usersAvailability = await userAvailabilityService.getUsersAvailability({
     users: eventType.users,
     query: {
       ...input,
@@ -222,7 +223,7 @@ const _ensureAvailableUsers = async (
 
     if (!dateRanges.length) {
       loggerWithEventDetails.error(
-        `User does not have availability at this time.`,
+        `User ${user.id} does not have availability at this time.`,
         piiFreeInputDataForLogging
       );
       return;
