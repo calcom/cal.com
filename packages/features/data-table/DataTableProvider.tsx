@@ -22,7 +22,7 @@ import {
 import {
   type FilterValue,
   type FilterSegmentOutput,
-  type DefaultFilterSegment,
+  type SystemFilterSegment,
   type CombinedFilterSegment,
   type SegmentIdentifier,
   type ActiveFilters,
@@ -83,7 +83,7 @@ interface DataTableProviderProps {
   segments?: FilterSegmentOutput[];
   timeZone?: string;
   preferredSegmentId?: SegmentIdentifier | null;
-  defaultSegments?: DefaultFilterSegment[];
+  systemSegments?: SystemFilterSegment[];
 }
 
 export function DataTableProvider({
@@ -95,7 +95,7 @@ export function DataTableProvider({
   segments: providedSegments,
   timeZone,
   preferredSegmentId,
-  defaultSegments,
+  systemSegments,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -230,7 +230,7 @@ export function DataTableProvider({
       setSearchTerm,
       segments: providedSegments,
       preferredSegmentId,
-      defaultSegments,
+      systemSegments,
     }
   );
 

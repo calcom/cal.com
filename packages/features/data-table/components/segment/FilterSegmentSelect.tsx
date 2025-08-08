@@ -19,8 +19,8 @@ import { useDataTable } from "../../hooks";
 import type {
   FilterSegmentOutput,
   CombinedFilterSegment,
-  DefaultFilterSegment,
-  CustomFilterSegment,
+  SystemFilterSegment,
+  UserFilterSegment,
 } from "../../lib/types";
 import { DeleteSegmentDialog } from "./DeleteSegmentDialog";
 import { DuplicateSegmentDialog } from "./DuplicateSegmentDialog";
@@ -66,21 +66,21 @@ export function FilterSegmentSelect() {
   const segmentGroups = useMemo(() => {
     const sortFn = (a: CombinedFilterSegment, b: CombinedFilterSegment) => a.name.localeCompare(b.name);
 
-    const defaultSegments = segments?.filter((s): s is DefaultFilterSegment => s.type === "system") || [];
+    const systemSegments = segments?.filter((s): s is SystemFilterSegment => s.type === "system") || [];
     const personalSegments =
-      segments?.filter((s): s is CustomFilterSegment => s.type === "user" && !s.team) || [];
+      segments?.filter((s): s is UserFilterSegment => s.type === "user" && !s.team) || [];
     const teamSegments =
       segments?.filter(
-        (s): s is CustomFilterSegment & { team: NonNullable<FilterSegmentOutput["team"]> } =>
+        (s): s is UserFilterSegment & { team: NonNullable<FilterSegmentOutput["team"]> } =>
           s.type === "user" && s.team !== null
       ) || [];
 
     const groups = [];
 
-    if (defaultSegments.length > 0) {
+    if (systemSegments.length > 0) {
       groups.push({
         label: t("default"),
-        segments: defaultSegments.sort(sortFn),
+        segments: systemSegments.sort(sortFn),
         isDefault: true,
       });
     }
@@ -96,7 +96,7 @@ export function FilterSegmentSelect() {
 
     // Team segments (existing grouping logic)
     const teamSegmentsByTeam = teamSegments.reduce<{
-      [teamName: string]: CustomFilterSegment[];
+      [teamName: string]: UserFilterSegment[];
     }>((acc, segment) => {
       const teamName = segment.team!.name;
       if (!acc[teamName]) {

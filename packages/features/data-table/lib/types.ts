@@ -257,7 +257,7 @@ export type FilterSegmentOutput = {
   team: { id: number; name: string } | null;
 };
 
-export type DefaultFilterSegment = {
+export type SystemFilterSegment = {
   id: string;
   name: string;
   icon?: IconName;
@@ -270,11 +270,11 @@ export type DefaultFilterSegment = {
   type: "system";
 };
 
-export type CustomFilterSegment = FilterSegmentOutput & {
+export type UserFilterSegment = FilterSegmentOutput & {
   type: "user";
 };
 
-export type CombinedFilterSegment = DefaultFilterSegment | CustomFilterSegment;
+export type CombinedFilterSegment = SystemFilterSegment | UserFilterSegment;
 
 export type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
 
@@ -318,7 +318,7 @@ export type UseSegmentsProps = {
   setSearchTerm: (searchTerm: string | null) => void;
   segments?: FilterSegmentOutput[];
   preferredSegmentId?: SegmentIdentifier | null;
-  defaultSegments?: DefaultFilterSegment[];
+  systemSegments?: SystemFilterSegment[];
 };
 
 export type UseSegmentsReturn = {

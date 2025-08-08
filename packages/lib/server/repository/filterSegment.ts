@@ -301,9 +301,9 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       return null;
     }
 
-    const isDefaultSegment = segmentId.type === "system";
+    const isSystemSegment = segmentId.type === "system";
 
-    const updateData = isDefaultSegment
+    const updateData = isSystemSegment
       ? {
           segmentId: null,
           systemSegmentId: segmentId.id,

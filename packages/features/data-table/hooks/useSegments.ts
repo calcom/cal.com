@@ -28,7 +28,7 @@ export const useSegments: UseSegments = ({
   setSearchTerm,
   segments: providedSegments,
   preferredSegmentId,
-  defaultSegments = [],
+  systemSegments = [],
 }) => {
   const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery(
     {
@@ -45,7 +45,7 @@ export const useSegments: UseSegments = ({
     const segmentsSource = providedSegments || rawSegments?.segments;
     const userSegments = segmentsSource || [];
 
-    const processedDefaultSegments = defaultSegments.map((segment) => ({
+    const processedDefaultSegments = systemSegments.map((segment) => ({
       ...segment,
       id: `${SYSTEM_SEGMENT_PREFIX}${segment.id}`,
       type: "system" as const,
@@ -75,7 +75,7 @@ export const useSegments: UseSegments = ({
     }));
 
     return [...processedDefaultSegments, ...processedUserSegments];
-  }, [rawSegments, providedSegments, defaultSegments]);
+  }, [rawSegments, providedSegments, systemSegments]);
 
   const selectedSegment = useMemo(() => {
     if (!segmentId) return undefined;
