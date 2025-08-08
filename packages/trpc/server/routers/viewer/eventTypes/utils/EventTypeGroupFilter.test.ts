@@ -161,7 +161,8 @@ describe("EventTypeGroupFilter", () => {
     });
 
     it("should support complex chaining", () => {
-      const result = filterEvents(allGroups, mockPermissionsMap).has("eventType.edit").readOnly(false).get();
+-      const result = filterEvents(allGroups, mockPermissionsMap).has("eventType.edit").readOnly(false).get();
++      const result = filterEvents(allGroups, mockPermissionsMap).has("eventType.update").readOnly(false).get();
 
       expect(result).toHaveLength(2);
       expect(result).toContain(mockUserGroup);

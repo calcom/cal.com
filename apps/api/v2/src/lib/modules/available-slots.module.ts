@@ -11,7 +11,9 @@ import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisService } from "@/modules/redis/redis.service";
 import { Module } from "@nestjs/common";
+import { UserAvailabilityService } from "@/lib/services/user-availability.service";
 
 @Module({
   imports: [PrismaModule],
@@ -24,10 +26,12 @@ import { Module } from "@nestjs/common";
     PrismaEventTypeRepository,
     PrismaRoutingFormResponseRepository,
     PrismaTeamRepository,
+    RedisService,
     PrismaFeaturesRepository,
     CheckBookingLimitsService,
     CacheService,
     AvailableSlotsService,
+    UserAvailabilityService
   ],
   exports: [AvailableSlotsService],
 })
