@@ -606,12 +606,6 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
-      hostGroups: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
       team: {
         select: {
           id: true,
@@ -678,7 +672,6 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
-          groupId: true,
           user: {
             select: {
               timeZone: true,
@@ -902,12 +895,6 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
-      hostGroups: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
       team: {
         select: {
           id: true,
@@ -1210,12 +1197,6 @@ export class EventTypeRepository {
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
-        hostGroups: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         team: {
           select: {
             id: true,
@@ -1265,7 +1246,6 @@ export class EventTypeRepository {
             createdAt: true,
             weight: true,
             priority: true,
-            groupId: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },

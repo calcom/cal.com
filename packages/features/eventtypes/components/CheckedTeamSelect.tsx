@@ -2,18 +2,17 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
-import type { Options, Props } from "react-select";
+import type { Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
-import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
+import { Icon } from "@calcom/ui/components/icon";
+import { Select } from "@calcom/ui/components/form";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import classNames from "@calcom/ui/classNames";
 
 import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
@@ -27,7 +26,6 @@ export type CheckedSelectOption = {
   isFixed?: boolean;
   disabled?: boolean;
   defaultScheduleId?: number | null;
-  groupId: string | null;
 };
 
 export type CheckedTeamSelectCustomClassNames = {
@@ -51,15 +49,12 @@ export const CheckedTeamSelect = ({
   value = [],
   isRRWeightsEnabled,
   customClassNames,
-  groupId,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
-  options?: Options<CheckedSelectOption>;
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
   customClassNames?: CheckedTeamSelectCustomClassNames;
-  groupId: string | null;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -70,15 +65,6 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const valueFromGroup = groupId ? value.filter((host) => host.groupId === groupId) : value;
-
-  const handleSelectChange = (newValue: readonly CheckedSelectOption[]) => {
-    const otherGroupsHosts = getHostsFromOtherGroups(value, groupId);
-
-    const newValueAllGroups = [...otherGroupsHosts, ...newValue.map((host) => ({ ...host, groupId }))];
-    props.onChange(newValueAllGroups);
-  };
-
   return (
     <>
       <Select
@@ -87,30 +73,26 @@ export const CheckedTeamSelect = ({
         placeholder={props.placeholder || t("select")}
         isSearchable={true}
         options={options}
-        value={valueFromGroup}
-        onChange={handleSelectChange}
+        value={value}
         isMulti
         className={customClassNames?.hostsSelect?.select}
-        innerClassNames={{
-          ...customClassNames?.hostsSelect?.innerClassNames,
-          control: "rounded-md",
-        }}
+        innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
         className={classNames(
           "mb-4 mt-3 rounded-md",
-          valueFromGroup.length >= 1 && "border-subtle border",
+          value.length >= 1 && "border-subtle border",
           customClassNames?.selectedHostList?.container
         )}
         ref={animationRef}>
-        {valueFromGroup.map((option, index) => (
+        {value.map((option, index) => (
           <>
             <li
               key={option.value}
               className={classNames(
-                `flex px-3 py-2 ${index === valueFromGroup.length - 1 ? "" : "border-subtle border-b"}`,
+                `flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`,
                 customClassNames?.selectedHostList?.listItem?.container
               )}>
               {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
@@ -188,7 +170,6 @@ export const CheckedTeamSelect = ({
             isOpenDialog={priorityDialogOpen}
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
-            options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.priorityDialog}
           />
@@ -196,7 +177,6 @@ export const CheckedTeamSelect = ({
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}
-            options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.weightDialog}
           />

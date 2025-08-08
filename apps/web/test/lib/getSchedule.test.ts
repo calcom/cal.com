@@ -1,5 +1,4 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 
 import {
   getDate,
@@ -24,12 +23,12 @@ import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
 import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
-constantsScenarios.set({
-  IS_PRODUCTION: true as any,
+vi.mock("@calcom/lib/constants", () => ({
+  IS_PRODUCTION: true,
   WEBAPP_URL: "http://localhost:3000",
-  RESERVED_SUBDOMAINS: ["auth", "docs"] as any,
-  SINGLE_ORG_SLUG: "" as any,
-});
+  RESERVED_SUBDOMAINS: ["auth", "docs"],
+  SINGLE_ORG_SLUG: "",
+}));
 
 describe("getSchedule", () => {
   const availableSlotsService = getAvailableSlotsService();

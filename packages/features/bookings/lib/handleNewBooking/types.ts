@@ -41,7 +41,6 @@ export type IsFixedAwareUser = User & {
   weight?: number;
   userLevelSelectedCalendars: SelectedCalendar[];
   allSelectedCalendars: SelectedCalendar[];
-  groupId?: string | null;
   availabilityData?: GetUserAvailabilityResult;
 };
 

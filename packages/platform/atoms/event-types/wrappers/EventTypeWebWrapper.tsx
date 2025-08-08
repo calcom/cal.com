@@ -108,12 +108,7 @@ export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWe
   return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
-const EventTypeWeb = ({
-  id,
-  ...rest
-}: EventTypeSetupProps & {
-  id: number;
-}) => {
+const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const pathname = usePathname();

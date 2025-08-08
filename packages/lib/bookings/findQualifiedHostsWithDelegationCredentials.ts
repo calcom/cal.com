@@ -17,7 +17,6 @@ type Host<T> = {
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
-  groupId: string | null;
 } & {
   user: T;
 };
@@ -82,7 +81,6 @@ const _findQualifiedHostsWithDelegationCredentials = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
-    groupId?: string | null;
     user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
   fixedHosts: {
@@ -90,7 +88,6 @@ const _findQualifiedHostsWithDelegationCredentials = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
-    groupId?: string | null;
     user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
   // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
@@ -99,7 +96,6 @@ const _findQualifiedHostsWithDelegationCredentials = async <
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
-    groupId?: string | null;
     user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
   }[];
 }> => {
@@ -136,11 +132,11 @@ const _findQualifiedHostsWithDelegationCredentials = async <
   }
 
   const hostsAfterSegmentMatching = applyFilterWithFallback(
-    hostsAfterRescheduleWithSameRoundRobinHost,
+    roundRobinHosts,
     (await findMatchingHostsWithEventSegment({
       eventType,
-      hosts: hostsAfterRescheduleWithSameRoundRobinHost,
-    })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
+      hosts: roundRobinHosts,
+    })) as typeof roundRobinHosts
   );
 
   if (hostsAfterSegmentMatching.length === 1) {
@@ -151,9 +147,7 @@ const _findQualifiedHostsWithDelegationCredentials = async <
   }
 
   //if segment matching doesn't return any hosts we fall back to all round robin hosts
-  const officalRRHosts = hostsAfterSegmentMatching.length
-    ? hostsAfterSegmentMatching
-    : hostsAfterRescheduleWithSameRoundRobinHost;
+  const officalRRHosts = hostsAfterSegmentMatching.length ? hostsAfterSegmentMatching : roundRobinHosts;
 
   const hostsAfterContactOwnerMatching = applyFilterWithFallback(
     officalRRHosts,
