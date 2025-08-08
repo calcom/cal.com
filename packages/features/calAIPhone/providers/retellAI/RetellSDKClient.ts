@@ -1,6 +1,5 @@
 import { Retell } from "retell-sdk";
 
-import { RETELL_API_KEY } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
@@ -15,6 +14,8 @@ import type {
   RetellDynamicVariables,
   ImportPhoneNumberParams,
 } from "./types";
+
+const RETELL_API_KEY = process.env.RETELL_AI_KEY;
 
 export class RetellSDKClient implements RetellAIRepository {
   private client: Retell;

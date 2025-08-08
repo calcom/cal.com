@@ -1,9 +1,8 @@
 import { Retell } from "retell-sdk";
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 
 import logger from "@calcom/lib/logger";
 
-import { RetellSDKClient } from "./RetellSDKClient";
 import type {
   CreateLLMRequest,
   UpdateLLMRequest,
@@ -13,6 +12,8 @@ import type {
   ImportPhoneNumberParams,
   RetellDynamicVariables,
 } from "./types";
+
+let RetellSDKClient: typeof import("./RetellSDKClient").RetellSDKClient;
 
 vi.mock("retell-sdk", () => ({
   Retell: vi.fn().mockImplementation(() => ({
@@ -41,10 +42,6 @@ vi.mock("retell-sdk", () => ({
   })),
 }));
 
-vi.mock("@calcom/lib/constants", () => ({
-  RETELL_API_KEY: "test-retell-api-key",
-}));
-
 vi.mock("@calcom/lib/logger", () => ({
   default: {
     getSubLogger: vi.fn().mockReturnValue({
@@ -56,7 +53,21 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+const TEST_API_KEY = "test-retell-api-key";
+
 describe("RetellSDKClient", () => {
+  beforeAll(() => {
+    const originalEnv = process.env.RETELL_AI_KEY;
+    vi.stubEnv("RETELL_AI_KEY", TEST_API_KEY);
+
+    return () => {
+      if (originalEnv !== undefined) {
+        vi.stubEnv("RETELL_AI_KEY", originalEnv);
+      } else {
+        vi.unstubAllEnvs();
+      }
+    };
+  });
   let client: RetellSDKClient;
   let mockRetellInstance: any;
   let mockLogger: any;
@@ -100,24 +111,30 @@ describe("RetellSDKClient", () => {
   });
 
   describe("constructor", () => {
+    beforeAll(async () => {
+      // Reset modules and reimport with mocked env var
+      vi.resetModules();
+      const module = await import("./RetellSDKClient");
+      RetellSDKClient = module.RetellSDKClient;
+    });
+
     it("should create client with default logger when no custom logger provided", () => {
       client = new RetellSDKClient();
 
       expect(logger.getSubLogger).toHaveBeenCalledWith({ prefix: ["retellSDKClient:"] });
-      expect(Retell).toHaveBeenCalledWith({ apiKey: "test-retell-api-key" });
+      expect(Retell).toHaveBeenCalledWith({ apiKey: TEST_API_KEY });
     });
 
     it("should create client with custom logger", () => {
       client = new RetellSDKClient(mockLogger);
 
       expect(logger.getSubLogger).not.toHaveBeenCalled();
-      expect(Retell).toHaveBeenCalledWith({ apiKey: "test-retell-api-key" });
+      expect(Retell).toHaveBeenCalledWith({ apiKey: TEST_API_KEY });
     });
 
-    it("should throw error when RETELL_API_KEY is not configured", async () => {
-      vi.doMock("@calcom/lib/constants", () => ({
-        RETELL_API_KEY: undefined,
-      }));
+    it("should throw error when RETELL_AI_KEY is not configured", async () => {
+      vi.unstubAllEnvs();
+      vi.stubEnv("RETELL_AI_KEY", "");
 
       vi.resetModules();
       const { RetellSDKClient: TestRetellSDKClient } = await import("./RetellSDKClient");
@@ -126,9 +143,8 @@ describe("RetellSDKClient", () => {
         new TestRetellSDKClient();
       }).toThrow("RETELL_API_KEY is not configured");
 
-      vi.doMock("@calcom/lib/constants", () => ({
-        RETELL_API_KEY: "test-retell-api-key",
-      }));
+      // Restore the env var
+      vi.stubEnv("RETELL_AI_KEY", TEST_API_KEY);
     });
   });
 
