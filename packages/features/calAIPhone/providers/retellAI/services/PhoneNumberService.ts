@@ -1,14 +1,13 @@
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import type {
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParamsExtended,
   AIPhoneServiceProviderType,
   AIPhoneServicePhoneNumber,
-} from "../../../interfaces/ai-phone-service.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";
@@ -29,7 +28,10 @@ export class PhoneNumberService {
     data: AIPhoneServiceImportPhoneNumberParamsExtended
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data || !data.phone_number?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     const { userId, agentId, teamId, ...rest } = data;
@@ -80,10 +82,6 @@ export class PhoneNumberService {
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
-    if (!data) {
-      throw new Error("Phone number data is required");
-    }
-
     try {
       return await this.retellRepository.createPhoneNumber(data);
     } catch (error) {
@@ -91,7 +89,10 @@ export class PhoneNumberService {
         data,
         error,
       });
-      throw new Error("Failed to create phone number");
+      throw new HttpError({
+        statusCode: 500,
+        message: "Failed to create phone number",
+      });
     }
   }
 
@@ -107,7 +108,10 @@ export class PhoneNumberService {
     deleteFromDB: boolean;
   }): Promise<void> {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     const phoneNumberToDelete = teamId
@@ -122,21 +126,21 @@ export class PhoneNumberService {
         });
 
     if (!phoneNumberToDelete) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Phone number not found or you don't have permission to delete it.",
       });
     }
 
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Phone number is still active",
       });
     }
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.CANCELLED) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Phone number is already cancelled",
       });
     }
@@ -164,7 +168,10 @@ export class PhoneNumberService {
     phoneNumber: string
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     try {
@@ -174,7 +181,10 @@ export class PhoneNumberService {
         phoneNumber,
         error,
       });
-      throw new Error(`Failed to get phone number '${phoneNumber}'`);
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to get phone number '${phoneNumber}'`,
+      });
     }
   }
 
@@ -183,11 +193,17 @@ export class PhoneNumberService {
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new Error("Update data is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Update data is required and cannot be empty",
+      });
     }
 
     try {
@@ -198,7 +214,10 @@ export class PhoneNumberService {
         data,
         error,
       });
-      throw new Error(`Failed to update phone number '${phoneNumber}'`);
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to update phone number '${phoneNumber}'`,
+      });
     }
   }
 
@@ -216,7 +235,10 @@ export class PhoneNumberService {
     outboundAgentId?: string | null;
   }) {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     const phoneNumberRecord = teamId
@@ -231,8 +253,8 @@ export class PhoneNumberService {
         });
 
     if (!phoneNumberRecord) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Phone number not found or you don't have permission to update it.",
       });
     }
@@ -275,8 +297,8 @@ export class PhoneNumberService {
         teamId,
       });
       if (!canManage) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new HttpError({
+          statusCode: 403,
           message: "You don't have permission to import phone numbers for this team.",
         });
       }
@@ -292,8 +314,8 @@ export class PhoneNumberService {
       });
 
       if (!agent) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new HttpError({
+          statusCode: 403,
           message: "You don't have permission to use the selected agent.",
         });
       }
@@ -314,15 +336,15 @@ export class PhoneNumberService {
       });
 
       if (!agent) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new HttpError({
+          statusCode: 403,
           message: `You don't have permission to use the selected ${type} agent.`,
         });
       }
 
       if (teamId && agent.teamId !== teamId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new HttpError({
+          statusCode: 403,
           message: `Selected ${type} agent does not belong to the specified team.`,
         });
       }
@@ -365,8 +387,8 @@ export class PhoneNumberService {
           requiresManualCleanup: true,
         });
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new HttpError({
+          statusCode: 500,
           message: compensationFailureMessage,
         });
       }

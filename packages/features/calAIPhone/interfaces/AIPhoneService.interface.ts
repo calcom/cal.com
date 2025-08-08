@@ -28,7 +28,7 @@ export enum AIPhoneServiceProviderType {
  *   // ... other types
  * }
  *
- * // In interfaces/ai-phone-service.interface.ts
+ * // In interfaces/AIPhoneService.interface.ts
  * import type { RetellAIPhoneServiceProviderTypeMap } from "../providers/retellAI";
  *
  * export interface AIPhoneServiceProviderTypeMap {

@@ -11,9 +11,9 @@ export type {
   AIPhoneServiceAgent,
   AIPhoneServiceCall,
   AIPhoneServicePhoneNumber,
-} from "./interfaces/ai-phone-service.interface";
+} from "./interfaces/AIPhoneService.interface";
 
-export { AIPhoneServiceProviderType } from "./interfaces/ai-phone-service.interface";
+export { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 
 // Registry System
 export {

@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import { PhoneNumberService } from "../PhoneNumberService";
 import {
@@ -87,7 +86,7 @@ describe("PhoneNumberService", () => {
           ...validImportData,
           teamId: 1,
         })
-      ).rejects.toThrow(TRPCError);
+      ).rejects.toThrow(HttpError);
 
       expect(mocks.mockAgentRepository.canManageTeamResources).toHaveBeenCalledWith({
         userId: 1,
@@ -103,7 +102,7 @@ describe("PhoneNumberService", () => {
           ...validImportData,
           agentId: "invalid-agent",
         })
-      ).rejects.toThrow(TRPCError);
+      ).rejects.toThrow(HttpError);
 
       expect(mocks.mockAgentRepository.findByIdWithUserAccess).toHaveBeenCalledWith({
         agentId: "invalid-agent",
@@ -184,7 +183,7 @@ describe("PhoneNumberService", () => {
           userId: 1,
           deleteFromDB: false,
         })
-      ).rejects.toThrow(TRPCError);
+      ).rejects.toThrow(HttpError);
     });
 
     it("should throw error if phone number is still active", async () => {

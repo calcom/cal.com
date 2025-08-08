@@ -9,8 +9,8 @@ import type {
   AIPhoneServiceProvider,
   AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderConfig,
-} from "./interfaces/ai-phone-service.interface";
-import { AIPhoneServiceProviderType } from "./interfaces/ai-phone-service.interface";
+} from "./interfaces/AIPhoneService.interface";
+import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 
 // Mock environment variables
 vi.stubEnv("RETELL_AI_KEY", "test-api-key");

@@ -7,7 +7,7 @@ import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceTools,
   AIPhoneServiceProviderType,
-} from "../../interfaces/ai-phone-service.interface";
+} from "../../interfaces/AIPhoneService.interface";
 import type {
   RetellLLMGeneralTools,
   UpdateLLMRequest,

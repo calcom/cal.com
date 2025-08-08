@@ -1,6 +1,7 @@
 import { Retell } from "retell-sdk";
 
 import { RETELL_API_KEY } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
 import type {
@@ -23,7 +24,10 @@ export class RetellSDKClient implements RetellAIRepository {
     this.logger = customLogger || logger.getSubLogger({ prefix: ["retellSDKClient:"] });
 
     if (!RETELL_API_KEY) {
-      throw new Error("RETELL_API_KEY is not configured");
+      throw new HttpError({
+        statusCode: 500,
+        message: "RETELL_API_KEY is not configured",
+      });
     }
 
     this.client = new Retell({
