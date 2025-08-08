@@ -168,7 +168,7 @@ export function FilterSegmentSelect() {
                       <Icon name="check" className="ml-3 h-4 w-4" />
                     )}
                     {segment.type === "system" && segment.icon && (
-                      <Icon name={segment.icon as any} className="text-muted-foreground ml-3 h-4 w-4" />
+                      <Icon name={segment.icon} className="text-muted-foreground ml-3 h-4 w-4" />
                     )}
                     <span className="ml-3">{segment.name}</span>
                   </DropdownItemWithSubmenu>
