@@ -1,6 +1,5 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
-import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
@@ -10,6 +9,7 @@ import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository"
 import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
+import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 
@@ -29,7 +29,11 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     eventTypeRepository: PrismaEventTypeRepository,
     userRepository: PrismaUserRepository,
     redisService: RedisService,
-    featuresRepository: PrismaFeaturesRepository
+    qualifiedHostsService: QualifiedHostsService,
+    userAvailabilityService: UserAvailabilityService,
+    busyTimesService: BusyTimesService,
+    checkBookingLimitsService: CheckBookingLimitsService,
+    cacheService: CacheService
   ) {
     super({
       oooRepo: oooRepoDependency,
@@ -41,15 +45,11 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       eventTypeRepo: eventTypeRepository,
       userRepo: userRepository,
       redisClient: redisService,
-      checkBookingLimitsService: new CheckBookingLimitsService(bookingRepository),
-      cacheService: new CacheService(featuresRepository),
-      userAvailabilityService: new UserAvailabilityService(
-        oooRepoDependency,
-        bookingRepository,
-        eventTypeRepository,
-        redisService
-      ),
-      busyTimesService: new BusyTimesService(bookingRepository),
+      checkBookingLimitsService,
+      cacheService,
+      userAvailabilityService,
+      busyTimesService: busyTimesService,
+      qualifiedHostsService,
     });
   }
 }
