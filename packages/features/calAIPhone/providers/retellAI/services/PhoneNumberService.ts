@@ -29,7 +29,10 @@ export class PhoneNumberService {
     data: AIPhoneServiceImportPhoneNumberParamsExtended
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data || !data.phone_number?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     const { userId, agentId, teamId, ...rest } = data;
@@ -80,10 +83,6 @@ export class PhoneNumberService {
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
-    if (!data) {
-      throw new Error("Phone number data is required");
-    }
-
     try {
       return await this.retellRepository.createPhoneNumber(data);
     } catch (error) {
@@ -91,7 +90,10 @@ export class PhoneNumberService {
         data,
         error,
       });
-      throw new Error("Failed to create phone number");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create phone number",
+      });
     }
   }
 
@@ -107,7 +109,10 @@ export class PhoneNumberService {
     deleteFromDB: boolean;
   }): Promise<void> {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     const phoneNumberToDelete = teamId
@@ -164,7 +169,10 @@ export class PhoneNumberService {
     phoneNumber: string
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     try {
@@ -174,7 +182,10 @@ export class PhoneNumberService {
         phoneNumber,
         error,
       });
-      throw new Error(`Failed to get phone number '${phoneNumber}'`);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to get phone number '${phoneNumber}'`,
+      });
     }
   }
 
@@ -183,11 +194,17 @@ export class PhoneNumberService {
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new Error("Update data is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Update data is required and cannot be empty",
+      });
     }
 
     try {
@@ -198,7 +215,10 @@ export class PhoneNumberService {
         data,
         error,
       });
-      throw new Error(`Failed to update phone number '${phoneNumber}'`);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to update phone number '${phoneNumber}'`,
+      });
     }
   }
 
@@ -216,7 +236,10 @@ export class PhoneNumberService {
     outboundAgentId?: string | null;
   }) {
     if (!phoneNumber?.trim()) {
-      throw new Error("Phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Phone number is required and cannot be empty",
+      });
     }
 
     const phoneNumberRecord = teamId

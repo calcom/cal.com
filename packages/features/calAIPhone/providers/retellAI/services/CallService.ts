@@ -3,11 +3,11 @@ import logger from "@calcom/lib/logger";
 
 import { TRPCError } from "@trpc/server";
 
-import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type {
   AIPhoneServiceProviderType,
   AIPhoneServiceCall,
 } from "../../interfaces/AIPhoneService.interface";
+import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { RetellAIRepository, RetellDynamicVariables } from "../types";
 
 const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
@@ -26,11 +26,17 @@ export class CallService {
     retell_llm_dynamic_variables?: RetellDynamicVariables;
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data.from_number?.trim()) {
-      throw new Error("From phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "From phone number is required and cannot be empty",
+      });
     }
 
     if (!data.to_number?.trim()) {
-      throw new Error("To phone number is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "To phone number is required and cannot be empty",
+      });
     }
 
     try {
@@ -45,7 +51,10 @@ export class CallService {
         toNumber: data.to_number,
         error,
       });
-      throw new Error(`Failed to create phone call from ${data.from_number} to ${data.to_number}`);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to create phone call from ${data.from_number} to ${data.to_number}`,
+      });
     }
   }
 

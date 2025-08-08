@@ -3,6 +3,8 @@ import { Retell } from "retell-sdk";
 import { RETELL_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
+import { TRPCError } from "@trpc/server";
+
 import type {
   RetellAIRepository,
   CreateLLMRequest,
@@ -23,7 +25,10 @@ export class RetellSDKClient implements RetellAIRepository {
     this.logger = customLogger || logger.getSubLogger({ prefix: ["retellSDKClient:"] });
 
     if (!RETELL_API_KEY) {
-      throw new Error("RETELL_API_KEY is not configured");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "RETELL_API_KEY is not configured",
+      });
     }
 
     this.client = new Retell({

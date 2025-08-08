@@ -4,7 +4,6 @@ import logger from "@calcom/lib/logger";
 
 import { TRPCError } from "@trpc/server";
 
-import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceProviderType,
@@ -12,6 +11,7 @@ import type {
   AIPhoneServiceModel,
   AIPhoneServiceTools,
 } from "../../interfaces/AIPhoneService.interface";
+import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository } from "../types";
 import { getLlmId, Language } from "../types";
@@ -26,7 +26,10 @@ export class AgentService {
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new Error("Agent ID is required and cannot be empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Agent ID is required and cannot be empty",
+      });
     }
 
     try {
@@ -36,7 +39,10 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new Error(`Failed to get agent ${agentId}`);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to get agent ${agentId}`,
+      });
     }
   }
 

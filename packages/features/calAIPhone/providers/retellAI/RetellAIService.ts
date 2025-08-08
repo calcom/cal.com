@@ -2,6 +2,7 @@ import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParamsExtended,
+  AIPhoneServiceProviderType,
 } from "../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
@@ -58,7 +59,10 @@ export class RetellAIService {
     return this.aiConfigurationService.deleteAIConfiguration(config);
   }
 
-  async updateLLMConfiguration(llmId: string, data: AIPhoneServiceUpdateModelParams): Promise<RetellLLM> {
+  async updateLLMConfiguration(
+    llmId: string,
+    data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
+  ): Promise<RetellLLM> {
     return this.aiConfigurationService.updateLLMConfiguration(llmId, data);
   }
 
@@ -164,7 +168,10 @@ export class RetellAIService {
   }) {
     return this.agentService.updateAgentConfiguration({
       ...params,
-      updateLLMConfiguration: (llmId: string, data: any) => this.updateLLMConfiguration(llmId, data),
+      updateLLMConfiguration: (
+        llmId: string,
+        data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
+      ) => this.updateLLMConfiguration(llmId, data),
     });
   }
 
