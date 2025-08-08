@@ -9,7 +9,6 @@ import type {
 
 export type PrivateLinkData = {
   id: string | number;
-  link: string;
   expiresAt?: Date | null;
   maxUsageCount?: number | null;
   usageCount?: number;
@@ -145,8 +144,7 @@ class PlatformPrivateLinksService {
     }`;
 
     return {
-      id: link.id?.toString() || link.link,
-      link: link.link,
+      id: link.link,
       expiresAt: link.expiresAt,
       maxUsageCount: link.maxUsageCount,
       usageCount: link.usageCount || 0,

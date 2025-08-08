@@ -15,7 +15,6 @@ export class PrivateLinksOutputService {
   transformToOutput(data: PrivateLinkData): PrivateLinkOutput_2024_06_14 {
     const baseData = {
       linkId: data.id.toString(),
-      link: data.link,
       eventTypeId: data.eventTypeId,
       isExpired: data.isExpired,
       bookingUrl: data.bookingUrl,

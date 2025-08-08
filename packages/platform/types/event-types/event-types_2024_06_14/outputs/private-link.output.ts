@@ -10,13 +10,6 @@ abstract class BasePrivateLinkOutput_2024_06_14 {
   linkId!: string;
 
   @ApiProperty({
-    description: "The private link hash",
-    type: String,
-    example: "abc123def456",
-  })
-  link!: string;
-
-  @ApiProperty({
     description: "Event type ID this link belongs to",
     type: Number,
     example: 123,
