@@ -65,7 +65,7 @@ function useDefaultSegments() {
   const defaultSegments: DefaultFilterSegment[] = useMemo(() => {
     if (!user) return [];
 
-    const segments: DefaultFilterSegment[] = [
+    return [
       {
         id: "my_bookings",
         name: t("my_bookings"),
@@ -83,29 +83,7 @@ function useDefaultSegments() {
         sorting: [{ id: "startTime", desc: false }],
         perPage: 10,
       },
-      {
-        id: "upcoming-bookings",
-        name: "Upcoming Bookings",
-        icon: "calendar",
-        type: "default",
-        activeFilters: [
-          {
-            f: "dateRange",
-            v: {
-              type: ColumnFilterType.DATE_RANGE,
-              data: {
-                startDate: null,
-                endDate: null,
-                preset: "upcoming",
-              },
-            },
-          },
-        ],
-        perPage: 10,
-      },
     ];
-
-    return segments;
   }, [user]);
 
   return defaultSegments;
