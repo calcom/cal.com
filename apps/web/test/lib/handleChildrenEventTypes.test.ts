@@ -114,6 +114,11 @@ describe("handleChildrenEventTypes", () => {
         id,
         teamId,
         timeZone,
+        parentId,
+        profileId,
+        restrictionScheduleId,
+        scheduleId,
+        userId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
@@ -140,7 +145,9 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
-          parentId: 1,
+          title: evType.title,
+          slug: evType.slug,
+          length: evType.length,
           users: { connect: [{ id: 4 }] },
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -149,11 +156,10 @@ describe("handleChildrenEventTypes", () => {
           recurringEvent: undefined,
           eventTypeColor: undefined,
           customReplyToEmail: null,
-          userId: 4,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useBookerTimezone: false,
-          restrictionScheduleId: null,
+          useEventLevelSelectedCalendars: false,
           allowReschedulingCancelledBookings: false,
         },
       });
@@ -199,24 +205,27 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
+      const {
+        profileId,
+        autoTranslateDescriptionEnabled,
+        restrictionScheduleId,
+        useEventLevelSelectedCalendars,
+        ...rest
+      } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
-          useEventLevelSelectedCalendars: undefined,
           customReplyToEmail: null,
-          rrSegmentQueryValue: undefined,
+          rrSegmentQueryValue: null,
           locations: [],
-          scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
-          restrictionScheduleId: null,
           hashedLink: {
             deleteMany: {},
           },
-          instantMeetingScheduleId: undefined,
           allowReschedulingCancelledBookings: false,
+          assignRRMembersUsingSegment: false,
         },
         where: {
           userId_parentId: {
@@ -284,6 +293,11 @@ describe("handleChildrenEventTypes", () => {
         id,
         teamId,
         timeZone,
+        parentId,
+        profileId,
+        restrictionScheduleId,
+        scheduleId,
+        userId,
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
@@ -312,22 +326,22 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
-          parentId: 1,
+          title: evType.title,
+          slug: evType.slug,
+          length: evType.length,
           users: { connect: [{ id: 4 }] },
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
           eventTypeColor: undefined,
           customReplyToEmail: null,
-          instantMeetingScheduleId: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          userId: 4,
           workflows: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
           useBookerTimezone: false,
-          restrictionScheduleId: null,
+          useEventLevelSelectedCalendars: false,
           allowReschedulingCancelledBookings: false,
         },
       });
@@ -374,7 +388,8 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, restrictionScheduleId, scheduleId, ...rest } =
+        evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -387,6 +402,8 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           allowReschedulingCancelledBookings: false,
+          assignRRMembersUsingSegment: false,
+          rrSegmentQueryValue: null,
         },
         where: {
           userId_parentId: {
@@ -412,6 +429,9 @@ describe("handleChildrenEventTypes", () => {
         timeZone: _timeZone,
         parentId: _parentId,
         userId: _userId,
+        profileId: _profileId,
+        restrictionScheduleId: _restrictionScheduleId,
+        scheduleId: _scheduleId,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         requiresBookerEmailVerification,
         lockTimeZoneToggleOnBookingPage,
@@ -472,6 +492,9 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
+          title: evType.title,
+          slug: evType.slug,
+          length: evType.length,
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
@@ -481,9 +504,6 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
-          restrictionScheduleId: null,
-          parentId: 1,
-          userId: 5,
           users: {
             connect: [{ id: 5 }],
           },
@@ -507,10 +527,12 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           useBookerTimezone: false,
-          restrictionScheduleId: null,
           hashedLink: {
             deleteMany: {},
           },
+          allowReschedulingCancelledBookings: false,
+          assignRRMembersUsingSegment: false,
+          rrSegmentQueryValue: null,
         },
         where: {
           userId_parentId: {
