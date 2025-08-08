@@ -57,7 +57,7 @@ export function SaveFilterSegmentButton() {
   } = useDataTable();
 
   const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
-    selectedSegment ? "update" : "create"
+    selectedSegment && selectedSegment.type === "user" ? "update" : "create"
   );
 
   // When the dialog is not open,
@@ -66,7 +66,7 @@ export function SaveFilterSegmentButton() {
     if (isOpen) {
       return;
     }
-    setSaveMode(selectedSegment ? "update" : "create");
+    setSaveMode(selectedSegment && selectedSegment.type === "user" ? "update" : "create");
   }, [selectedSegment, isOpen]);
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
@@ -110,21 +110,11 @@ export function SaveFilterSegmentButton() {
       searchTerm,
     };
 
-    if (saveMode === "update") {
-      if (!selectedSegment) {
-        // theoretically this should never happen
-        showToast(t("segment_not_found"), "error");
-        return;
-      }
-      if (selectedSegment.type === "system") {
-        showToast(t("cannot_update_default_segment"), "error");
-        return;
-      }
-
+    if (saveMode === "update" && selectedSegment && selectedSegment.type === "user") {
       const scope = selectedSegment.scope;
       if (scope === "TEAM") {
         updateSegment({
-          id: selectedSegment.id as number,
+          id: selectedSegment.id,
           scope,
           teamId: selectedSegment.teamId || 0,
           name: selectedSegment.name,
@@ -132,7 +122,7 @@ export function SaveFilterSegmentButton() {
         });
       } else {
         updateSegment({
-          id: selectedSegment.id as number,
+          id: selectedSegment.id,
           scope,
           name: selectedSegment.name,
           ...segmentData,
@@ -161,7 +151,7 @@ export function SaveFilterSegmentButton() {
       // Reset form state when dialog closes
       setIsTeamSegment(false);
       setSelectedTeamId(undefined);
-      setSaveMode(selectedSegment ? "update" : "create");
+      setSaveMode(selectedSegment && selectedSegment.type === "user" ? "update" : "create");
       form.reset();
     }
     setIsOpen(open);
