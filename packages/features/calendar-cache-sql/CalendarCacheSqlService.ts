@@ -175,8 +175,10 @@ export class CalendarCacheSqlService {
   ): Prisma.CalendarEventCreateInput[] {
     const now = new Date();
 
-    return rawEvents.reduce((acc, event: calendar_v3.Schema$Event) => {
-      if (!event.id) return acc;
+    const events: Prisma.CalendarEventCreateInput[] = [];
+
+    rawEvents.forEach((event: calendar_v3.Schema$Event) => {
+      if (!event.id) return;
 
       const start = event.start?.dateTime
         ? new Date(event.start.dateTime)
@@ -197,7 +199,15 @@ export class CalendarCacheSqlService {
 
       const isAllDay = !event.start?.dateTime && !!event.start?.date;
 
-      acc.push({
+      const createAttendees = (event.attendees || []).map((a) => ({
+        email: a.email || null,
+        displayName: a.displayName || null,
+        responseStatus: a.responseStatus || null,
+        isOrganizer: Boolean(a.organizer),
+        isSelf: Boolean(a.self),
+      }));
+
+      events.push({
         calendarSubscription: { connect: { id: subscriptionId } },
         googleEventId: event.id!,
         iCalUID: event.iCalUID || null,
@@ -209,6 +219,36 @@ export class CalendarCacheSqlService {
         start,
         end,
         isAllDay,
+        // Save event-level timezone if provided
+        timeZone: (event.start?.timeZone as string | undefined) ?? null,
+        creator: event.creator
+          ? {
+              create: {
+                email: event.creator.email || null,
+                displayName: event.creator.displayName || null,
+                isSelf: Boolean(event.creator.self),
+              },
+            }
+          : undefined,
+        organizer: event.organizer
+          ? {
+              create: {
+                email: event.organizer.email || null,
+                displayName: event.organizer.displayName || null,
+                isSelf: Boolean(event.organizer.self),
+                isOrganizer: true,
+              },
+            }
+          : undefined,
+        attendees:
+          createAttendees.length > 0
+            ? {
+                createMany: {
+                  data: createAttendees,
+                  skipDuplicates: true,
+                },
+              }
+            : undefined,
         status: event.status || "confirmed",
         transparency: event.transparency || "opaque",
         visibility: event.visibility || "default",
@@ -222,8 +262,31 @@ export class CalendarCacheSqlService {
         googleUpdatedAt: event.updated ? new Date(event.updated) : null,
       });
 
-      return acc;
-    }, [] as Prisma.CalendarEventCreateInput[]);
+      // capture people for this event
+      if (event.creator) {
+        creator = {
+          email: event.creator.email || null,
+          displayName: event.creator.displayName || null,
+          isSelf: Boolean(event.creator.self),
+        };
+      }
+      if (event.organizer) {
+        organizer = {
+          email: event.organizer.email || null,
+          displayName: event.organizer.displayName || null,
+          isSelf: Boolean(event.organizer.self),
+        };
+      }
+      attendees = (event.attendees || []).map((a) => ({
+        email: a.email || null,
+        displayName: a.displayName || null,
+        responseStatus: a.responseStatus || null,
+        isOrganizer: Boolean(a.organizer),
+        isSelf: Boolean(a.self),
+      }));
+    });
+
+    return events;
   }
 
   /**

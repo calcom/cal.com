@@ -28,7 +28,6 @@ export class CalendarEventRepository implements ICalendarEventRepository {
         create: {
           ...data,
           calendarSubscription: { connect: { id: subscriptionId } },
-          etag: data.etag || "",
         },
         update: {
           ...data,
@@ -76,6 +75,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
           start: true,
           end: true,
           summary: true,
+          calendarSubscriptionId: true,
         },
         orderBy: { start: "asc" },
       });
@@ -110,6 +110,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
           start: true,
           end: true,
           summary: true,
+          calendarSubscriptionId: true,
         },
         orderBy: { start: "asc" },
       });

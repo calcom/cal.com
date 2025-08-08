@@ -1616,6 +1616,11 @@ model CalendarEvent {
   // Event timezone (from event payload or inferred from calendar)
   timeZone    String?
 
+  // Participants (denormalized across three relations using shared model)
+  creator   CalendarEventParticipant?  @relation("CreatorParticipants")
+  organizer CalendarEventParticipant?  @relation("OrganizerParticipants")
+  attendees CalendarEventParticipant[] @relation("AttendeeParticipants")
+
   // Event metadata
   status       String @default("confirmed") // confirmed, tentative, cancelled
   transparency String @default("opaque") // opaque, transparent
@@ -1639,6 +1644,33 @@ model CalendarEvent {
   @@index([calendarSubscriptionId, iCalUID])
   @@index([start, end, status]) // For availability queries
   @@index([googleEventId])
+}
+
+model CalendarEventParticipant {
+  id            String  @id @default(uuid())
+  // Three optional FKs for the three roles
+  creatorOfId   String? @unique
+  organizerOfId String? @unique
+  attendeeOfId  String?
+
+  email          String?
+  displayName    String?
+  responseStatus String?
+  isOrganizer    Boolean @default(false)
+  isSelf         Boolean @default(false)
+
+  // Back-relations with distinct names
+  creatorOf   CalendarEvent? @relation("CreatorParticipants", fields: [creatorOfId], references: [id], onDelete: Cascade)
+  organizerOf CalendarEvent? @relation("OrganizerParticipants", fields: [organizerOfId], references: [id], onDelete: Cascade)
+  attendeeOf  CalendarEvent? @relation("AttendeeParticipants", fields: [attendeeOfId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorOfId], map: "calendar_event_creator_unique")
+  @@unique([organizerOfId], map: "calendar_event_organizer_unique")
+  @@unique([attendeeOfId, email])
+  @@index([creatorOfId])
+  @@index([organizerOfId])
+  @@index([attendeeOfId])
+  @@index([email])
 }
 
 enum FeatureType {
