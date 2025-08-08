@@ -321,7 +321,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
   }, [userName, onJoinAsGuest, onUserNameConfirmed, t]);
 
   const handleSignIn = useCallback(() => {
-    const callbackUrl = `${WEBAPP_URL}/video/${bookingUid}`;
+    const callbackUrl = encodeURIComponent(`${WEBAPP_URL}/video/${bookingUid}`);
     window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${callbackUrl}`;
   }, [bookingUid]);
 
