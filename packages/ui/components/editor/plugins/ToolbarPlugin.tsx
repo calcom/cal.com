@@ -371,7 +371,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         const dom = parser.parseFromString(props.getText(), "text/html");
 
         const nodes = $generateNodesFromDOM(editor, dom);
-        
+
         $getRoot().clear();
         $getRoot().select();
         try {

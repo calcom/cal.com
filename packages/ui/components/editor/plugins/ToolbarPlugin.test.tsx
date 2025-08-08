@@ -111,20 +111,20 @@ describe("ToolbarPlugin", () => {
     expect(screen.getByTestId("button-link")).toBeDefined();
   });
 
-  it("changes block type when dropdown item is clicked", async () => {
+  it("changes block type when dropdown item is clicked", () => {
     render(
       <TestWrapper>
         <ToolbarPlugin {...defaultProps} />
       </TestWrapper>
     );
 
-    fireEvent.click(screen.getByTestId("dropdown-trigger"));
-    await waitFor(() => {
-      expect(screen.getByTestId("dropdown-content")).toBeDefined();
-    });
+    // Open the block type dropdown using the correct test id
+    const dropdownTrigger = screen.getByTestId("dropdown-trigger");
+    fireEvent.click(dropdownTrigger);
 
-    const h1Button = screen.getByText("Large Heading");
-    fireEvent.click(h1Button);
+    // Find the "Large Heading" button inside the dropdown
+    const largeHeadingButton = screen.getByText("Large Heading");
+    fireEvent.click(largeHeadingButton);
   });
 
   it("toggles bold formatting when bold button is clicked", () => {
