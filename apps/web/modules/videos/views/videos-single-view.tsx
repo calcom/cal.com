@@ -117,10 +117,6 @@ export default function JoinCall(props: PageProps) {
   );
 
   useEffect(() => {
-    if (displayLogInOverlay && !isUserNameConfirmed) {
-      return;
-    }
-
     let callFrame: DailyCall | null = null;
 
     try {
