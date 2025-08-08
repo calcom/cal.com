@@ -225,7 +225,7 @@ function BookingListItem(booking: BookingItemProps) {
     const seatReferenceUid = booking.seatsReferences.find(
       (seat) => seat.attendee?.email === userEmail
     )?.referenceUid;
-    return seatReferenceUid ?? "";
+    return seatReferenceUid;
   };
 
   const actionContext: BookingActionContext = {

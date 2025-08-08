@@ -63,13 +63,14 @@ export function getPendingActions(context: BookingActionContext): ActionType[] {
 
 export function getCancelEventAction(context: BookingActionContext): ActionType {
   const { booking, isTabRecurring, isRecurring, getSeatReferenceUid, t } = context;
+  const seatReferenceUid = getSeatReferenceUid();
 
   return {
     id: "cancel",
     label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
     href: `/booking/${booking.uid}?cancel=true${
       isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
-    }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
+    }${seatReferenceUid ? `&seatReferenceUid=${seatReferenceUid}` : ""}`,
     icon: "circle-x",
     color: "destructive",
     disabled: isActionDisabled("cancel", context),
@@ -105,14 +106,14 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     t,
   } = context;
 
+  const seatReferenceUid = getSeatReferenceUid();
+
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
       icon: "clock",
       label: t("reschedule_booking"),
-      href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-      }`,
+      href: `/reschedule/${booking.uid}${seatReferenceUid ? `?seatReferenceUid=${seatReferenceUid}` : ""}`,
       disabled:
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
     },

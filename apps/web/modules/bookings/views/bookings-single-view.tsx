@@ -104,6 +104,8 @@ export default function Success(props: PageProps) {
 
   const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
+  console.log("bookingInfo: ", bookingInfo);
+
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -239,8 +241,20 @@ export default function Success(props: PageProps) {
     evtName = bookingInfo.responses.title as string;
   }
 
+  const getAttendeeNames = (attendees: typeof bookingInfo.attendees) => {
+    const attendeeNames = attendees.map((attendee) => attendee.name).filter(Boolean);
+
+    // for non-seated events
+    if (attendeeNames.length === 0) {
+      const responseName = bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string;
+      return responseName || "Nameless";
+    }
+
+    return attendeeNames.join(", ");
+  };
+
   const eventNameObject = {
-    attendeeName: bookingInfo.responses.name as z.infer<typeof nameObjectSchema> | string,
+    attendeeName: getAttendeeNames(bookingInfo.attendees),
     eventType: eventType.title,
     eventName: evtName,
     host: props.profile.name || "Nameless",
@@ -309,7 +323,7 @@ export default function Success(props: PageProps) {
     }
     if (bookingInfo.user) {
       const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
-      const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
+      const attendee = getAttendeeNames(bookingInfo.attendees);
       const host = bookingInfo.user.name || bookingInfo.user.email;
       if (isHost) {
         return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
