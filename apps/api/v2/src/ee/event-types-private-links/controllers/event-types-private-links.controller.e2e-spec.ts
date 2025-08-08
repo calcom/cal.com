@@ -11,7 +11,7 @@ import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import { CreatePrivateLinkInput_2024_06_14 } from "@calcom/platform-types";
+import { CreatePrivateLinkInput } from "@calcom/platform-types";
 
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -96,7 +96,7 @@ describe("Event Types Private Links Endpoints", () => {
   }
 
   it("POST /v2/event-types/:eventTypeId/private-links - create private link", async () => {
-    const body: CreatePrivateLinkInput_2024_06_14 = {
+    const body: CreatePrivateLinkInput = {
       expiresAt: undefined,
       maxUsageCount: 5,
     };

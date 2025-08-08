@@ -6,14 +6,10 @@ import {
   getPrivateLinks,
   updatePrivateLink,
 } from "@calcom/platform-libraries/private-links";
-import {
-  CreatePrivateLinkInput_2024_06_14,
-  PrivateLinkOutput_2024_06_14,
-  UpdatePrivateLinkInput_2024_06_14,
-} from "@calcom/platform-types";
+import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
-import { PrivateLinksInputService } from "./private-links-input.service";
-import { PrivateLinksOutputService } from "./private-links-output.service";
+import { PrivateLinksInputService } from "@/ee/event-types-private-links/services/private-links-input.service";
+import { PrivateLinksOutputService } from "@/ee/event-types-private-links/services/private-links-output.service";
 
 @Injectable()
 export class PrivateLinksService {
@@ -25,8 +21,8 @@ export class PrivateLinksService {
   async createPrivateLink(
     eventTypeId: number,
     userId: number,
-    input: CreatePrivateLinkInput_2024_06_14
-  ): Promise<PrivateLinkOutput_2024_06_14> {
+    input: CreatePrivateLinkInput
+  ): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformCreateInput(input);
       const result = await createPrivateLink(eventTypeId, userId, transformedInput);
@@ -39,7 +35,7 @@ export class PrivateLinksService {
     }
   }
 
-  async getPrivateLinks(eventTypeId: number, userId: number): Promise<PrivateLinkOutput_2024_06_14[]> {
+  async getPrivateLinks(eventTypeId: number, userId: number): Promise<PrivateLinkOutput[]> {
     try {
       const results = await getPrivateLinks(eventTypeId, userId);
       return this.outputService.transformArrayToOutput(results);
@@ -54,8 +50,8 @@ export class PrivateLinksService {
   async updatePrivateLink(
     eventTypeId: number,
     userId: number,
-    input: UpdatePrivateLinkInput_2024_06_14
-  ): Promise<PrivateLinkOutput_2024_06_14> {
+    input: UpdatePrivateLinkInput
+  ): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformUpdateInput(input);
       const result = await updatePrivateLink(eventTypeId, userId, transformedInput);

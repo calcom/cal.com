@@ -9921,7 +9921,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreatePrivateLinkInput_2024_06_14"
+                "$ref": "#/components/schemas/CreatePrivateLinkInput"
               }
             }
           }
@@ -9932,7 +9932,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreatePrivateLinkOutput_2024_06_14"
+                  "$ref": "#/components/schemas/CreatePrivateLinkOutput"
                 }
               }
             }
@@ -9970,7 +9970,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetPrivateLinksOutput_2024_06_14"
+                  "$ref": "#/components/schemas/GetPrivateLinksOutput"
                 }
               }
             }
@@ -10018,7 +10018,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput_2024_06_14"
+                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput"
                 }
               }
             }
@@ -10064,7 +10064,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeletePrivateLinkOutput_2024_06_14"
+                  "$ref": "#/components/schemas/DeletePrivateLinkOutput"
                 }
               }
             }
@@ -25648,7 +25648,7 @@
           "data"
         ]
       },
-      "CreatePrivateLinkInput_2024_06_14": {
+      "CreatePrivateLinkInput": {
         "type": "object",
         "properties": {
           "expiresAt": {
@@ -25665,7 +25665,7 @@
           }
         }
       },
-      "CreatePrivateLinkOutput_2024_06_14": {
+      "CreatePrivateLinkOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -25677,10 +25677,10 @@
             "description": "Created private link data (either time-based or usage-based)",
             "oneOf": [
               {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
               },
               {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
               }
             ]
           }
@@ -25690,7 +25690,7 @@
           "data"
         ]
       },
-      "GetPrivateLinksOutput_2024_06_14": {
+      "GetPrivateLinksOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -25704,10 +25704,10 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
                 },
                 {
-                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
                 }
               ]
             }
@@ -25718,7 +25718,7 @@
           "data"
         ]
       },
-      "UpdatePrivateLinkOutput_2024_06_14": {
+      "UpdatePrivateLinkOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -25730,10 +25730,10 @@
             "description": "Updated private link data (either time-based or usage-based)",
             "oneOf": [
               {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
               },
               {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
               }
             ]
           }
@@ -25743,7 +25743,7 @@
           "data"
         ]
       },
-      "DeletePrivateLinkOutput_2024_06_14": {
+      "DeletePrivateLinkOutput": {
         "type": "object",
         "properties": {
           "status": {

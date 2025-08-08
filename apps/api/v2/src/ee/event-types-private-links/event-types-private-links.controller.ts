@@ -22,12 +22,12 @@ import {
   SUCCESS_STATUS,
 } from "@calcom/platform-constants";
 import {
-  CreatePrivateLinkInput_2024_06_14,
-  CreatePrivateLinkOutput_2024_06_14,
-  DeletePrivateLinkOutput_2024_06_14,
-  GetPrivateLinksOutput_2024_06_14,
-  UpdatePrivateLinkInput_2024_06_14,
-  UpdatePrivateLinkOutput_2024_06_14,
+  CreatePrivateLinkInput,
+  CreatePrivateLinkOutput,
+  DeletePrivateLinkOutput,
+  GetPrivateLinksOutput,
+  UpdatePrivateLinkInput,
+  UpdatePrivateLinkOutput,
 } from "@calcom/platform-types";
 
 import { PrivateLinksService } from "./services/private-links.service";
@@ -47,9 +47,9 @@ export class EventTypesPrivateLinksController {
   @ApiOperation({ summary: "Create a private link for an event type" })
   async createPrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Body() body: CreatePrivateLinkInput_2024_06_14,
+    @Body() body: CreatePrivateLinkInput,
     @GetUser("id") userId: number
-  ): Promise<CreatePrivateLinkOutput_2024_06_14> {
+  ): Promise<CreatePrivateLinkOutput> {
     const privateLink = await this.privateLinksService.createPrivateLink(eventTypeId, userId, body);
 
     return {
@@ -66,7 +66,7 @@ export class EventTypesPrivateLinksController {
   async getPrivateLinks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @GetUser("id") userId: number
-  ): Promise<GetPrivateLinksOutput_2024_06_14> {
+  ): Promise<GetPrivateLinksOutput> {
     const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId, userId);
 
     return {
@@ -83,9 +83,9 @@ export class EventTypesPrivateLinksController {
   async updatePrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
-    @Body() body: Omit<UpdatePrivateLinkInput_2024_06_14, "linkId">,
+    @Body() body: Omit<UpdatePrivateLinkInput, "linkId">,
     @GetUser("id") userId: number
-  ): Promise<UpdatePrivateLinkOutput_2024_06_14> {
+  ): Promise<UpdatePrivateLinkOutput> {
     const updateInput = { ...body, linkId };
     const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, userId, updateInput);
 
@@ -104,7 +104,7 @@ export class EventTypesPrivateLinksController {
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
     @GetUser("id") userId: number
-  ): Promise<DeletePrivateLinkOutput_2024_06_14> {
+  ): Promise<DeletePrivateLinkOutput> {
     await this.privateLinksService.deletePrivateLink(eventTypeId, userId, linkId);
 
     return {

@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsOptional, IsDate, IsInt, Min, IsString } from "class-validator";
 
-export class CreatePrivateLinkInput_2024_06_14 {
+export class CreatePrivateLinkInput {
   @IsOptional()
   @IsDate()
   @Type(() => Date)
@@ -25,7 +25,7 @@ export class CreatePrivateLinkInput_2024_06_14 {
   maxUsageCount?: number;
 }
 
-export class UpdatePrivateLinkInput_2024_06_14 {
+export class UpdatePrivateLinkInput {
   @IsString()
   @ApiProperty({
     description: "The private link hash to update",
