@@ -76,7 +76,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
 function getWebhookVariables(t: (key: string) => string) {
   return [
     {
-      category: "Event and Booking",
+      category: t("webhook_event_and_booking"),
       variables: [
         {
           name: "triggerEvent",
@@ -138,7 +138,7 @@ function getWebhookVariables(t: (key: string) => string) {
       ],
     },
     {
-      category: "People",
+      category: t("webhook_people"),
       variables: [
         {
           name: "organizer.name",
@@ -191,7 +191,7 @@ function getWebhookVariables(t: (key: string) => string) {
       ],
     },
     {
-      category: "Teams",
+      category: t("webhook_teams"),
       variables: [
         {
           name: "team.name",
@@ -208,7 +208,7 @@ function getWebhookVariables(t: (key: string) => string) {
       ],
     },
     {
-      category: "Metadata",
+      category: t("webhook_metadata"),
       variables: [
         {
           name: "metadata.videoCallUrl",
@@ -523,7 +523,7 @@ const WebhookForm = (props: {
                   />
 
                   <Button type="button" color="secondary" onClick={() => setShowVariables(!showVariables)}>
-                    {showVariables ? t("Hide Variables") : t("Show Available Variables")}
+                    {showVariables ? t("webhook_hide_variables") : t("webhook_show_variable")}
                   </Button>
 
                   {showVariables && (

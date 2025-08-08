@@ -3461,6 +3461,12 @@
   "webhook_team_name": "Name of the team booked",
   "webhook_team_members": "Members of the team booked",
   "webhook_video_call_url": "Video call URL for the meeting",
+  "webhook_hide_variables": "Hide variables",
+  "webhook_show_variable": "Show available variables",
+  "webhook_event_and_booking": "Event and Booking",
+  "webhook_people": "People",
+  "webhook_teams": "Teams",
+  "webhook_metadata": "Metadata",
   "stats": "Stats",
   "booking_status": "Booking status",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
