@@ -110,6 +110,9 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
             in: selectedCalendarIds,
           },
         },
+        select: {
+          id: true,
+        },
       });
     } catch (err) {
       captureException(err);

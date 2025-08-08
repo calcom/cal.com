@@ -6,7 +6,7 @@ export type SafeCredential = Pick<Credential, "id" | "type" | "userId" | "teamId
 export interface ICalendarSubscriptionRepository {
   findBySelectedCalendar(selectedCalendarId: string): Promise<CalendarSubscription | null>;
   findByCredentialId(credentialId: number): Promise<CalendarSubscription | null>;
-  findBySelectedCalendarIds(selectedCalendarIds: string[]): Promise<CalendarSubscription[]>;
+  findBySelectedCalendarIds(selectedCalendarIds: string[]): Promise<Array<Pick<CalendarSubscription, "id">>>;
   findByChannelId(channelId: string): Promise<
     | (CalendarSubscription & {
         selectedCalendar: {
