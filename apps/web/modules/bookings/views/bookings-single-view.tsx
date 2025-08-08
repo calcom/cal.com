@@ -410,6 +410,13 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  const isPlatformBooking =
+    eventType.team?.isPlatform ||
+    eventType.team?.parent?.isPlatform ||
+    eventType.users.some((user) =>
+      (user as any)?.profiles?.some((profile: any) => profile.organization?.isPlatform)
+    );
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -969,7 +976,7 @@ export default function Success(props: PageProps) {
                       </>
                     )}
 
-                    {session === null && !(userIsOwner || props.hideBranding) && (
+                    {session === null && !(userIsOwner || props.hideBranding) && !isPlatformBooking && (
                       <>
                         <hr className="border-subtle mt-8" />
                         <div className="text-default pt-8 text-center text-xs">

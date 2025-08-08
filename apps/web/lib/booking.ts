@@ -17,6 +17,15 @@ export const getEventTypesFromDB = async (id: number) => {
     darkBrandColor: true,
     email: true,
     timeZone: true,
+    profiles: {
+      select: {
+        organization: {
+          select: {
+            isPlatform: true,
+          },
+        },
+      },
+    },
   };
   const eventType = await prisma.eventType.findUnique({
     where: {
@@ -70,9 +79,11 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+          isPlatform: true,
           parent: {
             select: {
               hideBranding: true,
+              isPlatform: true,
             },
           },
         },
