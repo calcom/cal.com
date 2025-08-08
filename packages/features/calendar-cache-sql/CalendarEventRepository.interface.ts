@@ -3,7 +3,7 @@ import type { Prisma, CalendarEvent } from "@prisma/client";
 // Minimal fields needed for availability calculations
 export type CalendarEventForAvailability = Pick<
   CalendarEvent,
-  "start" | "end" | "summary" | "calendarSubscriptionId"
+  "start" | "end" | "summary" | "calendarSubscriptionId" | "timeZone"
 >;
 
 // Minimal fields returned by upsertEvent for performance optimization
