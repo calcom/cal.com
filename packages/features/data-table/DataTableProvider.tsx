@@ -112,9 +112,9 @@ export function DataTableProvider({
     }
     const numericId = parseInt(segmentIdString, 10);
     if (isNaN(numericId)) {
-      return { id: segmentIdString, type: "default" };
+      return { id: segmentIdString, type: "system" };
     } else {
-      return { id: numericId, type: "custom" };
+      return { id: numericId, type: "user" };
     }
   }, [segmentIdString, preferredSegmentId]);
 

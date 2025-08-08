@@ -75,7 +75,7 @@ export function SaveFilterSegmentButton() {
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_saved"), "success");
-      setSegmentId({ id, type: "custom" });
+      setSegmentId({ id, type: "user" });
       setIsOpen(false);
     },
     onError: () => {
@@ -116,7 +116,7 @@ export function SaveFilterSegmentButton() {
         showToast(t("segment_not_found"), "error");
         return;
       }
-      if (selectedSegment.type === "default") {
+      if (selectedSegment.type === "system") {
         showToast(t("cannot_update_default_segment"), "error");
         return;
       }
@@ -189,7 +189,7 @@ export function SaveFilterSegmentButton() {
       <DialogContent data-testid="save-filter-segment-dialog">
         <DialogHeader title={t("save_segment")} />
         <Form form={form} handleSubmit={onSubmit}>
-          {selectedSegment && selectedSegment.type === "custom" ? (
+          {selectedSegment && selectedSegment.type === "user" ? (
             <div className="mb-4">
               <RadioGroup
                 defaultValue="update"

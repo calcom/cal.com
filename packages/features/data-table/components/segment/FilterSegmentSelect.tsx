@@ -66,13 +66,13 @@ export function FilterSegmentSelect() {
   const segmentGroups = useMemo(() => {
     const sortFn = (a: CombinedFilterSegment, b: CombinedFilterSegment) => a.name.localeCompare(b.name);
 
-    const defaultSegments = segments?.filter((s): s is DefaultFilterSegment => s.type === "default") || [];
+    const defaultSegments = segments?.filter((s): s is DefaultFilterSegment => s.type === "system") || [];
     const personalSegments =
-      segments?.filter((s): s is CustomFilterSegment => s.type === "custom" && !s.team) || [];
+      segments?.filter((s): s is CustomFilterSegment => s.type === "user" && !s.team) || [];
     const teamSegments =
       segments?.filter(
         (s): s is CustomFilterSegment & { team: NonNullable<FilterSegmentOutput["team"]> } =>
-          s.type === "custom" && s.team !== null
+          s.type === "user" && s.team !== null
       ) || [];
 
     const groups = [];
@@ -157,17 +157,17 @@ export function FilterSegmentSelect() {
                       if (segmentId && segmentId.type === segment.type && segmentId.id === segment.id) {
                         setSegmentId(null);
                       } else {
-                        if (segment.type === "default") {
-                          setSegmentId({ id: segment.id, type: "default" });
+                        if (segment.type === "system") {
+                          setSegmentId({ id: segment.id, type: "system" });
                         } else {
-                          setSegmentId({ id: segment.id, type: "custom" });
+                          setSegmentId({ id: segment.id, type: "user" });
                         }
                       }
                     }}>
                     {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
                       <Icon name="check" className="ml-3 h-4 w-4" />
                     )}
-                    {segment.type === "default" && segment.icon && (
+                    {segment.type === "system" && segment.icon && (
                       <Icon name={segment.icon as any} className="text-muted-foreground ml-3 h-4 w-4" />
                     )}
                     <span className="ml-3">{segment.name}</span>
@@ -215,7 +215,7 @@ function DropdownItemWithSubmenu({
 
   // Filter submenu items based on segment type and user role
   const filteredSubmenuItems = submenuItems.filter((item) => {
-    if (segment.type === "default") {
+    if (segment.type === "system") {
       return false;
     }
 
@@ -260,7 +260,7 @@ function DropdownItemWithSubmenu({
                     StartIcon={item.iconName}
                     onClick={(event) => {
                       event.preventDefault();
-                      if (segment.type === "custom") {
+                      if (segment.type === "user") {
                         item.onClick(segment);
                       }
                       setIsOpen(false);
