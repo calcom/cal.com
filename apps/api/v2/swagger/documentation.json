@@ -9895,19 +9895,9 @@
     },
     "/v2/event-types/{eventTypeId}/private-links": {
       "post": {
-        "operationId": "EventTypesPrivateLinksController_2024_06_14_createPrivateLink",
+        "operationId": "EventTypesPrivateLinksController_createPrivateLink",
         "summary": "Create a private link for an event type",
         "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2024-06-14",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2024-06-14"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -9953,19 +9943,9 @@
         ]
       },
       "get": {
-        "operationId": "EventTypesPrivateLinksController_2024_06_14_getPrivateLinks",
+        "operationId": "EventTypesPrivateLinksController_getPrivateLinks",
         "summary": "Get all private links for an event type",
         "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2024-06-14",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2024-06-14"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -10003,19 +9983,9 @@
     },
     "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
       "patch": {
-        "operationId": "EventTypesPrivateLinksController_2024_06_14_updatePrivateLink",
+        "operationId": "EventTypesPrivateLinksController_updatePrivateLink",
         "summary": "Update a private link for an event type",
         "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2024-06-14",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2024-06-14"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -10059,19 +10029,9 @@
         ]
       },
       "delete": {
-        "operationId": "EventTypesPrivateLinksController_2024_06_14_deletePrivateLink",
+        "operationId": "EventTypesPrivateLinksController_deletePrivateLink",
         "summary": "Delete a private link for an event type",
         "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to 2024-06-14",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "default": "2024-06-14"
-            }
-          },
           {
             "name": "eventTypeId",
             "required": true,
@@ -18293,129 +18253,6 @@
           "data"
         ]
       },
-      "CreatePrivateLinkInput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "expiresAt": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Expiration date for time-based links",
-            "example": "2024-12-31T23:59:59.000Z"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "Maximum number of times the link can be used",
-            "example": 10,
-            "minimum": 1
-          }
-        }
-      },
-      "CreatePrivateLinkOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Created private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetPrivateLinksOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of private links for the event type (mix of time-based and usage-based)",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
-                }
-              ]
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdatePrivateLinkOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Updated private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeletePrivateLinkOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "description": "Deleted link information",
-            "properties": {
-              "linkId": {
-                "type": "string",
-                "example": "abc123def456"
-              },
-              "message": {
-                "type": "string",
-                "example": "Private link deleted successfully"
-              }
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "SelectedCalendarsInputDto": {
         "type": "object",
         "properties": {
@@ -25804,6 +25641,129 @@
           },
           "data": {
             "$ref": "#/components/schemas/MeOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreatePrivateLinkInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used",
+            "example": 10,
+            "minimum": 1
+          }
+        }
+      },
+      "CreatePrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetPrivateLinksOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of private links for the event type (mix of time-based and usage-based)",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdatePrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeletePrivateLinkOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
           }
         },
         "required": [

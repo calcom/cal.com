@@ -2,24 +2,24 @@ import { Injectable, NotFoundException, BadRequestException } from "@nestjs/comm
 
 import {
   createPrivateLink,
+  deletePrivateLink,
   getPrivateLinks,
   updatePrivateLink,
-  deletePrivateLink,
 } from "@calcom/platform-libraries/private-links";
 import {
   CreatePrivateLinkInput_2024_06_14,
-  UpdatePrivateLinkInput_2024_06_14,
   PrivateLinkOutput_2024_06_14,
+  UpdatePrivateLinkInput_2024_06_14,
 } from "@calcom/platform-types";
 
-import { PrivateLinksInputService_2024_06_14 } from "./private-links-input.service";
-import { PrivateLinksOutputService_2024_06_14 } from "./private-links-output.service";
+import { PrivateLinksInputService } from "./private-links-input.service";
+import { PrivateLinksOutputService } from "./private-links-output.service";
 
 @Injectable()
-export class PrivateLinksService_2024_06_14 {
+export class PrivateLinksService {
   constructor(
-    private readonly inputService: PrivateLinksInputService_2024_06_14,
-    private readonly outputService: PrivateLinksOutputService_2024_06_14
+    private readonly inputService: PrivateLinksInputService,
+    private readonly outputService: PrivateLinksOutputService
   ) {}
 
   async createPrivateLink(
@@ -85,3 +85,5 @@ export class PrivateLinksService_2024_06_14 {
     }
   }
 }
+
+

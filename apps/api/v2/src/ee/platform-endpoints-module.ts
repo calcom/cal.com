@@ -4,6 +4,7 @@ import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { GcalModule } from "@/ee/gcal/gcal.module";
+import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
 import { MeModule } from "@/ee/me/me.module";
 import { ProviderModule } from "@/ee/provider/provider.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -27,6 +28,7 @@ import { Module } from "@nestjs/common";
     MeModule,
     EventTypesModule_2024_04_15,
     EventTypesModule_2024_06_14,
+    EventTypesPrivateLinksModule,
     CalendarsModule,
     BookingsModule_2024_04_15,
     BookingsModule_2024_08_13,

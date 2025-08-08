@@ -1,20 +1,18 @@
-import { PrivateLinksService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/private-links.service";
-import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import {
+  Body,
   Controller,
-  UseGuards,
+  Delete,
   Get,
   Param,
-  Post,
-  Body,
-  Patch,
-  Delete,
   ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -22,36 +20,25 @@ import {
   EVENT_TYPE_READ,
   EVENT_TYPE_WRITE,
   SUCCESS_STATUS,
-  VERSION_2024_06_14,
 } from "@calcom/platform-constants";
 import {
   CreatePrivateLinkInput_2024_06_14,
-  UpdatePrivateLinkInput_2024_06_14,
   CreatePrivateLinkOutput_2024_06_14,
-  GetPrivateLinksOutput_2024_06_14,
-  UpdatePrivateLinkOutput_2024_06_14,
   DeletePrivateLinkOutput_2024_06_14,
-  TimeBasedPrivateLinkOutput_2024_06_14,
-  UsageBasedPrivateLinkOutput_2024_06_14,
+  GetPrivateLinksOutput_2024_06_14,
+  UpdatePrivateLinkInput_2024_06_14,
+  UpdatePrivateLinkOutput_2024_06_14,
 } from "@calcom/platform-types";
+
+import { PrivateLinksService } from "./services/private-links.service";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/private-links",
-  version: VERSION_2024_06_14_VALUE,
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event Types Private Links")
-@ApiHeader({
-  name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_06_14}`,
-  example: VERSION_2024_06_14,
-  required: true,
-  schema: {
-    default: VERSION_2024_06_14,
-  },
-})
-export class EventTypesPrivateLinksController_2024_06_14 {
-  constructor(private readonly privateLinksService: PrivateLinksService_2024_06_14) {}
+export class EventTypesPrivateLinksController {
+  constructor(private readonly privateLinksService: PrivateLinksService) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
@@ -129,3 +116,5 @@ export class EventTypesPrivateLinksController_2024_06_14 {
     };
   }
 }
+
+

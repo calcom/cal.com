@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
 
 import { type PrivateLinkData } from "@calcom/platform-libraries/private-links";
 import {
@@ -8,12 +9,9 @@ import {
 } from "@calcom/platform-types";
 
 @Injectable()
-export class PrivateLinksOutputService_2024_06_14 {
+export class PrivateLinksOutputService {
   constructor() {}
 
-  /**
-   * Transform platform library internal data to API v2 output
-   */
   transformToOutput(data: PrivateLinkData): PrivateLinkOutput_2024_06_14 {
     const baseData = {
       linkId: data.id.toString(),
@@ -23,26 +21,22 @@ export class PrivateLinksOutputService_2024_06_14 {
       bookingUrl: data.bookingUrl,
     };
 
-    // Return time-based link if expiresAt is set
     if (data.expiresAt !== null && data.expiresAt !== undefined) {
-      return {
-        ...baseData,
-        expiresAt: data.expiresAt,
-      } as TimeBasedPrivateLinkOutput_2024_06_14;
+      return plainToClass(
+        TimeBasedPrivateLinkOutput_2024_06_14,
+        { ...baseData, expiresAt: data.expiresAt }
+      );
     }
 
-    // Return usage-based link if maxUsageCount is set
-    return {
-      ...baseData,
-      maxUsageCount: data.maxUsageCount || 0,
-      usageCount: data.usageCount || 0,
-    } as UsageBasedPrivateLinkOutput_2024_06_14;
+    return plainToClass(
+      UsageBasedPrivateLinkOutput_2024_06_14,
+      { ...baseData, maxUsageCount: data.maxUsageCount || 0, usageCount: data.usageCount || 0 }
+    );
   }
 
-  /**
-   * Transform array of platform library internal data to API v2 outputs
-   */
   transformArrayToOutput(data: PrivateLinkData[]): PrivateLinkOutput_2024_06_14[] {
     return data.map((item) => this.transformToOutput(item));
   }
 }
+
+
