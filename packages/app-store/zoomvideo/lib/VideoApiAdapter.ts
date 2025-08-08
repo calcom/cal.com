@@ -77,6 +77,10 @@ export const zoomUserSettingsSchema = z.object({
   in_meeting: z
     .object({
       waiting_room: z.boolean(),
+    })
+    .nullish(),
+  meeting_security: z
+    .object({
       waiting_room_settings: z
         .object({
           participants_to_place_in_waiting_room: z.number().optional(),
@@ -183,7 +187,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
-    const advancedWaitingRoomSettings = userSettings?.in_meeting?.waiting_room_settings;
+    const advancedWaitingRoomSettings = userSettings?.meeting_security?.waiting_room_settings;
+    const hasAdvancedWaitingRoomSettings = waitingRoomEnabled && !!advancedWaitingRoomSettings;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -209,7 +214,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         enforce_login: false,
         registrants_email_notification: true,
         waiting_room: waitingRoomEnabled,
-        ...(advancedWaitingRoomSettings && {
+        ...(hasAdvancedWaitingRoomSettings && {
           waiting_room_settings: advancedWaitingRoomSettings,
         }),
       },
