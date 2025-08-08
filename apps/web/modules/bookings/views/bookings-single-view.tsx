@@ -414,7 +414,7 @@ export default function Success(props: PageProps) {
     eventType.team?.isPlatform ||
     eventType.team?.parent?.isPlatform ||
     eventType.users.some((user) =>
-      (user as any)?.profiles?.some((profile: any) => profile.organization?.isPlatform)
+      (user as any)?.profiles?.some((profile: any) => profile?.organization?.isPlatform)
     );
 
   return (
