@@ -699,34 +699,27 @@ async function handler(
       const currentAttendeeCount = booking._count?.attendees || 0;
       const hasAvailableSeats = currentAttendeeCount < (eventType.seatsPerTimeSlot || 0);
       
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-        if (hasAvailableSeats) {
-          const fixedHosts = users.filter((user) => user.isFixed);
-          const originalNonFixedHost = users.find((user) => !user.isFixed && user.id === booking.userId);
-
-          if (originalNonFixedHost) {
-            users = [...fixedHosts, originalNonFixedHost];
-          } else {
-            const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
-            const nonFixedAttendeeHost = users.find(
-              (user) => !user.isFixed && attendeeEmailSet.has(user.email)
-            );
-            users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
-          }
-        }
-      } else {
+      const filterUsersForSeatBooking = (users: any[], booking: any) => {
         const fixedHosts = users.filter((user) => user.isFixed);
         const originalNonFixedHost = users.find((user) => !user.isFixed && user.id === booking.userId);
 
         if (originalNonFixedHost) {
-          users = [...fixedHosts, originalNonFixedHost];
+          return [...fixedHosts, originalNonFixedHost];
         } else {
-          const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
+          const attendeeEmailSet = new Set(booking.attendees.map((attendee: { email: string }) => attendee.email));
           const nonFixedAttendeeHost = users.find(
             (user) => !user.isFixed && attendeeEmailSet.has(user.email)
           );
-          users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
+          return [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
         }
+      };
+      
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (hasAvailableSeats) {
+          users = filterUsersForSeatBooking(users, booking);
+        }
+      } else {
+        users = filterUsersForSeatBooking(users, booking);
       }
     }
   }
@@ -735,8 +728,6 @@ async function handler(
   let needsRoundRobinRotation = false;
   
   if (!isFirstSeat && eventType.schedulingType === SchedulingType.ROUND_ROBIN && eventType.seatsPerTimeSlot) {
-    console.log(`[DEBUG] Checking for round robin rotation - isFirstSeat: ${isFirstSeat}, schedulingType: ${eventType.schedulingType}, seatsPerTimeSlot: ${eventType.seatsPerTimeSlot}`);
-    
     const existingBooking = await prisma.booking.findFirst({
       where: {
         eventTypeId: eventType.id,
@@ -753,30 +744,17 @@ async function handler(
       },
     });
 
-    console.log(`[DEBUG] Existing booking found: ${JSON.stringify(existingBooking)}`);
-
     if (existingBooking) {
       const currentAttendeeCount = existingBooking.attendees?.length || 0;
       const hasAvailableSeats = currentAttendeeCount < (eventType.seatsPerTimeSlot || 0);
       
-      console.log(`[DEBUG] Seat availability - currentAttendeeCount: ${currentAttendeeCount}, seatsPerTimeSlot: ${eventType.seatsPerTimeSlot}, hasAvailableSeats: ${hasAvailableSeats}`);
-      
       if (!hasAvailableSeats) {
         needsRoundRobinRotation = true;
-        console.log(`[DEBUG] Setting needsRoundRobinRotation = true - seats are full, should rotate to next host`);
-      } else {
-        console.log(`[DEBUG] Seats still available, will reuse same host`);
       }
-    } else {
-      console.log(`[DEBUG] No existing booking found, this should be first seat`);
     }
   }
   
-  console.log(`[DEBUG] Final values - isFirstSeat: ${isFirstSeat}, needsRoundRobinRotation: ${needsRoundRobinRotation}`);
-  
   if (needsRoundRobinRotation && !isFirstSeat) {
-    console.log(`[DEBUG] Resetting users array for round robin rotation - original users: ${JSON.stringify(users.map(u => ({id: u.id, username: u.username})))}`);
-    
     // For seated round robin events, filter out hosts whose seats are full for this time slot
     const existingBookingsForTimeSlot = await prisma.booking.findMany({
       where: {
@@ -796,17 +774,12 @@ async function handler(
         .map(booking => booking.userId)
     );
     
-    console.log(`[DEBUG] Hosts with full seats for time slot: ${JSON.stringify(Array.from(hostsWithFullSeatsForTimeSlot))}`);
-    
     // Filter to only include hosts who have available seats for this time slot
     const availableHostsForTimeSlot = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers].filter(
       user => !hostsWithFullSeatsForTimeSlot.has(user.id)
     );
     
-    console.log(`[DEBUG] Available hosts for time slot: ${JSON.stringify(availableHostsForTimeSlot.map(u => ({id: u.id, username: u.username})))}`);
-    
     users = availableHostsForTimeSlot.length > 0 ? availableHostsForTimeSlot : [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
-    console.log(`[DEBUG] Reset users array - new users: ${JSON.stringify(users.map(u => ({id: u.id, username: u.username})))}`);
   }
     
   if (isFirstSeat || needsRoundRobinRotation) {
@@ -877,8 +850,6 @@ async function handler(
         const usersForAvailabilityCheck = needsRoundRobinRotation && !isFirstSeat 
           ? users as IsFixedAwareUser[]
           : [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
-          
-        console.log(`[DEBUG] ensureAvailableUsers - using users: ${JSON.stringify(usersForAvailabilityCheck.map(u => ({id: u.id, username: u.username})))}, needsRoundRobinRotation: ${needsRoundRobinRotation}, isFirstSeat: ${isFirstSeat}`);
         
         availableUsers = await ensureAvailableUsers(
           { ...eventTypeWithUsers, users: usersForAvailabilityCheck },
@@ -1030,7 +1001,6 @@ async function handler(
 
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...fixedUserPool, ...luckyUsers];
-      console.log(`[DEBUG] Updated users array after round robin selection - users: ${JSON.stringify(users.map(u => ({id: u.id, username: u.username})))}, needsRoundRobinRotation: ${needsRoundRobinRotation}`);
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
       troubleshooterData = {
         ...troubleshooterData,
@@ -1049,7 +1019,6 @@ async function handler(
       const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
       users = [...fixedHosts, ...luckyUsersFromFirstBooking];
       
-      console.log(`[DEBUG] Updated users array after round robin selection - users: ${JSON.stringify(users.map(u => ({id: u.id, username: u.username})))}, needsRoundRobinRotation: ${needsRoundRobinRotation}`);
       troubleshooterData = {
         ...troubleshooterData,
         luckyUsersFromFirstBooking: luckyUsersFromFirstBooking.map((u) => u.id),
@@ -1367,7 +1336,6 @@ async function handler(
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
-    console.log(`[DEBUG] Calling handleSeats for eventType ${eventType.id}, organizer: ${evt.organizer.id}, schedulingType: ${eventType.schedulingType}`);
     const newBooking = await handleSeats({
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
@@ -1404,7 +1372,6 @@ async function handler(
       isDryRun,
     });
 
-    console.log(`[DEBUG] handleSeats returned: ${newBooking ? `booking with userId ${newBooking.userId}` : 'null - will create new booking'}`);
     if (newBooking) {
       const bookingResponse = {
         ...newBooking,
