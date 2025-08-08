@@ -9,6 +9,8 @@ const _findBookingQuery = async (bookingId: number) => {
     },
     select: {
       uid: true,
+      userId: true,
+      id: true,
       location: true,
       startTime: true,
       endTime: true,

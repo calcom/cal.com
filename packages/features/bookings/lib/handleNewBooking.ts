@@ -689,32 +689,100 @@ async function handler(
       select: {
         userId: true,
         attendees: { select: { email: true } },
+        _count: { select: { attendees: true } },
       },
     });
 
     if (booking) {
       isFirstSeat = false;
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      
+      const currentAttendeeCount = booking._count?.attendees || 0;
+      const hasAvailableSeats = currentAttendeeCount < (eventType.seatsPerTimeSlot || 0);
+      
+      const filterUsersForSeatBooking = (users: any[], booking: any) => {
         const fixedHosts = users.filter((user) => user.isFixed);
         const originalNonFixedHost = users.find((user) => !user.isFixed && user.id === booking.userId);
 
         if (originalNonFixedHost) {
-          users = [...fixedHosts, originalNonFixedHost];
+          return [...fixedHosts, originalNonFixedHost];
         } else {
-          const attendeeEmailSet = new Set(booking.attendees.map((attendee) => attendee.email));
-
-          // In this case, the first booking user is a fixed host, so the chosen non-fixed host is added as an attendee of the booking
+          const attendeeEmailSet = new Set(booking.attendees.map((attendee: { email: string }) => attendee.email));
           const nonFixedAttendeeHost = users.find(
             (user) => !user.isFixed && attendeeEmailSet.has(user.email)
           );
-          users = [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
+          return [...fixedHosts, ...(nonFixedAttendeeHost ? [nonFixedAttendeeHost] : [])];
         }
+      };
+      
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (hasAvailableSeats) {
+          users = filterUsersForSeatBooking(users, booking);
+        }
+      } else {
+        users = filterUsersForSeatBooking(users, booking);
       }
     }
   }
 
   //checks what users are available
-  if (isFirstSeat) {
+  let needsRoundRobinRotation = false;
+  
+  if (!isFirstSeat && eventType.schedulingType === SchedulingType.ROUND_ROBIN && eventType.seatsPerTimeSlot) {
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: eventType.id,
+        startTime: new Date(dayjs(reqBody.start).utc().format()),
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        userId: true,
+        attendees: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (existingBooking) {
+      const currentAttendeeCount = existingBooking.attendees?.length || 0;
+      const hasAvailableSeats = currentAttendeeCount < (eventType.seatsPerTimeSlot || 0);
+      
+      if (!hasAvailableSeats) {
+        needsRoundRobinRotation = true;
+      }
+    }
+  }
+  
+  if (needsRoundRobinRotation && !isFirstSeat) {
+    // For seated round robin events, filter out hosts whose seats are full for this time slot
+    const existingBookingsForTimeSlot = await prisma.booking.findMany({
+      where: {
+        eventTypeId: eventType.id,
+        startTime: new Date(dayjs(reqBody.start).utc().format()),
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        userId: true,
+        attendees: { select: { id: true } },
+      },
+    });
+    
+    const hostsWithFullSeatsForTimeSlot = new Set(
+      existingBookingsForTimeSlot
+        .filter(booking => (booking.attendees?.length || 0) >= (eventType.seatsPerTimeSlot || 0))
+        .map(booking => booking.userId)
+    );
+    
+    // Filter to only include hosts who have available seats for this time slot
+    const availableHostsForTimeSlot = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers].filter(
+      user => !hostsWithFullSeatsForTimeSlot.has(user.id)
+    );
+    
+    users = availableHostsForTimeSlot.length > 0 ? availableHostsForTimeSlot : [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
+  }
+    
+  if (isFirstSeat || needsRoundRobinRotation) {
     const eventTypeWithUsers: Omit<getEventTypeResponse, "users"> & {
       users: IsFixedAwareUserWithCredentials[];
     } = {
@@ -778,8 +846,13 @@ async function handler(
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
       try {
+        // For round robin rotation when seats are full, use the filtered users array
+        const usersForAvailabilityCheck = needsRoundRobinRotation && !isFirstSeat 
+          ? users as IsFixedAwareUser[]
+          : [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
+        
         availableUsers = await ensureAvailableUsers(
-          { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
+          { ...eventTypeWithUsers, users: usersForAvailabilityCheck },
           {
             dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
             dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -945,6 +1018,7 @@ async function handler(
         : [];
       const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
       users = [...fixedHosts, ...luckyUsersFromFirstBooking];
+      
       troubleshooterData = {
         ...troubleshooterData,
         luckyUsersFromFirstBooking: luckyUsersFromFirstBooking.map((u) => u.id),

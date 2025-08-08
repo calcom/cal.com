@@ -25,7 +25,7 @@ type AvailableTimeSlotsProps = {
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
   event: {
-    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
+    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata" | "schedulingType"> | null;
   };
   customClassNames?: {
     availableTimeSlotsContainer?: string;
@@ -235,6 +235,7 @@ export const AvailableTimeSlots = ({
                 handleSlotClick={handleSlotClick}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={confirmStepClassNames}
+                isRoundRobin={props.event.data?.schedulingType === "ROUND_ROBIN"}
                 {...props}
               />
             </div>

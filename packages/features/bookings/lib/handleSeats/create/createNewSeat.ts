@@ -13,7 +13,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
@@ -54,7 +54,9 @@ const createNewSeat = async (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
   ) {
-    throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
+    if (eventType.schedulingType !== SchedulingType.ROUND_ROBIN) {
+      throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
+    }
   }
 
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));

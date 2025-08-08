@@ -6,7 +6,7 @@ import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
@@ -41,7 +41,34 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   let resultBooking: HandleSeatsResultBooking = null;
 
-  const seatedBooking: SeatedBooking | null = await prisma.booking.findFirst({
+  let shouldCreateSeparateBooking = false;
+  
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && eventType.seatsPerTimeSlot && !rescheduleUid && !reqBookingUid) {
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        eventTypeId: eventType.id,
+        startTime: new Date(evt.startTime),
+        status: BookingStatus.ACCEPTED,
+      },
+      select: {
+        userId: true,
+        _count: { select: { attendees: true } },
+      },
+    });
+
+    if (existingBooking) {
+      const currentAttendeeCount = existingBooking._count?.attendees || 0;
+      const hasAvailableSeats = currentAttendeeCount < (eventType.seatsPerTimeSlot || 0);
+      
+      if (!hasAvailableSeats && existingBooking.userId !== evt.organizer.id) {
+        shouldCreateSeparateBooking = true;
+      } else if (existingBooking.userId !== evt.organizer.id) {
+        shouldCreateSeparateBooking = true;
+      }
+    }
+  }
+
+  const seatedBooking: SeatedBooking | null = shouldCreateSeparateBooking ? null : await prisma.booking.findFirst({
     where: {
       OR: [
         {
@@ -51,6 +78,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         {
           eventTypeId: eventType.id,
           startTime: new Date(evt.startTime),
+          ...(eventType.schedulingType === SchedulingType.ROUND_ROBIN ? { userId: evt.organizer.id } : {}),
         },
       ],
       status: BookingStatus.ACCEPTED,
