@@ -709,10 +709,11 @@ export class AvailableSlotsService {
   }: {
     hosts: {
       isFixed?: boolean;
+      groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
   }) {
-    return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    return hosts.map(({ isFixed, groupId, user }) => ({ isFixed, groupId, ...user }));
   }
 
   private getUsersWithCredentials = withReporting(
@@ -743,6 +744,7 @@ export class AvailableSlotsService {
     >;
     hosts: {
       isFixed?: boolean;
+      groupId?: string | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
     loggerWithEventDetails: Logger<unknown>;

@@ -1429,6 +1429,7 @@ export default function RouteBuilder({
   form,
   appUrl,
   enrichedWithUserProfileForm,
+  permissions,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <>
@@ -1436,6 +1437,7 @@ export default function RouteBuilder({
         form={form}
         appUrl={appUrl}
         enrichedWithUserProfileForm={enrichedWithUserProfileForm}
+        permissions={permissions}
         Page={Page}
       />
       <Toaster position="bottom-right" />
