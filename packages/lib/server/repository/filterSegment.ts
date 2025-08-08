@@ -124,14 +124,14 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       },
       select: {
         segmentId: true,
-        defaultSegmentId: true,
+        systemSegmentId: true,
       },
     });
 
     const preferredSegmentId = preference?.segmentId
       ? { id: preference.segmentId, type: "user" as const }
-      : preference?.defaultSegmentId
-      ? { id: preference.defaultSegmentId, type: "system" as const }
+      : preference?.systemSegmentId
+      ? { id: preference.systemSegmentId, type: "system" as const }
       : null;
 
     return {
@@ -306,11 +306,11 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
     const updateData = isDefaultSegment
       ? {
           segmentId: null,
-          defaultSegmentId: segmentId.id,
+          systemSegmentId: segmentId.id,
         }
       : {
           segmentId: segmentId.id,
-          defaultSegmentId: null,
+          systemSegmentId: null,
         };
 
     const preference = await prisma.userFilterSegmentPreference.upsert({
