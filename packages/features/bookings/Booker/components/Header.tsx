@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -10,7 +11,6 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";

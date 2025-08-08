@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
@@ -8,7 +9,6 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,

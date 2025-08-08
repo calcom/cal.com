@@ -1,3 +1,5 @@
+import { Icon } from "@calid/features/ui";
+
 import type {
   DefaultEventLocationType,
   EventLocationTypeFromApp,
@@ -7,9 +9,8 @@ import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/l
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const excludeNullValues = (value: unknown) => !!value;
 

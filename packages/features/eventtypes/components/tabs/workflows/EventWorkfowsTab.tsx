@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import SkeletonLoader from "@calid/features/workflows/components/event_workflow_tab_skeleton";
 import type { WorkflowType } from "@calid/features/workflows/config/types";
 import { getActionIcon } from "@calid/features/workflows/utils/getActionicon";
@@ -20,7 +21,6 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";

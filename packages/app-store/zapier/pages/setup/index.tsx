@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -7,7 +8,6 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 

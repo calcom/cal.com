@@ -1,9 +1,8 @@
 "use client";
 
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import React, { useState, useRef, useEffect } from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 interface CustomSelectProps {
   value: string;

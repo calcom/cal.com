@@ -1,8 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 import { Button } from "./button";
 

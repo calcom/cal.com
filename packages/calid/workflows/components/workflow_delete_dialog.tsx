@@ -1,11 +1,11 @@
 import { useToast } from "@calid/features/hooks";
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui";
+import { Icon } from "@calid/features/ui";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 
 interface WorkflowDeleteDialogProps {
   isOpenDialog: boolean;

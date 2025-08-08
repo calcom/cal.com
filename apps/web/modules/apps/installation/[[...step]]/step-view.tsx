@@ -233,11 +233,11 @@ const OnboardingPage = ({
   return (
     <div
       key={pathname}
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
+      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen bg-white px-4"
       data-testid="onboarding">
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
-          <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
+          <div className="rounded-md border p-8 sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
             <Form
               form={formMethods}
               id="outer-event-type-form"

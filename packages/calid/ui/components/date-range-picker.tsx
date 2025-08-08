@@ -1,9 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import { addDays, format } from "date-fns";
 import * as React from "react";
 import type { DateRange } from "react-day-picker";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 import { Button } from "./button";
 import { Calendar } from "./calendar";

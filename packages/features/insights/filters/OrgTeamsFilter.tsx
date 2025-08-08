@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -11,7 +12,6 @@ import { trpc } from "@calcom/trpc";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Divider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 
 import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";

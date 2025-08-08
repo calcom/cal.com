@@ -116,6 +116,7 @@
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
   --cal-border-booker: var(--cal-border-subtle);
+  --cal-border-active: hsla(207, 100%, 45%, 1); 
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
@@ -124,6 +125,7 @@
   --cal-text-muted: hsla(218, 11%, 65%, 1); /* gray-400 */
   --cal-text-inverted: hsla(0, 0%, 100%, 1); /* white */
   --cal-text-destructive: hsla(0, 84%, 60%, 1);
+  --cal-text-active: hsla(207, 100%, 45%, 1);
 
   /* Content/Text Semantic */
   --cal-text-semantic-info: hsla(236, 80%, 25%, 1); /* blue-800 */
@@ -648,7 +650,7 @@ select:focus {
   border: none;
 }
 
-/* TO Remove all below*/
+/* TODO remove all below and use directly*/
 .bg-cal-gradient {
   background-image: var(--cal-bg-gradient);
 }
@@ -659,4 +661,12 @@ select:focus {
 
 .text-destructive {
   color: var(--cal-text-destructive);
+}
+
+.text-active {
+  color: var(--cal-text-active);
+}
+
+.border-active {
+  border-color: var(--cal-border-active);
 }

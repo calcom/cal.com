@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
@@ -8,7 +9,6 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
 import type { CredentialOwner } from "../types";

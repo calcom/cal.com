@@ -960,7 +960,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                                       <SelectContent>
                                         <SelectItem value={WorkflowTemplates.CUSTOM}>Custom</SelectItem>
                                         <SelectItem value={WorkflowTemplates.REMINDER}>Reminder</SelectItem>
-                                        <SelectItem value={WorkflowTemplates.THANK_YOU}>Thank You</SelectItem>
+                                        <SelectItem value={WorkflowTemplates.THANKYOU}>Thank You</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
@@ -1137,7 +1137,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
                                       <SelectContent>
                                         <SelectItem value={WorkflowTemplates.CUSTOM}>Custom</SelectItem>
                                         <SelectItem value={WorkflowTemplates.REMINDER}>Reminder</SelectItem>
-                                        <SelectItem value={WorkflowTemplates.THANK_YOU}>Thank You</SelectItem>
+                                        <SelectItem value={WorkflowTemplates.THANKYOU}>Thank You</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>

@@ -1,11 +1,11 @@
 import { Navbar } from "@/components/Navbar";
+import { Icon } from "@calid/features/ui";
 import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 
 import { useBooking, useCancelBooking } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
-import { Icon } from "@calcom/ui/components/icon";
 
 const inter = Inter({ subsets: ["latin"] });
 

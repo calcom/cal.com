@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "@calid/features/hooks/use-toast";
+import { Icon } from "@calid/features/ui";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import {
@@ -16,7 +17,6 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 
 export function ScheduleListItem({
   schedule,
@@ -84,6 +84,8 @@ export function ScheduleListItem({
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
+              variant="icon"
+              color="minimal"
               type="button"
               className="hover:bg-muted rounded-md transition-colors">
               <Icon name="ellipsis" />

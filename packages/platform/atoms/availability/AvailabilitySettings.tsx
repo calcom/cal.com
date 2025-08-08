@@ -1,11 +1,11 @@
 "use client";
 
-import { Tooltip } from "@calid//features/ui/components/tooltip";
 import { cn } from "@calid/features/lib/cn";
-import { Profile } from "@calid/features/ui/Profile";
+import { Icon } from "@calid/features/ui";
 import { Button } from "@calid/features/ui/components/button";
 import { VerticalDivider } from "@calid/features/ui/components/divider";
 import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { SetStateAction, Dispatch } from "react";
 import React, {
   useMemo,
@@ -42,7 +42,6 @@ import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
 import { Form } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
@@ -252,7 +251,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
     <div
       className={classNames(
         open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
           : ""
       )}>
       <div
@@ -449,7 +448,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity sm:hidden dark:bg-opacity-70"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
                       : ""
                   )}>
                   <div
@@ -517,8 +516,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="col-span-3 min-w-40 space-y-2 border px-2 py-4 lg:col-span-1">
-                      <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
+                    <div className="min-w-40 col-span-3 space-y-2 border px-2 py-4 lg:col-span-1">
+                      <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
                         <div>
                           <Skeleton
                             as={Label}
@@ -592,7 +591,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               color="secondary"
               onClick={() => setOpenSidebar(true)}
             />
-            <Profile />
           </div>
         }>
         <div className="mt-4 w-full md:mt-0">

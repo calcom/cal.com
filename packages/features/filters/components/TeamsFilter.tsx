@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { forwardRef, useState } from "react";
@@ -11,7 +12,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { Divider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 

@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import type { Action } from "kbar";
 import {
   KBarAnimator,
@@ -18,7 +19,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { MintlifyChat } from "../mintlify-chat/MintlifyChat";

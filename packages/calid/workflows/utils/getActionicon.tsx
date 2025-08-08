@@ -1,5 +1,5 @@
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calid/features/ui";
 
 import type { WorkflowStep } from "../config/types";
 import { isSmsOrWhatsappAction } from "../config/utils";

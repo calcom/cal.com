@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   useFieldArray,
@@ -12,7 +13,6 @@ import { v4 as uuidv4 } from "uuid";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 export interface Option {
   label: string;

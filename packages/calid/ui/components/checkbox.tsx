@@ -1,8 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,

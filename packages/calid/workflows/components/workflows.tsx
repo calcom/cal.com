@@ -76,50 +76,48 @@ export const Workflows: React.FC<WorkflowsProps> = ({ setHeaderMeta, filteredLis
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="px-8 py-6">
-        {!hasWorkflows ? (
-          // Empty state
-          <div className="mx-auto max-w-full">
-            {/* Teams Filter for empty state */}
-            {teamProfiles.length > 0 && (
-              <div className="mb-8">
-                <TeamsFilter profiles={teamProfiles} checked={teamFilters} setChecked={setTeamFilters} />
-              </div>
-            )}
+      {!hasWorkflows ? (
+        // Empty state
+        <div className="mx-auto max-w-full">
+          {/* Teams Filter for empty state */}
+          {teamProfiles.length > 0 && (
+            <div className="mb-8">
+              <TeamsFilter profiles={teamProfiles} checked={teamFilters} setChecked={setTeamFilters} />
+            </div>
+          )}
 
-            <WorkflowEmptyState
-              onCreateWorkflow={handlers.handleCreateWorkflow}
-              isCreating={mutations.create.isPending}
-            />
-          </div>
-        ) : (
-          // Workflows display
-          <WorkflowsList
-            workflows={workflows}
-            teamProfiles={teamProfiles}
-            teamFilters={teamFilters}
-            setTeamFilters={setTeamFilters}
+          <WorkflowEmptyState
             onCreateWorkflow={handlers.handleCreateWorkflow}
-            onEdit={handlers.handleWorkflowEdit}
-            onToggle={handlers.handleWorkflowToggle}
-            onDuplicate={handlers.handleWorkflowDuplicate}
-            onDelete={handleWorkflowDelete}
-            onCopyLink={handleCopyLinkWithState}
-            copiedLink={copiedLink}
             isCreating={mutations.create.isPending}
           />
-        )}
-
-        {/* Delete Dialog */}
-        <WorkflowDeleteDialog
-          isOpenDialog={workflowDeleteDialogOpen}
-          setIsOpenDialog={setWorkflowDeleteDialogOpen}
-          workflowId={workflowIdToDelete}
-          additionalFunction={async () => {
-            await utils.viewer.workflows.filteredList.invalidate();
-          }}
+        </div>
+      ) : (
+        // Workflows display
+        <WorkflowsList
+          workflows={workflows}
+          teamProfiles={teamProfiles}
+          teamFilters={teamFilters}
+          setTeamFilters={setTeamFilters}
+          onCreateWorkflow={handlers.handleCreateWorkflow}
+          onEdit={handlers.handleWorkflowEdit}
+          onToggle={handlers.handleWorkflowToggle}
+          onDuplicate={handlers.handleWorkflowDuplicate}
+          onDelete={handleWorkflowDelete}
+          onCopyLink={handleCopyLinkWithState}
+          copiedLink={copiedLink}
+          isCreating={mutations.create.isPending}
         />
-      </div>
+      )}
+
+      {/* Delete Dialog */}
+      <WorkflowDeleteDialog
+        isOpenDialog={workflowDeleteDialogOpen}
+        setIsOpenDialog={setWorkflowDeleteDialogOpen}
+        workflowId={workflowIdToDelete}
+        additionalFunction={async () => {
+          await utils.viewer.workflows.filteredList.invalidate();
+        }}
+      />
     </div>
   );
 };

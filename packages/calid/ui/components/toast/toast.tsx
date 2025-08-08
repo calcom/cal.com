@@ -1,9 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const ToastProvider = ToastPrimitives.Provider;
 

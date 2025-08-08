@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -9,7 +10,6 @@ import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/t
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";

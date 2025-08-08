@@ -1,8 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,

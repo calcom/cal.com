@@ -1,7 +1,6 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import * as React from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 // import { buttonVariants } from "./button";
 import type { ButtonProps } from "./button";

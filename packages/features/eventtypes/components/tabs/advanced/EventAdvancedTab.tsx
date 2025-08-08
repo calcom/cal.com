@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
@@ -59,7 +60,6 @@ import {
   Switch,
   SettingsToggle,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";

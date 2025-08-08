@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import Link from "next/link";
 import { useState, useEffect, useRef, useMemo } from "react";
 
@@ -13,7 +14,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { buttonClasses } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
   SheetBody,

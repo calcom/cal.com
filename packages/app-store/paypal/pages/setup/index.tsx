@@ -1,3 +1,4 @@
+import { Icon } from "@calid/features/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "sonner";
@@ -7,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 export default function PayPalSetup() {
