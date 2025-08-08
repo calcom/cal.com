@@ -36,28 +36,9 @@ function getCspPolicy(nonce: string) {
 }
 
 export function getCspNonce() {
-  const BYTE_LEN = 22;
-  const bytes = new Uint8Array(BYTE_LEN);
+  const nonce = buildNonce(crypto.getRandomValues(new Uint8Array(22)));
 
-  // Prefer Web Crypto in both browser and modern Node runtimes
-  const hasWebCrypto =
-    typeof (globalThis as any).crypto !== "undefined" &&
-    typeof (globalThis as any).crypto.getRandomValues === "function";
-
-  if (hasWebCrypto) {
-    (globalThis as any).crypto.getRandomValues(bytes);
-  } else {
-    // Node.js environment (including tests)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const nodeCrypto = require("node:crypto") as typeof import("node:crypto");
-    if (nodeCrypto.webcrypto?.getRandomValues) {
-      nodeCrypto.webcrypto.getRandomValues(bytes);
-    } else {
-      nodeCrypto.randomFillSync(bytes);
-    }
-  }
-
-  return buildNonce(bytes);
+  return nonce;
 }
 
 export function getCspHeader({ shouldEnforceCsp, nonce }: { shouldEnforceCsp: boolean; nonce: string }) {

@@ -41,6 +41,7 @@ function OptionalTeamGuestSetting({ team, eventType }: OptionalTeamGuestSettingP
           avatar: option.user.avatarUrl || "",
           label: option.user.email || "No Email",
           isFixed: true,
+          groupId: null,
         });
       }
 
@@ -88,9 +89,11 @@ function OptionalTeamGuestSetting({ team, eventType }: OptionalTeamGuestSettingP
                       avatar: member.user.avatarUrl || "",
                       label: member.user.email || "",
                       value: member.user.id.toString() || "",
+                      groupId: null,
                     })) || []
                   }
                   controlShouldRenderValue={false}
+                  groupId={null}
                 />
               </div>
             </SettingsToggle>
