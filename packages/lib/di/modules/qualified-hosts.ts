@@ -1,0 +1,11 @@
+import { createModule } from "@evyweb/ioctopus";
+
+import type { IQualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
+import { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
+import { DI_TOKENS } from "../tokens";
+
+export const qualifiedHostsModule = createModule();
+qualifiedHostsModule.bind(DI_TOKENS.QUALIFIED_HOSTS_SERVICE).toClass(QualifiedHostsService, {
+  prisma: DI_TOKENS.PRISMA_CLIENT,
+  bookingRepo: DI_TOKENS.BOOKING_REPOSITORY,
+} satisfies Record<keyof IQualifiedHostsService, symbol>);

@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { isRerouting } from "./routing/utils";
@@ -13,11 +13,13 @@ export const filterHostsBySameRoundRobinHost = async <
   rescheduleUid,
   rescheduleWithSameRoundRobinHost,
   routedTeamMemberIds,
+  prisma,
 }: {
   hosts: T[];
   rescheduleUid: string | null;
   rescheduleWithSameRoundRobinHost: boolean;
   routedTeamMemberIds: number[] | null;
+  prisma: PrismaClient;
 }) => {
   if (
     !rescheduleUid ||

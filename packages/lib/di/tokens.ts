@@ -37,4 +37,6 @@ export const DI_TOKENS = {
   GET_USER_AVAILABILITY_SERVICE_MODULE: Symbol("GetUserAvailabilityModule"),
   BUSY_TIMES_SERVICE: Symbol("BusyTimesService"),
   BUSY_TIMES_SERVICE_MODULE: Symbol("BusyTimesServiceModule"),
+  QUALIFIED_HOSTS_SERVICE: Symbol("QualifiedHostsService"),
+  QUALIFIED_HOSTS_SERVICE_MODULE: Symbol("QualifiedHostsServiceModule"),
 };

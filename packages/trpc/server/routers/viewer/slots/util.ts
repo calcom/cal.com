@@ -9,13 +9,13 @@ import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import type { getBusyTimesService } from "@calcom/lib/di/containers/busy-times";
+import { getQualifiedHostsService } from "@calcom/lib/di/containers/qualified-hosts";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {
@@ -1025,9 +1025,9 @@ export class AvailableSlotsService {
       });
     }
 
-    // TODO: DI findQualifiedHostsWithDelegationCredentials
+    const qualifiedHostsService = getQualifiedHostsService();
     const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
-      await findQualifiedHostsWithDelegationCredentials({
+      await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
         eventType,
         rescheduleUid: input.rescheduleUid ?? null,
         routedTeamMemberIds,
