@@ -67,7 +67,7 @@ function useDefaultSegments() {
 
     const segments: DefaultFilterSegment[] = [
       {
-        id: "my_bookings",
+        id: "default-my_bookings",
         name: t("my_bookings"),
         icon: "user",
         type: "default",
@@ -84,7 +84,7 @@ function useDefaultSegments() {
         perPage: 10,
       },
       {
-        id: "upcoming-bookings",
+        id: "default-upcoming-bookings",
         name: "Upcoming Bookings",
         icon: "calendar",
         type: "default",
