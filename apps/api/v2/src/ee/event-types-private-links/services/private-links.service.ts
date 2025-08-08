@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { isLinkExpired } from "@calcom/lib/hashedLinksUtils";
+import { generateHashedLink, isLinkExpired } from "@calcom/platform-libraries/private-links";
 import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
 import { PrivateLinksInputService } from "@/ee/event-types-private-links/services/private-links-input.service";

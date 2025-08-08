@@ -25648,129 +25648,6 @@
           "data"
         ]
       },
-      "CreatePrivateLinkInput": {
-        "type": "object",
-        "properties": {
-          "expiresAt": {
-            "format": "date-time",
-            "type": "string",
-            "description": "Expiration date for time-based links",
-            "example": "2024-12-31T23:59:59.000Z"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "Maximum number of times the link can be used",
-            "example": 10,
-            "minimum": 1
-          }
-        }
-      },
-      "CreatePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Created private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetPrivateLinksOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of private links for the event type (mix of time-based and usage-based)",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-                },
-                {
-                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-                }
-              ]
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdatePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Updated private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeletePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "description": "Deleted link information",
-            "properties": {
-              "linkId": {
-                "type": "string",
-                "example": "abc123def456"
-              },
-              "message": {
-                "type": "string",
-                "example": "Private link deleted successfully"
-              }
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "BookingInputAddressLocation_2024_08_13": {
         "type": "object",
         "properties": {
@@ -28310,6 +28187,129 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreatePrivateLinkInput": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used",
+            "example": 10,
+            "minimum": 1
+          }
+        }
+      },
+      "CreatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetPrivateLinksOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of private links for the event type (mix of time-based and usage-based)",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeletePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
           }
         },
         "required": [
