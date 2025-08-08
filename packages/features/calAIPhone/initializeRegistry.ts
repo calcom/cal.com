@@ -1,5 +1,5 @@
 import { AIPhoneServiceRegistry } from "./AIPhoneServiceRegistry";
-import { AIPhoneServiceProviderType } from "./interfaces/ai-phone-service.interface";
+import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 import { RetellAIPhoneServiceProviderFactory } from "./providers/retellAI";
 
 /**

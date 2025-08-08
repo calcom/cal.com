@@ -11,7 +11,7 @@ import type {
   AIPhoneServiceAgent,
   AIPhoneServiceModel,
   AIPhoneServiceTools,
-} from "../../interfaces/ai-phone-service.interface";
+} from "../../interfaces/AIPhoneService.interface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
 import type { RetellAIRepository } from "../types";
 import { getLlmId, Language } from "../types";

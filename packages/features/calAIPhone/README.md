@@ -42,7 +42,7 @@ The architecture implements multiple design patterns to create a maintainable, s
 
 ## Key Components
 
-### 1. Generic Interfaces (`interfaces/ai-phone-service.interface.ts`)
+### 1. Generic Interfaces (`interfaces/AIPhoneService.interface.ts`)
 
 - `AIPhoneServiceProvider` - Main interface that all providers must implement
 - `AIPhoneServiceConfiguration` - Configuration for setting up AI services

@@ -5,7 +5,7 @@ import type {
   AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderConfig,
   AIPhoneServiceProviderType,
-} from "../../interfaces/ai-phone-service.interface";
+} from "../../interfaces/AIPhoneService.interface";
 import { PrismaAgentRepositoryAdapter } from "../adapters/PrismaAgentRepositoryAdapter";
 import { PrismaPhoneNumberRepositoryAdapter } from "../adapters/PrismaPhoneNumberRepositoryAdapter";
 import { PrismaTransactionAdapter } from "../adapters/PrismaTransactionAdapter";

@@ -8,7 +8,7 @@ import type {
   AIPhoneServiceImportPhoneNumberParamsExtended,
   AIPhoneServiceProviderType,
   AIPhoneServicePhoneNumber,
-} from "../../../interfaces/ai-phone-service.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../../interfaces/TransactionInterface";

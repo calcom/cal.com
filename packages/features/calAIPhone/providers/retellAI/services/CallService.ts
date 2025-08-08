@@ -7,7 +7,7 @@ import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryI
 import type {
   AIPhoneServiceProviderType,
   AIPhoneServiceCall,
-} from "../../interfaces/ai-phone-service.interface";
+} from "../../interfaces/AIPhoneService.interface";
 import type { RetellAIRepository, RetellDynamicVariables } from "../types";
 
 const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
