@@ -311,10 +311,116 @@ describe("createTeams handler", () => {
     // Verify platform team was not moved
     const platformTeam = await prismock.team.findFirst({
       where: { name: "Platform Team" },
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       include: { parent: true },
     });
 
     expect(platformTeam?.parent?.isPlatform).toBe(true);
     expect(platformTeam?.slug).toBe("platform-team"); // Original slug unchanged
+  });
+
+  it("should handle moving non-existent teams gracefully", async () => {
+    const { owner, organization } = await createScenario({
+      teams: [{ name: "Existing Team", slug: "existing-team", addToParentId: "createdOrganization" }],
+    });
+
+    const nonExistentTeamId = 99999; // ID that doesn't exist
+
+    // Should not throw error when trying to move non-existent team
+    const result = await createTeamsHandler({
+      ctx: {
+        user: {
+          id: owner.id,
+          organizationId: organization.id,
+        },
+      },
+      input: {
+        teamNames: ["New Team"],
+        orgId: organization.id,
+        moveTeams: [
+          {
+            id: nonExistentTeamId,
+            shouldMove: true,
+            newSlug: "moved-non-existent",
+          },
+        ],
+        creationSource: CreationSource.WEBAPP,
+      },
+    });
+
+    expect(result).toEqual({ duplicatedSlugs: [] });
+
+    // Verify new team was created successfully
+    const createdTeams = await prismock.team.findMany({
+      where: { parentId: organization.id },
+    });
+
+    expect(createdTeams).toHaveLength(2); // Existing team + New Team
+    expect(createdTeams.map((t) => t.name).sort()).toEqual(["Existing Team", "New Team"]);
+
+    // Verify non-existent team was not created/moved
+    const nonExistentTeam = await prismock.team.findFirst({
+      where: { slug: "moved-non-existent" },
+    });
+
+    expect(nonExistentTeam).toBeNull();
+  });
+
+  it("should handle moving unpublished teams (without slug) gracefully", async () => {
+    const { owner, organization } = await createScenario();
+
+    // Create an unpublished team (team without a slug)
+    const unpublishedTeam = await createTestTeam({
+      name: "Unpublished Team",
+      slug: null,
+      parentId: null,
+    });
+
+    // Add membership for the owner to the team
+    await createTestMembership({
+      userId: owner.id,
+      teamId: unpublishedTeam.id,
+      role: MembershipRole.OWNER,
+    });
+
+    // Should not throw error when trying to move unpublished team
+    const result = await createTeamsHandler({
+      ctx: {
+        user: {
+          id: owner.id,
+          organizationId: organization.id,
+        },
+      },
+      input: {
+        teamNames: [],
+        orgId: organization.id,
+        moveTeams: [
+          {
+            id: unpublishedTeam.id,
+            shouldMove: true,
+            newSlug: "published-team-slug",
+          },
+        ],
+        creationSource: CreationSource.WEBAPP,
+      },
+    });
+
+    expect(result).toEqual({ duplicatedSlugs: [] });
+
+    // Verify team was moved successfully
+    const movedTeam = await prismock.team.findFirst({
+      where: { id: unpublishedTeam.id },
+    });
+
+    expect(movedTeam).toBeTruthy();
+    expect(movedTeam?.parentId).toBe(organization.id);
+    expect(movedTeam?.slug).toBe("published-team-slug");
+
+    // Verify no redirect was created (since there was no oldSlug for unpublished team)
+    const redirects = await prismock.tempOrgRedirect.findMany({});
+
+    // Filter for redirects with null 'from' value
+    const redirectsWithNullFrom = redirects.filter((redirect) => redirect.from === null);
+    expect(redirectsWithNullFrom).toHaveLength(0);
   });
 });

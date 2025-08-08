@@ -1,4 +1,4 @@
-import { AvailableSlotsService } from "@/lib/services/AvailableSlots";
+import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { IncomingMessage } from "http";

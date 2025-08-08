@@ -89,11 +89,23 @@ export const zoomUserSettingsSchema = z.object({
       waiting_room: z.boolean().nullish(),
     })
     .nullish(),
+  meeting_security: z
+    .object({
+      waiting_room_settings: z
+        .object({
+          participants_to_place_in_waiting_room: z.number().optional(),
+          users_who_can_admit_participants_from_waiting_room: z.number().optional(),
+          whitelisted_domains_for_waiting_room: z.string().optional(),
+        })
+        .optional(),
+    })
+    .nullish(),
 });
 
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
-const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,in_meeting,waiting_room";
+const settingsApiFilterResp =
+  "default_password_for_scheduled_meetings,auto_recording,waiting_room,waiting_room_settings,in_meeting";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -185,6 +197,12 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
+    const advancedWaitingRoomSettings = userSettings?.meeting_security?.waiting_room_settings;
+    const hasAdvancedWaitingRoomSettings =
+      waitingRoomEnabled &&
+      !!advancedWaitingRoomSettings &&
+      typeof advancedWaitingRoomSettings === "object" &&
+      Object.keys(advancedWaitingRoomSettings).length > 0;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -214,6 +232,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         auto_start_ai_companion_questions:
           userSettings?.in_meeting?.ai_companion_questions?.auto_enable ?? false,
         waiting_room: waitingRoomEnabled,
+        ...(hasAdvancedWaitingRoomSettings && {
+          waiting_room_settings: advancedWaitingRoomSettings,
+        }),
       },
       ...recurrence,
     };
