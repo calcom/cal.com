@@ -33,6 +33,7 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  onSaveWorkflow?: () => Promise<void>;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -93,6 +94,7 @@ export default function WorkflowDetailsPage(props: Props) {
       numberVerificationPending: false,
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
+      agentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -182,6 +184,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 user={props.user}
                 teamId={teamId}
                 readOnly={props.readOnly}
+                onSaveWorkflow={props.onSaveWorkflow}
               />
             </div>
           )}
@@ -198,6 +201,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     setReload={setReload}
                     teamId={teamId}
                     readOnly={props.readOnly}
+                    onSaveWorkflow={props.onSaveWorkflow}
                   />
                 );
               })}

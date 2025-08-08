@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { WorkflowType } from "@calcom/ee/workflows/components/WorkflowListPage";
+import { deleteScheduledAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
@@ -399,6 +400,7 @@ export class WorkflowRepository {
       [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id),
       [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
       [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
+      [WorkflowMethods.AI_PHONE_CALL]: (id, referenceId) => deleteScheduledAIPhoneCall(id, referenceId),
     };
 
     if (!remindersToDelete) return Promise.resolve();

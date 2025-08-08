@@ -3,16 +3,22 @@ import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
+import { scheduleAIPhoneCall } from "@calcom/ee/workflows/lib/reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
-import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+} from "@calcom/features/bookings/lib/SystemField";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
+  getAIAgentCallPhoneNumberField,
+  getAIAgentCallPhoneNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
@@ -357,6 +363,78 @@ export async function removeSmsReminderFieldForEventType({
   );
 }
 
+export async function upsertAIAgentCallPhoneNumberFieldForEventTypes({
+  activeOn,
+  workflowId,
+  isAIAgentCallPhoneNumberRequired,
+  isOrg,
+}: {
+  activeOn: number[];
+  workflowId: number;
+  isAIAgentCallPhoneNumberRequired?: boolean;
+  isOrg: boolean;
+}) {
+  let allEventTypeIds = activeOn;
+
+  if (isOrg) {
+    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOn);
+  }
+
+  for (const eventTypeId of allEventTypeIds) {
+    await upsertBookingField(
+      getAIAgentCallPhoneNumberField(),
+      getAIAgentCallPhoneNumberSource({
+        workflowId,
+        isAIAgentCallPhoneNumberRequired: isAIAgentCallPhoneNumberRequired ?? false,
+      }),
+      eventTypeId
+    );
+  }
+}
+
+export async function removeAIAgentCallPhoneNumberFieldForEventTypes({
+  activeOnToRemove,
+  workflowId,
+  isOrg,
+  activeOn,
+}: {
+  activeOnToRemove: number[];
+  workflowId: number;
+  isOrg: boolean;
+  activeOn?: number[];
+}) {
+  let allEventTypeIds = activeOnToRemove;
+
+  if (isOrg) {
+    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOnToRemove, activeOn);
+  }
+  for (const eventTypeId of allEventTypeIds) {
+    await removeAIAgentCallPhoneNumberFieldForEventType({
+      workflowId,
+      eventTypeId,
+    });
+  }
+}
+
+export async function removeAIAgentCallPhoneNumberFieldForEventType({
+  workflowId,
+  eventTypeId,
+}: {
+  workflowId: number;
+  eventTypeId: number;
+}) {
+  await removeBookingField(
+    {
+      name: CAL_AI_AGENT_PHONE_NUMBER_FIELD,
+    },
+    {
+      id: `${workflowId}`,
+      type: "workflow",
+    },
+    eventTypeId
+  );
+}
+
 async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId: number[] = []) {
   const teamMembersWithEventTypes = await prisma.membership.findMany({
     where: {
@@ -663,6 +741,7 @@ export async function scheduleBookingReminders(
       const bookingInfo = {
         uid: booking.uid,
         bookerUrl,
+        type: booking.eventType?.slug || "event",
         attendees: booking.attendees.map((attendee) => {
           return {
             name: attendee.name,
@@ -814,6 +893,19 @@ export async function scheduleBookingReminders(
             verifiedAt: step?.verifiedAt ?? null,
           });
         }
+      } else if (step.action === WorkflowActions.CAL_AI_PHONE_CALL) {
+        await scheduleAIPhoneCall({
+          evt: bookingInfo,
+          triggerEvent: trigger,
+          timeSpan: {
+            time,
+            timeUnit,
+          },
+          workflowStepId: step.id,
+          userId,
+          teamId,
+          verifiedAt: step?.verifiedAt ?? null,
+        });
       }
     });
     await Promise.all(promiseScheduleReminders);
