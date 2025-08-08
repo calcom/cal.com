@@ -65,7 +65,7 @@ function useDefaultSegments() {
   const defaultSegments: DefaultFilterSegment[] = useMemo(() => {
     if (!user) return [];
 
-    const segments: DefaultFilterSegment[] = [
+    return [
       {
         id: "default-my_bookings",
         name: t("my_bookings"),
@@ -104,8 +104,6 @@ function useDefaultSegments() {
         perPage: 10,
       },
     ];
-
-    return segments;
   }, [user]);
 
   return defaultSegments;
