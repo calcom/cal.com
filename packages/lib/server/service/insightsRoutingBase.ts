@@ -81,14 +81,15 @@ export type InsightsRoutingTableItem = {
   utm_term: string | null;
   utm_content: string | null;
   bookingAttendees: Array<{
-    name: string | null;
-    timeZone: string | null;
-    email: string | null;
+    name: string;
+    timeZone: string;
+    email: string;
+    phoneNumber: string | null;
   }>;
   fields: Array<{
     fieldId: string | null;
     valueString: string | null;
-    valueNumber: string | null; // Decimal is returned as string from Prisma
+    valueNumber: number | null;
     valueStringArray: string[] | null;
   }>;
 };
@@ -302,7 +303,8 @@ export class InsightsRoutingBaseService {
               json_build_object(
                 'name', a."name",
                 'timeZone', a."timeZone",
-                'email', a."email"
+                'email', a."email",
+                'phoneNumber', a."phoneNumber"
               )
             ) FILTER (WHERE a."id" IS NOT NULL),
             '[]'::json
@@ -678,7 +680,7 @@ export class InsightsRoutingBaseService {
         columnCondition = Prisma.sql`a.email ${textCondition}`;
         break;
       case "phone":
-        columnCondition = Prisma.sql`a.phoneNumber ${textCondition}`;
+        columnCondition = Prisma.sql`a."phoneNumber" ${textCondition}`;
         break;
       default:
         return null;
