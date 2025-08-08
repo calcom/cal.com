@@ -324,7 +324,6 @@ if (isSAMLLoginEnabled) {
         code: {},
       },
       async authorize(credentials) {
-        console.log("credentials", credentials);
         log.debug("CredentialsProvider:saml-idp:authorize", safeStringify({ credentials }));
         if (!credentials) {
           return null;
