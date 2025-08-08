@@ -1569,13 +1569,19 @@ model CalendarSubscription {
   id                 String @id @default(uuid())
   selectedCalendarId String @unique
 
-  // Webhook subscription details
+  // Webhook subscription details - Google
   googleChannelId          String?
   googleChannelKind        String?
   googleChannelResourceId  String?
   googleChannelResourceUri String?
   googleChannelExpiration  String?
   nextSyncToken            String?
+
+  // Webhook subscription details - Office365
+  office365SubscriptionId         String?
+  office365SubscriptionExpiration String?
+  office365SubscriptionResource   String?
+  office365SubscriptionChangeType String?
 
   // Sync management
   lastFullSync  DateTime?
@@ -1592,6 +1598,7 @@ model CalendarSubscription {
   events           CalendarEvent[]
 
   @@index([googleChannelExpiration, syncErrors, backoffUntil])
+  @@index([office365SubscriptionExpiration, syncErrors, backoffUntil])
   @@index([nextSyncToken])
   @@index([selectedCalendarId])
 }

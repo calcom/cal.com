@@ -18,17 +18,32 @@ export interface ICalendarSubscriptionRepository {
       })
     | null
   >;
+  findByOffice365SubscriptionId(subscriptionId: string): Promise<
+    | (CalendarSubscription & {
+        selectedCalendar: {
+          credential: SafeCredential | null;
+          externalId: string;
+          integration: string;
+          userId: number;
+        };
+      })
+    | null
+  >;
   upsert(data: Prisma.CalendarSubscriptionCreateInput): Promise<CalendarSubscription>;
   upsertMany(data: Prisma.CalendarSubscriptionCreateInput[]): Promise<CalendarSubscription[]>;
   updateSyncToken(id: string, nextSyncToken: string): Promise<void>;
   updateWatchDetails(
     id: string,
     details: {
-      googleChannelId: string;
+      googleChannelId?: string;
       googleChannelKind?: string;
       googleChannelResourceId?: string;
       googleChannelResourceUri?: string;
-      googleChannelExpiration: string;
+      googleChannelExpiration?: string;
+      office365SubscriptionId?: string;
+      office365SubscriptionExpiration?: string;
+      office365SubscriptionResource?: string;
+      office365SubscriptionChangeType?: string;
     }
   ): Promise<void>;
   getSubscriptionsToWatch(limit?: number): Promise<CalendarSubscription[]>;
