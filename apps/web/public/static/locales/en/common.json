@@ -2251,6 +2251,8 @@
   "floating_button_trigger_modal": "Puts a floating button on your site that triggers a modal with your event type.",
   "pop_up_element_click": "Pop up via element click",
   "open_dialog_with_element_click": "Open your calendar as a dialog when someone clicks an element.",
+  "use_my_own_form": "Use my own form",
+  "use_our_headless_routing_api": "Use our headless routing API and use your own form for submissions.",
   "need_help_embedding": "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options.",
   "book_my_cal": "Book my Cal",
   "first_name": "First name",
@@ -3402,6 +3404,7 @@
   "license_key_saved": "License key saved successfully",
   "timezone_mismatch_tooltip": "You are viewing the report based on your profile timezone ({{userTimezone}}), while your browser is set to timezone ({{browserTimezone}})",
   "failed_bookings_by_field": "Failed Bookings By Field",
+  "failed_bookings": "Failed bookings",
   "event_type_no_hosts": "No hosts are assigned to event type",
   "cache_status": "Cache Status",
   "cache_last_updated": "Last updated: {{timestamp}}",
@@ -3429,5 +3432,7 @@
   "usage_based_expiration_description": "This link can be used for {{count}} booking",
   "usage_based_generic_expiration_description": "This link can be configured to expire after a set number of bookings",
   "usage_based_expiration_description_plural": "This link can be used for {{count}} bookings",
+  "stats": "Stats",
+  "booking_status": "Booking status",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

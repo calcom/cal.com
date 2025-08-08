@@ -194,8 +194,10 @@ const Days = ({
   const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
   const totalDays = daysInMonth(browsingDate);
 
+  const showNextMonthDays = isSecondWeekOver && !isCompact;
+
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
-  if (isSecondWeekOver && !isCompact) {
+  if (showNextMonthDays) {
     const startDay = 8;
     const pad = getPadding(startDay);
     days = Array(pad).fill(null);
@@ -337,7 +339,7 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
-              showMonthTooltip={isSecondWeekOver && !isCompact}
+              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
               isFirstDayOfNextMonth={isFirstDayOfNextMonth}
             />
           )}
