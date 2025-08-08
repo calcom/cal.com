@@ -2,7 +2,7 @@ import type { CalendarSubscription } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import type { ICalendarEventRepository } from "./CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepository.interface";
@@ -13,7 +13,7 @@ export interface ICalendarWebhookService {
   processWebhookEvents(
     subscription: CalendarSubscription & {
       selectedCalendar: {
-        credential: any | null;
+        credential: CredentialPayload | null;
         externalId: string;
         integration: string;
         userId: number;

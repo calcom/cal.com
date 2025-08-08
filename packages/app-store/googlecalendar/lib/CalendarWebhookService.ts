@@ -7,6 +7,7 @@ import type { ICalendarWebhookService } from "@calcom/features/calendar-cache-sq
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
+  CredentialPayload,
 } from "@calcom/types/Credential";
 
 export class CalendarWebhookService implements ICalendarWebhookService {
@@ -18,7 +19,7 @@ export class CalendarWebhookService implements ICalendarWebhookService {
   async processWebhookEvents(
     subscription: CalendarSubscription & {
       selectedCalendar: {
-        credential: any | null;
+        credential: CredentialPayload | null;
         externalId: string;
         integration: string;
         userId: number;
