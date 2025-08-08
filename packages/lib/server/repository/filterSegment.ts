@@ -129,9 +129,9 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
     });
 
     const preferredSegmentId = preference?.segmentId
-      ? { id: preference.segmentId, type: "custom" as const }
+      ? { id: preference.segmentId, type: "user" as const }
       : preference?.defaultSegmentId
-      ? { id: preference.defaultSegmentId, type: "default" as const }
+      ? { id: preference.defaultSegmentId, type: "system" as const }
       : null;
 
     return {
@@ -301,7 +301,7 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       return null;
     }
 
-    const isDefaultSegment = segmentId.type === "default";
+    const isDefaultSegment = segmentId.type === "system";
 
     const updateData = isDefaultSegment
       ? {

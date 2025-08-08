@@ -38,7 +38,7 @@ export function DuplicateSegmentDialog({
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_duplicated"), "success");
-      setSegmentId({ id, type: "custom" });
+      setSegmentId({ id, type: "user" });
       onClose();
     },
     onError: () => {
