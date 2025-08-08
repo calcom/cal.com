@@ -2,7 +2,7 @@ import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from "class-validator";
 
-import { CalendarEventStatus, CalendarEventResponseStatus } from "../outputs/get-unified-calendar-event";
+import { CalendarEventStatus, CalendarEventResponseStatus } from "../outputs/get-unified-calendar-event.output";
 
 export class UpdateCalendarEventHost {
   @IsString()
@@ -49,14 +49,27 @@ export class UpdateCalendarEventAttendee {
   })
   responseStatus?: CalendarEventResponseStatus | null;
 
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    type: String,
-    enum: ["delete"],
-    description: "Action to perform on this attendee. Use 'delete' to remove the attendee from the event.",
+    nullable: true,
+    description: "Indicates if this attendee is the current user",
   })
-  action?: "delete";
+  self?: boolean;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Indicates if this attendee's attendance is optional",
+  })
+  optional?: boolean;
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Indicates if this attendee is the host",
+  })
+  host?: boolean;
+
 }
 
 export class UpdateDateTimeWithZone {

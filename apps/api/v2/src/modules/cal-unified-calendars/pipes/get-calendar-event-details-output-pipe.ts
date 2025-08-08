@@ -3,7 +3,7 @@ import {
   CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
-} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 import { PipeTransform, Injectable } from "@nestjs/common";
 
 export interface GoogleCalendarEventResponse {
@@ -94,14 +94,12 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.locations = this.transformLocations(googleEvent);
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
-      calendarEvent.attendees = googleEvent.attendees
-        .filter((attendee) => !attendee.organizer)
-        .map((attendee) => {
+      calendarEvent.attendees = googleEvent.attendees.map((attendee) => {
           return {
             email: attendee.email,
             name: attendee.displayName,
             responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
-            organizer: attendee.organizer,
+            host: attendee.organizer,
             self: attendee.self,
             optional: attendee.optional,
           };
@@ -110,7 +108,7 @@ export class GoogleCalendarEventOutputPipe
 
     calendarEvent.status = this.transformEventStatus(googleEvent.status);
 
-    calendarEvent.hosts = this.transformHosts(googleEvent);
+    calendarEvent.calendarEventOwner = googleEvent.organizer 
 
     calendarEvent.source = "google";
 
@@ -157,30 +155,6 @@ export class GoogleCalendarEventOutputPipe
       default:
         return null;
     }
-  }
-
-  private transformHosts(googleEvent: GoogleCalendarEventResponse) {
-    const hosts: Array<{ email: string; name?: string; responseStatus: CalendarEventResponseStatus | null }> =
-      [];
-
-    const organizerAttendees = googleEvent?.attendees?.filter((attendee) => attendee.organizer);
-    if (organizerAttendees?.length) {
-      organizerAttendees.forEach((organizer) => {
-        hosts.push({
-          email: organizer.email,
-          name: organizer.displayName,
-          responseStatus: this.transformAttendeeResponseStatus(organizer.responseStatus),
-        });
-      });
-    } else if (googleEvent.organizer) {
-      hosts.push({
-        email: googleEvent.organizer.email,
-        name: googleEvent.organizer.displayName,
-        responseStatus: null,
-      });
-    }
-
-    return hosts;
   }
 
   private transformLocations(

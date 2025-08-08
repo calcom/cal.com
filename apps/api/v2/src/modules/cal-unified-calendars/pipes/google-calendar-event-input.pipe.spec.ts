@@ -4,9 +4,9 @@ import {
   UpdateCalendarEventHost,
   UpdateDateTimeWithZone,
 } from "../inputs/update-unified-calendar-event.input";
-import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event";
+import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event.output";
 import { GoogleCalendarEventResponse } from "./get-calendar-event-details-output-pipe";
-import { GoogleCalendarEventInputPipe } from "./google-calendar-event-input.pipe";
+import { GoogleCalendarEventInputPipe } from "./google-calendar-event-input-pipe";
 
 describe("GoogleCalendarEventInputPipe", () => {
   let pipe: GoogleCalendarEventInputPipe;
@@ -272,41 +272,6 @@ describe("GoogleCalendarEventInputPipe", () => {
     });
   });
 
-  describe("preserveExistingAttendees", () => {
-    it("should preserve existing attendees", () => {
-      const result = pipe["preserveExistingAttendees"](sharedGoogleEvent);
-
-      expect(result).toEqual([
-        {
-          email: "attendee1@example.com",
-          displayName: "Attendee One",
-          responseStatus: "accepted",
-        },
-        {
-          email: "attendee2@example.com",
-          displayName: "Attendee Two",
-          responseStatus: "needsAction",
-        },
-        {
-          email: "organizer@example.com",
-          displayName: "Organizer",
-          responseStatus: "accepted",
-        },
-      ]);
-    });
-
-    it("should return empty array when no existing event", () => {
-      const result = pipe["preserveExistingAttendees"](null);
-      expect(result).toEqual([]);
-    });
-
-    it("should return empty array when no attendees", () => {
-      const eventWithoutAttendees = { ...sharedGoogleEvent, attendees: undefined };
-
-      const result = pipe["preserveExistingAttendees"](eventWithoutAttendees);
-      expect(result).toEqual([]);
-    });
-  });
 
   describe("processAttendeeDeletions", () => {
     it("should remove attendees marked for deletion", () => {

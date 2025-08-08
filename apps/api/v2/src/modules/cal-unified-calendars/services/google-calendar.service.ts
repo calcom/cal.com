@@ -11,8 +11,7 @@ import { JWT } from "googleapis-common";
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
 
 import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
-import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
-import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input.pipe";
+import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
 
 @Injectable()
 export class GoogleCalendarService {
@@ -74,20 +73,8 @@ export class GoogleCalendarService {
       bookingReference.delegationCredential
     );
 
-    let existingEvent: GoogleCalendarEventResponse | null = null;
-    if (updateData.attendees !== undefined || updateData.hosts !== undefined) {
-      try {
-        const existingEventResponse = await calendar.events.get({
-          calendarId: bookingReference?.externalCalendarId ?? "primary",
-          eventId: bookingReference?.uid,
-        });
-        existingEvent = existingEventResponse.data as GoogleCalendarEventResponse;
-      } catch (error) {
-        this.logger.warn("Failed to fetch existing event for attendee preservation", { eventUid, error });
-      }
-    }
 
-    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData, existingEvent);
+    const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
 
     try {
       const event = await calendar.events.patch({

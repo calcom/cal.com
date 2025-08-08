@@ -1,7 +1,7 @@
 import {
   CalendarEventStatus,
   CalendarEventResponseStatus,
-} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 
 import {
   createGoogleCalendarEventFixture,

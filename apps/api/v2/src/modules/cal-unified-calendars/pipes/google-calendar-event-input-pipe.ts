@@ -5,7 +5,7 @@ import {
   UpdateUnifiedCalendarEventInput,
   UpdateDateTimeWithZone,
 } from "../inputs/update-unified-calendar-event.input";
-import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event";
+import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event.output";
 
 // Common interfaces for Google Calendar types
 interface GoogleCalendarDateTime {
@@ -31,7 +31,6 @@ interface GoogleCalendarEventInputTransform {
 export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTransform {
   transform(
     updateData: UpdateUnifiedCalendarEventInput,
-    fetchedEvent?: GoogleCalendarEventResponse | null
   ): any {
     const updatePayload: any = {};
 
@@ -51,11 +50,9 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
       updatePayload.end = this.transformDateTimeWithZone(updateData.end);
     }
 
-    if (updateData.attendees !== undefined || updateData.hosts !== undefined) {
-      updatePayload.attendees = this.transformAttendeesWithHostsHandling(
+    if (updateData.attendees !== undefined) {
+      updatePayload.attendees = this.transformAttendees(
         updateData.attendees,
-        updateData.hosts,
-        fetchedEvent
       );
     }
 
@@ -73,101 +70,19 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
     };
   }
 
-  private transformAttendeesWithHostsHandling(
-    inputAttendees?: UpdateUnifiedCalendarEventInput["attendees"],
-    inputHosts?: UpdateUnifiedCalendarEventInput["hosts"],
-    fetchedEvent?: GoogleCalendarEventResponse | null
+  private transformAttendees(
+    inputAttendees: NonNullable<UpdateUnifiedCalendarEventInput["attendees"]>,
   ): GoogleCalendarAttendee[] {
-    let finalAttendees = this.preserveExistingAttendees(fetchedEvent);
-
-    if (inputAttendees) {
-      finalAttendees = this.processAttendeeDeletions(finalAttendees, inputAttendees);
-      finalAttendees = this.processAttendeeUpdatesAndAdditions(finalAttendees, inputAttendees);
-    }
-
-    if (inputHosts && inputHosts.length > 0) {
-      finalAttendees = this.replaceHostsWithUpdatedOnes(finalAttendees, inputHosts);
-    }
-
-    return finalAttendees;
-  }
-
-  private preserveExistingAttendees(
-    fetchedEvent?: GoogleCalendarEventResponse | null
-  ): GoogleCalendarAttendee[] {
-    if (!fetchedEvent?.attendees) {
-      return [];
-    }
-
-    return fetchedEvent.attendees.map((attendee) => ({
-      email: attendee.email,
-      displayName: attendee.displayName,
-      responseStatus: attendee.responseStatus || "needsAction",
-    }));
-  }
-
-  private processAttendeeDeletions(
-    attendees: GoogleCalendarAttendee[],
-    inputAttendees: NonNullable<UpdateUnifiedCalendarEventInput["attendees"]>
-  ): GoogleCalendarAttendee[] {
-    const attendeesToDelete = inputAttendees
-      .filter((attendee) => attendee.action === "delete")
-      .map((attendee) => attendee.email.toLowerCase());
-
-    return attendees.filter((attendee) => !attendeesToDelete.includes(attendee.email.toLowerCase()));
-  }
-
-  private processAttendeeUpdatesAndAdditions(
-    attendees: GoogleCalendarAttendee[],
-    inputAttendees: NonNullable<UpdateUnifiedCalendarEventInput["attendees"]>
-  ): GoogleCalendarAttendee[] {
-    const attendeesToUpdate = inputAttendees.filter((attendee) => attendee.action !== "delete");
-
-    for (const userAttendee of attendeesToUpdate) {
-      const existingIndex = attendees.findIndex(
-        (attendee) => attendee.email.toLowerCase() === userAttendee.email.toLowerCase()
-      );
-
-      const transformedAttendee = {
-        email: userAttendee.email,
-        displayName: userAttendee.name,
-        responseStatus: this.transformResponseStatus(userAttendee.responseStatus),
-      };
-
-      if (existingIndex >= 0) {
-        attendees[existingIndex] = {
-          ...transformedAttendee,
-          organizer: attendees[existingIndex].organizer,
-        };
-      } else {
-        attendees.push(transformedAttendee);
-      }
-    }
-
-    return attendees;
-  }
-
-  private replaceHostsWithUpdatedOnes(
-    attendees: GoogleCalendarAttendee[],
-    inputHosts: NonNullable<UpdateUnifiedCalendarEventInput["hosts"]>
-  ): GoogleCalendarAttendee[] {
-    const updatedAttendees = attendees.map((attendee) => {
-      if (attendee.organizer) {
-        const hostUpdate = inputHosts.find(
-          (host) => host.email.toLowerCase() === attendee.email.toLowerCase()
-        );
-
-        if (hostUpdate) {
+      return  inputAttendees.map((attendee) => {
           return {
-            ...attendee,
-            responseStatus: this.transformResponseStatus(hostUpdate.responseStatus),
+            email: attendee.email,
+            displayName: attendee.name,
+            responseStatus: this.transformResponseStatus(attendee.responseStatus),
+            organizer: attendee.host,
+            self: attendee.self,
+            optional: attendee.optional,
           };
-        }
-      }
-      return attendee;
-    });
-
-    return updatedAttendees;
+        });
   }
 
   private transformResponseStatus(responseStatus?: CalendarEventResponseStatus | null): string {

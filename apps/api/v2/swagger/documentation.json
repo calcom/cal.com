@@ -28445,6 +28445,11 @@
             "type": "boolean",
             "nullable": true,
             "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
           }
         },
         "required": [
@@ -28461,7 +28466,7 @@
           "cancelled"
         ]
       },
-      "CalendarEventHost": {
+      "calendarEventOwner": {
         "type": "object",
         "properties": {
           "email": {
@@ -28472,11 +28477,6 @@
             "type": "string",
             "nullable": true,
             "description": "Display name of the event host"
-          },
-          "responseStatus": {
-            "nullable": true,
-            "example": "accepted",
-            "$ref": "#/components/schemas/CalendarEventResponseStatus"
           }
         },
         "required": [
@@ -28571,13 +28571,14 @@
             "example": "accepted",
             "$ref": "#/components/schemas/CalendarEventStatus"
           },
-          "hosts": {
+          "calendarEventOwner": {
             "nullable": true,
-            "description": "Information about the event hosts (organizers)",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CalendarEventHost"
-            }
+            "description": "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/calendarEventOwner"
+              }
+            ]
           },
           "source": {
             "example": "google",
@@ -28627,12 +28628,20 @@
             "nullable": true,
             "$ref": "#/components/schemas/CalendarEventResponseStatus"
           },
-          "action": {
-            "type": "string",
-            "enum": [
-              "delete"
-            ],
-            "description": "Action to perform on this attendee. Use 'delete' to remove the attendee from the event."
+          "self": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the current user"
+          },
+          "optional": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
           }
         }
       },
