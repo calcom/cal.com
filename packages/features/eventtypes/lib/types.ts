@@ -236,5 +236,5 @@ export type FormValidationResult = {
 
 export interface EventTypePlatformWrapperRef {
   validateForm: () => Promise<FormValidationResult>;
-  handleFormSubmit: () => void;
+  handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
 }

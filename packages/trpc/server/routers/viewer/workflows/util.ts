@@ -15,6 +15,8 @@ import {
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -229,62 +231,33 @@ export function getSender(
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
-  isWriteOperation?: boolean
+  permission: PermissionString = "workflow.read"
 ) {
   if (!workflow) {
     return false;
   }
-  if (!isWriteOperation) {
-    const userWorkflow = await prisma.workflow.findFirst({
-      where: {
-        id: workflow.id,
-        OR: [
-          { userId: currentUserId },
-          {
-            // for read operation every team member has access
-            team: {
-              members: {
-                some: {
-                  userId: currentUserId,
-                  accepted: true,
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
-    if (userWorkflow) return true;
+
+  // For personal workflows (no teamId), check if user owns the workflow
+  if (!workflow.teamId) {
+    return workflow.userId === currentUserId;
   }
 
-  const userWorkflow = await prisma.workflow.findFirst({
-    where: {
-      id: workflow.id,
-      OR: [
-        { userId: currentUserId },
-        {
-          team: {
-            members: {
-              some: {
-                userId: currentUserId,
-                accepted: true,
-                //only admins can update team/org workflows
-                NOT: {
-                  role: MembershipRole.MEMBER,
-                },
-              },
-            },
-          },
-        },
-      ],
-    },
+  // For team workflows, use PBAC
+  const permissionService = new PermissionCheckService();
+
+  // Determine fallback roles based on permission type
+  const fallbackRoles =
+    permission === "workflow.read"
+      ? [MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER]
+      : [MembershipRole.ADMIN, MembershipRole.OWNER];
+
+  return await permissionService.checkPermission({
+    userId: currentUserId,
+    teamId: workflow.teamId,
+    permission,
+    fallbackRoles,
   });
-
-  if (userWorkflow) return true;
-
-  return false;
 }
-
 export async function upsertSmsReminderFieldForEventTypes({
   activeOn,
   workflowId,

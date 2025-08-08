@@ -35,20 +35,31 @@ async function handler(req: NextRequest) {
   const imageType = searchParams.get("type");
 
   try {
-    const [calFontData, interFontData, interFontMediumData] = await Promise.all([
+    const fontResults = await Promise.allSettled([
       fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
       fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
       fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
     ]);
+
+    const fonts: SatoriOptions["fonts"] = [];
+
+    if (fontResults[1].status === "fulfilled") {
+      fonts.push({ name: "inter", data: fontResults[1].value, weight: 400 });
+    }
+
+    if (fontResults[2].status === "fulfilled") {
+      fonts.push({ name: "inter", data: fontResults[2].value, weight: 500 });
+    }
+
+    if (fontResults[0].status === "fulfilled") {
+      fonts.push({ name: "cal", data: fontResults[0].value, weight: 400 });
+      fonts.push({ name: "cal", data: fontResults[0].value, weight: 600 });
+    }
+
     const ogConfig = {
       width: 1200,
       height: 630,
-      fonts: [
-        { name: "inter", data: interFontData, weight: 400 },
-        { name: "inter", data: interFontMediumData, weight: 500 },
-        { name: "cal", data: calFontData, weight: 400 },
-        { name: "cal", data: calFontData, weight: 600 },
-      ] as SatoriOptions["fonts"],
+      fonts,
     };
 
     switch (imageType) {
