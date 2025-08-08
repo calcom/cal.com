@@ -677,8 +677,7 @@ function actOnColorScheme(colorScheme: string | null | undefined) {
   if (!colorScheme) {
     return;
   }
-  document.documentElement.style.colorScheme = colorScheme || "unset";
-  document.body.style.background = "transparent";
+  document.documentElement.style.colorScheme = colorScheme;
 }
 
 /**
