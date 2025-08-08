@@ -27,6 +27,7 @@ import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
+  const { t } = useLocale();
   const {
     meetingUrl,
     meetingPassword,
@@ -83,8 +84,8 @@ export default function JoinCall(props: PageProps) {
               ...(showRecordingButton
                 ? {
                     recording: {
-                      label: "Record",
-                      tooltip: "Start or stop recording",
+                      label: t("record"),
+                      tooltip: t("start_or_stop_recording"),
                       iconPath: RECORDING_DEFAULT_ICON,
                       iconPathDarkMode: RECORDING_DEFAULT_ICON,
                     },
@@ -93,8 +94,8 @@ export default function JoinCall(props: PageProps) {
               ...(showTranscriptionButton
                 ? {
                     transcription: {
-                      label: "Transcribe",
-                      tooltip: "Transcription powered by AI",
+                      label: t("transcribe"),
+                      tooltip: t("transcription_powered_by_ai"),
                       iconPath: TRANSCRIPTION_STOPPED_ICON,
                       iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
                     },
