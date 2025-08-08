@@ -1,8 +1,9 @@
+import { Button } from "@calid/features/ui/components/button";
+
+import type { ButtonProps } from "@calcom/features/ui/components/button";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppFrontendPayload } from "@calcom/types/App";
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
 
 export const InstallAppButtonChild = ({
   multiInstall,

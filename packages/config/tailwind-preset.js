@@ -161,6 +161,7 @@ module.exports = {
         default: "var(--cal-border)",
         subtle: "var(--cal-border-subtle)",
         muted: "var(--cal-border-muted)",
+        active: "var(--cal-border-active)",
 
         // Semantic Borders
         semantic: {
@@ -184,6 +185,7 @@ module.exports = {
         muted: "var(--cal-text-muted)",
         inverted: "var(--cal-text-inverted)",
         destructive: "var(--cal-text-destructive)",
+        active: "var(--cal-text-active)",
 
         // Semantic Text
         semantic: {

@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@calid/features//ui/components/button";
+import { Badge } from "@calid/features/ui/components/badge";
+import type { ButtonProps } from "@calid/features/ui/components/button";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -14,9 +17,6 @@ import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import type { ButtonProps } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface AppCardProps {
@@ -175,8 +175,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
               />
             )}
       </div>
-      <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appAdded > 0 ? <Badge variant="green">{t("installed", { count: appAdded })}</Badge> : null}
+      <div className="absolute right-0 mr-4 flex max-w-44 flex-wrap justify-end gap-1">
+        {appAdded > 0 ? <Badge variant="success">{t("installed", { count: appAdded })}</Badge> : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
@@ -204,7 +204,6 @@ const InstallAppButtonChild = ({
       <Button
         color="secondary"
         className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-        StartIcon="plus"
         data-testid="install-app-button"
         {...props}>
         {paid.trial ? t("start_paid_trial") : t("subscribe")}
@@ -216,7 +215,6 @@ const InstallAppButtonChild = ({
     <Button
       color="secondary"
       className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
-      StartIcon="plus"
       data-testid="install-app-button"
       {...props}
       size="base">

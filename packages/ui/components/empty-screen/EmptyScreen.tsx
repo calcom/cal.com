@@ -1,11 +1,9 @@
+import type { IconName } from "@calid/features/ui/components/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
-
-import { Button } from "../button";
-import type { IconName } from "../icon";
-import { Icon } from "../icon";
 
 export function EmptyScreen({
   Icon: icon,
@@ -78,7 +76,7 @@ export function EmptyScreen({
               {description}
             </div>
           )}
-          {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
+          {/* {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>} */}
           {buttonRaw}
         </div>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar } from "@calid/features/ui/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -7,16 +8,27 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { Icon } from "@calcom/ui/components/icon";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
-// adjust path based on your structure
+interface ProfileProps {
+  small?: boolean;
+}
 
-export const Profile = () => {
+export const Profile = ({ small }: ProfileProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showHelpOptions, setShowHelpOptions] = useState(false);
+  const { t } = useLocale();
+  const { data: user, isPending } = useMeQuery();
+
+  // Stop the dropdown from rendering if the user is not available.
+  if (!user && !isPending) {
+    return null;
+  }
 
   const handleHelpClick = (action: string) => {
     switch (action) {
@@ -32,6 +44,7 @@ export const Profile = () => {
   return (
     <DropdownMenu
       open={menuOpen}
+      disabled={isPending}
       onOpenChange={(isOpen) => {
         setMenuOpen(isOpen);
         if (!isOpen) {
@@ -39,11 +52,26 @@ export const Profile = () => {
         }
       }}>
       <DropdownMenuTrigger asChild>
-        <button className="flex hidden w-full items-center space-x-3 rounded-lg transition-colors sm:flex">
+        <button className="hover:bg-subtle flex hidden w-auto items-center space-x-3 rounded-lg p-2 transition-colors md:flex">
           <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full">
-            <span className="text-primary-foreground text-xs font-medium">SY</span>
+            <span className="text-primary-foreground text-xs font-medium">
+              <Avatar
+                size={small ? "xs" : "xsm"}
+                imageSrc={user?.avatarUrl ?? user?.avatar}
+                alt={user?.username ? `${user.username} Avatar` : "Nameless User Avatar"}
+                className="overflow-hidden"
+              />
+            </span>
           </div>
-          <span className="text-foreground text-sm font-medium">Sanskar Yadav</span>
+          {!small && (
+            <span className="flex flex-grow items-center gap-2">
+              <span className="w-24 flex-shrink-0 text-sm leading-none">
+                <span className="text-emphasis block truncate py-0.5 font-medium leading-normal">
+                  {isPending ? "Loading..." : user?.name ?? "Nameless User"}
+                </span>
+              </span>
+            </span>
+          )}
           <Icon
             name="chevron-down"
             className={`ml-auto h-4 w-4 transition-transform ${menuOpen ? "rotate-180" : ""}`}
@@ -51,18 +79,18 @@ export const Profile = () => {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent side="bottom" align="end" className="w-48 bg-white">
-        <DropdownMenuItem onClick={() => (window.location.href = "/settings/profile")}>
+      <DropdownMenuContent side="bottom" align="end" className="w-48">
+        <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/profile")}>
           <Icon name="user" className="mr-2 h-4 w-4" />
-          My Profile
+          {t("my_profile")}
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => (window.location.href = "/settings/out-of-office")}>
+        <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/out-of-office")}>
           <Icon name="moon" className="mr-2 h-4 w-4" />
-          Out of Office
+          {t("out_of_office")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => window.open("https://roadmap.onehash.ai/", "_blank")}>
           <Icon name="map-pin" className="mr-2 h-4 w-4" />
-          Roadmap
+          {t("visit_roadmap")}
         </DropdownMenuItem>
         <div
           onClick={(e) => {
@@ -71,7 +99,7 @@ export const Profile = () => {
           }}
           className="hover:bg-subtle flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm">
           <Icon name="circle-help" className="mr-2 h-4 w-4" />
-          Help & Support
+          {t("help")}
           <Icon
             name="chevron-down"
             className={`ml-auto h-4 w-4 transition-transform ${showHelpOptions ? "rotate-180" : ""}`}
@@ -86,23 +114,25 @@ export const Profile = () => {
               transition={{ duration: 0.3 }}>
               <DropdownMenuItem onClick={() => handleHelpClick("docs")}>
                 <Icon name="file" className="mr-2 h-4 w-4" />
-                Documentation
+                {t("documentation")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleHelpClick("contact")}>
                 <Icon name="mail" className="mr-2 h-4 w-4" />
-                Contact Us
+                {t("contact")}
               </DropdownMenuItem>
             </motion.div>
           )}
         </AnimatePresence>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => (window.location.href = "/settings")}>
+        <DropdownMenuItem onClick={() => (window.location.href = "/settings/my-account/profile")}>
           <Icon name="settings" className="mr-2 h-4 w-4" />
-          Settings
+          {t("settings")}
         </DropdownMenuItem>
-        <DropdownMenuItem className="text-destructive hover:border-semantic-error hover:bg-error">
+        <DropdownMenuItem
+          onClick={() => (window.location.href = "/auth/logout")}
+          className="text-destructive hover:border-semantic-error hover:bg-error">
           <Icon name="log-out" className=" mr-2 h-4 w-4" />
-          Sign Out
+          {t("sign_out")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

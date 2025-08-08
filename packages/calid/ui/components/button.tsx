@@ -39,41 +39,28 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
+  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-md transition disabled:cursor-not-allowed gap-1",
   {
     variants: {
       variant: {
         button: "",
         icon: "flex justify-center",
-        fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-full justify-center md:rounded-[10px] radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
+        fab: "min-w-14 min-h-14 md:min-w-min md:min-h-min rounded-md justify-center radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0",
       },
       color: {
         primary: [
           // Base colors
-          "bg-brand-default",
-          "text-brand",
-          // Hover state
-          "enabled:hover:bg-brand-emphasis",
-          // Focus state
-          "focus-visible:outline-none",
-          "focus-visible:ring-0",
-          "focus-visible:shadow-button-solid-brand-focused",
-          // Border
-          "border border-brand-default",
+          "bg-cal-active",
+          "text-white",
           // Disabled
           "disabled:opacity-30",
           // Shadows and effects
-          "shadow-button-solid-brand-default",
-          "enabled:active:shadow-button-solid-brand-active",
           "enabled:hover:shadow-button-solid-brand-hover",
-          "transition-shadow",
-          "transition-transform",
-          "duration-100",
         ],
 
         secondary: [
           // Base colors and border
-          "bg-default",
+          "bg-white",
           "text-default",
           "border",
           "border-default",
@@ -120,10 +107,12 @@ export const buttonClasses = cva(
 
         destructive: [
           // Base colors
-          "text-destructive",
+          "border",
+          "border-default",
           // Hover state
           "dark:hover:text-red-600",
           "hover:border-semantic-error",
+          "hover:text-destructive",
           "hover:bg-error",
           // Focus state
           "focus-visible:text-red-700",
