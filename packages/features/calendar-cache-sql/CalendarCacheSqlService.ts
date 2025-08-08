@@ -103,7 +103,7 @@ export class CalendarCacheSqlService {
     // Get subscriptions for each selected calendar ID that exists
     const validSelectedCalendarIds = selectedCalendarIds
       .filter((item) => item.selectedCalendarId !== null)
-      .map((item) => item.selectedCalendarId!);
+      .map((item) => item.selectedCalendarId as string);
 
     const cacheStatuses = await Promise.all(
       validSelectedCalendarIds.map(async (selectedCalendarId) => {

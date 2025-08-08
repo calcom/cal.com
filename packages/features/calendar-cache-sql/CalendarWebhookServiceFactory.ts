@@ -1,3 +1,5 @@
+import type { CalendarSubscription } from "@prisma/client";
+
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -8,7 +10,17 @@ import type { ICalendarSubscriptionRepository } from "./CalendarSubscriptionRepo
 const log = logger.getSubLogger({ prefix: ["CalendarWebhookServiceFactory"] });
 
 export interface ICalendarWebhookService {
-  processWebhookEvents(subscription: any, credential: CredentialForCalendarService): Promise<void>;
+  processWebhookEvents(
+    subscription: CalendarSubscription & {
+      selectedCalendar: {
+        credential: any | null;
+        externalId: string;
+        integration: string;
+        userId: number;
+      };
+    },
+    credential: CredentialForCalendarService
+  ): Promise<void>;
 }
 
 interface CalendarWebhookApp {
@@ -22,7 +34,7 @@ const isCalendarWebhookService = (x: unknown): x is CalendarWebhookApp =>
   !!x &&
   typeof x === "object" &&
   "CalendarWebhookService" in x &&
-  typeof (x as any).CalendarWebhookService === "function";
+  typeof (x as CalendarWebhookApp).CalendarWebhookService === "function";
 
 export class CalendarWebhookServiceFactory {
   private static async getServiceModule(credentialType: string): Promise<CalendarWebhookApp> {

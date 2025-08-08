@@ -3,13 +3,10 @@ import type { Prisma, CalendarSubscription } from "@prisma/client";
 import type { ICalendarEventRepository } from "@calcom/features/calendar-cache-sql/CalendarEventRepository.interface";
 import type { ICalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository.interface";
 import type { ICalendarWebhookService } from "@calcom/features/calendar-cache-sql/CalendarWebhookServiceFactory";
-import logger from "@calcom/lib/logger";
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithTenantId,
 } from "@calcom/types/Credential";
-
-const log = logger.getSubLogger({ prefix: ["Office365CalendarWebhookService"] });
 
 export class CalendarWebhookService implements ICalendarWebhookService {
   constructor(
