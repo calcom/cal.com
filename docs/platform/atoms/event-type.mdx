@@ -218,7 +218,16 @@ export function EventTypeWithValidation(eventTypeId: number) {
   };
 
   const handleSubmit = () => {
-    eventTypeRef.current?.handleFormSubmit();
+    eventTypeRef.current?.handleFormSubmit({
+      onSuccess: () => {
+        // Additional success handling logic here
+        console.log('Event type updated successfully');
+      },
+      onError: (error) => {
+        // Additional error handling logic here
+        console.error('Error updating event type:', error);
+      }
+    });
   };
 
   return (
@@ -243,6 +252,20 @@ export function EventTypeWithValidation(eventTypeId: number) {
 |:-------|:------------|
 | validateForm | Validates the current event type form state and returns a promise with validation results. |
 | handleFormSubmit | Programmatically submits the event type form, triggering the same validation and submission flow as clicking the save button. Unlike `validateForm`, this method will check required fields and prevent submission unless all required fields are set |
+
+### Callbacks
+
+The `handleFormSubmit` method accepts an optional callbacks object with the following properties:
+
+```typescript
+type EventTypeFormCallbacks = {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+};
+```
+
+- **onSuccess**: Called when the form submission is successful. This allows you to execute additional logic after a successful update.
+- **onError**: Called when an error occurs during form submission. The error parameter contains details about what went wrong, allowing you to handle specific error cases or display custom error messages.
 
 The `validateForm` method returns an `EventTypeFormValidationResult` object with:
 - `isValid`: Boolean indicating if the form passed validation
