@@ -2,10 +2,9 @@ import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/l
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
 
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
@@ -32,16 +31,16 @@ export class BillingService {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
     if (!phoneNumberPriceId) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: "Phone number price ID not configured. Please contact support.",
       });
     }
 
     const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
     if (!stripeCustomerId) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: "Failed to create Stripe customer.",
       });
     }
@@ -84,8 +83,8 @@ export class BillingService {
     });
 
     if (!checkoutSession.url) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: "Failed to create checkout session.",
       });
     }
@@ -115,15 +114,15 @@ export class BillingService {
         });
 
     if (!phoneNumber) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Phone number not found or you don't have permission to cancel it.",
       });
     }
 
     if (!phoneNumber.stripeSubscriptionId) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Phone number doesn't have an active subscription.",
       });
     }
@@ -149,8 +148,8 @@ export class BillingService {
       return { success: true, message: "Phone number subscription cancelled successfully." };
     } catch (error) {
       this.logger.error("Error cancelling phone number subscription:", { error });
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: "Failed to cancel subscription. Please try again or contact support.",
       });
     }

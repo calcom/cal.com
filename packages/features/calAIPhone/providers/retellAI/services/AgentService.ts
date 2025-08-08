@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-
-import { TRPCError } from "@trpc/server";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -26,8 +25,8 @@ export class AgentService {
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Agent ID is required and cannot be empty",
       });
     }
@@ -39,8 +38,8 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: `Failed to get agent ${agentId}`,
       });
     }
@@ -108,8 +107,8 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Agent not found or you don't have permission to view it.",
       });
     }
@@ -119,8 +118,8 @@ export class AgentService {
       const llmId = getLlmId(retellAgent);
 
       if (!llmId) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
+        throw new HttpError({
+          statusCode: 404,
           message: "Agent does not have an LLM configured.",
         });
       }
@@ -129,7 +128,7 @@ export class AgentService {
 
       return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
     } catch (error) {
-      if (error instanceof TRPCError) {
+      if (error instanceof HttpError) {
         throw error;
       }
 
@@ -140,8 +139,8 @@ export class AgentService {
         teamId,
         error,
       });
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: "Unable to fetch agent details. Please try again.",
       });
     }
@@ -168,8 +167,8 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new HttpError({
+          statusCode: 403,
           message: "You don't have permission to create agents for this team.",
         });
       }
@@ -226,8 +225,8 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Agent not found or you don't have permission to update it.",
       });
     }
@@ -274,12 +273,12 @@ export class AgentService {
           error,
         });
 
-        if (error instanceof TRPCError) {
+        if (error instanceof HttpError) {
           throw error;
         }
 
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
+        throw new HttpError({
+          statusCode: 500,
           message: "Unable to update agent configuration. Please try again.",
         });
       }
@@ -306,8 +305,8 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Agent not found or you don't have permission to delete it.",
       });
     }

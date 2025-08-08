@@ -1,7 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-
-import { TRPCError } from "@trpc/server";
 
 import type {
   AIPhoneServiceProviderType,
@@ -26,15 +25,15 @@ export class CallService {
     retell_llm_dynamic_variables?: RetellDynamicVariables;
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data.from_number?.trim()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "From phone number is required and cannot be empty",
       });
     }
 
     if (!data.to_number?.trim()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "To phone number is required and cannot be empty",
       });
     }
@@ -51,8 +50,8 @@ export class CallService {
         toNumber: data.to_number,
         error,
       });
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: `Failed to create phone call from ${data.from_number} to ${data.to_number}`,
       });
     }
@@ -70,8 +69,8 @@ export class CallService {
     teamId?: number;
   }) {
     if (!agentId?.trim()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Agent ID is required and cannot be empty",
       });
     }
@@ -85,8 +84,8 @@ export class CallService {
 
     const toNumber = phoneNumber?.trim();
     if (!toNumber) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Phone number is required for test call",
       });
     }
@@ -97,8 +96,8 @@ export class CallService {
     });
 
     if (!agent) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Agent not found or you don't have permission to use it.",
       });
     }
@@ -106,8 +105,8 @@ export class CallService {
     const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
 
     if (!agentPhoneNumber) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: "Agent must have a phone number assigned to make calls.",
       });
     }
@@ -137,14 +136,14 @@ export class CallService {
         (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
 
       if (availableCredits < MIN_CREDIT_REQUIRED_FOR_TEST_CALL) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
+        throw new HttpError({
+          statusCode: 403,
           message: `Insufficient credits to make test call. Need ${MIN_CREDIT_REQUIRED_FOR_TEST_CALL} credits, have ${availableCredits}. Please purchase more credits.`,
         });
       }
     } catch (error) {
-      // Re-throw TRPC errors (like insufficient credits) as-is
-      if (error instanceof TRPCError) {
+      // Re-throw HTTP errors (like insufficient credits) as-is
+      if (error instanceof HttpError) {
         throw error;
       }
 
@@ -153,8 +152,8 @@ export class CallService {
         teamId,
         error,
       });
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+      throw new HttpError({
+        statusCode: 500,
         message: "Unable to validate credits. Please try again.",
       });
     }
