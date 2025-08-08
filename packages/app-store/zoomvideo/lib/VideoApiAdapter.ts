@@ -188,7 +188,11 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
     const advancedWaitingRoomSettings = userSettings?.meeting_security?.waiting_room_settings;
-    const hasAdvancedWaitingRoomSettings = waitingRoomEnabled && !!advancedWaitingRoomSettings;
+    const hasAdvancedWaitingRoomSettings =
+      waitingRoomEnabled &&
+      !!advancedWaitingRoomSettings &&
+      typeof advancedWaitingRoomSettings === "object" &&
+      Object.keys(advancedWaitingRoomSettings).length > 0;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
