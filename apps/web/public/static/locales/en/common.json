@@ -2256,6 +2256,8 @@
   "floating_button_trigger_modal": "Puts a floating button on your site that triggers a modal with your event type.",
   "pop_up_element_click": "Pop up via element click",
   "open_dialog_with_element_click": "Open your calendar as a dialog when someone clicks an element.",
+  "use_my_own_form": "Use my own form",
+  "use_our_headless_routing_api": "Use our headless routing API and use your own form for submissions.",
   "need_help_embedding": "Need help? See our guides for embedding Cal on Wix, Squarespace, or WordPress, check our common questions, or explore advanced embed options.",
   "book_my_cal": "Book my Cal",
   "first_name": "First name",
