@@ -459,21 +459,23 @@ export function generateNewChildEventTypeDataForDB({
   return {
     ...managedEventTypeValues,
     ...unlockedEventTypeValues,
+    title: eventType.title,
+    slug: eventType.slug,
+    length: eventType.length,
     bookingLimits: (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
     recurringEvent: (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
     metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
     bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
     durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
     eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-    rrSegmentQueryValue: (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
+    rrSegmentQueryValue: (eventType.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
+    assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment ?? false,
     onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-    userId,
     ...(includeUserConnect && {
       users: {
         connect: [{ id: userId }],
       },
     }),
-    parentId: eventType.id,
     hidden: false,
     ...(includeWorkflow && {
       workflows: currentWorkflowIds && {
