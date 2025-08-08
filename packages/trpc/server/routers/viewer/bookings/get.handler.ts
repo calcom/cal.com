@@ -577,6 +577,38 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonArrayFrom(
+            eb
+              .selectFrom("BookingReport")
+              .select([
+                "BookingReport.id",
+                "BookingReport.reason",
+                "BookingReport.description",
+                "BookingReport.cancelled",
+                "BookingReport.createdAt",
+                "BookingReport.reportedById",
+              ])
+              .whereRef("BookingReport.bookingId", "=", "Booking.id")
+              .orderBy("BookingReport.createdAt", "desc")
+          ).as("reports"),
+          // Check if any booking in the recurring series has been reported by the current user
+          eb
+            .selectFrom("BookingReport")
+            .select(eb.fn.countAll().as("count"))
+            .innerJoin("Booking as RecurringBooking", "BookingReport.bookingId", "RecurringBooking.id")
+            .where("BookingReport.reportedById", "=", user.id)
+            .where((eb) =>
+              eb.or([
+                // Either this specific booking has been reported
+                eb("RecurringBooking.id", "=", eb.ref("Booking.id")),
+                // Or any booking in the same recurring series has been reported (if this is a recurring booking)
+                eb.and([
+                  eb("Booking.recurringEventId", "is not", null),
+                  eb("RecurringBooking.recurringEventId", "=", eb.ref("Booking.recurringEventId")),
+                ]),
+              ])
+            )
+            .as("hasBeenReportedByUser"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
