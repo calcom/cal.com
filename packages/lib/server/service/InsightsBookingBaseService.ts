@@ -47,6 +47,19 @@ export type SelectedFields<T> = T extends undefined
         : never;
     };
 
+type UserStatsData = {
+  userId: number;
+  user: {
+    id: number;
+    username: string | null;
+    name: string | null;
+    email: string;
+    avatarUrl: string;
+  };
+  emailMd5: string;
+  count: number;
+}[];
+
 export const bookingDataSchema = z
   .object({
     id: z.number(),
@@ -122,7 +135,7 @@ const NOTHING_CONDITION = Prisma.sql`1=0`;
 
 const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
-export class InsightsBookingService {
+export class InsightsBookingBaseService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsBookingServiceOptions | null;
   private filters: InsightsBookingServiceFilterOptions | null;
@@ -682,8 +695,9 @@ export class InsightsBookingService {
     });
 
     // Transform aggregate data into the expected format
-    const result = dateRanges.map(({ formattedDate }) => {
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
       const eventData = {
+        formattedDateFull: formattedDateFull,
         Month: formattedDate,
         Created: 0,
         Completed: 0,
@@ -789,7 +803,7 @@ export class InsightsBookingService {
   async getMembersStatsWithCount(
     type: "all" | "cancelled" | "noShow" = "all",
     sortOrder: "ASC" | "DESC" = "DESC"
-  ) {
+  ): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
     let additionalCondition = Prisma.sql``;
@@ -857,22 +871,22 @@ export class InsightsBookingService {
     return result;
   }
 
-  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC") {
+  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC"): Promise<UserStatsData> {
     const baseConditions = await this.getBaseConditions();
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
         userId: number;
-        averageRating: number;
+        count: number;
       }>
     >`
       SELECT
         "userId",
-        AVG("rating")::float as "averageRating"
+        AVG("rating")::float as "count"
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
       GROUP BY "userId"
-      ORDER BY "averageRating" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
+      ORDER BY "count" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
       LIMIT 10
     `;
 
@@ -910,7 +924,7 @@ export class InsightsBookingService {
           userId: booking.userId,
           user,
           emailMd5: md5(user.email),
-          averageRating: booking.averageRating,
+          count: booking.count,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);

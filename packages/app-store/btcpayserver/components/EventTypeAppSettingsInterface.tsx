@@ -91,7 +91,6 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 variant="default"
                 options={currencyOptions}
                 value={selectedCurrency}
-                className="text-black"
                 defaultValue={selectedCurrency}
                 onChange={(e) => {
                   if (e) {
@@ -135,3 +134,4 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 };
 
 export default EventTypeAppSettingsInterface;
+
