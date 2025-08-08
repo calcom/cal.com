@@ -133,7 +133,6 @@ const OnboardingPage = ({
   });
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
-      router.replace(`/apps/${appMetadata.slug}`);
       if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
@@ -204,16 +203,20 @@ const OnboardingPage = ({
     router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
   };
 
+  async function skipAccountsStep() {
+    await handleSelectAccount();
+    // Replace URL to make it look like user came from app page
+    router.replace(`/apps/${appMetadata.slug}`);
+  }
+
   useEffect(() => {
-    // Auto-skip accounts step if only personal account is available
     if (isOnlySingleAccountToSelect && !mutation.isPending && step === AppOnboardingSteps.ACCOUNTS_STEP) {
-      // Replace URL to make it look like user came from app page
-      handleSelectAccount();
+      skipAccountsStep();
     }
   }, [isOnlySingleAccountToSelect, step]);
 
   // Show loading when mutation is pending OR when auto-skip conditions are met
-  if (mutation.isPending || (isOnlySingleAccountToSelect && step === AppOnboardingSteps.ACCOUNTS_STEP)) {
+  if (mutation.isPending) {
     return (
       <div className="absolute inset-0 z-10 flex items-center justify-center">
         <SkeletonText className="h-10 w-10 animate-spin" />
