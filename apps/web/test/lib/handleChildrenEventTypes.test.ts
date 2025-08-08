@@ -466,6 +466,9 @@ describe("handleChildrenEventTypes", () => {
         useEventTypeDestinationCalendarEmail: false,
         workflows: [],
         parentId: 1,
+        profileId: null,
+        scheduleId: null,
+        restrictionScheduleId: null,
         locations: [],
         instantMeetingScheduleId: null,
         assignRRMembersUsingSegment: false,
@@ -516,7 +519,7 @@ describe("handleChildrenEventTypes", () => {
           allowReschedulingCancelledBookings: false,
         },
       });
-      const { profileId, rrSegmentQueryValue, ...rest } = evType;
+      const { rrSegmentQueryValue, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
