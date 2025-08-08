@@ -4,25 +4,6 @@ import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from
 
 import { CalendarEventStatus, CalendarEventResponseStatus } from "../outputs/get-unified-calendar-event.output";
 
-export class UpdateCalendarEventHost {
-  @IsString()
-  @ApiPropertyOptional({
-    type: String,
-    description: "Email address of the host (read-only, cannot be updated)",
-  })
-  email!: string;
-
-  @IsEnum(CalendarEventResponseStatus)
-  @IsOptional()
-  @ApiPropertyOptional({
-    enum: CalendarEventResponseStatus,
-    enumName: "CalendarEventResponseStatus",
-    nullable: true,
-    description: "Response status of the host (only field that can be updated)",
-  })
-  responseStatus?: CalendarEventResponseStatus | null;
-}
-
 export class UpdateCalendarEventAttendee {
   @IsString()
   @ApiPropertyOptional({
@@ -136,7 +117,7 @@ export class UpdateUnifiedCalendarEventInput {
     type: [UpdateCalendarEventAttendee],
     nullable: true,
     description:
-      "List of attendees with their response status. Attendees not included will be preserved from existing event. Use action: 'delete' to explicitly remove an attendee.",
+      "List of attendees. CAUTION: You must pass the entire array with all updated values. Any attendees not included in this array will be removed from the event.",
   })
   attendees?: UpdateCalendarEventAttendee[];
 
@@ -150,16 +131,4 @@ export class UpdateUnifiedCalendarEventInput {
     example: CalendarEventStatus.ACCEPTED,
   })
   status?: CalendarEventStatus | null;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => UpdateCalendarEventHost)
-  @ApiPropertyOptional({
-    type: [UpdateCalendarEventHost],
-    nullable: true,
-    description:
-      "Information about the event hosts (organizers). Only responseStatus can be updated. When provided, replaces existing organizers.",
-  })
-  hosts?: UpdateCalendarEventHost[];
 }

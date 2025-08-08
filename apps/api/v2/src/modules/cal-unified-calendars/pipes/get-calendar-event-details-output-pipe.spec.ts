@@ -41,10 +41,7 @@ describe("GoogleCalendarEventOutputPipe", () => {
       expect(result.start.timeZone).toBe("America/New_York");
       expect(result.end.time).toBe("2024-01-15T11:00:00Z");
       expect(result.end.timeZone).toBe("America/New_York");
-      expect(result.attendees).toHaveLength(1);
-      expect(result.attendees?.[0]?.email).toBe("attendee@example.com");
-      expect(result.hosts).toHaveLength(1);
-      expect(result.hosts?.[0]?.email).toBe("organizer@example.com");
+      expect(result.attendees).toHaveLength(2);
     });
   });
 
@@ -131,24 +128,8 @@ describe("GoogleCalendarEventOutputPipe", () => {
     });
   });
 
-  describe("transformHosts", () => {
-    it("should extract hosts from organizer attendees", () => {
-      const result = pipe["transformHosts"](googleEventWithMultipleHosts);
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toEqual({
-        email: "host1@example.com",
-        name: "Host 1",
-        responseStatus: CalendarEventResponseStatus.ACCEPTED,
-      });
-      expect(result[1]).toEqual({
-        email: "host2@example.com",
-        name: "Host 2",
-        responseStatus: CalendarEventResponseStatus.PENDING,
-      });
-    });
-
-    it("should return organizer when no organizer attendees exist", () => {
+  describe("transformOrganizer", () => {
+    it("should return calendarEventOwner organizer exist", () => {
       const eventWithoutOrganizerAttendees = createGoogleCalendarEventFixture({
         organizer: { email: "organizer@example.com" },
         attendees: [
@@ -161,10 +142,9 @@ describe("GoogleCalendarEventOutputPipe", () => {
         ],
       });
 
-      const result = pipe["transformHosts"](eventWithoutOrganizerAttendees);
+      const result = pipe.transform(eventWithoutOrganizerAttendees);
 
-      expect(result).toHaveLength(1);
-      expect(result[0].email).toBe("organizer@example.com");
+      expect(result?.calendarEventOwner?.email).toBe("organizer@example.com");
     });
   });
 
@@ -221,15 +201,4 @@ describe("GoogleCalendarEventOutputPipe", () => {
     });
   });
 
-  describe("attendee filtering", () => {
-    it("should filter out organizers from attendees list", () => {
-      const result = pipe.transform(googleEventWithMixedAttendees);
-
-      expect(result.attendees).toHaveLength(2);
-      expect(result.attendees?.[0]?.email).toBe("attendee1@example.com");
-      expect(result.attendees?.[1]?.email).toBe("attendee2@example.com");
-      expect(result.hosts).toHaveLength(1);
-      expect(result.hosts?.[0]?.email).toBe("organizer@example.com");
-    });
-  });
 });
