@@ -7,6 +7,7 @@ import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/s
 
 import { availableSlotsModule } from "../modules/available-slots";
 import { bookingRepositoryModule } from "../modules/booking";
+import { busyTimesModule } from "../modules/busy-times";
 import { cacheModule } from "../modules/cache";
 import { checkBookingLimitsModule } from "../modules/check-booking-limits";
 import { eventTypeRepositoryModule } from "../modules/eventType";
@@ -35,6 +36,8 @@ container.load(DI_TOKENS.CACHE_SERVICE_MODULE, cacheModule);
 container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimitsModule);
 container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
 container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule);
+container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
+
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
 }
