@@ -465,7 +465,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
           {booking.attendees.length
             ? booking.attendees.map((attendee) => (
                 <p key={attendee.id}>
-                  {attendee.name} - <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
+                  {attendee.name} – <a href={`mailto:${attendee.email}`}>{attendee.email}</a>
                 </p>
               ))
             : null}
