@@ -32,6 +32,7 @@ CREATE TABLE "CalendarEvent" (
     "start" TIMESTAMP(3) NOT NULL,
     "end" TIMESTAMP(3) NOT NULL,
     "isAllDay" BOOLEAN NOT NULL DEFAULT false,
+    "timeZone" TEXT,
     "status" TEXT NOT NULL DEFAULT 'confirmed',
     "transparency" TEXT NOT NULL DEFAULT 'opaque',
     "visibility" TEXT NOT NULL DEFAULT 'default',
@@ -62,8 +63,6 @@ CREATE INDEX "CalendarEvent_calendarSubscriptionId_start_end_idx" ON "CalendarEv
 
 -- CreateIndex
 CREATE INDEX "CalendarEvent_calendarSubscriptionId_iCalUID_idx" ON "CalendarEvent"("calendarSubscriptionId", "iCalUID");
-
-
 
 -- CreateIndex
 CREATE INDEX "CalendarEvent_start_end_status_idx" ON "CalendarEvent"("start", "end", "status");
