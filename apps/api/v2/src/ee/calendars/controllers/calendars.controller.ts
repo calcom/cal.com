@@ -157,7 +157,7 @@ export class CalendarsController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get oAuth connect URL" })
+  @ApiOperation({ summary: "Get OAuth connect URL" })
   @ApiQuery({
     name: "redir",
     required: false,

@@ -10,17 +10,21 @@ import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 import { getSafe } from "./getSafe";
 
-function getNewSearchParams(args: {
+export function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
-  filterEmbedParams?: boolean;
+  filterInternalParams?: boolean;
 }) {
-  const { query, searchParams, filterEmbedParams = false } = args;
+  const { query, searchParams, filterInternalParams = false } = args;
   const newSearchParams = new URLSearchParams();
 
+  // Embed-specific params
   const embedParams = new Set(["embed", "layout", "embedType", "ui.color-scheme"]);
 
-  // Add non-embed params from searchParams if provided
+  // Webapp-specific params
+  const webappParams = new Set(["overlayCalendar"]);
+
+  // Add non-excluded params from searchParams if provided
   if (searchParams) {
     searchParams.forEach((value, key) => {
       if (shouldExcludeParam(key)) {
@@ -30,7 +34,7 @@ function getNewSearchParams(args: {
     });
   }
 
-  // Add params from query, filtering embed params if needed
+  // Add params from query, filtering excluded params
   Object.entries(query).forEach(([key, value]) => {
     if (value === null || value === undefined) {
       return;
@@ -44,7 +48,10 @@ function getNewSearchParams(args: {
   });
 
   function shouldExcludeParam(key: string) {
-    return filterEmbedParams && embedParams.has(key);
+    if (filterInternalParams) {
+      return embedParams.has(key) || webappParams.has(key);
+    }
+    return false;
   }
 
   return newSearchParams;
@@ -205,13 +212,17 @@ export const useBookingSuccessRedirect = () => {
 
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
 
+      // Filter internal Cal.com params when redirecting to external URLs.
+      // - It prevents leaking internal state.
+      // - Certain websites might break due to the presence of certain params e.g. Wordpress has different meaning for `embed` param and an embed param passed by Cal.com breaks a wordpress webpage
       const newSearchParams = getNewSearchParams({
         query: {
           ...query,
           ...bookingExtraParams,
+          isEmbed,
         },
         searchParams: new URLSearchParams(searchParams.toString()),
-        filterEmbedParams: true,
+        filterInternalParams: true,
       });
 
       newSearchParams.forEach((value, key) => {

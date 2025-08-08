@@ -1,7 +1,7 @@
 import type { TFormSchema } from "@calcom/app-store/routing-forms/trpc/forms.schema";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -19,7 +19,7 @@ type RoutingFormOrderOptions = {
 export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptions) => {
   const { user } = ctx;
 
-  const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>()({
+  const { include: includedFields } = {
     include: {
       activeOn: {
         select: {
@@ -48,7 +48,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
         },
       },
     },
-  });
+  } satisfies Prisma.WorkflowDefaultArgs;
 
   const allWorkflows = await prisma.workflow.findMany({
     where: {

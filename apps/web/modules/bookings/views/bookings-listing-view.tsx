@@ -1,6 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -44,34 +45,6 @@ type RecurringInfo = {
   bookings: { [key: string]: Date[] };
 };
 
-const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
-  {
-    name: "upcoming",
-    href: "/bookings/upcoming",
-    "data-testid": "upcoming",
-  },
-  {
-    name: "unconfirmed",
-    href: "/bookings/unconfirmed",
-    "data-testid": "unconfirmed",
-  },
-  {
-    name: "recurring",
-    href: "/bookings/recurring",
-    "data-testid": "recurring",
-  },
-  {
-    name: "past",
-    href: "/bookings/past",
-    "data-testid": "past",
-  },
-  {
-    name: "cancelled",
-    href: "/bookings/cancelled",
-    "data-testid": "cancelled",
-  },
-];
-
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
@@ -107,6 +80,46 @@ function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  // Generate dynamic tabs that preserve query parameters
+  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        name: "upcoming",
+        path: "/bookings/upcoming",
+        "data-testid": "upcoming",
+      },
+      {
+        name: "unconfirmed",
+        path: "/bookings/unconfirmed",
+        "data-testid": "unconfirmed",
+      },
+      {
+        name: "recurring",
+        path: "/bookings/recurring",
+        "data-testid": "recurring",
+      },
+      {
+        name: "past",
+        path: "/bookings/past",
+        "data-testid": "past",
+      },
+      {
+        name: "cancelled",
+        path: "/bookings/cancelled",
+        "data-testid": "cancelled",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      name: tabConfig.name,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+      "data-testid": tabConfig["data-testid"],
+    }));
+  }, [searchParams?.toString()]);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
