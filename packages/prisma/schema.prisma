@@ -49,22 +49,25 @@ enum CreationSource {
 }
 
 model Host {
-  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
-  eventType        EventType  @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventType        EventType   @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId      Int
-  isFixed          Boolean    @default(false)
+  isFixed          Boolean     @default(false)
   priority         Int?
   weight           Int?
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.
   weightAdjustment Int?
-  schedule         Schedule?  @relation(fields: [scheduleId], references: [id])
+  schedule         Schedule?   @relation(fields: [scheduleId], references: [id])
   scheduleId       Int?
-  createdAt        DateTime   @default(now())
-  group            HostGroup? @relation(fields: [groupId], references: [id])
+  createdAt        DateTime    @default(now())
+  group            HostGroup?  @relation(fields: [groupId], references: [id])
   groupId          String?
+  memberId         Int?
+  member           Membership? @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@id([userId, eventTypeId])
+  @@index([memberId])
   @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
@@ -650,6 +653,7 @@ model Membership {
   AttributeToUser      AttributeToUser[]
   createdAt            DateTime?         @default(now())
   updatedAt            DateTime?         @updatedAt
+  Host                 Host[]
 
   @@unique([userId, teamId])
   @@index([teamId])
