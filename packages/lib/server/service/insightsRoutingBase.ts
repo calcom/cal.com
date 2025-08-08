@@ -470,12 +470,30 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    // Extract booking attendees filter
-    const bookingAttendees = filtersMap["bookingAttendees"];
-    if (bookingAttendees && isTextFilterValue(bookingAttendees.value)) {
-      const attendeesCondition = this.buildAttendeeSqlCondition(bookingAttendees.value);
-      if (attendeesCondition) {
-        conditions.push(attendeesCondition);
+    // Extract attendee name filter
+    const attendeeName = filtersMap["attendeeName"];
+    if (attendeeName && isTextFilterValue(attendeeName.value)) {
+      const nameCondition = this.buildAttendeeSqlCondition(attendeeName.value, "name");
+      if (nameCondition) {
+        conditions.push(nameCondition);
+      }
+    }
+
+    // Extract attendee email filter
+    const attendeeEmail = filtersMap["attendeeEmail"];
+    if (attendeeEmail && isTextFilterValue(attendeeEmail.value)) {
+      const emailCondition = this.buildAttendeeSqlCondition(attendeeEmail.value, "email");
+      if (emailCondition) {
+        conditions.push(emailCondition);
+      }
+    }
+
+    // Extract attendee phone filter
+    const attendeePhone = filtersMap["attendeePhone"];
+    if (attendeePhone && isTextFilterValue(attendeePhone.value)) {
+      const phoneCondition = this.buildAttendeeSqlCondition(attendeePhone.value, "phone");
+      if (phoneCondition) {
+        conditions.push(phoneCondition);
       }
     }
 
@@ -494,18 +512,9 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    // Extract form field filters (exclude the system filters we already processed)
-    const alreadyHandledFilters = [
-      "bookingStatusOrder",
-      "bookingAssignmentReason",
-      "bookingUid",
-      "bookingAttendees",
-      "bookingUserId",
-      "formId",
-    ];
-
+    const fieldIdSchema = z.string().uuid();
     const fieldFilters = (this.filters.columnFilters || []).filter(
-      (filter) => !alreadyHandledFilters.includes(filter.id)
+      (filter) => fieldIdSchema.safeParse(filter.id).success
     );
 
     if (fieldFilters.length > 0) {
@@ -646,27 +655,40 @@ export class InsightsRoutingBaseService {
     }
   }
 
-  private buildAttendeeSqlCondition(filterValue: TextFilterValue): Prisma.Sql | null {
+  private buildAttendeeSqlCondition(
+    filterValue: TextFilterValue,
+    attendeeColumn: "name" | "email" | "phone"
+  ): Prisma.Sql | null {
     if (!isTextFilterValue(filterValue)) {
       return null;
     }
 
     const textCondition = makeSqlCondition(filterValue);
-
     if (!textCondition) {
       return null;
     }
 
-    const nameCondition = Prisma.sql`a.name ${textCondition}`;
-    const emailCondition = Prisma.sql`a.email ${textCondition}`;
-
-    const combinedCondition = Prisma.sql`(${nameCondition}) OR (${emailCondition})`;
+    // Use switch-case to avoid Prisma.raw for column names
+    let columnCondition: Prisma.Sql;
+    switch (attendeeColumn) {
+      case "name":
+        columnCondition = Prisma.sql`a.name ${textCondition}`;
+        break;
+      case "email":
+        columnCondition = Prisma.sql`a.email ${textCondition}`;
+        break;
+      case "phone":
+        columnCondition = Prisma.sql`a.phoneNumber ${textCondition}`;
+        break;
+      default:
+        return null;
+    }
 
     return Prisma.sql`EXISTS (
       SELECT 1 FROM "Booking" b
       INNER JOIN "Attendee" a ON a."bookingId" = b."id"
       WHERE b."uid" = rfrd."bookingUid"
-      AND (${combinedCondition})
+      AND ${columnCondition}
     )`;
   }
 }

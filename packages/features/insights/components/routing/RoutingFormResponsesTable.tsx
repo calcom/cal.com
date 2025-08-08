@@ -84,6 +84,9 @@ export function RoutingFormResponsesTable() {
       columnVisibility: {
         formId: false,
         bookingUserId: false,
+        attendeeName: false,
+        attendeeEmail: false,
+        attendeePhone: false,
         utm_source: false,
         utm_medium: false,
         utm_campaign: false,

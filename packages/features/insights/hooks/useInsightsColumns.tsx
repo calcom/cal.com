@@ -101,19 +101,53 @@ export const useInsightsColumns = ({
         id: "bookingAttendees",
         header: t("routing_form_insights_booked_by"),
         size: 200,
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: (info) => {
+          return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
+        },
+      }),
+
+      // Invisible attendee name filter
+      columnHelper.accessor("bookingAttendees", {
+        id: "attendeeName",
+        header: t("attendee_name"),
         enableColumnFilter: true,
         enableSorting: false,
         meta: {
           filter: {
             type: ColumnFilterType.TEXT,
-            textOptions: {
-              placeholder: t("name_or_email"),
-            },
           },
         },
-        cell: (info) => {
-          return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
+        cell: () => null,
+      }),
+
+      // Invisible attendee email filter
+      columnHelper.accessor("bookingAttendees", {
+        id: "attendeeEmail",
+        header: t("attendee_email_variable"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
         },
+        cell: () => null,
+      }),
+
+      // Invisible attendee phone filter
+      columnHelper.accessor("bookingAttendees", {
+        id: "attendeePhone",
+        header: t("attendee_phone_number"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+        cell: () => null,
       }),
 
       ...((headers || []).map((fieldHeader) => {
