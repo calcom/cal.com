@@ -1,7 +1,7 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
-export async function revalidateWebhooksListGetByViewer() {
-  revalidateTag("viewer.webhook.getByViewer");
+export async function revalidateWebhooksList() {
+  revalidatePath("/settings/developer/webhooks");
 }

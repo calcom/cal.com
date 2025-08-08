@@ -8,6 +8,7 @@ export enum Resource {
   Insights = "insights",
   Role = "role",
   RoutingForm = "routingForm",
+  Workflow = "workflow",
 }
 
 export enum CrudAction {
@@ -354,6 +355,42 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "insights",
       i18nKey: "pbac_action_read",
       descriptionI18nKey: "pbac_desc_view_team_insights",
+    },
+  },
+  [Resource.Workflow]: {
+    _resource: {
+      i18nKey: "pbac_resource_workflow",
+    },
+    [CrudAction.Create]: {
+      description: "Create workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_workflows",
+    },
+    [CrudAction.Read]: {
+      description: "View workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_workflows",
+    },
+    [CrudAction.Update]: {
+      description: "Update workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_workflows",
+    },
+    [CrudAction.Delete]: {
+      description: "Delete workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_workflows",
+    },
+    [CrudAction.Manage]: {
+      description: "Manage workflows",
+      category: "workflow",
+      i18nKey: "pbac_action_manage",
+      descriptionI18nKey: "pbac_desc_manage_workflows",
+      scope: [Scope.Organization],
     },
   },
   [Resource.Attributes]: {
