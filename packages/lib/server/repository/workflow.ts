@@ -6,7 +6,6 @@ import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/s
 import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
@@ -244,7 +243,7 @@ export class WorkflowRepository {
     if (!filtered) {
       const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+          (member) => member.userId === userId && member.role === "MEMBER"
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
@@ -296,7 +295,7 @@ export class WorkflowRepository {
 
       const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+          (member) => member.userId === userId && member.role === "MEMBER"
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
