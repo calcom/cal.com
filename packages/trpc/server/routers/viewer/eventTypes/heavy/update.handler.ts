@@ -486,10 +486,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
-    // weights were already enabled or are enabled now
-    const isWeightsEnabled =
-      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
-
     // Only process hosts if they are provided
     if (hosts && Array.isArray(hosts)) {
       const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
