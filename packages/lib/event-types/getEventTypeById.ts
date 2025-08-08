@@ -50,10 +50,16 @@ export const getEventTypeById = async ({
     locale: true,
     defaultScheduleId: true,
     isPlatformManaged: true,
+    timeZone: true,
   } satisfies Prisma.UserSelect;
 
-  const eventTypeRepo = new EventTypeRepository(prisma);
-  const rawEventType = await eventTypeRepo.findById({ id: eventTypeId, userId });
+  const rawEventType = await getRawEventType({
+    userId,
+    eventTypeId,
+    isUserOrganizationAdmin,
+    currentOrganizationId,
+    prisma,
+  });
 
   if (!rawEventType) {
     if (isTrpcCall) {
@@ -258,5 +264,27 @@ export const getEventTypeById = async ({
   };
   return finalObj;
 };
+
+export async function getRawEventType({
+  userId,
+  eventTypeId,
+  isUserOrganizationAdmin,
+  currentOrganizationId,
+  prisma,
+}: Omit<getEventTypeByIdProps, "isTrpcCall">) {
+  const eventTypeRepo = new EventTypeRepository(prisma);
+
+  if (isUserOrganizationAdmin && currentOrganizationId) {
+    return await eventTypeRepo.findByIdForOrgAdmin({
+      id: eventTypeId,
+      organizationId: currentOrganizationId,
+    });
+  }
+
+  return await eventTypeRepo.findById({
+    id: eventTypeId,
+    userId,
+  });
+}
 
 export default getEventTypeById;

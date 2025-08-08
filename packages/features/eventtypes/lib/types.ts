@@ -66,6 +66,13 @@ type PhoneCallConfig = {
   schedulerName?: string;
 };
 
+export type PrivateLinkWithOptions = {
+  link: string;
+  expiresAt?: Date | null;
+  maxUsageCount?: number | null;
+  usageCount?: number;
+};
+
 export type FormValues = {
   id: number;
   title: string;
@@ -81,6 +88,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   lockTimeZoneToggleOnBookingPage: boolean;
+  lockedTimeZone: string | null;
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot: boolean;
   requiresConfirmationForFreeEmail: boolean;
@@ -89,7 +97,7 @@ export type FormValues = {
   schedulingType: SchedulingType | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
-  multiplePrivateLinks: string[] | undefined;
+  multiplePrivateLinks: (string | PrivateLinkWithOptions)[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
   customReplyToEmail: string | null;
   locations: EventLocation[];
@@ -228,5 +236,5 @@ export type FormValidationResult = {
 
 export interface EventTypePlatformWrapperRef {
   validateForm: () => Promise<FormValidationResult>;
-  handleFormSubmit: () => void;
+  handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
 }
