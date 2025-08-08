@@ -30,9 +30,19 @@ export type CalendarRedirectUrls = {
   outlook?: string;
 };
 
+export type SelectedCalendarsClassNames = {
+  container?: string;
+  header?: {
+    container?: string;
+    title?: string;
+    description?: string;
+  };
+  noSelectedCalendarsMessage?: string;
+};
+
 type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
-  headerClassNames?: SelectedCalendarsHeaderClassnames;
+  classNamesObject?: SelectedCalendarsClassNames;
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
   isDryRun?: boolean;
@@ -43,7 +53,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   calendarRedirectUrls,
   allowDelete,
   isDryRun,
-  headerClassNames,
+  classNamesObject,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -58,21 +68,27 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
             if (!data.connectedCalendars.length) {
               return (
-                <SelectedCalendarsSettings classNames={classNames}>
+                <SelectedCalendarsSettings classNames={classNamesObject?.container || classNames}>
                   <SelectedCalendarsSettingsHeading
-                    classNames={headerClassNames}
+                    classNames={classNamesObject?.header}
                     calendarRedirectUrls={calendarRedirectUrls}
                     isDryRun={isDryRun}
                   />
-                  <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
+                  <h1
+                    className={cn(
+                      "px-6 py-4 text-base leading-5",
+                      classNamesObject?.noSelectedCalendarsMessage
+                    )}>
+                    No connected calendars found.
+                  </h1>
                 </SelectedCalendarsSettings>
               );
             }
 
             return (
-              <SelectedCalendarsSettings classNames={classNames}>
+              <SelectedCalendarsSettings classNames={classNamesObject?.container || classNames}>
                 <SelectedCalendarsSettingsHeading
-                  classNames={headerClassNames}
+                  classNames={classNamesObject?.header}
                   calendarRedirectUrls={calendarRedirectUrls}
                   isDryRun={isDryRun}
                 />
@@ -161,11 +177,6 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   );
 };
 
-export type SelectedCalendarsHeaderClassnames = {
-  title?: string;
-  description?: string;
-};
-
 const SelectedCalendarsSettingsHeading = ({
   calendarRedirectUrls,
   isDryRun,
@@ -173,12 +184,16 @@ const SelectedCalendarsSettingsHeading = ({
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
   isDryRun?: boolean;
-  classNames?: SelectedCalendarsHeaderClassnames;
+  classNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+  };
 }) => {
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle border-b p-6">
+    <div className={cn("border-subtle border-b p-6", classNames?.container)}>
       <div className="flex items-center justify-between">
         <div>
           <h4 className={cn("text-emphasis text-base font-semibold leading-5", classNames?.title)}>

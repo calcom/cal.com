@@ -1,10 +1,10 @@
-import type { DestinationHeaderClassnames } from "destination-calendar/DestinationCalendar";
+import type { DestinationCalendarClassNames } from "destination-calendar/DestinationCalendar";
 
 import { DestinationCalendarSettingsPlatformWrapper } from "../../destination-calendar/index";
 import { SelectedCalendarsSettingsPlatformWrapper } from "../../selected-calendars/index";
 import type {
   CalendarRedirectUrls,
-  SelectedCalendarsHeaderClassnames,
+  SelectedCalendarsClassNames,
 } from "../../selected-calendars/wrappers/SelectedCalendarsSettingsPlatformWrapper";
 
 type CalendarSettingsPlatformWrapperProps = {
@@ -12,8 +12,8 @@ type CalendarSettingsPlatformWrapperProps = {
     calendarSettingsCustomClassnames?: string;
     destinationCalendarSettingsCustomClassnames?: string;
     selectedCalendarSettingsCustomClassnames?: string;
-    selectedCalendarSettingsHeaderClassNames?: SelectedCalendarsHeaderClassnames;
-    destinationCalendarSettingsHeaderClassNames?: DestinationHeaderClassnames;
+    selectedCalendarSettingsClassNames?: SelectedCalendarsClassNames;
+    destinationCalendarSettingsClassNames?: DestinationCalendarClassNames;
   };
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
@@ -31,7 +31,7 @@ export const CalendarSettingsPlatformWrapper = ({
       <DestinationCalendarSettingsPlatformWrapper
         statusLoader={<></>}
         classNames={classNames?.destinationCalendarSettingsCustomClassnames}
-        headerClassNames={classNames?.destinationCalendarSettingsHeaderClassNames}
+        classNamesObject={classNames?.destinationCalendarSettingsClassNames}
         isDryRun={isDryRun}
       />
       <SelectedCalendarsSettingsPlatformWrapper
@@ -39,7 +39,7 @@ export const CalendarSettingsPlatformWrapper = ({
         calendarRedirectUrls={calendarRedirectUrls}
         allowDelete={allowDelete}
         isDryRun={isDryRun}
-        headerClassNames={classNames?.selectedCalendarSettingsHeaderClassNames}
+        classNamesObject={classNames?.selectedCalendarSettingsClassNames}
       />
     </div>
   );

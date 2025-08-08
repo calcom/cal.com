@@ -5,19 +5,29 @@ import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
 import { DestinationCalendarSelector } from "./DestinationCalendarSelector";
 
-export type DestinationHeaderClassnames = {
+type DestinationHeaderClassnames = {
+  container?: string;
   title?: string;
   description?: string;
 };
 
+export type DestinationCalendarClassNames = {
+  container?: string;
+  header?: DestinationHeaderClassnames;
+};
+
 export const DestinationCalendarSettings = (
-  props: DestinationCalendarProps & { classNames?: string; headerClassNames?: DestinationHeaderClassnames }
+  props: DestinationCalendarProps & { classNames?: string; classNamesObject?: DestinationCalendarClassNames }
 ) => {
   const { t } = useLocale();
 
   return (
-    <div className={cn("border-subtle mb-6 mt-8 rounded-lg border", props?.classNames)}>
-      <DestinationCalendarSettingsHeading classNames={props.headerClassNames} />
+    <div
+      className={cn(
+        "border-subtle mb-6 mt-8 rounded-lg border",
+        props?.classNames || props?.classNamesObject?.container
+      )}>
+      <DestinationCalendarSettingsHeading classNames={props.classNamesObject?.header} />
       <div className="border-t">
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
           <div>
@@ -34,7 +44,7 @@ const DestinationCalendarSettingsHeading = ({ classNames }: { classNames?: Desti
   const { t } = useLocale();
 
   return (
-    <div className="p-6">
+    <div className={cn("p-6", classNames?.container)}>
       <h2 className={cn("text-emphasis mb-1 text-base font-bold leading-5 tracking-wide", classNames?.title)}>
         {t("add_to_calendar")}
       </h2>
