@@ -83,28 +83,8 @@ function useDefaultSegments() {
         sorting: [{ id: "startTime", desc: false }],
         perPage: 10,
       },
-      {
-        id: "system-upcoming-bookings",
-        name: "Upcoming Bookings",
-        icon: "calendar",
-        type: "system",
-        activeFilters: [
-          {
-            f: "dateRange",
-            v: {
-              type: ColumnFilterType.DATE_RANGE,
-              data: {
-                startDate: null,
-                endDate: null,
-                preset: "upcoming",
-              },
-            },
-          },
-        ],
-        perPage: 10,
-      },
     ];
-  }, [user]);
+  }, [user, t]);
 
   return defaultSegments;
 }
