@@ -108,7 +108,7 @@ export function DataTableProvider({
 
   const segmentId = useMemo((): SegmentIdentifier | null => {
     if (!segmentIdString || segmentIdString === "") {
-      return preferredSegmentId || null;
+      return preferredSegmentId ?? { id: -1, type: "custom" };
     }
     const numericId = parseInt(segmentIdString, 10);
     if (isNaN(numericId)) {
