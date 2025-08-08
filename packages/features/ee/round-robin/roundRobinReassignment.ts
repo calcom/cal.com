@@ -93,6 +93,7 @@ export const roundRobinReassignment = async ({
     ? eventType.hosts
     : eventType.users.map((user) => ({
         user,
+        isOrganizer: false,
         isFixed: false,
         priority: 2,
         weight: 100,

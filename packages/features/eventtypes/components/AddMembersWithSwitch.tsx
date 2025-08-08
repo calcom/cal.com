@@ -84,6 +84,7 @@ const CheckedHostField = ({
               onChange(
                 options.map((option) => ({
                   isFixed,
+                  isOrganizer: option.isOrganizer ?? false,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
@@ -97,7 +98,13 @@ const CheckedHostField = ({
               const option = options.find((member) => member.value === host.userId.toString());
               if (!option) return acc;
 
-              acc.push({ ...option, priority: host.priority ?? 2, isFixed, weight: host.weight ?? 100 });
+              acc.push({
+                ...option,
+                priority: host.priority ?? 2,
+                isFixed,
+                weight: host.weight ?? 100,
+                isOrganizer: host.isOrganizer,
+              });
 
               return acc;
             }, [] as CheckedSelectOption[])}

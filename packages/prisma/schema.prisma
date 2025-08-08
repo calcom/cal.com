@@ -54,6 +54,7 @@ model Host {
   eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId      Int
   isFixed          Boolean   @default(false)
+  isOrganizer      Boolean   @default(false)
   priority         Int?
   weight           Int?
   // weightAdjustment is deprecated. We not calculate the calibratino value on the spot. Plan to drop this column.

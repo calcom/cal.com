@@ -195,12 +195,14 @@ const FixedHosts = ({
               customClassNames={customClassNames?.addMembers}
               onActive={() => {
                 const currentHosts = getValues("hosts");
+                const hasOrganizer = currentHosts.find((host) => host.isOrganizer);
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => {
+                  teamMembers.map((teamMember, index) => {
                     const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
                     return {
                       isFixed: true,
+                      isOrganizer: host?.isOrganizer || (index === 0 && !hasOrganizer),
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
@@ -256,6 +258,7 @@ const FixedHosts = ({
                     const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
                     return {
                       isFixed: true,
+                      isOrganizer: false,
                       userId: parseInt(teamMember.value, 10),
                       priority: host?.priority ?? 2,
                       weight: host?.weight ?? 100,
@@ -389,6 +392,7 @@ const RoundRobinHosts = ({
                 const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
                 return {
                   isFixed: false,
+                  isOrganizer: false,
                   userId: parseInt(teamMember.value, 10),
                   priority: host?.priority ?? 2,
                   weight: host?.weight ?? 100,
@@ -533,6 +537,9 @@ const Hosts = ({
               teamMembers={teamMembers}
               value={value}
               onChange={(changeValue) => {
+                const hasOrganizer = changeValue.some((host: Host) => host.isOrganizer);
+                if (!hasOrganizer && changeValue.length > 0) changeValue[0].isOrganizer = true;
+
                 onChange([...updatedHosts(changeValue)]);
               }}
               assignAllTeamMembers={assignAllTeamMembers}
@@ -547,6 +554,9 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
+                  const hasOrganizer = changeValue.some((host: Host) => host.isOrganizer);
+                  if (!hasOrganizer && changeValue.length > 0) changeValue[0].isOrganizer = true;
+
                   onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
