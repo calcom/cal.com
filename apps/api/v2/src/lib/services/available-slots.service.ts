@@ -7,6 +7,7 @@ import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.rep
 import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected-slot.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
+import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { RedisService } from "@/modules/redis/redis.service";
@@ -48,6 +49,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
         eventTypeRepository,
         redisService
       ),
+      busyTimesService: new BusyTimesService(bookingRepository),
     });
   }
 }

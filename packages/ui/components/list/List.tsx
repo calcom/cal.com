@@ -80,9 +80,9 @@ export function ListLinkItem(props: ListLinkItemProps) {
     heading = "",
     children,
     disabled = false,
+    readOnly = false,
     actions = <div />,
     className = "",
-    readOnly = false,
   } = props;
   const { t } = useLocale();
   let subHeading = props.subHeading;
