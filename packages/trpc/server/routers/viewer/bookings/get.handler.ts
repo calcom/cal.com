@@ -488,6 +488,19 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("Host")
+                    .innerJoin("users", "Host.userId", "users.id")
+                    .select(["users.id", "users.email"])
+                    .whereRef("Host.eventTypeId", "=", "EventType.id")
+                ).as("hosts"),
+                jsonObjectFrom(
+                  eb
+                    .selectFrom("EventType as ParentEventType")
+                    .select(["ParentEventType.id", "ParentEventType.teamId"])
+                    .whereRef("ParentEventType.id", "=", "EventType.parentId")
+                ).as("parent"),
                 eb
                   .cast<SchedulingType | null>(
                     eb
@@ -556,9 +569,18 @@ export async function getBookings({
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
-                    .select(["Attendee.email"])
+                    .select(["Attendee.email", "Attendee.name"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
+                    .where((qb) => {
+                      const isOwner = eb.exists(
+                        eb
+                          .selectFrom("Booking")
+                          .select("Booking.id")
+                          .whereRef("Booking.id", "=", "BookingSeat.bookingId")
+                          .where("Booking.userId", "=", user.id)
+                      );
+                      return eb.or([isOwner, qb("Attendee.email", "=", user.email)]);
+                    })
                 ).as("attendee"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
