@@ -22,9 +22,11 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
+import { DeleteDialog } from "../components/DeleteDialog";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
@@ -60,6 +62,9 @@ function WorkflowPage({
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
 
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -130,6 +135,29 @@ function WorkflowPage({
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
 
+  // Watch for form name changes
+  const watchedName = form.watch("name");
+
+  // Handler functions for editable name
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNameValue(e.target.value);
+  };
+
+  const handleNameSubmit = () => {
+    form.setValue("name", nameValue);
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      form.setValue("name", nameValue);
+      handleNameSubmit();
+    } else if (e.key === "Escape") {
+      setNameValue(watchedName || "");
+      setIsEditingName(false);
+    }
+  };
+
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   useEffect(() => {
@@ -137,6 +165,13 @@ function WorkflowPage({
       setFormData(workflow);
     }
   }, [isPending]);
+
+  // Update nameValue when workflow changes
+  useEffect(() => {
+    if (workflow?.name) {
+      setNameValue(workflow.name);
+    }
+  }, [workflow?.name]);
 
   function setFormData(workflowData: RouterOutputs["viewer"]["workflows"]["get"] | undefined) {
     if (workflowData) {
@@ -203,6 +238,7 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
+      setNameValue(workflowData.name);
       setIsAllDataLoaded(true);
     }
   }
@@ -317,7 +353,16 @@ function WorkflowPage({
             title={workflow && workflow.name ? workflow.name : "Untitled"}
             CTA={
               !readOnly && (
-                <div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    color="destructive"
+                    variant="icon"
+                    StartIcon="trash"
+                    tooltip={t("delete")}
+                    tooltipSide="bottom"
+                    tooltipOffset={4}
+                    onClick={() => setDeleteDialogOpen(true)}
+                  />
                   <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
                     {t("save")}
                   </Button>
@@ -327,8 +372,43 @@ function WorkflowPage({
             heading={
               isAllDataLoaded && (
                 <div className="flex">
-                  <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
-                    {workflow && workflow.name ? workflow.name : "untitled"}
+                  <div className="flex items-center">
+                    <span className="text-subtle min-w-content text-sm font-semibold leading-none">
+                      {t("workflows")}
+                    </span>
+                    <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
+                    {isEditingName ? (
+                      <input
+                        value={nameValue}
+                        onChange={handleNameChange}
+                        onKeyDown={handleNameKeyDown}
+                        onBlur={handleNameSubmit}
+                        className="text-default h-auto w-full whitespace-nowrap border-none bg-transparent p-0 text-sm font-semibold leading-none focus:ring-0"
+                        autoFocus
+                        disabled={readOnly}
+                      />
+                    ) : (
+                      <div className="group flex items-center gap-1">
+                        <span
+                          className={classNames(
+                            "text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none",
+                            workflow && !workflow.name ? "text-muted" : "",
+                            readOnly ? "cursor-default hover:bg-transparent" : "cursor-pointer"
+                          )}
+                          onClick={() => !readOnly && setIsEditingName(true)}>
+                          {watchedName || "untitled"}
+                        </span>
+                        {!readOnly && (
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingName(true)}
+                            className="text-subtle group-hover:text-default hover:bg-muted ml-1 rounded p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <Icon name="pencil" className="h-3 w-3" />
+                            <span className="sr-only">Edit</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {workflow && workflow.team && (
                     <Badge className="ml-4 mt-1" variant="gray">
@@ -343,31 +423,42 @@ function WorkflowPage({
                 </div>
               )
             }>
-            {!isError ? (
-              <>
-                {isAllDataLoaded && user ? (
-                  <>
-                    <WorkflowDetailsPage
-                      form={form}
-                      workflowId={+workflowId}
-                      user={user}
-                      selectedOptions={selectedOptions}
-                      setSelectedOptions={setSelectedOptions}
-                      teamId={workflow ? workflow.teamId || undefined : undefined}
-                      readOnly={readOnly}
-                      isOrg={isOrg}
-                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
-                    />
-                  </>
-                ) : (
-                  <SkeletonLoader />
-                )}
-              </>
-            ) : (
-              <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
-            )}
+            <div className="mx-auto max-w-4xl">
+              {!isError ? (
+                <>
+                  {isAllDataLoaded && user ? (
+                    <>
+                      <WorkflowDetailsPage
+                        form={form}
+                        workflowId={+workflowId}
+                        user={user}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
+                        teamId={workflow ? workflow.teamId || undefined : undefined}
+                        readOnly={readOnly}
+                        isOrg={isOrg}
+                        allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                      />
+                    </>
+                  ) : (
+                    <SkeletonLoader />
+                  )}
+                </>
+              ) : (
+                <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
+              )}
+            </div>
           </ShellMain>
         </Form>
+        <DeleteDialog
+          isOpenDialog={deleteDialogOpen}
+          setIsOpenDialog={setDeleteDialogOpen}
+          workflowId={workflowId}
+          additionalFunction={async () => {
+            // Navigate back to workflows list after deletion
+            window.location.href = "/workflows";
+          }}
+        />
       </LicenseRequired>
     </Shell>
   ) : (

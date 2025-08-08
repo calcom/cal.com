@@ -193,3 +193,18 @@ export default function FormCard({
     </div>
   );
 }
+
+export function FormCardBody({
+  children,
+  className = "",
+  ...props
+}: {
+  children: React.ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`bg-default border-default w-full gap-3 rounded-2xl border p-3 ${className}`} {...props}>
+      {children}
+    </div>
+  );
+}
