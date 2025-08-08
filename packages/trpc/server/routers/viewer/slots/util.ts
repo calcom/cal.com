@@ -15,8 +15,9 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import type { getBusyTimesService } from "@calcom/lib/di/containers/busy-times";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
-import { getBusyTimesForLimitChecks, getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
+import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {
   CurrentSeats,
   EventType,
@@ -103,6 +104,7 @@ export interface IAvailableSlotsService {
   cacheService: CacheService;
   checkBookingLimitsService: CheckBookingLimitsService;
   userAvailabilityService: UserAvailabilityService;
+  busyTimesService: BusyTimesService;
   redisClient: IRedisService;
 }
 
@@ -373,13 +375,13 @@ export class AvailableSlotsService {
       return userBusyTimesMap;
     }
 
-    const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    const { limitDateFrom, limitDateTo } = this.dependencies.busyTimesService.getStartEndDateforLimitCheck(
       dateFrom.toISOString(),
       dateTo.toISOString(),
       bookingLimits || durationLimits
     );
 
-    const busyTimesFromLimitsBookings = await getBusyTimesForLimitChecks({
+    const busyTimesFromLimitsBookings = await this.dependencies.busyTimesService.getBusyTimesForLimitChecks({
       userIds: users.map((user) => user.id),
       eventTypeId: eventType.id,
       startDate: limitDateFrom.format(),
@@ -566,7 +568,7 @@ export class AvailableSlotsService {
     timeZone: string,
     rescheduleUid?: string
   ) {
-    const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    const { limitDateFrom, limitDateTo } = this.dependencies.busyTimesService.getStartEndDateforLimitCheck(
       dateFrom.toISOString(),
       dateTo.toISOString(),
       bookingLimits
@@ -797,19 +799,21 @@ export class AvailableSlotsService {
         ? parseDurationLimit(eventType?.durationLimits)
         : null;
 
-    let busyTimesFromLimitsBookingsAllUsers: Awaited<ReturnType<typeof getBusyTimesForLimitChecks>> = [];
+    let busyTimesFromLimitsBookingsAllUsers: Awaited<
+      ReturnType<typeof getBusyTimesService.prototype.getBusyTimesForLimitChecks>
+    > = [];
 
     if (eventType && (bookingLimits || durationLimits)) {
-      // TODO: DI getBusyTimesForLimitChecks
-      busyTimesFromLimitsBookingsAllUsers = await getBusyTimesForLimitChecks({
-        userIds: allUserIds,
-        eventTypeId: eventType.id,
-        startDate: startTime.format(),
-        endDate: endTime.format(),
-        rescheduleUid: input.rescheduleUid,
-        bookingLimits,
-        durationLimits,
-      });
+      busyTimesFromLimitsBookingsAllUsers =
+        await this.dependencies.busyTimesService.getBusyTimesForLimitChecks({
+          userIds: allUserIds,
+          eventTypeId: eventType.id,
+          startDate: startTime.format(),
+          endDate: endTime.format(),
+          rescheduleUid: input.rescheduleUid,
+          bookingLimits,
+          durationLimits,
+        });
     }
 
     let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
@@ -868,7 +872,6 @@ export class AvailableSlotsService {
     const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
 
-    // TODO: DI getUsersAvailability
     const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
       users,
       query: {
