@@ -11,13 +11,13 @@ import { cacheModule } from "../modules/cache";
 import { checkBookingLimitsModule } from "../modules/check-booking-limits";
 import { eventTypeRepositoryModule } from "../modules/eventType";
 import { featuresRepositoryModule } from "../modules/features";
+import { getUserAvailabilityModule } from "../modules/get-user-availability";
 import { oooRepositoryModule } from "../modules/ooo";
 import { routingFormResponseRepositoryModule } from "../modules/routingFormResponse";
 import { scheduleRepositoryModule } from "../modules/schedule";
 import { selectedSlotsRepositoryModule } from "../modules/selectedSlots";
 import { teamRepositoryModule } from "../modules/team";
 import { userRepositoryModule } from "../modules/user";
-import { getUserAvailabilityModule } from "../modules/get-user-availability";
 
 const container = createContainer();
 container.load(DI_TOKENS.REDIS_CLIENT, redisModule);
@@ -34,7 +34,7 @@ container.load(DI_TOKENS.FEATURES_REPOSITORY_MODULE, featuresRepositoryModule);
 container.load(DI_TOKENS.CACHE_SERVICE_MODULE, cacheModule);
 container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimitsModule);
 container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
-container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule)
+container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule);
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
 }
