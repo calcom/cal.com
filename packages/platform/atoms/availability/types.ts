@@ -29,3 +29,18 @@ export type scheduleClassNames = {
   labelAndSwitchContainer?: string;
   scheduleContainer?: string;
 };
+
+export type AvailabilityFormValidationResult = {
+  isValid: boolean;
+  errors: Record<string, unknown>;
+};
+
+export interface AvailabilitySettingsFormCallbacks {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}
+
+export interface AvailabilitySettingsFormRef {
+  validateForm: () => Promise<AvailabilityFormValidationResult>;
+  handleFormSubmit: (callbacks?: AvailabilitySettingsFormCallbacks) => void;
+}
