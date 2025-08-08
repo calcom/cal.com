@@ -12,6 +12,7 @@ import { cacheModule } from "../modules/cache";
 import { checkBookingLimitsModule } from "../modules/check-booking-limits";
 import { eventTypeRepositoryModule } from "../modules/eventType";
 import { featuresRepositoryModule } from "../modules/features";
+import { filterHostsModule } from "../modules/filter-hosts";
 import { getUserAvailabilityModule } from "../modules/get-user-availability";
 import { oooRepositoryModule } from "../modules/ooo";
 import { qualifiedHostsModule } from "../modules/qualified-hosts";
@@ -39,7 +40,7 @@ container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
 container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule);
 container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
 container.load(DI_TOKENS.QUALIFIED_HOSTS_SERVICE_MODULE, qualifiedHostsModule);
-
+container.load(DI_TOKENS.FILTER_HOSTS_SERVICE_MODULE, filterHostsModule);
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
 }
