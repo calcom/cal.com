@@ -30,6 +30,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: false,
         routedTeamMemberIds: null,
+        prisma,
       })
     ).resolves.toStrictEqual(hosts);
   });
@@ -43,6 +44,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
         routedTeamMemberIds: [23],
+        prisma,
       })
     ).resolves.toStrictEqual(hosts);
   });
@@ -61,6 +63,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
         routedTeamMemberIds: null,
+        prisma,
       })
     ).resolves.toStrictEqual([hosts[0]]);
   });
