@@ -65,7 +65,7 @@ const ZSegmentIdentifier = z.discriminatedUnion("type", [
 
 export const ZSetFilterSegmentPreferenceInputSchema = z.object({
   tableIdentifier: z.string(),
-  segmentId: z.union([ZSegmentIdentifier, z.null()]),
+  segmentId: ZSegmentIdentifier.nullable(),
 });
 
 export type TSetFilterSegmentPreferenceInputSchema = z.infer<typeof ZSetFilterSegmentPreferenceInputSchema>;

@@ -1,4 +1,4 @@
-import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
+import type { FilterSegmentOutput, SegmentIdentifier } from "@calcom/features/data-table/lib/types";
 import {
   ZActiveFilters,
   ZSortingState,
@@ -13,7 +13,7 @@ import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema }
 export interface IFilterSegmentRepository {
   get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }): Promise<{
     segments: FilterSegmentOutput[];
-    preferredSegmentId: { id: string; type: "default" } | { id: number; type: "custom" } | null;
+    preferredSegmentId: SegmentIdentifier | null;
   }>;
 
   create({
@@ -41,7 +41,7 @@ export interface IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: { id: string; type: "default" } | { id: number; type: "custom" } | null;
+    segmentId: SegmentIdentifier | null;
   }): Promise<UserFilterSegmentPreference | null>;
 }
 
@@ -289,7 +289,7 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: { id: string; type: "default" } | { id: number; type: "custom" } | null;
+    segmentId: SegmentIdentifier | null;
   }) {
     if (segmentId === null) {
       await prisma.userFilterSegmentPreference.deleteMany({

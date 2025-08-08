@@ -179,7 +179,7 @@ export const useSegments: UseSegments = ({
   ]);
 
   const setAndPersistSegmentId = useCallback(
-    (segmentId: SegmentIdentifier) => {
+    (segmentId: SegmentIdentifier | null) => {
       setSegmentId(segmentId);
       setPreference({
         tableIdentifier,

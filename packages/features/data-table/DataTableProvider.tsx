@@ -60,8 +60,8 @@ export type DataTableContextType = {
 
   segments: CombinedFilterSegment[];
   selectedSegment: CombinedFilterSegment | undefined;
-  segmentId: SegmentIdentifier;
-  setSegmentId: (id: SegmentIdentifier) => void;
+  segmentId: SegmentIdentifier | null;
+  setSegmentId: (id: SegmentIdentifier | null) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -81,7 +81,7 @@ interface DataTableProviderProps {
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
   timeZone?: string;
-  preferredSegmentId?: SegmentIdentifier;
+  preferredSegmentId?: SegmentIdentifier | null;
   defaultSegments?: DefaultFilterSegment[];
 }
 
@@ -106,7 +106,7 @@ export function DataTableProvider({
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
   const [segmentIdString, setSegmentIdString] = useQueryState("segment", segmentIdParser);
 
-  const segmentId = useMemo((): SegmentIdentifier => {
+  const segmentId = useMemo((): SegmentIdentifier | null => {
     if (!segmentIdString || segmentIdString === "") {
       return preferredSegmentId || null;
     }
@@ -119,7 +119,7 @@ export function DataTableProvider({
   }, [segmentIdString, preferredSegmentId]);
 
   const setSegmentId = useCallback(
-    (id: SegmentIdentifier) => {
+    (id: SegmentIdentifier | null) => {
       if (id === null) {
         setSegmentIdString("");
       } else {

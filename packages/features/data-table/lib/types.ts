@@ -274,11 +274,11 @@ export type CustomFilterSegment = FilterSegmentOutput & {
 
 export type CombinedFilterSegment = DefaultFilterSegment | CustomFilterSegment;
 
-export type SegmentIdentifier = { id: string; type: "default" } | { id: number; type: "custom" } | null;
+export type SegmentIdentifier = { id: string; type: "default" } | { id: number; type: "custom" };
 
 export type FilterSegmentsListResponse = {
   segments: FilterSegmentOutput[];
-  preferredSegmentId: SegmentIdentifier;
+  preferredSegmentId: SegmentIdentifier | null;
 };
 
 export type SegmentStorage = {
@@ -305,8 +305,8 @@ export type UseSegmentsProps = {
   pageSize: number;
   searchTerm: string;
   defaultPageSize: number;
-  segmentId: SegmentIdentifier;
-  setSegmentId: (segmentId: SegmentIdentifier) => void;
+  segmentId: SegmentIdentifier | null;
+  setSegmentId: (segmentId: SegmentIdentifier | null) => void;
   setActiveFilters: (activeFilters: ActiveFilters) => void;
   setSorting: (sorting: SortingState) => void;
   setColumnVisibility: (columnVisibility: VisibilityState) => void;
@@ -315,7 +315,7 @@ export type UseSegmentsProps = {
   setPageIndex: (pageIndex: number) => void;
   setSearchTerm: (searchTerm: string | null) => void;
   segments?: FilterSegmentOutput[];
-  preferredSegmentId?: SegmentIdentifier;
+  preferredSegmentId?: SegmentIdentifier | null;
   defaultSegments?: DefaultFilterSegment[];
 };
 
@@ -323,6 +323,6 @@ export type UseSegmentsReturn = {
   segments: CombinedFilterSegment[];
   selectedSegment: CombinedFilterSegment | undefined;
   canSaveSegment: boolean;
-  setAndPersistSegmentId: (segmentId: SegmentIdentifier) => void;
+  setAndPersistSegmentId: (segmentId: SegmentIdentifier | null) => void;
   isSegmentEnabled: boolean;
 };
