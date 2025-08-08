@@ -4,6 +4,7 @@ import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
+import cn from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { AppListCard } from "@calcom/ui/components/app-list-card";
 import type { ButtonProps } from "@calcom/ui/components/button";
@@ -31,6 +32,7 @@ export type CalendarRedirectUrls = {
 
 type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
+  headerClassNames?: SelectedCalendarsHeaderClassnames;
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
   isDryRun?: boolean;
@@ -41,6 +43,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   calendarRedirectUrls,
   allowDelete,
   isDryRun,
+  headerClassNames,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -57,6 +60,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
               return (
                 <SelectedCalendarsSettings classNames={classNames}>
                   <SelectedCalendarsSettingsHeading
+                    classNames={headerClassNames}
                     calendarRedirectUrls={calendarRedirectUrls}
                     isDryRun={isDryRun}
                   />
@@ -68,6 +72,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
             return (
               <SelectedCalendarsSettings classNames={classNames}>
                 <SelectedCalendarsSettingsHeading
+                  classNames={headerClassNames}
                   calendarRedirectUrls={calendarRedirectUrls}
                   isDryRun={isDryRun}
                 />
@@ -156,12 +161,19 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   );
 };
 
+export type SelectedCalendarsHeaderClassnames = {
+  title?: string;
+  description?: string;
+};
+
 const SelectedCalendarsSettingsHeading = ({
   calendarRedirectUrls,
   isDryRun,
+  classNames,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
   isDryRun?: boolean;
+  classNames?: SelectedCalendarsHeaderClassnames;
 }) => {
   const { t } = useLocale();
 
@@ -169,8 +181,12 @@ const SelectedCalendarsSettingsHeading = ({
     <div className="border-subtle border-b p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-emphasis text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
-          <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
+          <h4 className={cn("text-emphasis text-base font-semibold leading-5", classNames?.title)}>
+            {t("check_for_conflicts")}
+          </h4>
+          <p className={cn("text-default text-sm leading-tight", classNames?.description)}>
+            {t("select_calendars")}
+          </p>
         </div>
         <div className="flex flex-col xl:flex-row xl:space-x-5">
           <div className="flex items-center">

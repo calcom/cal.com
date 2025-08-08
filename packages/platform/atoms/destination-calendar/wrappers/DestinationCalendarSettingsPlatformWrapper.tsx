@@ -1,15 +1,18 @@
 import { useUpdateDestinationCalendars } from "../../hooks/calendars/useUpdateDestinationCalendars";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
+import type { DestinationHeaderClassnames } from "../DestinationCalendar";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
 
 export const DestinationCalendarSettingsPlatformWrapper = ({
   statusLoader,
   classNames = "mx-5",
+  headerClassNames,
   isDryRun = false,
 }: {
   statusLoader?: JSX.Element;
   classNames?: string;
+  headerClassNames?: DestinationHeaderClassnames;
   isDryRun?: boolean;
 }) => {
   const calendars = useConnectedCalendars({});
@@ -35,6 +38,7 @@ export const DestinationCalendarSettingsPlatformWrapper = ({
     <AtomsWrapper>
       <DestinationCalendarSettings
         classNames={classNames}
+        headerClassNames={headerClassNames}
         connectedCalendars={calendars.data.connectedCalendars}
         destinationCalendar={calendars.data.destinationCalendar}
         value={calendars.data.destinationCalendar.externalId}

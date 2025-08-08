@@ -5,12 +5,19 @@ import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
 import { DestinationCalendarSelector } from "./DestinationCalendarSelector";
 
-export const DestinationCalendarSettings = (props: DestinationCalendarProps & { classNames?: string }) => {
+export type DestinationHeaderClassnames = {
+  title?: string;
+  description?: string;
+};
+
+export const DestinationCalendarSettings = (
+  props: DestinationCalendarProps & { classNames?: string; headerClassNames?: DestinationHeaderClassnames }
+) => {
   const { t } = useLocale();
 
   return (
     <div className={cn("border-subtle mb-6 mt-8 rounded-lg border", props?.classNames)}>
-      <DestinationCalendarSettingsHeading />
+      <DestinationCalendarSettingsHeading classNames={props.headerClassNames} />
       <div className="border-t">
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
           <div>
@@ -23,15 +30,17 @@ export const DestinationCalendarSettings = (props: DestinationCalendarProps & { 
   );
 };
 
-const DestinationCalendarSettingsHeading = () => {
+const DestinationCalendarSettingsHeading = ({ classNames }: { classNames?: DestinationHeaderClassnames }) => {
   const { t } = useLocale();
 
   return (
     <div className="p-6">
-      <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
+      <h2 className={cn("text-emphasis mb-1 text-base font-bold leading-5 tracking-wide", classNames?.title)}>
         {t("add_to_calendar")}
       </h2>
-      <p className="text-subtle text-sm leading-tight">{t("add_to_calendar_description")}</p>
+      <p className={cn("text-subtle text-sm leading-tight", classNames?.description)}>
+        {t("add_to_calendar_description")}
+      </p>
     </div>
   );
 };
