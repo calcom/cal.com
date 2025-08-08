@@ -186,10 +186,8 @@ export class AvailableSlotsService {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
     // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
     if (!input.eventTypeSlug) {
-      throw new TRPCError({
-        message: "eventTypeSlug is required for dynamic booking",
-        code: "BAD_REQUEST",
-      });
+      // never happens as it's guarded by our Zod Schema refine, but for clear type safety we throw an Error if the eventTypeSlug isn't given.
+      throw new Error("Event type slug is required in dynamic booking.");
     }
     const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
 
@@ -634,19 +632,6 @@ export class AvailableSlotsService {
 
       limitManager.mergeBusyTimes(globalLimitManager);
 
-      const bookingLimitsParams = {
-        bookings: userBusyTimes,
-        bookingLimits,
-        dateFrom,
-        dateTo,
-        limitManager,
-        rescheduleUid,
-        teamId,
-        user,
-        includeManagedEvents,
-        timeZone,
-      };
-
       for (const key of descendingLimitKeys) {
         const limit = bookingLimits?.[key];
         if (!limit) continue;
@@ -1011,10 +996,6 @@ export class AvailableSlotsService {
     );
     const endTime =
       input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
-
-    if (!startTime.isValid() || !endTime.isValid()) {
-      throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
-    }
     // when an empty array is given we should prefer to have it handled as if this wasn't given at all
     // we don't want to return no availability in this case.
     const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
@@ -1164,11 +1145,9 @@ export class AvailableSlotsService {
         scheduleId: eventType.restrictionScheduleId,
       });
       if (restrictionSchedule) {
+        // runtime error preventing misconfiguration when restrictionSchedule timeZone must be used.
         if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-          throw new TRPCError({
-            message: "No timezone is set for the restricted schedule",
-            code: "BAD_REQUEST",
-          });
+          throw new Error("No timezone is set for the restricted schedule");
         }
 
         const restrictionTimezone = eventType.useBookerTimezone
