@@ -39,4 +39,6 @@ export const DI_TOKENS = {
   BUSY_TIMES_SERVICE_MODULE: Symbol("BusyTimesServiceModule"),
   QUALIFIED_HOSTS_SERVICE: Symbol("QualifiedHostsService"),
   QUALIFIED_HOSTS_SERVICE_MODULE: Symbol("QualifiedHostsServiceModule"),
+  FILTER_HOSTS_SERVICE: Symbol("FilterHostsService"),
+  FILTER_HOSTS_SERVICE_MODULE: Symbol("FilterHostsServiceModule"),
 };

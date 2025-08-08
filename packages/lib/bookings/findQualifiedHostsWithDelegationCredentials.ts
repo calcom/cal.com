@@ -1,3 +1,4 @@
+import type { FilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHostsWithDelegationCredentials,
@@ -12,11 +13,11 @@ import type { CredentialForCalendarService, CredentialPayload } from "@calcom/ty
 
 import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
-import { filterHostsBySameRoundRobinHost } from "./filterHostsBySameRoundRobinHost";
 
 export interface IQualifiedHostsService {
   prisma: PrismaClient;
   bookingRepo: BookingRepository;
+  filterHostsService: FilterHostsService;
 }
 
 type Host<T> = {
@@ -126,12 +127,11 @@ export class QualifiedHostsService {
     // If it is rerouting, we should not force reschedule with same host.
     const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
       roundRobinHosts,
-      await filterHostsBySameRoundRobinHost({
+      await this.dependencies.filterHostsService.filterHostsBySameRoundRobinHost({
         hosts: roundRobinHosts,
         rescheduleUid,
         rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
         routedTeamMemberIds,
-        prisma: this.dependencies.prisma,
       })
     );
 
@@ -262,10 +262,15 @@ const _findQualifiedHostsWithDelegationCredentials = async <
 }) => {
   const { prisma } = await import("@calcom/prisma");
   const { BookingRepository } = await import("@calcom/lib/server/repository/booking");
+  const { FilterHostsService } = await import("@calcom/lib/bookings/filterHostsBySameRoundRobinHost");
+
+  const bookingRepo = new BookingRepository(prisma);
+  const filterHostsService = new FilterHostsService({ bookingRepo });
 
   const service = new QualifiedHostsService({
     prisma,
-    bookingRepo: new BookingRepository(prisma),
+    bookingRepo,
+    filterHostsService,
   });
 
   return service.findQualifiedHostsWithDelegationCredentials({
