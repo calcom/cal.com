@@ -47,7 +47,7 @@ export const useSegments: UseSegments = ({
 
     const processedDefaultSegments = defaultSegments.map((segment) => ({
       ...segment,
-      type: "default" as const,
+      type: "system" as const,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
           return {
@@ -61,7 +61,7 @@ export const useSegments: UseSegments = ({
 
     const processedUserSegments = userSegments.map((segment) => ({
       ...segment,
-      type: "custom" as const,
+      type: "user" as const,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
           return {
@@ -80,10 +80,10 @@ export const useSegments: UseSegments = ({
     if (!segmentId) return undefined;
 
     return segments?.find((segment) => {
-      if (segment.type === "default") {
-        return segmentId.type === "default" && segment.id === segmentId.id;
+      if (segment.type === "system") {
+        return segmentId.type === "system" && segment.id === segmentId.id;
       } else {
-        return segmentId.type === "custom" && segment.id === segmentId.id;
+        return segmentId.type === "user" && segment.id === segmentId.id;
       }
     });
   }, [segments, segmentId]);
@@ -91,10 +91,10 @@ export const useSegments: UseSegments = ({
   useEffect(() => {
     if (segments && segmentId && !isFetchingSegments) {
       const segment = segments.find((segment) => {
-        if (segment.type === "default") {
-          return segmentId.type === "default" && segment.id === segmentId.id;
+        if (segment.type === "system") {
+          return segmentId.type === "system" && segment.id === segmentId.id;
         } else {
-          return segmentId.type === "custom" && segment.id === segmentId.id;
+          return segmentId.type === "user" && segment.id === segmentId.id;
         }
       });
       if (!segment) {
@@ -116,9 +116,9 @@ export const useSegments: UseSegments = ({
       if (typeof memoizedPreferredSegmentId === "object") {
         setSegmentId(memoizedPreferredSegmentId);
       } else if (typeof memoizedPreferredSegmentId === "string") {
-        setSegmentId({ id: memoizedPreferredSegmentId, type: "default" });
+        setSegmentId({ id: memoizedPreferredSegmentId, type: "system" });
       } else if (typeof memoizedPreferredSegmentId === "number") {
-        setSegmentId({ id: memoizedPreferredSegmentId, type: "custom" });
+        setSegmentId({ id: memoizedPreferredSegmentId, type: "user" });
       }
     }
   }, [memoizedPreferredSegmentId, setSegmentId]);

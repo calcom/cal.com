@@ -265,16 +265,16 @@ export type DefaultFilterSegment = {
   columnSizing?: Record<string, number>;
   perPage?: number;
   searchTerm?: string | null;
-  type: "default";
+  type: "system";
 };
 
 export type CustomFilterSegment = FilterSegmentOutput & {
-  type: "custom";
+  type: "user";
 };
 
 export type CombinedFilterSegment = DefaultFilterSegment | CustomFilterSegment;
 
-export type SegmentIdentifier = { id: string; type: "default" } | { id: number; type: "custom" };
+export type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
 
 export type FilterSegmentsListResponse = {
   segments: FilterSegmentOutput[];

@@ -70,7 +70,7 @@ function useDefaultSegments() {
         id: "default-my_bookings",
         name: t("my_bookings"),
         icon: "user",
-        type: "default",
+        type: "system",
         activeFilters: [
           {
             f: "userId",
@@ -87,7 +87,7 @@ function useDefaultSegments() {
         id: "default-upcoming-bookings",
         name: "Upcoming Bookings",
         icon: "calendar",
-        type: "default",
+        type: "system",
         activeFilters: [
           {
             f: "dateRange",

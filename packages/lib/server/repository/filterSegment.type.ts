@@ -59,8 +59,8 @@ export const ZCreateFilterSegmentInputSchema = z.discriminatedUnion("scope", [
 export type TCreateFilterSegmentInputSchema = z.infer<typeof ZCreateFilterSegmentInputSchema>;
 
 const ZSegmentIdentifier = z.discriminatedUnion("type", [
-  z.object({ id: z.string(), type: z.literal("default") }),
-  z.object({ id: z.number(), type: z.literal("custom") }),
+  z.object({ id: z.string(), type: z.literal("system") }),
+  z.object({ id: z.number(), type: z.literal("user") }),
 ]);
 
 export const ZSetFilterSegmentPreferenceInputSchema = z.object({
