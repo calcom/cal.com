@@ -410,12 +410,17 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
-  const isPlatformBooking =
+  const isPlatformBooking = Boolean(
     eventType.team?.isPlatform ||
-    eventType.team?.parent?.isPlatform ||
-    eventType.users.some((user) =>
-      (user as any)?.profiles?.some((profile: any) => profile?.organization?.isPlatform)
-    );
+      eventType.team?.parent?.isPlatform ||
+      (Array.isArray(eventType.users) &&
+        eventType.users.some(
+          (u: any) => Array.isArray(u.profiles) && u.profiles.some((p: any) => p.organization?.isPlatform)
+        )) ||
+      (eventType.owner &&
+        Array.isArray((eventType.owner as any).profiles) &&
+        (eventType.owner as any).profiles.some((p: any) => p.organization?.isPlatform))
+  );
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
