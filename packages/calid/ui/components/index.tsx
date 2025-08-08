@@ -37,15 +37,13 @@ export * from "./skeleton";
 export * from "./sheet";
 export * from "./slider";
 export * from "./switch";
-export * from "./sonner";
+// export * from "./sonner";
 export * from "./table";
 export * from "./tabs";
 export * from "./textarea";
-export * from "./toast";
-// Explicitly re-export Toaster from "./toaster" with an alias to avoid ambiguity
-export { Toaster as ToasterComponent } from "./toaster";
+
 export * from "./toggle-group";
 export * from "./toggle";
 export * from "./tooltip";
-// Explicitly re-export 'toast' from './use-toast' with an alias to avoid ambiguity
-export { toast as useToast } from "./use-toast";
+export * from "./toast";
+export * from "./icon";

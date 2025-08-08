@@ -3,6 +3,7 @@ import { router } from "../../../trpc";
 import { ZActivateEventTypeInputSchema } from "./activateEventType.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
+import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
@@ -10,6 +11,7 @@ import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
 import { ZSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
+import { ZToggleInputSchema } from "./toggle.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZVerifyEmailCodeInputSchema } from "./verifyEmailCode.schema";
 import { ZVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";
@@ -31,6 +33,8 @@ type WorkflowsRouterHandlerCache = {
   verifyEmailCode?: typeof import("./verifyEmailCode.handler").verifyEmailCodeHandler;
   getAllActiveWorkflows?: typeof import("./getAllActiveWorkflows.handler").getAllActiveWorkflowsHandler;
   workflowOrder?: typeof import("./workflowOrder.handler").workflowOrderHandler;
+  toggle?: typeof import("./toggle.handler").toggleHandler;
+  duplicate?: typeof import("./duplicate.handler").duplicateHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -116,6 +120,38 @@ export const workflowsRouter = router({
     });
   }),
 
+  toggle: authedProcedure.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.update) {
+      UNSTABLE_HANDLER_CACHE.toggle = await import("./toggle.handler").then((mod) => mod.toggleHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.toggle) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.toggle({
+      ctx,
+      input,
+    });
+  }),
+  duplicate: authedProcedure.input(ZDuplicateInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
+      UNSTABLE_HANDLER_CACHE.duplicate = await import("./duplicate.handler").then(
+        (mod) => mod.duplicateHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.duplicate) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.duplicate({
+      ctx,
+      input,
+    });
+  }),
   activateEventType: authedProcedure.input(ZActivateEventTypeInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.activateEventType) {
       UNSTABLE_HANDLER_CACHE.activateEventType = await import("./activateEventType.handler").then(

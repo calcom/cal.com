@@ -1,4 +1,5 @@
-import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
+import { workflowSelect } from "@calid/features/workflows/utils/getWorkflows";
+
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";

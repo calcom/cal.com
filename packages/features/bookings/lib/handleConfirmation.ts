@@ -1,13 +1,13 @@
+import type { Workflow } from "@calid/features/workflows/config/types";
+import {
+  canDisableParticipantNotifications,
+  canDisableOrganizerNotifications,
+} from "@calid/features/workflows/utils/notificationDisableCheck";
+import { scheduleWorkflowReminders } from "@calid/features/workflows/utils/reminderScheduler";
+import { scheduleMandatoryReminder } from "@calid/features/workflows/utils/scheduleMandatoryReminder";
 import type { Prisma } from "@prisma/client";
 
-import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -121,11 +121,11 @@ export async function handleConfirmation(args: {
           eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
 
         if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+          isHostConfirmationEmailsDisabled = canDisableOrganizerNotifications(workflows);
         }
 
         if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+          isAttendeeConfirmationEmailDisabled = canDisableParticipantNotifications(workflows);
         }
       }
 
@@ -351,14 +351,14 @@ export async function handleConfirmation(args: {
       const isFirstBooking = index === 0;
 
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
-        await scheduleMandatoryReminder({
-          evt: evtOfBooking,
+        await scheduleMandatoryReminder(
+          evtOfBooking,
           workflows,
-          requiresConfirmation: false,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-          seatReferenceUid: evt.attendeeSeatId,
-          isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
-        });
+          false,
+          !!updatedBookings[index].eventType?.owner?.hideBranding,
+          evt.attendeeSeatId,
+          !emailsEnabled && Boolean(platformClientParams?.platformClientId)
+        );
       }
 
       await scheduleWorkflowReminders({

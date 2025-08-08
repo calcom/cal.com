@@ -1356,6 +1356,7 @@ model Workflow {
   time          Int?
   timeUnit      TimeUnit?
   steps         WorkflowStep[]
+  disabled      Boolean                 @default(false)
 
   @@index([userId])
   @@index([teamId])
@@ -1468,6 +1469,7 @@ enum WorkflowTemplates {
   RESCHEDULED
   COMPLETED
   RATING
+  THANKYOU
 }
 
 enum WorkflowMethods {

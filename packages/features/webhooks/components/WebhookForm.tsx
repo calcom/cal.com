@@ -1,9 +1,9 @@
 "use client";
 
+import { TimeTimeUnitInput } from "@calid/features/workflows/view/components/time_unit_input";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { TimeTimeUnitInput } from "@calcom/features/ee/workflows/components/TimeTimeUnitInput";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";

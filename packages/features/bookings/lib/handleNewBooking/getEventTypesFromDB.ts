@@ -1,5 +1,6 @@
+import { workflowSelect } from "@calid/features/workflows/utils/getWorkflows";
+
 import type { LocationObject } from "@calcom/app-store/locations";
-import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
