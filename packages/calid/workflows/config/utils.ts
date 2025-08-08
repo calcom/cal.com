@@ -300,10 +300,7 @@ export {
 /**
  * Generate trigger text for a workflow
  */
-export const generateTriggerText = (
-  workflow: WorkflowType,
-  t: (key: string, options?: any) => string
-): string => {
+export const generateTriggerText = (workflow: WorkflowType, t: TFunction): string => {
   let triggerStr = t(`${workflow.trigger.toLowerCase()}_trigger`);
   if (workflow.timeUnit && workflow.time) {
     triggerStr = ` ${t(`${workflow.timeUnit.toLowerCase()}`, {
@@ -316,10 +313,7 @@ export const generateTriggerText = (
 /**
  * Generate event type info text for a workflow
  */
-export const generateEventTypeInfo = (
-  workflow: WorkflowType,
-  t: (key: string, options?: any) => string
-): string => {
+export const generateEventTypeInfo = (workflow: WorkflowType, t: TFunction): string => {
   if (workflow.isActiveOnAll) {
     return workflow.isOrg ? t("active_on_all_teams") : t("active_on_all_event_types");
   } else if (workflow.activeOn && workflow.activeOn.length > 0) {
@@ -345,10 +339,7 @@ export const generateActionText = (workflow: WorkflowType): string => {
 /**
  * Generate workflow title with fallback logic
  */
-export const generateWorkflowTitle = (
-  workflow: WorkflowType,
-  t: (key: string, options?: any) => string
-): string => {
+export const generateWorkflowTitle = (workflow: WorkflowType, t: TFunction): string => {
   if (workflow.name) return workflow.name;
 
   if (workflow.steps[0]) {

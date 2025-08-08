@@ -1,6 +1,5 @@
 "use client";
 
-import { Header } from "@calid/features/ui";
 import React, { useState, useMemo, useCallback } from "react";
 
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -8,8 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 
+import type { WorkflowsProps, TeamFiltersState } from "../config/types";
 import { useWorkflowMutations } from "../hooks/useWorkflowsMutations";
-import type { WorkflowsProps, TeamFiltersState } from "../types/workflow";
 import { WorkflowDeleteDialog } from "./workflow_delete_dialog";
 import { WorkflowEmptyState } from "./workflow_empty_state";
 import { WorkflowLoading } from "./workflow_loading_state";
@@ -77,8 +76,6 @@ export const Workflows: React.FC<WorkflowsProps> = ({ setHeaderMeta, filteredLis
 
   return (
     <div className="bg-background min-h-screen">
-      <Header heading={t("workflows")} subtitle={t("workflows_to_automate_notifications")} />
-
       <div className="px-8 py-6">
         {!hasWorkflows ? (
           // Empty state

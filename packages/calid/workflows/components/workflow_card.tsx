@@ -16,14 +16,23 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 
-import type { WorkflowCardProps } from "../types/workflows";
+import type { WorkflowType } from "../config/types";
 import {
   generateTriggerText,
   generateEventTypeInfo,
   generateActionText,
   generateWorkflowTitle,
-} from "../utils";
+} from "../config/utils";
 
+interface WorkflowCardProps {
+  workflow: WorkflowType;
+  onEdit: (workflowId: number) => void;
+  onToggle: (workflowId: number, enabled: boolean) => void;
+  onDuplicate: (workflowId: number) => void;
+  onDelete: (workflowId: number) => void;
+  onCopyLink: (workflowId: number) => void;
+  copiedLink: number | null;
+}
 export const WorkflowCard: React.FC<WorkflowCardProps> = ({
   workflow,
   onEdit,

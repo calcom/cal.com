@@ -175,6 +175,7 @@ type WorkflowType = Workflow & {
   readOnly?: boolean;
   isOrg?: boolean;
   isActiveOnAll?: boolean;
+  disabled?: boolean;
 };
 
 type ScheduleEmailReminderAction = Extract<
@@ -262,3 +263,31 @@ export type {
   AttendeeInBookingInfo,
   ScheduleTextReminderAction,
 };
+
+export interface WorkflowCardProps {
+  workflow: WorkflowType;
+  onEdit: (workflowId: number) => void;
+  onToggle: (workflowId: number, enabled: boolean) => void;
+  onDuplicate: (workflowId: number) => void;
+  onDelete: (workflowId: number) => void;
+  onCopyLink: (workflowId: number) => void;
+  copiedLink: number | null;
+}
+
+export interface TeamProfile {
+  readOnly?: boolean;
+  slug: string | null;
+  name: string | null;
+  teamId: number | null;
+  image?: string | null;
+}
+
+export interface TeamFiltersState {
+  userId: number | null;
+  teamIds: number[];
+}
+
+export interface WorkflowsProps {
+  setHeaderMeta?: (meta: any) => void;
+  filteredList?: any;
+}

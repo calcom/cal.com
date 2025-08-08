@@ -5,7 +5,7 @@ import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { WorkflowType, TeamProfile, TeamFiltersState } from "../types/workflow";
+import type { WorkflowType, TeamProfile, TeamFiltersState } from "../config/types";
 import { WorkflowCard } from "./workflow_card";
 import { TeamsFilter } from "./workflow_teams_filter";
 

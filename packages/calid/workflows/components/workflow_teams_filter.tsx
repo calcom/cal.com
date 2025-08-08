@@ -10,7 +10,7 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
 
-import type { TeamProfile, TeamFiltersState } from "../types/workflows";
+import type { TeamProfile, TeamFiltersState } from "../config/types";
 
 interface TeamsFilterProps {
   profiles: TeamProfile[];
