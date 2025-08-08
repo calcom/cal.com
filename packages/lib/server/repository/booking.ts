@@ -946,6 +946,11 @@ export class BookingRepository {
       },
       select: {
         userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
   }

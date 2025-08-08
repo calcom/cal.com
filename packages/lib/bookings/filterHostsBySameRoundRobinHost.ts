@@ -12,7 +12,7 @@ export class FilterHostsService {
   async filterHostsBySameRoundRobinHost<
     T extends {
       isFixed: false; // ensure no fixed hosts are passed.
-      user: { id: number };
+      user: { id: number; email: string };
     }
   >({
     hosts,
@@ -38,6 +38,16 @@ export class FilterHostsService {
         rescheduleUid,
       });
 
-    return hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    if (!originalRescheduledBooking) {
+      return hosts;
+    }
+
+    const attendeeEmails = originalRescheduledBooking.attendees?.map((attendee) => attendee.email) || [];
+
+    return hosts.filter((host) => {
+      const isOrganizer = host.user.id === originalRescheduledBooking.userId;
+      const isAttendee = attendeeEmails.includes(host.user.email);
+      return isOrganizer || isAttendee;
+    });
   }
 }
