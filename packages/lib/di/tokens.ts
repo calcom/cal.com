@@ -35,4 +35,6 @@ export const DI_TOKENS = {
   CHECK_BOOKING_AND_DURATION_LIMITS_SERVICE_MODULE: Symbol("CheckBookingAndDurationLimitsServiceModule"),
   GET_USER_AVAILABILITY_SERVICE: Symbol("GetUserAvailabilityService"),
   GET_USER_AVAILABILITY_SERVICE_MODULE: Symbol("GetUserAvailabilityModule"),
+  BUSY_TIMES_SERVICE: Symbol("BusyTimesService"),
+  BUSY_TIMES_SERVICE_MODULE: Symbol("BusyTimesServiceModule"),
 };
