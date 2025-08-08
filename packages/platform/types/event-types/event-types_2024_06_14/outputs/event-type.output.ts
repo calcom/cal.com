@@ -500,6 +500,13 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   assignAllTeamMembers?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "If true, allows reassignment of managed event type bookings to other team members",
+  })
+  allowManagedEventReassignment?: boolean;
+
   @IsEnum(["roundRobin", "collective", "managed"] as const)
   @DocsProperty({ enum: ["roundRobin", "collective", "managed"] })
   schedulingType!: "roundRobin" | "collective" | "managed" | null;

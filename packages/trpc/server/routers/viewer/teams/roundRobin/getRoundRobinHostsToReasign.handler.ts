@@ -7,6 +7,7 @@ import logger from "@calcom/lib/logger";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -118,6 +119,12 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
       startTime: true,
       endTime: true,
       eventTypeId: true,
+      eventType: {
+        select: {
+          parentId: true,
+          schedulingType: true,
+        },
+      },
     },
   });
 
@@ -125,8 +132,11 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
     throw new Error("Booking requires a event type to reassign hosts");
   }
 
+  const isManagedEventType =
+    booking.eventType?.schedulingType === SchedulingType.MANAGED && booking.eventType?.parentId;
+
   const { hosts, totalCount, nextCursor } = await getTeamHostsFromDB({
-    eventTypeId: booking.eventTypeId,
+    eventTypeId: isManagedEventType ? booking.eventType?.parentId ?? -1 : booking.eventTypeId,
     organizationId,
     prisma,
     searchTerm,
@@ -137,12 +147,19 @@ export const getRoundRobinHostsToReassign = async ({ ctx, input }: GetRoundRobin
 
   let availableUsers: IsFixedAwareUser[] = [];
   try {
-    const eventType = await getEventTypeFromDB(booking.eventTypeId, prisma);
+    const eventType = booking.eventType;
+    let eventTypeToUse = eventType; // eventType is from booking.eventTypeId
+
+    // For managed event types, use parent's data
+    if (isManagedEventType) {
+      const parentEventType = await getEventTypeFromDB(eventType?.parentId ?? -1, prisma);
+      eventTypeToUse = parentEventType;
+    }
     availableUsers = await ensureAvailableUsers(
       // @ts-expect-error - TODO: We need to make sure nothing in the app needs the return type of getEventTypeFromDB as it fetches everything under the sun
       {
         users: hosts as IsFixedAwareUser[],
-        ...eventType,
+        ...eventTypeToUse,
       },
       {
         dateFrom: dayjs(booking.startTime).format(),
