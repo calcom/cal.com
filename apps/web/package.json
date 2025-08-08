@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.5.11",
+  "version": "5.5.13",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -78,7 +78,7 @@
     "@team-plain/typescript-sdk": "^5.9.0",
     "@types/turndown": "^5.0.1",
     "@unkey/ratelimit": "^0.1.1",
-    "@upstash/redis": "^1.21.0",
+    "@upstash/redis": "^1.35.2",
     "@vercel/edge-config": "^0.1.1",
     "@vercel/edge-functions-ui": "^0.2.1",
     "@vercel/og": "^0.6.3",
