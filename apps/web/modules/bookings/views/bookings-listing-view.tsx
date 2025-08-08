@@ -67,7 +67,7 @@ function useDefaultSegments() {
 
     return [
       {
-        id: "default-my_bookings",
+        id: "system-my_bookings",
         name: t("my_bookings"),
         icon: "user",
         type: "system",
@@ -84,7 +84,7 @@ function useDefaultSegments() {
         perPage: 10,
       },
       {
-        id: "default-upcoming-bookings",
+        id: "system-upcoming-bookings",
         name: "Upcoming Bookings",
         icon: "calendar",
         type: "system",
