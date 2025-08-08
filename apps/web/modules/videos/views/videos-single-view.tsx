@@ -114,7 +114,7 @@ export default function JoinCall(props: PageProps) {
         return DailyIframe.getCallInstance();
       }
     },
-    [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton]
+    [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton, t]
   );
 
   useEffect(() => {
