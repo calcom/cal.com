@@ -30,7 +30,7 @@ import {
   UpdatePrivateLinkOutput,
 } from "@calcom/platform-types";
 
-import { PrivateLinksService } from "./services/private-links.service";
+import { PrivateLinksService } from "../services/private-links.service";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/private-links",

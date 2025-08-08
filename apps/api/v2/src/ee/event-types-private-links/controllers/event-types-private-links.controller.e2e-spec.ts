@@ -10,7 +10,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreatePrivateLinkInput } from "@calcom/platform-types";
 
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
@@ -103,7 +103,6 @@ describe("Event Types Private Links Endpoints", () => {
 
     const response = await request(app.getHttpServer())
       .post(`/api/v2/event-types/${eventType.id}/private-links`)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
       .set("Authorization", `Bearer whatever`)
       .send(body)
       .expect(201);
@@ -117,7 +116,6 @@ describe("Event Types Private Links Endpoints", () => {
   it("GET /v2/event-types/:eventTypeId/private-links - list private links", async () => {
     const response = await request(app.getHttpServer())
       .get(`/api/v2/event-types/${eventType.id}/private-links`)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
       .set("Authorization", `Bearer whatever`)
       .expect(200);
 
@@ -130,7 +128,6 @@ describe("Event Types Private Links Endpoints", () => {
     // create a link first
     const createResp = await request(app.getHttpServer())
       .post(`/api/v2/event-types/${eventType.id}/private-links`)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
       .set("Authorization", `Bearer whatever`)
       .send({ maxUsageCount: 3 })
       .expect(201);
@@ -139,7 +136,6 @@ describe("Event Types Private Links Endpoints", () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/api/v2/event-types/${eventType.id}/private-links/${linkId}`)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
       .set("Authorization", `Bearer whatever`)
       .send({ maxUsageCount: 10 })
       .expect(200);
@@ -152,7 +148,6 @@ describe("Event Types Private Links Endpoints", () => {
     // create a link to delete
     const createResp = await request(app.getHttpServer())
       .post(`/api/v2/event-types/${eventType.id}/private-links`)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
       .set("Authorization", `Bearer whatever`)
       .send({ maxUsageCount: 2 })
       .expect(201);
@@ -161,7 +156,6 @@ describe("Event Types Private Links Endpoints", () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/api/v2/event-types/${eventType.id}/private-links/${linkId}`)
-      .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
       .set("Authorization", `Bearer whatever`)
       .expect(200);
 

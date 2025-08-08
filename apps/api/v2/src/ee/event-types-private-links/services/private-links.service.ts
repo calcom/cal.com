@@ -1,21 +1,22 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
-import {
-  createPrivateLink,
-  deletePrivateLink,
-  getPrivateLinks,
-  updatePrivateLink,
-} from "@calcom/platform-libraries/private-links";
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { isLinkExpired } from "@calcom/lib/hashedLinksUtils";
 import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
 import { PrivateLinksInputService } from "@/ee/event-types-private-links/services/private-links-input.service";
-import { PrivateLinksOutputService } from "@/ee/event-types-private-links/services/private-links-output.service";
+import {
+  PrivateLinksOutputService,
+  type PrivateLinkData,
+} from "@/ee/event-types-private-links/services/private-links-output.service";
+import { PrivateLinksRepository } from "@/ee/event-types-private-links/private-links.repository";
 
 @Injectable()
 export class PrivateLinksService {
   constructor(
     private readonly inputService: PrivateLinksInputService,
-    private readonly outputService: PrivateLinksOutputService
+    private readonly outputService: PrivateLinksOutputService,
+    private readonly repo: PrivateLinksRepository
   ) {}
 
   async createPrivateLink(
@@ -25,8 +26,21 @@ export class PrivateLinksService {
   ): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformCreateInput(input);
-      const result = await createPrivateLink(eventTypeId, userId, transformedInput);
-      return this.outputService.transformToOutput(result);
+      const created = await this.repo.create(eventTypeId, {
+        link: generateHashedLink(userId),
+        expiresAt: transformedInput.expiresAt ?? null,
+        maxUsageCount: transformedInput.maxUsageCount ?? null,
+      });
+      const mapped: PrivateLinkData = {
+        id: created.link,
+        eventTypeId,
+        isExpired: isLinkExpired(created as any),
+        bookingUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com"}/d/${created.link}`,
+        expiresAt: created.expiresAt ?? null,
+        maxUsageCount: (created as any).maxUsageCount ?? null,
+        usageCount: (created as any).usageCount ?? 0,
+      };
+      return this.outputService.transformToOutput(mapped);
     } catch (error) {
       if (error instanceof Error) {
         throw new BadRequestException(error.message);
@@ -37,8 +51,17 @@ export class PrivateLinksService {
 
   async getPrivateLinks(eventTypeId: number, userId: number): Promise<PrivateLinkOutput[]> {
     try {
-      const results = await getPrivateLinks(eventTypeId, userId);
-      return this.outputService.transformArrayToOutput(results);
+      const links = await this.repo.listByEventTypeId(eventTypeId);
+      const mapped: PrivateLinkData[] = links.map((l) => ({
+        id: l.link,
+        eventTypeId,
+        isExpired: isLinkExpired(l as any),
+        bookingUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com"}/d/${l.link}`,
+        expiresAt: l.expiresAt ?? null,
+        maxUsageCount: l.maxUsageCount ?? null,
+        usageCount: l.usageCount ?? 0,
+      }));
+      return this.outputService.transformArrayToOutput(mapped);
     } catch (error) {
       if (error instanceof Error) {
         throw new BadRequestException(error.message);
@@ -54,8 +77,26 @@ export class PrivateLinksService {
   ): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformUpdateInput(input);
-      const result = await updatePrivateLink(eventTypeId, userId, transformedInput);
-      return this.outputService.transformToOutput(result);
+      const updatedResult = await this.repo.update(eventTypeId, {
+        link: transformedInput.linkId,
+        expiresAt: transformedInput.expiresAt ?? null,
+        maxUsageCount: transformedInput.maxUsageCount ?? null,
+      });
+      if (!updatedResult || (updatedResult as any).count === 0) {
+        throw new NotFoundException("Updated link not found");
+      }
+      const updated = await this.repo.findWithEventTypeDetails(transformedInput.linkId);
+      if (!updated) throw new NotFoundException("Updated link not found");
+      const mapped: PrivateLinkData = {
+        id: updated.link,
+        eventTypeId,
+        isExpired: isLinkExpired(updated as any),
+        bookingUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com"}/d/${updated.link}`,
+        expiresAt: updated.expiresAt ?? null,
+        maxUsageCount: updated.maxUsageCount ?? null,
+        usageCount: updated.usageCount ?? 0,
+      };
+      return this.outputService.transformToOutput(mapped);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("not found")) {
@@ -69,7 +110,7 @@ export class PrivateLinksService {
 
   async deletePrivateLink(eventTypeId: number, userId: number, linkId: string): Promise<void> {
     try {
-      await deletePrivateLink(eventTypeId, userId, linkId);
+      await this.repo.delete(eventTypeId, linkId);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("not found")) {

@@ -1,7 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 
-import { type PrivateLinkData } from "@calcom/platform-libraries/private-links";
+export type PrivateLinkData = {
+  id: string;
+  eventTypeId: number;
+  isExpired: boolean;
+  bookingUrl: string;
+  expiresAt?: Date | null;
+  maxUsageCount?: number | null;
+  usageCount?: number;
+};
 import { PrivateLinkOutput, TimeBasedPrivateLinkOutput, UsageBasedPrivateLinkOutput } from "@calcom/platform-types";
 
 @Injectable()
