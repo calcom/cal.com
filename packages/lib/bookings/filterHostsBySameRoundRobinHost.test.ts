@@ -1,31 +1,36 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 
-import prisma from "@calcom/prisma";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 
-import { filterHostsBySameRoundRobinHost } from "./filterHostsBySameRoundRobinHost";
+import { FilterHostsService } from "./filterHostsBySameRoundRobinHost";
 
-// Mocking setup
-const prismaMock = {
-  booking: {
-    findFirst: vi.fn(), // Mock the findFirst method
-  },
+// Mock the BookingRepository with the necessary methods that FilterHostsService would call
+const mockBookingRepo = {
+  findOriginalRescheduledBookingUserId: vi.fn(),
+  // Add findOriginalRescheduledBooking to the mock as it's used to fetch original booking details
+  findOriginalRescheduledBooking: vi.fn(),
+} as unknown as BookingRepository & {
+  // Explicitly tell TypeScript that these are Vitest mock functions
+  findOriginalRescheduledBookingUserId: ReturnType<typeof vi.fn>;
+  findOriginalRescheduledBooking: ReturnType<typeof vi.fn>;
 };
 
-// Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
-vi.spyOn(prisma.booking, "findFirst").mockImplementation(prismaMock.booking.findFirst);
-
-afterEach(() => {
-  // Clear call history before each test to avoid cross-test interference
-  prismaMock.booking.findFirst.mockClear();
+const filterHostsService = new FilterHostsService({
+  bookingRepo: mockBookingRepo,
 });
 
-describe("filterHostsBySameRoundRobinHost", () => {
+afterEach(() => {
+  mockBookingRepo.findOriginalRescheduledBookingUserId.mockClear();
+  mockBookingRepo.findOriginalRescheduledBooking.mockClear();
+});
+
+describe("FilterHostsService", () => {
   it("skips filter if rescheduleWithSameRoundRobinHost set to false", async () => {
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
     expect(
-      filterHostsBySameRoundRobinHost({
+      filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: false,
@@ -35,10 +40,10 @@ describe("filterHostsBySameRoundRobinHost", () => {
   });
   it("skips filter if rerouting", async () => {
     const hosts = [
-      { isFixed: true as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+      { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
     ];
     expect(
-      filterHostsBySameRoundRobinHost({
+      filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
@@ -48,15 +53,14 @@ describe("filterHostsBySameRoundRobinHost", () => {
   });
 
   it("correctly selects the same host if the filter applies and the host is in the RR users", async () => {
-    prismaMock.booking.findFirst.mockResolvedValue({ userId: 1 });
+    mockBookingRepo.findOriginalRescheduledBookingUserId.mockResolvedValue({ userId: 1 });
 
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
       { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
     ];
-    // Same host should be selected
     expect(
-      filterHostsBySameRoundRobinHost({
+      filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
@@ -68,7 +72,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
   // Tests for bookings that have more than one host
   describe("Fixed hosts and round robin groups support", () => {
     it("should return organizer and attendee hosts", async () => {
-      prismaMock.booking.findFirst.mockResolvedValue({
+      mockBookingRepo.findOriginalRescheduledBookingUserId.mockResolvedValue({
         userId: 1,
         attendees: [
           { email: "host2@acme.com" },
@@ -84,7 +88,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 4, email: "host4@acme.com" } },
       ];
 
-      const result = await filterHostsBySameRoundRobinHost({
+      const result = await filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
@@ -101,7 +105,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
     });
 
     it("should return only organizer host when no attendees match current hosts", async () => {
-      prismaMock.booking.findFirst.mockResolvedValue({
+      mockBookingRepo.findOriginalRescheduledBookingUserId.mockResolvedValue({
         userId: 1,
         attendees: [
           { email: "attendee1@example.com" }, // Non-host attendee
@@ -114,7 +118,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "host2@acme.com" } },
       ];
 
-      const result = await filterHostsBySameRoundRobinHost({
+      const result = await filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
