@@ -505,6 +505,10 @@ async function handler(
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)
     : null;
 
+  // Check if this is a reschedule of an already paid booking
+  const isReschedulingPaidBooking =
+    originalRescheduledBooking?.paid || !!originalRescheduledBooking?.payment?.some((p) => p.success);
+
   const paymentAppData = getPaymentAppData({
     ...eventType,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
@@ -517,6 +521,7 @@ async function handler(
     originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
     paymentAppData,
     bookerEmail,
+    isReschedulingPaidBooking,
   });
 
   // For unconfirmed bookings or round robin bookings with the same attendee and timeslot, return the original booking
@@ -1433,6 +1438,7 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
+        isReschedulingPaidBooking,
       });
 
       if (booking?.userId) {
@@ -1967,6 +1973,7 @@ async function handler(
     !Number.isNaN(paymentAppData.price) &&
     paymentAppData.price > 0 &&
     !originalRescheduledBooking?.paid &&
+    !isReschedulingPaidBooking &&
     !!booking;
 
   if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
