@@ -344,29 +344,49 @@ export default class EventManager {
     results.push(...createdCRMEvents);
 
     // References can be any type: calendar/video
-    const referencesToCreate = results.map((result) => {
-      let thirdPartyRecurringEventId;
-      let createdEventObj: createdEventSchema | null = null;
-      if (typeof result?.createdEvent === "string") {
-        createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
-      }
-      const isCalendarType = isCalendarResult(result);
-      if (isCalendarType) {
-        evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
-        thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
-      }
+    const referencesToCreate = results
+      .filter((result) => {
+        const hasValidUid =
+          result.success &&
+          ((typeof result?.createdEvent === "string" && result.createdEvent) ||
+            result.createdEvent?.id?.toString());
 
-      return {
-        type: result.type,
-        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
-        thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
-        meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
-        meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
-        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
-        externalCalendarId: isCalendarType ? result.externalId : undefined,
-        ...getCredentialPayload(result),
-      };
-    });
+        if (!hasValidUid) {
+          log.warn(
+            `Skipping booking reference creation for failed ${result.type} event`,
+            safeStringify({
+              success: result.success,
+              type: result.type,
+              calError: result.calError,
+            })
+          );
+        }
+
+        return hasValidUid;
+      })
+      .map((result) => {
+        let thirdPartyRecurringEventId;
+        let createdEventObj: createdEventSchema | null = null;
+        if (typeof result?.createdEvent === "string") {
+          createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
+        }
+        const isCalendarType = isCalendarResult(result);
+        if (isCalendarType) {
+          evt.iCalUID = result.iCalUID || event.iCalUID || undefined;
+          thirdPartyRecurringEventId = result.createdEvent?.thirdPartyRecurringEventId;
+        }
+
+        return {
+          type: result.type,
+          uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+          thirdPartyRecurringEventId: isCalendarType ? thirdPartyRecurringEventId : undefined,
+          meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
+          meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
+          meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
+          externalCalendarId: isCalendarType ? result.externalId : undefined,
+          ...getCredentialPayload(result),
+        };
+      });
 
     return {
       results,
@@ -407,17 +427,37 @@ export default class EventManager {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
     }
 
-    const referencesToCreate = results.map((result) => {
-      return {
-        type: result.type,
-        uid: result.createdEvent?.id?.toString() ?? "",
-        meetingId: result.createdEvent?.id?.toString(),
-        meetingPassword: result.createdEvent?.password,
-        meetingUrl: result.createdEvent?.url,
-        externalCalendarId: result.externalId,
-        ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
-      };
-    });
+    const referencesToCreate = results
+      .filter((result) => {
+        const hasValidUid =
+          result.success &&
+          ((typeof result?.createdEvent === "string" && result.createdEvent) ||
+            result.createdEvent?.id?.toString());
+
+        if (!hasValidUid) {
+          log.warn(
+            `Skipping booking reference creation for failed ${result.type} event in updateLocation`,
+            safeStringify({
+              success: result.success,
+              type: result.type,
+              calError: result.calError,
+            })
+          );
+        }
+
+        return hasValidUid;
+      })
+      .map((result) => {
+        return {
+          type: result.type,
+          uid: result.createdEvent?.id?.toString() ?? "",
+          meetingId: result.createdEvent?.id?.toString(),
+          meetingPassword: result.createdEvent?.password,
+          meetingUrl: result.createdEvent?.url,
+          externalCalendarId: result.externalId,
+          ...(result.credentialId && result.credentialId > 0 ? { credentialId: result.credentialId } : {}),
+        };
+      });
 
     return {
       results,
