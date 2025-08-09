@@ -135,7 +135,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
                 <li>{t("make_setup_instructions_5")}</li>
                 <li>{t("make_setup_instructions_6")}</li>
               </ol>
-              <Link href="/apps/installed/automation?hl=make" passHref={true} legacyBehavior>
+              <Link href="/apps/installed/automation?hl=make">
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>
