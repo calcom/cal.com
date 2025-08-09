@@ -125,6 +125,57 @@ export function processWorkingHours(
       continue;
     }
 
+    let foundOverlapOrAdjacent = false;
+    for (const existingKey in results) {
+      const existingRange = results[existingKey];
+      const existingStart = existingRange.start.valueOf();
+      const existingEnd = existingRange.end.valueOf();
+      const newStart = startResult.valueOf();
+      const newEnd = endResult.valueOf();
+      const fifteenMinutesInMs = 15 * 60 * 1000;
+      const areOverlappingOrAdjacent =
+        newStart <= existingEnd + fifteenMinutesInMs && newEnd >= existingStart - fifteenMinutesInMs;
+
+      if (areOverlappingOrAdjacent) {
+        const mergedStart = dayjs.min(existingRange.start, startResult);
+        const mergedEnd = dayjs.max(existingRange.end, endResult);
+
+        const newKey = mergedEnd.valueOf();
+        results[newKey] = {
+          start: mergedStart,
+          end: mergedEnd,
+        };
+
+        if (endTimeToKeyMap) {
+          const oldEndTime = existingRange.end.valueOf();
+          const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+          const filteredKeys = oldKeys.filter((k) => k !== Number(existingKey));
+          if (filteredKeys.length === 0) {
+            endTimeToKeyMap.delete(oldEndTime);
+          } else {
+            endTimeToKeyMap.set(oldEndTime, filteredKeys);
+          }
+
+          if (!endTimeToKeyMap.has(newKey)) {
+            endTimeToKeyMap.set(newKey, []);
+          }
+          const newKeyMap = endTimeToKeyMap.get(newKey) || [];
+          newKeyMap.push(newKey);
+          endTimeToKeyMap.set(newKey, newKeyMap);
+        }
+
+        // Remove the old entry
+        delete results[existingKey];
+        foundOverlapOrAdjacent = true;
+        break;
+      }
+    }
+
+    if (foundOverlapOrAdjacent) {
+      continue;
+    }
+
+    // Handle case where start time exactly matches an existing entry
     if (results[startResult.valueOf()]) {
       // if a result already exists, we merge the end time
       const oldKey = startResult.valueOf();
@@ -145,10 +196,9 @@ export function processWorkingHours(
           endTimeToKeyMap.set(oldEndTime, filteredKeys);
         }
 
-        if (!endTimeToKeyMap.has(endTimeKey)) {
-          endTimeToKeyMap.set(endTimeKey, []);
-        }
-        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+        const endTimeKeyMap = endTimeToKeyMap.get(endTimeKey) || [];
+        endTimeKeyMap.push(newKey);
+        endTimeToKeyMap.set(endTimeKey, endTimeKeyMap);
       }
 
       delete results[oldKey]; // delete the previous end time
@@ -162,10 +212,9 @@ export function processWorkingHours(
     };
 
     if (endTimeToKeyMap) {
-      if (!endTimeToKeyMap.has(endTimeKey)) {
-        endTimeToKeyMap.set(endTimeKey, []);
-      }
-      endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+      const endTimeKeyMap = endTimeToKeyMap.get(endTimeKey) || [];
+      endTimeKeyMap.push(newKey);
+      endTimeToKeyMap.set(endTimeKey, endTimeKeyMap);
     }
   }
 
