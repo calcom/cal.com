@@ -33,16 +33,18 @@ vi.mock("next/navigation", async (importOriginal) => {
 });
 
 const renderComponent = ({
-  formBuilderProps: formBuilderProps,
-  formDefaultValues: formDefaultValues,
+  formBuilderProps,
+  formDefaultValues,
 }: {
   formBuilderProps: Parameters<typeof FormBuilder>[0];
-  formDefaultValues;
+  formDefaultValues: Record<string, unknown>;
 }) => {
   const Wrapper = ({ children }: { children: ReactNode }) => {
-    const form = useForm({
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const form = useForm<Record<string, any>>({
       defaultValues: formDefaultValues,
     });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
     return (
       <TooltipProvider>
         <FormProvider {...form}>{children}</FormProvider>
