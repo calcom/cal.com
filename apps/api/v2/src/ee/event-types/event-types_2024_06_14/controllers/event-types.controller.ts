@@ -87,33 +87,15 @@ export class EventTypesController_2024_06_14 {
     };
   }
 
-  @Get("/:eventTypeId")
-  @Permissions([EVENT_TYPE_READ])
-  @UseGuards(ApiAuthGuard)
-  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Get an event type" })
-  async getEventTypeById(
-    @Param("eventTypeId") eventTypeId: string,
-    @GetUser() user: UserWithProfile
-  ): Promise<GetEventTypeOutput_2024_06_14> {
-    const eventType = await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
-    }
-
-    return {
-      status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventType),
-    };
-  }
-
   @Get("/")
-  @ApiOperation({ summary: "Get all event types" })
-  async getEventTypes(
+  @ApiOperation({
+    summary: "Get all public event types",
+    description: "Returns all event types that are not hidden.",
+  })
+  async getEventTypesPublic(
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
-    const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    const eventTypes = await this.eventTypesService.getEventTypesPublic(queryParams);
     if (!eventTypes || eventTypes.length === 0) {
       throw new NotFoundException(`Event types not found`);
     }
@@ -137,6 +119,45 @@ export class EventTypesController_2024_06_14 {
     return {
       status: SUCCESS_STATUS,
       data: eventTypesWithoutHiddenFields,
+    };
+  }
+
+  @Get("/all")
+  @Permissions([EVENT_TYPE_READ])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({
+    summary: "Get all event types",
+    description: "Returns all event types belonging to the authenticated user.",
+  })
+  async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput_2024_06_14> {
+    const eventTypes = await this.eventTypesService.getUserEventTypes(user.id);
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: eventTypesFormatted,
+    };
+  }
+
+  @Get("/:eventTypeId")
+  @Permissions([EVENT_TYPE_READ])
+  @UseGuards(ApiAuthGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Get an event type" })
+  async getEventTypeById(
+    @Param("eventTypeId") eventTypeId: string,
+    @GetUser() user: UserWithProfile
+  ): Promise<GetEventTypeOutput_2024_06_14> {
+    const eventType = await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
+
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    }
+
+    return {
+      status: SUCCESS_STATUS,
+      data: this.eventTypeResponseTransformPipe.transform(eventType),
     };
   }
 
