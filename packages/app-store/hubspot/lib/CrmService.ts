@@ -296,4 +296,8 @@ export default class HubspotCalendarService implements CRM {
   async handleAttendeeNoShow() {
     console.log("Not implemented");
   }
+
+  async createCustomEventObject() {
+    console.log("Not implemented");
+  }
 }
