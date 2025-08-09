@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
@@ -13,7 +14,8 @@ const translator = short();
 // The odd indentation in this file is necessary because otherwise the leading tabs will be applied into the event description.
 
 export const getWhat = (calEvent: Pick<CalendarEvent, "title">, t: TFunction) => {
-  return `${t("what")}:\n${calEvent.title}`;
+  const result = `${t("what")}:\n${sanitizeText(calEvent.title)}`;
+  return result;
 };
 
 export const getWhen = (
@@ -29,6 +31,20 @@ export const getWhen = (
     : `${t("invitee_timezone")}:\n${attendeeTimezone}`;
 };
 
+export const sanitizeText = (input: string | null | undefined): string => {
+  const text = input || ""; // Explicitly handle null/undefined as empty string
+  const processed = markdownToSafeHTML(text);
+  const stripped = processed.replace(/<\/?[^>]+(>|$)/g, "");
+  const result = breakUrl(stripped);
+  return result;
+};
+
+const breakUrl = (input: string): string => {
+  return input
+    .replace(/(https?|ftp|file|sftp):\/\//g, "$1://") // Keeping original protocol
+    .replace(/((?:https?|ftp|file|sftp):\/\/[^ ]+)(?<!\[)\./g, "$1[.]"); // Replacing dots in url
+};
+
 export const getWho = (
   calEvent: Pick<
     CalendarEvent,
@@ -36,39 +52,45 @@ export const getWho = (
   >,
   t: TFunction
 ) => {
-  let attendeesFromCalEvent = [...calEvent.attendees];
+  let attendeesFromCalEvent = calEvent.attendees ? [...calEvent.attendees] : [];
   if (calEvent.seatsPerTimeSlot && !calEvent.seatsShowAttendees) {
     attendeesFromCalEvent = [];
   }
   const attendees = attendeesFromCalEvent
     .map(
       (attendee) =>
-        `${attendee?.name || t("guest")}${attendee.phoneNumber ? ` - ${attendee.phoneNumber}` : ""}\n${
-          !isSmsCalEmail(attendee.email) ? attendee.email : ""
-        }`
+        `${sanitizeText(attendee?.name) || t("guest")}${
+          attendee.phoneNumber ? ` - ${sanitizeText(attendee.phoneNumber)}` : ""
+        }${!isSmsCalEmail(attendee.email) ? `\n${sanitizeText(attendee.email)}` : ""}`
     )
-    .join("\n");
+    .join("\n")
+    .trim();
 
   const organizer = calEvent.hideOrganizerEmail
-    ? `${calEvent.organizer.name} - ${t("organizer")}`
-    : `${calEvent.organizer.name} - ${t("organizer")}\n${calEvent.organizer.email}`;
+    ? `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}`
+    : `${sanitizeText(calEvent.organizer.name)} - ${t("organizer")}\n${sanitizeText(
+        calEvent.organizer.email
+      )}`.trim();
 
   const teamMembers = calEvent.team?.members
     ? calEvent.team.members
-        .map((member) => `${member.name} - ${t("team_member")}\n${member.email}`)
+        .map((member) => `${sanitizeText(member.name)} - ${t("team_member")}\n${sanitizeText(member.email)}`)
         .join("\n")
-    : [];
+        .trim()
+    : "";
 
-  return `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
-    teamMembers.length ? `\n${teamMembers}` : ""
-  }`;
+  const result = `${t("who")}:\n${organizer}${attendees ? `\n${attendees}` : ""}${
+    teamMembers ? `\n${teamMembers}` : ""
+  }`.trim();
+  return result;
 };
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  const result = `${t("additional_notes")}:\n${sanitizeText(calEvent.additionalNotes)}`;
+  return result;
 };
 
 export const getUserFieldsResponses = (
@@ -207,9 +229,12 @@ export const getManageLink = (
     return getPlatformManageLink(calEvent, t);
   }
 
-  return `${t("need_to_reschedule_or_cancel")} ${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${getUid(
-    calEvent
-  )}?changes=true`;
+  const uid = getUid(calEvent);
+  const rescheduledBy = encodeURIComponent(calEvent.organizer.email);
+  return {
+    href: `https://cal.com/reschedule/${uid}?rescheduledBy=${rescheduledBy}`,
+    text: t("reschedule"),
+  };
 };
 
 export const getPlatformCancelLink = (
@@ -312,6 +337,8 @@ type RichDescriptionCalEvent = Parameters<typeof getCancellationReason>[0] &
   Parameters<typeof getUserFieldsResponses>[0] &
   Parameters<typeof getAppsStatus>[0] &
   Parameters<typeof getManageLink>[0] &
+  Parameters<typeof getSanitizedAdditionalFields>[0] &
+  Parameters<typeof getSanitizedCalEvent>[0] &
   Pick<CalendarEvent, "organizer" | "paymentInfo">;
 
 export const getRichDescription = (
@@ -325,7 +352,6 @@ export const getRichDescription = (
   const parts = [
     getCancellationReason(calEvent, t),
     getWhat(calEvent, t),
-    getWhen(calEvent, t),
     getWho(calEvent, t),
     `${t("where")}:\n${getLocation(calEvent)}`,
     getDescription(calEvent, t),
@@ -379,4 +405,74 @@ export const getVideoCallUrlFromCalEvent = (
 
 export const getVideoCallPassword = (calEvent: CalendarEvent): string => {
   return isDailyVideoCall(calEvent) ? "" : calEvent?.videoCallData?.password ?? "";
+};
+
+export const getSanitizedAdditionalFields = (
+  calEvent: Pick<CalendarEvent, "description" | "cancellationReason" | "rejectionReason" | "location">
+) => {
+  return {
+    description: sanitizeText(calEvent.description),
+    cancellationReason: sanitizeText(calEvent.cancellationReason),
+    rejectionReason: sanitizeText(calEvent.rejectionReason),
+    location: sanitizeText(calEvent.location),
+  };
+};
+
+export const getSanitizedCalEvent = (calEvent: CalendarEvent): CalendarEvent => {
+  const sanitized = { ...calEvent };
+  sanitized.title = sanitizeText(sanitized.title);
+  sanitized.organizer = {
+    ...sanitized.organizer,
+    name: sanitizeText(sanitized.organizer.name),
+    email: sanitizeText(sanitized.organizer.email),
+  };
+  sanitized.attendees = sanitized.attendees.map((attendee) => ({
+    ...attendee,
+    name: sanitizeText(attendee.name),
+    email: sanitizeText(attendee.email),
+  }));
+  if (sanitized.team?.members) {
+    sanitized.team = {
+      ...sanitized.team,
+      members: sanitized.team.members.map((member) => ({
+        ...member,
+        name: sanitizeText(member.name),
+        email: sanitizeText(member.email),
+      })),
+    };
+  }
+  sanitized.additionalNotes = sanitizeText(sanitized.additionalNotes);
+  const additionalFields = getSanitizedAdditionalFields(calEvent);
+  sanitized.description = additionalFields.description;
+  sanitized.cancellationReason = additionalFields.cancellationReason;
+  sanitized.rejectionReason = additionalFields.rejectionReason;
+  sanitized.location = additionalFields.location;
+  if (sanitized.customInputs) {
+    sanitized.customInputs = Object.fromEntries(
+      Object.entries(sanitized.customInputs).map(([key, value]) => [
+        key,
+        typeof value === "string" ? sanitizeText(value) : String(value),
+      ])
+    );
+  }
+  if (sanitized.responses) {
+    sanitized.responses = {
+      ...sanitized.responses,
+      ...Object.fromEntries(
+        Object.entries(sanitized.responses).map(([key, value]) => {
+          if (typeof value === "object" && value !== null && "value" in value) {
+            return [
+              key,
+              {
+                ...value,
+                value: typeof value.value === "string" ? sanitizeText(value.value) : String(value.value),
+              },
+            ];
+          }
+          return [key, typeof value === "string" ? sanitizeText(value) : String(value)];
+        })
+      ),
+    };
+  }
+  return sanitized;
 };
