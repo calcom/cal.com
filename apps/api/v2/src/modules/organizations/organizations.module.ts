@@ -48,6 +48,8 @@ import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
+import { OrganizationsTeamsSchedulesService } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.service";
+import { OrganizationsTeamsSchedulesRepository } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.repository";
 import { OrganizationTeamWorkflowsController } from "@/modules/organizations/teams/workflows/controllers/org-team-workflows.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/users/index/controllers/organizations-users.controller";
 import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
@@ -100,6 +102,8 @@ import { Module } from "@nestjs/common";
     MembershipsRepository,
     OrganizationsSchedulesService,
     OrganizationSchedulesRepository,
+    OrganizationsTeamsSchedulesService,
+    OrganizationsTeamsSchedulesRepository,
     OrganizationsUsersRepository,
     OrganizationsUsersService,
     EmailService,
