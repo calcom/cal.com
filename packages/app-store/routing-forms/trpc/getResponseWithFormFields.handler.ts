@@ -86,7 +86,7 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
   const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,
-    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
+    user: form.user ? await userRepo.enrichUserWithItsProfile({ user: form.user }) : null,
   };
 
   return {
