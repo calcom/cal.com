@@ -343,7 +343,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
+    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt, agentId: null })) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan && isEmailAction(newStep.action)) {
         const isChangingToCustomTemplate =
@@ -400,6 +400,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
           verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
+          agentId: null,
         },
       });
 
