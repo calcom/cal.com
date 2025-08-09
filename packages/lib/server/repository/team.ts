@@ -7,6 +7,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import type { TeamSelect } from "../data/team/selects";
+import { mapToPrismaSelect } from "./prisma-mapper";
 import { getParsedTeam } from "./teamUtils";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
@@ -166,6 +168,7 @@ const teamSelect = {
   isPlatform: true,
 } satisfies Prisma.TeamSelect;
 
+// TODO: Rename this to `PrismaTeamRepository`
 export class TeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
@@ -182,54 +185,40 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  async findAllByParentId({
-    parentId,
-    select = teamSelect,
-  }: {
-    parentId: number;
-    select?: Prisma.TeamSelect;
-  }) {
+  async findAllByParentId({ parentId, select }: { parentId: number; select?: TeamSelect }) {
     return await this.prismaClient.team.findMany({
       where: {
         parentId,
       },
-      select,
+      select: select ? mapToPrismaSelect(select) : teamSelect,
     });
   }
 
-  async findByIdAndParentId({
-    id,
-    parentId,
-    select = teamSelect,
-  }: {
-    id: number;
-    parentId: number;
-    select?: Prisma.TeamSelect;
-  }) {
+  async findByIdAndParentId({ id, parentId, select }: { id: number; parentId: number; select?: TeamSelect }) {
     return await this.prismaClient.team.findFirst({
       where: {
         id,
         parentId,
       },
-      select,
+      select: select ? mapToPrismaSelect(select) : teamSelect,
     });
   }
 
   async findFirstBySlugAndParentSlug({
     slug,
     parentSlug,
-    select = teamSelect,
+    select,
   }: {
     slug: string;
     parentSlug: string | null;
-    select?: Prisma.TeamSelect;
+    select?: TeamSelect;
   }) {
     return await this.prismaClient.team.findFirst({
       where: {
         slug,
         parent: parentSlug ? whereClauseForOrgWithSlugOrRequestedSlug(parentSlug) : null,
       },
-      select,
+      select: select ? mapToPrismaSelect(select) : teamSelect,
     });
   }
 
