@@ -296,19 +296,19 @@ describe("createAIPhoneServiceProvider", () => {
     };
   });
 
-  it("should throw error when registry is not initialized", () => {
+  it("should automatically initialize registry when not initialized", () => {
     // Registry starts uninitialized
     expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
 
-    // Should throw error for uninitialized registry
+    // Should automatically initialize the registry and create provider
     expect(() => {
       createAIPhoneServiceProvider({
         config: { apiKey: "test-key" },
       });
-    }).toThrow("AIPhoneServiceRegistry not initialized");
+    }).not.toThrow();
 
-    // Registry should still be uninitialized
-    expect(AIPhoneServiceRegistry.isInitialized()).toBe(false);
+    // Registry should now be initialized
+    expect(AIPhoneServiceRegistry.isInitialized()).toBe(true);
   });
 
   it("should create provider with specified type and config", () => {

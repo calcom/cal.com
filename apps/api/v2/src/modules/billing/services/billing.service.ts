@@ -465,7 +465,7 @@ export class BillingService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     try {
-      
+
       await this.billingQueue.close();
     } catch (err) {
       this.logger.error(err);
