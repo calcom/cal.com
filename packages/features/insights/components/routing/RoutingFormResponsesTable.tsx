@@ -35,7 +35,7 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
 };
 
 export function RoutingFormResponsesTable() {
-  const { isAll, teamId, userId, memberUserIds, routingFormId, startDate, endDate, columnFilters } =
+  const { isAll, teamId, userId, routingFormId, startDate, endDate, columnFilters, scope, selectedTeamId } =
     useInsightsParameters();
 
   const { data: headers, isSuccess: isHeadersSuccess } =
@@ -56,19 +56,15 @@ export function RoutingFormResponsesTable() {
   const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
 
   const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
-    teamId,
     startDate,
     endDate,
-    userId,
-    memberUserIds,
-    isAll,
-    routingFormId,
-    columnFilters,
     sorting,
     limit,
     offset,
+    scope,
+    selectedTeamId,
+    columnFilters,
   });
-
   const processedData = useMemo(() => {
     if (!isHeadersSuccess || !data) return [];
     return data.data as RoutingFormTableRow[];
@@ -88,6 +84,9 @@ export function RoutingFormResponsesTable() {
       columnVisibility: {
         formId: false,
         bookingUserId: false,
+        attendeeName: false,
+        attendeeEmail: false,
+        attendeePhone: false,
         utm_source: false,
         utm_medium: false,
         utm_campaign: false,

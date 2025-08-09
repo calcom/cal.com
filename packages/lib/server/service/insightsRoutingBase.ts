@@ -12,6 +12,7 @@ import {
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import type { readonlyPrisma } from "@calcom/prisma";
+import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { MembershipRepository } from "../repository/membership";
@@ -51,7 +52,80 @@ export type InsightsRoutingServiceFilterOptions = {
   columnFilters?: TypedColumnFilter<ColumnFilterType>[];
 };
 
+export type InsightsRoutingTableItem = {
+  id: number;
+  uuid: string | null;
+  formId: string;
+  formName: string;
+  formTeamId: number | null;
+  formUserId: number;
+  bookingUid: string | null;
+  bookingId: number | null;
+  bookingStatus: BookingStatus | null;
+  bookingStatusOrder: number | null;
+  bookingCreatedAt: Date | null;
+  bookingUserId: number | null;
+  bookingUserName: string | null;
+  bookingUserEmail: string | null;
+  bookingUserAvatarUrl: string | null;
+  bookingAssignmentReason: string | null;
+  bookingStartTime: Date | null;
+  bookingEndTime: Date | null;
+  eventTypeId: number | null;
+  eventTypeParentId: number | null;
+  eventTypeSchedulingType: string | null;
+  createdAt: Date;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  bookingAttendees: Array<{
+    name: string;
+    timeZone: string;
+    email: string;
+    phoneNumber: string | null;
+  }>;
+  fields: Array<{
+    fieldId: string | null;
+    valueString: string | null;
+    valueNumber: number | null;
+    valueStringArray: string[] | null;
+  }>;
+};
+
 const NOTHING_CONDITION = Prisma.sql`1=0`;
+
+// Define allowed column names for sorting to prevent SQL injection
+const ALLOWED_SORT_COLUMNS = new Set([
+  "id",
+  "uuid",
+  "formId",
+  "formName",
+  "formTeamId",
+  "formUserId",
+  "bookingUid",
+  "bookingId",
+  "bookingStatus",
+  "bookingStatusOrder",
+  "bookingCreatedAt",
+  "bookingUserId",
+  "bookingUserName",
+  "bookingUserEmail",
+  "bookingUserAvatarUrl",
+  "bookingAssignmentReason",
+  "bookingStartTime",
+  "bookingEndTime",
+  "eventTypeId",
+  "eventTypeParentId",
+  "eventTypeSchedulingType",
+  "createdAt",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+]);
 
 export class InsightsRoutingBaseService {
   private prisma: typeof readonlyPrisma;
@@ -118,7 +192,7 @@ export class InsightsRoutingBaseService {
           END as "dateRange",
           "bookingUid",
           "bookingStatus"
-        FROM "RoutingFormResponseDenormalized"
+        FROM "RoutingFormResponseDenormalized" rfrd
         WHERE ${baseConditions}
       )
       SELECT
@@ -162,6 +236,166 @@ export class InsightsRoutingBaseService {
         formattedDateFull: dateRange.formattedDateFull,
       };
     });
+  }
+
+  /**
+   * Returns paginated table data for routing form responses.
+   * @param sorting Array of sorting objects with id and desc properties
+   * @param limit Number of records to return
+   * @param offset Number of records to skip
+   */
+  async getTableData({
+    sorting,
+    limit,
+    offset,
+  }: {
+    sorting?: Array<{ id: string; desc: boolean }>;
+    limit: number;
+    offset: number;
+  }) {
+    const baseConditions = await this.getBaseConditions();
+
+    // Build ORDER BY clause
+    const orderByClause = this.buildOrderByClause(sorting);
+
+    // Get total count
+    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      WHERE ${baseConditions}
+    `;
+
+    const totalCount = Number(totalCountResult[0]?.count || 0);
+
+    // Get paginated data with JSON aggregation for attendees and fields
+    const data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>`
+      SELECT
+        rfrd."id",
+        rfrd."uuid",
+        rfrd."formId",
+        rfrd."formName",
+        rfrd."formTeamId",
+        rfrd."formUserId",
+        rfrd."bookingUid",
+        rfrd."bookingId",
+        UPPER(rfrd."bookingStatus"::text) as "bookingStatus",
+        rfrd."bookingStatusOrder",
+        rfrd."bookingCreatedAt",
+        rfrd."bookingUserId",
+        rfrd."bookingUserName",
+        rfrd."bookingUserEmail",
+        rfrd."bookingUserAvatarUrl",
+        rfrd."bookingAssignmentReason",
+        rfrd."bookingStartTime",
+        rfrd."bookingEndTime",
+        rfrd."eventTypeId",
+        rfrd."eventTypeParentId",
+        rfrd."eventTypeSchedulingType",
+        rfrd."createdAt",
+        rfrd."utm_source",
+        rfrd."utm_medium",
+        rfrd."utm_campaign",
+        rfrd."utm_term",
+        rfrd."utm_content",
+        (
+          SELECT COALESCE(
+            json_agg(
+              json_build_object(
+                'name', a."name",
+                'timeZone', a."timeZone",
+                'email', a."email",
+                'phoneNumber', a."phoneNumber"
+              )
+            ) FILTER (WHERE a."id" IS NOT NULL),
+            '[]'::json
+          )
+          FROM "Booking" b2
+          LEFT JOIN "Attendee" a ON a."bookingId" = b2."id"
+          WHERE b2."uid" = rfrd."bookingUid"
+        ) as "bookingAttendees",
+        (
+          SELECT COALESCE(
+            json_agg(
+              json_build_object(
+                'fieldId', f."fieldId",
+                'valueString', f."valueString",
+                'valueNumber', f."valueNumber",
+                'valueStringArray', f."valueStringArray"
+              )
+            ) FILTER (WHERE f."fieldId" IS NOT NULL),
+            '[]'::json
+          )
+          FROM "RoutingFormResponseField" f
+          WHERE f."responseId" = rfrd."id"
+        ) as "fields"
+      FROM "RoutingFormResponseDenormalized" rfrd
+      WHERE ${baseConditions}
+      ${orderByClause}
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `;
+
+    return {
+      total: totalCount,
+      data,
+    };
+  }
+
+  async getRoutingFormStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    // Check if bookingUid filter is applied - if so, return null as metrics don't provide value
+    const bookingUid = this.filters.columnFilters?.find((filter) => filter.id === "bookingUid");
+    if (bookingUid && isTextFilterValue(bookingUid.value) && bookingUid.value.data) {
+      // If bookingUid filter is applied, total count should be either 0 or 1.
+      // So this metrics doesn't provide any value.
+      return null;
+    }
+
+    // Get total count
+    const totalResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      WHERE ${baseConditions}
+    `;
+
+    // Get total without booking count
+    const totalWithoutBookingResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      WHERE (${baseConditions}) AND ("bookingUid" IS NULL)
+    `;
+
+    const total = Number(totalResult[0]?.count || 0);
+    const totalWithoutBooking = Number(totalWithoutBookingResult[0]?.count || 0);
+
+    return {
+      total,
+      totalWithoutBooking,
+      totalWithBooking: total - totalWithoutBooking,
+    };
+  }
+
+  private buildOrderByClause(sorting?: Array<{ id: string; desc: boolean }>): Prisma.Sql {
+    if (!sorting || sorting.length === 0) {
+      return Prisma.sql`ORDER BY "createdAt" DESC`;
+    }
+
+    const orderByParts = sorting
+      .filter((sort) => ALLOWED_SORT_COLUMNS.has(sort.id))
+      .map((sort) => {
+        const direction = sort.desc ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+        return Prisma.sql`"${Prisma.raw(sort.id)}" ${direction}`;
+      });
+
+    if (orderByParts.length === 0) {
+      return Prisma.sql`ORDER BY "createdAt" DESC`;
+    }
+
+    return Prisma.sql`ORDER BY ${orderByParts.reduce((acc, part, index) => {
+      if (index === 0) return part;
+      return Prisma.sql`${acc}, ${part}`;
+    })}`;
   }
 
   async getBaseConditions(): Promise<Prisma.Sql> {
@@ -238,12 +472,30 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    // Extract booking attendees filter
-    const bookingAttendees = filtersMap["bookingAttendees"];
-    if (bookingAttendees && isTextFilterValue(bookingAttendees.value)) {
-      const attendeesCondition = this.buildAttendeeSqlCondition(bookingAttendees.value);
-      if (attendeesCondition) {
-        conditions.push(attendeesCondition);
+    // Extract attendee name filter
+    const attendeeName = filtersMap["attendeeName"];
+    if (attendeeName && isTextFilterValue(attendeeName.value)) {
+      const nameCondition = this.buildAttendeeSqlCondition(attendeeName.value, "name");
+      if (nameCondition) {
+        conditions.push(nameCondition);
+      }
+    }
+
+    // Extract attendee email filter
+    const attendeeEmail = filtersMap["attendeeEmail"];
+    if (attendeeEmail && isTextFilterValue(attendeeEmail.value)) {
+      const emailCondition = this.buildAttendeeSqlCondition(attendeeEmail.value, "email");
+      if (emailCondition) {
+        conditions.push(emailCondition);
+      }
+    }
+
+    // Extract attendee phone filter
+    const attendeePhone = filtersMap["attendeePhone"];
+    if (attendeePhone && isTextFilterValue(attendeePhone.value)) {
+      const phoneCondition = this.buildAttendeeSqlCondition(attendeePhone.value, "phone");
+      if (phoneCondition) {
+        conditions.push(phoneCondition);
       }
     }
 
@@ -262,18 +514,9 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    // Extract form field filters (exclude the system filters we already processed)
-    const alreadyHandledFilters = [
-      "bookingStatusOrder",
-      "bookingAssignmentReason",
-      "bookingUid",
-      "bookingAttendees",
-      "bookingUserId",
-      "formId",
-    ];
-
+    const fieldIdSchema = z.string().uuid();
     const fieldFilters = (this.filters.columnFilters || []).filter(
-      (filter) => !alreadyHandledFilters.includes(filter.id)
+      (filter) => fieldIdSchema.safeParse(filter.id).success
     );
 
     if (fieldFilters.length > 0) {
@@ -376,14 +619,14 @@ export class InsightsRoutingBaseService {
       // For multi-select fields, check if the field contains any of the selected values
       return Prisma.sql`EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${fieldId}
         AND rrf."valueStringArray" @> ${filterValue.data.map(String)}
       )`;
     } else if (isSingleSelectFilterValue(filterValue)) {
       return Prisma.sql`EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${fieldId}
         AND rrf."valueString" = ${filterValue.data}
       )`;
@@ -394,7 +637,7 @@ export class InsightsRoutingBaseService {
       }
       return Prisma.sql`EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${fieldId}
         AND rrf."valueString" ${condition}
       )`;
@@ -405,7 +648,7 @@ export class InsightsRoutingBaseService {
       }
       return Prisma.sql`EXISTS (
         SELECT 1 FROM "RoutingFormResponseField" rrf
-        WHERE rrf."responseId" = "RoutingFormResponseDenormalized"."id"
+        WHERE rrf."responseId" = rfrd."id"
         AND rrf."fieldId" = ${fieldId}
         AND rrf."valueNumber" ${condition}
       )`;
@@ -414,27 +657,40 @@ export class InsightsRoutingBaseService {
     }
   }
 
-  private buildAttendeeSqlCondition(filterValue: TextFilterValue): Prisma.Sql | null {
+  private buildAttendeeSqlCondition(
+    filterValue: TextFilterValue,
+    attendeeColumn: "name" | "email" | "phone"
+  ): Prisma.Sql | null {
     if (!isTextFilterValue(filterValue)) {
       return null;
     }
 
     const textCondition = makeSqlCondition(filterValue);
-
     if (!textCondition) {
       return null;
     }
 
-    const nameCondition = Prisma.sql`a.name ${textCondition}`;
-    const emailCondition = Prisma.sql`a.email ${textCondition}`;
-
-    const combinedCondition = Prisma.sql`(${nameCondition}) OR (${emailCondition})`;
+    // Use switch-case to avoid Prisma.raw for column names
+    let columnCondition: Prisma.Sql;
+    switch (attendeeColumn) {
+      case "name":
+        columnCondition = Prisma.sql`a.name ${textCondition}`;
+        break;
+      case "email":
+        columnCondition = Prisma.sql`a.email ${textCondition}`;
+        break;
+      case "phone":
+        columnCondition = Prisma.sql`a."phoneNumber" ${textCondition}`;
+        break;
+      default:
+        return null;
+    }
 
     return Prisma.sql`EXISTS (
       SELECT 1 FROM "Booking" b
       INNER JOIN "Attendee" a ON a."bookingId" = b."id"
-      WHERE b."uid" = "RoutingFormResponseDenormalized"."bookingUid"
-      AND (${combinedCondition})
+      WHERE b."uid" = rfrd."bookingUid"
+      AND ${columnCondition}
     )`;
   }
 }
