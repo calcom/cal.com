@@ -8,10 +8,11 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { EventManagerUser } from "@calcom/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
@@ -375,14 +376,7 @@ export async function handleConfirmation(args: {
   }
 
   try {
-    const subscribersBookingCreated = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
+
     const subscribersMeetingStarted = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -473,33 +467,18 @@ export async function handleConfirmation(args: {
       ...(platformClientParams ? platformClientParams : {}),
     };
 
-    const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_CREATED,
-        new Date().toISOString(),
-        sub,
-        payload
-      ).catch((e) => {
-        log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}, platformClientId: ${platformClientParams?.platformClientId}`,
-          safeStringify(e)
-        );
-      })
-    );
-
-    await Promise.all(promises);
+    await WebhookService.sendWebhook({
+      userId,
+      eventTypeId: booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+      teamId: eventType?.teamId,
+      orgId,
+      oAuthClientId: platformClientParams?.platformClientId,
+    }, payload);
 
     if (paid) {
       let paymentExternalId: string | undefined;
-      const subscriberMeetingPaid = await getWebhooks({
-        userId,
-        eventTypeId: booking.eventTypeId,
-        triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-        teamId: eventType?.teamId,
-        orgId,
-        oAuthClientId: platformClientParams?.platformClientId,
-      });
+      
       const bookingWithPayment = await prisma.booking.findUnique({
         where: {
           id: bookingId,
@@ -533,23 +512,14 @@ export async function handleConfirmation(args: {
         ...(paid ? paymentMetadata : {}),
       };
 
-      const bookingPaidSubscribers = subscriberMeetingPaid.map((sub) =>
-        sendPayload(
-          sub.secret,
-          WebhookTriggerEvents.BOOKING_PAID,
-          new Date().toISOString(),
-          sub,
-          payload
-        ).catch((e) => {
-          log.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-            safeStringify(e)
-          );
-        })
-      );
-
-      // I don't need to await for this
-      Promise.all(bookingPaidSubscribers);
+      WebhookService.sendWebhook({
+        userId,
+        eventTypeId: booking.eventTypeId,
+        triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
+        teamId: eventType?.teamId,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
+      }, payload);
     }
   } catch (error) {
     // Silently fail
