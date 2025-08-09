@@ -27,7 +27,7 @@ function getPageInfo(pathname: string, host: string) {
       return {
         username: splitPath[2],
         pageType: PageType.TEAM,
-        url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
+        url: `${WEBSITE_URL}/signup?callbackUrl=/settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
       };
     } else {
       return {
@@ -40,7 +40,7 @@ function getPageInfo(pathname: string, host: string) {
     return {
       username: currentOrgDomain ?? "",
       pageType: PageType.ORG,
-      url: `${WEBSITE_URL}/signup?callbackUrl=settings/organizations/new%3Fslug%3D${
+      url: `${WEBSITE_URL}/signup?callbackUrl=/settings/organizations/new%3Fslug%3D${
         currentOrgDomain?.replace("/", "") ?? ""
       }`,
     };
