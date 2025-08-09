@@ -384,6 +384,7 @@ export type BookingHandlerInput = {
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
+  googleApiCacheManager?: import("@calcom/app-store/_utils/googleapis").CachedFetchManager;
 } & PlatformParams;
 
 function formatAvailabilitySnapshot(data: {
@@ -418,6 +419,7 @@ async function handler(
     hostname,
     forcedSlug,
     areCalendarEventsEnabled = true,
+    googleApiCacheManager,
   } = input;
 
   const isPlatformBooking = !!platformClientId;
@@ -1548,7 +1550,7 @@ async function handler(
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = !isDryRun
-    ? new EventManager({ ...organizerUser, credentials }, apps)
+    ? new EventManager({ ...organizerUser, credentials }, apps, { googleApiCacheManager })
     : buildDryRunEventManager();
 
   let videoCallUrl;
