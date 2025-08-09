@@ -9893,6 +9893,188 @@
         ]
       }
     },
+    "/v2/event-types/{eventTypeId}/private-links": {
+      "post": {
+        "operationId": "EventTypesPrivateLinksController_createPrivateLink",
+        "summary": "Create a private link for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivateLinkInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypesPrivateLinksController_getPrivateLinks",
+        "summary": "Get all private links for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPrivateLinksOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/private-links/{linkId}": {
+      "patch": {
+        "operationId": "EventTypesPrivateLinksController_updatePrivateLink",
+        "summary": "Update a private link for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypesPrivateLinksController_deletePrivateLink",
+        "summary": "Delete a private link for an event type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event Types Private Links"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/organizations": {
       "post": {
         "operationId": "OrganizationsOrganizationsController_createOrganization",
@@ -28005,6 +28187,129 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamMembershipOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreatePrivateLinkInput": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used",
+            "example": 10,
+            "minimum": 1
+          }
+        }
+      },
+      "CreatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetPrivateLinksOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of private links for the event type (mix of time-based and usage-based)",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeletePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
           }
         },
         "required": [
