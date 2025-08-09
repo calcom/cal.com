@@ -76,6 +76,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
           end: true,
           summary: true,
           calendarSubscriptionId: true,
+          timeZone: true,
         },
         orderBy: { start: "asc" },
       });
@@ -111,6 +112,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
           end: true,
           summary: true,
           calendarSubscriptionId: true,
+          timeZone: true,
         },
         orderBy: { start: "asc" },
       });

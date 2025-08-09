@@ -188,7 +188,7 @@ export class CalendarCacheSqlService {
 
       // Filter past events if requested
       if (filterPastEvents && start < now) {
-        return acc;
+        return;
       }
 
       const end = event.end?.dateTime
@@ -261,29 +261,6 @@ export class CalendarCacheSqlService {
         googleCreatedAt: event.created ? new Date(event.created) : null,
         googleUpdatedAt: event.updated ? new Date(event.updated) : null,
       });
-
-      // capture people for this event
-      if (event.creator) {
-        creator = {
-          email: event.creator.email || null,
-          displayName: event.creator.displayName || null,
-          isSelf: Boolean(event.creator.self),
-        };
-      }
-      if (event.organizer) {
-        organizer = {
-          email: event.organizer.email || null,
-          displayName: event.organizer.displayName || null,
-          isSelf: Boolean(event.organizer.self),
-        };
-      }
-      attendees = (event.attendees || []).map((a) => ({
-        email: a.email || null,
-        displayName: a.displayName || null,
-        responseStatus: a.responseStatus || null,
-        isOrganizer: Boolean(a.organizer),
-        isSelf: Boolean(a.self),
-      }));
     });
 
     return events;
