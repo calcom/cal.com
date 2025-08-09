@@ -6,7 +6,10 @@ import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  deleteWebhookScheduledTriggers,
+  cancelNoShowTasksForBooking,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
@@ -154,6 +157,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
+  webhookPromises.push(cancelNoShowTasksForBooking({ bookingUid: bookingToReschedule.uid }));
 
   await Promise.all(webhookPromises).catch((error) => {
     log.error("Error while deleting scheduled webhook triggers", JSON.stringify({ error }));
