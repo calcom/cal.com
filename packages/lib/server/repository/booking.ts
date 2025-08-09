@@ -674,6 +674,7 @@ export class BookingRepository {
             email: true,
             locale: true,
             timeZone: true,
+            timeFormat: true,
             destinationCalendar: true,
             credentials: {
               select: credentialForCalendarServiceSelect,
