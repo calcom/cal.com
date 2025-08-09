@@ -13,7 +13,10 @@ describe("CalendarCacheSqlService", () => {
     mockSubscriptionRepo = {
       findBySelectedCalendar: vi.fn(),
       findByChannelId: vi.fn(),
+      findByCredentialId: vi.fn(),
+      findBySelectedCalendarIds: vi.fn(),
       upsert: vi.fn(),
+      upsertMany: vi.fn(),
       updateSyncToken: vi.fn(),
       updateWatchDetails: vi.fn(),
       getSubscriptionsToWatch: vi.fn(),
@@ -24,11 +27,21 @@ describe("CalendarCacheSqlService", () => {
     mockEventRepo = {
       upsertEvent: vi.fn(),
       getEventsForAvailability: vi.fn(),
+      getEventsForAvailabilityBatch: vi.fn(),
       deleteEvent: vi.fn(),
       bulkUpsertEvents: vi.fn(),
+      cleanupOldEvents: vi.fn(),
     };
 
-    service = new CalendarCacheSqlService(mockSubscriptionRepo, mockEventRepo);
+    const mockSelectedCalendarRepo = {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    service = new CalendarCacheSqlService(mockSubscriptionRepo, mockEventRepo, mockSelectedCalendarRepo);
   });
 
   describe("getAvailability", () => {
@@ -171,6 +184,129 @@ describe("CalendarCacheSqlService", () => {
 
       // Verify that sync token was updated
       expect(mockSubscriptionRepo.updateSyncToken).toHaveBeenCalledWith("subscription-id", "new-sync-token");
+    });
+
+    it("should capture participant data from Google Calendar events", async () => {
+      const mockSubscription = {
+        id: "subscription-id",
+        selectedCalendar: {
+          externalId: "test@example.com",
+        },
+        nextSyncToken: "sync-token",
+      };
+
+      const mockCredential = {
+        id: 1,
+        key: {
+          access_token: "mock-token",
+        },
+      };
+
+      const mockCalendar = {
+        events: {
+          list: vi.fn().mockResolvedValue({
+            data: {
+              items: [
+                {
+                  id: "event-with-participants",
+                  status: "confirmed",
+                  start: { dateTime: "2024-01-01T10:00:00Z" },
+                  end: { dateTime: "2024-01-01T11:00:00Z" },
+                  summary: "Meeting with Participants",
+                  creator: {
+                    email: "creator@example.com",
+                    displayName: "Event Creator",
+                    self: false,
+                  },
+                  organizer: {
+                    email: "organizer@example.com",
+                    displayName: "Event Organizer",
+                    self: true,
+                  },
+                  attendees: [
+                    {
+                      email: "attendee1@example.com",
+                      displayName: "Attendee One",
+                      responseStatus: "accepted",
+                      organizer: false,
+                      self: false,
+                    },
+                    {
+                      email: "attendee2@example.com",
+                      displayName: "Attendee Two",
+                      responseStatus: "tentative",
+                      organizer: false,
+                      self: false,
+                    },
+                  ],
+                },
+              ],
+              nextSyncToken: "new-sync-token",
+            },
+          }),
+        },
+      };
+
+      const mockGoogleCalendarService = {
+        authedCalendar: vi.fn().mockResolvedValue(mockCalendar),
+      };
+
+      // Mock the import
+      vi.doMock("@calcom/app-store/googlecalendar/lib/CalendarService", () => ({
+        default: vi.fn().mockImplementation(() => mockGoogleCalendarService),
+      }));
+
+      vi.mocked(mockSubscriptionRepo.findByChannelId).mockResolvedValue(mockSubscription as any);
+      vi.mocked(mockSubscriptionRepo.updateSyncToken).mockResolvedValue(undefined);
+      vi.mocked(mockEventRepo.bulkUpsertEvents).mockResolvedValue(undefined);
+
+      await service.processWebhookEvents("channel-id", mockCredential as any);
+
+      // Verify that bulkUpsertEvents was called with participant data
+      expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            googleEventId: "event-with-participants",
+            summary: "Meeting with Participants",
+            creator: expect.objectContaining({
+              create: expect.objectContaining({
+                email: "creator@example.com",
+                displayName: "Event Creator",
+                isSelf: false,
+              }),
+            }),
+            organizer: expect.objectContaining({
+              create: expect.objectContaining({
+                email: "organizer@example.com",
+                displayName: "Event Organizer",
+                isSelf: true,
+                isOrganizer: true,
+              }),
+            }),
+            attendees: expect.objectContaining({
+              createMany: expect.objectContaining({
+                data: expect.arrayContaining([
+                  expect.objectContaining({
+                    email: "attendee1@example.com",
+                    displayName: "Attendee One",
+                    responseStatus: "accepted",
+                    isOrganizer: false,
+                    isSelf: false,
+                  }),
+                  expect.objectContaining({
+                    email: "attendee2@example.com",
+                    displayName: "Attendee Two",
+                    responseStatus: "tentative",
+                    isOrganizer: false,
+                    isSelf: false,
+                  }),
+                ]),
+              }),
+            }),
+          }),
+        ]),
+        "subscription-id"
+      );
     });
   });
 });
