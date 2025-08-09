@@ -35,6 +35,7 @@ type UserPageProps = {
     } | null;
     allowSEOIndexing: boolean;
     username: string | null;
+    locked?: boolean;
   };
   users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
     profile: UserProfile;
@@ -144,6 +145,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,
+    locked: user.locked,
   };
 
   const dataFetchEnd = Date.now();
