@@ -4,11 +4,12 @@ const turndownService = new TurndownService();
 
 function turndown(html: string | TurndownService.Node): string {
   let result = turndownService.turndown(html);
-  result = result.replaceAll("[<p><br></p>]", "");
-
-  if (result === "<p><br></p>") {
-    result = "";
-  }
+  
+  // Clean up any excessive newlines (more than 2 consecutive)
+  result = result.replace(/\n{3,}/g, "\n\n");
+  
+  // Trim trailing whitespace while preserving intentional line breaks
+  result = result.replace(/[ \t]+$/gm, "");
 
   return result;
 }
@@ -18,7 +19,7 @@ turndownService.addRule("shiftEnter", {
     return node.nodeName === "BR" && !!isShiftEnter(node);
   },
   replacement: function () {
-    return "<br>";
+    return "  \n";
   },
 });
 
@@ -27,7 +28,7 @@ turndownService.addRule("enter", {
     return node.nodeName === "BR" && !isShiftEnter(node);
   },
   replacement: function () {
-    return "<p><br></p>";
+    return "\n\n";
   },
 });
 
