@@ -269,6 +269,23 @@ function BookingListItem(booking: BookingItemProps) {
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
+  const baseEditEventActions = getEditEventActions(actionContext);
+  const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
+    ...action,
+    onClick:
+      action.id === "reschedule_request"
+        ? () => setIsOpenRescheduleDialog(true)
+        : action.id === "reroute"
+        ? () => setRerouteDialogIsOpen(true)
+        : action.id === "change_location"
+        ? () => setIsOpenLocationDialog(true)
+        : action.id === "add_members"
+        ? () => setIsOpenAddGuestsDialog(true)
+        : action.id === "reassign"
+        ? () => setIsOpenReassignDialog(true)
+        : undefined,
+  })) as ActionType[];
+
   const RequestSentMessage = () => {
     return (
       <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
@@ -352,23 +369,6 @@ function BookingListItem(booking: BookingItemProps) {
     (typeof booking.location === "string" && booking.location.trim() === "");
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-
-  const baseEditEventActions = getEditEventActions(actionContext);
-  const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
-    ...action,
-    onClick:
-      action.id === "reschedule_request"
-        ? () => setIsOpenRescheduleDialog(true)
-        : action.id === "reroute"
-        ? () => setRerouteDialogIsOpen(true)
-        : action.id === "change_location"
-        ? () => setIsOpenLocationDialog(true)
-        : action.id === "add_members"
-        ? () => setIsOpenAddGuestsDialog(true)
-        : action.id === "reassign"
-        ? () => setIsOpenReassignDialog(true)
-        : undefined,
-  })) as ActionType[];
 
   const baseAfterEventActions = getAfterEventActions(actionContext);
   const afterEventActions: ActionType[] = baseAfterEventActions.map((action) => ({
@@ -687,18 +687,36 @@ function BookingListItem(booking: BookingItemProps) {
                       className="rounded-lg"
                       key={cancelEventAction.id}
                       disabled={cancelEventAction.disabled}>
-                      <DropdownItem
-                        type="button"
-                        color={cancelEventAction.color}
-                        StartIcon={cancelEventAction.icon}
-                        href={cancelEventAction.href}
-                        onClick={cancelEventAction.onClick}
-                        disabled={cancelEventAction.disabled}
-                        data-bookingid={cancelEventAction.bookingId}
-                        data-testid={cancelEventAction.id}
-                        className={cancelEventAction.disabled ? "text-muted" : undefined}>
-                        {cancelEventAction.label}
-                      </DropdownItem>
+                      {cancelEventAction.disabled && isBookingInPast ? (
+                        <Tooltip content={t("cannot_cancel_booking")}>
+                          <div className="w-full">
+                            <DropdownItem
+                              type="button"
+                              color={cancelEventAction.color}
+                              StartIcon={cancelEventAction.icon}
+                              disabled={true}
+                              data-bookingid={cancelEventAction.bookingId}
+                              data-testid={cancelEventAction.id}
+                              className="text-muted cursor-not-allowed"
+                              onClick={(e) => e.preventDefault()}>
+                              {cancelEventAction.label}
+                            </DropdownItem>
+                          </div>
+                        </Tooltip>
+                      ) : (
+                        <DropdownItem
+                          type="button"
+                          color={cancelEventAction.color}
+                          StartIcon={cancelEventAction.icon}
+                          href={cancelEventAction.href}
+                          onClick={cancelEventAction.onClick}
+                          disabled={cancelEventAction.disabled}
+                          data-bookingid={cancelEventAction.bookingId}
+                          data-testid={cancelEventAction.id}
+                          className={cancelEventAction.disabled ? "text-muted" : undefined}>
+                          {cancelEventAction.label}
+                        </DropdownItem>
+                      )}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenuPortal>
