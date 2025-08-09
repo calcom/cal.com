@@ -134,6 +134,8 @@ export class CreditsRepository {
             bookingUid: true,
             smsSid: true,
             smsSegments: true,
+            phoneNumber: true,
+            email: true,
           },
         },
       },
