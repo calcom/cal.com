@@ -103,6 +103,10 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     useEventLevelSelectedCalendars: z.boolean().optional(),
     seatsPerTimeSlot: z.number().min(1).max(MAX_SEATS_PER_TIME_SLOT).nullable().optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
+    optionalGuestTeamMembers: z
+      .array(z.object({ id: z.number() }))
+      .nullable()
+      .optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);

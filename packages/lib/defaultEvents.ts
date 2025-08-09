@@ -146,6 +146,7 @@ const commons = {
   instantMeetingParameters: [],
   eventTypeColor: null,
   hostGroups: [],
+  optionalGuestTeamMembers: [],
 };
 
 export const dynamicEvent = {
