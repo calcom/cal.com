@@ -76,7 +76,17 @@ export const zoomUserSettingsSchema = z.object({
     .nullish(),
   in_meeting: z
     .object({
-      waiting_room: z.boolean(),
+      meeting_summary_with_ai_companion: z
+        .object({
+          auto_enable: z.boolean().optional(),
+        })
+        .optional(),
+      ai_companion_questions: z
+        .object({
+          auto_enable: z.boolean().optional(),
+        })
+        .optional(),
+      waiting_room: z.boolean().nullish(),
     })
     .nullish(),
   meeting_security: z
@@ -95,7 +105,7 @@ export const zoomUserSettingsSchema = z.object({
 // https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
 // append comma separated settings here, to retrieve only these specific settings
 const settingsApiFilterResp =
-  "default_password_for_scheduled_meetings,auto_recording,waiting_room,waiting_room_settings";
+  "default_password_for_scheduled_meetings,auto_recording,waiting_room,waiting_room_settings,in_meeting";
 
 type ZoomRecurrence = {
   end_date_time?: string;
@@ -217,6 +227,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         auto_recording: userSettings?.recording?.auto_recording || "none",
         enforce_login: false,
         registrants_email_notification: true,
+        auto_start_meeting_summary:
+          userSettings?.in_meeting?.meeting_summary_with_ai_companion?.auto_enable ?? false,
+        auto_start_ai_companion_questions:
+          userSettings?.in_meeting?.ai_companion_questions?.auto_enable ?? false,
         waiting_room: waitingRoomEnabled,
         ...(hasAdvancedWaitingRoomSettings && {
           waiting_room_settings: advancedWaitingRoomSettings,
