@@ -1,4 +1,8 @@
+import { prisma } from "@calcom/prisma";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+
 import type { LazyModule, SWHMap } from "./__handler";
+import { HttpCode } from "./__handler";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
 
@@ -8,6 +12,22 @@ const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const subscription = data.object;
+
+  // Check if this is a phone number subscription first
+  const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
+    where: {
+      stripeSubscriptionId: subscription.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (phoneNumber) {
+    return await handlePhoneNumberSubscriptionDeleted(subscription, phoneNumber);
+  }
+
+  // Fall back to product-based handling for other subscriptions
   let productId: string | null = null;
   // @ts-expect-error - support legacy just in case.
   if (subscription.plan) {
@@ -45,6 +65,34 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   }
   return await handler(data);
 };
+
+async function handlePhoneNumberSubscriptionDeleted(
+  subscription: Data["object"],
+  phoneNumber: { id: number }
+) {
+  if (!subscription.id) {
+    throw new HttpCode(400, "Subscription ID not found");
+  }
+
+  try {
+    await prisma.calAiPhoneNumber.update({
+      where: {
+        id: phoneNumber.id,
+      },
+      data: {
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        outboundAgent: {
+          disconnect: true,
+        },
+      },
+    });
+
+    return { success: true, subscriptionId: subscription.id };
+  } catch (error) {
+    console.error("Failed to update phone number subscription:", error);
+    throw new HttpCode(500, "Failed to update phone number subscription");
+  }
+}
 
 export default stripeWebhookProductHandler({
   [STRIPE_TEAM_PRODUCT_ID]: () => import("./_customer.subscription.deleted.team-plan"),

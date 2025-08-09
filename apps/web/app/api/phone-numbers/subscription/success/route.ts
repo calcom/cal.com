@@ -1,0 +1,94 @@
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type Stripe from "stripe";
+import { z } from "zod";
+
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
+
+const querySchema = z.object({
+  session_id: z.string().min(1),
+});
+
+const checkoutSessionMetadataSchema = z.object({
+  userId: z.string().transform(Number),
+  teamId: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
+  eventTypeId: z
+    .string()
+    .optional()
+    .transform((val) => (val ? Number(val) : undefined)),
+  agentId: z.string().optional(),
+  workflowId: z.string().optional(),
+  type: z.literal("phone_number_subscription"),
+});
+
+type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
+
+async function handler(request: NextRequest) {
+  try {
+    const { session_id } = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
+    const checkoutSession = await getCheckoutSession(session_id);
+    const metadata = validateAndExtractMetadata(checkoutSession);
+
+    return redirectToSuccess(metadata);
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+async function getCheckoutSession(sessionId: string) {
+  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
+  if (!session) {
+    throw new HttpError({ statusCode: 404, message: "Checkout session not found" });
+  }
+  return session;
+}
+
+function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutSessionMetadata {
+  if (session.payment_status !== "paid") {
+    throw new HttpError({ statusCode: 402, message: "Payment required" });
+  }
+  if (!session.subscription) {
+    throw new HttpError({ statusCode: 400, message: "No subscription found in checkout session" });
+  }
+
+  const result = checkoutSessionMetadataSchema.safeParse(session.metadata);
+  if (!result.success) {
+    throw new HttpError({
+      statusCode: 400,
+      message: `Invalid checkout session metadata: ${result.error}`,
+    });
+  }
+
+  return result.data;
+}
+
+function redirectToSuccess(metadata: CheckoutSessionMetadata) {
+  const basePath = metadata.workflowId
+    ? `${WEBAPP_URL}/workflows/${metadata.workflowId}`
+    : `${WEBAPP_URL}/workflows`;
+
+  return NextResponse.redirect(basePath);
+}
+
+function handleError(error: unknown) {
+  console.error("Error handling phone number subscription success:", error);
+
+  const url = new URL(`${WEBAPP_URL}/workflows`);
+  url.searchParams.set("error", "true");
+
+  if (error instanceof HttpError) {
+    url.searchParams.set("message", error.message);
+  } else {
+    url.searchParams.set("message", "An error occurred while processing your subscription");
+  }
+
+  return NextResponse.redirect(url.toString());
+}
+
+export const GET = defaultResponderForAppDir(handler);
