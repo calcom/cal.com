@@ -1574,6 +1574,24 @@ async function handler(
       evt.iCalUID = undefined;
     }
 
+    if (changedOrganizer && originalRescheduledBooking?.user) {
+      const originalHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+        originalRescheduledBooking.user,
+        eventType
+      );
+      const refreshedOriginalHostCredentials = await refreshCredentials(originalHostCredentials);
+
+      // Create EventManager with original host's credentials for deletion operations
+      const originalHostEventManager = new EventManager(
+        { ...originalRescheduledBooking.user, credentials: refreshedOriginalHostCredentials },
+        apps
+      );
+      log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+      await originalHostEventManager.deleteEventsAndMeetings({
+        event: { ...evt, destinationCalendar: previousHostDestinationCalendar },
+        bookingReferences: originalRescheduledBooking.references,
+      });
+    }
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
@@ -1731,6 +1749,7 @@ async function handler(
 
           originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
+            username: originalRescheduledBooking.user.username ?? undefined,
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
           });

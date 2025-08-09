@@ -7,6 +7,7 @@ import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import { UserRepository } from "./user";
 
@@ -669,25 +670,13 @@ export class BookingRepository {
           select: {
             id: true,
             name: true,
+            username: true,
             email: true,
             locale: true,
             timeZone: true,
             destinationCalendar: true,
             credentials: {
-              select: {
-                id: true,
-                userId: true,
-                key: true,
-                type: true,
-                teamId: true,
-                appId: true,
-                invalid: true,
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
+              select: credentialForCalendarServiceSelect,
             },
           },
         },
