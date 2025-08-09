@@ -14961,6 +14961,28 @@
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
+          "position": {
+            "type": "number",
+            "description": "Position of the event type in the list. Lower numbers appear first.",
+            "example": 0
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Whether the event type should be hidden from public view.",
+            "example": false
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom metadata for the event type. Can include pricing information, custom settings, etc.",
+            "example": {
+              "apps": {
+                "stripe": {
+                  "price": 1000,
+                  "currency": "usd"
+                }
+              }
+            }
+          },
           "bookerLayouts": {
             "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
             "allOf": [
@@ -16421,6 +16443,14 @@
           "metadata": {
             "type": "object"
           },
+          "position": {
+            "type": "number",
+            "example": 0
+          },
+          "hidden": {
+            "type": "boolean",
+            "example": false
+          },
           "price": {
             "type": "number"
           },
@@ -16546,6 +16576,8 @@
           "disableGuests",
           "recurrence",
           "metadata",
+          "position",
+          "hidden",
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
@@ -16766,6 +16798,38 @@
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price for an event type",
+            "example": 0
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency for price associated with the event type",
+            "example": 0
+          },
+          "position": {
+            "type": "number",
+            "description": "Position of the event type in the list. Lower numbers appear first.",
+            "example": 0
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Whether the event type should be hidden from public view",
+            "example": false
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom metadata for the event type. Can include pricing information, custom settings, etc.",
+            "example": {
+              "apps": {
+                "stripe": {
+                  "price": 1000,
+                  "currency": "usd"
+                }
+              }
+            }
           },
           "bookerLayouts": {
             "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
@@ -18330,6 +18394,28 @@
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
           },
+          "position": {
+            "type": "number",
+            "description": "Position of the event type in the list. Lower numbers appear first.",
+            "example": 0
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Whether the event type should be hidden from public view",
+            "example": false
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom metadata for the event type. Can include pricing information, custom settings, etc.",
+            "example": {
+              "apps": {
+                "stripe": {
+                  "price": 1000,
+                  "currency": "usd"
+                }
+              }
+            }
+          },
           "bookerLayouts": {
             "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",
             "allOf": [
@@ -18712,6 +18798,14 @@
           "metadata": {
             "type": "object"
           },
+          "position": {
+            "type": "number",
+            "example": 0
+          },
+          "hidden": {
+            "type": "boolean",
+            "example": false
+          },
           "price": {
             "type": "number"
           },
@@ -18857,6 +18951,8 @@
           "disableGuests",
           "recurrence",
           "metadata",
+          "position",
+          "hidden",
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
@@ -19141,6 +19237,38 @@
           "offsetStart": {
             "type": "number",
             "description": "Offset timeslots shown to bookers by a specified number of minutes"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price for an event type",
+            "example": 0
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency for price associated with the event type",
+            "example": 0
+          },
+          "position": {
+            "type": "number",
+            "description": "Position of the event type in the list. Lower numbers appear first.",
+            "example": 0
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "Whether the event type should be hidden from public view",
+            "example": false
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Custom metadata for the event type. Can include pricing information, custom settings, etc.",
+            "example": {
+              "apps": {
+                "stripe": {
+                  "price": 1000,
+                  "currency": "usd"
+                }
+              }
+            }
           },
           "bookerLayouts": {
             "description": "Should booker have week, month or column view. Specify default layout and enabled layouts user can pick.",

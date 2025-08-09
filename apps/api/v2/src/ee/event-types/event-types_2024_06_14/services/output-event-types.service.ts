@@ -203,6 +203,8 @@ export class OutputEventTypesService_2024_06_14 {
       hideCalendarEventDetails,
       hideOrganizerEmail,
       calVideoSettings,
+      position: (databaseEventType as any).position ?? 0,
+      hidden: (databaseEventType as any).hidden ?? false,
     };
   }
 
