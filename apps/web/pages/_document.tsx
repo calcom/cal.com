@@ -5,7 +5,7 @@ import Document, { Head, Html, Main, NextScript } from "next/document";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 
-import { applyTheme } from "./_applyThemeForDocument";
+import { applyTheme, applyToDesktopClass } from "./_applyThemeForDocument";
 
 type Props = Record<string, unknown> & DocumentProps & { newLocale: string };
 
@@ -50,6 +50,7 @@ class MyDocument extends Document<Props> {
               __html: `
               window.calNewLocale = "${newLocale}";
               (${applyTheme.toString()})();
+              (${applyToDesktopClass.toString()})();
             `,
             }}
           />
