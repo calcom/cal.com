@@ -5,6 +5,8 @@ import type { IconName } from "@calcom/ui/components/icon";
 
 export type { SortingState } from "@tanstack/react-table";
 
+export const SYSTEM_SEGMENT_PREFIX = "system_";
+
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",
   MULTI_SELECT = "ms",
@@ -255,9 +257,30 @@ export type FilterSegmentOutput = {
   team: { id: number; name: string } | null;
 };
 
+export type SystemFilterSegment = {
+  id: string;
+  name: string;
+  icon?: IconName;
+  activeFilters: ActiveFilters;
+  sorting?: SortingState;
+  columnVisibility?: Record<string, boolean>;
+  columnSizing?: Record<string, number>;
+  perPage?: number;
+  searchTerm?: string | null;
+  type: "system";
+};
+
+export type UserFilterSegment = FilterSegmentOutput & {
+  type: "user";
+};
+
+export type CombinedFilterSegment = SystemFilterSegment | UserFilterSegment;
+
+export type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
+
 export type FilterSegmentsListResponse = {
   segments: FilterSegmentOutput[];
-  preferredSegmentId: number | null;
+  preferredSegmentId: SegmentIdentifier | null;
 };
 
 export type SegmentStorage = {
@@ -284,8 +307,8 @@ export type UseSegmentsProps = {
   pageSize: number;
   searchTerm: string;
   defaultPageSize: number;
-  segmentId: number;
-  setSegmentId: (segmentId: number | null) => void;
+  segmentId: SegmentIdentifier | null;
+  setSegmentId: (segmentId: SegmentIdentifier | null) => void;
   setActiveFilters: (activeFilters: ActiveFilters) => void;
   setSorting: (sorting: SortingState) => void;
   setColumnVisibility: (columnVisibility: VisibilityState) => void;
@@ -294,13 +317,14 @@ export type UseSegmentsProps = {
   setPageIndex: (pageIndex: number) => void;
   setSearchTerm: (searchTerm: string | null) => void;
   segments?: FilterSegmentOutput[];
-  preferredSegmentId?: number | null;
+  preferredSegmentId?: SegmentIdentifier | null;
+  systemSegments?: SystemFilterSegment[];
 };
 
 export type UseSegmentsReturn = {
-  segments: FilterSegmentOutput[];
-  selectedSegment: FilterSegmentOutput | undefined;
+  segments: CombinedFilterSegment[];
+  selectedSegment: CombinedFilterSegment | undefined;
   canSaveSegment: boolean;
-  setAndPersistSegmentId: (segmentId: number | null) => void;
+  setAndPersistSegmentId: (segmentId: SegmentIdentifier | null) => void;
   isSegmentEnabled: boolean;
 };

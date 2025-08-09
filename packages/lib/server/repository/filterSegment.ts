@@ -1,4 +1,4 @@
-import type { FilterSegmentOutput } from "@calcom/features/data-table/lib/types";
+import type { FilterSegmentOutput, SegmentIdentifier } from "@calcom/features/data-table/lib/types";
 import {
   ZActiveFilters,
   ZSortingState,
@@ -13,7 +13,7 @@ import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema }
 export interface IFilterSegmentRepository {
   get({ userId, tableIdentifier }: { userId: number; tableIdentifier: string }): Promise<{
     segments: FilterSegmentOutput[];
-    preferredSegmentId: number | null;
+    preferredSegmentId: SegmentIdentifier | null;
   }>;
 
   create({
@@ -41,7 +41,7 @@ export interface IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: number | null;
+    segmentId: SegmentIdentifier | null;
   }): Promise<UserFilterSegmentPreference | null>;
 }
 
@@ -124,12 +124,19 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       },
       select: {
         segmentId: true,
+        systemSegmentId: true,
       },
     });
 
+    const preferredSegmentId = preference?.segmentId
+      ? { id: preference.segmentId, type: "user" as const }
+      : preference?.systemSegmentId
+      ? { id: preference.systemSegmentId, type: "system" as const }
+      : null;
+
     return {
       segments: parsedSegments,
-      preferredSegmentId: preference?.segmentId || null,
+      preferredSegmentId,
     };
   }
 
@@ -282,7 +289,7 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
   }: {
     userId: number;
     tableIdentifier: string;
-    segmentId: number | null;
+    segmentId: SegmentIdentifier | null;
   }) {
     if (segmentId === null) {
       await prisma.userFilterSegmentPreference.deleteMany({
@@ -294,6 +301,18 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
       return null;
     }
 
+    const isSystemSegment = segmentId.type === "system";
+
+    const updateData = isSystemSegment
+      ? {
+          segmentId: null,
+          systemSegmentId: segmentId.id,
+        }
+      : {
+          segmentId: segmentId.id,
+          systemSegmentId: null,
+        };
+
     const preference = await prisma.userFilterSegmentPreference.upsert({
       where: {
         userId_tableIdentifier: {
@@ -301,13 +320,11 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
           tableIdentifier,
         },
       },
-      update: {
-        segmentId,
-      },
+      update: updateData,
       create: {
         userId,
         tableIdentifier,
-        segmentId,
+        ...updateData,
       },
     });
 

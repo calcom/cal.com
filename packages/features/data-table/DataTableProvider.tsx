@@ -22,8 +22,12 @@ import {
 import {
   type FilterValue,
   type FilterSegmentOutput,
+  type SystemFilterSegment,
+  type CombinedFilterSegment,
+  type SegmentIdentifier,
   type ActiveFilters,
   type UseSegments,
+  SYSTEM_SEGMENT_PREFIX,
 } from "./lib/types";
 import { CTA_CONTAINER_CLASS_NAME } from "./lib/utils";
 
@@ -55,10 +59,10 @@ export type DataTableContextType = {
   offset: number;
   limit: number;
 
-  segments: FilterSegmentOutput[];
-  selectedSegment: FilterSegmentOutput | undefined;
-  segmentId: number | undefined;
-  setSegmentId: (id: number | null) => void;
+  segments: CombinedFilterSegment[];
+  selectedSegment: CombinedFilterSegment | undefined;
+  segmentId: SegmentIdentifier | null;
+  setSegmentId: (id: SegmentIdentifier | null) => void;
   canSaveSegment: boolean;
   isSegmentEnabled: boolean;
 
@@ -78,7 +82,8 @@ interface DataTableProviderProps {
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
   timeZone?: string;
-  preferredSegmentId?: number | null;
+  preferredSegmentId?: SegmentIdentifier | null;
+  systemSegments?: SystemFilterSegment[];
 }
 
 export function DataTableProvider({
@@ -90,6 +95,7 @@ export function DataTableProvider({
   segments: providedSegments,
   timeZone,
   preferredSegmentId,
+  systemSegments,
 }: DataTableProviderProps) {
   const filterToOpen = useRef<string | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
@@ -99,9 +105,38 @@ export function DataTableProvider({
     columnVisibilityParser
   );
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
-  const [segmentId, setSegmentId] = useQueryState(
-    "segment",
-    segmentIdParser.withDefault(preferredSegmentId ?? -1)
+  const [segmentIdString, setSegmentIdString] = useQueryState("segment", segmentIdParser);
+
+  const segmentId = useMemo((): SegmentIdentifier | null => {
+    const fallback = preferredSegmentId ?? { id: -1, type: "user" };
+    if (!segmentIdString || segmentIdString === "") {
+      return fallback;
+    }
+
+    if (segmentIdString && segmentIdString.startsWith(SYSTEM_SEGMENT_PREFIX)) {
+      return {
+        id: segmentIdString,
+        type: "system",
+      };
+    }
+
+    const numericId = parseInt(segmentIdString, 10);
+    if (!isNaN(numericId)) {
+      return { id: numericId, type: "user" };
+    }
+
+    return fallback;
+  }, [segmentIdString, preferredSegmentId]);
+
+  const setSegmentId = useCallback(
+    (id: SegmentIdentifier | null) => {
+      if (id === null) {
+        setSegmentIdString("");
+      } else {
+        setSegmentIdString(String(id.id));
+      }
+    },
+    [setSegmentIdString]
   );
   const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
   const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
@@ -195,6 +230,7 @@ export function DataTableProvider({
       setSearchTerm,
       segments: providedSegments,
       preferredSegmentId,
+      systemSegments,
     }
   );
 
@@ -243,7 +279,7 @@ export function DataTableProvider({
         offset: pageIndex * pageSize,
         segments,
         selectedSegment,
-        segmentId: segmentId || undefined,
+        segmentId,
         setSegmentId: setAndPersistSegmentId,
         canSaveSegment,
         isSegmentEnabled,

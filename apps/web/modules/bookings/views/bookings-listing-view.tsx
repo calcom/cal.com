@@ -17,6 +17,7 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
+  type SystemFilterSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -57,9 +58,41 @@ type BookingsProps = {
   status: (typeof validStatuses)[number];
 };
 
+function useSystemSegments() {
+  const { data: user } = useMeQuery();
+  const { t } = useLocale();
+
+  const systemSegments: SystemFilterSegment[] = useMemo(() => {
+    if (!user) return [];
+
+    return [
+      {
+        id: "my_bookings",
+        name: t("my_bookings"),
+        icon: "user",
+        type: "system",
+        activeFilters: [
+          {
+            f: "userId",
+            v: {
+              type: ColumnFilterType.MULTI_SELECT,
+              data: [user.id],
+            },
+          },
+        ],
+        sorting: [{ id: "startTime", desc: false }],
+        perPage: 10,
+      },
+    ];
+  }, [user, t]);
+
+  return systemSegments;
+}
+
 export default function Bookings(props: BookingsProps) {
+  const systemSegments = useSystemSegments();
   return (
-    <DataTableProvider useSegments={useSegments}>
+    <DataTableProvider useSegments={useSegments} systemSegments={systemSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );

@@ -5,7 +5,7 @@ import { useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { recalculateDateRange } from "../lib/dateRange";
-import { type UseSegments } from "../lib/types";
+import { type UseSegments, type SegmentIdentifier, SYSTEM_SEGMENT_PREFIX } from "../lib/types";
 import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({
@@ -28,6 +28,7 @@ export const useSegments: UseSegments = ({
   setSearchTerm,
   segments: providedSegments,
   preferredSegmentId,
+  systemSegments = [],
 }) => {
   const { data: rawSegments, isFetching: isFetchingSegments } = trpc.viewer.filterSegments.list.useQuery(
     {
@@ -40,13 +41,14 @@ export const useSegments: UseSegments = ({
 
   const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation();
 
-  // Recalculate date ranges based on the current timestamp
   const segments = useMemo(() => {
     const segmentsSource = providedSegments || rawSegments?.segments;
-    if (!segmentsSource) return [];
+    const userSegments = segmentsSource || [];
 
-    return segmentsSource.map((segment) => ({
+    const processedDefaultSegments = systemSegments.map((segment) => ({
       ...segment,
+      id: `${SYSTEM_SEGMENT_PREFIX}${segment.id}`,
+      type: "system" as const,
       activeFilters: segment.activeFilters.map((filter) => {
         if (isDateRangeFilterValue(filter.v)) {
           return {
@@ -57,15 +59,45 @@ export const useSegments: UseSegments = ({
         return filter;
       }),
     }));
-  }, [rawSegments, providedSegments]);
+
+    const processedUserSegments = userSegments.map((segment) => ({
+      ...segment,
+      type: "user" as const,
+      activeFilters: segment.activeFilters.map((filter) => {
+        if (isDateRangeFilterValue(filter.v)) {
+          return {
+            ...filter,
+            v: recalculateDateRange(filter.v),
+          };
+        }
+        return filter;
+      }),
+    }));
+
+    return [...processedDefaultSegments, ...processedUserSegments];
+  }, [rawSegments, providedSegments, systemSegments]);
 
   const selectedSegment = useMemo(() => {
-    return segments?.find((segment) => segment.id === segmentId);
+    if (!segmentId) return undefined;
+
+    return segments?.find((segment) => {
+      if (segment.type === "system") {
+        return segmentId.type === "system" && segment.id === segmentId.id;
+      } else {
+        return segmentId.type === "user" && segment.id === segmentId.id;
+      }
+    });
   }, [segments, segmentId]);
 
   useEffect(() => {
-    if (segments && segmentId > 0 && !isFetchingSegments) {
-      const segment = segments.find((segment) => segment.id === segmentId);
+    if (segments && segmentId && !isFetchingSegments) {
+      const segment = segments.find((segment) => {
+        if (segment.type === "system") {
+          return segmentId.type === "system" && segment.id === segmentId.id;
+        } else {
+          return segmentId.type === "user" && segment.id === segmentId.id;
+        }
+      });
       if (!segment) {
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
         // but we still keep all the other states like activeFilters, etc.
@@ -82,7 +114,13 @@ export const useSegments: UseSegments = ({
 
   useEffect(() => {
     if (memoizedPreferredSegmentId) {
-      setSegmentId(memoizedPreferredSegmentId);
+      if (typeof memoizedPreferredSegmentId === "object") {
+        setSegmentId(memoizedPreferredSegmentId);
+      } else if (typeof memoizedPreferredSegmentId === "string") {
+        setSegmentId({ id: memoizedPreferredSegmentId, type: "system" });
+      } else if (typeof memoizedPreferredSegmentId === "number") {
+        setSegmentId({ id: memoizedPreferredSegmentId, type: "user" });
+      }
     }
   }, [memoizedPreferredSegmentId, setSegmentId]);
 
@@ -90,11 +128,11 @@ export const useSegments: UseSegments = ({
     if (selectedSegment) {
       // segment is selected, so we apply the filters, sorting, etc. from the segment
       setActiveFilters(selectedSegment.activeFilters);
-      setSorting(selectedSegment.sorting);
-      setColumnVisibility(selectedSegment.columnVisibility);
-      setColumnSizing(selectedSegment.columnSizing);
-      setPageSize(selectedSegment.perPage);
-      setSearchTerm(selectedSegment.searchTerm);
+      setSorting(selectedSegment.sorting || []);
+      setColumnVisibility(selectedSegment.columnVisibility || {});
+      setColumnSizing(selectedSegment.columnSizing || {});
+      setPageSize(selectedSegment.perPage || defaultPageSize);
+      setSearchTerm(selectedSegment.searchTerm || null);
       setPageIndex(0);
     }
   }, [
@@ -142,7 +180,7 @@ export const useSegments: UseSegments = ({
   ]);
 
   const setAndPersistSegmentId = useCallback(
-    (segmentId: number | null) => {
+    (segmentId: SegmentIdentifier | null) => {
       setSegmentId(segmentId);
       setPreference({
         tableIdentifier,
