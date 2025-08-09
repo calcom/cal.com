@@ -100,6 +100,10 @@ type Props = {
   };
   isHost: boolean;
   internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
+  teamCancellationSettings?: {
+    mandatoryCancellationReasonForHost: boolean;
+    mandatoryCancellationReasonForAttendee: boolean;
+  } | null;
 };
 
 export default function CancelBooking(props: Props) {
@@ -118,6 +122,16 @@ export default function CancelBooking(props: Props) {
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
+
+  const isCancellationReasonRequired = () => {
+    if (!props.teamCancellationSettings) return props.isHost;
+
+    if (props.isHost) return props.teamCancellationSettings.mandatoryCancellationReasonForHost;
+
+    return props.teamCancellationSettings.mandatoryCancellationReasonForAttendee;
+  };
+
+  const isRequired = isCancellationReasonRequired();
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -168,7 +182,7 @@ export default function CancelBooking(props: Props) {
             </>
           )}
 
-          <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+          <Label>{isRequired ? t("cancellation_reason_required") : t("cancellation_reason_optional")}</Label>
 
           <TextArea
             data-testid="cancel_reason"
@@ -198,7 +212,7 @@ export default function CancelBooking(props: Props) {
               <Button
                 data-testid="confirm_cancel"
                 disabled={
-                  props.isHost &&
+                  isRequired &&
                   (!cancellationReason?.trim() || (props.internalNotePresets.length > 0 && !internalNote?.id))
                 }
                 onClick={async () => {
