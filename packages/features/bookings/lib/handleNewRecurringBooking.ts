@@ -2,6 +2,10 @@ import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
+import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 export type PlatformParams = {
   platformClientId?: string;
@@ -20,6 +24,74 @@ export type BookingHandlerInput = {
   forcedSlug?: string;
   noEmail?: boolean;
 } & PlatformParams;
+
+/**
+ * Check for overlapping bookings across all recurring dates
+ */
+async function checkForOverlappingRecurringBookings({
+  eventTypeId,
+  recurringDates,
+  rescheduleUid,
+}: {
+  eventTypeId: number;
+  recurringDates: { start: string | undefined; end: string | undefined }[];
+  rescheduleUid?: string;
+}) {
+  for (const date of recurringDates) {
+    if (!date.start || !date.end) continue;
+
+    const startTime = new Date(date.start);
+    const endTime = new Date(date.end);
+
+    const overlappingBookings = await prisma.booking.findFirst({
+      where: {
+        eventTypeId,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+        },
+        // Check for overlapping time ranges
+        OR: [
+          // New booking starts during an existing booking
+          {
+            startTime: { lte: startTime },
+            endTime: { gt: startTime },
+          },
+          // New booking ends during an existing booking
+          {
+            startTime: { lt: endTime },
+            endTime: { gte: endTime },
+          },
+          // New booking completely contains an existing booking
+          {
+            startTime: { gte: startTime },
+            endTime: { lte: endTime },
+          },
+          // New booking is completely contained within an existing booking
+          {
+            startTime: { lte: startTime },
+            endTime: { gte: endTime },
+          },
+        ],
+        // Exclude the booking being rescheduled
+        ...(rescheduleUid && { uid: { not: rescheduleUid } }),
+      },
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+      },
+    });
+
+    if (overlappingBookings) {
+      throw new HttpError({
+        statusCode: 409,
+        message: ErrorCode.BookingConflict,
+      });
+    }
+  }
+}
 
 export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
   const data = input.bookingData;
@@ -48,6 +120,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
     platformBookingLocation: input.platformBookingLocation,
     areCalendarEventsEnabled: input.areCalendarEventsEnabled,
   };
+
+  // Check for overlapping bookings before processing any recurring bookings
+  await checkForOverlappingRecurringBookings({
+    eventTypeId: firstBooking.eventTypeId,
+    recurringDates: allRecurringDates,
+    rescheduleUid: firstBooking.rescheduleUid,
+  });
 
   if (isRoundRobin) {
     const recurringEventData = {
