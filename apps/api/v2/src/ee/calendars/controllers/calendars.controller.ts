@@ -201,16 +201,17 @@ export class CalendarsController {
     let stateObj: CalendarState;
 
     try {
-      // First try to parse as JSON
-      stateObj = JSON.parse(state) as CalendarState;
+      // First try to parse as JSON, but URL-decode first in case OAuth provider encoded it
+      const decodedState = decodeURIComponent(state);
+      stateObj = JSON.parse(decodedState) as CalendarState;
     } catch (e) {
-      // If JSON parsing fails, try URL params
+      // If JSON parsing fails, try URL params as fallback
       const stateParams = new URLSearchParams(state);
 
       const parsedState = calendarStateSchema.parse({
         accessToken: stateParams.get("accessToken"),
         origin: stateParams.get("origin"),
-        redir: stateParams.get("redir") || undefined,
+        redir: stateParams.get("redir") ? decodeURIComponent(stateParams.get("redir")!) : undefined,
         isDryRun: stateParams.get("isDryRun"),
       });
 
