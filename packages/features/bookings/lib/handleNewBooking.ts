@@ -1597,7 +1597,7 @@ async function handler(
           username: originalRescheduledBooking.user.username || undefined,
           timeZone: originalRescheduledBooking.user.timeZone,
           language: { translate: tOrganizer, locale: originalRescheduledBooking.user.locale ?? "en" },
-          timeFormat: "h:mma",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
         },
         destinationCalendar: previousHostDestinationCalendar,
       };
@@ -1765,6 +1765,7 @@ async function handler(
           originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
             username: originalRescheduledBooking.user.username ?? undefined,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
           });
