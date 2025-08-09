@@ -368,4 +368,5 @@ const AddMembersWithSwitchWrapper = ({
   );
 };
 
+export { MembersSegmentWithToggle };
 export default AddMembersWithSwitchWrapper;
