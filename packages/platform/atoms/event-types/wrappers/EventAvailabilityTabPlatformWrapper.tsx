@@ -26,8 +26,13 @@ const EventAvailabilityTabPlatformWrapper = ({
 }: EventAvailabilityTabPlatformWrapperProps) => {
   const formMethods = useFormContext<FormValues>();
   const scheduleId = formMethods.watch("schedule");
+  const restrictionScheduleId = formMethods.watch("restrictionScheduleId");
 
   const { isLoading: isSchedulePending, data: atomSchedule } = useAtomSchedule(scheduleId?.toString());
+
+  const { isLoading: isRestrictionSchedulePending, data: atomRestrictionSchedule } = useAtomSchedule(
+    restrictionScheduleId?.toString()
+  );
 
   const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();
 
@@ -37,6 +42,28 @@ const EventAvailabilityTabPlatformWrapper = ({
   if (!atomSchedule) {
     return <></>;
   }
+
+  const formatScheduleData = (schedule: typeof atomSchedule) => {
+    if (!schedule) return undefined;
+    return {
+      isManaged: schedule.isManaged,
+      readOnly: schedule.readOnly,
+      id: schedule.id,
+      timeZone: schedule.timeZone,
+      schedule:
+        schedule.schedule.reduce(
+          (acc: Availability[], avail: Availability) => [
+            ...acc,
+            {
+              startTime: new Date(avail.startTime),
+              endTime: new Date(avail.endTime),
+              days: avail.days,
+            },
+          ],
+          []
+        ) || [],
+    };
+  };
 
   return (
     <EventAvailabilityTab
@@ -52,25 +79,12 @@ const EventAvailabilityTabPlatformWrapper = ({
       schedulesQueryData={schedulesQueryData}
       isSchedulesPending={isSchedulesPending}
       isSchedulePending={isSchedulePending}
+      scheduleQueryData={formatScheduleData(atomSchedule)}
+      restrictionScheduleQueryData={formatScheduleData(atomRestrictionSchedule)}
+      isRestrictionSchedulePending={isRestrictionSchedulePending}
+      restrictionScheduleRedirectUrl={`/availability/${atomRestrictionSchedule?.id}`}
+      editAvailabilityRedirectUrl={`/availability/${atomSchedule.id}`}
       hostSchedulesQuery={({ userId }: { userId: number }) => hostSchedulesQuery({ userId, teamId })}
-      scheduleQueryData={{
-        isManaged: atomSchedule.isManaged,
-        readOnly: atomSchedule.readOnly,
-        id: atomSchedule.id,
-        timeZone: atomSchedule.timeZone,
-        schedule:
-          atomSchedule.schedule.reduce(
-            (acc: Availability[], avail: Availability) => [
-              ...acc,
-              {
-                startTime: new Date(avail.startTime),
-                endTime: new Date(avail.endTime),
-                days: avail.days,
-              },
-            ],
-            []
-          ) || [],
-      }}
     />
   );
 };
