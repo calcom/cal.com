@@ -11,6 +11,7 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandItem } from "@
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { ColumnFilterType } from "@calcom/features/data-table"
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 
@@ -38,6 +39,15 @@ function AddFilterButtonComponent<TData>(
   const availableColumns = filterableColumns.filter(
     (column) => !activeFilters?.some((filter) => filter.f === column.id)
   );
+
+   const handleAddFilter = (columnId: string) => {
+    if (columnId === "isMine") {
+      addFilter(columnId, ColumnFilterType.BOOLEAN);
+    } else {
+      addFilter(columnId);
+    }
+    setOpen(false);
+  };
 
   if (hideWhenFilterApplied && activeFilters?.length > 0) {
     return null;
@@ -89,10 +99,7 @@ function AddFilterButtonComponent<TData>(
                 return (
                   <CommandItem
                     key={column.id}
-                    onSelect={() => {
-                      addFilter(column.id);
-                      setOpen(false);
-                    }}
+                    onSelect={() => handleAddFilter(column.id)}
                     className="flex items-center justify-between px-4 py-2"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>

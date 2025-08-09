@@ -311,13 +311,28 @@ export async function getBookings({
       fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
     }
 
-    // 3. Filter by specific Event Type IDs (if provided)
+    // 3. Filter by bookings made by logged in user
+    if (filters?.isMine) {
+      fullQuery = fullQuery.where((eb) => 
+        eb.and([
+          eb("Booking.userId", "!=", user.id),
+          eb.exists(
+            eb.selectFrom("Attendee")
+              .select("id")
+              .whereRef("Attendee.bookingId", "=", "Booking.id")
+              .where("Attendee.email", "=", user.email)
+          )
+        ])
+      );
+    }
+
+    // 4. Filter by specific Event Type IDs (if provided)
     // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
     if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
       fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
     }
 
-    // 4. Filter by Attendee Name (if provided)
+    // 5. Filter by Attendee Name (if provided)
     if (filters?.attendeeName) {
       if (typeof filters.attendeeName === "string") {
         // Simple string match (exact)
@@ -336,7 +351,7 @@ export async function getBookings({
       }
     }
 
-    // 5. Filter by Attendee Email (if provided)
+    // 6. Filter by Attendee Email (if provided)
     if (filters?.attendeeEmail) {
       if (typeof filters.attendeeEmail === "string") {
         // Simple string match (exact)
@@ -355,12 +370,12 @@ export async function getBookings({
       }
     }
 
-    // 6. Filter by Booking Uid (if provided)
+    // 7. Filter by Booking Uid (if provided)
     if (filters?.bookingUid) {
       fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
     }
 
-    // 7. Booking Start/End Time Range Filters
+    // 8. Booking Start/End Time Range Filters
     if (filters?.afterStartDate) {
       fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
     }
