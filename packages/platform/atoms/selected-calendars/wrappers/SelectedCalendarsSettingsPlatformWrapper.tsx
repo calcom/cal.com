@@ -4,6 +4,7 @@ import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
+import cn from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { AppListCard } from "@calcom/ui/components/app-list-card";
 import type { ButtonProps } from "@calcom/ui/components/button";
@@ -29,8 +30,19 @@ export type CalendarRedirectUrls = {
   outlook?: string;
 };
 
+export type SelectedCalendarsClassNames = {
+  container?: string;
+  header?: {
+    container?: string;
+    title?: string;
+    description?: string;
+  };
+  noSelectedCalendarsMessage?: string;
+};
+
 type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
+  classNamesObject?: SelectedCalendarsClassNames;
   calendarRedirectUrls?: CalendarRedirectUrls;
   allowDelete?: boolean;
   isDryRun?: boolean;
@@ -41,6 +53,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   calendarRedirectUrls,
   allowDelete,
   isDryRun,
+  classNamesObject,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -55,19 +68,27 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 
             if (!data.connectedCalendars.length) {
               return (
-                <SelectedCalendarsSettings classNames={classNames}>
+                <SelectedCalendarsSettings classNames={classNamesObject?.container || classNames}>
                   <SelectedCalendarsSettingsHeading
+                    classNames={classNamesObject?.header}
                     calendarRedirectUrls={calendarRedirectUrls}
                     isDryRun={isDryRun}
                   />
-                  <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
+                  <h1
+                    className={cn(
+                      "px-6 py-4 text-base leading-5",
+                      classNamesObject?.noSelectedCalendarsMessage
+                    )}>
+                    No connected calendars found.
+                  </h1>
                 </SelectedCalendarsSettings>
               );
             }
 
             return (
-              <SelectedCalendarsSettings classNames={classNames}>
+              <SelectedCalendarsSettings classNames={classNamesObject?.container || classNames}>
                 <SelectedCalendarsSettingsHeading
+                  classNames={classNamesObject?.header}
                   calendarRedirectUrls={calendarRedirectUrls}
                   isDryRun={isDryRun}
                 />
@@ -159,18 +180,28 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
 const SelectedCalendarsSettingsHeading = ({
   calendarRedirectUrls,
   isDryRun,
+  classNames,
 }: {
   calendarRedirectUrls?: CalendarRedirectUrls;
   isDryRun?: boolean;
+  classNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+  };
 }) => {
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle border-b p-6">
+    <div className={cn("border-subtle border-b p-6", classNames?.container)}>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-emphasis text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
-          <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
+          <h4 className={cn("text-emphasis text-base font-semibold leading-5", classNames?.title)}>
+            {t("check_for_conflicts")}
+          </h4>
+          <p className={cn("text-default text-sm leading-tight", classNames?.description)}>
+            {t("select_calendars")}
+          </p>
         </div>
         <div className="flex flex-col xl:flex-row xl:space-x-5">
           <div className="flex items-center">
