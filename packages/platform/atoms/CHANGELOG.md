@@ -1,5 +1,17 @@
 ## 1.1.2
 
+## 1.3.0
+
+### Minor Changes
+
+- [#22911](https://github.com/calcom/cal.com/pull/22911) [`d3fbc73`](https://github.com/calcom/cal.com/commit/d3fbc73a3962a9bcca6a95870b146a97f4c7d996) Thanks [@SomayChauhan](https://github.com/SomayChauhan)! - Added new callback functions to the handleFormSubmit method in the EventTypeSettings and AvailabilitySettings atoms. The handleFormSubmit method now accepts an optional callbacks object with the following properties:
+
+  - **onSuccess**: Called when the form submission is successful, allowing additional logic to be executed after the update.
+
+  - **onError**: Called when an error occurs during form submission, providing details about the error to handle specific cases or display custom messages.
+
+- [#22956](https://github.com/calcom/cal.com/pull/22956) [`d18e233`](https://github.com/calcom/cal.com/commit/d18e23378b699e734e9dbbdf93225b02a9059ff4) Thanks [@supalarry](https://github.com/supalarry)! - booker atom: allow toggling org and team info when booking round robin
+
 ## 1.2.0
 
 ### Minor Changes
