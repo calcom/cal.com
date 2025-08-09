@@ -1587,8 +1587,23 @@ async function handler(
         apps
       );
       log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+      // Create deletion event with original host's organizer info
+      const deletionEvent = {
+        ...evt,
+        organizer: {
+          id: originalRescheduledBooking.user.id,
+          name: originalRescheduledBooking.user.name || "",
+          email: originalRescheduledBooking.user.email,
+          username: originalRescheduledBooking.user.username || undefined,
+          timeZone: originalRescheduledBooking.user.timeZone,
+          language: { translate: tOrganizer, locale: originalRescheduledBooking.user.locale ?? "en" },
+          timeFormat: "h:mma",
+        },
+        destinationCalendar: previousHostDestinationCalendar,
+      };
+
       await originalHostEventManager.deleteEventsAndMeetings({
-        event: { ...evt, destinationCalendar: previousHostDestinationCalendar },
+        event: deletionEvent,
         bookingReferences: originalRescheduledBooking.references,
       });
     }
