@@ -348,7 +348,6 @@ const Locations: React.FC<LocationsProps> = ({
                     <div className="flex flex-col gap-4">
                       <Controller
                         name="calVideoSettings.disableRecordingForGuests"
-                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
                         render={({ field: { onChange, value } }) => {
                           return (
                             <SettingsToggle
@@ -364,7 +363,6 @@ const Locations: React.FC<LocationsProps> = ({
 
                       <Controller
                         name="calVideoSettings.disableRecordingForOrganizer"
-                        defaultValue={!!eventType.calVideoSettings?.disableRecordingForOrganizer}
                         render={({ field: { onChange, value } }) => {
                           return (
                             <SettingsToggle
@@ -398,7 +396,6 @@ const Locations: React.FC<LocationsProps> = ({
 
                       <Controller
                         name="calVideoSettings.enableAutomaticTranscription"
-                        defaultValue={!!eventType.calVideoSettings?.enableAutomaticTranscription}
                         render={({ field: { onChange, value } }) => {
                           return (
                             <SettingsToggle
@@ -415,7 +412,6 @@ const Locations: React.FC<LocationsProps> = ({
                       {!isPlatform && (
                         <Controller
                           name="calVideoSettings.disableTranscriptionForGuests"
-                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForGuests}
                           render={({ field: { onChange, value } }) => {
                             return (
                               <SettingsToggle
@@ -432,7 +428,6 @@ const Locations: React.FC<LocationsProps> = ({
                       {!isPlatform && (
                         <Controller
                           name="calVideoSettings.disableTranscriptionForOrganizer"
-                          defaultValue={!!eventType.calVideoSettings?.disableTranscriptionForOrganizer}
                           render={({ field: { onChange, value } }) => {
                             return (
                               <SettingsToggle
@@ -449,7 +444,6 @@ const Locations: React.FC<LocationsProps> = ({
 
                       <TextField
                         label={t("enter_redirect_url_on_exit_description")}
-                        defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
                         data-testid="calVideoSettings.redirectUrlOnExit"
                         containerClassName="mt-4"
                         className="leading-6"
