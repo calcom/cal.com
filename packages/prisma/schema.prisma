@@ -168,6 +168,7 @@ model EventType {
   afterEventBuffer                         Int                       @default(0)
   seatsPerTimeSlot                         Int?
   onlyShowFirstAvailableSlot               Boolean                   @default(false)
+  showOptimizedSlots                       Boolean?                  @default(false)
   disableCancelling                        Boolean?                  @default(false)
   disableRescheduling                      Boolean?                  @default(false)
   seatsShowAttendees                       Boolean?                  @default(false)
