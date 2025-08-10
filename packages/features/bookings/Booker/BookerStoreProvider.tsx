@@ -1,12 +1,12 @@
 "use client";
 
-import { createContext, useContext, useRef, type ReactNode } from "react";
+import { createContext, useContext, useRef, type ReactNode, useEffect } from "react";
 import { useStore } from "zustand";
 import type { StoreApi } from "zustand";
 
-import { createBookerStore, type BookerStore } from "./store";
+import { createBookerStore, type BookerStore, type StoreInitializeType } from "./store";
 
-const BookerStoreContext = createContext<StoreApi<BookerStore> | null>(null);
+export const BookerStoreContext = createContext<StoreApi<BookerStore> | null>(null);
 
 export interface BookerStoreProviderProps {
   children: ReactNode;
@@ -32,4 +32,82 @@ export const useBookerStoreContext = <T,>(
   }
 
   return useStore(bookerStoreContext, selector, equalityFn);
+};
+
+export const useInitializeBookerStoreContext = ({
+  username,
+  eventSlug,
+  month,
+  eventId,
+  rescheduleUid = null,
+  rescheduledBy = null,
+  bookingData = null,
+  verifiedEmail = null,
+  layout,
+  isTeamEvent,
+  durationConfig,
+  org,
+  isInstantMeeting,
+  timezone = null,
+  teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
+  crmRecordId,
+  isPlatform = false,
+  allowUpdatingUrlParams = true,
+}: StoreInitializeType) => {
+  const bookerStoreContext = useContext(BookerStoreContext);
+
+  if (!bookerStoreContext) {
+    throw new Error("useInitializeBookerStoreContext must be used within BookerStoreProvider");
+  }
+
+  const initializeStore = useStore(bookerStoreContext, (state) => state.initialize);
+
+  useEffect(() => {
+    initializeStore({
+      username,
+      eventSlug,
+      month,
+      eventId,
+      rescheduleUid,
+      rescheduledBy,
+      bookingData,
+      layout,
+      isTeamEvent,
+      org,
+      verifiedEmail,
+      durationConfig,
+      isInstantMeeting,
+      timezone,
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
+      crmRecordId,
+      isPlatform,
+      allowUpdatingUrlParams,
+    });
+  }, [
+    initializeStore,
+    org,
+    username,
+    eventSlug,
+    month,
+    eventId,
+    rescheduleUid,
+    rescheduledBy,
+    bookingData,
+    layout,
+    isTeamEvent,
+    verifiedEmail,
+    durationConfig,
+    isInstantMeeting,
+    timezone,
+    teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
+    crmRecordId,
+    isPlatform,
+    allowUpdatingUrlParams,
+  ]);
 };
