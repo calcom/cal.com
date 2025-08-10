@@ -1,7 +1,10 @@
 "use client";
 
+import type { HorizontalTabItemProps } from "@calid/features/ui";
+import { HorizontalTabs } from "@calid/features/ui";
+import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +13,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
@@ -243,58 +247,89 @@ export function Header({
     }
   };
 
+  const searchParams = useSearchParams();
+
+  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        name: "Details",
+        path: `${appUrl}/details/${routingForm.id}`,
+        "data-testid": "form-edit",
+      },
+      {
+        name: "Form",
+        path: `${appUrl}/form-edit/${routingForm.id}`,
+        "data-testid": "form-edit",
+      },
+      {
+        name: "Routing",
+        path: `${appUrl}/route-builder/${routingForm.id}`,
+        "data-testid": "route-builder",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      name: tabConfig.name,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+      "data-testid": tabConfig["data-testid"],
+    }));
+  }, [searchParams?.toString()]);
+
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
-      {/* Left - Back button and title */}
-      <div className="border-muted flex items-center gap-2 border-b px-4 py-3">
-        <Button
-          color="minimal"
-          variant="icon"
-          StartIcon="arrow-left"
-          href={`${appUrl}`}
-          data-testid="back-button"
-        />
-        <div className="flex min-w-0 items-center">
-          <span className="text-subtle min-w-content text-sm font-semibold leading-none">
-            {t("routing_form")}
-          </span>
-          <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
-          {isEditing ? (
-            <input
-              {...form.register("name")}
-              onChange={handleTitleChange}
-              onKeyDown={handleKeyDown}
-              onBlur={handleTitleSubmit}
-              className="text-default h-auto w-full whitespace-nowrap border-none p-0 text-sm font-semibold leading-none focus:ring-0"
-              autoFocus
-            />
-          ) : (
-            <div className="group flex items-center gap-1">
-              <span
-                className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
-                onClick={() => setIsEditing(true)}>
-                {watchedName || "Loading..."}
-              </span>
-              <Button
-                variant="icon"
-                color="minimal"
-                onClick={() => setIsEditing(true)}
-                CustomStartIcon={
-                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
-                <span className="sr-only">Edit</span>
-              </Button>
-            </div>
-          )}
+    <div className="bg-default flex w-full flex-col">
+      <div className="bg-default flex w-full flex-col  lg:grid lg:grid-cols-3 lg:items-center">
+        {/* Left - Back button and title */}
+        <div className="border-muted flex items-center gap-2 px-4 py-3">
+          <Button
+            color="minimal"
+            variant="icon"
+            StartIcon="arrow-left"
+            href={`${appUrl}`}
+            data-testid="back-button"
+          />
+          <div className="flex min-w-0 items-center">
+            <span className="text-subtle min-w-content text-sm font-semibold leading-none">
+              {t("routing_form")}
+            </span>
+            <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
+            {isEditing ? (
+              <input
+                {...form.register("name")}
+                onChange={handleTitleChange}
+                onKeyDown={handleKeyDown}
+                onBlur={handleTitleSubmit}
+                className="text-default h-auto w-full whitespace-nowrap border-none p-0 text-sm font-semibold leading-none focus:ring-0"
+                autoFocus
+              />
+            ) : (
+              <div className="group flex items-center gap-1">
+                <span
+                  className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
+                  onClick={() => setIsEditing(true)}>
+                  {watchedName || "Loading..."}
+                </span>
+                <Button
+                  variant="icon"
+                  color="minimal"
+                  onClick={() => setIsEditing(true)}
+                  CustomStartIcon={
+                    <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                  }>
+                  <span className="sr-only">Edit</span>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+        <div className="flex"></div>
 
-      {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
-      <div className="border-muted flex items-center justify-between border-b px-4 py-3 lg:hidden">
+        {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
         {/* Navigation Tabs - Left aligned */}
-        <div className="flex">
+        {/* <div className="flex">
           <ToggleGroup
             defaultValue={getCurrentPage()}
             value={getCurrentPage()}
@@ -313,23 +348,10 @@ export function Header({
               },
             ]}
           />
-        </div>
-
+        </div> */}
         {/* Actions - Right aligned */}
-        <div className="flex">
-          <Actions
-            form={routingForm}
-            setIsTestPreviewOpen={setIsTestPreviewOpen}
-            isTestPreviewOpen={isTestPreviewOpen}
-            isSaving={isSaving}
-            appUrl={appUrl}
-            isMobile={true}
-          />
-        </div>
-      </div>
-
-      {/* Desktop layout - Toggle group in center column */}
-      <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
+        {/* Desktop layout - Toggle group in center column */}
+        {/* <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
         <ToggleGroup
           defaultValue={getCurrentPage()}
           value={getCurrentPage()}
@@ -347,18 +369,25 @@ export function Header({
             },
           ]}
         />
+      </div> */}
+        {/* Desktop layout - Actions in right column */}
+        <div className="border-muted hidden justify-end  px-4 py-3 lg:flex">
+          <Actions
+            form={routingForm}
+            setIsTestPreviewOpen={setIsTestPreviewOpen}
+            isTestPreviewOpen={isTestPreviewOpen}
+            isSaving={isSaving}
+            appUrl={appUrl}
+          />
+        </div>
       </div>
-
-      {/* Desktop layout - Actions in right column */}
-      <div className="border-muted hidden justify-end border-b px-4 py-3 lg:flex">
-        <Actions
-          form={routingForm}
-          setIsTestPreviewOpen={setIsTestPreviewOpen}
-          isTestPreviewOpen={isTestPreviewOpen}
-          isSaving={isSaving}
-          appUrl={appUrl}
-        />
-      </div>
+      <HorizontalTabs
+        className="bg-default border-b px-12"
+        tabs={tabs.map((tab) => ({
+          ...tab,
+          name: t(tab.name),
+        }))}
+      />
     </div>
   );
 }

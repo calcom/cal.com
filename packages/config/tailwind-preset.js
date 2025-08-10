@@ -75,6 +75,8 @@ module.exports = {
         inverted: "var(--cal-bg-inverted)",
         gradient: "var(--cal-bg-gradient)",
         active: "var(--cal-bg-active)",
+        ring: "var(--cal-bg-active)",
+        destructive: "var(--cal-bg-destructive)",
 
         // Primary Background
         primary: {

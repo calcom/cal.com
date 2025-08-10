@@ -237,7 +237,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
           <Button variant="outline" onClick={handleClose}>
             {t("nevermind")}
           </Button>
-          <Button variant="destructive" loading={loading} onClick={handleCancel} className="min-w-[7.5rem]">
+          <Button variant="destructive" loading={loading} onClick={handleCancel} className="text-white min-w-[7.5rem]">
             {t("cancel_event")}
           </Button>
         </div>

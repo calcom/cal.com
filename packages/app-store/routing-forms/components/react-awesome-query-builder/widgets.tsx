@@ -1,3 +1,9 @@
+import {
+  Textarea,
+  Input as TextField,
+  Button as CalButton,
+} from "@calid/features/ui";
+
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
 import type {
@@ -9,9 +15,10 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+//
+// import { Button as CalButton } from "@calcom/ui/components/button";
+// import { TextArea } from "@calcom/ui/components/form";
+// import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
@@ -88,7 +95,7 @@ const TextAreaWidget = (props: TextLikeComponentPropsRAQB) => {
 
   const textValue = value || "";
   return (
-    <TextArea
+    <Textarea
       value={textValue}
       placeholder={placeholder}
       className="mb-2"
@@ -119,11 +126,9 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
   const textValue = value || "";
   return (
     <TextField
-      size="sm"
-      containerClassName="w-full mb-2"
+      className="w-full mb-2"
       type={type}
       value={textValue}
-      noLabel={noLabel}
       placeholder={placeholder}
       disabled={readOnly}
       onChange={onChange}
@@ -136,7 +141,6 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
     <TextField
-      size="sm"
       type="number"
       labelSrOnly={remainingProps.noLabel}
       containerClassName="w-full"
@@ -178,7 +182,6 @@ const MultiSelectWidget = ({
 
   return (
     <Select
-      size="sm"
       aria-label="multi-select-dropdown"
       className="mb-2"
       onChange={(items) => {
@@ -214,10 +217,9 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 
   return (
     <Select
-      size="sm"
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
-      onChange={(item) => {
+      onChange={(item: { label: string; value: string }) => {
         if (!item) {
           return;
         }
@@ -226,8 +228,14 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       isDisabled={remainingProps.readOnly}
       value={optionFromList}
       options={selectItems}
-      {...remainingProps}
-    />
+      {...remainingProps}>
+      {/* <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="auto">Auto</SelectItem>
+      </SelectContent> */}
+    </Select>
   );
 }
 
@@ -251,12 +259,13 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   return (
     <CalButton
       size="sm"
-      StartIcon="plus"
       data-testid={dataTestId}
       type="button"
-      color="minimal"
+      variant="outline"
+      className="w-full justify-center items-center"
       disabled={readonly}
       onClick={onClick}>
+        <Icon name="plus" className="h-3 w-3" />
       {label}
     </CalButton>
   );
@@ -305,13 +314,12 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-    const summary = !config.operators.__calReporting ? "If booker selects" : "Query where";
+    const summary = !config.operators.__calReporting ? "For responses matching the following criteria" : "Query where";
     return (
       <div className="mb-[1px] flex items-center text-sm">
         <span>{summary}</span>
         <Select
           className="flex px-2"
-          size="sm"
           defaultValue={selectValue}
           options={options}
           onChange={(option) => {
@@ -351,7 +359,6 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
   return (
     <Select
-      size="sm"
       className="data-testid-field-select  mb-2"
       menuPosition="fixed"
       onChange={(item) => {

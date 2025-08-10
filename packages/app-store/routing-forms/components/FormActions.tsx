@@ -1,9 +1,20 @@
+import { /* Switch, */ Button, Input, Textarea } from "@calid/features/ui";
+import type { ButtonProps } from "@calid/features/ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogClose, // ConfirmationDialogContent,
+} from "@calid/features/ui";
+import { configDotenv } from "dotenv";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createContext, forwardRef, useContext, useState } from "react";
+import { useEffect, createContext, forwardRef, useContext, useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+// import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { dataTableQueryParamsSerializer } from "@calcom/features/data-table/lib/serializers";
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -14,14 +25,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import type { ButtonProps } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
-import {
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
-} from "@calcom/ui/components/dialog";
+// import type { ButtonProps } from "@calcom/ui/components/button";
+import { Button as ButtonCalcom } from "@calcom/ui/components/button";
 import {
   Dropdown,
   DropdownMenuContent,
@@ -32,9 +37,11 @@ import { TextAreaField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
+import { TeamSelectionDialog } from "./TeamsSelectionDialog.tsx";
 
 type FormField = {
   identifier?: string;
@@ -53,6 +60,9 @@ type RoutingForm = {
 
 export type NewFormDialogState = { action: "new" | "duplicate"; target: string | null } | null;
 export type SetNewFormDialogState = React.Dispatch<React.SetStateAction<NewFormDialogState>>;
+
+export type SelectTeamDialogState = { target: string | null } | null;
+export type SetSelectTeamDialogState = React.Dispatch<React.SetStateAction<SelectTeamDialogState>>;
 
 function NewFormDialog({
   appUrl,
@@ -97,12 +107,12 @@ function NewFormDialog({
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
           <h3
-            className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
+            className="text-emphasis !font-cal text-semibold leading-20 text-base font-medium"
             id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
-            <p className="text-subtle text-sm">{t("form_description")}</p>
+            <p className="text-subtle text-xs">{t("form_description")}</p>
           </div>
         </div>
         <Form
@@ -119,11 +129,18 @@ function NewFormDialog({
             });
           }}>
           <div className="mt-3 space-y-5">
-            <TextField label={t("title")} required placeholder={t("a_routing_form")} {...register("name")} />
+            <div>
+              <div className="text-emphasis mb-1 text-sm font-semibold" data-testid="description-label">
+                {t("title")}
+              </div>
+              <Input required placeholder={t("a_routing_form")} {...register("name")} />
+            </div>
             <div className="mb-5">
-              <TextAreaField
+              <div className="text-emphasis mb-1 text-sm font-semibold" data-testid="description-label">
+                {t("description")}
+              </div>
+              <Textarea
                 id="description"
-                label={t("description")}
                 {...register("description")}
                 data-testid="description"
                 placeholder={t("form_description_placeholder")}
@@ -148,9 +165,9 @@ function NewFormDialog({
               />
             )} */}
           </div>
-          <DialogFooter showDivider className="mt-12">
+          <DialogFooter className="mt-12">
             <DialogClose />
-            <Button loading={mutation.isPending} data-testid="add-form" type="submit">
+            <Button loading={mutation.isPending} data-testid="add-form" type="submit" variant="default">
               {t("continue")}
             </Button>
           </DialogFooter>
@@ -175,10 +192,11 @@ export const FormActionsDropdown = ({
           <Button
             type="button"
             variant="icon"
+            size="sm"
             color="secondary"
-            className={classNames(disabled && "opacity-30")}
-            StartIcon="ellipsis"
-          />
+            className={classNames(disabled && "opacity-30")}>
+            <Icon name="ellipsis" className="h-3 w-3" />
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>{children}</DropdownMenuContent>
       </Dropdown>
@@ -193,6 +211,8 @@ function Dialogs({
   deleteDialogFormId,
   newFormDialogState,
   setNewFormDialogState,
+  selectTeamDialogState,
+  setSelectTeamDialogState,
 }: {
   appUrl: string;
   deleteDialogOpen: boolean;
@@ -200,6 +220,8 @@ function Dialogs({
   deleteDialogFormId: string | null;
   newFormDialogState: NewFormDialogState | null;
   setNewFormDialogState: SetNewFormDialogState;
+  selectTeamDialogState: SelectTeamDialogState;
+  setSelectTeamDialogState: SetSelectTeamDialogState;
 }) {
   const utils = trpc.useUtils();
   const router = useRouter();
@@ -237,11 +259,15 @@ function Dialogs({
       showToast(err.message || t("something_went_wrong"), "error");
     },
   });
+
+  useEffect(() => {
+    console.log("Select state: ", selectTeamDialogState);
+  });
   return (
     <div id="form-dialogs">
       <RoutingFormEmbedDialog />
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <ConfirmationDialogContent
+        {/* <ConfirmationDialogContent
           isPending={deleteMutation.isPending}
           variety="danger"
           title={t("delete_form")}
@@ -260,8 +286,18 @@ function Dialogs({
             <li> {t("delete_form_confirmation")}</li>
             <li> {t("delete_form_confirmation_2")}</li>
           </ul>
-        </ConfirmationDialogContent>
+        </ConfirmationDialogContent> */}
       </Dialog>
+
+      {/* <TeamSelectionDialog
+        open={selectTeamDialogState !== null}
+        openChange={(open: boolean) => !open && setSelectTeamDialogState(null)}
+        onTeamSelect={(teamId: string) => {
+          setSelectTeamDialogState(null);
+          setNewFormDialogState({ action: "new", target: teamId });
+        }}
+      /> */}
+
       <NewFormDialog
         appUrl={appUrl}
         newFormDialogState={newFormDialogState}
@@ -273,6 +309,10 @@ function Dialogs({
 
 const actionsCtx = createContext({
   appUrl: "",
+
+  selectTeamDialogState: null as SelectTeamDialogState,
+  setSelectTeamDialogState: null as SetSelectTeamDialogState | null,
+
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   setNewFormDialogState: null as SetNewFormDialogState | null,
   newFormDialogState: null as NewFormDialogState,
@@ -293,6 +333,8 @@ interface FormActionsProviderProps {
   children: React.ReactNode;
   newFormDialogState: NewFormDialogState;
   setNewFormDialogState: SetNewFormDialogState;
+  selectTeamDialogState: SelectTeamDialogState;
+  setSelectTeamDialogState: SetSelectTeamDialogState;
 }
 
 export function FormActionsProvider({
@@ -300,6 +342,8 @@ export function FormActionsProvider({
   children,
   newFormDialogState,
   setNewFormDialogState,
+  selectTeamDialogState,
+  setSelectTeamDialogState,
 }: FormActionsProviderProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
@@ -353,6 +397,8 @@ export function FormActionsProvider({
             appUrl,
             setNewFormDialogState,
             newFormDialogState,
+            selectTeamDialogState,
+            setSelectTeamDialogState,
             _delete: {
               onAction: ({ routingForm }) => {
                 if (!routingForm) {
@@ -385,6 +431,8 @@ export function FormActionsProvider({
           setDeleteDialogOpen={setDeleteDialogOpen}
           newFormDialogState={newFormDialogState}
           setNewFormDialogState={setNewFormDialogState}
+          selectTeamDialogState={selectTeamDialogState}
+          setSelectTeamDialogState={setSelectTeamDialogState}
         />
       </EmbedDialogProvider>
     </>
@@ -405,8 +453,28 @@ type FormActionType =
   | "viewResponses"
   | "create";
 
+const Wrapper = ({ href, target, children }: { href?: string; children: React.ReactNode; target?: string }) =>
+  href ? (
+    <Link data-testid="link-component" href={href} target={target}>
+      {children}
+    </Link>
+  ) : (
+    <>{children}</>
+  );
+
+export const FormLinkDisplay = ({ routingFormId }: { routingFormId?: string | null }) => {
+  const embedLink = `forms/${routingFormId ?? ""}`;
+
+  const orgBranding = useOrgBranding();
+  const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/${embedLink}`;
+
+  return <div>{formLink}</div>;
+};
+
 type FormActionProps<T> = {
   routingForm: RoutingForm | null;
+  target?: string;
+  href?: string;
   as?: T;
   label?: string;
   //TODO: Provide types here
@@ -449,10 +517,17 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const { t } = useLocale();
   const actionData: Record<
     FormActionType,
-    ButtonProps & { as?: React.ElementType; render?: FormActionProps<unknown>["render"] }
+    ButtonProps & {
+      href?: string;
+      target?: string;
+      icon?: string;
+      as?: React.ElementType;
+      render?: FormActionProps<unknown>["render"];
+    }
   > = {
     preview: {
       href: formLink,
+      target: "_blank",
     },
     copyLink: {
       onClick: () => {
@@ -462,6 +537,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     duplicate: {
       onClick: () => setNewFormDialogState?.({ action: "duplicate", target: routingForm?.id ?? null }),
+      variant: "ghost",
+      icon: "copy",
     },
     embed: {
       as: RoutingFormEmbedButton,
@@ -473,16 +550,23 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     edit: {
       href: `${appUrl}/form-edit/${routingForm?.id}`,
+      variant: "ghost",
+      icon: "pencil",
     },
     incompleteBooking: {
       href: `${appUrl}/incomplete-booking/${routingForm?.id}`,
     },
     download: {
       href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
+      target: "_blank",
+      variant: "ghost",
+      icon: "download",
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),
       loading: _delete.isPending,
+      variant: "ghost",
+      icon: "trash",
     },
     create: {
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
@@ -513,11 +597,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           <div
             {...restProps}
             className={classNames(
-              "sm:hover:bg-subtle self-center rounded-md p-2 transition hover:bg-gray-200",
+              "sm:hover:bg-subtle self-center rounded-md p-0 transition hover:bg-gray-200",
               extraClassNames
             )}>
             <Switch
               data-testid="toggle-form-switch"
+              size="sm"
               disabled={!!disabled}
               checked={!routingForm.disabled}
               label={label}
@@ -531,7 +616,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
   };
 
-  const { as: asFromAction, ...action } = actionData[actionName];
+  const { as: asFromAction, icon, target, href, ...action } = actionData[actionName];
   const as = asFromElement || asFromAction;
   const actionProps = {
     ...action,
@@ -545,25 +630,32 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   }
 
   const Component = as || Button;
+  // for (const key in actionProps) {
+
   if (!dropdown) {
     return (
-      <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
-        {children}
-      </Component>
+      <Wrapper href={href} target={target}>
+        <Component data-testid={`form-action-${actionName}`} ref={forwardedRef} {...actionProps}>
+          {children}
+        </Component>
+      </Wrapper>
     );
   }
   return (
     <DropdownMenuItem className="hover:bg-[initial]">
-      <Component
-        ref={forwardedRef}
-        {...actionProps}
-        className={classNames(
-          props.className,
-          "text-default w-full transition-none",
-          props.color === "destructive" && "border-0"
-        )}>
-        {children}
-      </Component>
+      <Wrapper href={href} target={target}>
+        <Component
+          ref={forwardedRef}
+          {...actionProps}
+          className={classNames(
+            props.className,
+            "text-cal-destructive w-full p-2 transition-none",
+            props.color === "destructive" && "border-0"
+          )}>
+          {icon && <Icon name={icon} className="h-4 w-4" />}
+          {children}
+        </Component>
+      </Wrapper>
     </DropdownMenuItem>
   );
 });

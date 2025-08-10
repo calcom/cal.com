@@ -203,7 +203,7 @@ const ChooseEmbedTypesDialogContent = ({
       <div className="items-start space-y-2 md:flex md:space-y-0">
         {types.map((embed, index) => (
           <button
-            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0 lg:w-1/3"
+            className="hover:bg-subtle bg-muted	w-full self-stretch rounded-md border border-transparent p-6 text-left transition hover:rounded-md lg:w-1/3 ltr:mr-4 ltr:last:mr-0 rtl:ml-4 rtl:last:ml-0"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -211,11 +211,11 @@ const ChooseEmbedTypesDialogContent = ({
                 embedType: embed.type as EmbedType,
               });
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
+            {/* <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
-            </div>
+            </div> */}
             <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
-            <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>
+            {/* <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>  */}
           </button>
         ))}
       </div>
@@ -658,7 +658,7 @@ const EmailEmbedPreview = ({
   );
 };
 
-const EmbedTypeCodeAndPreviewDialogContent = ({
+export const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
   tabs,
@@ -1355,6 +1355,7 @@ export const EmbedDialog = ({
   defaultBrandColor,
   noQueryParamMode = false,
 }: EmbedDialogProps) => {
+  noQueryParamMode = true;
   const { embedState, setEmbedState } = useEmbedDialogCtx(noQueryParamMode);
   const embedParams = useEmbedParams(noQueryParamMode);
 
@@ -1363,6 +1364,13 @@ export const EmbedDialog = ({
       setEmbedState(null);
     }
   };
+  const { gotoState } = useEmbedGoto(noQueryParamMode);
+
+  // useEffect(() => {
+  //   gotoState({
+  //     embedType: types[0].embed.type as EmbedType,
+  //   });
+  // });
 
   return (
     <Dialog
@@ -1377,18 +1385,18 @@ export const EmbedDialog = ({
             clearQueryParamsOnClose: queryParamsForDialog,
           })}>
       {!embedParams.embedType ? (
-        <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
+      <ChooseEmbedTypesDialogContent types={types} noQueryParamMode={noQueryParamMode} />
       ) : (
-        <EmbedTypeCodeAndPreviewDialogContent
-          embedType={embedParams.embedType as EmbedType}
-          embedUrl={embedParams.embedUrl}
-          namespace={embedParams.namespace}
-          tabs={tabs}
-          types={types}
-          eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
-          defaultBrandColor={defaultBrandColor}
-          noQueryParamMode={noQueryParamMode}
-        />
+      <EmbedTypeCodeAndPreviewDialogContent
+        embedType={embedParams.embedType as EmbedType}
+        embedUrl={embedParams.embedUrl}
+        namespace={embedParams.namespace}
+        tabs={tabs}
+        types={types}
+        eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+        defaultBrandColor={defaultBrandColor}
+        noQueryParamMode={noQueryParamMode}
+      />
       )}
     </Dialog>
   );

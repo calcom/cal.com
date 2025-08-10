@@ -1,7 +1,6 @@
 "use client";
-
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -82,6 +81,44 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const { isDesktop } = useBreakPoints();
 
+  // const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+  //   const queryString = searchParams?.toString() || "";
+
+  //   const baseTabConfigs = [
+  //     {
+  //       name: "upcoming",
+  //       path: "/bookings/upcoming",
+  //       "data-testid": "upcoming",
+  //     },
+  //     {
+  //       name: "unconfirmed",
+  //       path: "/bookings/unconfirmed",
+  //       "data-testid": "unconfirmed",
+  //     },
+  //     {
+  //       name: "recurring",
+  //       path: "/bookings/recurring",
+  //       "data-testid": "recurring",
+  //     },
+  //     {
+  //       name: "past",
+  //       path: "/bookings/past",
+  //       "data-testid": "past",
+  //     },
+  //     {
+  //       name: "cancelled",
+  //       path: "/bookings/cancelled",
+  //       "data-testid": "cancelled",
+  //     },
+  //   ];
+
+  //   return baseTabConfigs.map((tabConfig) => ({
+  //     name: tabConfig.name,
+  //     href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+  //     "data-testid": tabConfig["data-testid"],
+  //   }));
+  // }, [searchParams?.toString()]);
+
   useEffect(() => {
     //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
     // and then it is considered the source of truth.
@@ -156,7 +193,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             />
             <div
               className={classNames(
-                "bg-default flex-1",
+                "bg-default flex-1 ",
                 isDesktop && "grid gap-8",
                 isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
                 isDesktop && !isTestPreviewOpen && "grid-cols-1",
@@ -165,13 +202,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               {isDesktop ? (
                 <motion.div
                   layout
-                  className="mx-auto w-full max-w-4xl px-2 lg:px-4 xl:px-0"
+                  className="w-full px-16"
                   transition={{ duration: 0.3, ease: "easeInOut" }}>
-                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+                  <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                 </motion.div>
               ) : (
                 <div className="mx-auto w-full max-w-4xl px-2">
-                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+                  <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
               )}
               <AnimatePresence>
@@ -238,8 +275,8 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
     throw new Error(t("something_went_wrong"));
   }
   return (
-    <LicenseRequired>
-      <SingleForm form={form} {...props} />
-    </LicenseRequired>
+    // <LicenseRequired>
+    <SingleForm form={form} {...props} />
+    // </LicenseRequired>
   );
 }

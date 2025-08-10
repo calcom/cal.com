@@ -63,11 +63,11 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
 
   const selectedClass = classNames(
     commonClass,
-    "bg-default border-subtle text-emphasis shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]"
+    "bg-cal-active text-white shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]"
   );
   const unselectedClass = classNames(
     commonClass,
-    "text-default border-transparent [&[aria-checked='false']]:hover:text-emphasis"
+    "text-default border [&[aria-checked='false']]:hover:text-emphasis"
   );
 
   return (
@@ -76,7 +76,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       type="single"
       disabled={disabled}
       className={classNames(
-        "bg-subtle border-subtle inline-flex gap-0.5 rounded-[10px] border p-0.5 rtl:flex-row-reverse",
+        "bg-default border-default inline-flex gap-0.5 rounded-[10px] p-0.5 rtl:flex-row-reverse",
         getVariantStyles(variant).toggleGroupPrimitiveClass
       )}
       onValueChange={(yesNoValue: "yes" | "no") => {
