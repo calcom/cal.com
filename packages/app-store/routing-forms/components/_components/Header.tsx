@@ -2,6 +2,8 @@
 
 import type { HorizontalTabItemProps } from "@calid/features/ui";
 import { HorizontalTabs } from "@calid/features/ui";
+// import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -9,7 +11,7 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
-import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -79,117 +81,93 @@ const Actions = ({
     <>
       <div className="flex items-center">
         <div className="flex gap-2">
-          <Tooltip sideOffset={4} content={t("preview")} side="bottom">
-            <Button
-              color="secondary"
-              data-testid={isMobile ? "preview-button-mobile" : "preview-button"}
-              type="button"
-              variant="icon"
-              onClick={() => {
-                setIsTestPreviewOpen(!isTestPreviewOpen);
-              }}>
-              {t("preview")}
-            </Button>
-          </Tooltip>
-          <Tooltip sideOffset={4} content={t("settings")} side="bottom">
-            <Button
-              color="secondary"
-              type="button"
-              StartIcon="settings"
-              data-testid={isMobile ? "settings-button-mobile" : "settings-button"}
-              onClick={() => {
-                setIsSettingsDialogOpen(true);
-              }}
-            />
-          </Tooltip>
-          <FormActionsDropdown>
-            <FormAction
-              routingForm={form}
-              color="minimal"
-              target="_blank"
-              type="button"
-              rel="noreferrer"
-              action="preview"
-              StartIcon="external-link">
-              {t("view_form")}
-            </FormAction>
-            <FormAction
-              action="incompleteBooking"
-              className="w-full"
-              routingForm={form}
-              color="minimal"
-              type="button"
-              StartIcon="calendar">
-              {t("routing_incomplete_booking_tab")}
-            </FormAction>
-            <FormAction
-              action="copyLink"
-              className="w-full"
-              routingForm={form}
-              color="minimal"
-              type="button"
-              StartIcon="link">
-              {t("copy_link_to_form")}
-            </FormAction>
-            <FormAction
-              action="download"
-              routingForm={form}
-              className="w-full"
-              color="minimal"
-              type="button"
-              data-testid="download-responses"
-              StartIcon="download">
-              {t("download_responses")}
-            </FormAction>
-            {form?.id && (
-              <FormAction
-                action="viewResponses"
-                routingForm={form}
-                className="w-full"
-                color="minimal"
-                type="button"
-                data-testid="view-responses"
-                StartIcon="eye">
-                {t("view_responses")}
-              </FormAction>
-            )}
-            <FormAction
-              action="embed"
-              routingForm={form}
-              color="minimal"
-              type="button"
-              className="w-full"
-              StartIcon="code">
-              {t("embed")}
-            </FormAction>
-            <DropdownMenuSeparator className="hidden sm:block" />
+          <FormAction
+            variant="ghost"
+            data-testid="toggle-form"
+            action="toggle"
+            routingForm={form}
+            extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+          />
+          <ButtonGroup combined>
             <FormAction
               action="_delete"
+              variant="ghost"
               routingForm={form}
               className="w-full"
+              size="xs"
+              className="px-2"
               type="button"
               color="destructive"
               StartIcon="trash">
               {t("delete")}
             </FormAction>
-            <div className="block sm:hidden">
-              <DropdownMenuSeparator />
+            <Button
+              data-testid={isMobile ? "update-form-mobile" : "update-form"}
+              variant="outline"
+              size="xs"
+              className="w-[64px] content-center items-center justify-center"
+              loading={isSaving}
+              type="submit"
+              color="primary">
+              {t("save")}
+            </Button>
+          </ButtonGroup>
+          <FormActionsDropdown>
+            <FormAction
+              action="incompleteBooking"
+              variant="ghost"
+              className="w-full"
+              routingForm={form}
+              color="minimal"
+              type="button">
+              <Icon name="calendar" className="h-4 w-4"></Icon>
+              {t("routing_incomplete_booking_tab")}
+            </FormAction>
+            <FormAction
+              action="copyLink"
+              variant="ghost"
+              className="w-full"
+              routingForm={form}
+              color="minimal"
+              type="button">
+              <Icon name="link" className="h-4 w-4"></Icon>
+              {t("copy_link_to_form")}
+            </FormAction>
+            <FormAction
+              action="download"
+              variant="ghost"
+              routingForm={form}
+              className="w-full"
+              color="minimal"
+              type="button"
+              data-testid="download-responses">
+              {t("download_responses")}
+            </FormAction>
+            {form?.id && (
               <FormAction
-                data-testid="toggle-form"
-                action="toggle"
+                variant="ghost"
+                action="viewResponses"
                 routingForm={form}
-                label="Disable Form"
-                extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
-              />
-            </div>
+                className="w-full"
+                color="minimal"
+                type="button"
+                data-testid="view-responses">
+                <Icon name="eye" className="h-4 w-4"></Icon>
+                {t("view_responses")}
+              </FormAction>
+            )}
+            <FormAction
+              action="embed"
+              variant="ghost"
+              routingForm={form}
+              color="minimal"
+              type="button"
+              className="w-full">
+              <Icon name="code" className="h-4 w-4"></Icon>
+              {t("embed")}
+            </FormAction>
+            
           </FormActionsDropdown>
-          <Button
-            data-testid={isMobile ? "update-form-mobile" : "update-form"}
-            loading={isSaving}
-            type="submit"
-            color="primary">
-            {t("save")}
-          </Button>
         </div>
       </div>
       <FormSettingsSlideover
@@ -283,20 +261,18 @@ export function Header({
     <div className="bg-default flex w-full flex-col">
       <div className="bg-default flex w-full flex-col  lg:grid lg:grid-cols-3 lg:items-center">
         {/* Left - Back button and title */}
-        <div className="border-muted flex items-center gap-2 px-4 py-3">
-          <Button
-            color="minimal"
-            variant="icon"
-            StartIcon="arrow-left"
-            href={`${appUrl}`}
-            data-testid="back-button"
-          />
-          <div className="flex min-w-0 items-center">
-            <span className="text-subtle min-w-content text-sm font-semibold leading-none">
-              {t("routing_form")}
+        <div className="border-muted flex items-center gap-2 pl-12 px-4 py-3">
+          <Button color="minimal" variant="icon" href={`${appUrl}`} data-testid="back-button">
+            <Icon name="arrow-left" className="text-subtle h-4 w-4" />
+          </Button>
+          <div className="mt-4 flex min-w-0 flex-col items-center gap-2">
+            <span className="text-default text-sm font-semibold leading-none">
+              {watchedName || "Loading..."}
             </span>
-            <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
-            {isEditing ? (
+            <span className="text-subtle min-w-[100px] truncate whitespace-nowrap text-sm font-semibold ">
+              {routingForm.description}
+            </span>
+            {/* {isEditing ? (
               <input
                 {...form.register("name")}
                 onChange={handleTitleChange}
@@ -306,11 +282,11 @@ export function Header({
                 autoFocus
               />
             ) : (
-              <div className="group flex items-center gap-1">
+              <div className="group flex items-center">
                 <span
-                  className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
+                  className="text-subtle hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded text-sm font-semibold leading-none"
                   onClick={() => setIsEditing(true)}>
-                  {watchedName || "Loading..."}
+                  {routingForm.description}
                 </span>
                 <Button
                   variant="icon"
@@ -322,7 +298,7 @@ export function Header({
                   <span className="sr-only">Edit</span>
                 </Button>
               </div>
-            )}
+            )} */}
           </div>
         </div>
         <div className="flex"></div>
