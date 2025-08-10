@@ -334,11 +334,24 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-    const handleFormSubmit = useCallback(() => {
+    const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+
+    const handleFormSubmit = useCallback((customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+      if (customCallbacks) {
+        callbacksRef.current = customCallbacks;
+      }
+
       if (saveButtonRef.current) {
         saveButtonRef.current.click();
       } else {
-        form.handleSubmit(handleSubmit)();
+        form.handleSubmit(async (data) => {
+          try {
+            await handleSubmit(data);
+            callbacksRef.current?.onSuccess?.();
+          } catch (error) {
+            callbacksRef.current?.onError?.(error as Error);
+          }
+        })();
       }
     }, [form, handleSubmit]);
 

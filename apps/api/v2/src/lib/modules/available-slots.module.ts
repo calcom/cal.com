@@ -8,11 +8,13 @@ import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
+import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { Module } from "@nestjs/common";
 import { UserAvailabilityService } from "@/lib/services/user-availability.service";
+import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisService } from "@/modules/redis/redis.service";
+import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule],
@@ -25,11 +27,13 @@ import { UserAvailabilityService } from "@/lib/services/user-availability.servic
     PrismaEventTypeRepository,
     PrismaRoutingFormResponseRepository,
     PrismaTeamRepository,
+    RedisService,
     PrismaFeaturesRepository,
     CheckBookingLimitsService,
     CacheService,
     AvailableSlotsService,
-    UserAvailabilityService
+    UserAvailabilityService,
+    BusyTimesService,
   ],
   exports: [AvailableSlotsService],
 })

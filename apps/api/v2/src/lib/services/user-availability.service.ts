@@ -1,8 +1,7 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
-
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
-
+import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 
 import { UserAvailabilityService as BaseUserAvailabilityService } from "@calcom/platform-libraries/schedules";
@@ -13,15 +12,13 @@ export class UserAvailabilityService extends BaseUserAvailabilityService {
     oooRepoDependency: PrismaOOORepository,
     bookingRepository: PrismaBookingRepository,
     eventTypeRepository: PrismaEventTypeRepository,
-
-   
+    redisService: RedisService
   ) {
     super({
       oooRepo: oooRepoDependency,
-     
       bookingRepo: bookingRepository,
-
       eventTypeRepo: eventTypeRepository,
+      redisClient: redisService,
     });
   }
 }
