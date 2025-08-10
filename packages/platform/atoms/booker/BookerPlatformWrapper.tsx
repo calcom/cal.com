@@ -573,6 +573,7 @@ const BookerPlatformWrapperComponent = (
         hasValidLicense={true}
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
+        roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
       />
     </AtomsWrapper>
   );

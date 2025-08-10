@@ -83,6 +83,7 @@ const BookerComponent = ({
   confirmButtonDisabled,
   timeZones,
   eventMetaChildren,
+  roundRobinHideOrgAndTeam,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -418,7 +419,8 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZones={timeZones}>
+                  timeZones={timeZones}
+                  roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
                   {eventMetaChildren}
                 </EventMeta>
                 {layout !== BookerLayouts.MONTH_VIEW &&
