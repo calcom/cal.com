@@ -15,7 +15,7 @@ import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query
  * Arguments passed into store initializer, containing
  * the event data.
  */
-type StoreInitializeType = {
+export type StoreInitializeType = {
   username: string;
   eventSlug: string;
   // Month can be undefined if it's not passed in as a prop.
