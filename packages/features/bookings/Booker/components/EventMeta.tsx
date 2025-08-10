@@ -54,6 +54,7 @@ export const EventMeta = ({
   locale,
   timeZones,
   children,
+  selectedTimeslot,
 }: {
   event?: Pick<
     BookerEvent,
@@ -90,12 +91,12 @@ export const EventMeta = ({
   locale?: string | null;
   timeZones?: Timezone[];
   children?: React.ReactNode;
+  selectedTimeslot: string | null;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
   const [setBookerStoreTimezone] = useBookerStoreContext((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
-  const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const bookerState = useBookerStoreContext((state) => state.state);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);

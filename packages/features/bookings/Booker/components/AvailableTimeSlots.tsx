@@ -49,6 +49,7 @@ type AvailableTimeSlotsProps = {
    */
   unavailableTimeSlots: string[];
   confirmButtonDisabled?: boolean;
+  onAvailableTimeSlotSelect: (time: string) => void;
 };
 
 /**
@@ -72,11 +73,11 @@ export const AvailableTimeSlots = ({
   unavailableTimeSlots,
   confirmButtonDisabled,
   confirmStepClassNames,
+  onAvailableTimeSlotSelect,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
-  const setSelectedTimeslot = useBookerStoreContext((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStoreContext((state) => state.setSeatedEventData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStoreContext((state) => [state.layout]);
@@ -146,7 +147,9 @@ export const AvailableTimeSlots = ({
           showAvailableSeatsCount,
         });
       }
-      setSelectedTimeslot(time);
+
+      onAvailableTimeSlotSelect(time);
+
       const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
       if (skipConfirmStep && isTimeSlotAvailable) {
         onSubmit(time);
@@ -156,12 +159,12 @@ export const AvailableTimeSlots = ({
     [
       onSubmit,
       setSeatedEventData,
-      setSelectedTimeslot,
       skipConfirmStep,
       showAvailableSeatsCount,
       unavailableTimeSlots,
       schedule,
       setTentativeSelectedTimeslots,
+      onAvailableTimeSlotSelect,
     ]
   );
 
