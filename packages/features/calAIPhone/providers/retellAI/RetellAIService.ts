@@ -178,7 +178,9 @@ export class RetellAIService {
   async deleteAgent(params: { id: string; userId: number; teamId?: number }) {
     return this.agentService.deleteAgent({
       ...params,
-      deleteAIConfiguration: (config) => this.deleteAIConfiguration(config),
+      deleteAIConfiguration: async (config) => {
+        await this.deleteAIConfiguration(config);
+      },
     });
   }
 

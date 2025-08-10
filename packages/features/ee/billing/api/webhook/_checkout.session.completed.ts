@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { AgentRepository } from "@calcom/lib/server/repository/agent";
+import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -11,22 +11,7 @@ import { HttpCode } from "./__handler";
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;
 
-  console.log("Webhook received - checkout.session.completed", {
-    sessionId: session.id,
-    metadata: session.metadata,
-    type: session.metadata?.type,
-    paymentStatus: session.payment_status,
-    subscription: session.subscription,
-  });
-
-  // Handle phone number subscriptions
   if (session.metadata?.type === "phone_number_subscription") {
-    console.log("Processing phone number subscription", {
-      sessionId: session.id,
-      userId: session.metadata?.userId,
-      teamId: session.metadata?.teamId,
-      agentId: session.metadata?.agentId,
-    });
     return await handlePhoneNumberSubscription(session);
   }
 
@@ -95,16 +80,6 @@ async function handlePhoneNumberSubscription(session: any) {
   const teamId = session.metadata?.teamId ? parseInt(session.metadata.teamId, 10) : null;
   const agentId = session.metadata?.agentId || null;
 
-  console.log("handlePhoneNumberSubscription called", {
-    sessionId: session.id,
-    userId,
-    teamId,
-    agentId,
-    subscription: session.subscription,
-    customer: session.customer,
-    paymentStatus: session.payment_status,
-  });
-
   if (!userId || !session.subscription) {
     console.error("Missing required data for phone number subscription", {
       userId,
@@ -113,16 +88,9 @@ async function handlePhoneNumberSubscription(session: any) {
     throw new HttpCode(400, "Missing required data for phone number subscription");
   }
 
-  console.log("Creating AI service provider...");
   const aiService = createDefaultAIPhoneServiceProvider();
 
-  console.log("Creating phone number with Retell...");
   const retellPhoneNumber = await aiService.createPhoneNumber({ nickname: `${userId}-${Date.now()}` });
-
-  console.log("Retell phone number response", {
-    success: !!retellPhoneNumber?.phone_number,
-    phoneNumber: retellPhoneNumber?.phone_number,
-  });
 
   if (!retellPhoneNumber?.phone_number) {
     console.error("Failed to create phone number - invalid response from Retell");
@@ -132,14 +100,11 @@ async function handlePhoneNumberSubscription(session: any) {
   const subscriptionId =
     typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
 
-  console.log("Subscription ID extracted", { subscriptionId });
-
   if (!subscriptionId) {
     console.error("Invalid subscription data", { subscription: session.subscription });
     throw new HttpCode(400, "Invalid subscription data");
   }
 
-  console.log("Creating phone number record in database...");
   const newNumber = await prisma.calAiPhoneNumber.create({
     data: {
       userId,
@@ -152,16 +117,10 @@ async function handlePhoneNumberSubscription(session: any) {
     },
   });
 
-  console.log("Phone number created successfully", {
-    phoneNumberId: newNumber.id,
-    phoneNumber: newNumber.phoneNumber,
-  });
-
   // If agentId is provided, link the phone number to the agent
   if (agentId) {
-    console.log("Linking phone number to agent", { agentId });
     try {
-      const agent = await AgentRepository.findByIdWithUserAccess({
+      const agent = await PrismaAgentRepository.findByIdWithUserAccess({
         agentId,
         userId,
       });
@@ -171,7 +130,6 @@ async function handlePhoneNumberSubscription(session: any) {
         throw new HttpCode(404, "Agent not found or user does not have access to it");
       }
 
-      console.log("Agent found, updating phone number with Retell...");
       // Assign agent to the new number via Retell API
       await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
         outbound_agent_id: agent.retellAgentId,
@@ -199,7 +157,6 @@ async function handlePhoneNumberSubscription(session: any) {
     }
   }
 
-  console.log("Phone number subscription completed successfully");
   return { success: true, phoneNumber: newNumber.phoneNumber };
 }
 
