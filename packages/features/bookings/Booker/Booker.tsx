@@ -193,6 +193,10 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
+  const onAvailableTimeSlotSelect = (time: string) => {
+    setSelectedTimeslot(time);
+  };
+
   updateEmbedBookerState({ bookerState, slotsQuery: schedule });
 
   useEffect(() => {
@@ -229,6 +233,7 @@ const BookerComponent = ({
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
+        timeslot={selectedTimeslot}
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
@@ -401,6 +406,7 @@ const BookerComponent = ({
                   />
                 )}
                 <EventMeta
+                  selectedTimeslot={selectedTimeslot}
                   classNames={{
                     eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
                     eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
@@ -484,6 +490,7 @@ const BookerComponent = ({
               ref={timeslotsRef}
               {...fadeInLeft}>
               <AvailableTimeSlots
+                onAvailableTimeSlotSelect={onAvailableTimeSlotSelect}
                 customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
