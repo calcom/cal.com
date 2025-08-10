@@ -6,6 +6,11 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
+import {
+  BookerStoreProvider,
+  useInitializeBookerStoreContext,
+  useBookerStoreContext,
+} from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/useLocalSet";
@@ -40,7 +45,7 @@ import type {
   BookerStoreValues,
 } from "./types";
 
-export const BookerPlatformWrapper = (
+const BookerPlatformWrapperComponent = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
   const {
@@ -63,15 +68,18 @@ export const BookerPlatformWrapper = (
 
   const { clientId } = useAtomsContext();
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
-  const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
-  const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
-  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
-  const setBookingData = useBookerStore((state) => state.setBookingData);
-  const setOrg = useBookerStore((state) => state.setOrg);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
-  const setSelectedMonth = useBookerStore((state) => state.setMonth);
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const [bookerState, setBookerState] = useBookerStoreContext(
+    (state) => [state.state, state.setState],
+    shallow
+  );
+  const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
+  const setSelectedDuration = useBookerStoreContext((state) => state.setSelectedDuration);
+  const setBookingData = useBookerStoreContext((state) => state.setBookingData);
+  const setOrg = useBookerStoreContext((state) => state.setOrg);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const setSelectedTimeslot = useBookerStoreContext((state) => state.setSelectedTimeslot);
+  const setSelectedMonth = useBookerStoreContext((state) => state.setMonth);
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
 
   const [isOverlayCalendarEnabled, setIsOverlayCalendarEnabled] = useState(
     Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault"))
@@ -170,11 +178,27 @@ export const BookerPlatformWrapper = (
     isPlatform: true,
     allowUpdatingUrlParams,
   });
-  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  useInitializeBookerStoreContext({
+    ...props,
+    teamMemberEmail,
+    crmAppSlug,
+    crmOwnerRecordType,
+    crmRecordId: props.crmRecordId,
+    eventId: event?.data?.id,
+    rescheduleUid: props.rescheduleUid ?? null,
+    bookingUid: props.bookingUid ?? null,
+    layout: layout,
+    org: props.entity?.orgSlug,
+    username,
+    bookingData,
+    isPlatform: true,
+    allowUpdatingUrlParams,
+  });
+  const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
-  const month = useBookerStore((state) => state.month);
-  const eventSlug = useBookerStore((state) => state.eventSlug);
+  const month = useBookerStoreContext((state) => state.month);
+  const eventSlug = useBookerStoreContext((state) => state.eventSlug);
 
   const { data: session } = useMe();
   const hasSession = !!session;
@@ -551,6 +575,16 @@ export const BookerPlatformWrapper = (
         eventMetaChildren={props.eventMetaChildren}
       />
     </AtomsWrapper>
+  );
+};
+
+export const BookerPlatformWrapper = (
+  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+) => {
+  return (
+    <BookerStoreProvider>
+      <BookerPlatformWrapperComponent {...props} />
+    </BookerStoreProvider>
   );
 };
 
