@@ -10,10 +10,7 @@ import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
-import {
-  BookerStoreProvider,
-  useBookerStoreContext,
-} from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
@@ -596,9 +593,7 @@ const BookerComponent = ({
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
   return (
     <LazyMotion strict features={framerFeatures}>
-      <BookerStoreProvider>
-        <BookerComponent {...props} />
-      </BookerStoreProvider>
+      <BookerComponent {...props} />
     </LazyMotion>
   );
 };
