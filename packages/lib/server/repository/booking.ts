@@ -685,6 +685,7 @@ export class BookingRepository {
         payment: true,
         references: true,
         workflowReminders: true,
+        location: true,
       },
     });
   }

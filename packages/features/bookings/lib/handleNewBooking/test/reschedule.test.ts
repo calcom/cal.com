@@ -2937,6 +2937,9 @@ describe("handleNewBooking", () => {
             organizer: expect.objectContaining({
               email: originalHost.email,
             }),
+            startTime: `${plus1DateString}T05:00:00.000Z`,
+            endTime: `${plus1DateString}T05:15:00.000Z`,
+            uid: uidOfBookingToBeRescheduled,
           },
           uid: "MOCK_ID",
         });
