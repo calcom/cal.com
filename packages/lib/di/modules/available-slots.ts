@@ -18,5 +18,6 @@ availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSl
   redisClient: DI_TOKENS.REDIS_CLIENT,
   cacheService: DI_TOKENS.CACHE_SERVICE,
   checkBookingLimitsService: DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE,
-  userAvailabilityService: DI_TOKENS.GET_USER_AVAILABILITY_SERVICE
+  userAvailabilityService: DI_TOKENS.GET_USER_AVAILABILITY_SERVICE,
+  busyTimesService: DI_TOKENS.BUSY_TIMES_SERVICE,
 } satisfies Record<keyof IAvailableSlotsService, symbol>);
