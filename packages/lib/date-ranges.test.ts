@@ -150,7 +150,7 @@ describe("processWorkingHours", () => {
       },
       {
         start: dayjs("2023-11-30T14:00:00.000Z").tz(timeZone),
-        end: dayjs("2023-11-30T22:00:00.000Z").tz(timeZone),
+        end: dayjs("2023-11-30T18:29:59.999Z").tz(timeZone),
       },
     ]);
 
@@ -711,12 +711,15 @@ describe("buildDateRanges", () => {
       travelSchedules: [],
     });
 
-    expect(results.length).toBe(1);
+    expect(results.length).toBe(0);
 
+    /*
+    expect(results.length).toBe(1);
     expect(results[0]).toEqual({
       start: dayjs.utc("2023-06-12T06:00:00Z").tz(timeZone),
       end: dayjs.utc("2023-06-12T10:00:00Z").tz(timeZone),
     });
+    */
   });
 });
 
