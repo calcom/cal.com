@@ -488,7 +488,7 @@ export const insightsRouter = router({
   popularEvents: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
@@ -497,10 +497,9 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getPopularEventsStats({
-          limit: limit ?? 10,
-          offset: offset ?? 0,
-        });
+        return await insightsBookingService.getPopularEventsStats(
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -564,7 +563,7 @@ export const insightsRouter = router({
   membersWithMostCancelledBookings: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
@@ -573,10 +572,11 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC", {
-          limit: limit ?? 10,
-          offset: offset ?? 0,
-        });
+        return await insightsBookingService.getMembersStatsWithCount(
+          "cancelled",
+          "DESC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -584,7 +584,7 @@ export const insightsRouter = router({
   membersWithMostBookings: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
@@ -593,10 +593,11 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "DESC", {
-          limit: limit ?? 10,
-          offset: offset ?? 0,
-        });
+        return await insightsBookingService.getMembersStatsWithCount(
+          "all",
+          "DESC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -604,7 +605,7 @@ export const insightsRouter = router({
   membersWithLeastBookings: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
@@ -613,10 +614,11 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "ASC", {
-          limit: limit ?? 10,
-          offset: offset ?? 0,
-        });
+        return await insightsBookingService.getMembersStatsWithCount(
+          "all",
+          "ASC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -803,22 +805,21 @@ export const insightsRouter = router({
   recentRatings: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getRecentRatingsStats({
-        limit: limit ?? 10,
-        offset: offset ?? 0,
-      });
+      return await insightsBookingService.getRecentRatingsStats(
+        limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+      );
     }),
   membersWithMostNoShow: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
@@ -827,10 +828,11 @@ export const insightsRouter = router({
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("noShow", "DESC", {
-          limit: limit ?? 10,
-          offset: offset ?? 0,
-        });
+        return await insightsBookingService.getMembersStatsWithCount(
+          "noShow",
+          "DESC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -838,32 +840,32 @@ export const insightsRouter = router({
   membersWithHighestRatings: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getMembersRatingStats("DESC", {
-        limit: limit ?? 10,
-        offset: offset ?? 0,
-      });
+      return await insightsBookingService.getMembersRatingStats(
+        "DESC",
+        limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+      );
     }),
   membersWithLowestRatings: userBelongsToTeamProcedure
     .input(
       bookingRepositoryBaseInputSchema.extend({
-        limit: z.number().max(100).optional(),
+        limit: z.number().max(1000).optional(),
         offset: z.number().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
       const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getMembersRatingStats("ASC", {
-        limit: limit ?? 10,
-        offset: offset ?? 0,
-      });
+      return await insightsBookingService.getMembersRatingStats(
+        "ASC",
+        limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+      );
     }),
   rawData: userBelongsToTeamProcedure
     .input(

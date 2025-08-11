@@ -1,24 +1,36 @@
 "use client";
 
+import { useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Pagination } from "@calcom/ui/components/pagination";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
-import { useInsightsPagination } from "../../hooks/useInsightsPagination";
 import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
+import { ShowAllDataDialog } from "../ShowAllDataDialog";
 import { UserStatsTable } from "../UserStatsTable";
 
 export const HighestRatedMembersTable = () => {
   const { t } = useLocale();
   const insightsBookingParams = useInsightsBookingParameters();
-  const { currentPage, pageSize, offset, limit, handlePageChange, handlePageSizeChange } =
-    useInsightsPagination();
+  const [showAllDialog, setShowAllDialog] = useState(false);
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithHighestRatings.useQuery(
-    { ...insightsBookingParams, limit, offset },
+    insightsBookingParams,
     {
+      staleTime: 180000,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
+
+  const { data: allData, isLoading: isLoadingAll } = trpc.viewer.insights.membersWithHighestRatings.useQuery(
+    { ...insightsBookingParams, limit: 1000 },
+    {
+      enabled: showAllDialog,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {
@@ -33,23 +45,34 @@ export const HighestRatedMembersTable = () => {
 
   const tableData = data.data || [];
   const total = data.total || 0;
+  const hasMoreData = total > 10;
+
+  const renderTableContent = (items: typeof tableData) => <UserStatsTable data={items} />;
 
   return tableData && tableData.length > 0 ? (
-    <ChartCard title={t("highest_rated")}>
-      <UserStatsTable data={tableData} />
-      {total > pageSize && (
-        <div className="mt-4">
-          <Pagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalItems={total}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-            pageSizeOptions={[10, 25, 50]}
-          />
-        </div>
+    <>
+      <ChartCard
+        title={t("highest_rated")}
+        cta={
+          hasMoreData
+            ? {
+                label: t("show_all_columns"),
+                onClick: () => setShowAllDialog(true),
+              }
+            : undefined
+        }>
+        {renderTableContent(tableData.slice(0, 10))}
+      </ChartCard>
+
+      {showAllDialog && (
+        <ShowAllDataDialog
+          isOpen={showAllDialog}
+          onClose={() => setShowAllDialog(false)}
+          title={t("highest_rated")}>
+          {isLoadingAll ? <LoadingInsight /> : renderTableContent(allData?.data || [])}
+        </ShowAllDataDialog>
       )}
-    </ChartCard>
+    </>
   ) : (
     <></>
   );
