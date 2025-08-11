@@ -1,7 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
-import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => {
@@ -28,7 +27,7 @@ const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => 
 
 const getInstallCountPerApp = async (): Promise<Record<string, number>> => {
   return unstable_cache(async () => computeInstallCountsFromDB(), ["app-install-counts"], {
-    revalidate: NEXTJS_CACHE_TTL,
+    revalidate: 300,
     tags: ["app-install-counts"],
   })();
 };
