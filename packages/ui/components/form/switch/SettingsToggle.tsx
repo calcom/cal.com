@@ -54,14 +54,14 @@ export function SettingsToggle({
           {toggleSwitchAtTheEnd ? (
             <div
               className={classNames(
-                "border-subtle flex justify-between space-x-3 rounded-lg border px-4 py-6 sm:px-6",
+                "border-subtle flex justify-between space-x-3 rounded-lg",
                 checked && children && "rounded-b-none",
                 switchContainerClassName
               )}>
               <div>
                 <div className="flex items-center gap-x-2" data-testid={`${rest["data-testid"]}-title`}>
                   <Label
-                    className={classNames("mt-0.5 text-base font-semibold leading-none", labelClassName)}
+                    className={classNames("mt-0.5 text-sm leading-none", labelClassName)}
                     htmlFor="">
                     {title}
                     {LockedIcon}
@@ -71,7 +71,7 @@ export function SettingsToggle({
                 {description && (
                   <p
                     className={classNames(
-                      "text-default -mt-1.5 text-sm leading-normal",
+                      "text-subtle -mt-1.5 text-xs leading-normal",
                       descriptionClassName
                     )}
                     data-testid={`${rest["data-testid"]}-description`}>
