@@ -711,15 +711,11 @@ describe("buildDateRanges", () => {
       travelSchedules: [],
     });
 
-    expect(results.length).toBe(0);
-
-    /*
     expect(results.length).toBe(1);
     expect(results[0]).toEqual({
       start: dayjs.utc("2023-06-12T06:00:00Z").tz(timeZone),
       end: dayjs.utc("2023-06-12T10:00:00Z").tz(timeZone),
     });
-    */
   });
 });
 
