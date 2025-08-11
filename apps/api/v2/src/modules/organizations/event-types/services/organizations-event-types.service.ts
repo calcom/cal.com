@@ -11,6 +11,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger } from "@nestjs/common";
 
+import { UserRepository } from "@calcom/lib/server/repository/user";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { createEventType } from "@calcom/platform-libraries/event-types";
 
@@ -52,7 +53,11 @@ export class OrganizationsEventTypesService {
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
-    const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId);
+    const userRepository = new UserRepository(this.dbWrite.prisma);
+    const isOrgAdmin = await userRepository.isAdminOrOwnerOfTeam({
+      userId: user.id,
+      teamId: organizationId,
+    });
     const profileId =
       this.usersService.getUserProfileByOrgId(user, organizationId)?.id ||
       this.usersService.getUserMainProfile(user)?.id;
