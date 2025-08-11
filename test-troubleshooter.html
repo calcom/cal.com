@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooter Performance Test</title>
+</head>
+<body>
+    <h1>Cal.com Embed Troubleshooter Performance Test</h1>
+    <p>Open the browser console to see the performance logs.</p>
+    
+    <script>
+        // Mock the Cal object
+        window.Cal = {
+            loaded: true,
+            version: "1.0.0-test",
+            __config: {
+                calOrigin: "https://cal.com"
+            }
+        };
+        
+        // Performance monitoring
+        let renderCount = 0;
+        let lastRenderTime = 0;
+        
+        // Override createElement to track renders
+        const originalCreateElement = document.createElement;
+        document.createElement = function(tagName) {
+            if (tagName === 'div' && arguments.callee.caller && arguments.callee.caller.name === 'displayGroupedResults') {
+                renderCount++;
+                const now = Date.now();
+                if (lastRenderTime) {
+                    console.log(`🔄 DOM Re-render #${renderCount} - Time since last: ${now - lastRenderTime}ms`);
+                }
+                lastRenderTime = now;
+            }
+            return originalCreateElement.call(this, tagName);
+        };
+        
+        // Log when diagnostics hash changes
+        console.log('📊 Monitoring troubleshooter performance...');
+        console.log('The diagnostics should only re-render when data actually changes.');
+    </script>
+    
+    <!-- Load the troubleshooter -->
+    <script type="module">
+        import { CalEmbedTroubleshooter } from './packages/embeds/troubleshooter/src/troubleshooter.ts';
+        
+        // Initialize troubleshooter
+        const troubleshooter = new CalEmbedTroubleshooter();
+        window.__calEmbedTroubleshooter = troubleshooter;
+        
+        // Add performance tracking
+        const originalGenerateHash = troubleshooter.generateDiagnosticsHash;
+        if (originalGenerateHash) {
+            troubleshooter.generateDiagnosticsHash = function(groups) {
+                const hash = originalGenerateHash.call(this, groups);
+                console.log(`📝 Hash generated: ${hash.substring(0, 20)}... (${hash === this.previousDiagnosticsHash ? 'unchanged' : 'CHANGED'})`);
+                return hash;
+            };
+        }
+        
+        console.log('✅ Troubleshooter initialized with performance monitoring');
+    </script>
+</body>
+</html>

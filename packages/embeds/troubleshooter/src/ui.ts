@@ -1,4 +1,5 @@
-import type { ConsoleError, NetworkLogEntry } from "./types";
+import type { ConsoleError, NetworkLogEntry, NetworkLogGroup } from "./types";
+import { getGroupedNetworkEntries } from "./interceptors";
 
 export function getUITemplate(): string {
   return `
@@ -35,7 +36,10 @@ export function updateConsoleTab(container: HTMLElement, consoleErrors: ConsoleE
     .map(
       (error) => `
       <div class="cal-error-log">
-        <div class="cal-error-time">${error.timestamp.toLocaleTimeString()}</div>
+        <div class="cal-error-time">
+          ${error.timestamp.toLocaleTimeString()}
+          ${error.context ? `<span style="color: #6b7280; margin-left: 8px;">[${error.context}]</span>` : ''}
+        </div>
         <div class="cal-error-message">${escapeHtml(error.message)}</div>
       </div>
     `
@@ -44,34 +48,60 @@ export function updateConsoleTab(container: HTMLElement, consoleErrors: ConsoleE
 }
 
 export function updateNetworkTab(container: HTMLElement, networkLog: NetworkLogEntry[]): void {
-  if (networkLog.length === 0) {
+  const groupedEntries = getGroupedNetworkEntries();
+  
+  if (groupedEntries.size === 0) {
     container.innerHTML = '<div class="cal-empty-state">No Cal.com network requests detected</div>';
     return;
   }
 
-  container.innerHTML = networkLog
-    .map(
-      (entry) => `
-      <div class="cal-network-entry">
-        <div class="cal-network-url">
-          <a href="${escapeHtml(
-            entry.url
-          )}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none; hover:text-decoration: underline;">
-            ${escapeHtml(entry.url)}
-          </a>
+  let html = '';
+  
+  // Sort contexts: webpage first, then iframes
+  const sortedContexts = Array.from(groupedEntries.keys()).sort((a, b) => {
+    if (a === 'webpage') return -1;
+    if (b === 'webpage') return 1;
+    return a.localeCompare(b);
+  });
+  
+  sortedContexts.forEach((context) => {
+    const entries = groupedEntries.get(context) || [];
+    const contextId = context.replace(/[^a-z0-9]/gi, '-');
+    
+    html += `
+      <div class="cal-network-context-group" style="margin-bottom: 16px;">
+        <div class="cal-network-context-header" 
+             onclick="window.__calEmbedTroubleshooter.toggleNetworkSection('${contextId}')"
+             style="background: #f3f4f6; padding: 8px 12px; cursor: pointer; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; text-transform: capitalize;">${context}</span>
+          <span style="color: #6b7280; font-size: 12px;">${entries.length} request${entries.length !== 1 ? 's' : ''}</span>
         </div>
-        <div>
-          <span style="color: #3b82f6; font-weight: 500; margin-right: 8px;">${entry.type || "Unknown"}</span>
-          <span>${entry.method}</span>
-          <span class="cal-network-status ${entry.error ? "error" : "success"}">
-            ${entry.error || entry.status}
-          </span>
-          <span style="color: #6b7280; margin-left: 8px;">${entry.duration}ms</span>
+        <div class="cal-network-context-body" id="network-section-${contextId}" style="display: block;">
+          ${entries.map(entry => `
+            <div class="cal-network-entry" style="padding-left: 12px;">
+              <div class="cal-network-url">
+                <a href="${escapeHtml(
+                  entry.url
+                )}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none; hover:text-decoration: underline;">
+                  ${escapeHtml(entry.url)}
+                </a>
+              </div>
+              <div>
+                <span style="color: #3b82f6; font-weight: 500; margin-right: 8px;">${entry.type || "Unknown"}</span>
+                <span>${entry.method}</span>
+                <span class="cal-network-status ${entry.error ? "error" : "success"}">
+                  ${entry.error || entry.status}
+                </span>
+                <span style="color: #6b7280; margin-left: 8px;">${entry.duration}ms</span>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </div>
-    `
-    )
-    .join("");
+    `;
+  });
+  
+  container.innerHTML = html;
 }
 
 export function escapeHtml(text: string): string {

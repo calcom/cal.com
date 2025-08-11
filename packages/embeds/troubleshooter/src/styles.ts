@@ -282,48 +282,41 @@ export const styles = `
   }
   
   .cal-network-entry {
-    display: flex;
-    justify-content: space-between;
     padding: 8px 12px;
-    border-bottom: 1px solid #e5e7eb;
-    font-size: 13px;
-  }
-  
-  .cal-network-entry:last-child {
-    border-bottom: none;
-  }
-  
-  .cal-network-entry:hover {
     background: #f9fafb;
+    margin-bottom: 8px;
+    border-radius: 4px;
   }
-  
+
   .cal-network-url {
-    flex: 1;
-    color: #3b82f6;
-    word-break: break-word;
-    margin-right: 10px;
+    font-size: 13px;
+    margin-bottom: 4px;
+    word-break: break-all;
   }
-  
-  .cal-network-url a {
-    color: inherit;
-    text-decoration: none;
-  }
-  
-  .cal-network-url a:hover {
-    text-decoration: underline;
-  }
-  
+
   .cal-network-status {
-    font-weight: 600;
-    margin-left: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 8px;
   }
-  
+
   .cal-network-status.success {
-    color: #059669;
+    background: #10b981;
+    color: white;
   }
-  
+
   .cal-network-status.error {
-    color: #dc2626;
+    background: #ef4444;
+    color: white;
+  }
+
+  .cal-network-context-header:hover {
+    background: #e5e7eb !important;
+  }
+
+  .cal-network-context-body {
+    transition: all 0.2s ease;
   }
   
   .cal-empty-state {

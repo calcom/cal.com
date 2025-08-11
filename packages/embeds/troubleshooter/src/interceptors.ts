@@ -1,8 +1,10 @@
 import type { ConsoleError, NetworkLogEntry } from "./types";
 import { isCalcomUrl } from "./utils";
+import { getExecutionContext, getAllAccessibleContexts, getNetworkEntriesForContext } from "./context-utils";
 
 export function setupConsoleInterception(consoleErrors: ConsoleError[]): void {
   const originalError = console.error;
+  const context = getExecutionContext();
 
   console.error = function (...args) {
     const errorString = args
@@ -14,6 +16,7 @@ export function setupConsoleInterception(consoleErrors: ConsoleError[]): void {
         timestamp: new Date(),
         message: errorString,
         stack: new Error().stack,
+        context: context.label,
       });
     }
 
@@ -69,20 +72,46 @@ function getResourceType(entry: PerformanceResourceTiming): string {
 
 export function getNetworkEntriesFromPerformance(): NetworkLogEntry[] {
   const entries: NetworkLogEntry[] = [];
-  const performanceEntries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
-
-  performanceEntries.forEach((entry) => {
-    if (isCalcomUrl(entry.name)) {
-      entries.push({
-        url: entry.name,
-        method: "GET", // Performance API doesn't provide method info
-        status: 200, // Performance API doesn't provide status directly
-        duration: Math.round(entry.duration),
-        timestamp: new Date(entry.startTime + performance.timeOrigin),
-        type: getResourceType(entry),
-      });
-    }
+  
+  // Get network entries from all accessible contexts
+  const contexts = getAllAccessibleContexts();
+  
+  contexts.forEach((context) => {
+    const contextEntries = getNetworkEntriesForContext(context);
+    
+    // Get the timeOrigin from the specific context's performance object
+    const contextPerf = context.window ? (context.window as any).performance : null;
+    const contextTimeOrigin = contextPerf?.timeOrigin || performance.timeOrigin;
+    
+    contextEntries.forEach((entry) => {
+      if (isCalcomUrl(entry.name)) {
+        entries.push({
+          url: entry.name,
+          method: "GET", // Performance API doesn't provide method info
+          status: 200, // Performance API doesn't provide status directly
+          duration: Math.round(entry.duration),
+          timestamp: new Date(entry.startTime + contextTimeOrigin),
+          type: getResourceType(entry),
+          context: context.label,
+        });
+      }
+    });
   });
 
   return entries;
+}
+
+export function getGroupedNetworkEntries(): Map<string, NetworkLogEntry[]> {
+  const entries = getNetworkEntriesFromPerformance();
+  const grouped = new Map<string, NetworkLogEntry[]>();
+  
+  entries.forEach((entry) => {
+    const context = entry.context || "webpage";
+    if (!grouped.has(context)) {
+      grouped.set(context, []);
+    }
+    grouped.get(context)!.push(entry);
+  });
+  
+  return grouped;
 }

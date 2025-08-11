@@ -1,5 +1,6 @@
-import type { DiagnosticSection, ConsoleError, NetworkLogEntry } from "./types";
+import type { DiagnosticSection, ConsoleError, NetworkLogEntry, DiagnosticResults, GroupedDiagnosticResults, EmbedLocation } from "./types";
 import { getCalOrigin, isCalcomUrl, getBaseCalDomain } from "./utils";
+import { detectEmbedLocations, findPrimaryEmbedLocation, getContextualLabel } from "./context-utils";
 
 export async function checkEmbedInstallation(): Promise<DiagnosticSection> {
   const results: DiagnosticSection = {
@@ -8,61 +9,82 @@ export async function checkEmbedInstallation(): Promise<DiagnosticSection> {
     checks: [],
   };
 
-  if (typeof window.Cal !== "undefined") {
+  // Detect all embed locations (main window and iframes)
+  const embedLocations = detectEmbedLocations();
+  const primaryLocation = findPrimaryEmbedLocation(embedLocations);
+  
+  // If we found embeds in iframes, note it
+  const iframeEmbeds = embedLocations.filter(loc => loc.context.isIframe && loc.hasEmbed);
+  const mainEmbed = embedLocations.find(loc => !loc.context.isIframe && loc.hasEmbed);
+  
+  if (iframeEmbeds.length > 0 && !mainEmbed) {
+    results.checks.push({
+      icon: "[i]",
+      status: "info",
+      text: `Embed detected in iframe${iframeEmbeds.length > 1 ? 's' : ''}`,
+      details: iframeEmbeds.map(e => e.context.label).join(", "),
+    });
+  }
+
+  // Check primary embed location (could be main window or iframe)
+  if (primaryLocation && primaryLocation.hasEmbed) {
+    const contextLabel = getContextualLabel(primaryLocation.context);
+    const cal = primaryLocation.context.window ? (primaryLocation.context.window as any).Cal : window.Cal;
+    
     results.checks.push({
       icon: "[OK]",
       status: "success",
-      text: "window.Cal is defined",
-      details: `Type: ${typeof window.Cal}`,
+      text: `window.Cal is defined ${contextLabel}`,
+      details: `Type: ${typeof cal}`,
     });
 
-    if (typeof window.Cal === "function") {
+    if (typeof cal === "function") {
       results.checks.push({
         icon: "[OK]",
         status: "success",
-        text: "Cal is a callable function",
+        text: `Cal is a callable function ${contextLabel}`,
         details: "Can handle Cal() API calls",
       });
     } else {
       results.checks.push({
         icon: "!",
         status: "warning",
-        text: "Cal is not a function",
+        text: `Cal is not a function ${contextLabel}`,
         details: "May cause errors when clicking data-cal-link elements",
       });
     }
 
-    if (window.Cal.loaded) {
+    if (cal?.loaded) {
       results.checks.push({
         icon: "[OK]",
         status: "success",
-        text: "Embed is fully loaded",
+        text: `Embed is fully loaded ${contextLabel}`,
         details: null,
       });
     } else {
       results.checks.push({
         icon: "!",
         status: "warning",
-        text: "Embed is defined but not loaded",
+        text: `Embed is defined but not loaded ${contextLabel}`,
         details: "The embed script may still be loading",
       });
     }
 
-    if (window.Cal.ns && Object.keys(window.Cal.ns).length > 0) {
+    if (cal?.ns && Object.keys(cal.ns).length > 0) {
       results.checks.push({
         icon: "[OK]",
         status: "success",
-        text: `Namespaces: ${Object.keys(window.Cal.ns).join(", ")}`,
+        text: `Namespaces ${contextLabel}: ${Object.keys(cal.ns).join(", ")}`,
         details: null,
       });
     }
 
-    if (window.Cal.version || window.Cal.fingerprint) {
+    if (cal?.version || cal?.fingerprint) {
       results.checks.push({
         icon: "[i]",
         status: "info",
-        text: "Version info available",
-        details: `Version: ${window.Cal.version || "N/A"}, Fingerprint: ${window.Cal.fingerprint || "N/A"}`,
+        text: `Version info available ${contextLabel}`,
+        details: `Version: ${cal?.version || "N/A"}, Fingerprint: ${cal?.fingerprint || "N/A"}`,
       });
     }
 
@@ -70,18 +92,31 @@ export async function checkEmbedInstallation(): Promise<DiagnosticSection> {
     results.checks.push({
       icon: "[i]",
       status: "info",
-      text: "Detected Cal.com origin",
+      text: `Detected Cal.com origin ${contextLabel}`,
       details: getCalOrigin(),
     });
 
-    results.status = window.Cal.loaded ? "success" : "warning";
+    results.status = cal?.loaded ? "success" : "warning";
   } else {
+    // No embed found anywhere
     results.checks.push({
       icon: "[X]",
       status: "error",
-      text: "window.Cal is not defined",
-      details: "The Cal.com embed snippet has not been loaded",
+      text: "window.Cal is not defined in any context",
+      details: "The Cal.com embed snippet has not been loaded in the webpage or any accessible iframe",
     });
+    
+    // Check if there are iframes we couldn't access
+    const crossOriginFrames = embedLocations.filter(loc => loc.isCrossOrigin);
+    if (crossOriginFrames.length > 0) {
+      results.checks.push({
+        icon: "!",
+        status: "warning",
+        text: `${crossOriginFrames.length} cross-origin iframe(s) detected`,
+        details: "Cannot check for embeds in cross-origin iframes due to security restrictions",
+      });
+    }
+    
     results.status = "error";
   }
 
@@ -95,61 +130,78 @@ export async function checkNetworkRequests(): Promise<DiagnosticSection> {
     checks: [],
   };
 
-  const scripts = Array.from(document.scripts);
-  const embedScript = scripts.find(
-    (script) => script.src && (script.src.includes("/embed.js") || script.src.includes("embed-core"))
-  );
+  // Check all accessible contexts for embed scripts
+  const embedLocations = detectEmbedLocations();
+  let foundEmbedScript = false;
+  
+  embedLocations.forEach((location) => {
+    if (!location.isCrossOrigin && location.context.document) {
+      const contextLabel = getContextualLabel(location.context);
+      const scripts = Array.from(location.context.document.scripts);
+      const embedScript = scripts.find(
+        (script) => script.src && (script.src.includes("/embed.js") || script.src.includes("embed-core"))
+      );
 
-  if (embedScript) {
-    results.checks.push({
-      icon: "[OK]",
-      status: "success",
-      text: "embed.js script found",
-      details: `Source: ${embedScript.src}`,
-    });
+      if (embedScript) {
+        foundEmbedScript = true;
+        results.checks.push({
+          icon: "[OK]",
+          status: "success",
+          text: `embed.js script found ${contextLabel}`,
+          details: `Source: ${embedScript.src}`,
+        });
 
-    if (embedScript.readyState === "complete" || !embedScript.readyState) {
-      results.checks.push({
-        icon: "[OK]",
-        status: "success",
-        text: "Script loaded successfully",
-        details: null,
-      });
-    }
-
-    results.status = "success";
-  } else {
-    results.checks.push({
-      icon: "!",
-      status: "warning",
-      text: "embed.js script not found in DOM",
-      details: "Script may be loaded dynamically or not yet loaded",
-    });
-    results.status = "warning";
-  }
-
-  // Find all iframes and check if they're from Cal.com
-  const allIframes = document.querySelectorAll("iframe");
-  const calIframes: HTMLIFrameElement[] = [];
-
-  allIframes.forEach((iframe) => {
-    if (iframe.src && isCalcomUrl(iframe.src)) {
-      calIframes.push(iframe);
-    } else if (iframe.name && iframe.name.startsWith("cal-embed")) {
-      calIframes.push(iframe);
+        if (embedScript.readyState === "complete" || !embedScript.readyState) {
+          results.checks.push({
+            icon: "[OK]",
+            status: "success",
+            text: `Script loaded successfully ${contextLabel}`,
+            details: null,
+          });
+        }
+      }
     }
   });
 
-  if (calIframes.length > 0) {
+  if (!foundEmbedScript) {
+    results.checks.push({
+      icon: "!",
+      status: "warning",
+      text: "embed.js script not found in any accessible context",
+      details: "Script may be loaded dynamically or not yet loaded",
+    });
+    results.status = "warning";
+  } else {
+    results.status = "success";
+  }
+
+  // Find all iframes across all contexts
+  const allCalIframes: Array<{iframe: HTMLIFrameElement; context: string}> = [];
+  
+  embedLocations.forEach((location) => {
+    if (!location.isCrossOrigin && location.context.document) {
+      const contextLabel = location.context.label;
+      const iframes = location.context.document.querySelectorAll("iframe");
+      
+      iframes.forEach((iframe) => {
+        if ((iframe.src && isCalcomUrl(iframe.src)) || 
+            (iframe.name && iframe.name.startsWith("cal-embed"))) {
+          allCalIframes.push({ iframe, context: contextLabel });
+        }
+      });
+    }
+  });
+
+  if (allCalIframes.length > 0) {
     results.checks.push({
       icon: "[OK]",
       status: "success",
-      text: `Found ${calIframes.length} Cal.com iframe(s)`,
-      details: calIframes
-        .map((iframe) => {
+      text: `Found ${allCalIframes.length} Cal.com iframe(s)`,
+      details: allCalIframes
+        .map(({ iframe, context }) => {
           const src = iframe.src || "No src";
           const name = iframe.name || "No name";
-          return `${name}: ${src}`;
+          return `[${context}] ${name}: ${src}`;
         })
         .join(", "),
     });
@@ -174,32 +226,40 @@ export function checkEmbedElements(): DiagnosticSection {
   };
 
   let foundAny = false;
+  const embedLocations = detectEmbedLocations();
 
-  Object.entries(elements).forEach(([selector, name]) => {
-    const found = document.querySelectorAll(selector);
-    if (found.length > 0) {
-      foundAny = true;
-      const details = getElementDetails(found, selector);
-      results.checks.push({
-        icon: "[OK]",
-        status: "success",
-        text: `${name}: ${found.length} found`,
-        details: details,
-      });
-
-      found.forEach((el) => {
-        if (
-          el.getAttribute("state") === "failed" ||
-          el.getAttribute("loading") === "failed" ||
-          el.getAttribute("data-error-code")
-        ) {
+  // Check all accessible contexts for embed elements
+  embedLocations.forEach((location) => {
+    if (!location.isCrossOrigin && location.context.document) {
+      const contextLabel = getContextualLabel(location.context);
+      
+      Object.entries(elements).forEach(([selector, name]) => {
+        const found = location.context.document!.querySelectorAll(selector);
+        if (found.length > 0) {
+          foundAny = true;
+          const details = getElementDetails(found, selector);
           results.checks.push({
-            icon: "[X]",
-            status: "error",
-            text: `Error on ${el.tagName.toLowerCase()}`,
-            details: `Error code: ${el.getAttribute("data-error-code") || "unknown"}`,
+            icon: "[OK]",
+            status: "success",
+            text: `${name} ${contextLabel}: ${found.length} found`,
+            details: details,
           });
-          results.status = "error";
+
+          found.forEach((el) => {
+            if (
+              el.getAttribute("state") === "failed" ||
+              el.getAttribute("loading") === "failed" ||
+              el.getAttribute("data-error-code")
+            ) {
+              results.checks.push({
+                icon: "[X]",
+                status: "error",
+                text: `Error on ${el.tagName.toLowerCase()} ${contextLabel}`,
+                details: `Error code: ${el.getAttribute("data-error-code") || "unknown"}`,
+              });
+              results.status = "error";
+            }
+          });
         }
       });
     }
@@ -209,7 +269,7 @@ export function checkEmbedElements(): DiagnosticSection {
     results.checks.push({
       icon: "[i]",
       status: "info",
-      text: "No embed elements found on page",
+      text: "No embed elements found in any accessible context",
       details: "This is normal if embeds are created dynamically",
     });
   } else if (results.status !== "error") {
@@ -383,35 +443,47 @@ export function checkIframeVisibility(): DiagnosticSection {
     checks: [],
   };
 
-  // Find all Cal.com iframes
-  const allIframes = document.querySelectorAll("iframe");
-  const calIframes: HTMLIFrameElement[] = [];
+  const embedLocations = detectEmbedLocations();
+  const allCalIframes: Array<{iframe: HTMLIFrameElement; context: string}> = [];
+  const allEmbedElements: Array<{element: Element; context: string}> = [];
   
-  allIframes.forEach((iframe) => {
-    if (
-      (iframe.src && isCalcomUrl(iframe.src)) ||
-      (iframe.name && iframe.name.startsWith("cal-embed")) ||
-      iframe.classList.contains("cal-embed")
-    ) {
-      calIframes.push(iframe);
+  // Find all Cal.com iframes and embed elements across all contexts
+  embedLocations.forEach((location) => {
+    if (!location.isCrossOrigin && location.context.document) {
+      const contextLabel = location.context.label;
+      
+      // Find iframes in this context
+      const iframes = location.context.document.querySelectorAll("iframe");
+      iframes.forEach((iframe) => {
+        if (
+          (iframe.src && isCalcomUrl(iframe.src)) ||
+          (iframe.name && iframe.name.startsWith("cal-embed")) ||
+          iframe.classList.contains("cal-embed")
+        ) {
+          allCalIframes.push({ iframe, context: contextLabel });
+        }
+      });
+      
+      // Find embed elements in this context
+      const embedElements = location.context.document.querySelectorAll("cal-inline, cal-modal-box, .cal-embed");
+      embedElements.forEach((element) => {
+        allEmbedElements.push({ element, context: contextLabel });
+      });
     }
   });
-
-  // Also check embed elements that might have iframes
-  const embedElements = document.querySelectorAll("cal-inline, cal-modal-box, .cal-embed");
   
-  if (calIframes.length === 0 && embedElements.length === 0) {
+  if (allCalIframes.length === 0 && allEmbedElements.length === 0) {
     results.checks.push({
       icon: "[i]",
       status: "info",
-      text: "No Cal.com iframes or embed elements found",
+      text: "No Cal.com iframes or embed elements found in any accessible context",
       details: "Embeds may not be initialized yet",
     });
     return results;
   }
 
   // Check each iframe for visibility issues
-  calIframes.forEach((iframe, index) => {
+  allCalIframes.forEach(({ iframe, context }, index) => {
     const computedStyle = window.getComputedStyle(iframe);
     const parentComputedStyle = iframe.parentElement ? window.getComputedStyle(iframe.parentElement) : null;
     const issues: string[] = [];
@@ -500,7 +572,7 @@ export function checkIframeVisibility(): DiagnosticSection {
       }
     });
     
-    const iframeDesc = iframe.name || iframe.src || `Iframe #${index + 1}`;
+    const iframeDesc = `[${context}] ${iframe.name || iframe.src || `Iframe #${index + 1}`}`;
     
     if (issues.length > 0) {
       results.checks.push({
@@ -531,7 +603,7 @@ export function checkIframeVisibility(): DiagnosticSection {
   });
   
   // Check embed elements separately
-  embedElements.forEach((element) => {
+  allEmbedElements.forEach(({ element, context }) => {
     const computedStyle = window.getComputedStyle(element);
     const issues: string[] = [];
     
@@ -544,7 +616,7 @@ export function checkIframeVisibility(): DiagnosticSection {
       results.checks.push({
         icon: "!",
         status: "warning",
-        text: `Visibility issues on ${element.tagName.toLowerCase()}`,
+        text: `Visibility issues on [${context}] ${element.tagName.toLowerCase()}`,
         details: issues.join(", "),
       });
       results.status = "warning";
@@ -558,39 +630,462 @@ export function checkIframeVisibility(): DiagnosticSection {
   return results;
 }
 
-export function generateRecommendations(): DiagnosticSection {
+export function generateRecommendations(location?: EmbedLocation): DiagnosticSection {
   const results: DiagnosticSection = {
     title: "Recommendations",
     status: "info",
     checks: [],
   };
 
-  if (typeof window.Cal === "undefined") {
+  // Check if Cal.com is installed in the current context
+  const calInContext = location ? location.hasEmbed : (typeof window.Cal !== "undefined");
+  
+  // If not in current context, check if it's installed anywhere
+  if (!calInContext) {
+    const embedLocations = detectEmbedLocations();
+    const hasCalAnywhere = embedLocations.some(loc => loc.hasEmbed);
+    
+    if (!hasCalAnywhere) {
+      results.checks.push({
+        icon: "[TIP]",
+        status: "info",
+        text: "Install the embed snippet",
+        details: "Add the Cal.com embed snippet to your page before using embeds",
+      });
+    }
+  }
+
+  // Check for embeds in the current context
+  const contextDoc = location?.context.document || document;
+  if (contextDoc) {
+    const embeds = contextDoc.querySelectorAll("cal-inline, cal-modal-box");
+    if (embeds.length > 3) {
+      results.checks.push({
+        icon: "[TIP]",
+        status: "info",
+        text: "Consider using namespaces",
+        details: `You have ${embeds.length} embeds. Namespaces can help organize multiple embeds`,
+      });
+    }
+  }
+
+  // Check for custom origin configuration
+  if (calInContext) {
+    const cal = location?.context.window ? (location.context.window as any).Cal : window.Cal;
+    if (cal && !cal.__config?.calOrigin) {
+      results.checks.push({
+        icon: "[TIP]",
+        status: "info",
+        text: "Consider setting a custom origin",
+        details: "Useful for self-hosted Cal.com instances",
+      });
+    }
+  }
+
+  return results;
+}
+
+export function generateNotes(location?: EmbedLocation): DiagnosticSection {
+  const results: DiagnosticSection = {
+    title: "Notes",
+    status: "info",
+    checks: [],
+  };
+
+  // Check if this is an iframe context with Cal.com
+  if (location && location.context.isIframe && location.hasEmbed) {
     results.checks.push({
-      icon: "[TIP]",
+      icon: "[!]",
+      status: "warning",
+      text: "Query params are not auto-forwarded in iframes",
+      details: `<a href="https://cal.com/help/embedding/embed-auto-forward-query-params#framer-specific-issue" target="_blank" style="color: #3b82f6; text-decoration: underline;">Learn about query param forwarding →</a>`,
+    });
+
+    results.checks.push({
+      icon: "[i]",
       status: "info",
-      text: "Install the embed snippet",
-      details: "Add the Cal.com embed snippet to your page before using embeds",
+      text: "Cross-origin restrictions apply",
+      details: "Parent page cannot directly access iframe's Cal object due to browser security",
+    });
+    
+    // Check if iframe name suggests a specific platform
+    if (location.context.selector?.includes('framer')) {
+      results.checks.push({
+        icon: "[i]",
+        status: "info",
+        text: "Framer-specific considerations",
+        details: `<a href="https://cal.com/docs/platform/workflows/how-to-embed-cal-in-framer" target="_blank" style="color: #3b82f6; text-decoration: underline;">View Framer embedding guide →</a>`,
+      });
+    }
+
+    // Check if this is a same-origin iframe
+    if (location.context.origin === window.location.origin) {
+      results.checks.push({
+        icon: "[TIP]",
+        status: "info",
+        text: "Consider direct embedding",
+        details: "Since this is same-origin, you could embed Cal.com directly in the parent page for better integration",
+      });
+    }
+  }
+
+  // Check if Cal.com is in webpage but not in any iframe (opposite scenario)
+  const embedLocations = detectEmbedLocations();
+  const hasCalInWebpage = embedLocations.some(loc => !loc.context.isIframe && loc.hasEmbed);
+  const hasIframes = embedLocations.some(loc => loc.context.isIframe);
+  
+  if (!location && hasCalInWebpage && hasIframes) {
+    // This is webpage context with Cal.com, and there are iframes
+    results.checks.push({
+      icon: "[i]",
+      status: "info",
+      text: "Cal.com in parent won't affect iframes",
+      details: "Each iframe needs its own Cal.com embed script",
     });
   }
 
-  const embeds = document.querySelectorAll("cal-inline, cal-modal-box");
-  if (embeds.length > 3) {
-    results.checks.push({
-      icon: "[TIP]",
-      status: "info",
-      text: "Consider using namespaces",
-      details: `You have ${embeds.length} embeds. Namespaces can help organize multiple embeds`,
-    });
+  // If no notes found, don't show the section
+  if (results.checks.length === 0) {
+    return results;
   }
 
-  if (window.Cal && !window.Cal.__config?.calOrigin) {
-    results.checks.push({
-      icon: "[TIP]",
-      status: "info",
-      text: "Consider setting a custom origin",
-      details: "Useful for self-hosted Cal.com instances",
+  return results;
+}
+
+export async function runGroupedDiagnostics(consoleErrors: ConsoleError[], networkLog: NetworkLogEntry[]): Promise<GroupedDiagnosticResults[]> {
+  const embedLocations = detectEmbedLocations();
+  const groups: GroupedDiagnosticResults[] = [];
+  
+  // Check if Cal.com is detected anywhere
+  const hasCalAnywhere = embedLocations.some(loc => loc.hasEmbed);
+  const hasCalInIframe = embedLocations.some(loc => loc.context.isIframe && loc.hasEmbed);
+  const hasCalInWebpage = embedLocations.some(loc => !loc.context.isIframe && loc.hasEmbed);
+  
+  if (!hasCalAnywhere) {
+    // No Cal.com detected anywhere - show single context with all diagnostics
+    const diagnostics = await runDiagnosticsForAllContexts(consoleErrors, networkLog);
+    groups.push({
+      context: "webpage",
+      diagnostics,
+      isExpanded: true
     });
+  } else if (hasCalInIframe) {
+    // Cal.com found in at least one iframe - show grouped contexts
+    // Show iframe contexts with Cal.com first (they are the important ones)
+    for (const location of embedLocations) {
+      if (location.context.isIframe && location.hasEmbed) {
+        const diagnostics = await runDiagnosticsForContext(location, consoleErrors, networkLog);
+        groups.push({
+          context: location.context.label,
+          diagnostics,
+          isExpanded: true, // Expand iframe with Cal.com
+          selector: location.context.selector
+        });
+      }
+    }
+    
+    // Then show webpage context (even if Cal.com not detected there)
+    const webpageLocation = embedLocations.find(loc => !loc.context.isIframe);
+    if (webpageLocation) {
+      const diagnostics = await runDiagnosticsForContext(webpageLocation, consoleErrors, networkLog);
+      groups.push({
+        context: "webpage",
+        diagnostics,
+        isExpanded: false // Collapse webpage when Cal.com is in iframe
+      });
+    }
+  } else {
+    // Cal.com only in webpage, not in iframes - show single context
+    const webpageLocation = embedLocations.find(loc => !loc.context.isIframe);
+    if (webpageLocation) {
+      const diagnostics = await runDiagnosticsForContext(webpageLocation, consoleErrors, networkLog);
+      groups.push({
+        context: "webpage",
+        diagnostics,
+        isExpanded: true
+      });
+    }
+  }
+  
+  return groups;
+}
+
+async function runDiagnosticsForContext(
+  location: EmbedLocation, 
+  consoleErrors: ConsoleError[], 
+  networkLog: NetworkLogEntry[]
+): Promise<DiagnosticResults> {
+  const contextLabel = location.context.label;
+  
+  // Filter console errors and network logs for this context
+  const contextConsoleErrors = consoleErrors.filter(e => e.context === contextLabel);
+  const contextNetworkLog = networkLog.filter(e => e.context === contextLabel);
+  
+  const notes = generateNotes(location);
+  
+  return {
+    embed: await checkEmbedInstallationForContext(location),
+    network: await checkNetworkRequestsForContext(location),
+    elements: checkEmbedElementsForContext(location),
+    errors: checkErrors(contextConsoleErrors, contextNetworkLog),
+    configuration: checkConfigurationForContext(location),
+    security: checkSecurityPolicies(),
+    visibility: checkIframeVisibilityForContext(location),
+    recommendations: generateRecommendations(location),
+    ...(notes.checks.length > 0 ? { notes } : {}),
+  };
+}
+
+async function runDiagnosticsForAllContexts(
+  consoleErrors: ConsoleError[], 
+  networkLog: NetworkLogEntry[]
+): Promise<DiagnosticResults> {
+  const notes = generateNotes();
+  
+  return {
+    embed: await checkEmbedInstallation(),
+    network: await checkNetworkRequests(),
+    elements: checkEmbedElements(),
+    errors: checkErrors(consoleErrors, networkLog),
+    configuration: checkConfiguration(),
+    security: checkSecurityPolicies(),
+    visibility: checkIframeVisibility(),
+    recommendations: generateRecommendations(),
+    ...(notes.checks.length > 0 ? { notes } : {}),
+  };
+}
+
+async function checkEmbedInstallationForContext(location: EmbedLocation): Promise<DiagnosticSection> {
+  const results: DiagnosticSection = {
+    title: "Embed Installation",
+    status: "info",
+    checks: [],
+  };
+
+  if (location.hasEmbed) {
+    const cal = location.context.window ? (location.context.window as any).Cal : null;
+    
+    results.checks.push({
+      icon: "[OK]",
+      status: "success",
+      text: "window.Cal is defined",
+      details: `Type: ${typeof cal}`,
+    });
+
+    if (typeof cal === "function") {
+      results.checks.push({
+        icon: "[OK]",
+        status: "success",
+        text: "Cal is a callable function",
+        details: "Can handle Cal() API calls",
+      });
+    }
+
+    if (cal?.loaded) {
+      results.checks.push({
+        icon: "[OK]",
+        status: "success",
+        text: "Embed is fully loaded",
+        details: null,
+      });
+      results.status = "success";
+    } else {
+      results.checks.push({
+        icon: "!",
+        status: "warning",
+        text: "Embed is defined but not loaded",
+        details: "The embed script may still be loading",
+      });
+      results.status = "warning";
+    }
+  } else {
+    // Check if this is webpage context and Cal.com exists in an iframe
+    if (!location.context.isIframe) {
+      const embedLocations = detectEmbedLocations();
+      const hasCalInIframe = embedLocations.some(loc => loc.context.isIframe && loc.hasEmbed);
+      
+      if (hasCalInIframe) {
+        // Cal.com is in iframe, not having it in webpage is expected
+        results.checks.push({
+          icon: "[i]",
+          status: "info",
+          text: "window.Cal is not defined in webpage",
+          details: "This is expected - Cal.com is loaded in an iframe context",
+        });
+        results.status = "info";
+      } else {
+        // No Cal.com anywhere, this is an error
+        results.checks.push({
+          icon: "[X]",
+          status: "error",
+          text: "window.Cal is not defined",
+          details: "The Cal.com embed snippet has not been loaded",
+        });
+        results.status = "error";
+      }
+    } else {
+      // This is an iframe without Cal.com - error
+      results.checks.push({
+        icon: "[X]",
+        status: "error",
+        text: "window.Cal is not defined",
+        details: "The Cal.com embed snippet has not been loaded in this iframe",
+      });
+      results.status = "error";
+    }
+  }
+
+  return results;
+}
+
+async function checkNetworkRequestsForContext(location: EmbedLocation): Promise<DiagnosticSection> {
+  const results: DiagnosticSection = {
+    title: "Network & Scripts",
+    status: "info",
+    checks: [],
+  };
+
+  if (!location.isCrossOrigin && location.context.document) {
+    const scripts = Array.from(location.context.document.scripts);
+    const embedScript = scripts.find(
+      (script) => script.src && (script.src.includes("/embed.js") || script.src.includes("embed-core"))
+    );
+
+    if (embedScript) {
+      results.checks.push({
+        icon: "[OK]",
+        status: "success",
+        text: "embed.js script found",
+        details: `Source: ${embedScript.src}`,
+      });
+      results.status = "success";
+    } else {
+      // Check if this is webpage and Cal.com is in iframe
+      if (!location.context.isIframe) {
+        const embedLocations = detectEmbedLocations();
+        const hasCalInIframe = embedLocations.some(loc => loc.context.isIframe && loc.hasEmbed);
+        
+        if (hasCalInIframe) {
+          results.checks.push({
+            icon: "[i]",
+            status: "info",
+            text: "embed.js script not in webpage",
+            details: "Script is loaded within iframe context",
+          });
+          results.status = "info";
+        } else {
+          results.checks.push({
+            icon: "!",
+            status: "warning",
+            text: "embed.js script not found",
+            details: "Script may be loaded dynamically",
+          });
+          results.status = "warning";
+        }
+      } else {
+        results.checks.push({
+          icon: "!",
+          status: "warning",
+          text: "embed.js script not found",
+          details: "Script may be loaded dynamically",
+        });
+        results.status = "warning";
+      }
+    }
+  }
+
+  return results;
+}
+
+function checkEmbedElementsForContext(location: EmbedLocation): DiagnosticSection {
+  const results: DiagnosticSection = {
+    title: "Embed Elements",
+    status: "info",
+    checks: [],
+  };
+
+  if (!location.isCrossOrigin && location.context.document) {
+    const elements = {
+      "cal-inline": "Inline Embed",
+      "cal-modal-box": "Modal Embed",
+      "cal-floating-button": "Floating Button",
+      "[data-cal-link]": "Pop-up via element click",
+    };
+
+    let foundAny = false;
+    Object.entries(elements).forEach(([selector, name]) => {
+      const found = location.context.document!.querySelectorAll(selector);
+      if (found.length > 0) {
+        foundAny = true;
+        results.checks.push({
+          icon: "[OK]",
+          status: "success",
+          text: `${name}: ${found.length} found`,
+          details: null,
+        });
+      }
+    });
+
+    if (!foundAny) {
+      results.checks.push({
+        icon: "[i]",
+        status: "info",
+        text: "No embed elements found",
+        details: "This is normal if embeds are created dynamically",
+      });
+    } else {
+      results.status = "success";
+    }
+  }
+
+  return results;
+}
+
+function checkConfigurationForContext(location: EmbedLocation): DiagnosticSection {
+  const results: DiagnosticSection = {
+    title: "Configuration",
+    status: "info",
+    checks: [],
+  };
+
+  if (location.hasEmbed && location.context.window) {
+    const cal = (location.context.window as any).Cal;
+    if (cal?.__config) {
+      results.checks.push({
+        icon: "[i]",
+        status: "info",
+        text: "Global configuration",
+        details: `Origin: ${cal.__config.calOrigin || "default"}`,
+      });
+    }
+  }
+
+  return results;
+}
+
+function checkIframeVisibilityForContext(location: EmbedLocation): DiagnosticSection {
+  const results: DiagnosticSection = {
+    title: "CSS & Visibility",
+    status: "info",
+    checks: [],
+  };
+
+  if (!location.isCrossOrigin && location.context.document) {
+    const iframes = location.context.document.querySelectorAll("iframe");
+    const calIframes = Array.from(iframes).filter(
+      (iframe) => (iframe.src && isCalcomUrl(iframe.src)) || 
+                  (iframe.name && iframe.name.startsWith("cal-embed"))
+    );
+
+    if (calIframes.length > 0) {
+      results.checks.push({
+        icon: "[i]",
+        status: "info",
+        text: `${calIframes.length} Cal.com iframe(s) found`,
+        details: null,
+      });
+      results.status = "success";
+    }
   }
 
   return results;

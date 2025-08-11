@@ -1,7 +1,16 @@
 export function getCalOrigin(): string {
-  // Always use build-time constant - don't rely on window.Cal
-  // since it might not be properly installed
-  return __CAL_ORIGIN__;
+  // Try to get from window.Cal if available
+  if (typeof window !== "undefined" && window.Cal && window.Cal.__config?.calOrigin) {
+    return window.Cal.__config.calOrigin;
+  }
+
+  // Fallback to environment variable or default
+  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_WEBAPP_URL) {
+    return process.env.NEXT_PUBLIC_WEBAPP_URL;
+  }
+
+  // Default to production URL
+  return "https://app.cal.com";
 }
 
 export function isCalcomUrl(url: string): boolean {
