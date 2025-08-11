@@ -4,11 +4,12 @@ import { notFound } from "next/navigation";
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import Shell from "@calcom/features/shell/Shell";
+import { prisma } from "@calcom/prisma";
 
 import UpgradeTipWrapper from "./UpgradeTipWrapper";
 
 export default async function InsightsLayout({ children }: { children: React.ReactNode }) {
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const insightsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("insights");
 
   if (!insightsEnabled) {

@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { showToast } from "@calcom/ui/components/toast";
 
-import PlainContactForm from "../../../lib/plain/PlainContactForm";
+import PlainContactForm from "../PlainContactForm";
 
 vi.mock("next-auth/react", () => ({
   useSession: vi.fn(),

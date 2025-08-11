@@ -5,7 +5,7 @@ const rule = createRule({
   create(context) {
     // Track imported names from @calcom/lib/webstorage
     const safeImportedNames = new Set<string>();
-    
+
     return {
       ImportDeclaration(node) {
         // Check if this is an import from the safe webstorage module
@@ -18,11 +18,11 @@ const rule = createRule({
           });
         }
       },
-      
+
       CallExpression(node) {
         const webStorages = ["localStorage", "sessionStorage"];
         const callee = node.callee;
-        
+
         // Check for window.localStorage or window.sessionStorage
         if (
           // Can't figure out how to fix this TS issue
@@ -40,7 +40,7 @@ const rule = createRule({
             messageId: "possible-issue-with-embed",
           });
         }
-        
+
         // Check for direct localStorage or sessionStorage usage
         if (
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -63,11 +63,11 @@ const rule = createRule({
           });
         }
       },
-      
+
       // Also check for property access like localStorage.length
       MemberExpression(node) {
         const webStorages = ["localStorage", "sessionStorage"];
-        
+
         // Check for direct property access on localStorage/sessionStorage
         if (
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -86,7 +86,7 @@ const rule = createRule({
             messageId: "possible-issue-with-embed",
           });
         }
-        
+
         // Check for window.localStorage/sessionStorage property access
         if (
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
