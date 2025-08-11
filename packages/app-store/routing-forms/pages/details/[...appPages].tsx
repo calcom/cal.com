@@ -50,13 +50,13 @@ const FormSettings = ({
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/forms/${form.id}`;
 
   return (
-    <div className="w-full py-4 lg:py-8">
-      <div className="flex w-full flex-col gap-6">
+    <div className="flex w-full py-4 lg:py-8">
+      <div className="flex w-full gap-6">
         {/* Basic Information Card */}
         {/* <FormCard label={t("basic_information")}> */}
 
-        <div class="flex w-full flex-row justify-between gap-10">
-          <div className="flex-1 bg-default border-default w-full gap-3 rounded-2xl border p-6">
+        <div class="flex grid w-full grid-cols-1 justify-between gap-10 sm:grid-cols-2 md:grid-cols-2">
+          <div className="bg-default border-default gap-3 rounded-2xl border p-6">
             <div className="mb-3">
               <span className="text-default text-sm font-semibold">{t("form_name_lable")}</span>
               <Input
@@ -125,7 +125,6 @@ const FormSettings = ({
                         onChange(val);
                         hookForm.unregister("settings.sendUpdatesTo");
                       }}
-                      size="sm"
                       id="emailOwnerOnSubmission"
                     />
                     <label
@@ -137,9 +136,22 @@ const FormSettings = ({
                 );
               }}
             />
+            <div className="mt-4">
+              <FormAction
+                action="download"
+                variant="default"
+                className="w-full justify-center"
+                routingForm={form}
+                color="minimal"
+                type="button"
+                data-testid="download-responses">
+                <Icon name="download" className="h-4 w-4" />
+                {t("download_responses")}
+              </FormAction>
+            </div>
           </div>
 
-          <div className="flex-1 bg-default border-default w-full gap-3 rounded-2xl border p-6">
+          <div className="bg-default border-default w-full gap-3 rounded-2xl border p-6">
             <PreviewRenderer testForm={uptoDateForm} />
           </div>
         </div>

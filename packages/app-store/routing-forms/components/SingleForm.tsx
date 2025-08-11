@@ -1,9 +1,12 @@
 "use client";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -176,83 +179,85 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   };
 
   return (
-    <>
-      <Form form={hookForm} handleSubmit={handleSubmit}>
-        <FormActionsProvider
-          appUrl={appUrl}
-          newFormDialogState={newFormDialogState}
-          setNewFormDialogState={setNewFormDialogState}>
-          <div className="flex h-full min-h-screen w-full flex-col">
-            <Header
-              routingForm={form}
-              isSaving={mutation.isPending}
-              appUrl={appUrl}
-              setShowInfoLostDialog={setShowInfoLostDialog}
-              setIsTestPreviewOpen={setIsTestPreviewOpen}
-              isTestPreviewOpen={isTestPreviewOpen}
-            />
-            <div
-              className={classNames(
-                "bg-default flex-1 ",
-                isDesktop && "grid gap-8",
-                isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
-                isDesktop && !isTestPreviewOpen && "grid-cols-1",
-                !isDesktop && "flex flex-col"
-              )}>
-              {isDesktop ? (
-                <motion.div
-                  layout
-                  className="w-full px-16"
-                  transition={{ duration: 0.3, ease: "easeInOut" }}>
-                  <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
-                </motion.div>
-              ) : (
-                <div className="mx-auto w-full max-w-4xl px-2">
-                  <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
-                </div>
-              )}
-              <AnimatePresence>
-                {isTestPreviewOpen && isDesktop ? (
+    <Shell>
+      <>
+        <Form form={hookForm} handleSubmit={handleSubmit}>
+          <FormActionsProvider
+            appUrl={appUrl}
+            newFormDialogState={newFormDialogState}
+            setNewFormDialogState={setNewFormDialogState}>
+            <div className="flex h-full min-h-screen w-full flex-col">
+              <Header
+                routingForm={form}
+                isSaving={mutation.isPending}
+                appUrl={appUrl}
+                setShowInfoLostDialog={setShowInfoLostDialog}
+                setIsTestPreviewOpen={setIsTestPreviewOpen}
+                isTestPreviewOpen={isTestPreviewOpen}
+              />
+              <div
+                className={classNames(
+                  "bg-default flex-1",
+                  isDesktop && "grid gap-8",
+                  isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
+                  isDesktop && !isTestPreviewOpen && "grid-cols-1",
+                  !isDesktop && "flex flex-col"
+                )}>
+                {isDesktop ? (
                   <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
+                    layout
+                    className="w-full px-4"
                     transition={{ duration: 0.3, ease: "easeInOut" }}>
-                    <TestFormRenderer
-                      isMobile={!isDesktop}
-                      testForm={uptoDateForm}
-                      isTestPreviewOpen={isTestPreviewOpen}
-                      setIsTestPreviewOpen={setIsTestPreviewOpen}
-                    />
+                    <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                   </motion.div>
-                ) : isTestPreviewOpen ? (
-                  <div>
-                    <TestFormRenderer
-                      isMobile={!isDesktop}
-                      testForm={uptoDateForm}
-                      isTestPreviewOpen={isTestPreviewOpen}
-                      setIsTestPreviewOpen={setIsTestPreviewOpen}
-                    />
+                ) : (
+                  <div className="w-full px-2">
+                    <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                   </div>
-                ) : null}
-              </AnimatePresence>
+                )}
+                <AnimatePresence>
+                  {isTestPreviewOpen && isDesktop ? (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}>
+                      <TestFormRenderer
+                        isMobile={!isDesktop}
+                        testForm={uptoDateForm}
+                        isTestPreviewOpen={isTestPreviewOpen}
+                        setIsTestPreviewOpen={setIsTestPreviewOpen}
+                      />
+                    </motion.div>
+                  ) : isTestPreviewOpen ? (
+                    <div>
+                      <TestFormRenderer
+                        isMobile={!isDesktop}
+                        testForm={uptoDateForm}
+                        isTestPreviewOpen={isTestPreviewOpen}
+                        setIsTestPreviewOpen={setIsTestPreviewOpen}
+                      />
+                    </div>
+                  ) : null}
+                </AnimatePresence>
+              </div>
             </div>
-          </div>
-        </FormActionsProvider>
-        {showInfoLostDialog && (
-          <InfoLostWarningDialog
-            handleSubmit={() => {
-              mutation.mutate({
-                ...hookForm.getValues(),
-              });
-            }}
-            goToRoute={`${appUrl}/route-builder/${form?.id}`}
-            isOpenInfoLostDialog={showInfoLostDialog}
-            setIsOpenInfoLostDialog={setShowInfoLostDialog}
-          />
-        )}
-      </Form>
-    </>
+          </FormActionsProvider>
+          {showInfoLostDialog && (
+            <InfoLostWarningDialog
+              handleSubmit={() => {
+                mutation.mutate({
+                  ...hookForm.getValues(),
+                });
+              }}
+              goToRoute={`${appUrl}/route-builder/${form?.id}`}
+              isOpenInfoLostDialog={showInfoLostDialog}
+              setIsOpenInfoLostDialog={setShowInfoLostDialog}
+            />
+          )}
+        </Form>
+      </>
+    </Shell>
   );
 }
 

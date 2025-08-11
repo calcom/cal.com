@@ -214,7 +214,7 @@ const ChooseEmbedTypesDialogContent = ({
             {/* <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div> */}
-            <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
+            <div className="text-center text-emphasis font-semibold">{embed.title}</div>
             {/* <p className="text-subtle mt-2 text-sm">{embed.subtitle}</p>  */}
           </button>
         ))}
@@ -1365,12 +1365,6 @@ export const EmbedDialog = ({
     }
   };
   const { gotoState } = useEmbedGoto(noQueryParamMode);
-
-  // useEffect(() => {
-  //   gotoState({
-  //     embedType: types[0].embed.type as EmbedType,
-  //   });
-  // });
 
   return (
     <Dialog

@@ -1,9 +1,11 @@
 "use client";
 
+import { Profile } from "@calid/features/ui";
 import type { HorizontalTabItemProps } from "@calid/features/ui";
 import { HorizontalTabs } from "@calid/features/ui";
 // import { Button } from "@calcom/ui/components/button";
 import { Button } from "@calid/features/ui";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -88,14 +90,14 @@ const Actions = ({
             routingForm={form}
             extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
           />
-          <ButtonGroup combined>
+          <ButtonGroup combined className="border-r-subtle border-l-subtle">
             <FormAction
               action="_delete"
               variant="ghost"
               routingForm={form}
               className="w-full"
-              size="xs"
-              className="px-2"
+              size="sm"
+              className="text-xs"
               type="button"
               color="destructive"
               StartIcon="trash">
@@ -104,8 +106,8 @@ const Actions = ({
             <Button
               data-testid={isMobile ? "update-form-mobile" : "update-form"}
               variant="outline"
-              size="xs"
-              className="w-[64px] content-center items-center justify-center"
+              size="sm"
+              className="w-[64px] content-center items-center justify-center text-xs"
               loading={isSaving}
               type="submit"
               color="primary">
@@ -156,18 +158,8 @@ const Actions = ({
                 {t("view_responses")}
               </FormAction>
             )}
-            <FormAction
-              action="embed"
-              variant="ghost"
-              routingForm={form}
-              color="minimal"
-              type="button"
-              className="w-full">
-              <Icon name="code" className="h-4 w-4"></Icon>
-              {t("embed")}
-            </FormAction>
-            
           </FormActionsDropdown>
+          <Profile />
         </div>
       </div>
       <FormSettingsSlideover
@@ -246,6 +238,11 @@ export function Header({
         path: `${appUrl}/route-builder/${routingForm.id}`,
         "data-testid": "route-builder",
       },
+      {
+        name: "Embed",
+        path: `${appUrl}/form-embed/${routingForm.id}`,
+        "data-testid": "form-embed",
+      },
     ];
 
     return baseTabConfigs.map((tabConfig) => ({
@@ -259,14 +256,17 @@ export function Header({
 
   return (
     <div className="bg-default flex w-full flex-col">
-      <div className="bg-default flex w-full flex-col  lg:grid lg:grid-cols-3 lg:items-center">
+      <div className="bg-default flex w-full flex-col lg:grid lg:grid-cols-3 lg:items-center">
         {/* Left - Back button and title */}
-        <div className="border-muted flex items-center gap-2 pl-12 px-4 py-3">
-          <Button color="minimal" variant="icon" href={`${appUrl}`} data-testid="back-button">
-            <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-          </Button>
-          <div className="mt-4 flex min-w-0 flex-col items-center gap-2">
-            <span className="text-default text-sm font-semibold leading-none">
+        <div className="border-muted flex items-center py-3">
+          <Link href={`${appUrl}`} data-testid="back-button">
+            <Button type="button" color="minimal" variant="icon" data-testid="back-button">
+              <Icon name="arrow-left" className="text-subtle h-4 w-4" />
+            </Button>
+          </Link>
+
+          <div className="flex min-w-0 flex-col items-start gap-2">
+            <span className="text-default text-base font-bold leading-none">
               {watchedName || "Loading..."}
             </span>
             <span className="text-subtle min-w-[100px] truncate whitespace-nowrap text-sm font-semibold ">
@@ -347,7 +347,7 @@ export function Header({
         />
       </div> */}
         {/* Desktop layout - Actions in right column */}
-        <div className="border-muted hidden justify-end  px-4 py-3 lg:flex">
+        <div className="border-muted hidden justify-end px-4 lg:flex">
           <Actions
             form={routingForm}
             setIsTestPreviewOpen={setIsTestPreviewOpen}
@@ -358,7 +358,7 @@ export function Header({
         </div>
       </div>
       <HorizontalTabs
-        className="bg-default border-b px-12"
+        className="bg-default border-b"
         tabs={tabs.map((tab) => ({
           ...tab,
           name: t(tab.name),

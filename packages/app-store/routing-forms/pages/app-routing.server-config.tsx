@@ -7,6 +7,7 @@ import { getServerSideProps as getServerSidePropsRoutingLink } from "./routing-l
 
 export const routingServerSidePropsConfig: Record<string, AppGetServerSideProps> = {
   "form-edit": getServerSidePropsSingleForm,
+  "form-embed": getServerSidePropsSingleForm,
   "details": getServerSidePropsSingleForm,
   "route-builder": getServerSidePropsSingleForm,
   "routing-link": getServerSidePropsRoutingLink,
