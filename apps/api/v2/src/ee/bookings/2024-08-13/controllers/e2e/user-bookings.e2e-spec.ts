@@ -34,7 +34,6 @@ import {
   VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
-import { AttendeeScheduledEmail, OrganizerScheduledEmail } from "@calcom/platform-libraries/emails";
 import { EventManager } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -1908,7 +1907,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             if (responseDataIsBooking(responseBody.data)) {
               const data: BookingOutput_2024_08_13 = responseBody.data;
               expect(data.uid).toEqual(newBooking.uid);
-              expect(rescheduledByEmail).toEqual(expectedRescheduledBy);
+              expect(data.rescheduledByEmail).toEqual(expectedRescheduledBy);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibly recurring bookings"
@@ -2917,14 +2916,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
             },
           };
 
-          const beforeCreate = new Date();
           return request(app.getHttpServer())
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
             .expect(201)
             .then(async (response) => {
-              const afterCreate = new Date();
               const responseBody: CreateBookingOutput_2024_08_13 = response.body;
               expect(responseBody.status).toEqual(SUCCESS_STATUS);
               expect(responseBody.data).toBeDefined();

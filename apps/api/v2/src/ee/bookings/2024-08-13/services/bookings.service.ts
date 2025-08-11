@@ -586,11 +586,13 @@ export class BookingsService_2024_08_13 {
 
     const allRescheduleUids = [...rescheduledBookingUids, ...fromRescheduleUids];
     const rescheduleBookings = await this.bookingsRepository.getByFromRescheduleMany(allRescheduleUids);
-    const rescheduleMap = new Map([
+    const rescheduleMap = new Map<string | null, any>([
       ...rescheduleBookings
         .filter((b) => b.fromReschedule)
-        .map((booking) => [booking.fromReschedule, booking]),
-      ...rescheduleBookings.filter((b) => !b.fromReschedule).map((booking) => [booking.uid, booking]),
+        .map((booking) => [booking.fromReschedule, booking] as [string, any]),
+      ...rescheduleBookings
+        .filter((b) => !b.fromReschedule)
+        .map((booking) => [booking.uid, booking] as [string, any]),
     ]);
 
     for (const booking of orderedBookings) {
