@@ -4,7 +4,7 @@ import {
   InsightsRoutingBaseService,
   type InsightsRoutingServicePublicOptions,
   type InsightsRoutingServiceFilterOptions,
-} from "./insightsRoutingBase";
+} from "./InsightsRoutingBaseService";
 
 export interface IInsightsRoutingService {
   prisma: typeof readonlyPrisma;
