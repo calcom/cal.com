@@ -85,7 +85,7 @@ export default function JoinCall(props: PageProps) {
             ...(showTranscriptionButton
               ? {
                   transcription: {
-                    label: "Cal.ai",
+                    label: "Transcribe",
                     tooltip: "Transcription powered by AI",
                     iconPath: TRANSCRIPTION_STOPPED_ICON,
                     iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
