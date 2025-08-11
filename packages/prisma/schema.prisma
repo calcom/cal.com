@@ -2488,8 +2488,8 @@ model CalAiPhoneNumber {
   teamId Int?
   team   Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  phoneNumber String  @unique
-  provider String
+  phoneNumber String @unique
+  provider    String
 
   // Provider-specific phone number ID (e.g., Retell phone number ID)
   providerPhoneNumberId String? @unique
