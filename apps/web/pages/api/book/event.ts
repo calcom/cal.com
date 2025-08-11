@@ -7,6 +7,7 @@ import getIP from "@calcom/lib/getIP";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
@@ -20,7 +21,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: userIp,
+    identifier: piiHasher.hash(userIp),
   });
 
   const session = await getServerSession({ req });
