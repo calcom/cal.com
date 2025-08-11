@@ -123,9 +123,13 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
       },
       {
+        name: "out_of_office_insights",
+        href: "/insights/out-of-office",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/out-of-office") ?? false,
+      },
+      {
         name: "call_history",
         href: "/insights/call-history",
-        // icon: "phone",
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
       },
     ],
