@@ -34,8 +34,8 @@ export const THRESHOLDS = {
 
 export const TEST_USERS = new SharedArray("users", function () {
   return [
-    { username: "free", password: "free" },
-    { username: "pro", password: "pro" },
+    { username: __ENV.TEST_USER_FREE || "free", password: __ENV.TEST_PASSWORD_FREE || "free" },
+    { username: __ENV.TEST_USER_PRO || "pro", password: __ENV.TEST_PASSWORD_PRO || "pro" },
   ];
 });
 
@@ -44,10 +44,13 @@ export function getRandomUser() {
 }
 
 export function randomQueryParam() {
-  return `nocache=${new Date().getTime()}`;
+  return `nocache=${Date.now()}`;
 }
 
 export function randomSleep(min = SLEEP_DURATION.SHORT, max = SLEEP_DURATION.MEDIUM) {
+  if (min > max) {
+    throw new Error("min cannot be greater than max");
+  }
   const sleepTime = Math.random() * (max - min) + min;
   sleep(sleepTime);
 }

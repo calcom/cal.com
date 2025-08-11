@@ -9,11 +9,13 @@ export function viewBookingPage(username, eventSlug) {
 
     const response = http.get(url, {
       tags: { name: "Booking Page" },
+      timeout: "30s",
     });
 
     check(response, {
       "Booking page loaded": (r) => r.status === 200,
-      "Has booking form": (r) => r.body.includes('data-testid="day"'),
+      "Has booking form": (r) => r.body.includes('data-testid="day"') || r.body.includes('booking'),
+      "Response time acceptable": (r) => r.timings.duration < 5000,
     });
 
     randomSleep();

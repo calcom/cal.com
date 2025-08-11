@@ -24,7 +24,7 @@ The test suite is organized into the following directories:
 By default, tests will run against `http://localhost:3000`. To test against a different environment, set the `BASE_URL` environment variable:
 
 ```bash
-BASE_URL=https://your-cal-instance.com k6 run tests/performance/smoke/booking_flow.js
+BASE_URL=https://your-cal-instance.com k6 run tests/performance/smoke/booking.js
 ```
 
 ### Running Smoke Tests
@@ -77,6 +77,16 @@ Performance thresholds are defined in `utils/config.js` and vary by test type:
 - **Load Tests**: Moderate thresholds for normal operating conditions
 - **Stress Tests**: More lenient thresholds for heavy load conditions
 - **Spike Tests**: Most lenient thresholds for sudden traffic spikes
+
+## Environment Variables
+
+The following environment variables can be used to configure the tests:
+
+- `BASE_URL`: Base URL for the application (default: `http://localhost:3000`)
+- `TEST_USER_FREE`: Username for free tier testing (default: `free`)
+- `TEST_PASSWORD_FREE`: Password for free tier testing (default: `free`)
+- `TEST_USER_PRO`: Username for pro tier testing (default: `pro`)
+- `TEST_PASSWORD_PRO`: Password for pro tier testing (default: `pro`)
 
 ## Adding New Tests
 

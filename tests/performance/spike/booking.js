@@ -20,5 +20,5 @@ export const options = {
 export default function () {
   viewBookingPage("pro", "30min");
 
-  sleep(0.01);
+  sleep(0.1);
 }

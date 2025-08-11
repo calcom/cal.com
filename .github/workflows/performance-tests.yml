@@ -4,12 +4,17 @@ on:
   release:
     types: [created]
   workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL for performance tests'
+        required: false
+        default: 'https://cal.com'
 
 jobs:
   performance-tests:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: http://localhost:3000
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://cal.com' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
