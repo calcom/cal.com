@@ -1,6 +1,7 @@
 import { EventTypesController_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/controllers/event-types.controller";
 import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -18,7 +19,7 @@ import { Module } from "@nestjs/common";
     SelectedCalendarsModule,
     OrganizationsModule,
   ],
-  providers: [EventTypesRepository_2024_04_15, EventTypesService_2024_04_15],
+  providers: [EventTypesRepository_2024_04_15, EventTypesService_2024_04_15, PrismaUserRepository],
   controllers: [EventTypesController_2024_04_15],
   exports: [EventTypesService_2024_04_15, EventTypesRepository_2024_04_15],
 })

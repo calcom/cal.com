@@ -1,5 +1,6 @@
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -11,7 +12,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
 import type { TeamQuery } from "@calcom/platform-libraries";
 import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
@@ -56,7 +56,8 @@ export class EventTypesAtomService {
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
     private readonly teamEventTypeService: TeamsEventTypesService,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly userRepository: PrismaUserRepository
   ) {}
 
   private async getTeamSlug(teamId: number): Promise<string> {
@@ -74,9 +75,8 @@ export class EventTypesAtomService {
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
-    const userRepository = new UserRepository();
     const isUserOrganizationAdmin = organizationId
-      ? await userRepository.isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
+      ? await this.userRepository.isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
 
     const eventType = await getEventTypeById({
@@ -190,8 +190,7 @@ export class EventTypesAtomService {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
     if (organizationId) {
-      const userRepository = new UserRepository();
-      const isUserOrganizationAdmin = await userRepository.isAdminOrOwnerOfTeam({
+      const isUserOrganizationAdmin = await this.userRepository.isAdminOrOwnerOfTeam({
         userId: user.id,
         teamId: organizationId,
       });

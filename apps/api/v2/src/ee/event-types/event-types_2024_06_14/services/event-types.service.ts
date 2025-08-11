@@ -3,6 +3,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
+import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -10,7 +11,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { dynamicEvent } from "@calcom/platform-libraries";
 import {
   createEventType,
@@ -30,7 +30,8 @@ export class EventTypesService_2024_06_14 {
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
-    private readonly schedulesRepository: SchedulesRepository_2024_06_11
+    private readonly schedulesRepository: SchedulesRepository_2024_06_11,
+    private readonly userRepository: PrismaUserRepository
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
@@ -129,7 +130,7 @@ export class EventTypesService_2024_06_14 {
   async getUserToCreateEvent(user: UserWithProfile) {
     const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
-      ? await new UserRepository().isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
+      ? await this.userRepository.isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);

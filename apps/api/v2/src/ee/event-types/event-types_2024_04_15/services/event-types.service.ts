@@ -6,6 +6,7 @@ import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/
 import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
 import { EventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/event-type.output";
 import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -13,7 +14,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import {
   createEventType,
   updateEventType,
@@ -30,7 +30,8 @@ export class EventTypesService_2024_04_15 {
     private readonly usersRepository: UsersRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private readonly userRepository: PrismaUserRepository
   ) {}
 
   async createUserEventType(
@@ -61,7 +62,7 @@ export class EventTypesService_2024_04_15 {
   async getUserToCreateEvent(user: UserWithProfile) {
     const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
-      ? await new UserRepository().isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
+      ? await this.userRepository.isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     return {
@@ -90,7 +91,7 @@ export class EventTypesService_2024_04_15 {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
-      ? await new UserRepository().isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
+      ? await this.userRepository.isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
 
     const eventType = await this.eventTypesRepository.getUserEventTypeForAtom(
