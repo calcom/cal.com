@@ -19,7 +19,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     // Split participant relations from scalar fields so we can handle nested writes safely on update
     const { creator, organizer, attendees, calendarSubscription: _ignored, ...scalarFields } = data;
 
-    return await client.calendarEvent.upsert({
+    const event = await client.calendarEvent.upsert({
       where: {
         calendarSubscriptionId_googleEventId: {
           calendarSubscriptionId: subscriptionId,
@@ -29,102 +29,9 @@ export class CalendarEventRepository implements ICalendarEventRepository {
       create: {
         ...scalarFields,
         calendarSubscription: { connect: { id: subscriptionId } },
-        ...(creator
-          ? {
-              creator: {
-                create: {
-                  email: creator.create?.email ?? null,
-                  displayName: creator.create?.displayName ?? null,
-                  isSelf: creator.create?.isSelf ?? false,
-                  isOrganizer: creator.create?.isOrganizer ?? false,
-                },
-              },
-            }
-          : {}),
-        ...(organizer
-          ? {
-              organizer: {
-                create: {
-                  email: organizer.create?.email ?? null,
-                  displayName: organizer.create?.displayName ?? null,
-                  isSelf: organizer.create?.isSelf ?? false,
-                  isOrganizer: true,
-                },
-              },
-            }
-          : {}),
-        ...(attendees?.createMany?.data?.length
-          ? {
-              attendees: {
-                createMany: {
-                  data: attendees.createMany.data,
-                  skipDuplicates: true,
-                },
-              },
-            }
-          : {}),
       },
       update: {
         ...scalarFields,
-        // Ensure relations are updated without violating unique constraints
-        ...(creator
-          ? {
-              creator: {
-                upsert: {
-                  update: {
-                    email: creator.create?.email ?? null,
-                    displayName: creator.create?.displayName ?? null,
-                    isSelf: creator.create?.isSelf ?? false,
-                    isOrganizer: creator.create?.isOrganizer ?? false,
-                  },
-                  create: {
-                    email: creator.create?.email ?? null,
-                    displayName: creator.create?.displayName ?? null,
-                    isSelf: creator.create?.isSelf ?? false,
-                    isOrganizer: creator.create?.isOrganizer ?? false,
-                  },
-                },
-              },
-            }
-          : {
-              // If no creator provided, remove any existing creator participant
-              creator: { delete: true },
-            }),
-        ...(organizer
-          ? {
-              organizer: {
-                upsert: {
-                  update: {
-                    email: organizer.create?.email ?? null,
-                    displayName: organizer.create?.displayName ?? null,
-                    isSelf: organizer.create?.isSelf ?? false,
-                    isOrganizer: true,
-                  },
-                  create: {
-                    email: organizer.create?.email ?? null,
-                    displayName: organizer.create?.displayName ?? null,
-                    isSelf: organizer.create?.isSelf ?? false,
-                    isOrganizer: true,
-                  },
-                },
-              },
-            }
-          : {
-              // If no organizer provided, remove any existing organizer participant
-              organizer: { delete: true },
-            }),
-        // Replace attendees to keep data in sync
-        attendees: {
-          deleteMany: {},
-          ...(attendees?.createMany?.data?.length
-            ? {
-                createMany: {
-                  data: attendees.createMany.data,
-                  skipDuplicates: true,
-                },
-              }
-            : {}),
-        },
         updatedAt: new Date(),
       },
       select: {
@@ -138,6 +45,84 @@ export class CalendarEventRepository implements ICalendarEventRepository {
         updatedAt: true,
       },
     });
+
+    // After upsert, update/replace participants according to input
+    const eventId = event.id;
+
+    // Creator
+    {
+      const existingCreators = await client.calendarEventParticipant.findMany({
+        where: { creatorOfId: eventId },
+      });
+      for (const row of existingCreators) {
+        await client.calendarEventParticipant.delete({ where: { id: row.id } });
+      }
+    }
+    if (creator) {
+      await client.calendarEventParticipant.create({
+        data: {
+          creatorOfId: eventId,
+          email: creator.create?.email ?? null,
+          displayName: creator.create?.displayName ?? null,
+          isSelf: creator.create?.isSelf ?? false,
+          isOrganizer: creator.create?.isOrganizer ?? false,
+        },
+      });
+    }
+
+    // Organizer
+    {
+      const existingOrganizers = await client.calendarEventParticipant.findMany({
+        where: { organizerOfId: eventId },
+      });
+      for (const row of existingOrganizers) {
+        await client.calendarEventParticipant.delete({ where: { id: row.id } });
+      }
+    }
+    if (organizer) {
+      await client.calendarEventParticipant.create({
+        data: {
+          organizerOfId: eventId,
+          email: organizer.create?.email ?? null,
+          displayName: organizer.create?.displayName ?? null,
+          isSelf: organizer.create?.isSelf ?? false,
+          isOrganizer: true,
+        },
+      });
+    }
+
+    // Attendees
+    {
+      const existingAttendees = await client.calendarEventParticipant.findMany({
+        where: { attendeeOfId: eventId },
+      });
+      for (const row of existingAttendees) {
+        await client.calendarEventParticipant.delete({ where: { id: row.id } });
+      }
+    }
+    if (attendees?.createMany?.data?.length) {
+      await client.calendarEventParticipant.createMany({
+        data: attendees.createMany.data.map(
+          (a: {
+            email?: string | null;
+            displayName?: string | null;
+            responseStatus?: string | null;
+            isOrganizer?: boolean;
+            isSelf?: boolean;
+          }) => ({
+            attendeeOfId: eventId,
+            email: a.email ?? null,
+            displayName: a.displayName ?? null,
+            responseStatus: a.responseStatus ?? null,
+            isOrganizer: a.isOrganizer ?? false,
+            isSelf: a.isSelf ?? false,
+          })
+        ),
+        skipDuplicates: true,
+      });
+    }
+
+    return event;
   }
 
   async getEventsForAvailability(calendarSubscriptionId: string, start: Date, end: Date) {
