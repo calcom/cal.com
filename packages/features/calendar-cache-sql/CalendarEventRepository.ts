@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -16,163 +15,133 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     subscriptionId: string,
     tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
   ): Promise<CalendarEventUpsertResult> {
-    try {
-      const client = tx || this.prismaClient;
-      return await client.calendarEvent.upsert({
-        where: {
-          calendarSubscriptionId_googleEventId: {
-            calendarSubscriptionId: subscriptionId,
-            googleEventId: data.googleEventId,
-          },
+    const client = tx || this.prismaClient;
+    return await client.calendarEvent.upsert({
+      where: {
+        calendarSubscriptionId_googleEventId: {
+          calendarSubscriptionId: subscriptionId,
+          googleEventId: data.googleEventId,
         },
-        create: {
-          ...data,
-          calendarSubscription: { connect: { id: subscriptionId } },
-        },
-        update: {
-          ...data,
-          updatedAt: new Date(),
-        },
-        select: {
-          id: true,
-          googleEventId: true,
-          etag: true,
-          start: true,
-          end: true,
-          summary: true,
-          status: true,
-          updatedAt: true,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+      create: {
+        ...data,
+        calendarSubscription: { connect: { id: subscriptionId } },
+      },
+      update: {
+        ...data,
+        updatedAt: new Date(),
+      },
+      select: {
+        id: true,
+        googleEventId: true,
+        etag: true,
+        start: true,
+        end: true,
+        summary: true,
+        status: true,
+        updatedAt: true,
+      },
+    });
   }
 
   async getEventsForAvailability(calendarSubscriptionId: string, start: Date, end: Date) {
-    try {
-      return await this.prismaClient.calendarEvent.findMany({
-        where: {
-          calendarSubscriptionId,
-          status: { not: "cancelled" },
-          transparency: "opaque",
-          end: { gt: new Date() }, // Only include events that haven't ended yet
-          OR: [
-            {
-              start: { gte: start, lt: end },
-            },
-            {
-              end: { gt: start, lte: end },
-            },
-            {
-              start: { lt: start },
-              end: { gt: end },
-            },
-          ],
-        },
-        select: {
-          start: true,
-          end: true,
-          summary: true,
-          calendarSubscriptionId: true,
-          timeZone: true,
-        },
-        orderBy: { start: "asc" },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prismaClient.calendarEvent.findMany({
+      where: {
+        calendarSubscriptionId,
+        status: { not: "cancelled" },
+        transparency: "opaque",
+        end: { gt: new Date() }, // Only include events that haven't ended yet
+        OR: [
+          {
+            start: { gte: start, lt: end },
+          },
+          {
+            end: { gt: start, lte: end },
+          },
+          {
+            start: { lt: start },
+            end: { gt: end },
+          },
+        ],
+      },
+      select: {
+        start: true,
+        end: true,
+        summary: true,
+        calendarSubscriptionId: true,
+        timeZone: true,
+      },
+      orderBy: { start: "asc" },
+    });
   }
 
   async getEventsForAvailabilityBatch(subscriptionIds: string[], start: Date, end: Date) {
-    try {
-      return await this.prismaClient.calendarEvent.findMany({
-        where: {
-          calendarSubscriptionId: { in: subscriptionIds },
-          status: { not: "cancelled" },
-          transparency: "opaque",
-          end: { gt: new Date() }, // Only include events that haven't ended yet
-          OR: [
-            {
-              start: { gte: start, lt: end },
-            },
-            {
-              end: { gt: start, lte: end },
-            },
-            {
-              start: { lt: start },
-              end: { gt: end },
-            },
-          ],
-        },
-        select: {
-          start: true,
-          end: true,
-          summary: true,
-          calendarSubscriptionId: true,
-          timeZone: true,
-        },
-        orderBy: { start: "asc" },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prismaClient.calendarEvent.findMany({
+      where: {
+        calendarSubscriptionId: { in: subscriptionIds },
+        status: { not: "cancelled" },
+        transparency: "opaque",
+        end: { gt: new Date() }, // Only include events that haven't ended yet
+        OR: [
+          {
+            start: { gte: start, lt: end },
+          },
+          {
+            end: { gt: start, lte: end },
+          },
+          {
+            start: { lt: start },
+            end: { gt: end },
+          },
+        ],
+      },
+      select: {
+        start: true,
+        end: true,
+        summary: true,
+        calendarSubscriptionId: true,
+        timeZone: true,
+      },
+      orderBy: { start: "asc" },
+    });
   }
 
   async deleteEvent(calendarSubscriptionId: string, googleEventId: string) {
-    try {
-      await this.prismaClient.calendarEvent.delete({
-        where: {
-          calendarSubscriptionId_googleEventId: {
-            calendarSubscriptionId,
-            googleEventId,
-          },
+    await this.prismaClient.calendarEvent.delete({
+      where: {
+        calendarSubscriptionId_googleEventId: {
+          calendarSubscriptionId,
+          googleEventId,
         },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+    });
   }
 
   async bulkUpsertEvents(events: Prisma.CalendarEventCreateInput[], subscriptionId: string) {
-    try {
-      if (events.length === 0) return;
+    if (events.length === 0) return;
 
-      return await this.prismaClient.$transaction(async (tx) => {
-        const operations = events.map((event) => this.upsertEvent(event, subscriptionId, tx));
-        await Promise.all(operations);
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prismaClient.$transaction(async (tx) => {
+      const operations = events.map((event) => this.upsertEvent(event, subscriptionId, tx));
+      await Promise.all(operations);
+    });
   }
 
   async cleanupOldEvents() {
-    try {
-      // Delete cancelled events that have ended more than 24 hours ago
-      const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // Delete cancelled events that have ended more than 24 hours ago
+    const cutoffDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-      await this.prismaClient.calendarEvent.deleteMany({
-        where: {
-          OR: [
-            {
-              status: "cancelled",
-              end: { lt: cutoffDate },
-            },
-            {
-              end: { lt: new Date() }, // Delete any past events (regardless of status)
-            },
-          ],
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    await this.prismaClient.calendarEvent.deleteMany({
+      where: {
+        OR: [
+          {
+            status: "cancelled",
+            end: { lt: cutoffDate },
+          },
+          {
+            end: { lt: new Date() }, // Delete any past events (regardless of status)
+          },
+        ],
+      },
+    });
   }
 }

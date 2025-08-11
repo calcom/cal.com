@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
 
@@ -48,161 +47,126 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
   constructor(private prismaClient: PrismaClient) {}
 
   async findBySelectedCalendar(selectedCalendarId: string) {
-    try {
-      return await this.prismaClient.calendarSubscription.findUnique({
-        where: {
-          selectedCalendarId,
-        },
-        select: {
-          id: true,
-          selectedCalendarId: true,
-          googleChannelId: true,
-          googleChannelKind: true,
-          googleChannelResourceId: true,
-          googleChannelResourceUri: true,
-          googleChannelExpiration: true,
-          nextSyncToken: true,
-          lastFullSync: true,
-          syncErrors: true,
-          maxSyncErrors: true,
-          backoffUntil: true,
-          createdAt: true,
-          updatedAt: true,
-          selectedCalendar: {
-            select: {
-              id: true,
-              externalId: true,
-              integration: true,
-              userId: true,
-              credential: {
-                select: safeCredentialSelectForCalendarCache,
-              },
+    return await this.prismaClient.calendarSubscription.findUnique({
+      where: {
+        selectedCalendarId,
+      },
+      select: {
+        id: true,
+        selectedCalendarId: true,
+        googleChannelId: true,
+        googleChannelKind: true,
+        googleChannelResourceId: true,
+        googleChannelResourceUri: true,
+        googleChannelExpiration: true,
+        nextSyncToken: true,
+        lastFullSync: true,
+        syncErrors: true,
+        maxSyncErrors: true,
+        backoffUntil: true,
+        createdAt: true,
+        updatedAt: true,
+        selectedCalendar: {
+          select: {
+            id: true,
+            externalId: true,
+            integration: true,
+            userId: true,
+            credential: {
+              select: safeCredentialSelectForCalendarCache,
             },
           },
         },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+    });
   }
 
   async findByCredentialId(credentialId: number) {
-    try {
-      return await this.prismaClient.calendarSubscription.findFirst({
-        where: {
-          selectedCalendar: {
-            credentialId,
-          },
+    return await this.prismaClient.calendarSubscription.findFirst({
+      where: {
+        selectedCalendar: {
+          credentialId,
         },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+    });
   }
 
   async findBySelectedCalendarIds(selectedCalendarIds: string[]) {
-    try {
-      return await this.prismaClient.calendarSubscription.findMany({
-        where: {
-          selectedCalendarId: {
-            in: selectedCalendarIds,
-          },
+    return await this.prismaClient.calendarSubscription.findMany({
+      where: {
+        selectedCalendarId: {
+          in: selectedCalendarIds,
         },
-        select: {
-          id: true,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 
   async findByChannelId(channelId: string) {
-    try {
-      return await this.prismaClient.calendarSubscription.findFirst({
-        where: {
-          googleChannelId: channelId,
-        },
-        include: {
-          selectedCalendar: {
-            select: {
-              id: true,
-              externalId: true,
-              integration: true,
-              userId: true,
-              credential: {
-                select: safeCredentialSelectForCalendarCache,
-              },
+    return await this.prismaClient.calendarSubscription.findFirst({
+      where: {
+        googleChannelId: channelId,
+      },
+      include: {
+        selectedCalendar: {
+          select: {
+            id: true,
+            externalId: true,
+            integration: true,
+            userId: true,
+            credential: {
+              select: safeCredentialSelectForCalendarCache,
             },
           },
         },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+    });
   }
 
   async upsert(data: Prisma.CalendarSubscriptionCreateInput) {
-    try {
-      const selectedCalendarId = validateSelectedCalendarId(data);
+    const selectedCalendarId = validateSelectedCalendarId(data);
 
-      return await this.prismaClient.calendarSubscription.upsert({
-        where: {
-          selectedCalendarId,
-        },
-        create: data,
-        update: {
-          ...data,
-          updatedAt: new Date(),
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prismaClient.calendarSubscription.upsert({
+      where: {
+        selectedCalendarId,
+      },
+      create: data,
+      update: {
+        ...data,
+        updatedAt: new Date(),
+      },
+    });
   }
 
   async upsertMany(data: Prisma.CalendarSubscriptionCreateInput[]) {
-    try {
-      // Use a transaction to ensure all upserts are atomic
-      return await this.prismaClient.$transaction(
-        data.map((item) => {
-          const selectedCalendarId = validateSelectedCalendarId(item);
-          return this.prismaClient.calendarSubscription.upsert({
-            where: {
-              selectedCalendarId,
-            },
-            create: item,
-            update: {
-              ...item,
-              updatedAt: new Date(),
-            },
-          });
-        })
-      );
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    // Use a transaction to ensure all upserts are atomic
+    return await this.prismaClient.$transaction(
+      data.map((item) => {
+        const selectedCalendarId = validateSelectedCalendarId(item);
+        return this.prismaClient.calendarSubscription.upsert({
+          where: {
+            selectedCalendarId,
+          },
+          create: item,
+          update: {
+            ...item,
+            updatedAt: new Date(),
+          },
+        });
+      })
+    );
   }
 
   async updateSyncToken(id: string, nextSyncToken: string) {
-    try {
-      await this.prismaClient.calendarSubscription.update({
-        where: { id },
-        data: {
-          nextSyncToken,
-          updatedAt: new Date(),
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    await this.prismaClient.calendarSubscription.update({
+      where: { id },
+      data: {
+        nextSyncToken,
+        updatedAt: new Date(),
+      },
+    });
   }
 
   async updateWatchDetails(
@@ -215,96 +179,76 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       googleChannelExpiration: string;
     }
   ) {
-    try {
-      await this.prismaClient.calendarSubscription.update({
-        where: { id },
-        data: {
-          ...details,
-          updatedAt: new Date(),
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    await this.prismaClient.calendarSubscription.update({
+      where: { id },
+      data: {
+        ...details,
+        updatedAt: new Date(),
+      },
+    });
   }
 
   async getSubscriptionsToWatch(limit = 100) {
     const oneDayInMS = 24 * 60 * 60 * 1000;
     const tomorrowTimestamp = String(new Date().getTime() + oneDayInMS);
 
-    try {
-      return await this.prismaClient.calendarSubscription.findMany({
-        take: limit,
-        where: {
-          selectedCalendar: {
-            user: {
-              teams: {
-                some: {
-                  team: {
-                    features: {
-                      some: {
-                        featureId: CALENDAR_CACHE_SQL_WRITE_FEATURE,
-                      },
+    return await this.prismaClient.calendarSubscription.findMany({
+      take: limit,
+      where: {
+        selectedCalendar: {
+          user: {
+            teams: {
+              some: {
+                team: {
+                  features: {
+                    some: {
+                      featureId: CALENDAR_CACHE_SQL_WRITE_FEATURE,
                     },
                   },
                 },
               },
             },
-            integration: "google_calendar",
           },
-          syncErrors: { lt: 5 },
-          OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+          integration: "google_calendar",
         },
-        include: {
-          selectedCalendar: {
-            select: {
-              id: true,
-              externalId: true,
-              integration: true,
-              userId: true,
-              credential: {
-                select: safeCredentialSelectForCalendarCache,
-              },
+        syncErrors: { lt: 5 },
+        OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+      },
+      include: {
+        selectedCalendar: {
+          select: {
+            id: true,
+            externalId: true,
+            integration: true,
+            userId: true,
+            credential: {
+              select: safeCredentialSelectForCalendarCache,
             },
           },
         },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+      },
+    });
   }
 
   async setWatchError(id: string, _error: string) {
-    try {
-      await this.prismaClient.calendarSubscription.update({
-        where: { id },
-        data: {
-          syncErrors: { increment: 1 },
-          backoffUntil: new Date(Date.now() + Math.pow(2, 3) * 60 * 1000),
-          updatedAt: new Date(),
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    await this.prismaClient.calendarSubscription.update({
+      where: { id },
+      data: {
+        syncErrors: { increment: 1 },
+        backoffUntil: new Date(Date.now() + Math.pow(2, 3) * 60 * 1000),
+        updatedAt: new Date(),
+      },
+    });
   }
 
   async clearWatchError(id: string) {
-    try {
-      await this.prismaClient.calendarSubscription.update({
-        where: { id },
-        data: {
-          syncErrors: 0,
-          backoffUntil: null,
-          updatedAt: new Date(),
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    await this.prismaClient.calendarSubscription.update({
+      where: { id },
+      data: {
+        syncErrors: 0,
+        backoffUntil: null,
+        updatedAt: new Date(),
+      },
+    });
   }
 }
