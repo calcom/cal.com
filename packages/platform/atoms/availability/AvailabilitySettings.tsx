@@ -70,6 +70,9 @@ export type CustomClassNames = {
   overridesModalClassNames?: string;
   dateOverrideClassNames?: {
     container?: string;
+    title?: string;
+    description?: string;
+    button?: string;
   };
   hiddenSwitchClassname?: {
     container?: string;
@@ -193,6 +196,9 @@ const DateOverride = ({
   overridesModalClassNames?: string;
   classNames?: {
     container?: string;
+    title?: string;
+    description?: string;
+    button?: string;
   };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
@@ -210,7 +216,7 @@ const DateOverride = ({
 
   return (
     <div className={cn("p-6", classNames?.container)}>
-      <h3 className="text-emphasis font-medium leading-6">
+      <h3 className={cn("text-emphasis font-medium leading-6", classNames?.title)}>
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
@@ -218,7 +224,9 @@ const DateOverride = ({
           </span>
         </Tooltip>
       </h3>
-      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
+      <p className={cn("text-subtle mb-4 text-sm", classNames?.description)}>
+        {t("date_overrides_subtitle")}
+      </p>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
@@ -242,7 +250,11 @@ const DateOverride = ({
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
           Trigger={
-            <Button color="secondary" StartIcon="plus" data-testid="add-override">
+            <Button
+              className={classNames?.button}
+              color="secondary"
+              StartIcon="plus"
+              data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
