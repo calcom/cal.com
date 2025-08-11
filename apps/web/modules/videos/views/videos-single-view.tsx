@@ -325,11 +325,6 @@ export function LogInOverlay(props: LogInOverlayProps) {
     }
   }, [userName, onJoinAsGuest, onUserNameConfirmed, t]);
 
-  const handleSignIn = useCallback(() => {
-    const callbackUrl = encodeURIComponent(`${WEBAPP_URL}/video/${bookingUid}`);
-    window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${callbackUrl}`;
-  }, [bookingUid]);
-
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === "Enter" && userName.trim() && !isLoading) {
@@ -402,7 +397,12 @@ export function LogInOverlay(props: LogInOverlayProps) {
               </p>
             </div>
 
-            <Button color="primary" className="w-full justify-center" onClick={handleSignIn}>
+            <Button
+              color="primary"
+              className="w-full justify-center"
+              onClick={() =>
+                (window.location.href = `${WEBAPP_URL}/auth/login?callbackUrl=${WEBAPP_URL}/video/${bookingUid}`)
+              }>
               {t("sign_in")}
             </Button>
           </div>
