@@ -1,11 +1,19 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import { headers, cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { TeamMembersView } from "~/teams/team-members-view";
 
@@ -51,6 +59,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   const teamId = parseInt(id);
 
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
+  if (!session?.user.id) {
+    return redirect("/auth/login");
+  }
+
   const teamCaller = await createRouterCaller(viewerTeamsRouter);
   const team = await teamCaller.get({ teamId });
 
@@ -67,6 +81,34 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
     getCachedTeamAttributes(organizationId),
   ]);
 
+  // Get specific PBAC permissions for team member actions
+  const permissions = await getSpecificPermissions({
+    userId: session.user.id,
+    teamId: teamId,
+    resource: Resource.Team,
+    userRole: team.membership.role,
+    actions: [CustomAction.Invite, CustomAction.ChangeMemberRole, CustomAction.Remove],
+    fallbackRoles: {
+      [CustomAction.Invite]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      [CustomAction.ChangeMemberRole]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      [CustomAction.Remove]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  // Map specific permissions to member actions
+  const memberPermissions = {
+    canListMembers: true, // Team members can always see other members (handled by team privacy logic)
+    canInvite: permissions[CustomAction.Invite],
+    canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
+    canRemove: permissions[CustomAction.Remove],
+  };
+
   const facetedTeamValues = {
     roles,
     teams: [team],
@@ -81,7 +123,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
   return (
     <SettingsHeader title={t("team_members")} description={t("members_team_description")}>
-      <TeamMembersView team={team} facetedTeamValues={facetedTeamValues} attributes={attributes} />
+      <TeamMembersView
+        team={team}
+        facetedTeamValues={facetedTeamValues}
+        attributes={attributes}
+        permissions={memberPermissions}
+      />
     </SettingsHeader>
   );
 };

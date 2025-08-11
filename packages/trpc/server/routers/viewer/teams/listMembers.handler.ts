@@ -1,11 +1,13 @@
 import type { Prisma } from "@prisma/client";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -146,26 +148,23 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 };
 
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
-  const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
   const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
-  const orgId = ctx.user.organizationId;
   const isTargetingOrg = teamId === ctx.user.organizationId;
 
-  if (isTargetingOrg) {
-    return isOrgAdminOrOwner || !isOrgPrivate;
+  // If targeting org and user is org admin, allow access
+  if (isTargetingOrg && isOrgAdminOrOwner) {
+    return true;
   }
+
+  // Get team info to check if it's private
   const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
+    where: { id: teamId },
+    select: { isPrivate: true },
   });
 
   if (!team) return false;
 
-  if (isOrgAdminOrOwner && team?.parentId === orgId) {
-    return true;
-  }
-
+  // Get user's membership in the team
   const membership = await prisma.membership.findFirst({
     where: {
       teamId,
@@ -176,12 +175,24 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   if (!membership) return false;
 
-  const isTeamAdminOrOwner = checkAdminOrOwner(membership?.role);
+  // Check PBAC permissions for listing team members
+  const permissions = await getSpecificPermissions({
+    userId: ctx.user.id,
+    teamId: teamId,
+    resource: Resource.Team,
+    userRole: membership.role,
+    actions: [CustomAction.Invite], // Using Invite as proxy for member access since teams don't have ListMembers
+    fallbackRoles: {
+      [CustomAction.Invite]: {
+        roles: team.isPrivate
+          ? [MembershipRole.ADMIN, MembershipRole.OWNER]
+          : [MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
 
-  if (team?.isPrivate && !isTeamAdminOrOwner) {
-    return false;
-  }
-  return true;
+  // For teams, if you can invite, you can list members (or just be a member)
+  return permissions[CustomAction.Invite] || !team.isPrivate;
 };
 
 export default listMembersHandler;
