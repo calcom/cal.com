@@ -17,13 +17,10 @@ export class PrivateLinksRepository {
     return this.dbRead.prisma.hashedLink.findUnique({
       where: { link: linkId },
       select: {
-        id: true,
         link: true,
         expiresAt: true,
         maxUsageCount: true,
         usageCount: true,
-        eventTypeId: true,
-        eventType: { select: { teamId: true, userId: true } },
       },
     });
   }

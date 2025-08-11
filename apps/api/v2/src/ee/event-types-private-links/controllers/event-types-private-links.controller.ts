@@ -15,7 +15,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags, OmitType } from "@nestjs/swagger";
 
 import {
   EVENT_TYPE_READ,
@@ -32,6 +32,8 @@ import {
 } from "@calcom/platform-types";
 
 import { PrivateLinksService } from "../services/private-links.service";
+
+class UpdatePrivateLinkBody extends OmitType(UpdatePrivateLinkInput, ["linkId"] as const) {}
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/private-links",
@@ -84,7 +86,7 @@ export class EventTypesPrivateLinksController {
   async updatePrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
-    @Body() body: Omit<UpdatePrivateLinkInput, "linkId">,
+    @Body() body: UpdatePrivateLinkBody,
     @GetUser("id") userId: number
   ): Promise<UpdatePrivateLinkOutput> {
     const updateInput = { ...body, linkId };

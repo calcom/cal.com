@@ -1,6 +1,13 @@
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { Request } from "express";
 
 @Injectable()
@@ -17,10 +24,13 @@ export class EventTypeOwnershipGuard implements CanActivate {
     }
 
     if (!eventTypeIdParam) {
-      throw new ForbiddenException("EventTypeOwnershipGuard - Missing eventTypeId param.");
+      throw new BadRequestException("Missing eventTypeId param.");
     }
 
-    const eventTypeId = parseInt(eventTypeIdParam);
+    const eventTypeId = Number(eventTypeIdParam);
+    if (!Number.isInteger(eventTypeId) || eventTypeId <= 0) {
+      throw new BadRequestException("Invalid eventTypeId param.");
+    }
     const eventType = await this.eventTypesService.getUserEventType(user.id, eventTypeId);
     if (!eventType) {
       // Mirrors EventTypesService behavior: NotFound when not owned or not present

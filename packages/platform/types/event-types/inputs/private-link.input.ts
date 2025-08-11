@@ -8,7 +8,8 @@ export class CreatePrivateLinkInput {
   @Type(() => Date)
   @ApiPropertyOptional({
     description: "Expiration date for time-based links",
-    type: Date,
+    type: String,
+    format: "date-time",
     example: "2024-12-31T23:59:59.000Z",
   })
   expiresAt?: Date;
@@ -17,10 +18,11 @@ export class CreatePrivateLinkInput {
   @IsInt()
   @Min(1)
   @ApiPropertyOptional({
-    description: "Maximum number of times the link can be used",
+    description: "Maximum number of times the link can be used. If omitted and expiresAt is not provided, defaults to 1 (one time use).",
     type: Number,
     example: 10,
     minimum: 1,
+    default: 1,
   })
   maxUsageCount?: number;
 }

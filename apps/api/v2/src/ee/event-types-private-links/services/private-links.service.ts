@@ -109,7 +109,10 @@ export class PrivateLinksService {
 
   async deletePrivateLink(eventTypeId: number, userId: number, linkId: string): Promise<void> {
     try {
-      await this.repo.delete(eventTypeId, linkId);
+      const { count } = await this.repo.delete(eventTypeId, linkId);
+      if (count === 0) {
+        throw new NotFoundException("Deleted link not found");
+      }
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("not found")) {

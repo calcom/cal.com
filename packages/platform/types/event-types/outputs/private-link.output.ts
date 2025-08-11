@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiExtraModels, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 
 // Base class with common properties
 abstract class BasePrivateLinkOutput {
@@ -26,6 +26,7 @@ abstract class BasePrivateLinkOutput {
   @ApiProperty({
     description: "Full booking URL for this private link",
     type: String,
+    format: "uri",
     example: "https://cal.com/d/abc123def456/30min",
   })
   bookingUrl!: string;
@@ -35,7 +36,8 @@ abstract class BasePrivateLinkOutput {
 export class TimeBasedPrivateLinkOutput extends BasePrivateLinkOutput {
   @ApiProperty({
     description: "Expiration date for this time-based link",
-    type: Date,
+    type: String,
+    format: "date-time",
     example: "2025-12-31T23:59:59.000Z",
   })
   expiresAt!: Date;
@@ -61,6 +63,7 @@ export class UsageBasedPrivateLinkOutput extends BasePrivateLinkOutput {
 // Union type for either time-based or usage-based links
 export type PrivateLinkOutput = TimeBasedPrivateLinkOutput | UsageBasedPrivateLinkOutput;
 
+@ApiExtraModels(TimeBasedPrivateLinkOutput, UsageBasedPrivateLinkOutput)
 export class CreatePrivateLinkOutput {
   @ApiProperty({ description: "Response status", example: "success" })
   status!: string;
@@ -68,13 +71,14 @@ export class CreatePrivateLinkOutput {
   @ApiProperty({
     description: "Created private link data (either time-based or usage-based)",
     oneOf: [
-      { $ref: "#/components/schemas/TimeBasedPrivateLinkOutput" },
-      { $ref: "#/components/schemas/UsageBasedPrivateLinkOutput" },
+      { $ref: getSchemaPath(TimeBasedPrivateLinkOutput) },
+      { $ref: getSchemaPath(UsageBasedPrivateLinkOutput) },
     ],
   })
   data!: PrivateLinkOutput;
 }
 
+@ApiExtraModels(TimeBasedPrivateLinkOutput, UsageBasedPrivateLinkOutput)
 export class GetPrivateLinksOutput {
   @ApiProperty({ description: "Response status", example: "success" })
   status!: string;
@@ -84,14 +88,15 @@ export class GetPrivateLinksOutput {
     type: "array",
     items: {
       oneOf: [
-        { $ref: "#/components/schemas/TimeBasedPrivateLinkOutput" },
-        { $ref: "#/components/schemas/UsageBasedPrivateLinkOutput" },
+        { $ref: getSchemaPath(TimeBasedPrivateLinkOutput) },
+        { $ref: getSchemaPath(UsageBasedPrivateLinkOutput) },
       ],
     },
   })
   data!: PrivateLinkOutput[];
 }
 
+@ApiExtraModels(TimeBasedPrivateLinkOutput, UsageBasedPrivateLinkOutput)
 export class UpdatePrivateLinkOutput {
   @ApiProperty({ description: "Response status", example: "success" })
   status!: string;
@@ -99,8 +104,8 @@ export class UpdatePrivateLinkOutput {
   @ApiProperty({
     description: "Updated private link data (either time-based or usage-based)",
     oneOf: [
-      { $ref: "#/components/schemas/TimeBasedPrivateLinkOutput" },
-      { $ref: "#/components/schemas/UsageBasedPrivateLinkOutput" },
+      { $ref: getSchemaPath(TimeBasedPrivateLinkOutput) },
+      { $ref: getSchemaPath(UsageBasedPrivateLinkOutput) },
     ],
   })
   data!: PrivateLinkOutput;
