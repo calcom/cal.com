@@ -131,6 +131,18 @@ Along with the props, Availability settings atom accepts custom styles via the *
 | timeRanges                | Time ranges in the availability settings can be customized            |
 | labelAndSwitchContainer   | Adds styling to label and switches                                    |
 | overridesModalClassNames  | Adds styling to the date overrides modal                              |
+| dateOverrideClassNames    | An object for granular styling of date override components (see detailed table below) |
+
+### dateOverrideClassNames Object Structure
+
+The `dateOverrideClassNames` prop accepts an object with the following structure for granular styling of date override components:
+
+| Property Path | Description |
+|:--------------|:------------|
+| `container` | Styles the main container |
+| `title` | Styles the title|
+| `description` | Styles the description |
+| `button` | Styles the button to add date override |
 
 <Info>Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.</Info>
 
