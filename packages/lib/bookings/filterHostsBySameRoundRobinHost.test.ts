@@ -1,3 +1,4 @@
+import type { Mock } from "vitest";
 import { describe, expect, it, vi, afterEach } from "vitest";
 
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
@@ -13,7 +14,7 @@ const filterHostsService = new FilterHostsService({
 });
 
 afterEach(() => {
-  mockBookingRepo.findOriginalRescheduledBookingUserId.mockClear();
+  (mockBookingRepo.findOriginalRescheduledBookingUserId as Mock).mockClear();
 });
 
 describe("FilterHostsService", () => {
@@ -45,7 +46,7 @@ describe("FilterHostsService", () => {
   });
 
   it("correctly selects the same host if the filter applies and the host is in the RR users", async () => {
-    mockBookingRepo.findOriginalRescheduledBookingUserId.mockResolvedValue({ userId: 1 });
+    (mockBookingRepo.findOriginalRescheduledBookingUserId as Mock).mockResolvedValue({ userId: 1 });
 
     const hosts = [
       { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
@@ -64,7 +65,7 @@ describe("FilterHostsService", () => {
   // Tests for bookings that have more than one host
   describe("Fixed hosts and round robin groups support", () => {
     it("should return organizer and attendee hosts", async () => {
-      prismaMock.booking.findFirst.mockResolvedValue({
+      (mockBookingRepo.findOriginalRescheduledBookingUserId as Mock).mockResolvedValue({
         userId: 1,
         attendees: [
           { email: "host2@acme.com" },
@@ -80,7 +81,7 @@ describe("FilterHostsService", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 4, email: "host4@acme.com" } },
       ];
 
-      const result = await filterHostsBySameRoundRobinHost({
+      const result = await filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
@@ -97,7 +98,7 @@ describe("FilterHostsService", () => {
     });
 
     it("should return only organizer host when no attendees match current hosts", async () => {
-      prismaMock.booking.findFirst.mockResolvedValue({
+      (mockBookingRepo.findOriginalRescheduledBookingUserId as Mock).mockResolvedValue({
         userId: 1,
         attendees: [
           { email: "attendee1@example.com" }, // Non-host attendee
@@ -110,7 +111,7 @@ describe("FilterHostsService", () => {
         { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "host2@acme.com" } },
       ];
 
-      const result = await filterHostsBySameRoundRobinHost({
+      const result = await filterHostsService.filterHostsBySameRoundRobinHost({
         hosts,
         rescheduleUid: "some-uid",
         rescheduleWithSameRoundRobinHost: true,
