@@ -101,9 +101,14 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToUid = databaseBooking.rescheduled
-      ? await this.getRescheduledToUid(databaseBooking.uid)
+    const rescheduledToInfo = databaseBooking.rescheduled
+      ? await this.getRescheduledToInfo(databaseBooking.uid)
       : undefined;
+
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled
+      ? rescheduledToInfo?.rescheduledBy
+      : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
@@ -116,7 +121,6 @@ export class OutputBookingsService_2024_08_13 {
         databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
-      rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -142,6 +146,7 @@ export class OutputBookingsService_2024_08_13 {
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
       rescheduledToUid,
+      rescheduledByEmail,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -151,9 +156,12 @@ export class OutputBookingsService_2024_08_13 {
     return bookingTransformed;
   }
 
-  async getRescheduledToUid(bookingUid: string) {
+  async getRescheduledToInfo(bookingUid: string): Promise<{ uid?: string; rescheduledBy?: string | null }> {
     const rescheduledTo = await this.bookingsRepository.getByFromReschedule(bookingUid);
-    return rescheduledTo?.uid;
+    return {
+      uid: rescheduledTo?.uid,
+      rescheduledBy: rescheduledTo?.rescheduledBy,
+    };
   }
 
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
@@ -218,7 +226,6 @@ export class OutputBookingsService_2024_08_13 {
         databaseBooking.status === "CANCELLED" ? databaseBooking.cancellationReason : undefined,
       cancelledByEmail: databaseBooking.status === "CANCELLED" ? databaseBooking.cancelledBy : undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
-      rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -269,9 +276,14 @@ export class OutputBookingsService_2024_08_13 {
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToUid = databaseBooking.rescheduled
-      ? await this.getRescheduledToUid(databaseBooking.uid)
+    const rescheduledToInfo = databaseBooking.rescheduled
+      ? await this.getRescheduledToInfo(databaseBooking.uid)
       : undefined;
+
+    const rescheduledToUid = rescheduledToInfo?.uid;
+    const rescheduledByEmail = databaseBooking.rescheduled
+      ? rescheduledToInfo?.rescheduledBy
+      : databaseBooking.rescheduledBy;
 
     const booking = {
       id: databaseBooking.id,
@@ -299,6 +311,7 @@ export class OutputBookingsService_2024_08_13 {
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
       rescheduledToUid,
+      rescheduledByEmail,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });

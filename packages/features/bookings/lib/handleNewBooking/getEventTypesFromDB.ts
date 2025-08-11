@@ -65,6 +65,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         periodDays: true,
         periodCountCalendarDays: true,
         lockTimeZoneToggleOnBookingPage: true,
+        lockedTimeZone: true,
         requiresConfirmation: true,
         requiresConfirmationForFreeEmail: true,
         requiresBookerEmailVerification: true,
@@ -134,6 +135,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
             priority: true,
             weight: true,
             createdAt: true,
+            groupId: true,
             user: {
               select: {
                 credentials: {
@@ -176,6 +178,12 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
         useEventLevelSelectedCalendars: true,
+        hostGroups: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -205,6 +213,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
       rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
       isDynamic: false,
+      hostGroups: eventType.hostGroups || [],
     };
   } catch (error) {
     if (error instanceof Error && error.message.includes("Record to update not found")) {
