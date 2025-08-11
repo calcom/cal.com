@@ -10,6 +10,7 @@ import {
   useMatches,
   useRegisterActions,
 } from "kbar";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -22,6 +23,7 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { MintlifyChat } from "../mintlify-chat/MintlifyChat";
+import { ImpersonationSection } from "./ImpersonationSection";
 
 type shortcutArrayType = {
   shortcuts?: string[];
@@ -209,6 +211,13 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
         perform: () => router.push("/settings/security/impersonation"),
       },
       {
+        id: "admin-impersonation",
+        name: "impersonate",
+        section: "admin",
+        shortcut: ["i", "u"],
+        keywords: "admin impersonate user",
+      },
+      {
         id: "license",
         name: "choose_a_license",
         section: "admin",
@@ -254,6 +263,9 @@ export const KBarContent = () => {
   const [inputText, setInputText] = useState("");
   const [aiResponse, setAiResponse] = useState("");
   const showAiChat = process.env.NEXT_PUBLIC_MINTLIFY_CHAT_API_KEY && process.env.NEXT_PUBLIC_CHAT_API_URL;
+  const { data: session } = useSession();
+  const isAdmin = session?.user.role === "ADMIN";
+  const [showImpersonation, setShowImpersonation] = useState(false);
 
   return (
     <KBarPortal>
@@ -268,13 +280,18 @@ export const KBarContent = () => {
               onChange={(e) => {
                 setInputText(e.currentTarget.value.trim());
                 if (aiResponse) setAiResponse("");
+                if (showImpersonation) setShowImpersonation(false);
               }}
             />
           </div>
           {showAiChat && inputText && (
             <MintlifyChat aiResponse={aiResponse} setAiResponse={setAiResponse} searchText={inputText} />
           )}
-          <RenderResults />
+          {isAdmin && showImpersonation ? (
+            <ImpersonationSection />
+          ) : (
+            <RenderResults onImpersonationClick={() => setShowImpersonation(true)} />
+          )}
           <div className="text-subtle border-subtle hidden items-center space-x-1 border-t px-2 py-1.5 text-xs sm:flex">
             <Icon name="arrow-up" className="h-4 w-4" />
             <Icon name="arrow-down" className="h-4 w-4" /> <span className="pr-2">{t("navigate")}</span>
@@ -325,9 +342,11 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
   );
 };
 
-function RenderResults() {
+function RenderResults({ onImpersonationClick }: { onImpersonationClick?: () => void }) {
   const { results } = useMatches();
   const { t } = useLocale();
+  const { data: session } = useSession();
+  const isAdmin = session?.user.role === "ADMIN";
 
   return (
     <KBarResults
@@ -343,7 +362,14 @@ function RenderResults() {
               borderLeft: active ? "2px solid var(--cal-border)" : "2px solid transparent",
               color: "var(--cal-text)",
             }}
-            className="flex items-center justify-between px-4 py-2.5 text-sm transition hover:cursor-pointer">
+            className="flex items-center justify-between px-4 py-2.5 text-sm transition hover:cursor-pointer"
+            onClick={() => {
+              if (isAdmin && item.id === "admin-impersonation" && onImpersonationClick) {
+                onImpersonationClick();
+                return;
+              }
+              item.perform?.();
+            }}>
             <span>{t(item.name)}</span>
             <DisplayShortcuts shortcuts={item.shortcut} />
           </div>
