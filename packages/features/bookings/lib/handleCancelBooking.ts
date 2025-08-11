@@ -378,6 +378,7 @@ async function handler(input: CancelBookingInput) {
       },
       select: {
         id: true,
+        eventTypeId: true,
         startTime: true,
         endTime: true,
         references: {
@@ -400,8 +401,11 @@ async function handler(input: CancelBookingInput) {
         const userId = cancelledBy ? parseInt(cancelledBy) : NaN;
         await BookingAuditService.logBookingCancelled({
           bookingId: cancelledBooking.id,
+          startTime: cancelledBooking.startTime,
+          endTime: cancelledBooking.endTime,
           cancellationReason,
-          actor: !isNaN(userId) ? { userId, role: "organizer" } : undefined,
+          eventTypeId: cancelledBooking.eventTypeId || undefined,
+          actor: !isNaN(userId) ? { userId, role: "organizer" } : { email: cancelledBy },
         });
       }
     } catch (auditError) {
@@ -432,6 +436,7 @@ async function handler(input: CancelBookingInput) {
       },
       select: {
         id: true,
+        eventTypeId: true,
         startTime: true,
         endTime: true,
         references: {
@@ -453,8 +458,11 @@ async function handler(input: CancelBookingInput) {
       const userId = cancelledBy ? parseInt(cancelledBy) : NaN;
       await BookingAuditService.logBookingCancelled({
         bookingId: updatedBooking.id,
+        startTime: updatedBooking.startTime,
+        endTime: updatedBooking.endTime,
         cancellationReason,
-        actor: !isNaN(userId) ? { userId, role: "organizer" } : undefined,
+        eventTypeId: updatedBooking.eventTypeId || undefined,
+        actor: !isNaN(userId) ? { userId, role: "organizer" } : { email: cancelledBy },
       });
     } catch (auditError) {
       log.error(

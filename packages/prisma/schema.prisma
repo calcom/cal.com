@@ -821,6 +821,8 @@ model BookingAudit {
   version   Int? // For forward compatibility
   data      Json
   createdAt DateTime @default(now())
+
+  @@index([bookingId])
 }
 
 model Schedule {
