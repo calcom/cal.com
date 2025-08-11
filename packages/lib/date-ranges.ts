@@ -128,15 +128,13 @@ export function processWorkingHours(
     let foundOverlapOrAdjacent = false;
     for (const existingKey in results) {
       const existingRange = results[existingKey];
-      const existingStart = existingRange.start.valueOf();
-      const existingEnd = existingRange.end.valueOf();
-      const newStart = startResult.valueOf();
-      const newEnd = endResult.valueOf();
-      const fifteenMinutesInMs = 15 * 60 * 1000;
-      const areOverlappingOrAdjacent =
-        newStart <= existingEnd + fifteenMinutesInMs && newEnd >= existingStart - fifteenMinutesInMs;
 
-      if (areOverlappingOrAdjacent) {
+      const isOverlapping =
+        (startResult.valueOf() <= existingRange.end.valueOf() &&
+          endResult.valueOf() >= existingRange.start.valueOf()) ||
+        Math.abs(startResult.valueOf() - existingRange.end.valueOf()) <= 15 * 60 * 1000 ||
+        Math.abs(endResult.valueOf() - existingRange.start.valueOf()) <= 15 * 60 * 1000;
+      if (isOverlapping) {
         const mergedStart = dayjs.min(existingRange.start, startResult);
         const mergedEnd = dayjs.max(existingRange.end, endResult);
 
@@ -159,9 +157,7 @@ export function processWorkingHours(
           if (!endTimeToKeyMap.has(newKey)) {
             endTimeToKeyMap.set(newKey, []);
           }
-          const newKeyMap = endTimeToKeyMap.get(newKey) || [];
-          newKeyMap.push(newKey);
-          endTimeToKeyMap.set(newKey, newKeyMap);
+          endTimeToKeyMap.get(newKey)!.push(newKey);
         }
 
         // Remove the old entry
@@ -196,9 +192,13 @@ export function processWorkingHours(
           endTimeToKeyMap.set(oldEndTime, filteredKeys);
         }
 
-        const endTimeKeyMap = endTimeToKeyMap.get(endTimeKey) || [];
-        endTimeKeyMap.push(newKey);
-        endTimeToKeyMap.set(endTimeKey, endTimeKeyMap);
+        if (!endTimeToKeyMap.has(endTimeKey)) {
+          endTimeToKeyMap.set(endTimeKey, []);
+        }
+        // Use Set to ensure uniqueness
+        const keySet = new Set(endTimeToKeyMap.get(endTimeKey) || []);
+        keySet.add(newKey);
+        endTimeToKeyMap.set(endTimeKey, Array.from(keySet));
       }
 
       delete results[oldKey]; // delete the previous end time
@@ -212,9 +212,13 @@ export function processWorkingHours(
     };
 
     if (endTimeToKeyMap) {
-      const endTimeKeyMap = endTimeToKeyMap.get(endTimeKey) || [];
-      endTimeKeyMap.push(newKey);
-      endTimeToKeyMap.set(endTimeKey, endTimeKeyMap);
+      if (!endTimeToKeyMap.has(endTimeKey)) {
+        endTimeToKeyMap.set(endTimeKey, []);
+      }
+      // Use Set to ensure uniqueness
+      const keySet = new Set(endTimeToKeyMap.get(endTimeKey) || []);
+      keySet.add(newKey);
+      endTimeToKeyMap.set(endTimeKey, Array.from(keySet));
     }
   }
 
