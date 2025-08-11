@@ -575,6 +575,14 @@ export class BookingsService_2024_08_13 {
       | GetSeatedBookingOutput_2024_08_13
       | GetRecurringSeatedBookingOutput_2024_08_13
     )[] = [];
+
+    const rescheduledBookingUids = orderedBookings
+      .filter((booking) => booking?.rescheduled)
+      .map((booking) => booking!.uid);
+
+    const rescheduleBookings = await this.bookingsRepository.getByFromRescheduleMany(rescheduledBookingUids);
+    const rescheduleMap = new Map(rescheduleBookings.map((booking) => [booking.fromReschedule, booking]));
+
     for (const booking of orderedBookings) {
       if (!booking) {
         continue;
@@ -596,9 +604,9 @@ export class BookingsService_2024_08_13 {
       } else if (isRecurring && isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
       } else if (isSeated) {
-        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, rescheduleMap));
       } else {
-        formattedBookings.push(await this.outputService.getOutputBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputBooking(formatted, rescheduleMap));
       }
     }
 

@@ -90,7 +90,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  async getOutputBooking(databaseBooking: DatabaseBooking) {
+  async getOutputBooking(databaseBooking: DatabaseBooking, rescheduleMap?: Map<string, any>) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -102,7 +102,9 @@ export class OutputBookingsService_2024_08_13 {
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
     const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
+      ? rescheduleMap
+        ? this.getRescheduledToInfoFromMap(databaseBooking.uid, rescheduleMap)
+        : await this.getRescheduledToInfo(databaseBooking.uid)
       : undefined;
 
     const rescheduledToUid = rescheduledToInfo?.uid;
@@ -164,9 +166,21 @@ export class OutputBookingsService_2024_08_13 {
     };
   }
 
+  getRescheduledToInfoFromMap(
+    bookingUid: string,
+    rescheduleMap: Map<string, any>
+  ): { uid?: string; rescheduledBy?: string | null } {
+    const rescheduledTo = rescheduleMap.get(bookingUid);
+    return {
+      uid: rescheduledTo?.uid,
+      rescheduledBy: rescheduledTo?.rescheduledBy,
+    };
+  }
+
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { videoCallUrl, ...userDefinedMetadata } = databaseMetadata;
 
     return userDefinedMetadata;
@@ -270,14 +284,16 @@ export class OutputBookingsService_2024_08_13 {
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  async getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, rescheduleMap?: Map<string, any>) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
     const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
+      ? rescheduleMap
+        ? this.getRescheduledToInfoFromMap(databaseBooking.uid, rescheduleMap)
+        : await this.getRescheduledToInfo(databaseBooking.uid)
       : undefined;
 
     const rescheduledToUid = rescheduledToInfo?.uid;
