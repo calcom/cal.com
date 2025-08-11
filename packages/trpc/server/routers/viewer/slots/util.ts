@@ -14,8 +14,8 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import type { getBusyTimesService } from "@calcom/lib/di/containers/busy-times";
-import { getQualifiedHostsService } from "@calcom/lib/di/containers/qualified-hosts";
+import type { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
+import { getQualifiedHostsService } from "@calcom/lib/di/containers/QualifiedHosts";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {

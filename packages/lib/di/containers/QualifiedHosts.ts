@@ -4,9 +4,9 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { QualifiedHostsService } from "../../bookings/findQualifiedHostsWithDelegationCredentials";
-import { bookingRepositoryModule } from "../modules/booking";
-import { filterHostsModule } from "../modules/filter-hosts";
-import { qualifiedHostsModule } from "../modules/qualified-hosts";
+import { bookingRepositoryModule } from "../modules/Booking";
+import { filterHostsModule } from "../modules/FilterHosts";
+import { qualifiedHostsModule } from "../modules/QualifiedHosts";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);

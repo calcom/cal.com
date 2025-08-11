@@ -4,8 +4,8 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { FilterHostsService } from "../../bookings/filterHostsBySameRoundRobinHost";
-import { bookingRepositoryModule } from "../modules/booking";
-import { filterHostsModule } from "../modules/filter-hosts";
+import { bookingRepositoryModule } from "../modules/Booking";
+import { filterHostsModule } from "../modules/FilterHosts";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
