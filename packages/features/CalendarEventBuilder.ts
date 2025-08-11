@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
