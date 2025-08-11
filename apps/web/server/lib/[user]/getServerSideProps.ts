@@ -73,12 +73,10 @@ type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-
   const usernameList = getUsernameList(context.query.user as string);
-
+  const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
   const dataFetchStart = Date.now();
 
-  // Check for org redirects (handles both regular and SINGLE_ORG_SLUG mode)
   const redirect = await handleOrgRedirect({
     slugs: usernameList,
     redirectType: RedirectType.User,
@@ -182,7 +180,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       })),
       entity: {
         ...(org?.logoUrl ? { logoUrl: org?.logoUrl } : {}),
-        considerUnpublished: context.query.orgRedirection !== "true" && org?.slug === null,
+        considerUnpublished: !isARedirectFromNonOrgLink && org?.slug === null,
         orgSlug: currentOrgDomain,
         name: org?.name ?? null,
       },

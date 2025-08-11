@@ -8,24 +8,30 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RedirectType } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["lib", "handleOrgRedirect"] });
+type NextJsRedirect = {
+  redirect: {
+    permanent: false;
+    /**
+     * It could be a full URL or a relative path
+     */
+    destination: string;
+  };
+};
 
-/**
- * Internal function to get temporary org redirect from database
- * Only used by handleOrgRedirect
- */
 const getTemporaryOrgRedirect = async ({
   slugs,
   redirectType,
   eventTypeSlug,
   currentQuery,
+  useRelativePath = false,
 }: {
-  slugs: string[] | string;
+  slugs: string[];
   redirectType: RedirectType;
   eventTypeSlug: string | null;
   currentQuery: ParsedUrlQuery;
-}) => {
+  useRelativePath?: boolean;
+}): Promise<NextJsRedirect | null> => {
   const prisma = (await import("@calcom/prisma")).default;
-  slugs = slugs instanceof Array ? slugs : [slugs];
   log.debug(
     `Looking for redirect for`,
     safeStringify({
@@ -52,10 +58,17 @@ const getTemporaryOrgRedirect = async ({
   // Use the first redirect origin as the new origin as we aren't supposed to handle different org usernames in a group
   const newOrigin = new URL(redirects[0].toUrl).origin;
 
-  // Ensure we don't duplicate orgRedirection parameter
-  const queryParams = { ...currentQuery };
-  queryParams.orgRedirection = "true";
-  const query = `?${stringify(queryParams)}`;
+  // Filter out any existing orgRedirection parameter to avoid duplicates
+  // querystring.stringify transforms undefined values to empty strings, so we need to filter those out as well initially
+  const filteredQuery = Object.entries(currentQuery).reduce((acc, [key, value]) => {
+    if (key !== "orgRedirection" && value !== undefined) {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as ParsedUrlQuery);
+
+  const currentQueryString = stringify(filteredQuery);
+  const query = currentQueryString ? `?${currentQueryString}&orgRedirection=true` : "?orgRedirection=true";
   // Use the same order as in input slugs - It is important from Dynamic Group perspective as the first user's settings are used for various things
   const newSlugs = slugs.map((slug) => {
     const redirect = redirects.find((redirect) => redirect.from === slug);
@@ -69,7 +82,10 @@ const getTemporaryOrgRedirect = async ({
   const newSlug = newSlugs.join("+");
   const newPath = newSlug ? `/${newSlug}` : "";
 
-  const newDestination = `${newOrigin}${newPath}${eventTypeSlug ? `/${eventTypeSlug}` : ""}${query}`;
+  // When in single org mode and not on actual org subdomain, use relative path to stay on same domain
+  const newDestination = useRelativePath
+    ? `${newPath}${eventTypeSlug ? `/${eventTypeSlug}` : ""}${query}`
+    : `${newOrigin}${newPath}${eventTypeSlug ? `/${eventTypeSlug}` : ""}${query}`;
   log.debug(`Suggesting redirect from ${slugs} to ${newDestination}`);
 
   return {
@@ -90,6 +106,11 @@ interface HandleOrgRedirectParams {
 
 /**
  * Handles organization redirects for both regular org context and SINGLE_ORG_SLUG mode
+ * The redirect is required for all existing user links and team links to keep working when a user/team is moved to an organization
+ * Example:
+ * - User "john87" is added to organization "acme" and his username in the organization is "john". So, cal.com/john87 is redirected to cal.com/john
+ * - Team "acme-sales" is added to organization "acme" and its slug in the organization is "sales". So, cal.com/acme-sales is redirected to cal.com/sales
+ *
  * Returns a redirect object if a redirect is needed, null otherwise
  */
 export async function handleOrgRedirect({
@@ -99,47 +120,66 @@ export async function handleOrgRedirect({
   context,
   currentOrgDomain,
 }: HandleOrgRedirectParams) {
-  // Derive these from the context/params
   const isOrgContext = !!currentOrgDomain;
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
-  // Regular non-org context redirect check
+
+  // If we're not in an org context, the request could clearly be eligible for a redirect
   if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
+    const nextJsRedirect = await getTemporaryOrgRedirect({
       slugs,
       redirectType,
       eventTypeSlug,
       currentQuery: context.query,
     });
 
-    if (redirect) {
-      return redirect;
+    if (nextJsRedirect) {
+      return nextJsRedirect;
     }
   }
 
-  // SINGLE_ORG_SLUG mode redirect check
-  // When SINGLE_ORG_SLUG is set, isOrgContext is true even without org subdomain
-  // We need to check for redirects when users aren't found
   const isSingleOrgMode = SINGLE_ORG_SLUG && isOrgContext;
+
+  // When SINGLE_ORG_SLUG is set(which is possible in Self-Hosted instances), isOrgContext could be true even when the current domain is not an org subdomain
+  // Example: my-instance.com could technically mean acme.my-instance.com where acme is the org slug
+  // In such a case, the existing links which were on my-instance.com e.g. my-instance.com/john87 should be redirected to my-instance.com/john where john is the new username in Organization
+  // This is why we need to follow redirect even when in Org Context
+  if (!isSingleOrgMode) {
+    return null;
+  }
+
   const isActualOrgDomain = context.req.headers.host?.includes(currentOrgDomain || "");
 
-  if (isSingleOrgMode && !isActualOrgDomain && !isARedirectFromNonOrgLink) {
-    // We're in single org mode but not on an actual org subdomain
-    // Check if there's a redirect for this username
-    const redirect = await getTemporaryOrgRedirect({
-      slugs,
-      redirectType,
-      eventTypeSlug,
-      currentQuery: context.query,
-    });
+  // Differentiate between accessing organization booking pages through my-instance.com(where slug comes from SINGLE_ORG_SLUG) or acme.my-instance.com(where slug is in the domain itself)
+  // If the actual org domain(acme.my-instance.com) is used then the intent clearly is to access the new username but if my-instance.com(which is not an org subdomain) is used then the intent is not clear and we should allow a redirect if available
+  if (isActualOrgDomain) {
+    return null;
+  }
 
-    if (redirect) {
-      // Avoid infinite redirects by checking if we're already at the target
-      const targetPath = new URL(redirect.redirect.destination).pathname;
-      const currentPath = context.resolvedUrl?.split("?")[0];
+  // If already redirected from a non-org link, we shouldn't redirect again. Protects against infinite redirects
+  if (isARedirectFromNonOrgLink) {
+    return null;
+  }
 
-      if (targetPath !== currentPath) {
-        return redirect;
-      }
+  // We're in single org mode but not on an actual org subdomain
+  // Check if there's a redirect for this username
+  // Use relative path since we want to stay on the same domain (my-instance.com)
+  const nextJsRedirect = await getTemporaryOrgRedirect({
+    slugs,
+    redirectType,
+    eventTypeSlug,
+    currentQuery: context.query,
+    useRelativePath: true,
+  });
+
+  if (nextJsRedirect) {
+    // Destination could be relative or full URL, so we need to pass a base URL to construct URL instance from it
+    const targetPath = new URL(nextJsRedirect.redirect.destination, "http://localhost").pathname;
+    // resolvedUrl is just a path, so we need to pass a base URL to construct URL instance from it
+    const currentPath = new URL(context.resolvedUrl || "", "http://localhost").pathname;
+
+    // Prevents against infinite and unnecessary redirects
+    if (targetPath !== currentPath) {
+      return nextJsRedirect;
     }
   }
 

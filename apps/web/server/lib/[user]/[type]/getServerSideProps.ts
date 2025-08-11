@@ -220,7 +220,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
-  // Check for org redirects (handles both regular and SINGLE_ORG_SLUG mode)
   const redirect = await handleOrgRedirect({
     slugs: usernames,
     redirectType: RedirectType.User,
