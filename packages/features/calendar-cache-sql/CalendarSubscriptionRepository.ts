@@ -17,31 +17,7 @@ const safeCredentialSelectForCalendarCache = {
   // Explicitly excluding sensitive fields: key, subscriptionId, paymentStatus, billingCycleStart, delegationCredentialId
 } satisfies Prisma.CredentialSelect;
 
-/**
- * Validates that the selectedCalendar.connect.id exists and is a string
- * @param data - The CalendarSubscriptionCreateInput data
- * @returns The validated selectedCalendarId
- * @throws Error if validation fails
- */
-function validateSelectedCalendarId(data: Prisma.CalendarSubscriptionCreateInput): string {
-  if (!data.selectedCalendar) {
-    throw new Error("selectedCalendar is required for CalendarSubscription");
-  }
-
-  if (!data.selectedCalendar.connect) {
-    throw new Error("selectedCalendar.connect is required for CalendarSubscription");
-  }
-
-  if (!data.selectedCalendar.connect.id) {
-    throw new Error("selectedCalendar.connect.id is required for CalendarSubscription");
-  }
-
-  if (typeof data.selectedCalendar.connect.id !== "string") {
-    throw new Error("selectedCalendar.connect.id must be a string");
-  }
-
-  return data.selectedCalendar.connect.id;
-}
+// Input validation belongs in services/domain layer; repository methods accept explicit IDs
 
 export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -125,38 +101,34 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     });
   }
 
-  async upsert(data: Prisma.CalendarSubscriptionCreateInput) {
-    const selectedCalendarId = validateSelectedCalendarId(data);
-
+  async upsertBySelectedCalendarId(selectedCalendarId: string) {
     return await this.prismaClient.calendarSubscription.upsert({
       where: {
         selectedCalendarId,
       },
-      create: data,
+      create: {
+        selectedCalendar: { connect: { id: selectedCalendarId } },
+      },
       update: {
-        ...data,
         updatedAt: new Date(),
       },
     });
   }
 
-  async upsertMany(data: Prisma.CalendarSubscriptionCreateInput[]) {
-    // Use a transaction to ensure all upserts are atomic
-    return await this.prismaClient.$transaction(
-      data.map((item) => {
-        const selectedCalendarId = validateSelectedCalendarId(item);
-        return this.prismaClient.calendarSubscription.upsert({
-          where: {
-            selectedCalendarId,
-          },
-          create: item,
-          update: {
-            ...item,
-            updatedAt: new Date(),
-          },
-        });
-      })
-    );
+  async upsertManyBySelectedCalendarId(selectedCalendarIds: string[]) {
+    // Use transactional callback for better compatibility with Prismock tests
+    return await this.prismaClient.$transaction(async (tx) => {
+      const results = await Promise.all(
+        selectedCalendarIds.map((selectedCalendarId) =>
+          tx.calendarSubscription.upsert({
+            where: { selectedCalendarId },
+            create: { selectedCalendar: { connect: { id: selectedCalendarId } } },
+            update: { updatedAt: new Date() },
+          })
+        )
+      );
+      return results;
+    });
   }
 
   async updateSyncToken(id: string, nextSyncToken: string) {

@@ -1,4 +1,4 @@
-import type { Prisma, CalendarSubscription, Credential } from "@prisma/client";
+import type { CalendarSubscription, Credential } from "@prisma/client";
 
 // Safe credential type that excludes sensitive fields
 export type SafeCredential = Pick<Credential, "id" | "type" | "userId" | "teamId" | "appId" | "invalid">;
@@ -18,8 +18,8 @@ export interface ICalendarSubscriptionRepository {
       })
     | null
   >;
-  upsert(data: Prisma.CalendarSubscriptionCreateInput): Promise<CalendarSubscription>;
-  upsertMany(data: Prisma.CalendarSubscriptionCreateInput[]): Promise<CalendarSubscription[]>;
+  upsertBySelectedCalendarId(selectedCalendarId: string): Promise<CalendarSubscription>;
+  upsertManyBySelectedCalendarId(selectedCalendarIds: string[]): Promise<CalendarSubscription[]>;
   updateSyncToken(id: string, nextSyncToken: string): Promise<void>;
   updateWatchDetails(
     id: string,

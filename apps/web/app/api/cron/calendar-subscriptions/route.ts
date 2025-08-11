@@ -37,11 +37,9 @@ async function getHandler(req: NextRequest) {
 
     if (selectedCalendars.length > 0) {
       try {
-        const upsertData = selectedCalendars.map((selectedCalendar) => ({
-          selectedCalendar: { connect: { id: selectedCalendar.id } },
-        }));
+        const selectedCalendarIds = selectedCalendars.map((selectedCalendar) => selectedCalendar.id);
 
-        await subscriptionRepo.upsertMany(upsertData);
+        await subscriptionRepo.upsertManyBySelectedCalendarId(selectedCalendarIds);
         createdCount = selectedCalendars.length;
       } catch (error) {
         log.error(
