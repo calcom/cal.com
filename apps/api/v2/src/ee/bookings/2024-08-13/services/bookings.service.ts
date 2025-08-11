@@ -600,7 +600,7 @@ export class BookingsService_2024_08_13 {
         endTime: new Date(booking.endTime),
         absentHost: !!booking.noShowHost,
         rescheduledToUid: rescheduledToInfo?.uid,
-        rescheduledByEmail: booking.rescheduled ? rescheduledToInfo?.rescheduledBy : booking.rescheduledBy,
+        rescheduledByEmail: booking.rescheduledBy,
       };
 
       const isRecurring = !!formatted.recurringEventId;
