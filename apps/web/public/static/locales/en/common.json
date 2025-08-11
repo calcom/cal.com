@@ -3472,5 +3472,8 @@
   "webhook_metadata": "Metadata",
   "stats": "Stats",
   "booking_status": "Booking status",
+  "allowed_country_codes": "Allowed Country Codes",
+  "select_country_codes": "Select country codes...",
+  "country_code_restriction_help": "SMS will only be sent to phone numbers from the selected countries. Leave empty to allow all countries.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

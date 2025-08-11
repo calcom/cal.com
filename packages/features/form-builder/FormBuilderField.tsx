@@ -98,6 +98,7 @@ export const FormBuilderField = ({
                 }}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
+                allowedCountryCodes={field.allowedCountryCodes}
               />
               <ErrorMessage
                 name="responses"
@@ -243,6 +244,7 @@ export const ComponentForField = ({
   readOnly,
   noLabel,
   translatedDefaultLabel,
+  allowedCountryCodes,
 }: {
   field: Omit<RhfFormField, "editable" | "label"> & {
     // Label is optional because radioInput doesn't have a label
@@ -251,6 +253,7 @@ export const ComponentForField = ({
   readOnly: boolean;
   noLabel?: boolean;
   translatedDefaultLabel?: string;
+  allowedCountryCodes?: string[];
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
@@ -281,6 +284,7 @@ export const ComponentForField = ({
           readOnly={readOnly}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
+          allowedCountryCodes={allowedCountryCodes}
         />
       </WithLabel>
     );

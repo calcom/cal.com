@@ -19,6 +19,8 @@ export type PhoneInputProps = {
   disabled?: boolean;
   onChange: (value: string) => void;
   defaultCountry?: string;
+  allowedCountryCodes?: string[];
+  preventCountryCodeDeletion?: boolean;
 };
 
 function BasePhoneInput({
@@ -27,15 +29,28 @@ function BasePhoneInput({
   onChange,
   value,
   defaultCountry = "us",
+  allowedCountryCodes,
+  preventCountryCodeDeletion,
   ...rest
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
 
   if (!isPlatform) {
     return (
-      <BasePhoneInputWeb name={name} className={className} onChange={onChange} value={value} {...rest} />
+      <BasePhoneInputWeb
+        name={name}
+        className={className}
+        onChange={onChange}
+        value={value}
+        allowedCountryCodes={allowedCountryCodes}
+        preventCountryCodeDeletion={preventCountryCodeDeletion}
+        {...rest}
+      />
     );
   }
+
+  const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
+  const disableCountryCode = preventCountryCodeDeletion && allowedCountryCodes?.length === 1;
 
   return (
     <PhoneInput
@@ -44,6 +59,8 @@ function BasePhoneInput({
       enableSearch
       disableSearchIcon
       country={defaultCountry}
+      onlyCountries={onlyCountries}
+      disableCountryCode={disableCountryCode}
       inputProps={{
         name: name,
         required: rest.required,
@@ -81,9 +98,14 @@ function BasePhoneInputWeb({
   className = "",
   onChange,
   value,
+  allowedCountryCodes,
+  preventCountryCodeDeletion,
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
+  const onlyCountries = allowedCountryCodes?.map((code) => code.toLowerCase());
+  const disableCountryCode = preventCountryCodeDeletion && allowedCountryCodes?.length === 1;
+
   return (
     <PhoneInput
       {...rest}
@@ -91,6 +113,8 @@ function BasePhoneInputWeb({
       country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
+      onlyCountries={onlyCountries}
+      disableCountryCode={disableCountryCode}
       inputProps={{
         name: name,
         required: rest.required,

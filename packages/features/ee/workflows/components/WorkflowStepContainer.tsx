@@ -54,6 +54,7 @@ import {
   isSMSOrWhatsappAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
+import { getCountryOptions, getCountryLabel } from "../lib/countryCodeUtils";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
@@ -601,6 +602,38 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           )}
                       </>
                     )
+                  )}
+                  {(isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) ||
+                    isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`))) && (
+                    <div className="mt-3 space-y-1">
+                      <Label htmlFor={`steps.${step.stepNumber - 1}.allowedCountryCodes`}>
+                        {t("allowed_country_codes")}
+                      </Label>
+                      <Controller
+                        name={`steps.${step.stepNumber - 1}.allowedCountryCodes`}
+                        control={form.control}
+                        render={({ field }) => (
+                          <Select
+                            isMulti
+                            isSearchable
+                            className="text-sm"
+                            isDisabled={props.readOnly}
+                            placeholder={t("select_country_codes")}
+                            options={getCountryOptions()}
+                            value={
+                              field.value?.map((code: string) => ({
+                                label: getCountryLabel(code),
+                                value: code,
+                              })) || []
+                            }
+                            onChange={(selectedOptions) => {
+                              field.onChange(selectedOptions?.map((option) => option.value) || []);
+                            }}
+                          />
+                        )}
+                      />
+                      <div className="mt-1 text-sm text-gray-500">{t("country_code_restriction_help")}</div>
+                    </div>
                   )}
                 </div>
               )}

@@ -41,14 +41,17 @@ export const getSmsReminderNumberField = () =>
 export const getSmsReminderNumberSource = ({
   workflowId,
   isSmsReminderNumberRequired,
+  allowedCountryCodes,
 }: {
   workflowId: Workflow["id"];
   isSmsReminderNumberRequired: boolean;
+  allowedCountryCodes?: string[];
 }) => ({
   id: `${workflowId}`,
   type: "workflow",
   label: "Workflow",
   fieldRequired: isSmsReminderNumberRequired,
+  allowedCountryCodes: allowedCountryCodes || [],
   editUrl: `/workflows/${workflowId}`,
 });
 
@@ -121,14 +124,23 @@ export const ensureBookingInputsHaveSystemFields = ({
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
+  let allAllowedCountryCodes: string[] = [];
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
         const workflowId = workflow.workflow.id;
+        const stepAllowedCountryCodes = step.allowedCountryCodes || [];
+
+        if (stepAllowedCountryCodes.length > 0) {
+          const combinedCodes = allAllowedCountryCodes.concat(stepAllowedCountryCodes);
+          allAllowedCountryCodes = Array.from(new Set(combinedCodes));
+        }
+
         smsNumberSources.push(
           getSmsReminderNumberSource({
             workflowId,
             isSmsReminderNumberRequired: !!step.numberRequired,
+            allowedCountryCodes: stepAllowedCountryCodes,
           })
         );
       }
@@ -324,6 +336,7 @@ export const ensureBookingInputsHaveSystemFields = ({
     bookingFields.splice(indexForLocation + 1, 0, {
       ...getSmsReminderNumberField(),
       sources: smsNumberSources,
+      ...(allAllowedCountryCodes.length > 0 ? { allowedCountryCodes: allAllowedCountryCodes } : {}),
     });
   }
 
