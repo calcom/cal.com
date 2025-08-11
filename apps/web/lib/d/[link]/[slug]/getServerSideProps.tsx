@@ -15,7 +15,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
@@ -64,17 +64,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    if (!org) {
-      const redirect = await getTemporaryOrgRedirect({
-        slugs: [username],
-        redirectType: RedirectType.User,
-        eventTypeSlug: slug,
-        currentQuery: context.query,
-      });
+    const redirect = await handleOrgRedirect({
+      slugs: [username],
+      redirectType: RedirectType.User,
+      eventTypeSlug: slug,
+      context,
+      currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+    });
 
-      if (redirect) {
-        return redirect;
-      }
+    if (redirect) {
+      return redirect;
     }
 
     name = profileUsername || username;
