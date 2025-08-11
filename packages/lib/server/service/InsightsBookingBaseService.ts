@@ -1305,7 +1305,47 @@ export class InsightsBookingBaseService {
     });
   }
 
+  private async isOwner(userId: number, targetId: number): Promise<boolean> {
+    // Check if the user is an owner of the organization or team
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId: targetId });
+    return Boolean(
+      membership && membership.accepted && membership.role && membership.role === MembershipRole.OWNER
+    );
+  }
+
+  private async getUserTeamRole(userId: number, teamId: number): Promise<MembershipRole | null> {
+    const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId });
+    return membership?.accepted ? membership.role : null;
+  }
+
+  private async buildOOOAuthorizationConditions(): Promise<Prisma.Sql> {
+    if (!this.options || this.options.scope !== "team" || !this.options.teamId) {
+      return NOTHING_CONDITION;
+    }
+
+    const userRole = await this.getUserTeamRole(this.options.userId, this.options.teamId);
+
+    if (!userRole) {
+      return NOTHING_CONDITION;
+    }
+
+    if (userRole === MembershipRole.OWNER) {
+      const usersFromTeam = await MembershipRepository.findAllByTeamIds({
+        teamIds: [this.options.teamId],
+        select: { userId: true },
+      });
+      const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+      return userIdsFromTeam.length > 0
+        ? Prisma.sql`ooo."userId" = ANY(${userIdsFromTeam})`
+        : NOTHING_CONDITION;
+    }
+
+    return Prisma.sql`ooo."userId" = ${this.options.userId}`;
+  }
+
   async getOutOfOfficeTrends() {
+    const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+
     const data = await this.prisma.$queryRaw<
       Array<{
         Month: string;
@@ -1328,7 +1368,8 @@ export class InsightsBookingBaseService {
       FROM "OutOfOfficeEntry" ooo
       LEFT JOIN "OutOfOfficeReason" r ON ooo."reasonId" = r.id
       LEFT JOIN "User" u ON ooo."userId" = u.id
-      WHERE ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
+      WHERE ${oooAuthConditions}
+        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
         AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
       GROUP BY DATE_TRUNC('month', ooo."start")
       ORDER BY DATE_TRUNC('month', ooo."start") ASC
@@ -1338,6 +1379,8 @@ export class InsightsBookingBaseService {
   }
 
   async getMostOutOfOfficeTeamMembers() {
+    const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+
     const data = await this.prisma.$queryRaw<
       Array<{
         userId: number;
@@ -1357,7 +1400,8 @@ export class InsightsBookingBaseService {
         COUNT(ooo.id)::int as "count"
       FROM "OutOfOfficeEntry" ooo
       LEFT JOIN "User" u ON ooo."userId" = u.id
-      WHERE ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
+      WHERE ${oooAuthConditions}
+        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
         AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
       GROUP BY u.id, u.name, u.username, u.email, u."emailMd5"
       ORDER BY COUNT(ooo.id) DESC
@@ -1379,6 +1423,8 @@ export class InsightsBookingBaseService {
   }
 
   async getLeastOutOfOfficeTeamMembers() {
+    const oooAuthConditions = await this.buildOOOAuthorizationConditions();
+
     const data = await this.prisma.$queryRaw<
       Array<{
         userId: number;
@@ -1398,7 +1444,8 @@ export class InsightsBookingBaseService {
         COUNT(ooo.id)::int as "count"
       FROM "OutOfOfficeEntry" ooo
       LEFT JOIN "User" u ON ooo."userId" = u.id
-      WHERE ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
+      WHERE ${oooAuthConditions}
+        AND ooo."start" >= ${this.filters?.dateRange?.startDate || "1900-01-01"}::timestamp
         AND ooo."start" <= ${this.filters?.dateRange?.endDate || "2100-01-01"}::timestamp
       GROUP BY u.id, u.name, u.username, u.email, u."emailMd5"
       ORDER BY COUNT(ooo.id) ASC
