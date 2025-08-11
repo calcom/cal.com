@@ -22,13 +22,28 @@ export default function Calendars(props: { calUsername: string; calEmail: string
               },
             },
             selectedCalendarSettingsClassNames: {
-              container: "bg-red-200 mx-5 mb-6",
+              container: "mx-5 mb-6",
               header: {
-                container: "bg-gray-200",
+                container: "bg-gray-200 rounded-md",
                 title: "text-green-500",
                 description: "text-red-500",
               },
               noSelectedCalendarsMessage: "text-blue-500",
+              selectedCalendarsListClassNames: {
+                container: "bg-yellow-100",
+                selectedCalendar: {
+                  container: "bg-yellow-200",
+                  header: {
+                    container: "bg-yellow-500",
+                    title: "text-green-500",
+                    description: "text-red-500",
+                  },
+                  body: {
+                    container: "bg-yellow-500",
+                    description: "text-red-500",
+                  },
+                },
+              },
             },
           }}
         />

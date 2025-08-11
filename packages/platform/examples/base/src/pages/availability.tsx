@@ -73,7 +73,10 @@ export default function Availability(props: { calUsername: string; calEmail: str
               },
             },
             dateOverrideClassNames: {
-              container: "p-0",
+              container: "p-4 bg-gray-900 rounded-md",
+              title: "text-red-500 font-bold",
+              description: "text-white",
+              button: "text-black",
             },
           }}
           onFormStateChange={handleFormStateChange}
