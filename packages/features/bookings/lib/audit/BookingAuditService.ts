@@ -315,6 +315,15 @@ export class BookingAuditService {
   static async getBookingAuditLogs(bookingId: number) {
     try {
       return await prisma.bookingAudit.findMany({
+        select: {
+          id: true,
+          bookingId: true,
+          action: true,
+          actor: true,
+          version: true,
+          data: true,
+          createdAt: true,
+        },
         where: {
           bookingId,
         },

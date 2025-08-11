@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { BookingAuditAction } from "./bookingAudit.schemas";
+import { BookingAuditAction, getBookingAuditSchema } from "./bookingAudit.schemas";
 
 // Mock Prisma client
 const mockPrismaCreate = vi.fn();
@@ -64,6 +64,43 @@ describe("BookingAuditService", () => {
           data: expect.any(Object),
         }),
       });
+    });
+
+    it("should reject invalid booking cancellation data", () => {
+      const invalidData = {
+        bookingId: "not-a-number", // Invalid type
+        action: BookingAuditAction.CANCELLED,
+        data: {
+          eventTypeId: "invalid", // Invalid type
+          startTime: "not-a-date", // Invalid date format
+          endTime: "not-a-date", // Invalid date format
+        },
+      };
+
+      const schema = getBookingAuditSchema(BookingAuditAction.CANCELLED);
+      const result = schema.safeParse(invalidData);
+
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject invalid booking reschedule data", () => {
+      const invalidData = {
+        bookingId: "not-a-number", // Invalid type
+        action: BookingAuditAction.RESCHEDULED,
+        data: {
+          eventTypeId: "invalid", // Invalid type
+          startTime: "not-a-date", // Invalid date format
+          endTime: "not-a-date", // Invalid date format
+          oldStartTime: "not-a-date", // Invalid date format
+          oldEndTime: "not-a-date", // Invalid date format
+          organizerChanged: "yes", // Invalid type
+        },
+      };
+
+      const schema = getBookingAuditSchema(BookingAuditAction.RESCHEDULED);
+      const result = schema.safeParse(invalidData);
+
+      expect(result.success).toBe(false);
     });
 
     it("should create audit log for booking cancellation", async () => {
@@ -151,6 +188,15 @@ describe("BookingAuditService", () => {
 
       expect(result).toEqual(mockLogs);
       expect(mockPrismaFindMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          bookingId: true,
+          action: true,
+          data: true,
+          createdAt: true,
+          actor: true,
+          version: true,
+        },
         where: { bookingId: 1 },
         orderBy: { createdAt: "desc" },
       });
