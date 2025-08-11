@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { ColumnFilterType } from "@calcom/features/data-table/lib/types";
@@ -127,12 +128,17 @@ const ALLOWED_SORT_COLUMNS = new Set([
   "utm_content",
 ]);
 
+type GetConditionsOptions = {
+  exclude?: {
+    createdAt?: boolean;
+    columnFilterIds?: string[];
+  };
+};
+
 export class InsightsRoutingBaseService {
   private prisma: typeof readonlyPrisma;
   private options: InsightsRoutingServiceOptions | null;
   private filters: InsightsRoutingServiceFilterOptions;
-  private cachedAuthConditions?: Prisma.Sql;
-  private cachedFilterConditions?: Prisma.Sql | null;
 
   constructor({
     prisma,
@@ -398,9 +404,400 @@ export class InsightsRoutingBaseService {
     })}`;
   }
 
-  async getBaseConditions(): Promise<Prisma.Sql> {
+  /**
+   * Returns routed to per period data with pagination support.
+   * @param period The period type (day, week, month)
+   * @param limit Optional limit for results
+   * @param searchQuery Optional search query for user names/emails
+   */
+  async getRoutedToPerPeriodData({
+    period,
+    limit = 10,
+    searchQuery,
+  }: {
+    period: "perDay" | "perWeek" | "perMonth";
+    limit?: number;
+    searchQuery?: string;
+  }) {
+    const dayJsPeriodMap = {
+      perDay: "day",
+      perWeek: "week",
+      perMonth: "month",
+    } as const;
+
+    const dayjsPeriod = dayJsPeriodMap[period];
+    const startDate = dayjs(this.filters.startDate).startOf(dayjsPeriod).toDate();
+    const endDate = dayjs(this.filters.endDate).endOf(dayjsPeriod).toDate();
+
+    const baseConditions = await this.getBaseConditions({ exclude: { createdAt: true } });
+
+    // Build search condition
+    const searchCondition = searchQuery
+      ? Prisma.sql`("bookingUserName" ILIKE ${`%${searchQuery}%`} OR "bookingUserEmail" ILIKE ${`%${searchQuery}%`})`
+      : Prisma.sql`1 = 1`;
+
+    // Get users who have been routed to during the period
+    const usersQuery = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        name: string | null;
+        email: string;
+        avatarUrl: string | null;
+      }>
+    >`
+      WITH routed_responses AS (
+        SELECT DISTINCT ON ("bookingUserId")
+          "bookingUserId",
+          "bookingUserId" as id,
+          "bookingUserName" as name,
+          "bookingUserEmail" as email,
+          "bookingUserAvatarUrl" as "avatarUrl"
+        FROM "RoutingFormResponseDenormalized"
+        WHERE "bookingUid" IS NOT NULL
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+        AND ${baseConditions}
+        AND ${searchCondition}
+        ORDER BY "bookingUserId", "createdAt" DESC
+      )
+      SELECT *
+      FROM routed_responses
+      ORDER BY id ASC
+      LIMIT ${limit}
+    `;
+
+    const users = usersQuery;
+    const hasMoreUsers = users.length === limit;
+
+    // Return early if no users found
+    if (users.length === 0) {
+      return {
+        users: {
+          data: [],
+          nextCursor: undefined,
+        },
+        periodStats: {
+          data: [],
+          nextCursor: undefined,
+        },
+      };
+    }
+
+    // Get periods with pagination
+    const periodStats = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        period_start: Date;
+        total: number;
+      }>
+    >`
+      WITH RECURSIVE date_range AS (
+        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
+        UNION ALL
+        SELECT date + (CASE
+          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+        END)
+        FROM date_range
+        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
+      ),
+      all_users AS (
+        SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]) as user_id
+      ),
+      paginated_periods AS (
+        SELECT date as period_start
+        FROM date_range
+        ORDER BY date ASC
+        LIMIT ${limit}
+      ),
+      date_user_combinations AS (
+        SELECT
+          period_start,
+          user_id as "userId"
+        FROM paginated_periods
+        CROSS JOIN all_users
+      ),
+      booking_counts AS (
+        SELECT
+          "bookingUserId",
+          date_trunc(${dayjsPeriod}, "createdAt") as period_start,
+          COUNT(DISTINCT "bookingId")::integer as total
+        FROM "RoutingFormResponseDenormalized"
+        WHERE "bookingUserId" IN (SELECT user_id FROM all_users)
+        AND date_trunc(${dayjsPeriod}, "createdAt") >= (SELECT MIN(period_start) FROM paginated_periods)
+        AND date_trunc(${dayjsPeriod}, "createdAt") <= (SELECT MAX(period_start) FROM paginated_periods)
+        AND ${baseConditions}
+        GROUP BY 1, 2
+      )
+      SELECT
+        c."userId",
+        c.period_start,
+        COALESCE(b.total, 0)::integer as total
+      FROM date_user_combinations c
+      LEFT JOIN booking_counts b ON
+        b."bookingUserId" = c."userId" AND
+        b.period_start = c.period_start
+      ORDER BY c.period_start ASC, c."userId" ASC
+    `;
+
+    // Get total number of periods to determine if there are more
+    const totalPeriodsQuery = await this.prisma.$queryRaw<[{ count: number }]>`
+      WITH RECURSIVE date_range AS (
+        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
+        UNION ALL
+        SELECT date + (CASE
+          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+        END)
+        FROM date_range
+        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
+      )
+      SELECT COUNT(*)::integer as count FROM date_range
+    `;
+
+    // Get statistics for the entire period for comparison
+    const statsQuery = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        total_bookings: number;
+      }>
+    >`
+      SELECT
+        "bookingUserId" as "userId",
+        COUNT(*)::integer as total_bookings
+      FROM "RoutingFormResponseDenormalized"
+      WHERE "bookingUid" IS NOT NULL
+      AND "createdAt" >= ${startDate}
+      AND "createdAt" <= ${endDate}
+      AND ${baseConditions}
+      GROUP BY "bookingUserId"
+      ORDER BY total_bookings ASC
+    `;
+
+    // Calculate average and median
+    const average =
+      statsQuery.reduce((sum, stat) => sum + Number(stat.total_bookings), 0) / statsQuery.length || 0;
+    const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
+
+    // Create a map of user performance indicators
+    const userPerformance = statsQuery.reduce((acc, stat) => {
+      acc[stat.userId] = {
+        total: stat.total_bookings,
+        performance:
+          stat.total_bookings > average
+            ? "above_average"
+            : stat.total_bookings === median
+            ? "median"
+            : stat.total_bookings < average
+            ? "below_average"
+            : "at_average",
+      };
+      return acc;
+    }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
+
+    return {
+      users: {
+        data: users.map((user) => ({
+          ...user,
+          performance: userPerformance[user.id]?.performance || "no_data",
+          totalBookings: userPerformance[user.id]?.total || 0,
+        })),
+      },
+      periodStats: {
+        data: periodStats,
+      },
+    };
+  }
+
+  /**
+   * Returns routed to per period data for CSV export (no pagination).
+   * @param period The period type (day, week, month)
+   * @param searchQuery Optional search query for user names/emails
+   */
+  async getRoutedToPerPeriodCsvData({
+    period,
+    searchQuery,
+  }: {
+    period: "perDay" | "perWeek" | "perMonth";
+    searchQuery?: string;
+  }) {
+    const dayJsPeriodMap = {
+      perDay: "day",
+      perWeek: "week",
+      perMonth: "month",
+    } as const;
+
+    const dayjsPeriod = dayJsPeriodMap[period];
+    const startDate = dayjs(this.filters.startDate).startOf(dayjsPeriod).toDate();
+    const endDate = dayjs(this.filters.endDate).endOf(dayjsPeriod).toDate();
+
+    const baseConditions = await this.getBaseConditions({ exclude: { createdAt: true } });
+
+    // Build search condition
+    const searchCondition = searchQuery
+      ? Prisma.sql`("bookingUserName" ILIKE ${`%${searchQuery}%`} OR "bookingUserEmail" ILIKE ${`%${searchQuery}%`})`
+      : Prisma.sql`1 = 1`;
+
+    // Get users who have been routed to during the period
+    const usersQuery = await this.prisma.$queryRaw<
+      Array<{
+        id: number;
+        name: string | null;
+        email: string;
+        avatarUrl: string | null;
+      }>
+    >`
+      WITH routed_responses AS (
+        SELECT DISTINCT ON ("bookingUserId")
+          "bookingUserId",
+          "bookingUserId" as id,
+          "bookingUserName" as name,
+          "bookingUserEmail" as email,
+          "bookingUserAvatarUrl" as "avatarUrl"
+        FROM "RoutingFormResponseDenormalized"
+        WHERE "bookingUid" IS NOT NULL
+        AND "createdAt" >= ${startDate}
+        AND "createdAt" <= ${endDate}
+        AND ${baseConditions}
+        AND ${searchCondition}
+        ORDER BY "bookingUserId", "createdAt" DESC
+      )
+      SELECT *
+      FROM routed_responses
+      ORDER BY id ASC
+    `;
+
+    // Get all periods without pagination
+    const periodStats = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        period_start: Date;
+        total: number;
+      }>
+    >`
+      WITH RECURSIVE date_range AS (
+        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
+        UNION ALL
+        SELECT date + (CASE
+          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
+          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
+          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
+        END)
+        FROM date_range
+        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
+      ),
+      all_users AS (
+        SELECT unnest(ARRAY[${Prisma.join(usersQuery.map((u) => u.id))}]) as user_id
+      ),
+      date_user_combinations AS (
+        SELECT
+          date as period_start,
+          user_id as "userId"
+        FROM date_range
+        CROSS JOIN all_users
+      ),
+      booking_counts AS (
+        SELECT
+          "bookingUserId",
+          date_trunc(${dayjsPeriod}, "createdAt") as period_start,
+          COUNT(DISTINCT "bookingId")::integer as total
+        FROM "RoutingFormResponseDenormalized"
+        WHERE "bookingUserId" IN (SELECT user_id FROM all_users)
+        AND date_trunc(${dayjsPeriod}, "createdAt") >= (SELECT MIN(date) FROM date_range)
+        AND date_trunc(${dayjsPeriod}, "createdAt") <= (SELECT MAX(date) FROM date_range)
+        AND ${baseConditions}
+        GROUP BY 1, 2
+      )
+      SELECT
+        c."userId",
+        c.period_start,
+        COALESCE(b.total, 0)::integer as total
+      FROM date_user_combinations c
+      LEFT JOIN booking_counts b ON
+        b."bookingUserId" = c."userId" AND
+        b.period_start = c.period_start
+      ORDER BY c.period_start ASC, c."userId" ASC
+    `;
+
+    // Get statistics for the entire period for comparison
+    const statsQuery = await this.prisma.$queryRaw<
+      Array<{
+        userId: number;
+        total_bookings: number;
+      }>
+    >`
+      SELECT
+        "bookingUserId" as "userId",
+        COUNT(*)::integer as total_bookings
+      FROM "RoutingFormResponseDenormalized"
+      WHERE "bookingUid" IS NOT NULL
+      AND "createdAt" >= ${startDate}
+      AND "createdAt" <= ${endDate}
+      AND ${baseConditions}
+      GROUP BY "bookingUserId"
+      ORDER BY total_bookings ASC
+    `;
+
+    // Calculate average and median
+    const average =
+      statsQuery.reduce((sum, stat) => sum + Number(stat.total_bookings), 0) / statsQuery.length || 0;
+    const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
+
+    // Create a map of user performance indicators
+    const userPerformance = statsQuery.reduce((acc, stat) => {
+      acc[stat.userId] = {
+        total: stat.total_bookings,
+        performance:
+          stat.total_bookings > average
+            ? "above_average"
+            : stat.total_bookings === median
+            ? "median"
+            : stat.total_bookings < average
+            ? "below_average"
+            : "at_average",
+      };
+      return acc;
+    }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
+
+    // Group period stats by user
+    const userPeriodStats = periodStats.reduce((acc, stat) => {
+      if (!acc[stat.userId]) {
+        acc[stat.userId] = [];
+      }
+      acc[stat.userId].push({
+        period_start: stat.period_start,
+        total: stat.total,
+      });
+      return acc;
+    }, {} as Record<number, Array<{ period_start: Date; total: number }>>);
+
+    // Format data for CSV
+    return usersQuery.map((user) => {
+      const stats = userPeriodStats[user.id] || [];
+      const periodData = stats.reduce(
+        (acc, stat) => ({
+          ...acc,
+          [`Responses ${dayjs(stat.period_start).format("YYYY-MM-DD")}`]: stat.total.toString(),
+        }),
+        {} as Record<string, string>
+      );
+
+      return {
+        "User ID": user.id.toString(),
+        Name: user.name || "",
+        Email: user.email,
+        "Total Bookings": (userPerformance[user.id]?.total || 0).toString(),
+        Performance: userPerformance[user.id]?.performance || "no_data",
+        ...periodData,
+      };
+    });
+  }
+
+  async getBaseConditions(conditionsOptions?: GetConditionsOptions): Promise<Prisma.Sql> {
     const authConditions = await this.getAuthorizationConditions();
-    const filterConditions = await this.getFilterConditions();
+    const filterConditions = await this.getFilterConditions(conditionsOptions);
 
     if (authConditions && filterConditions) {
       return Prisma.sql`((${authConditions}) AND (${filterConditions}))`;
@@ -413,34 +810,25 @@ export class InsightsRoutingBaseService {
     }
   }
 
-  async getAuthorizationConditions(): Promise<Prisma.Sql> {
-    if (this.cachedAuthConditions === undefined) {
-      this.cachedAuthConditions = await this.buildAuthorizationConditions();
-    }
-    return this.cachedAuthConditions;
-  }
-
-  async getFilterConditions(): Promise<Prisma.Sql | null> {
-    if (this.cachedFilterConditions === undefined) {
-      this.cachedFilterConditions = await this.buildFilterConditions();
-    }
-    return this.cachedFilterConditions;
-  }
-
-  async buildFilterConditions(): Promise<Prisma.Sql | null> {
+  async getFilterConditions(conditionsOptions?: GetConditionsOptions): Promise<Prisma.Sql | null> {
     const conditions: Prisma.Sql[] = [];
+    const exclude = (conditionsOptions || {}).exclude || {};
 
     // Date range filtering
-    if (this.filters.startDate && this.filters.endDate) {
+    if (this.filters.startDate && this.filters.endDate && !exclude.createdAt) {
       conditions.push(
         Prisma.sql`"createdAt" >= ${this.filters.startDate}::timestamp AND "createdAt" <= ${this.filters.endDate}::timestamp`
       );
     }
 
+    const columnFilters = (this.filters.columnFilters || []).filter(
+      (filter) => !(exclude.columnFilterIds || []).includes(filter.id)
+    );
+
     // Extract specific filters from columnFilters
     // Convert columnFilters array to object for easier access
     const filtersMap =
-      this.filters.columnFilters?.reduce((acc, filter) => {
+      columnFilters.reduce((acc, filter) => {
         acc[filter.id] = filter;
         return acc;
       }, {} as Record<string, TypedColumnFilter<ColumnFilterType>>) || {};
@@ -514,10 +902,19 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    const fieldIdSchema = z.string().uuid();
-    const fieldFilters = (this.filters.columnFilters || []).filter(
-      (filter) => fieldIdSchema.safeParse(filter.id).success
-    );
+    // Extract form field filters (exclude the system filters we already processed)
+    const alreadyHandledFilters = [
+      "bookingStatusOrder",
+      "bookingAssignmentReason",
+      "bookingUid",
+      "attendeeName",
+      "attendeeEmail",
+      "attendeePhone",
+      "bookingUserId",
+      "formId",
+    ];
+
+    const fieldFilters = columnFilters.filter((filter) => !alreadyHandledFilters.includes(filter.id));
 
     if (fieldFilters.length > 0) {
       const fieldConditions = fieldFilters
@@ -545,7 +942,7 @@ export class InsightsRoutingBaseService {
     });
   }
 
-  async buildAuthorizationConditions(): Promise<Prisma.Sql> {
+  async getAuthorizationConditions(): Promise<Prisma.Sql> {
     if (!this.options) {
       return NOTHING_CONDITION;
     }
