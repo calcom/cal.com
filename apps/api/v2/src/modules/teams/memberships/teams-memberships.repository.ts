@@ -4,7 +4,7 @@ import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/cr
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { Injectable } from "@nestjs/common";
 
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export const MembershipUserSelect: Prisma.UserSelect = {
   username: true,

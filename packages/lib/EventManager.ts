@@ -7,11 +7,12 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -40,6 +41,8 @@ import { isDelegationCredential } from "./delegationCredential/clientAndServer";
 import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
+const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+const CALDAV_CALENDAR_TYPE = "caldav_calendar";
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
@@ -172,6 +175,108 @@ export default class EventManager {
     this.appOptions = eventTypeAppMetadata;
   }
 
+  private extractServerUrlFromCredential(credential: CredentialForCalendarService): string | null {
+    try {
+      if (credential.type !== CALDAV_CALENDAR_TYPE) {
+        return null;
+      }
+
+      const decryptedData = JSON.parse(symmetricDecrypt(credential.key as string, CALENDSO_ENCRYPTION_KEY));
+
+      if (!decryptedData.url) {
+        return null;
+      }
+
+      const url = new URL(decryptedData.url);
+      return `${url.protocol}//${url.host}`;
+    } catch (error) {
+      log.warn("Failed to extract server URL from CalDAV credential", {
+        credentialId: credential.id,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return null;
+    }
+  }
+
+  private extractServerUrlFromDestination(destination: DestinationCalendar): string | null {
+    try {
+      if (destination.integration !== CALDAV_CALENDAR_TYPE || !destination.externalId) {
+        return null;
+      }
+
+      const url = new URL(destination.externalId);
+      return `${url.protocol}//${url.host}`;
+    } catch (error) {
+      log.warn("Failed to extract server URL from destination calendar", {
+        destinationId: destination.id,
+        externalId: destination.externalId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      return null;
+    }
+  }
+
+  private credentialMatchesDestination(
+    credential: CredentialForCalendarService,
+    destination: DestinationCalendar
+  ): boolean {
+    if (credential.type !== CALDAV_CALENDAR_TYPE || destination.integration !== CALDAV_CALENDAR_TYPE) {
+      return true;
+    }
+
+    const credentialServerUrl = this.extractServerUrlFromCredential(credential);
+    const destinationServerUrl = this.extractServerUrlFromDestination(destination);
+
+    if (!credentialServerUrl || !destinationServerUrl) {
+      log.warn("Could not extract server URLs for CalDAV credential validation", {
+        credentialId: credential.id,
+        destinationId: destination.id,
+        credentialServerUrl,
+        destinationServerUrl,
+      });
+      return false;
+    }
+
+    const matches = credentialServerUrl === destinationServerUrl;
+
+    if (!matches) {
+      log.warn("CalDAV credential server URL does not match destination calendar server URL", {
+        credentialId: credential.id,
+        destinationId: destination.id,
+        credentialServerUrl,
+        destinationServerUrl,
+      });
+    }
+
+    return matches;
+  }
+
+  private updateMSTeamsVideoCallData(
+    evt: CalendarEvent,
+    results: Array<EventResult<Exclude<Event, AdditionalInformation>>>
+  ) {
+    const office365CalendarWithTeams = results.find(
+      (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+    );
+    if (office365CalendarWithTeams) {
+      evt.videoCallData = {
+        type: "office365_video",
+        id: office365CalendarWithTeams.createdEvent?.id,
+        password: "",
+        url: office365CalendarWithTeams.createdEvent?.url,
+      };
+      if (evt.location && evt.responses) {
+        evt.responses["location"] = {
+          ...(evt.responses["location"] ?? {}),
+          value: {
+            optionValue: "",
+            value: evt.location,
+          },
+        };
+      }
+    }
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -186,7 +291,7 @@ export default class EventManager {
     // Fallback to cal video if no location is set
     if (!evt.location) {
       // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findFirst({
+      const calVideo = await prisma.app.findUnique({
         where: {
           slug: "daily-video",
         },
@@ -220,12 +325,15 @@ export default class EventManager {
         evt["conferenceCredentialId"] = undefined;
       }
     }
+
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    const isMSTeamsWithOutlookCalendar = evt.location === MSTeamsLocationType && mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
+    // If the event is a Microsoft Teams meeting with Outlook Calendar, do not create a MSTeams video event, create calendar event will take care.
+    if (isDedicated && !isMSTeamsWithOutlookCalendar) {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
@@ -251,6 +359,10 @@ export default class EventManager {
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+
+    if (evt.location === MSTeamsLocationType) {
+      this.updateMSTeamsVideoCallData(evt, results);
+    }
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -326,6 +438,10 @@ export default class EventManager {
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
     }
 
     const referencesToCreate = results.map((result) => {
@@ -461,7 +577,7 @@ export default class EventManager {
     }
 
     // Get details of existing booking.
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
       where: {
         uid: rescheduleUid,
       },
@@ -470,6 +586,7 @@ export default class EventManager {
         userId: true,
         attendees: true,
         location: true,
+        endTime: true,
         references: {
           where: {
             deleted: null,
@@ -505,8 +622,18 @@ export default class EventManager {
     const results: Array<EventResult<Event>> = [];
     const updatedBookingReferences: Array<PartialReference> = [];
     const isLocationChanged = !!evt.location && !!booking.location && evt.location !== booking.location;
+
+    let isDailyVideoRoomExpired = false;
+
+    if (evt.location === "integrations:daily") {
+      const originalBookingEndTime = new Date(booking.endTime);
+      const roomExpiryTime = new Date(originalBookingEndTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      isDailyVideoRoomExpired = now > roomExpiryTime;
+    }
+
     const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule;
+      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -530,7 +657,7 @@ export default class EventManager {
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
         // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        if (isLocationChanged || isBookingRequestedReschedule) {
+        if (isLocationChanged || isBookingRequestedReschedule || isDailyVideoRoomExpired) {
           const updatedLocation = await this.updateLocation(evt, booking);
           results.push(...updatedLocation.results);
           updatedBookingReferences.push(...updatedLocation.referencesToCreate);
@@ -774,18 +901,33 @@ export default class EventManager {
             }
           }
         } else {
-          const destinationCalendarCredentials = this.calendarCredentials.filter(
-            (c) => c.type === destination.integration
-          );
+          const destinationCalendarCredentials = this.calendarCredentials.filter((c) => {
+            if (c.type !== destination.integration) return false;
+
+            if (c.type === CALDAV_CALENDAR_TYPE) {
+              return this.credentialMatchesDestination(c, destination);
+            }
+
+            return true;
+          });
           // It might not be the first connected calendar as it seems that the order is not guaranteed to be ascending of credentialId.
           const firstCalendarCredential = destinationCalendarCredentials[0] as
             | (typeof destinationCalendarCredentials)[number]
             | undefined;
 
           if (!firstCalendarCredential) {
-            log.warn(
-              "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
-            );
+            if (destination.integration === CALDAV_CALENDAR_TYPE) {
+              log.warn(
+                "No CalDAV credentials found with matching server URL for destination calendar. This prevents credential leakage.",
+                safeStringify({
+                  destination: getPiiFreeDestinationCalendar(destination),
+                })
+              );
+            } else {
+              log.warn(
+                "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
+              );
+            }
             await fallbackToFirstCalendarInTheList();
           } else {
             log.warn(
@@ -1048,7 +1190,7 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
-    const featureRepo = new FeaturesRepository();
+    const featureRepo = new FeaturesRepository(prisma);
     const isTaskerEnabledForSalesforceCrm = event.team?.id
       ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
       : false;

@@ -45,7 +45,7 @@ export function BillingCreditsSkeleton() {
           <div className="flex">
             <div className="mr-auto">
               <div>
-                <SkeletonText className="mb-2 mt-1 h-5 w-[268px]" /> {/* Buy credits label */}
+                <SkeletonText className="mb-2 h-4 w-[268px]" /> {/* Buy credits label */}
               </div>
               <div>
                 <SkeletonText className="mt-2 h-8 w-[240px] rounded-md" /> {/* Input field */}
@@ -54,6 +54,24 @@ export function BillingCreditsSkeleton() {
 
             <div className="mt-auto ">
               <SkeletonButton className="h-9 w-[120px] rounded-md" /> {/* Buy button */}
+            </div>
+          </div>
+          <div className="-mx-6 mb-6 mt-6">
+            <hr className="border-subtle mb-3 mt-3" />
+          </div>
+          {/* Download expense log */}
+          <div className="flex">
+            <div className="mr-auto mt-1">
+              <div>
+                <SkeletonText className="mb-2 h-4 w-[156px]" /> {/* Label */}
+              </div>
+              <div>
+                <SkeletonText className="mt-2 h-8 w-[156px] rounded-md" /> {/* Select */}
+              </div>
+            </div>
+
+            <div className="mt-auto ">
+              <SkeletonButton className="h-9 w-[109px] rounded-md" /> {/* Download button */}
             </div>
           </div>
         </div>

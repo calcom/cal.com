@@ -2,20 +2,15 @@ import "../test/__mocks__/windowMatchMedia";
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
 
-import { submitResponseAndGetRoutingResult } from "./utils";
+import {
+  EMBED_MODAL_IFRAME_SLOT_STALE_TIME,
+  EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS,
+  EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS,
+} from "./constants";
 
 vi.mock("./tailwindCss", () => ({
   default: "mockedTailwindCss",
 }));
-
-vi.mock("./utils", async () => {
-  const actual = (await vi.importActual("./utils")) as any;
-
-  return {
-    ...actual,
-    submitResponseAndGetRoutingResult: vi.fn(),
-  };
-});
 
 type ExpectedModalBoxAttrs = {
   theme: string;
@@ -263,6 +258,56 @@ describe("Cal", () => {
         expect(iframe.src).toContain("email=test%40example.com");
       });
 
+      it("should set allow='payment' attribute by default to allow Payment Apps to acccept payments", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: {},
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
+      it("should set allow='payment' even when no config is provided", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
+      it("should set allow='payment' when iframeAttrs is empty", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: { iframeAttrs: {} },
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
+      it("should only apply id from iframeAttrs and ignore other attributes", () => {
+        const iframe = calInstance.createIframe({
+          calLink: "john-doe/meeting",
+          config: {
+            iframeAttrs: {
+              id: "custom-id",
+              "data-custom": "value",
+              class: "custom-class",
+            },
+          },
+          calOrigin: null,
+        });
+
+        expect(iframe.getAttribute("id")).toBe("custom-id");
+        // Other attributes should not be applied
+        expect(iframe.getAttribute("data-custom")).toBeNull();
+        expect(iframe.getAttribute("class")).toBe("cal-embed");
+        // Allow attribute should always be set
+        expect(iframe.getAttribute("allow")).toBe("payment");
+      });
+
       it("should respect forwardQueryParams setting to disable sending page query params but still send the ones in the config", () => {
         mockSearchParams("?param1=value");
 
@@ -331,6 +376,46 @@ describe("Cal", () => {
           __prerender: true,
         };
         calInstance.api.modal(modalArg);
+        expect(calInstance.isPrerendering).toBe(true);
+
+        const modalBox = expectCalModalBoxToBeInDocument({
+          state: "prerendering",
+          pageType: modalArg.config["cal.embed.pageType"],
+          theme: modalArg.config.theme,
+          layout: modalArg.config.layout,
+        });
+
+        // Verify that the embedRenderStartTime and embedConfig are set, which are used by getNextActionForModal to decide if the modal should be reused or not
+        expect(calInstance.embedRenderStartTime).toBeGreaterThan(0);
+        expect(calInstance.embedConfig).toBeDefined();
+
+        expectIframeToHaveMatchingUrl({
+          element: modalBox,
+          expectedIframeUrlObject: {
+            pathname: `/${modalArg.calLink}`,
+            searchParams: new URLSearchParams({
+              ...modalArg.config,
+              prerender: "true",
+              embedType: "modal",
+              "cal.skipSlotsFetch": "true",
+            }),
+            origin: null,
+          },
+        });
+      });
+
+      it("should create modal having iframe with queueFormResponse=true param when prerendering headless router", () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+          config: {
+            ...baseModalArgs.config,
+            "cal.embed.pageType": "doesntmatter",
+          },
+          calOrigin: null,
+          __prerender: true,
+        };
+        calInstance.api.modal(modalArg);
 
         const modalBox = expectCalModalBoxToBeInDocument({
           state: "prerendering",
@@ -342,22 +427,96 @@ describe("Cal", () => {
         expectIframeToHaveMatchingUrl({
           element: modalBox,
           expectedIframeUrlObject: {
-            pathname: `/${modalArg.calLink}`,
+            pathname: `${new URL(modalArg.calLink, "http://example.com").pathname}`,
             searchParams: new URLSearchParams({
               ...modalArg.config,
               prerender: "true",
               embedType: "modal",
+              "cal.queueFormResponse": "true",
+              email: "john@example.com",
+              form: "123",
             }),
             origin: null,
           },
         });
       });
 
+      it("Accidental repeat prerender prevention", async () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+        };
+
+        const { status: status1 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status1).toBe("created");
+        const embedRenderStartTime = calInstance.embedRenderStartTime;
+
+        const { status: status2 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status2).toBe("prerender-prevented");
+        // embedRenderStartTime should not be updated prerender did not happen
+        expect(calInstance.embedRenderStartTime).toBe(embedRenderStartTime);
+      });
+
+      it("should allow repeat prerender after threshold time has passed", async () => {
+        vi.useFakeTimers();
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "router?form=123&email=john@example.com",
+        };
+
+        // First prerender
+        const { status: status1 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status1).toBe("created");
+
+        // Mock time passage beyond threshold
+        vi.advanceTimersByTime(EMBED_MODAL_PRERENDER_PREVENT_THRESHOLD_MS + 1000);
+
+        // Second prerender after threshold - should be ALLOWED
+        const { status: status2 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+
+        expect(status2).toBe("created");
+
+        vi.useRealTimers();
+      });
+
+      it("Prerender with non-headless router link and then CTA click with headless router is not allowed", async () => {
+        const modalArg = {
+          ...baseModalArgs,
+          calLink: "john-doe/meeting",
+        };
+
+        const { status: status1 } = await calInstance.api.modal({
+          ...modalArg,
+          __prerender: true,
+        });
+        expect(status1).toBe("created");
+
+        await expect(
+          calInstance.api.modal({
+            ...modalArg,
+            calLink: "router?form=123&email=john@example.com",
+          })
+        ).rejects.toThrow("`prerender` instruction should have been fired with headless router path");
+      });
+
       describe("Modal State Transitions", () => {
-        it(`should handle prerender -> open(with prefill) -> reopen scenario`, () => {
+        it(`should handle prerender -> open(with prefill) -> reopen(with re-submission) scenario`, () => {
           // Prerender the modal
           const modalArg = {
             ...baseModalArgs,
+            calLink: "router?form=FORM_ID&routingField1=value1&routingField2=value2",
           };
 
           const { modalBoxUid, expectedConfig } = (function prerender(): {
@@ -366,6 +525,7 @@ describe("Cal", () => {
           } {
             log("Prerendering the modal");
             calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
+            expect(calInstance.isPrerendering).toBe(true);
             const expectedConfig = {
               ...modalArg.config,
               embedType: "modal",
@@ -379,11 +539,14 @@ describe("Cal", () => {
                 pageType: null,
               },
               expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
+                pathname: `${new URL(modalArg.calLink, "https://baseurl.example").pathname}`,
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
                   prerender: "true",
-                  "cal.skipSlotsFetch": "true",
+                  form: "FORM_ID",
+                  "cal.queueFormResponse": "true",
+                  routingField1: "value1",
+                  routingField2: "value2",
                 }),
                 origin: null,
               },
@@ -393,136 +556,14 @@ describe("Cal", () => {
             return { modalBoxUid, expectedConfig };
           })();
 
-          const { modalArgWithPrefilledConfig } = (function prefill() {
-            log("Opening the modal with prefill config");
-            const modalArgWithPrefilledConfig = {
-              ...modalArg,
-              config: { ...modalArg.config, name: "John Doe", email: "john@example.com" },
-            };
-            // Second modal call with additional config value for prefilling
-            calInstance.api.modal(modalArgWithPrefilledConfig);
-
-            const expectedConfigAfterPrefilling = {
-              ...expectedConfig,
-              name: modalArgWithPrefilledConfig.config.name,
-              email: modalArgWithPrefilledConfig.config.email,
-            };
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                // Expect the modal to go to loading state - which starts the loader animation
-                state: "loading",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-                uid: modalBoxUid,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  // It remains because internally we remove prerender=true in iframe, as it is connect mode
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            // This would update the iframe document URL through embed-iframe.
-            expect(calInstance.doInIframe).toHaveBeenCalledWith({
-              method: "connect",
-              arg: {
-                config: expectedConfigAfterPrefilling,
-                params: {},
-              },
-            });
-
-            vi.mocked(calInstance.doInIframe).mockClear();
-            return { modalArgWithPrefilledConfig };
-          })();
-
-          (function reopen() {
-            log("Reopening the same modal without any changes");
-            calInstance.api.modal(modalArgWithPrefilledConfig);
-
-            // Connect won't happen again
-            expect(calInstance.doInIframe).not.toHaveBeenCalledWith(
-              expect.objectContaining({
-                method: "connect",
-              })
-            );
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                // Expect the modal to just go to "reopened" state
-                state: "reopened",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-                uid: modalBoxUid,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  // It remains because we are just reopening the same modal
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            expect(document.querySelectorAll("cal-modal-box").length).toBe(1);
-          })();
-        });
-
-        it(`should handle prerender -> open(with prefill) -> error -> loading scenario`, () => {
-          // Prerender the modal
-          const modalArg = {
-            ...baseModalArgs,
-          };
-
-          const { modalBoxUid, modalBox, expectedConfig } = (function prerender() {
-            calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
-
-            const expectedConfig = {
-              ...modalArg.config,
-              embedType: "modal",
-            };
-
-            const { modalBox } = expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "prerendering",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            const modalBoxUid = modalBox.getAttribute("uid");
-            return { modalBoxUid, modalBox, expectedConfig };
-          })();
-
           const { modalArgWithPrefilledConfig, expectedConfigAfterPrefilling } = (function prefill() {
             log("Opening the modal with prefill config");
             const modalArgWithPrefilledConfig = {
               ...modalArg,
               config: { ...modalArg.config, name: "John Doe", email: "john@example.com" },
             };
-
             // Second modal call with additional config value for prefilling
-            calInstance.api.modal({ ...buildModalArg(modalArgWithPrefilledConfig) });
+            calInstance.api.modal(modalArgWithPrefilledConfig);
 
             const expectedConfigAfterPrefilling = {
               ...expectedConfig,
@@ -540,22 +581,33 @@ describe("Cal", () => {
                 uid: modalBoxUid,
               },
               expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
+                pathname: `${new URL(modalArg.calLink, "https://baseurl.example").pathname}`,
                 searchParams: new URLSearchParams({
                   ...expectedConfig,
-                  // It remains because internally we remove prerender=true in iframe
+                  // It remains because internally we remove prerender=true in iframe, as it is connect mode
                   prerender: "true",
-                  "cal.skipSlotsFetch": "true",
+                  form: "FORM_ID",
+                  "cal.queueFormResponse": "true",
+                  routingField1: "value1",
+                  routingField2: "value2",
                 }),
                 origin: null,
               },
             });
 
+            // Right now we allow re-submission of the same form data, for which we need to connect again
             expect(calInstance.doInIframe).toHaveBeenCalledWith({
               method: "connect",
               arg: {
-                config: expectedConfigAfterPrefilling,
-                params: {},
+                config: {
+                  "cal.embed.noSlotsFetchOnConnect": "true",
+                  ...expectedConfigAfterPrefilling,
+                },
+                params: {
+                  routingField1: "value1",
+                  routingField2: "value2",
+                  form: "FORM_ID",
+                },
               },
             });
 
@@ -563,406 +615,52 @@ describe("Cal", () => {
             return { modalArgWithPrefilledConfig, expectedConfigAfterPrefilling };
           })();
 
-          log("Simulating an error state");
-          modalBox.setAttribute("state", "failed");
-
           (function reopen() {
-            log("Reopening the same modal but it is in error state, so full page load would be initiated");
+            log("Reopening the same modal without any changes");
             calInstance.api.modal(modalArgWithPrefilledConfig);
+            expect(calInstance.isPrerendering).toBe(false);
 
-            expect(calInstance.doInIframe).not.toHaveBeenCalledWith(
-              expect.objectContaining({
-                method: "connect",
-              })
-            );
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                // Expect the modal to just go to "reopened" state
-                state: "loading",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-                uid: modalBoxUid,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams(expectedConfigAfterPrefilling),
-                origin: null,
-              },
-            });
-
-            expect(document.querySelectorAll("cal-modal-box").length).toBe(1);
-          })();
-        });
-
-        it("should handle prerender(booking link) -> headless router submission -> reuse booking link ", async () => {
-          // Prerender the modal
-          const modalArg = {
-            ...baseModalArgs,
-            calLink: "sales/demo",
-          };
-
-          const { expectedConfig } = (function prerender(): { expectedConfig: Record<string, string> } {
-            log("Prerendering the modal");
-            calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
-
-            const expectedConfig = {
-              ...modalArg.config,
-              embedType: "modal",
-            };
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "prerendering",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            return { expectedConfig };
-          })();
-
-          vi.mocked(submitResponseAndGetRoutingResult).mockImplementation(() => {
-            return Promise.resolve({
-              // Redirecting to the booking link that is already prerendered
-              redirect: `${process.env.EMBED_PUBLIC_WEBAPP_URL}/${modalArg.calLink}`,
-            });
-          });
-
-          await (async function headlessRouterSubmission() {
-            log("Submitting the routing form headless");
-            const config = expectedConfig;
-            const configWithPrefilledValues = {
-              ...config,
-              name: "John Doe",
-              email: "john@example.com",
-            };
-
-            const modalOpenPromise = calInstance.api.modal({
-              ...modalArg,
-              calLink: "router?form=FORM_ID",
-              config: configWithPrefilledValues,
-            });
-
-            // State must immediately change to loading, so that loader is shown
-            const calModalBox = document.querySelector("cal-modal-box") as HTMLElement;
-            expect(calModalBox.getAttribute("state")).toBe("loading");
-            await modalOpenPromise;
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "loading",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...config,
-                  // It remains because internally we remove prerender=true in iframe as it is connect mode
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            // Now check that we connected with the right config
+            // Connect won't happen again
             expect(calInstance.doInIframe).toHaveBeenCalledWith(
               expect.objectContaining({
                 method: "connect",
                 arg: {
-                  config: configWithPrefilledValues,
-                  params: {},
+                  config: {
+                    "cal.embed.noSlotsFetchOnConnect": "true",
+                    embedType: "modal",
+                    ...expectedConfigAfterPrefilling,
+                  },
+                  params: {
+                    routingField1: "value1",
+                    routingField2: "value2",
+                    form: "FORM_ID",
+                  },
                 },
               })
             );
-          })();
-        });
 
-        it("should handle prerender(booking link) -> headless router submission -> different booking link redirect -> fresh page load", async () => {
-          // Prerender the modal
-          const modalArg = {
-            ...baseModalArgs,
-            calLink: "sales/demo",
-          };
+            // expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
+            //   expectedModalBoxAttrs: {
+            //     // Expect the modal to just go to "reopened" state
+            //     state: "reopened",
+            //     theme: modalArg.config.theme,
+            //     layout: modalArg.config.layout,
+            //     pageType: null,
+            //     uid: modalBoxUid,
+            //   },
+            //   expectedIframeUrlObject: {
+            //     pathname: `/${modalArg.calLink}`,
+            //     searchParams: new URLSearchParams({
+            //       ...expectedConfig,
+            //       // It remains because we are just reopening the same modal
+            //       prerender: "true",
+            //       "cal.skipSlotsFetch": "true",
+            //     }),
+            //     origin: null,
+            //   },
+            // });
 
-          const { expectedConfig } = (function prerender(): { expectedConfig: Record<string, string> } {
-            log("Prerendering the modal");
-            calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
-
-            const expectedConfig = {
-              ...modalArg.config,
-              embedType: "modal",
-            };
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "prerendering",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            return { expectedConfig };
-          })();
-
-          const headlessRouterRedirectUrlWithPathOnly = `/something_else_than_prerendered_link`;
-          vi.mocked(submitResponseAndGetRoutingResult).mockImplementation(() => {
-            return Promise.resolve({
-              // Redirecting to the booking link that is already prerendered
-              redirect: `${process.env.EMBED_PUBLIC_WEBAPP_URL}${headlessRouterRedirectUrlWithPathOnly}?routingFormResponseId=xyz`,
-            });
-          });
-
-          await (async function headlessRouterSubmission() {
-            log("Submitting the modal");
-            const config = expectedConfig;
-            const configWithPrefilledValues = {
-              ...config,
-              name: "John Doe",
-              email: "john@example.com",
-            };
-            const configWithPrefilledValuesAndHeadlessRouterRedirectParams = {
-              ...configWithPrefilledValues,
-              routingFormResponseId: "xyz",
-            };
-
-            const modalOpenPromise = calInstance.api.modal({
-              ...modalArg,
-              calLink: "router?form=FORM_ID",
-              config: configWithPrefilledValues,
-            });
-
-            const calModalBox = document.querySelector("cal-modal-box") as HTMLElement;
-            expect(calModalBox.getAttribute("state")).toBe("loading");
-            await modalOpenPromise;
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "loading",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: headlessRouterRedirectUrlWithPathOnly,
-                searchParams: new URLSearchParams(configWithPrefilledValuesAndHeadlessRouterRedirectParams),
-                origin: null,
-              },
-            });
-
-            // Now check that we connected with the right config
-            expect(calInstance.doInIframe).not.toHaveBeenCalledWith(
-              expect.objectContaining({
-                method: "connect",
-              })
-            );
-          })();
-        });
-
-        it("should handle prerender(booking link) -> headless router submission -> Message ", async () => {
-          // Prerender the modal
-          const modalArg = {
-            ...baseModalArgs,
-            calLink: "sales/demo",
-          };
-
-          const { expectedConfig } = (function prerender(): { expectedConfig: Record<string, string> } {
-            log("Prerendering the modal");
-            calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
-
-            const expectedConfig = {
-              ...modalArg.config,
-              embedType: "modal",
-            };
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "prerendering",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            return { expectedConfig };
-          })();
-
-          vi.mocked(submitResponseAndGetRoutingResult).mockImplementation(() => {
-            return Promise.resolve({
-              status: "success",
-              // Redirecting to the booking link that is already prerendered
-              message: "Fallback Route Message",
-            });
-          });
-
-          await (async function headlessRouterSubmission() {
-            log("Submitting the modal");
-            const config = expectedConfig;
-            const configWithPrefilledValues = {
-              ...config,
-              name: "John Doe",
-              email: "john@example.com",
-            };
-
-            const modalOpenPromise = calInstance.api.modal({
-              ...modalArg,
-              calLink: "router?form=FORM_ID",
-              config: configWithPrefilledValues,
-            });
-
-            const calModalBox = document.querySelector("cal-modal-box") as HTMLElement;
-            expect(calModalBox.getAttribute("state")).toBe("loading");
-            await modalOpenPromise;
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "has-message",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            // Now check that we connected with the right config
-            expect(calInstance.doInIframe).not.toHaveBeenCalledWith(
-              expect.objectContaining({
-                method: "connect",
-              })
-            );
-
-            expect(calModalBox.getAttribute("data-message")).toBe("Fallback Route Message");
-          })();
-        });
-
-        it("should handle prerender(booking link) -> headless router submission -> Error Message", async () => {
-          // Prerender the modal
-          const modalArg = {
-            ...baseModalArgs,
-            calLink: "sales/demo",
-          };
-
-          const { expectedConfig } = (function prerender(): { expectedConfig: Record<string, string> } {
-            log("Prerendering the modal");
-            calInstance.api.modal({ ...buildModalArg(modalArg), __prerender: true });
-
-            const expectedConfig = {
-              ...modalArg.config,
-              embedType: "modal",
-            };
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "prerendering",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            return { expectedConfig };
-          })();
-
-          vi.mocked(submitResponseAndGetRoutingResult).mockImplementation(() => {
-            return Promise.resolve({
-              error: "Fallback Route Error",
-            });
-          });
-
-          await (async function headlessRouterSubmission() {
-            log("Submitting the modal");
-            const config = expectedConfig;
-            const configWithPrefilledValues = {
-              ...config,
-              name: "John Doe",
-              email: "john@example.com",
-            };
-
-            const modalOpenPromise = calInstance.api.modal({
-              ...modalArg,
-              calLink: "router?form=FORM_ID",
-              config: configWithPrefilledValues,
-            });
-
-            const calModalBox = document.querySelector("cal-modal-box") as HTMLElement;
-            expect(calModalBox.getAttribute("state")).toBe("loading");
-            await modalOpenPromise;
-
-            expectCalModalBoxToBeInDocumentWithIframeHavingUrl({
-              expectedModalBoxAttrs: {
-                state: "failed",
-                theme: modalArg.config.theme,
-                layout: modalArg.config.layout,
-                pageType: null,
-              },
-              expectedIframeUrlObject: {
-                pathname: `/${modalArg.calLink}`,
-                searchParams: new URLSearchParams({
-                  ...expectedConfig,
-                  prerender: "true",
-                  "cal.skipSlotsFetch": "true",
-                }),
-                origin: null,
-              },
-            });
-
-            // Now check that we connected with the right config
-            expect(calInstance.doInIframe).not.toHaveBeenCalledWith(
-              expect.objectContaining({
-                method: "connect",
-              })
-            );
-            expect(calModalBox.getAttribute("data-error-code")).toBe("routerError");
-            expect(calModalBox.getAttribute("data-message")).toBe("Fallback Route Error");
+            expect(document.querySelectorAll("cal-modal-box").length).toBe(1);
           })();
         });
       });
@@ -1062,7 +760,7 @@ describe("Cal", () => {
         ...baseArgs,
         stateData: {
           ...baseArgs.stateData,
-          previousEmbedRenderStartTime: Date.now() - 1000000, // Much older timestamp
+          previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS - 1, // Much older timestamp
           embedRenderStartTime: Date.now(),
         },
       });
@@ -1157,6 +855,34 @@ describe("Cal", () => {
 
       const result = calInstance.getNextActionForModal(baseArgs);
       expect(result).toBe("noAction");
+    });
+
+    it("should return connect-no-slots-fetch when backgroundSlotsFetch is true and slots are not stale", () => {
+      const result = calInstance.getNextActionForModal({
+        ...baseArgs,
+        stateData: {
+          ...baseArgs.stateData,
+          prerenderOptions: {
+            backgroundSlotsFetch: true,
+          },
+        },
+      });
+      expect(result).toBe("connect-no-slots-fetch");
+    });
+
+    it("should return connect when backgroundSlotsFetch is true but slots are stale", () => {
+      const result = calInstance.getNextActionForModal({
+        ...baseArgs,
+        stateData: {
+          ...baseArgs.stateData,
+          prerenderOptions: {
+            backgroundSlotsFetch: true,
+          },
+          previousEmbedRenderStartTime: Date.now() - EMBED_MODAL_IFRAME_SLOT_STALE_TIME - 1,
+          embedRenderStartTime: Date.now(),
+        },
+      });
+      expect(result).toBe("connect");
     });
   });
 });

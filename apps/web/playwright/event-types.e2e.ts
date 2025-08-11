@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
-  createNewEventType,
+  createNewUserEventType,
   gotoBookingPage,
   gotoFirstEventType,
   saveEventType,
@@ -55,7 +55,7 @@ test.describe("Event Types tests", () => {
     test("can add new event type", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
       await page.goto("/event-types");
       await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
@@ -63,7 +63,7 @@ test.describe("Event Types tests", () => {
     test("new event type appears first in the list", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `hello ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
       await page.goto("/event-types");
       const firstEvent = page.locator("[data-testid=event-types] > li a").first();
       const firstEventTitle = await firstEvent.getAttribute("title");
@@ -73,7 +73,7 @@ test.describe("Event Types tests", () => {
     test("enabling recurring event comes with default options", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
 
       // fix the race condition
       await page.waitForSelector('[data-testid="event-title"]');
@@ -393,7 +393,7 @@ test.describe("Event Types tests", () => {
     }) => {
       const nonce = randomString(3);
       const eventTitle = `Conflict event ${nonce}`;
-      await createNewEventType(page, { eventTitle });
+      await createNewUserEventType(page, { eventTitle });
       await page.goto("/event-types");
       await page.click(`text=${eventTitle}`);
 
@@ -419,6 +419,33 @@ test.describe("Event Types tests", () => {
       // After enabling recurring, offerSeats should now be disabled
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       await expect(offerSeatsToggle).toBeDisabled();
+    });
+    test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
+      page,
+      users,
+    }) => {
+      await gotoFirstEventType(page);
+      await expect(page.locator("[data-testid=event-title]")).toBeVisible();
+      await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await page.click("[data-testid=lock-timezone-toggle]");
+      await page.click("[data-testid=timezone-select]");
+      await page.locator('[aria-label="Timezone Select"]').fill("New York");
+      await page.keyboard.press("Enter");
+
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+        action: () => page.locator("[data-testid=update-eventtype]").click(),
+      });
+      await page.goto("/event-types");
+      const previewLink = await page
+        .locator("[data-testid=preview-link-button]")
+        .first()
+        .getAttribute("href");
+
+      await page.goto(previewLink ?? "");
+      const currentTimezone = page.locator('[data-testid="event-meta-current-timezone"]');
+      await expect(currentTimezone).toBeVisible();
+      await expect(currentTimezone).toHaveClass(/cursor-not-allowed/);
+      await expect(page.getByText("New York")).toBeVisible();
     });
   });
 

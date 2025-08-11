@@ -1,6 +1,8 @@
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -19,7 +21,7 @@ interface ChargeCardHandlerOptions {
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {
   const { prisma } = ctx;
 
-  const booking = await prisma.booking.findFirst({
+  const booking = await prisma.booking.findUnique({
     where: {
       id: input.bookingId,
     },
@@ -87,10 +89,12 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     : { userId: ctx.user.id };
 
   if (booking.eventType?.teamId) {
-    const userIsInTeam = await prisma.membership.findFirst({
+    const userIsInTeam = await prisma.membership.findUnique({
       where: {
-        userId: ctx.user.id,
-        teamId: booking.eventType?.teamId,
+        userId_teamId: {
+          userId: ctx.user.id,
+          teamId: booking.eventType?.teamId,
+        },
       },
     });
 
@@ -139,9 +143,13 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
 
     return paymentData;
   } catch (err) {
+    let errorMessage = `Error processing payment with error ${err}`;
+    if (err instanceof ErrorWithCode && err.code === ErrorCode.ChargeCardFailure) {
+      errorMessage = err.message;
+    }
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `Error processing payment with error ${err}`,
+      code: "BAD_REQUEST",
+      message: tOrganizer(errorMessage),
     });
   }
 };

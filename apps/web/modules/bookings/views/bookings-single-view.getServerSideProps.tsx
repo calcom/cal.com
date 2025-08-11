@@ -77,7 +77,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let rescheduledToUid: string | null = null;
   if (bookingInfo.rescheduled) {
-    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+    const bookingRepo = new BookingRepository(prisma);
+    const rescheduledTo = await bookingRepo.findFirstBookingByReschedule({
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
@@ -89,7 +90,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } | null = null;
 
   if (bookingInfo.fromReschedule) {
-    previousBooking = await BookingRepository.findReschedulerByUid({
+    const bookingRepo = new BookingRepository(prisma);
+    previousBooking = await bookingRepo.findReschedulerByUid({
       uid: bookingInfo.fromReschedule,
     });
   }
@@ -234,7 +236,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         eventTypeId: eventType.id,
         team: eventType.team,
         owner: eventType.users[0] ?? null,
-        orgSlug: currentOrgDomain,
+        organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
       }),
       profile,
       eventType,

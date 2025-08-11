@@ -157,7 +157,7 @@ export const handleSeatsEventTypeOnBooking = async (
   } | null;
   let seatAttendee: seatAttendee = null;
   if (seatReferenceUid) {
-    seatAttendee = await prisma.bookingSeat.findFirst({
+    seatAttendee = await prisma.bookingSeat.findUnique({
       where: {
         referenceUid: seatReferenceUid,
       },

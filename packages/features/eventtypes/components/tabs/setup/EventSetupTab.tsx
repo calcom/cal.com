@@ -170,6 +170,7 @@ export const EventSetupTab = (
                 }}
                 disabled={!orgId}
                 tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+                data-testid="ai_translation_toggle"
               />
             </div>
           )}
@@ -207,9 +208,12 @@ export const EventSetupTab = (
             {...(isManagedEventType || isChildrenManagedEventType ? urlLockedProps : {})}
             defaultValue={eventType.slug}
             data-testid="event-slug"
-            containerClassName={classNames(customClassNames?.titleSection?.urlInput?.container)}
+            containerClassName={classNames(
+              "[&>div]:gap-0",
+              customClassNames?.titleSection?.urlInput?.container
+            )}
             labelClassName={classNames(customClassNames?.titleSection?.urlInput?.label)}
-            className={classNames(customClassNames?.titleSection?.urlInput?.input)}
+            className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
                 <>

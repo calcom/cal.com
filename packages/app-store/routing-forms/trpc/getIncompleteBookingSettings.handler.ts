@@ -28,7 +28,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
         formId: input.formId,
       },
     }),
-    prisma.app_RoutingForms_Form.findFirst({
+    prisma.app_RoutingForms_Form.findUnique({
       where: {
         id: input.formId,
       },
@@ -51,7 +51,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
 
   if (teamId) {
     // Need to get the credentials for the team and org
-    const orgQuery = await prisma.team.findFirst({
+    const orgQuery = await prisma.team.findUnique({
       where: {
         id: teamId,
       },
