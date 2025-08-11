@@ -1,3 +1,4 @@
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -25,7 +26,7 @@ export const getAggregatedAvailability = (
   userAvailability: {
     dateRanges: DateRange[];
     oooExcludedDateRanges: DateRange[];
-    user?: { isFixed?: boolean };
+    user?: { isFixed?: boolean; groupId?: string | null };
   }[],
   schedulingType: SchedulingType | null
 ): DateRange[] => {
@@ -44,10 +45,27 @@ export const getAggregatedAvailability = (
   const dateRangesToIntersect = !!fixedDateRanges.length ? [fixedDateRanges] : [];
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
-    dateRangesToIntersect.push(
-      roundRobinHosts.flatMap((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges))
-    );
+    // Group round robin hosts by their groupId
+    const hostsByGroup = roundRobinHosts.reduce((groups, host) => {
+      const groupId = host.user?.groupId || DEFAULT_GROUP_ID;
+      if (!groups[groupId]) {
+        groups[groupId] = [];
+      }
+      groups[groupId].push(host);
+      return groups;
+    }, {} as Record<string, typeof roundRobinHosts>);
+
+    // at least one host from each group needs to be available
+    Object.values(hostsByGroup).forEach((groupHosts) => {
+      if (groupHosts.length > 0) {
+        const groupDateRanges = groupHosts.flatMap((s) =>
+          !isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges
+        );
+        dateRangesToIntersect.push(groupDateRanges ?? []);
+      }
+    });
   }
+
   const availability = intersect(dateRangesToIntersect);
 
   const uniqueRanges = uniqueAndSortedDateRanges(availability);
