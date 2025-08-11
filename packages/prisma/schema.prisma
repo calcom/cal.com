@@ -223,10 +223,11 @@ model EventType {
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
-  useBookerTimezone     Boolean     @default(false)
-  restrictionScheduleId Int?
-  restrictionSchedule   Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
-  hostGroups            HostGroup[]
+  useBookerTimezone        Boolean     @default(false)
+  restrictionScheduleId    Int?
+  restrictionSchedule      Schedule?   @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
+  hostGroups               HostGroup[]
+  optionalGuestTeamMembers User[]      @relation("optional_guest_team_members")
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -443,6 +444,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  optionalGuestForEventTypes     EventType[]                   @relation("optional_guest_team_members")
 
   @@unique([email])
   @@unique([email, username])

@@ -401,25 +401,43 @@ export default class FeishuCalendarService implements Calendar {
 
   private translateAttendees = (event: CalendarEvent): FeishuEventAttendee[] => {
     const attendeeArray: FeishuEventAttendee[] = [];
-    event.attendees
-      .filter((att) => att.email)
-      .forEach((att) => {
-        const attendee: FeishuEventAttendee = {
+    // Use a Set to track all emails and prevent any duplicates in the final list
+    const addedEmails = new Set<string>();
+
+    // Helper function to add attendees if they haven't been added yet
+    const addUniqueAttendee = (email: string, is_optional: boolean) => {
+      if (email && !addedEmails.has(email.toLowerCase())) {
+        attendeeArray.push({
           type: "third_party",
-          is_optional: false,
-          third_party_email: att.email,
-        };
-        attendeeArray.push(attendee);
-      });
-    event.team?.members.forEach((member) => {
-      if (member.email !== this.credential.user?.email) {
-        const attendee: FeishuEventAttendee = {
-          type: "third_party",
-          is_optional: false,
-          third_party_email: member.email,
-        };
-        attendeeArray.push(attendee);
+          is_optional,
+          third_party_email: email,
+        });
+        addedEmails.add(email.toLowerCase());
       }
+    };
+
+    // 1. Create a Set of optional guest emails for easy lookup
+    const optionalGuestEmails = new Set(
+      event.optionalGuestTeamMembers?.map((guest) => guest.email.toLowerCase()) ?? []
+    );
+
+    // 2. Add the main booker as a required attendee
+    event.attendees.forEach((attendee) => addUniqueAttendee(attendee.email, false));
+
+    // 3. Add the REQUIRED team members, filtering out optionals and the current user
+    event.team?.members.forEach((member) => {
+      if (
+        member.email &&
+        member.email !== this.credential.user?.email &&
+        !optionalGuestEmails.has(member.email.toLowerCase())
+      ) {
+        addUniqueAttendee(member.email, false);
+      }
+    });
+
+    // 4. Add the OPTIONAL team members
+    event.optionalGuestTeamMembers?.forEach((guest) => {
+      addUniqueAttendee(guest.email, true);
     });
 
     return attendeeArray;
