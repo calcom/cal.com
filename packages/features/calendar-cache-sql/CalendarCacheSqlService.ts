@@ -75,28 +75,12 @@ export class CalendarCacheSqlService {
     // For initial sync, first get current events with time range, then get a sync token
     if (!subscription.nextSyncToken) {
       console.info("Initial sync: Getting current events with time range");
-
-      // First, get current events (now to +30 days) to avoid past events
-      // Paginate through all pages to ensure no events are missed
-      const allCurrentEvents: calendar_v3.Schema$Event[] = [];
-      let pageToken: string | undefined = undefined;
-      do {
-        const pageResponse = await calendar.events.list({
-          calendarId,
-          singleEvents: true,
-          timeMin: now.toISOString(),
-          timeMax: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-          pageToken,
-        });
-
-        if (pageResponse.data.items && pageResponse.data.items.length > 0) {
-          allCurrentEvents.push(...pageResponse.data.items);
-        }
-
-        pageToken = pageResponse.data.nextPageToken || undefined;
-      } while (pageToken);
-
-      console.info("Got current events (all pages):", allCurrentEvents.length);
+      const allCurrentEvents = await this.fetchAllTimeRangedEvents(
+        calendar,
+        calendarId,
+        now.toISOString(),
+        new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      );
 
       // Process current events
       if (allCurrentEvents.length > 0) {
@@ -113,15 +97,9 @@ export class CalendarCacheSqlService {
 
       // Now do a full sync to get a nextSyncToken for future incremental syncs
       console.info("Initial sync: Getting sync token for future incremental syncs");
-      const syncTokenResponse = await calendar.events.list({
-        calendarId,
-        singleEvents: true,
-        // No time constraints to get a sync token
-      });
-
-      if (syncTokenResponse.data.nextSyncToken) {
-        await this.subscriptionRepo.updateSyncToken(subscription.id, syncTokenResponse.data.nextSyncToken);
-        console.info("Got initial sync token:", syncTokenResponse.data.nextSyncToken);
+      const initialSyncToken = await this.fetchFreshSyncToken(calendar, calendarId);
+      if (initialSyncToken) {
+        await this.subscriptionRepo.updateSyncToken(subscription.id, initialSyncToken);
       }
 
       return;
@@ -129,48 +107,107 @@ export class CalendarCacheSqlService {
 
     // For incremental sync, use the existing sync token
     console.info("Incremental sync: Using existing sync token");
-    const eventsResponse = await calendar.events.list({
-      calendarId,
-      singleEvents: true,
-      syncToken: subscription.nextSyncToken,
-    });
-
-    console.info("Got events", eventsResponse.data);
-    console.info("Got syncToken", eventsResponse.data.nextSyncToken);
-    console.info("Full eventsResponse.data keys:", Object.keys(eventsResponse.data));
-    console.info("Events count:", eventsResponse.data.items?.length || 0);
-    console.info(
-      "Sync approach:",
-      subscription.nextSyncToken ? "incremental" : "initial sync (current + 30 days)"
-    );
-    console.info("Request params:", {
-      calendarId,
-      syncToken: subscription.nextSyncToken || "none",
-      timeRange: subscription.nextSyncToken ? "incremental" : "now to +30 days",
-    });
-
-    // Update the syncToken for next sync
-    if (eventsResponse.data.nextSyncToken) {
-      await this.subscriptionRepo.updateSyncToken(subscription.id, eventsResponse.data.nextSyncToken);
-    } else {
-      console.info(
-        "No nextSyncToken returned by Google Calendar API - this is normal for time-range queries or when no changes need syncing"
+    try {
+      const { items: incrementalItems, nextSyncToken } = await this.fetchAllIncremental(
+        calendar,
+        calendarId,
+        subscription.nextSyncToken!
       );
-    }
-
-    // Process and save each event
-    if (eventsResponse.data.items) {
-      const events = this.parseCalendarEvents(
-        eventsResponse.data.items,
-        subscription.id,
-        !subscription.nextSyncToken // Filter past events only if this is still part of initial sync
-      );
-
-      // Bulk upsert all events at once
-      if (events.length > 0) {
-        await this.eventRepo.bulkUpsertEvents(events, subscription.id);
+      if (incrementalItems.length > 0) {
+        const events = this.parseCalendarEvents(incrementalItems, subscription.id, false);
+        if (events.length > 0) {
+          await this.eventRepo.bulkUpsertEvents(events, subscription.id);
+        }
       }
+      if (nextSyncToken) {
+        await this.subscriptionRepo.updateSyncToken(subscription.id, nextSyncToken);
+      }
+    } catch (err: any) {
+      const status = err?.code ?? err?.response?.status;
+      // Handle invalid/stale sync token by falling back to a full time-ranged sync
+      if (status === 410) {
+        console.warn("Incremental sync token is stale (410). Falling back to full time-ranged sync.");
+        // Clear in-memory token to avoid reusing a stale value during recovery
+        // Do not persist this cleared state; only persist a fresh token after successful recovery
+        subscription.nextSyncToken = null;
+        // Perform a time-ranged full sync (now to +30 days), with pagination
+        const allCurrentEvents = await this.fetchAllTimeRangedEvents(
+          calendar,
+          calendarId,
+          now.toISOString(),
+          new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        );
+
+        // Upsert events from full sync
+        if (allCurrentEvents.length > 0) {
+          const events = this.parseCalendarEvents(allCurrentEvents, subscription.id, false);
+          if (events.length > 0) {
+            await this.eventRepo.bulkUpsertEvents(events, subscription.id);
+          }
+        }
+
+        // After successful full sync, fetch a fresh sync token and persist it once
+        const freshToken = await this.fetchFreshSyncToken(calendar, calendarId);
+        if (freshToken) {
+          await this.subscriptionRepo.updateSyncToken(subscription.id, freshToken);
+        }
+        return;
+      }
+
+      // If it's not a 410, rethrow so upstream handlers/logging can catch
+      throw err;
     }
+  }
+
+  private async fetchAllIncremental(
+    calendar: calendar_v3.Calendar,
+    calendarId: string,
+    syncToken: string
+  ): Promise<{ items: calendar_v3.Schema$Event[]; nextSyncToken?: string }> {
+    const items: calendar_v3.Schema$Event[] = [];
+    let pageToken: string | undefined;
+    let finalNextSyncToken: string | undefined;
+    do {
+      const data: calendar_v3.Schema$Events = (
+        await calendar.events.list({ calendarId, singleEvents: true, syncToken, pageToken })
+      ).data;
+      if (data.items && data.items.length > 0) items.push(...data.items);
+      pageToken = data.nextPageToken || undefined;
+      if (data.nextSyncToken) finalNextSyncToken = data.nextSyncToken;
+    } while (pageToken);
+    return { items, nextSyncToken: finalNextSyncToken };
+  }
+
+  private async fetchAllTimeRangedEvents(
+    calendar: calendar_v3.Calendar,
+    calendarId: string,
+    timeMinIso: string,
+    timeMaxIso: string
+  ): Promise<calendar_v3.Schema$Event[]> {
+    const items: calendar_v3.Schema$Event[] = [];
+    let pageToken: string | undefined;
+    do {
+      const data: calendar_v3.Schema$Events = (
+        await calendar.events.list({
+          calendarId,
+          singleEvents: true,
+          timeMin: timeMinIso,
+          timeMax: timeMaxIso,
+          pageToken,
+        })
+      ).data;
+      if (data.items && data.items.length > 0) items.push(...data.items);
+      pageToken = data.nextPageToken || undefined;
+    } while (pageToken);
+    return items;
+  }
+
+  private async fetchFreshSyncToken(
+    calendar: calendar_v3.Calendar,
+    calendarId: string
+  ): Promise<string | undefined> {
+    const resp = await calendar.events.list({ calendarId, singleEvents: true });
+    return resp.data.nextSyncToken || undefined;
   }
 
   /**
