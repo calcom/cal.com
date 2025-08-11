@@ -10,7 +10,6 @@ import prisma from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import type { PageProps as ClientPageProps } from "~/getting-started/[[...step]]/onboarding-view";
 import Page from "~/getting-started/[[...step]]/onboarding-view";
 
 export const generateMetadata = async ({ params }: ServerPageProps) => {
@@ -41,11 +40,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     return redirect("/auth/login");
   }
 
-  const props: ClientPageProps = {
-    hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
-  };
-
-  return <Page {...props} />;
+  return <Page hasPendingInvites={!!user.teams.find((team) => team.accepted === false)} />;
 };
 
 export default ServerPage;
