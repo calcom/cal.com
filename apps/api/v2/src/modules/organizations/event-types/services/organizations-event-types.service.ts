@@ -1,3 +1,4 @@
+import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
 import {
@@ -11,7 +12,6 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, Logger } from "@nestjs/common";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { createEventType } from "@calcom/platform-libraries/event-types";
 
@@ -24,7 +24,8 @@ export class OrganizationsEventTypesService {
     private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
     private readonly teamsEventTypesService: TeamsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly userRepository: PrismaUserRepository
   ) {}
 
   async createOrganizationTeamEventType(
@@ -53,8 +54,7 @@ export class OrganizationsEventTypesService {
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
-    const userRepository = new UserRepository(this.dbWrite.prisma);
-    const isOrgAdmin = await userRepository.isAdminOrOwnerOfTeam({
+    const isOrgAdmin = await this.userRepository.isAdminOrOwnerOfTeam({
       userId: user.id,
       teamId: organizationId,
     });
