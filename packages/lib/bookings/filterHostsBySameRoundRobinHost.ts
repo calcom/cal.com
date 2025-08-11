@@ -1,5 +1,4 @@
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import type { PrismaClient } from "@calcom/prisma";
 
 import { isRerouting } from "./routing/utils";
 
@@ -13,7 +12,7 @@ export class FilterHostsService {
   async filterHostsBySameRoundRobinHost<
     T extends {
       isFixed: false; // ensure no fixed hosts are passed.
-      user: { id: number };
+      user: { id: number; email: string };
     }
   >({
     hosts,
@@ -39,38 +38,16 @@ export class FilterHostsService {
         rescheduleUid,
       });
 
-    return hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    if (!originalRescheduledBooking) {
+      return hosts;
+    }
+
+    const attendeeEmails = originalRescheduledBooking.attendees?.map((attendee) => attendee.email) || [];
+
+    return hosts.filter((host) => {
+      const isOrganizer = host.user.id === originalRescheduledBooking.userId;
+      const isAttendee = attendeeEmails.includes(host.user.email);
+      return isOrganizer || isAttendee;
+    });
   }
 }
-
-export const filterHostsBySameRoundRobinHost = async <
-  T extends {
-    isFixed: false;
-    user: { id: number };
-  }
->({
-  hosts,
-  rescheduleUid,
-  rescheduleWithSameRoundRobinHost,
-  routedTeamMemberIds,
-  prisma,
-}: {
-  hosts: T[];
-  rescheduleUid: string | null;
-  rescheduleWithSameRoundRobinHost: boolean;
-  routedTeamMemberIds: number[] | null;
-  prisma: PrismaClient;
-}) => {
-  const { BookingRepository } = await import("@calcom/lib/server/repository/booking");
-
-  const service = new FilterHostsService({
-    bookingRepo: new BookingRepository(prisma),
-  });
-
-  return service.filterHostsBySameRoundRobinHost({
-    hosts,
-    rescheduleUid,
-    rescheduleWithSameRoundRobinHost,
-    routedTeamMemberIds,
-  });
-};

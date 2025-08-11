@@ -25,6 +25,7 @@ type Host<T> = {
   createdAt: Date;
   priority?: number | null;
   weight?: number | null;
+  groupId: string | null;
 } & {
   user: T;
 };
@@ -143,11 +144,11 @@ export class QualifiedHostsService {
     }
 
     const hostsAfterSegmentMatching = applyFilterWithFallback(
-      roundRobinHosts,
+      hostsAfterRescheduleWithSameRoundRobinHost,
       (await findMatchingHostsWithEventSegment({
         eventType,
-        hosts: roundRobinHosts,
-      })) as typeof roundRobinHosts
+        hosts: hostsAfterRescheduleWithSameRoundRobinHost,
+      })) as typeof hostsAfterRescheduleWithSameRoundRobinHost
     );
 
     if (hostsAfterSegmentMatching.length === 1) {
@@ -158,7 +159,9 @@ export class QualifiedHostsService {
     }
 
     //if segment matching doesn't return any hosts we fall back to all round robin hosts
-    const officalRRHosts = hostsAfterSegmentMatching.length ? hostsAfterSegmentMatching : roundRobinHosts;
+    const officalRRHosts = hostsAfterSegmentMatching.length
+      ? hostsAfterSegmentMatching
+      : hostsAfterRescheduleWithSameRoundRobinHost;
 
     const hostsAfterContactOwnerMatching = applyFilterWithFallback(
       officalRRHosts,
