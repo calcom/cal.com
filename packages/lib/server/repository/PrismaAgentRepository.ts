@@ -298,16 +298,16 @@ export class PrismaAgentRepository {
       user: agent.user_id
         ? {
             id: agent.user_id,
-            name: agent.user_name,
-            email: agent.user_email,
+            name: agent.user_name ?? null,
+            email: agent.user_email ?? null,
           }
         : null,
       team: agent.team_id
         ? {
             id: agent.team_id,
-            name: agent.team_name,
-            slug: agent.team_slug,
-            logoUrl: agent.team_logo_url,
+            name: agent.team_name ?? null,
+            slug: agent.team_slug ?? null,
+            logoUrl: agent.team_logo_url ?? null,
           }
         : null,
       outboundPhoneNumbers: phoneNumbersByAgent[agent.id] || [],
@@ -396,15 +396,15 @@ export class PrismaAgentRepository {
       user: agent.user_id
         ? {
             id: agent.user_id,
-            name: agent.user_name,
-            email: agent.user_email,
+            name: agent.user_name ?? null,
+            email: agent.user_email ?? null,
           }
         : null,
       team: agent.team_id
         ? {
             id: agent.team_id,
-            name: agent.team_name,
-            slug: agent.team_slug,
+            name: agent.team_name ?? null,
+            slug: agent.team_slug ?? null,
           }
         : null,
       outboundPhoneNumbers: phoneNumbers.map((pn) => ({

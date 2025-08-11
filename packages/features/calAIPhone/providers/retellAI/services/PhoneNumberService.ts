@@ -39,7 +39,7 @@ export class PhoneNumberService {
     await this.validateTeamPermissions(userId, teamId);
     const agent = await this.validateAgentPermissions(userId, agentId);
 
-    let transactionState = {
+    const transactionState = {
       retellPhoneNumber: null as AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> | null,
       databaseRecordCreated: false,
       agentAssigned: false,

@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import type {
   AIPhoneServiceProviderType,
   AIPhoneServiceCall,
-} from "../../interfaces/AIPhoneService.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { RetellAIRepository, RetellDynamicVariables } from "../types";
 

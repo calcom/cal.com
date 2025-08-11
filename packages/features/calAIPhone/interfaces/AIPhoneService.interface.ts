@@ -120,7 +120,7 @@ export interface AIPhoneServiceAgentListItem {
   name: string;
   providerAgentId: string;
   enabled: boolean;
-  userId: number;
+  userId: number | null;
   teamId: number | null;
   createdAt: Date;
   updatedAt: Date;
@@ -138,7 +138,7 @@ export interface AIPhoneServiceAgentListItem {
   user: {
     id: number;
     name: string | null | undefined;
-    email: string | undefined;
+    email: string | null;
   } | null;
 }
 

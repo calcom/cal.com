@@ -9,11 +9,11 @@ import type {
   AIPhoneServiceAgent,
   AIPhoneServiceModel,
   AIPhoneServiceTools,
-} from "../../interfaces/AIPhoneService.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
-import type { RetellAIRepository } from "../types";
-import { getLlmId, Language } from "../types";
+import type { RetellAIRepository, Language } from "../types";
+import { getLlmId } from "../types";
 
 export class AgentService {
   private logger = logger.getSubLogger({ prefix: ["AgentService"] });

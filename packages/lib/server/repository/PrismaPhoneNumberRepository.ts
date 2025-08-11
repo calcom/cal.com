@@ -145,7 +145,7 @@ export class PrismaPhoneNumberRepository {
     teamId,
   }: {
     phoneNumber: string;
-    provider?: string;
+    provider: string;
     userId: number;
     teamId?: number;
   }) {
@@ -263,6 +263,7 @@ export class PrismaPhoneNumberRepository {
         userId: true,
         teamId: true,
         subscriptionStatus: true,
+        stripeSubscriptionId: true,
         stripeCustomerId: true,
         provider: true,
         inboundAgentId: true,

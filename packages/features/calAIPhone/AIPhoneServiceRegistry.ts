@@ -23,7 +23,7 @@ interface RegistryConfiguration {
  */
 export class AIPhoneServiceRegistry {
   private static factories: Map<string, AIPhoneServiceProviderFactory> = new Map();
-  private static defaultProvider: string | null = null;
+  private static defaultProvider: string = AIPhoneServiceProviderType.RETELL_AI;
   private static initialized = false;
 
   /**

@@ -156,6 +156,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
 
+        step.agentId = data.id;
+
         await utils.viewer.ai.get.invalidate({ id: data.id });
       }
       setIsAgentConfigurationSheetOpen(true);
@@ -165,7 +167,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`);
+  const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
+
   const { data: agentData, isPending: isAgentLoading } = trpc.viewer.ai.get.useQuery(
     { id: stepAgentId || "" },
     { enabled: !!stepAgentId }
