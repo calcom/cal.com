@@ -950,8 +950,8 @@ export const insightsRouter = router({
         });
 
         const csvString = objectToCsv(csvData);
-        const downloadAs = `routed-to-${period}-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
-          endDate
+        const downloadAs = `routed-to-${period}-${dayjs(rest.startDate).format("YYYY-MM-DD")}-${dayjs(
+          rest.endDate
         ).format("YYYY-MM-DD")}.csv`;
 
         return { data: csvString, filename: downloadAs };

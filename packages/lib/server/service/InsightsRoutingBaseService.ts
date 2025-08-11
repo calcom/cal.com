@@ -463,11 +463,10 @@ export class InsightsRoutingBaseService {
       SELECT *
       FROM routed_responses
       ORDER BY id ASC
-      LIMIT ${limit}
+      ${limit ? Prisma.sql`LIMIT ${limit}` : Prisma.empty}
     `;
 
     const users = usersQuery;
-    const hasMoreUsers = users.length === limit;
 
     // Return early if no users found
     if (users.length === 0) {
@@ -505,13 +504,12 @@ export class InsightsRoutingBaseService {
       all_users AS (
         SELECT unnest(ARRAY[${Prisma.join(users.map((u) => u.id))}]) as user_id
       ),
-      paginated_periods AS (
-        SELECT date as period_start
-        FROM date_range
-        ORDER BY date ASC
-        LIMIT ${limit}
-      ),
-      date_user_combinations AS (
+       paginated_periods AS (
+         SELECT date as period_start
+         FROM date_range
+         ORDER BY date ASC
+         ${limit ? Prisma.sql`LIMIT ${limit}` : Prisma.empty}
+       ),      date_user_combinations AS (
         SELECT
           period_start,
           user_id as "userId"
@@ -539,22 +537,6 @@ export class InsightsRoutingBaseService {
         b."bookingUserId" = c."userId" AND
         b.period_start = c.period_start
       ORDER BY c.period_start ASC, c."userId" ASC
-    `;
-
-    // Get total number of periods to determine if there are more
-    const totalPeriodsQuery = await this.prisma.$queryRaw<[{ count: number }]>`
-      WITH RECURSIVE date_range AS (
-        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
-        UNION ALL
-        SELECT date + (CASE
-          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
-          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
-          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
-        END)
-        FROM date_range
-        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
-      )
-      SELECT COUNT(*)::integer as count FROM date_range
     `;
 
     // Get statistics for the entire period for comparison
@@ -612,7 +594,7 @@ export class InsightsRoutingBaseService {
   }
 
   /**
-   * Returns routed to per period data for CSV export (no pagination).
+   * Get routed to per period data for CSV export
    * @param period The period type (day, week, month)
    * @param searchQuery Optional search query for user names/emails
    */
@@ -623,163 +605,29 @@ export class InsightsRoutingBaseService {
     period: "perDay" | "perWeek" | "perMonth";
     searchQuery?: string;
   }) {
-    const dayJsPeriodMap = {
-      perDay: "day",
-      perWeek: "week",
-      perMonth: "month",
-    } as const;
+    // Call the main method without limit to get all data
+    const data = await this.getRoutedToPerPeriodData({
+      period,
+      searchQuery,
+      // No limit = get all data
+    });
 
-    const dayjsPeriod = dayJsPeriodMap[period];
-    const startDate = dayjs(this.filters.startDate).startOf(dayjsPeriod).toDate();
-    const endDate = dayjs(this.filters.endDate).endOf(dayjsPeriod).toDate();
-
-    const baseConditions = await this.getBaseConditions({ exclude: { createdAt: true } });
-
-    // Build search condition
-    const searchCondition = searchQuery
-      ? Prisma.sql`("bookingUserName" ILIKE ${`%${searchQuery}%`} OR "bookingUserEmail" ILIKE ${`%${searchQuery}%`})`
-      : Prisma.sql`1 = 1`;
-
-    // Get users who have been routed to during the period
-    const usersQuery = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        name: string | null;
-        email: string;
-        avatarUrl: string | null;
-      }>
-    >`
-      WITH routed_responses AS (
-        SELECT DISTINCT ON ("bookingUserId")
-          "bookingUserId",
-          "bookingUserId" as id,
-          "bookingUserName" as name,
-          "bookingUserEmail" as email,
-          "bookingUserAvatarUrl" as "avatarUrl"
-        FROM "RoutingFormResponseDenormalized"
-        WHERE "bookingUid" IS NOT NULL
-        AND "createdAt" >= ${startDate}
-        AND "createdAt" <= ${endDate}
-        AND ${baseConditions}
-        AND ${searchCondition}
-        ORDER BY "bookingUserId", "createdAt" DESC
-      )
-      SELECT *
-      FROM routed_responses
-      ORDER BY id ASC
-    `;
-
-    // Get all periods without pagination
-    const periodStats = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        period_start: Date;
-        total: number;
-      }>
-    >`
-      WITH RECURSIVE date_range AS (
-        SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
-        UNION ALL
-        SELECT date + (CASE
-          WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
-          WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
-          WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
-        END)
-        FROM date_range
-        WHERE date < date_trunc(${dayjsPeriod}, ${endDate}::timestamp + interval '1 day')
-      ),
-      all_users AS (
-        SELECT unnest(ARRAY[${Prisma.join(usersQuery.map((u) => u.id))}]) as user_id
-      ),
-      date_user_combinations AS (
-        SELECT
-          date as period_start,
-          user_id as "userId"
-        FROM date_range
-        CROSS JOIN all_users
-      ),
-      booking_counts AS (
-        SELECT
-          "bookingUserId",
-          date_trunc(${dayjsPeriod}, "createdAt") as period_start,
-          COUNT(DISTINCT "bookingId")::integer as total
-        FROM "RoutingFormResponseDenormalized"
-        WHERE "bookingUserId" IN (SELECT user_id FROM all_users)
-        AND date_trunc(${dayjsPeriod}, "createdAt") >= (SELECT MIN(date) FROM date_range)
-        AND date_trunc(${dayjsPeriod}, "createdAt") <= (SELECT MAX(date) FROM date_range)
-        AND ${baseConditions}
-        GROUP BY 1, 2
-      )
-      SELECT
-        c."userId",
-        c.period_start,
-        COALESCE(b.total, 0)::integer as total
-      FROM date_user_combinations c
-      LEFT JOIN booking_counts b ON
-        b."bookingUserId" = c."userId" AND
-        b.period_start = c.period_start
-      ORDER BY c.period_start ASC, c."userId" ASC
-    `;
-
-    // Get statistics for the entire period for comparison
-    const statsQuery = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        total_bookings: number;
-      }>
-    >`
-      SELECT
-        "bookingUserId" as "userId",
-        COUNT(*)::integer as total_bookings
-      FROM "RoutingFormResponseDenormalized"
-      WHERE "bookingUid" IS NOT NULL
-      AND "createdAt" >= ${startDate}
-      AND "createdAt" <= ${endDate}
-      AND ${baseConditions}
-      GROUP BY "bookingUserId"
-      ORDER BY total_bookings ASC
-    `;
-
-    // Calculate average and median
-    const average =
-      statsQuery.reduce((sum, stat) => sum + Number(stat.total_bookings), 0) / statsQuery.length || 0;
-    const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
-
-    // Create a map of user performance indicators
-    const userPerformance = statsQuery.reduce((acc, stat) => {
-      acc[stat.userId] = {
-        total: stat.total_bookings,
-        performance:
-          stat.total_bookings > average
-            ? "above_average"
-            : stat.total_bookings === median
-            ? "median"
-            : stat.total_bookings < average
-            ? "below_average"
-            : "at_average",
-      };
-      return acc;
-    }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
-
-    // Group period stats by user
-    const userPeriodStats = periodStats.reduce((acc, stat) => {
-      if (!acc[stat.userId]) {
-        acc[stat.userId] = [];
+    // Transform to CSV format
+    const userStatsMap = new Map<number, Record<string, number>>();
+    data.periodStats.data.forEach((stat) => {
+      const userId = stat.userId;
+      if (!userStatsMap.has(userId)) {
+        userStatsMap.set(userId, {});
       }
-      acc[stat.userId].push({
-        period_start: stat.period_start,
-        total: stat.total,
-      });
-      return acc;
-    }, {} as Record<number, Array<{ period_start: Date; total: number }>>);
+      userStatsMap.get(userId)![stat.period_start.toISOString()] = stat.total;
+    });
 
-    // Format data for CSV
-    return usersQuery.map((user) => {
-      const stats = userPeriodStats[user.id] || [];
-      const periodData = stats.reduce(
-        (acc, stat) => ({
+    return data.users.data.map((user) => {
+      const stats = userStatsMap.get(user.id) || {};
+      const periodData = Object.entries(stats).reduce(
+        (acc, [periodStart, total]) => ({
           ...acc,
-          [`Responses ${dayjs(stat.period_start).format("YYYY-MM-DD")}`]: stat.total.toString(),
+          [`Responses ${dayjs(periodStart).format("YYYY-MM-DD")}`]: total.toString(),
         }),
         {} as Record<string, string>
       );
@@ -787,9 +635,9 @@ export class InsightsRoutingBaseService {
       return {
         "User ID": user.id.toString(),
         Name: user.name || "",
-        Email: user.email,
-        "Total Bookings": (userPerformance[user.id]?.total || 0).toString(),
-        Performance: userPerformance[user.id]?.performance || "no_data",
+        Email: user.email || "",
+        "Total Bookings": user.totalBookings.toString(),
+        Performance: user.performance,
         ...periodData,
       };
     });
