@@ -109,7 +109,7 @@ export class AIPhoneServiceRegistry {
    */
   static clearProviders(): void {
     this.factories.clear();
-    this.defaultProvider = null;
+    this.defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
     this.initialized = false;
   }
 

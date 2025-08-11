@@ -70,7 +70,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
 
-  const isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, "workflow.update");
 
   if (!isUserAuthorized || !userWorkflow) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
