@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 env:
-  NODE_OPTIONS: --max-old-space-size=4096
+  NODE_OPTIONS: --max-old-space-size=8096
   ATOMS_E2E_OAUTH_CLIENT_ID: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_ID }}
   ATOMS_E2E_OAUTH_CLIENT_SECRET: ${{ secrets.ATOMS_E2E_OAUTH_CLIENT_SECRET }}
   ATOMS_E2E_API_URL: ${{ secrets.ATOMS_E2E_API_URL }}
