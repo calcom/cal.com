@@ -7,6 +7,7 @@ import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRe
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
 import { RetellAIError } from "./errors";
+import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 
 vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
@@ -55,10 +56,13 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   },
 }));
 
+const mockGetAllCredits = vi.fn();
+const mockCreditService = vi.fn().mockImplementation(() => ({
+  getAllCredits: mockGetAllCredits,
+}));
+
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
-  CreditService: vi.fn().mockImplementation(() => ({
-    getAllCredits: vi.fn(),
-  })),
+  CreditService: mockCreditService,
 }));
 
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
@@ -353,7 +357,11 @@ describe("RetellAIService", () => {
   describe("importPhoneNumber", () => {
     it("should import phone number and create DB record using transaction", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
+      const mockAgent = createMockDatabaseAgent();
+
+      mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
+      mockRepository.updatePhoneNumber.mockResolvedValue(mockImportedNumber);
 
       const result = await service.importPhoneNumber({
         phone_number: "+1234567890",
@@ -361,6 +369,7 @@ describe("RetellAIService", () => {
         sip_trunk_auth_username: "user",
         sip_trunk_auth_password: "pass",
         userId: 1,
+        agentId: "agent-123",
       });
 
       expect(result).toEqual(mockImportedNumber);
@@ -434,6 +443,9 @@ describe("RetellAIService", () => {
 
     it("should handle transaction rollback when database creation fails with successful cleanup", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
+      const mockAgent = createMockDatabaseAgent();
+
+      mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
       mockRepository.deletePhoneNumber.mockResolvedValue(undefined);
 
@@ -454,6 +466,7 @@ describe("RetellAIService", () => {
           sip_trunk_auth_username: "user",
           sip_trunk_auth_password: "pass",
           userId: 1,
+          agentId: "agent-123",
         })
       ).rejects.toThrow("Database connection failed");
 
@@ -466,6 +479,9 @@ describe("RetellAIService", () => {
 
     it("should handle compensation failure and throw critical error", async () => {
       const mockImportedNumber = { phone_number: "+1234567890" };
+      const mockAgent = createMockDatabaseAgent();
+
+      mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(mockAgent);
       mockRepository.importPhoneNumber.mockResolvedValue(mockImportedNumber);
 
       // Mock compensation failure
@@ -488,6 +504,7 @@ describe("RetellAIService", () => {
           sip_trunk_auth_username: "user",
           sip_trunk_auth_password: "pass",
           userId: 1,
+          agentId: "agent-123",
         })
       ).rejects.toThrow(
         "Failed to cleanup Retell phone number +1234567890 after transaction failure. Manual cleanup required."
