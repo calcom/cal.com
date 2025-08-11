@@ -384,6 +384,23 @@ export class MembershipRepository {
     });
   }
 
+  static async isUserOrganizationAdmin(userId: number, organizationId: number): Promise<boolean> {
+    const adminMembership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: organizationId,
+        accepted: true,
+        role: {
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!adminMembership;
+  }
+
   static async findAllAcceptedPublishedTeamMemberships(userId: number, tx?: PrismaTransaction) {
     return (tx ?? prisma).membership.findMany({
       where: {

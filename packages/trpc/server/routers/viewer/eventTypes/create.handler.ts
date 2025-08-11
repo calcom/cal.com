@@ -4,6 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
@@ -49,7 +50,19 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
-  const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
+
+  let isOrgAdmin = false;
+  if (teamId && ctx.user.organizationId) {
+    const team = await ctx.prisma.team.findUnique({
+      where: { id: teamId },
+      select: { parentId: true },
+    });
+    if (team?.parentId) {
+      isOrgAdmin = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
+    }
+  } else if (ctx.user.organizationId) {
+    isOrgAdmin = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, ctx.user.organizationId);
+  }
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
@@ -110,7 +123,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   // If we are in an organization & they are not admin & they are not creating an event on a teamID
   // Check if evenTypes are locked.
-  if (ctx.user.organizationId && !ctx.user?.organization?.isOrgAdmin && !teamId) {
+  if (ctx.user.organizationId && !isOrgAdmin && !teamId) {
     const orgSettings = await ctx.prisma.organizationSettings.findUnique({
       where: {
         organizationId: ctx.user.organizationId,

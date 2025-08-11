@@ -1,6 +1,8 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamService } from "@calcom/lib/server/service/teamService";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -26,9 +28,18 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
   ).then((results) => results.every((result) => result));
 
-  const isOrgAdmin = ctx.user.profile?.organizationId
-    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
-    : false;
+  const isOrgAdmin = await Promise.all(
+    teamIds.map(async (teamId) => {
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: { parentId: true },
+      });
+      if (team?.parentId && ctx.user.organizationId) {
+        return await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
+      }
+      return false;
+    })
+  ).then((results) => results.some((result) => result));
 
   if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
     throw new TRPCError({ code: "UNAUTHORIZED" });

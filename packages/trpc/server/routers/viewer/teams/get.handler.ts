@@ -28,7 +28,7 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
 
   const team = await getTeamWithoutMembers({
     id: input.teamId,
-    userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
+    userId: undefined,
     isOrgView: input?.isOrg,
   });
 
@@ -39,11 +39,22 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
     });
   }
 
+  let isOrgAdminForTargetOrg = false;
+  if (team.parentId && ctx.user.organizationId) {
+    isOrgAdminForTargetOrg = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
+  }
+
+  const teamWithProperFiltering = await getTeamWithoutMembers({
+    id: input.teamId,
+    userId: isOrgAdminForTargetOrg ? undefined : ctx.user.id,
+    isOrgView: input?.isOrg,
+  });
+
   const membership = {
     role: teamMembership.role,
     accepted: teamMembership.accepted,
   };
-  return { ...team, membership };
+  return { ...(teamWithProperFiltering || team), membership };
 };
 
 export default get;

@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -147,13 +148,14 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
-  const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
   const orgId = ctx.user.organizationId;
   const isTargetingOrg = teamId === ctx.user.organizationId;
 
   if (isTargetingOrg) {
+    const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
     return isOrgAdminOrOwner || !isOrgPrivate;
   }
+
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
@@ -162,7 +164,12 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   if (!team) return false;
 
-  if (isOrgAdminOrOwner && team?.parentId === orgId) {
+  let isOrgAdminForTargetOrg = false;
+  if (team?.parentId && orgId) {
+    isOrgAdminForTargetOrg = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
+  }
+
+  if (isOrgAdminForTargetOrg && team?.parentId === orgId) {
     return true;
   }
 
