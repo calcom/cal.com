@@ -76,16 +76,4 @@ describe("Disallow undefined where", () => {
 
     expect(() => validateWhereClause(where)).toThrowError('The "where" clause cannot be an empty array [].');
   });
-
-  it("validateWhereClause should throw exception when the 'in' field of where object is []", async () => {
-    const where = {
-      id: {
-        in: [],
-      },
-    };
-
-    expect(() => validateWhereClause(where)).toThrowError(
-      'The "in" value for the field "id" cannot be an empty array [].'
-    );
-  });
 });

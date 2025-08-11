@@ -35,11 +35,6 @@ export const validateWhereClause = (where: any) => {
         message = `The "in" value for the field "${key}" cannot be undefined.`;
         throw new Error(message);
       }
-
-      if (whereInput.hasOwnProperty("in") && Array.isArray(whereInput.in) && whereInput.in.length === 0) {
-        message = `The "in" value for the field "${key}" cannot be an empty array [].`;
-        throw new Error(message);
-      }
     }
   }
 };
