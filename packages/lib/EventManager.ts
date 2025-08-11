@@ -7,7 +7,7 @@ import type { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
-import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
+import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
@@ -251,6 +251,32 @@ export default class EventManager {
     return matches;
   }
 
+  private updateMSTeamsVideoCallData(
+    evt: CalendarEvent,
+    results: Array<EventResult<Exclude<Event, AdditionalInformation>>>
+  ) {
+    const office365CalendarWithTeams = results.find(
+      (result) => result.type === "office365_calendar" && result.success && result.createdEvent?.url
+    );
+    if (office365CalendarWithTeams) {
+      evt.videoCallData = {
+        type: "office365_video",
+        id: office365CalendarWithTeams.createdEvent?.id,
+        password: "",
+        url: office365CalendarWithTeams.createdEvent?.url,
+      };
+      if (evt.location && evt.responses) {
+        evt.responses["location"] = {
+          ...(evt.responses["location"] ?? {}),
+          value: {
+            optionValue: "",
+            value: evt.location,
+          },
+        };
+      }
+    }
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -299,12 +325,15 @@ export default class EventManager {
         evt["conferenceCredentialId"] = undefined;
       }
     }
+
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+    const isMSTeamsWithOutlookCalendar = evt.location === MSTeamsLocationType && mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
-    if (isDedicated) {
+    // If the event is a Microsoft Teams meeting with Outlook Calendar, do not create a MSTeams video event, create calendar event will take care.
+    if (isDedicated && !isMSTeamsWithOutlookCalendar) {
       const result = await this.createVideoEvent(evt);
 
       if (result?.createdEvent) {
@@ -330,6 +359,10 @@ export default class EventManager {
     const clonedCalEvent = cloneDeep(event);
     // Create the calendar event with the proper video call data
     results.push(...(await this.createAllCalendarEvents(clonedCalEvent)));
+
+    if (evt.location === MSTeamsLocationType) {
+      this.updateMSTeamsVideoCallData(evt, results);
+    }
 
     // Since the result can be a new calendar event or video event, we have to create a type guard
     // https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
@@ -405,6 +438,10 @@ export default class EventManager {
     const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
     if (calendarReference) {
       results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+
+      if (evt.location === MSTeamsLocationType) {
+        this.updateMSTeamsVideoCallData(evt, results);
+      }
     }
 
     const referencesToCreate = results.map((result) => {
