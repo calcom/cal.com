@@ -1990,7 +1990,7 @@ async function handler(
           })
         );
 
-        if (!isDryRun) {
+        if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           await sendScheduledEmailsAndSMS(
             {
               ...evt,
