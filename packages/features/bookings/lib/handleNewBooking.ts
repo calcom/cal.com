@@ -46,6 +46,7 @@ import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager"
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
@@ -877,7 +878,12 @@ async function handler(
                 orgId: firstUserOrgId ?? null,
                 hosts: eventTypeWithUsers.hosts,
               })
-            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id) && host.groupId === groupId),
+            ).filter(
+              (host) =>
+                !host.isFixed &&
+                userIdsSet.has(host.user.id) &&
+                (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
+            ),
             eventType,
             routingFormResponse,
             meetingStartTime: new Date(reqBody.start),
