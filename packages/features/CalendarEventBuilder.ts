@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
+import { HttpError } from "@calcom/lib/http-error";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
@@ -275,7 +276,10 @@ export class CalendarEventBuilder {
       !this.event.bookerUrl ||
       !this.event.title
     ) {
-      throw new Error("Missing required fields for calendar event");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Missing required fields for calendar event",
+      });
     }
 
     return this.event as CalendarEvent;
