@@ -420,6 +420,9 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
+
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
     const repeatsEvery = occurrence.interval;
 
@@ -456,7 +459,7 @@ export class InputBookingsService_2024_08_13 {
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     for (let i = 0; i < repeatsTimes; i++) {
-      const endTime = startTime.plus({ minutes: eventType.length });
+      const endTime = startTime.plus({ minutes: lengthInMinutes });
 
       events.push({
         start: startTime.toISO(),
