@@ -77,19 +77,31 @@ export class CalendarCacheSqlService {
       console.info("Initial sync: Getting current events with time range");
 
       // First, get current events (now to +30 days) to avoid past events
-      const currentEventsResponse = await calendar.events.list({
-        calendarId,
-        singleEvents: true,
-        timeMin: now.toISOString(),
-        timeMax: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-      });
+      // Paginate through all pages to ensure no events are missed
+      const allCurrentEvents: calendar_v3.Schema$Event[] = [];
+      let pageToken: string | undefined = undefined;
+      do {
+        const pageResponse = await calendar.events.list({
+          calendarId,
+          singleEvents: true,
+          timeMin: now.toISOString(),
+          timeMax: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          pageToken,
+        });
 
-      console.info("Got current events:", currentEventsResponse.data.items?.length || 0);
+        if (pageResponse.data.items && pageResponse.data.items.length > 0) {
+          allCurrentEvents.push(...pageResponse.data.items);
+        }
+
+        pageToken = pageResponse.data.nextPageToken || undefined;
+      } while (pageToken);
+
+      console.info("Got current events (all pages):", allCurrentEvents.length);
 
       // Process current events
-      if (currentEventsResponse.data.items) {
+      if (allCurrentEvents.length > 0) {
         const events = this.parseCalendarEvents(
-          currentEventsResponse.data.items,
+          allCurrentEvents,
           subscription.id,
           false // Don't filter past events as we already fetched from timeMin=now
         );
