@@ -26,30 +26,16 @@ import {
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {
-  teamId?: number;
-  userId?: number;
-  isAll?: boolean;
-  routingFormId?: string;
-  startDate: string;
-  endDate: string;
-  selectedPeriod: string;
+  routingParams: ReturnType<typeof useInsightsRoutingParameters>;
+  selectedPeriod: "perDay" | "perWeek" | "perMonth";
   searchQuery?: string;
 }
 
-function DownloadButton({
-  userId,
-  teamId,
-  isAll,
-  routingFormId,
-  startDate,
-  endDate,
-  selectedPeriod,
-  searchQuery,
-}: DownloadButtonProps) {
+function DownloadButton({ routingParams, selectedPeriod, searchQuery }: DownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useContext();
   const { t } = useLocale();
@@ -59,13 +45,8 @@ function DownloadButton({
 
     try {
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
-        userId,
-        teamId,
-        startDate,
-        endDate,
-        period: selectedPeriod as "perDay" | "perWeek" | "perMonth",
-        isAll,
-        routingFormId,
+        ...routingParams,
+        period: selectedPeriod,
         searchQuery: searchQuery || undefined,
       });
 
@@ -94,17 +75,12 @@ function DownloadButton({
 }
 
 interface FormCardProps {
-  selectedPeriod: string;
-  onPeriodChange: (value: string) => void;
+  selectedPeriod: "perDay" | "perWeek" | "perMonth";
+  onPeriodChange: (value: "perDay" | "perWeek" | "perMonth") => void;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   children: ReactNode;
-  teamId?: number;
-  userId?: number;
-  isAll?: boolean;
-  routingFormId?: string;
-  startDate: string;
-  endDate: string;
+  routingParams: ReturnType<typeof useInsightsRoutingParameters>;
 }
 
 function FormCard({
@@ -113,12 +89,7 @@ function FormCard({
   searchQuery,
   onSearchChange,
   children,
-  teamId,
-  userId,
-  isAll,
-  routingFormId,
-  startDate,
-  endDate,
+  routingParams,
 }: FormCardProps) {
   const { t } = useLocale();
 
@@ -135,7 +106,7 @@ function FormCard({
               ]}
               className="w-fit"
               value={selectedPeriod}
-              onValueChange={(value) => value && onPeriodChange(value)}
+              onValueChange={(value) => value && onPeriodChange(value as "perDay" | "perWeek" | "perMonth")}
             />
             <div className="flex gap-2">
               <div className="w-64">
@@ -148,12 +119,7 @@ function FormCard({
                 />
               </div>
               <DownloadButton
-                userId={userId}
-                teamId={teamId}
-                isAll={isAll}
-                routingFormId={routingFormId}
-                startDate={startDate}
-                endDate={endDate}
+                routingParams={routingParams}
                 selectedPeriod={selectedPeriod}
                 searchQuery={searchQuery}
               />
@@ -215,10 +181,8 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
 
 export function RoutedToPerPeriod() {
   const { t } = useLocale();
-  const { userId, teamId, startDate, endDate, isAll, routingFormId } = useInsightsParameters();
-  const [selectedPeriod, setSelectedPeriod] = useQueryState("selectedPeriod", {
-    defaultValue: "perWeek",
-  });
+  const routingParams = useInsightsRoutingParameters();
+  const [selectedPeriod, setSelectedPeriod] = useState<"perDay" | "perWeek" | "perMonth">("perWeek");
   const [searchQuery, setSearchQuery] = useQueryState("search", {
     defaultValue: "",
   });
@@ -234,13 +198,8 @@ export function RoutedToPerPeriod() {
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } =
     trpc.viewer.insights.routedToPerPeriod.useInfiniteQuery(
       {
-        userId,
-        teamId,
-        startDate,
-        endDate,
-        period: selectedPeriod as "perDay" | "perWeek" | "perMonth",
-        isAll,
-        routingFormId,
+        ...routingParams,
+        period: selectedPeriod,
         searchQuery: searchQuery || undefined,
         limit: 10,
       },
@@ -328,12 +287,7 @@ export function RoutedToPerPeriod() {
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          userId={userId}
-          teamId={teamId}
-          isAll={isAll}
-          routingFormId={routingFormId}
-          startDate={startDate}
-          endDate={endDate}>
+          routingParams={routingParams}>
           <div className="mt-6">
             <DataTableSkeleton columns={5} columnWidths={[200, 120, 120, 120, 120]} />
           </div>
@@ -369,12 +323,7 @@ export function RoutedToPerPeriod() {
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          userId={userId}
-          teamId={teamId}
-          isAll={isAll}
-          routingFormId={routingFormId}
-          startDate={startDate}
-          endDate={endDate}>
+          routingParams={routingParams}>
           <div className="mt-6">
             <div
               className="scrollbar-thin border-subtle relative overflow-auto rounded-md border"
