@@ -159,6 +159,10 @@ export class PrismaPhoneNumberRepository {
         subscriptionStatus: true,
         createdAt: true,
         updatedAt: true,
+        stripeSubscriptionId: true,
+        stripeCustomerId: true,
+        inboundAgentId: true,
+        outboundAgentId: true,
       },
       data: {
         provider,

@@ -305,7 +305,14 @@ export class PhoneNumberService {
     }
   }
 
-  private async validateAgentPermissions(userId: number, agentId?: string) {
+  private async validateAgentPermissions(userId: number, agentId?: string | null) {
+    if (!agentId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
     let agent = null;
     if (agentId) {
       agent = await this.agentRepository.findByIdWithUserAccess({
@@ -358,7 +365,7 @@ export class PhoneNumberService {
       agentAssigned: boolean;
     },
     error: unknown,
-    context: { userId: number; teamId?: number; agentId?: string }
+    context: { userId: number; teamId?: number; agentId?: string | null | undefined }
   ) {
     if (transactionState.retellPhoneNumber?.phone_number) {
       try {

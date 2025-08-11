@@ -142,7 +142,7 @@ export class RetellAIServiceMapper {
   /**
    * Format agent for listing response
    */
-  static formatAgentForList(agent: Agent) {
+  static formatAgentForList(agent: Agent & { userId: number | null }) {
     return {
       id: agent.id,
       name: agent.name,
