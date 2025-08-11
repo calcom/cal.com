@@ -158,7 +158,7 @@ export const DateRangeFilter = ({
 
 
 
-            <Button variant="outline" className="flex items-center space-x-2" data-testid={`filter-popover-trigger-${column.id}`}>
+            <Button color="secondary" className="flex items-center space-x-2" data-testid={`filter-popover-trigger-${column.id}`}>
               <Icon name="calendar-range" className="h-4 w-4" />
 
 

@@ -140,7 +140,7 @@ export function FilterPopover({ column }: FilterPopoverProps) {
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
 
-            <Button variant="outline" className="flex items-center space-x-2" data-testid={`filter-popover-trigger-${column.id}`}>
+            <Button color="secondary" className="flex items-center space-x-2" data-testid={`filter-popover-trigger-${column.id}`}>
               <Icon name={icon} className="h-4 w-4" />
 
           <span>{startCase(column.title)}</span>

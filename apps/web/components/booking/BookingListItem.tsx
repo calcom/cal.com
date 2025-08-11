@@ -582,17 +582,17 @@ function BookingListItem(booking: BookingItemProps) {
                     </div>
 
                     {isPending && (
-                      <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                      <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
                         {t("unconfirmed")}
                       </Badge>
                     )}
                     {booking.eventType?.team && (
-                      <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                      <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="gray">
                         {booking.eventType.team.name}
                       </Badge>
                     )}
                     {showPendingPayment && (
-                      <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                      <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
                         {t("pending_payment")}
                       </Badge>
                     )}
@@ -612,7 +612,7 @@ function BookingListItem(booking: BookingItemProps) {
                     <div
                       title={title}
                       className={classNames(
-                        "max-w-10/12 sm:max-w-56 text-emphasis align-top text-base font-bold leading-6 md:max-w-full"
+                        "max-w-10/12 text-emphasis align-top text-base font-bold leading-6 sm:max-w-56 md:max-w-full"
                       )}>
                       {/* {title} */}
                       <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
@@ -719,7 +719,7 @@ function BookingListItem(booking: BookingItemProps) {
                 </div>
 
                 <div className="flex flex-col">
-                  <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+                  <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
 
                     {/* <Button
@@ -733,7 +733,7 @@ function BookingListItem(booking: BookingItemProps) {
 
                     {!isCancelled && (
                       <Button
-                        variant="outline"
+                        color="secondary"
                         onClick={() => setIsOpenCancellationDialog(true)}
                         className="flex items-center space-x-2">
                         <span>{t("cancel")}</span>
@@ -743,7 +743,7 @@ function BookingListItem(booking: BookingItemProps) {
                     {!isCancelled && (
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="flex items-center space-x-2">
+                          <Button color="secondary" className="flex items-center space-x-2">
                             <Icon name="ellipsis" className="h-4 w-4" />
                           </Button>
                           {/* <Button2

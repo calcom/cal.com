@@ -165,7 +165,7 @@ export function SaveFilterSegmentButton() {
 
   if (!isSegmentEnabled) {
     return (
-        <Button variant="outline" disabled className="flex items-center space-x-2">
+        <Button color="secondary" disabled className="flex items-center space-x-2">
           <Icon name="bookmark" className="h-4 w-4" />
           <span>{t("save")}</span>
         </Button>
@@ -175,7 +175,7 @@ export function SaveFilterSegmentButton() {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" disabled={!canSaveSegment} className="flex items-center space-x-2" data-testid="save-filter-segment-button">
+        <Button color="secondary" disabled={!canSaveSegment} className="flex items-center space-x-2" data-testid="save-filter-segment-button">
           <Icon name="bookmark" className="h-4 w-4" />
           <span>{t("save")}</span>
         </Button>

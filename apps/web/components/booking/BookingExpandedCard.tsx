@@ -156,7 +156,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
                         {showAttendeeDetails === idKey && (
                           <div
                             ref={popupRef}
-                            className="bg-popover border-border min-w-64 bg-default fixed left-[calculated-left] top-[calculated-top] z-[9999] mt-1 space-y-2 rounded-md border p-3 shadow-lg"
+                            className="bg-popover border-border bg-default fixed left-[calculated-left] top-[calculated-top] z-[9999] mt-1 min-w-64 space-y-2 rounded-md border p-3 shadow-lg"
                             style={
                               {
                                 // You may need to calculate position dynamically based on button position
@@ -199,9 +199,8 @@ export function BookingExpandedCard(props: BookingItemProps) {
           {showExpandedActions && (
             <div className="flex flex-col items-end space-y-2">
               <Button
-                variant="outline"
-                size="default"
-                className="w-40"
+                color="secondary"
+                variant="fab"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedMeeting(props);
@@ -211,13 +210,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
               </Button>
               {isBookingInPast && (
                 <Button
-                  variant="outline"
-                  size="default"
-                  className="w-40"
-                  style={{
-                    backgroundColor: "#007ee5",
-                    color: "white",
-                  }}
+                  color="secondary"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleMarkNoShow();
@@ -305,7 +298,7 @@ const NoShowAttendeesDialog = ({
           </div>
 
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => setDialog()}>
+            <Button color="secondary" onClick={() => setDialog()}>
               Cancel
             </Button>
             <Button

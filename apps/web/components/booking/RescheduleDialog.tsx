@@ -19,7 +19,7 @@ export function RescheduleDialog({link}: {link: string}) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center space-x-2">
+        <Button color="secondary" className="flex items-center space-x-2">
           <span>Reschedule</span>
         </Button>
       </DialogTrigger>

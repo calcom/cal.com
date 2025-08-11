@@ -391,8 +391,8 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[48px] flex-row gap-4">
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
+        <div className="flex h-[32px] flex-row gap-4">
+            <Button color="secondary" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
               <Icon name="filter" className="h-4 w-4" />
               <span>{t("filter")}</span>
             </Button>
@@ -402,7 +402,7 @@ function BookingsContent({ status }: BookingsProps) {
         </div>
       </div>
       <main className="w-full">
-        <div className="flex w-full flex-col  -mt-8">
+        <div className="flex w-full flex-col">
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
