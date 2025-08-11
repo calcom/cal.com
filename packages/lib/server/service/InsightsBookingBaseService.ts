@@ -723,8 +723,16 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getPopularEventsStats() {
+  async getPopularEventsStats(pagination?: { limit: number; offset: number }) {
     const baseConditions = await this.getBaseConditions();
+
+    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(DISTINCT "eventTypeId") as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL
+    `;
+
+    const total = Number(totalCountResult[0]?.count || 0);
 
     const bookingsFromSelected = await this.prisma.$queryRaw<
       Array<{
@@ -739,13 +747,13 @@ export class InsightsBookingBaseService {
       WHERE ${baseConditions} AND "eventTypeId" IS NOT NULL
       GROUP BY "eventTypeId"
       ORDER BY count DESC
-      LIMIT 10
+      ${pagination ? Prisma.sql`LIMIT ${pagination.limit} OFFSET ${pagination.offset}` : Prisma.sql`LIMIT 10`}
     `;
 
     const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
 
     if (eventTypeIds.length === 0) {
-      return [];
+      return { data: [], total };
     }
 
     const eventTypesFrom = await this.prisma.eventType.findMany({
@@ -797,13 +805,14 @@ export class InsightsBookingBaseService {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    return result;
+    return { data: result, total };
   }
 
   async getMembersStatsWithCount(
     type: "all" | "cancelled" | "noShow" = "all",
-    sortOrder: "ASC" | "DESC" = "DESC"
-  ): Promise<UserStatsData> {
+    sortOrder: "ASC" | "DESC" = "DESC",
+    pagination?: { limit: number; offset: number }
+  ): Promise<{ data: UserStatsData; total: number }> {
     const baseConditions = await this.getBaseConditions();
 
     let additionalCondition = Prisma.sql``;
@@ -812,6 +821,14 @@ export class InsightsBookingBaseService {
     } else if (type === "noShow") {
       additionalCondition = Prisma.sql`AND "noShowHost" = true`;
     }
+
+    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(DISTINCT "userId") as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL ${additionalCondition}
+    `;
+
+    const total = Number(totalCountResult[0]?.count || 0);
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
@@ -826,11 +843,11 @@ export class InsightsBookingBaseService {
       WHERE ${baseConditions} AND "userId" IS NOT NULL ${additionalCondition}
       GROUP BY "userId"
       ORDER BY count ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
-      LIMIT 10
+      ${pagination ? Prisma.sql`LIMIT ${pagination.limit} OFFSET ${pagination.offset}` : Prisma.sql`LIMIT 10`}
     `;
 
     if (bookingsFromTeam.length === 0) {
-      return [];
+      return { data: [], total };
     }
 
     const userIds = bookingsFromTeam.map((booking) => booking.userId);
@@ -868,11 +885,22 @@ export class InsightsBookingBaseService {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    return result;
+    return { data: result, total };
   }
 
-  async getMembersRatingStats(sortOrder: "ASC" | "DESC" = "DESC"): Promise<UserStatsData> {
+  async getMembersRatingStats(
+    sortOrder: "ASC" | "DESC" = "DESC",
+    pagination?: { limit: number; offset: number }
+  ): Promise<{ data: UserStatsData; total: number }> {
     const baseConditions = await this.getBaseConditions();
+
+    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(DISTINCT "userId") as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
+    `;
+
+    const total = Number(totalCountResult[0]?.count || 0);
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
@@ -887,11 +915,11 @@ export class InsightsBookingBaseService {
       WHERE ${baseConditions} AND "userId" IS NOT NULL AND "rating" IS NOT NULL
       GROUP BY "userId"
       ORDER BY "count" ${sortOrder === "ASC" ? Prisma.sql`ASC` : Prisma.sql`DESC`}
-      LIMIT 10
+      ${pagination ? Prisma.sql`LIMIT ${pagination.limit} OFFSET ${pagination.offset}` : Prisma.sql`LIMIT 10`}
     `;
 
     if (bookingsFromTeam.length === 0) {
-      return [];
+      return { data: [], total };
     }
 
     const userIds = bookingsFromTeam.map((booking) => booking.userId);
@@ -929,11 +957,19 @@ export class InsightsBookingBaseService {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    return result;
+    return { data: result, total };
   }
 
-  async getRecentRatingsStats() {
+  async getRecentRatingsStats(pagination?: { limit: number; offset: number }) {
     const baseConditions = await this.getBaseConditions();
+
+    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "ratingFeedback" IS NOT NULL
+    `;
+
+    const total = Number(totalCountResult[0]?.count || 0);
 
     const bookingsFromTeam = await this.prisma.$queryRaw<
       Array<{
@@ -949,11 +985,11 @@ export class InsightsBookingBaseService {
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions} AND "ratingFeedback" IS NOT NULL
       ORDER BY "endTime" DESC
-      LIMIT 10
+      ${pagination ? Prisma.sql`LIMIT ${pagination.limit} OFFSET ${pagination.offset}` : Prisma.sql`LIMIT 10`}
     `;
 
     if (bookingsFromTeam.length === 0) {
-      return [];
+      return { data: [], total };
     }
 
     const userIds = bookingsFromTeam
@@ -962,7 +998,7 @@ export class InsightsBookingBaseService {
       .filter((userId, index, array) => array.indexOf(userId) === index);
 
     if (userIds.length === 0) {
-      return [];
+      return { data: [], total };
     }
 
     const usersFromTeam = await this.prisma.user.findMany({
@@ -1003,7 +1039,7 @@ export class InsightsBookingBaseService {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    return result;
+    return { data: result, total };
   }
 
   async getBookingStats() {
