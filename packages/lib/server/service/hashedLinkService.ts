@@ -129,32 +129,20 @@ export class HashedLinkService {
     return hashedLink;
   }
 
-  /**
-   * Create a private link for an event type
-   */
   async createLinkForEventType(eventTypeId: number, input: string | HashedLinkInputType) {
     const normalized = this.normalizeLinkInput(input);
     return this.hashedLinkRepository.createLink(eventTypeId, normalized);
   }
 
-  /**
-   * Update an existing private link for an event type
-   */
   async updateLinkForEventType(eventTypeId: number, input: string | HashedLinkInputType) {
     const normalized = this.normalizeLinkInput(input);
     return this.hashedLinkRepository.updateLink(eventTypeId, normalized);
   }
 
-  /**
-   * Delete a private link for an event type
-   */
   async deleteLinkForEventType(eventTypeId: number, linkId: string) {
     return this.hashedLinkRepository.deleteLinks(eventTypeId, [linkId]);
   }
 
-  /**
-   * List links for an event type (lightweight fields)
-   */
   async listLinksByEventType(eventTypeId: number) {
     return this.hashedLinkRepository.findLinksByEventTypeId(eventTypeId);
   }
