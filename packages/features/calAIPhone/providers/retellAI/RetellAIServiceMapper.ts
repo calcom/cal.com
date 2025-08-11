@@ -21,6 +21,18 @@ import type {
   RetellLLM,
 } from "./types";
 
+type AgentWithDetails = Agent & {
+  userId: number | null;
+  outboundPhoneNumbers: Array<{
+    id: number;
+    phoneNumber: string;
+    subscriptionStatus: string | null;
+    provider: string | null;
+  }>;
+  user: { id: number; name: string | null; email: string | null } | null;
+  team: { id: number; name: string | null; slug: string | null; logoUrl?: string | null } | null;
+};
+
 export class RetellAIServiceMapper {
   /**
    * Maps AI configuration to Retell tools format
@@ -142,7 +154,7 @@ export class RetellAIServiceMapper {
   /**
    * Format agent for listing response
    */
-  static formatAgentForList(agent: Agent & { userId: number | null }) {
+  static formatAgentForList(agent: AgentWithDetails) {
     return {
       id: agent.id,
       name: agent.name,
@@ -162,7 +174,7 @@ export class RetellAIServiceMapper {
    * Format agent details response
    */
   static formatAgentDetails(
-    agent: Agent,
+    agent: AgentWithDetails,
     retellAgent: RetellAgent,
     llmDetails: RetellLLM
   ): RetellAgentWithDetails {
