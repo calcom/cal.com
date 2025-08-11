@@ -37,6 +37,21 @@ export type SelectedCalendarsClassNames = {
     title?: string;
     description?: string;
   };
+  selectedCalendarsListClassNames?: {
+    container?: string;
+    selectedCalendar: {
+      container?: string;
+      header?: {
+        container: string;
+        title?: string;
+        description?: string;
+      };
+      body?: {
+        container?: string;
+        description?: string;
+      };
+    };
+  };
   noSelectedCalendarsMessage?: string;
 };
 
@@ -92,7 +107,9 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                   calendarRedirectUrls={calendarRedirectUrls}
                   isDryRun={isDryRun}
                 />
-                <List noBorderTreatment className="p-6 pt-2">
+                <List
+                  noBorderTreatment
+                  className={classNamesObject?.selectedCalendarsListClassNames?.container || "p-6 pt-2"}>
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
                       return (
@@ -105,7 +122,18 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           description={
                             connectedCalendar.primary?.email ?? connectedCalendar.integration.description
                           }
-                          className="border-subtle mt-4 rounded-lg border"
+                          classNameObject={{
+                            container: cn(
+                              "border-subtle mt-4 rounded-lg border",
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.container
+                            ),
+                            title:
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.header
+                                ?.title,
+                            description:
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.header
+                                ?.description,
+                          }}
                           actions={
                             <div className="flex w-32 justify-end">
                               {allowDelete && !connectedCalendar.delegationCredentialId && (
@@ -119,8 +147,20 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                               )}
                             </div>
                           }>
-                          <div className="border-subtle border-t">
-                            <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
+                          <div
+                            className={cn(
+                              "border-subtle border-t",
+                              classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.body
+                                ?.container
+                            )}>
+                            <p
+                              className={cn(
+                                "text-subtle px-5 pt-4 text-sm",
+                                classNamesObject?.selectedCalendarsListClassNames?.selectedCalendar?.body
+                                  ?.description
+                              )}>
+                              {t("toggle_calendars_conflict")}
+                            </p>
                             <ul className="space-y-4 px-5 py-4">
                               {connectedCalendar.calendars?.map((cal) => {
                                 return (
