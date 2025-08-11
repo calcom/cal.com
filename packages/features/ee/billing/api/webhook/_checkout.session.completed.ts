@@ -88,6 +88,25 @@ async function handlePhoneNumberSubscription(session: any) {
     throw new HttpCode(400, "Missing required data for phone number subscription");
   }
 
+  if (!agentId || agentId?.trim() === "") {
+    console.error("Missing agentId for phone number subscription", {
+      userId,
+      teamId,
+    });
+    throw new HttpCode(400, "Missing agentId for phone number subscription");
+  }
+
+  const agent = await PrismaAgentRepository.findByIdWithUserAccess({
+    agentId,
+    userId,
+    teamId,
+  });
+
+  if (!agent) {
+    console.error("Agent not found or user does not have access", { agentId, userId });
+    throw new HttpCode(404, "Agent not found or user does not have access to it");
+  }
+
   const aiService = createDefaultAIPhoneServiceProvider();
 
   const retellPhoneNumber = await aiService.createPhoneNumber({ nickname: `${userId}-${Date.now()}` });
@@ -117,44 +136,44 @@ async function handlePhoneNumberSubscription(session: any) {
     },
   });
 
-  // If agentId is provided, link the phone number to the agent
-  if (agentId) {
-    try {
-      const agent = await PrismaAgentRepository.findByIdWithUserAccess({
-        agentId,
-        userId,
-      });
+  try {
+    console.log("Attempting to link agent to phone number:", { agentId, phoneNumberId: newNumber.id });
 
-      if (!agent) {
-        console.error("Agent not found or user does not have access", { agentId, userId });
-        throw new HttpCode(404, "Agent not found or user does not have access to it");
-      }
+    const agent = await PrismaAgentRepository.findByIdWithUserAccess({
+      agentId,
+      userId,
+    });
 
-      // Assign agent to the new number via Retell API
-      await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
-        outbound_agent_id: agent.retellAgentId,
-      });
-
-      console.log("Linking phone number to agent in database...");
-      // Link the new number to the agent in our database
-      await prisma.calAiPhoneNumber.update({
-        where: { id: newNumber.id },
-        data: {
-          outboundAgent: {
-            connect: { id: agentId },
-          },
-        },
-      });
-
-      console.log("Phone number successfully linked to agent");
-    } catch (error) {
-      console.error("Agent linking error details:", {
-        error,
-        agentId,
-        phoneNumber: retellPhoneNumber.phone_number,
-        userId,
-      });
+    if (!agent) {
+      console.error("Agent not found or user does not have access", { agentId, userId });
+      throw new HttpCode(404, "Agent not found or user does not have access to it");
     }
+
+    console.log("Found agent:", { agentId: agent.id, providerAgentId: agent.providerAgentId });
+
+    // Assign agent to the new number via Retell API
+    await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
+      outbound_agent_id: agent.providerAgentId,
+    });
+
+    // Link the new number to the agent in our database
+    await prisma.calAiPhoneNumber.update({
+      where: { id: newNumber.id },
+      data: {
+        outboundAgent: {
+          connect: { id: agentId },
+        },
+      },
+    });
+
+    console.log("Phone number successfully linked to agent");
+  } catch (error) {
+    console.error("Agent linking error details:", {
+      error,
+      agentId,
+      phoneNumber: retellPhoneNumber.phone_number,
+      userId,
+    });
   }
 
   return { success: true, phoneNumber: newNumber.phoneNumber };
