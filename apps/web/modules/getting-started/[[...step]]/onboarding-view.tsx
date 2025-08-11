@@ -18,8 +18,6 @@ import { StepCard } from "@calcom/ui/components/card";
 import { Steps } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
-import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
-
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
@@ -85,7 +83,9 @@ const stepRouteSchema = z.object({
   from: z.string().optional(),
 });
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = {
+  hasPendingInvites: boolean;
+};
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
