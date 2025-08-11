@@ -27,15 +27,11 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
   ).then((results) => results.every((result) => result));
 
-  const isOrgAdmin = await Promise.all(
-    teamIds.map(async (teamId) => {
-      const userRepository = new UserRepository();
-      return await userRepository.isAdminOfTeamOrParentOrg({
-        userId: ctx.user.id,
-        teamId: teamId,
-      });
-    })
-  ).then((results) => results.some((result) => result));
+  const userRepository = new UserRepository();
+  const isOrgAdmin = await userRepository.isAdminOfAnyTeamOrParentOrg({
+    userId: ctx.user.id,
+    teamIds: teamIds,
+  });
 
   if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
     throw new TRPCError({ code: "UNAUTHORIZED" });

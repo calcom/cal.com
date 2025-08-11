@@ -754,6 +754,34 @@ export class UserRepository {
     });
     return !!teams.length;
   }
+
+  async isAdminOfAnyTeamOrParentOrg({ userId, teamIds }: { userId: number; teamIds: number[] }) {
+    if (teamIds.length === 0) return false;
+
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      },
+    };
+    const teams = await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!teams.length;
+  }
   async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
     const isAdminOrOwnerOfTeam = await this.prismaClient.membership.findUnique({
       where: {
