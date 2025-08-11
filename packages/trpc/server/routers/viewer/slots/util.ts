@@ -8,6 +8,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
@@ -40,7 +41,6 @@ import {
   BookingDateInPastError,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { isRestrictionScheduleEnabled } from "@calcom/lib/restrictionSchedule";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
@@ -106,6 +106,7 @@ export interface IAvailableSlotsService {
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
   redisClient: IRedisService;
+  featuresRepo: IFeaturesRepository;
 }
 
 function withSlotsCache(
@@ -924,6 +925,14 @@ export class AvailableSlotsService {
     };
   }
 
+  private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
+    if (!teamId) {
+      return false;
+    }
+
+    return await this.dependencies.featuresRepo.checkIfTeamHasFeature(teamId, "restriction-schedule");
+  }
+
   private async _getRegularOrDynamicEventType(
     input: TGetScheduleInputSchema,
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -1143,8 +1152,9 @@ export class AvailableSlotsService {
 
     let availableTimeSlots: typeof timeSlots = [];
     const bookerClientUid = ctx?.req?.cookies?.uid;
-    // TODO: DI isRestrictionScheduleEnabled
-    const isRestrictionScheduleFeatureEnabled = await isRestrictionScheduleEnabled(eventType.team?.id);
+    const isRestrictionScheduleFeatureEnabled = await this.checkRestrictionScheduleEnabled(
+      eventType.team?.id
+    );
     if (eventType.restrictionScheduleId && isRestrictionScheduleFeatureEnabled) {
       const restrictionSchedule = await this.dependencies.scheduleRepo.findScheduleByIdForBuildDateRanges({
         scheduleId: eventType.restrictionScheduleId,

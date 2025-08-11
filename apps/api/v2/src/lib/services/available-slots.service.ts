@@ -50,6 +50,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
         redisService
       ),
       busyTimesService: new BusyTimesService(bookingRepository),
+      featuresRepo: featuresRepository,
     });
   }
 }
