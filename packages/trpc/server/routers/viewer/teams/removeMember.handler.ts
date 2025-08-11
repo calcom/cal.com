@@ -1,5 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -26,9 +27,15 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
   ).then((results) => results.every((result) => result));
 
-  const isOrgAdmin = ctx.user.profile?.organizationId
-    ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
-    : false;
+  const isOrgAdmin = await Promise.all(
+    teamIds.map(async (teamId) => {
+      const userRepository = new UserRepository();
+      return await userRepository.isAdminOfTeamOrParentOrg({
+        userId: ctx.user.id,
+        teamId: teamId,
+      });
+    })
+  ).then((results) => results.some((result) => result));
 
   if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
     throw new TRPCError({ code: "UNAUTHORIZED" });

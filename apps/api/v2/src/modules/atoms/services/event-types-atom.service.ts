@@ -11,6 +11,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from "@nestjs/common";
 
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { checkAdminOrOwner, getClientSecretFromPayment } from "@calcom/platform-libraries";
 import type { TeamQuery } from "@calcom/platform-libraries";
 import { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/platform-libraries/app-store";
@@ -73,8 +74,9 @@ export class EventTypesAtomService {
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
+    const userRepository = new UserRepository();
     const isUserOrganizationAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
+      ? await userRepository.isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
 
     const eventType = await getEventTypeById({
@@ -188,10 +190,11 @@ export class EventTypesAtomService {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
     if (organizationId) {
-      const isUserOrganizationAdmin = await this.membershipsRepository.isUserOrganizationAdmin(
-        user.id,
-        organizationId
-      );
+      const userRepository = new UserRepository();
+      const isUserOrganizationAdmin = await userRepository.isAdminOrOwnerOfTeam({
+        userId: user.id,
+        teamId: organizationId,
+      });
 
       if (isUserOrganizationAdmin) {
         const orgTeam = await this.organizationsTeamsRepository.findOrgTeam(organizationId, teamId);
@@ -286,9 +289,10 @@ export class EventTypesAtomService {
         .filter(({ ...app }) => app.slug === slug)
         .map(
           async ({
-            credentials: _,
+            credentials,
             credential,
-            key: _2 /* don't leak to frontend */,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            key /* don't leak to frontend */,
             ...app
           }: EnabledAppType) => {
             const userCredentialIds = credentials

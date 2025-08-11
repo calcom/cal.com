@@ -10,6 +10,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { dynamicEvent } from "@calcom/platform-libraries";
 import {
   createEventType,
@@ -38,7 +39,8 @@ export class EventTypesService_2024_06_14 {
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const { destinationCalendar: _destinationCalendar, ...rest } = body;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { destinationCalendar, ...rest } = body;
 
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,
@@ -127,7 +129,7 @@ export class EventTypesService_2024_06_14 {
   async getUserToCreateEvent(user: UserWithProfile) {
     const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
+      ? await new UserRepository().isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);

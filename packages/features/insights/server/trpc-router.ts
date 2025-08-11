@@ -11,6 +11,7 @@ import {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsBookingService } from "@calcom/lib/di/containers/insights-booking";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -600,34 +601,41 @@ export const insightsRouter = router({
       return [];
     }
 
-    // Validate if user belongs to org as admin/owner
-    if (user.organizationId && user.organization.isOrgAdmin) {
-      const teamsAndOrg = await ctx.insightsDb.team.findMany({
-        where: {
-          OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
-        },
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          logoUrl: true,
-        },
+    // Validate if user belongs to org as admin/owner for the specific organization
+    if (user.organizationId) {
+      const userRepository = new UserRepository();
+      const isOrgAdmin = await userRepository.isAdminOrOwnerOfTeam({
+        userId: user.id,
+        teamId: user.organizationId,
       });
-      const teamsFromOrg = teamsAndOrg.filter((team) => team.id !== user.organizationId);
-      const orgTeam = teamsAndOrg.find((team) => team.id === user.organizationId);
-      if (!orgTeam) {
-        return [];
+      if (isOrgAdmin) {
+        const teamsAndOrg = await ctx.insightsDb.team.findMany({
+          where: {
+            OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
+          },
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            logoUrl: true,
+          },
+        });
+        const teamsFromOrg = teamsAndOrg.filter((team) => team.id !== user.organizationId);
+        const orgTeam = teamsAndOrg.find((team) => team.id === user.organizationId);
+        if (!orgTeam) {
+          return [];
+        }
+
+        const result: IResultTeamList[] = [
+          {
+            ...orgTeam,
+            isOrg: true,
+          },
+          ...teamsFromOrg,
+        ];
+
+        return result;
       }
-
-      const result: IResultTeamList[] = [
-        {
-          ...orgTeam,
-          isOrg: true,
-        },
-        ...teamsFromOrg,
-      ];
-
-      return result;
     }
 
     // Look if user it's admin/owner in multiple teams

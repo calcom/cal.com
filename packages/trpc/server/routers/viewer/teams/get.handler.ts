@@ -1,5 +1,6 @@
 import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,9 +27,15 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
     });
   }
 
+  const userRepository = new UserRepository();
+  const canBypassUserFiltering = await userRepository.isAdminOfTeamOrParentOrg({
+    userId: ctx.user.id,
+    teamId: input.teamId,
+  });
+
   const team = await getTeamWithoutMembers({
     id: input.teamId,
-    userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
+    userId: canBypassUserFiltering ? undefined : ctx.user.id,
     isOrgView: input?.isOrg,
   });
 

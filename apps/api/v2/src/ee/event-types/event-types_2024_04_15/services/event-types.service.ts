@@ -13,6 +13,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import {
   createEventType,
   updateEventType,
@@ -60,7 +61,7 @@ export class EventTypesService_2024_04_15 {
   async getUserToCreateEvent(user: UserWithProfile) {
     const organizationId = this.usersService.getUserMainOrgId(user);
     const isOrgAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
+      ? await new UserRepository().isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     return {
@@ -89,7 +90,7 @@ export class EventTypesService_2024_04_15 {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
-      ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
+      ? await new UserRepository().isAdminOrOwnerOfTeam({ userId: user.id, teamId: organizationId })
       : false;
 
     const eventType = await this.eventTypesRepository.getUserEventTypeForAtom(

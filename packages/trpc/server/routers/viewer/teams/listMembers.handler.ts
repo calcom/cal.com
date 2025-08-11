@@ -147,13 +147,14 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersHandlerOptio
 
 const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
-  const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
   const orgId = ctx.user.organizationId;
   const isTargetingOrg = teamId === ctx.user.organizationId;
 
   if (isTargetingOrg) {
+    const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
     return isOrgAdminOrOwner || !isOrgPrivate;
   }
+
   const team = await prisma.team.findUnique({
     where: {
       id: teamId,
@@ -162,7 +163,16 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   if (!team) return false;
 
-  if (isOrgAdminOrOwner && team?.parentId === orgId) {
+  let isOrgAdminForTargetOrg = false;
+  if (team?.parentId && orgId) {
+    const userRepository = new UserRepository();
+    isOrgAdminForTargetOrg = await userRepository.isAdminOrOwnerOfTeam({
+      userId: ctx.user.id,
+      teamId: team.parentId,
+    });
+  }
+
+  if (isOrgAdminForTargetOrg && team?.parentId === orgId) {
     return true;
   }
 

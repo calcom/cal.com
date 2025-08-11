@@ -53,10 +53,19 @@ export const getEventTypeById = async ({
     timeZone: true,
   } satisfies Prisma.UserSelect;
 
+  let finalIsUserOrganizationAdmin = isUserOrganizationAdmin;
+  if (!finalIsUserOrganizationAdmin && currentOrganizationId) {
+    const userRepository = new UserRepository(prisma);
+    finalIsUserOrganizationAdmin = await userRepository.isAdminOrOwnerOfTeam({
+      userId,
+      teamId: currentOrganizationId,
+    });
+  }
+
   const rawEventType = await getRawEventType({
     userId,
     eventTypeId,
-    isUserOrganizationAdmin,
+    isUserOrganizationAdmin: finalIsUserOrganizationAdmin,
     currentOrganizationId,
     prisma,
   });
@@ -260,7 +269,7 @@ export const getEventTypeById = async ({
     team: eventTypeObject.team || null,
     teamMembers,
     currentUserMembership,
-    isUserOrganizationAdmin,
+    isUserOrganizationAdmin: finalIsUserOrganizationAdmin,
   };
   return finalObj;
 };

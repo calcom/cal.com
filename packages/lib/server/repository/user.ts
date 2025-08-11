@@ -4,7 +4,7 @@ import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizatio
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { availabilityUserSelect } from "@calcom/prisma";
+import { availabilityUserSelect, prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User as UserType } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -120,7 +120,7 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient = prisma) {}
 
   async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await this.prismaClient.membership.findMany({
