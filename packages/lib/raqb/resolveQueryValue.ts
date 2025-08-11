@@ -8,10 +8,20 @@ import { caseInsensitive } from "./utils";
 // Type for JSON values that can be in the query
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
+type MinimalField = {
+  type: string;
+  options?: {
+    id: string | null;
+    label: string;
+  }[];
+};
+
+type FieldResponseValue = dynamicFieldValueOperandsResponse[keyof dynamicFieldValueOperandsResponse]["value"];
+
 const moduleLogger = logger.getSubLogger({ prefix: ["raqb/resolveQueryValue"] });
 
 /**
- * Replace attribute option Ids with the attribute option label(compatible to be matched with form field value)
+ * Replace "Attribute Options' Ids" with "Attribute Options' Labels". It makes the query value compatible to be matched with 'Value of Field' operand
  */
 const replaceAttributeOptionIdsWithOptionLabel = ({
   queryValue,
@@ -38,14 +48,8 @@ function getFieldResponseValueAsLabel({
   field,
   fieldResponseValue,
 }: {
-  fieldResponseValue: dynamicFieldValueOperandsResponse[keyof dynamicFieldValueOperandsResponse]["value"];
-  field: {
-    type: string;
-    options?: {
-      id: string | null;
-      label: string;
-    }[];
-  };
+  fieldResponseValue: FieldResponseValue;
+  field: MinimalField;
 }) {
   const nonNumberFieldResponseValue =
     typeof fieldResponseValue === "number" ? fieldResponseValue.toString() : fieldResponseValue;
@@ -67,17 +71,22 @@ function getFieldResponseValueAsLabel({
     if (foundOptionById) {
       return foundOptionById.label;
     } else {
-      return idOrLabel.toString();
+      return idOrLabel;
     }
   }
 }
 
 /**
- * Resolves field template placeholders ({field:fieldId}) in a JSON string with actual values from form responses.
- * Handles arrays properly for JSONLogic compatibility by spreading array values when needed.
+ * Resolves query values by:
+ * 1. Converting attribute option IDs to their lowercase labels
+ * 2. Replacing field template placeholders (e.g., "{field:location}") with actual field values
  *
- * @param queryValueString - JSON string containing RAQB query with field template placeholders like {field:fieldId}
- * @param dynamicFieldValueOperands - Optional object containing fields metadata and user's form responses
+ * Important: When a field template resolves to an array value, the array items are flattened
+ * into the parent array. For example:
+ * - Input: [["{{field:location}}", "Delhi"]] where location = ["New York", "Amsterdam"]
+ * - Output: [["new york", "amsterdam", "Delhi"]] (flattened into single array)
+ * @param queryValue - JSON string containing RAQB query with field template placeholders like {field:fieldId}
+ * @param dynamicFieldValueOperands - Optional object containing fields metadata and user's form field responses
  * @param dynamicFieldValueOperands.fields - Array of field definitions with id, type, label, etc.
  * @param dynamicFieldValueOperands.response - Object mapping field IDs to their response values
  *
@@ -96,8 +105,8 @@ function getFieldResponseValueAsLabel({
  *             "operator": "multiselect_some_in",
  *             "value": [
  *               [
- *                 "{field:0bf77a89-2bd0-4df7-9648-758014ba3189}",
- *                 "899c846d-7c02-43dc-9057-c3f8c118d41f"
+ *                 "{field:0bf77a89-2bd0-4df7-9648-758014ba3189}", // 'Value of field' is stored like this and we call it a 'field template'
+ *                 "899c846d-7c02-43dc-9057-c3f8c118d41f" // A regular attribute option id
  *               ]
  *             ],
  *             "valueSrc": [
@@ -186,10 +195,12 @@ export const resolveQueryValue = ({
     return caseInsensitive(resolvedValue);
   };
 
-  // Process an array that might contain field templates. We keep it generic to handle any updates to the queryValue from the RAQB automatically
+  // Process an array that might contain field templates. We keep it generic instead of typing it as QueryValue to handle any property where the queryValue can have a field template
+  // Note: When a field template resolves to an array, its items are flattened into the parent array
   const processArray = (arr: JsonValue[]): JsonValue[] => {
     const hasFieldTemplate = arr.some((item) => typeof item === "string" && isFieldTemplate(item));
 
+    // Short circuit if there are no field templates
     if (!hasFieldTemplate) {
       return arr.map((item) => processAnyValue(item));
     }
@@ -199,9 +210,13 @@ export const resolveQueryValue = ({
       if (typeof item === "string" && isFieldTemplate(item)) {
         const processed = processStringValue(item);
         if (Array.isArray(processed)) {
-          // [{field:location}, Delhi] -> becomes [New York, Amsterdam, Delhi]. New York and Amsterdam are the values of the field `location`
+          // Flattening behavior: Array values from field templates are spread into parent array
+          // Example: ["{field:location}", "Delhi"] where location = ["New York", "Amsterdam"]
+          // Result: ["New York", "Amsterdam", "Delhi"] (items flattened)
+          // This is intentional to merge field values at the same array level
           result.push(...processed);
         } else {
+          // [{field:location}, Delhi] -> becomes [New York, Delhi]. New York was the response for the field `location`
           result.push(processed);
         }
       } else {

@@ -1571,4 +1571,175 @@ describe("resolveQueryValue", () => {
       })
     );
   });
+
+  it("should handle field templates in deeply nested object structures", () => {
+    const queryValue = {
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "complex",
+            metadata: {
+              level1: {
+                value: "{field:city}",
+                level2: {
+                  items: ["{field:location}"],
+                  level3: {
+                    nested: [["{field:city}"]],
+                    static: "preserved",
+                  },
+                },
+              },
+            },
+            value: ["test"],
+          },
+        },
+      },
+    } as unknown as AttributesQueryValue;
+
+    const result = resolveQueryValue({
+      queryValue,
+      dynamicFieldValueOperands: {
+        fields: mockFields,
+        response: {
+          city: { value: "Mumbai", label: "Mumbai" },
+          location: { value: ["Delhi", "Chennai"], label: "Delhi, Chennai" },
+        },
+      },
+      attributes: mockAttributes,
+    });
+
+    // Verify all nested properties are preserved with templates resolved
+    const props = result.children1?.rule1.properties as any;
+    expect(props.metadata.level1.level2.level3.static).toBe("preserved");
+    expect(props.metadata.level1.value).toBe("mumbai");
+    expect(props.metadata.level1.level2.items).toEqual(["delhi", "chennai"]);
+    expect(props.metadata.level1.level2.level3.nested).toEqual([["mumbai"]]);
+    expect(props.value).toEqual(["test"]);
+  });
+
+  it("should handle extremely deep object nesting without stack overflow", () => {
+    let deepObj: any = { value: "{field:city}" };
+    for (let i = 0; i < 100; i++) {
+      deepObj = { nested: deepObj, level: i };
+    }
+
+    const queryValue = {
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: deepObj,
+        },
+      },
+    } as unknown as AttributesQueryValue;
+
+    const result = resolveQueryValue({
+      queryValue,
+      dynamicFieldValueOperands: {
+        fields: mockFields,
+        response: {
+          city: { value: "Mumbai", label: "Mumbai" },
+        },
+      },
+      attributes: mockAttributes,
+    });
+
+    // Navigate to deepest level to verify it was processed
+    let current = result.children1?.rule1.properties as any;
+    for (let i = 99; i >= 0; i--) {
+      expect(current.level).toBe(i);
+      current = current.nested;
+    }
+    expect(current.value).toBe("mumbai");
+  });
+
+  it("should preserve all JavaScript primitive types in nested structures", () => {
+    const queryValue = {
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            stringField: "{field:city}",
+            numberField: 42,
+            bigintField: 9007199254740991,
+            booleanField: true,
+            nullField: null,
+            nested: {
+              array: ["{field:location}", 123, false, null],
+              decimal: 3.14159,
+              negative: -100,
+              zero: 0,
+              emptyString: "",
+              specialChars: "!@#$%^&*()",
+            },
+          },
+        },
+      },
+    } as unknown as AttributesQueryValue;
+
+    const result = resolveQueryValue({
+      queryValue,
+      dynamicFieldValueOperands: {
+        fields: mockFields,
+        response: {
+          city: { value: "Mumbai", label: "Mumbai" },
+          location: { value: ["Delhi"], label: "Delhi" },
+        },
+      },
+      attributes: mockAttributes,
+    });
+
+    const props = result.children1?.rule1.properties as any;
+    expect(props.stringField).toBe("mumbai");
+    expect(props.numberField).toBe(42);
+    expect(props.bigintField).toBe(9007199254740991);
+    expect(props.booleanField).toBe(true);
+    expect(props.nullField).toBeNull();
+    expect(props.nested.array).toEqual(["delhi", 123, false, null]);
+    expect(props.nested.decimal).toBe(3.14159);
+    expect(props.nested.negative).toBe(-100);
+    expect(props.nested.zero).toBe(0);
+    expect(props.nested.emptyString).toBe("");
+    expect(props.nested.specialChars).toBe("!@#$%^&*()");
+  });
+
+  it("should process field templates within objects inside arrays", () => {
+    const queryValue = {
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            value: [
+              { id: 1, city: "{field:city}" },
+              { id: 2, locations: ["{field:location}"] },
+              { id: 3, nested: { value: [["{field:city}"]] } },
+            ],
+          },
+        },
+      },
+    } as unknown as AttributesQueryValue;
+
+    const result = resolveQueryValue({
+      queryValue,
+      dynamicFieldValueOperands: {
+        fields: mockFields,
+        response: {
+          city: { value: "Mumbai", label: "Mumbai" },
+          location: { value: ["Delhi", "Chennai"], label: "Delhi, Chennai" },
+        },
+      },
+      attributes: mockAttributes,
+    });
+
+    const props = result.children1?.rule1.properties as any;
+    expect(props.value[0]).toEqual({ id: 1, city: "mumbai" });
+    expect(props.value[1]).toEqual({
+      id: 2,
+      locations: ["delhi", "chennai"],
+    });
+    expect(props.value[2]).toEqual({
+      id: 3,
+      nested: { value: [["mumbai"]] },
+    });
+  });
 });
