@@ -4,7 +4,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
@@ -53,15 +53,17 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   let isOrgAdmin = false;
   if (teamId && ctx.user.organizationId) {
-    const team = await ctx.prisma.team.findUnique({
-      where: { id: teamId },
-      select: { parentId: true },
+    const userRepository = new UserRepository();
+    isOrgAdmin = await userRepository.isAdminOfTeamOrParentOrg({
+      userId: ctx.user.id,
+      teamId: teamId,
     });
-    if (team?.parentId) {
-      isOrgAdmin = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
-    }
   } else if (ctx.user.organizationId) {
-    isOrgAdmin = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, ctx.user.organizationId);
+    const userRepository = new UserRepository();
+    isOrgAdmin = await userRepository.isAdminOrOwnerOfTeam({
+      userId: ctx.user.id,
+      teamId: ctx.user.organizationId,
+    });
   }
 
   const locations: EventTypeLocation[] =

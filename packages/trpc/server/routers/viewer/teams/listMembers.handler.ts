@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
@@ -166,7 +165,11 @@ const checkCanAccessMembers = async (ctx: ListMembersHandlerOptions["ctx"], team
 
   let isOrgAdminForTargetOrg = false;
   if (team?.parentId && orgId) {
-    isOrgAdminForTargetOrg = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
+    const userRepository = new UserRepository();
+    isOrgAdminForTargetOrg = await userRepository.isAdminOrOwnerOfTeam({
+      userId: ctx.user.id,
+      teamId: team.parentId,
+    });
   }
 
   if (isOrgAdminForTargetOrg && team?.parentId === orgId) {

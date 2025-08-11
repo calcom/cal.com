@@ -6,7 +6,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -266,7 +267,10 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   if (isPlatform) {
     inviterOrgId = team.id;
     orgSlug = team ? team.slug || requestedSlugForTeam : null;
-    isInviterOrgAdmin = await MembershipRepository.isUserOrganizationAdmin(inviter.id, team.id);
+    isInviterOrgAdmin = await new UserRepository(prisma).isAdminOrOwnerOfTeam({
+      userId: inviter.id,
+      teamId: team.id,
+    });
   }
 
   await ensureAtleastAdminPermissions({

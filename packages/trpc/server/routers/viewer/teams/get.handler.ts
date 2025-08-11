@@ -1,5 +1,6 @@
 import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,9 +15,17 @@ type GetDataOptions = {
 };
 
 export const get = async ({ ctx, input }: GetDataOptions) => {
-  const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
-    userId: ctx.user.id,
-    teamId: input.teamId,
+  const teamMembership = await prisma.membership.findUnique({
+    where: {
+      userId_teamId: {
+        userId: ctx.user.id,
+        teamId: input.teamId,
+      },
+    },
+    select: {
+      role: true,
+      accepted: true,
+    },
   });
 
   if (!teamMembership) {
@@ -26,9 +35,15 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
     });
   }
 
+  const userRepository = new UserRepository();
+  const canBypassUserFiltering = await userRepository.isAdminOfTeamOrParentOrg({
+    userId: ctx.user.id,
+    teamId: input.teamId,
+  });
+
   const team = await getTeamWithoutMembers({
     id: input.teamId,
-    userId: undefined,
+    userId: canBypassUserFiltering ? undefined : ctx.user.id,
     isOrgView: input?.isOrg,
   });
 
@@ -39,22 +54,11 @@ export const get = async ({ ctx, input }: GetDataOptions) => {
     });
   }
 
-  let isOrgAdminForTargetOrg = false;
-  if (team.parentId && ctx.user.organizationId) {
-    isOrgAdminForTargetOrg = await MembershipRepository.isUserOrganizationAdmin(ctx.user.id, team.parentId);
-  }
-
-  const teamWithProperFiltering = await getTeamWithoutMembers({
-    id: input.teamId,
-    userId: isOrgAdminForTargetOrg ? undefined : ctx.user.id,
-    isOrgView: input?.isOrg,
-  });
-
   const membership = {
     role: teamMembership.role,
     accepted: teamMembership.accepted,
   };
-  return { ...(teamWithProperFiltering || team), membership };
+  return { ...team, membership };
 };
 
 export default get;
