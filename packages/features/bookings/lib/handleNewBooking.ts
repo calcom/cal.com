@@ -46,13 +46,14 @@ import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager"
 import { handleAnalyticsEvents } from "@calcom/lib/analyticsManager/handleAnalyticsEvents";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/booking-limits";
-import { getCacheService } from "@calcom/lib/di/containers/cache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/lib/di/containers/Cache";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getEventName, updateHostInEventName } from "@calcom/lib/event";
@@ -82,7 +83,13 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  CalEventResponses,
+  Person,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
@@ -877,7 +884,12 @@ async function handler(
                 orgId: firstUserOrgId ?? null,
                 hosts: eventTypeWithUsers.hosts,
               })
-            ).filter((host) => !host.isFixed && userIdsSet.has(host.user.id) && host.groupId === groupId),
+            ).filter(
+              (host) =>
+                !host.isFixed &&
+                userIdsSet.has(host.user.id) &&
+                (host.groupId === groupId || (!host.groupId && groupId === DEFAULT_GROUP_ID))
+            ),
             eventType,
             routingFormResponse,
             meetingStartTime: new Date(reqBody.start),
@@ -1574,6 +1586,47 @@ async function handler(
       evt.iCalUID = undefined;
     }
 
+    if (changedOrganizer && originalRescheduledBooking?.user) {
+      const originalHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+        originalRescheduledBooking.user,
+        eventType
+      );
+      const refreshedOriginalHostCredentials = await refreshCredentials(originalHostCredentials);
+
+      // Create EventManager with original host's credentials for deletion operations
+      const originalHostEventManager = new EventManager(
+        { ...originalRescheduledBooking.user, credentials: refreshedOriginalHostCredentials },
+        apps
+      );
+      log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+      // Create deletion event with original host's organizer info and original booking properties
+      const deletionEvent = {
+        ...evt,
+        organizer: {
+          id: originalRescheduledBooking.user.id,
+          name: originalRescheduledBooking.user.name || "",
+          email: originalRescheduledBooking.user.email,
+          username: originalRescheduledBooking.user.username || undefined,
+          timeZone: originalRescheduledBooking.user.timeZone,
+          language: { translate: tOrganizer, locale: originalRescheduledBooking.user.locale ?? "en" },
+          timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
+        },
+        destinationCalendar: previousHostDestinationCalendar,
+        // Override with original booking properties used by deletion operations
+        startTime: originalRescheduledBooking.startTime.toISOString(),
+        endTime: originalRescheduledBooking.endTime.toISOString(),
+        uid: originalRescheduledBooking.uid,
+        location: originalRescheduledBooking.location,
+        responses: originalRescheduledBooking.responses
+          ? (originalRescheduledBooking.responses as CalEventResponses)
+          : evt.responses,
+      };
+
+      await originalHostEventManager.deleteEventsAndMeetings({
+        event: deletionEvent,
+        bookingReferences: originalRescheduledBooking.references,
+      });
+    }
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
@@ -1731,6 +1784,8 @@ async function handler(
 
           originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
+            username: originalRescheduledBooking.user.username ?? undefined,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
           });
@@ -1935,7 +1990,7 @@ async function handler(
           })
         );
 
-        if (!isDryRun) {
+        if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           await sendScheduledEmailsAndSMS(
             {
               ...evt,
