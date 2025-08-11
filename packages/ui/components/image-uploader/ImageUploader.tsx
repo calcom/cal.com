@@ -6,8 +6,13 @@ import Cropper from "react-easy-crop";
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor, ButtonProps } from "../button";
-import { Button } from "../button";
+// import type { ButtonColor, ButtonProps } from "../button";
+// import { Button } from "../button";
+
+
+import type { ButtonColor, ButtonProps } from "@calid/features/ui";
+import { Button } from "@calid/features/ui";
+
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
 import { showToast } from "../toast";
 import { useFileReader, createImage, Slider } from "./Common";
@@ -134,7 +139,7 @@ export default function ImageUploader({
           disabled={disabled}
           size={buttonSize}
           data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
-          className="cursor-pointer py-1 text-sm">
+          className="cursor-pointer py-2 px-2 text-sm">
           {buttonMsg}
         </Button>
       </DialogTrigger>

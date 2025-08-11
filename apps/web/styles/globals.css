@@ -69,7 +69,8 @@
   );
   --cal-bg-active: hsla(207, 100%, 45%, 1); /* active tabs */
   --cal-bg-active-dim: hsla(207, 100%, 45%, 0.2); /* active tabs */
-  --cal-bg-destrutive: hsla(4, 61%, 49%, 1); /* destructive elements */
+  --cal-bg-destructive: hsla(4, 61%, 49%, 1); /* destructive elements */
+  --cal-bg-destructive-dim: hsla(4, 61%, 49%, 0.1); /* destructive elements */
 
   /* Background Primary */
   --cal-bg-primary: hsla(214, 30%, 16%, 1); /* stone-100 */
@@ -689,7 +690,11 @@ select:focus {
 }
 
 .bg-cal-destructive {
-  background-color: var(--cal-bg-destrutive);
+  background-color: var(--cal-bg-destructive);
+}
+
+.bg-cal-destructive-dim {
+  background-color: var(--cal-bg-destructive-dim);
 }
 
 .text-cal-destructive {
@@ -702,6 +707,10 @@ select:focus {
 
 .border-active {
   border-color: var(--cal-bg-active);;
+}
+
+.border-destructive {
+  border-color: var(--cal-bg-destructive);;
 }
 
 .checked\:cal-bg-actie:checked {

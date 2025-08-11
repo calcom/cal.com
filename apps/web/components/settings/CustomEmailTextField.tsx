@@ -44,12 +44,12 @@ const CustomEmailTextField = ({
   return (
     <>
       <div
-        className={`border-default mt-2 flex w-full items-center rounded-[10px] border ${
-          inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
+        className={`border-default mt-2 flex w-full items-center rounded-md h-[40px] border ${
+          inputFocus ? "ring-brand-default border-neutral-300 ring-2 ring-offset-2" : ""
         }`}>
         <input
           {...formMethods.register(formMethodFieldName)}
-          className="flex-1 bg-transparent px-3 py-1.5 text-sm outline-none"
+          className="border-none focus:border-none focus:ring-0 flex-1 bg-transparent px-3 py-1.5 text-sm outline-none"
           data-testid={dataTestId}
           onFocus={() => setInputFocus(true)}
           onBlur={() => setInputFocus(false)}

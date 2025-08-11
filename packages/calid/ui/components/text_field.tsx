@@ -11,11 +11,13 @@ const TextField = React.forwardRef<
 >(({ className, type, addOnSuffix, ...props }, ref) => {
   return (
     <div className={cn("flex flex-col", className)}>
-      <Label className="text-default mb-1" htmlFor={props.id}>
-        {props.label}
-      </Label>
+      {props.label && (
+        <Label className="text-default mb-2" htmlFor={props.id}>
+          {props.label}
+        </Label>
+      )}
       <div className="flex flex-row">
-        <Input ref={ref} type={type} className="w-full" {...props} />
+        <Input ref={ref} type={type} className={cn("w-full", className)} {...props} />
         {addOnSuffix}
       </div>
     </div>

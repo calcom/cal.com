@@ -145,6 +145,24 @@ export const buttonClasses = cva(
           "transition-shadow",
           "duration-200",
         ],
+
+        destructive_account: [
+          // Base colors
+          "bg-default",
+          "border",
+          "border-destructive",
+          "text-destructive",
+          // Hover state
+          "hover:bg-red-500",
+          "hover:text-white",
+          "hover:transform",
+          "!hover:scale-105", // Add transform class
+          // Transitions
+          "transition-all",
+          "duration-200",
+          // Disabled state
+          "disabled:opacity-30",
+        ],
       },
       size: {
         xs: "h-6 p-2 leading-none text-xs rounded-md",
@@ -248,7 +266,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       disabled,
       type: !isLink ? type : undefined,
       ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+      // className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+      className: (() => {
+        const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
+        console.log("Button classes:", classes);
+        return classes;
+      })(),
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
