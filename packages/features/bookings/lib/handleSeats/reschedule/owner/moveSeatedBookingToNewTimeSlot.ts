@@ -87,7 +87,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     }
   }
 
-  if (noEmail !== true) {
+  if (noEmail !== true && isConfirmedByDefault) {
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
