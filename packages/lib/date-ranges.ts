@@ -125,15 +125,21 @@ export function processWorkingHours(
       continue;
     }
 
+    // Pre-compute timestamps outside the loop
+    const startValue = startResult.valueOf();
+    const endValue = endResult.valueOf();
+
     let foundOverlapOrAdjacent = false;
+    // TODO: Replace with sorted structure for O(log N) lookup
     for (const existingKey in results) {
       const existingRange = results[existingKey];
+      const existingStartValue = existingRange.start.valueOf();
+      const existingEndValue = existingRange.end.valueOf();
 
       const isOverlapping =
-        (startResult.valueOf() <= existingRange.end.valueOf() &&
-          endResult.valueOf() >= existingRange.start.valueOf()) ||
-        Math.abs(startResult.valueOf() - existingRange.end.valueOf()) <= 15 * 60 * 1000 ||
-        Math.abs(endResult.valueOf() - existingRange.start.valueOf()) <= 15 * 60 * 1000;
+        (startValue <= existingEndValue && endValue >= existingStartValue) ||
+        Math.abs(startValue - existingEndValue) <= 15 * 60 * 1000 ||
+        Math.abs(endValue - existingStartValue) <= 15 * 60 * 1000;
       if (isOverlapping) {
         const mergedStart = dayjs.min(existingRange.start, startResult);
         const mergedEnd = dayjs.max(existingRange.end, endResult);
@@ -154,10 +160,9 @@ export function processWorkingHours(
             endTimeToKeyMap.set(oldEndTime, filteredKeys);
           }
 
-          if (!endTimeToKeyMap.has(newKey)) {
-            endTimeToKeyMap.set(newKey, []);
-          }
-          endTimeToKeyMap.get(newKey)!.push(newKey);
+          const keySet = new Set(endTimeToKeyMap.get(newKey) || []);
+          keySet.add(newKey);
+          endTimeToKeyMap.set(newKey, Array.from(keySet));
         }
 
         // Remove the old entry
