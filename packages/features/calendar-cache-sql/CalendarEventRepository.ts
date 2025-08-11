@@ -16,6 +16,9 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
   ): Promise<CalendarEventUpsertResult> {
     const client = tx || this.prismaClient;
+    // Split participant relations from scalar fields so we can handle nested writes safely on update
+    const { creator, organizer, attendees, calendarSubscription: _ignored, ...scalarFields } = data;
+
     return await client.calendarEvent.upsert({
       where: {
         calendarSubscriptionId_googleEventId: {
@@ -24,11 +27,104 @@ export class CalendarEventRepository implements ICalendarEventRepository {
         },
       },
       create: {
-        ...data,
+        ...scalarFields,
         calendarSubscription: { connect: { id: subscriptionId } },
+        ...(creator
+          ? {
+              creator: {
+                create: {
+                  email: creator.create?.email ?? null,
+                  displayName: creator.create?.displayName ?? null,
+                  isSelf: creator.create?.isSelf ?? false,
+                  isOrganizer: creator.create?.isOrganizer ?? false,
+                },
+              },
+            }
+          : {}),
+        ...(organizer
+          ? {
+              organizer: {
+                create: {
+                  email: organizer.create?.email ?? null,
+                  displayName: organizer.create?.displayName ?? null,
+                  isSelf: organizer.create?.isSelf ?? false,
+                  isOrganizer: true,
+                },
+              },
+            }
+          : {}),
+        ...(attendees?.createMany?.data?.length
+          ? {
+              attendees: {
+                createMany: {
+                  data: attendees.createMany.data,
+                  skipDuplicates: true,
+                },
+              },
+            }
+          : {}),
       },
       update: {
-        ...data,
+        ...scalarFields,
+        // Ensure relations are updated without violating unique constraints
+        ...(creator
+          ? {
+              creator: {
+                upsert: {
+                  update: {
+                    email: creator.create?.email ?? null,
+                    displayName: creator.create?.displayName ?? null,
+                    isSelf: creator.create?.isSelf ?? false,
+                    isOrganizer: creator.create?.isOrganizer ?? false,
+                  },
+                  create: {
+                    email: creator.create?.email ?? null,
+                    displayName: creator.create?.displayName ?? null,
+                    isSelf: creator.create?.isSelf ?? false,
+                    isOrganizer: creator.create?.isOrganizer ?? false,
+                  },
+                },
+              },
+            }
+          : {
+              // If no creator provided, remove any existing creator participant
+              creator: { delete: true },
+            }),
+        ...(organizer
+          ? {
+              organizer: {
+                upsert: {
+                  update: {
+                    email: organizer.create?.email ?? null,
+                    displayName: organizer.create?.displayName ?? null,
+                    isSelf: organizer.create?.isSelf ?? false,
+                    isOrganizer: true,
+                  },
+                  create: {
+                    email: organizer.create?.email ?? null,
+                    displayName: organizer.create?.displayName ?? null,
+                    isSelf: organizer.create?.isSelf ?? false,
+                    isOrganizer: true,
+                  },
+                },
+              },
+            }
+          : {
+              // If no organizer provided, remove any existing organizer participant
+              organizer: { delete: true },
+            }),
+        // Replace attendees to keep data in sync
+        attendees: {
+          deleteMany: {},
+          ...(attendees?.createMany?.data?.length
+            ? {
+                createMany: {
+                  data: attendees.createMany.data,
+                  skipDuplicates: true,
+                },
+              }
+            : {}),
+        },
         updatedAt: new Date(),
       },
       select: {
