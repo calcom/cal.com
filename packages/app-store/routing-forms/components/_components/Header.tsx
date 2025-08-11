@@ -93,24 +93,21 @@ const Actions = ({
           <ButtonGroup combined className="border-r-subtle border-l-subtle">
             <FormAction
               action="_delete"
-              variant="ghost"
+              variant="fab"
               routingForm={form}
-              className="w-full"
-              size="sm"
-              className="text-xs"
+              size="xs"
               type="button"
-              color="destructive"
-              StartIcon="trash">
+              color="secondary">
               {t("delete")}
             </FormAction>
             <Button
               data-testid={isMobile ? "update-form-mobile" : "update-form"}
-              variant="outline"
-              size="sm"
-              className="w-[64px] content-center items-center justify-center text-xs"
+              variant="fab"
+              size="xs"
+              className="w-[52px]"
               loading={isSaving}
               type="submit"
-              color="primary">
+              color="secondary">
               {t("save")}
             </Button>
           </ButtonGroup>

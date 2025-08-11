@@ -58,6 +58,19 @@ export const buttonClasses = cva(
           "enabled:hover:shadow-button-solid-brand-hover",
         ],
 
+        primary_dim: [
+          // Base colors
+          "bg-cal-active-dim",
+          "text-cal-active",
+          "border:bg-cal-active",
+          // Disabled
+          "disabled:opacity-30",
+          "hover:bg-cal-active/90",
+          "border",
+          "border-active",
+          // Shadows and effects
+        ],
+
         secondary: [
           // Base colors and border
           "bg-white",

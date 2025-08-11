@@ -41,9 +41,7 @@ import type { RoutingFormWithResponseCount } from "../../types/types";
 function NewFormButton({ setSelectTeamDialogState }: { setSelectTeamDialogState: SetSelectTeamDialogState }) {
   const { t } = useLocale();
   return (
-    <ButtonCal
-      onClick={() => setSelectTeamDialogState({ target: null })}
-      className="flex items-center space-x-2 p-4">
+    <ButtonCal onClick={() => setSelectTeamDialogState({ target: null })}>
       <Icon name="plus" className="h-4 w-4" />
       <span>{t("new")}</span>
     </ButtonCal>
@@ -280,13 +278,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
 
                               <FormAction
                                 disabled={readOnly}
-                                className="self-center"
+                                className="mr-2"
                                 action="toggle"
                                 size="xs"
                                 routingForm={form}
                               />
 
-                              <FormActionsDropdown disabled={readOnly}>
+                              <FormActionsDropdown disabled={readOnly} className="ml-2">
                                 <FormAction action="edit" routingForm={form} className="!flex">
                                   {t("edit")}
                                 </FormAction>

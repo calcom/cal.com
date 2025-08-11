@@ -222,8 +222,9 @@ const ChooseEmbedTypesDialogContent = ({
         {types.map((embed, index) => (
           <Button
             type="button"
-            className="justify-center flex w-full text-xs"
-            variant={currentType === embed.type ? "tab" : "outline"}
+            className="flex w-full justify-center text-xs py-2"
+            variant="button"
+            color={currentType === embed.type ? "primary_dim" : "secondary"}
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -675,7 +676,6 @@ const EmailEmbedPreview = ({
 };
 
 export const EmbedTypeCodeAndPreviewDialogContent = ({
-
   embedType,
   embedUrl,
   embedTabName,
@@ -935,15 +935,15 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
     //   ref={dialogContentRef}
     //   className="rounded-lg p-0.5 sm:max-w-[80rem]"
     //   type="creation">
-    <div className="flex w-full justify-between grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-12">
+    <div className="flex grid w-full grid-cols-1 justify-between gap-12 sm:grid-cols-2 md:grid-cols-2">
       <div className="bg-muted flex h-[65vh] w-full flex-col overflow-y-auto rounded-md  p-8">
         {/* <h3
           className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
           id="modal-title"> */}
-          {/* <button className="h-6 w-6" onClick={gotoEmbedTypeSelectionState}>
+        {/* <button className="h-6 w-6" onClick={gotoEmbedTypeSelectionState}>
             <Icon name="arrow-left" className="mr-4 w-4" />
           </button> */}
-          {/* {embed.title}
+        {/* {embed.title}
         </h3> */}
         {/* <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4> */}
         {eventTypeData?.eventType && embedType === "email" ? (
@@ -1296,14 +1296,14 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
         <EmbedDialogProvider>
           <Dialog>
             <DialogTrigger asChild>
-              <Button data-testid="embed-dialog-trigger">
+              <Button variant="fab" data-testid="embed-dialog-trigger">
                 <Icon name="code" className="h-3 w-3" />
                 <span>Copy code</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogTitle>Embed Code</DialogTitle>
-              <div className="flex flex-col w-full">
+              <div className="flex w-full flex-col">
                 <HorizontalTabs
                   data-testid="embed-tabs"
                   tabs={
@@ -1325,7 +1325,9 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
                           <div
                             key={tab.href}
                             className={classNames(
-                              embedTabName === tab.href.split("=")[1] ? "flex-1" : "hidden" || (!embedTabName   && tab.href.split("=")[1] === 'embed-code')
+                              embedTabName === tab.href.split("=")[1]
+                                ? "flex-1"
+                                : "hidden" || (!embedTabName && tab.href.split("=")[1] === "embed-code")
                             )}>
                             {tab.type === "code" && (
                               <div className="flex flex-col gap-2">
@@ -1334,7 +1336,7 @@ export const EmbedTypeCodeAndPreviewDialogContent = ({
 
                                   <Button
                                     type="button"
-                                    variant="outline"
+                                    color="secondary"
                                     onClick={() => {
                                       if (embedType === "email") {
                                         handleCopyEmailText();

@@ -4,7 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogClose, // ConfirmationDialogContent,
+  // DialogClose, // ConfirmationDialogContent,
 } from "@calid/features/ui";
 import { configDotenv } from "dotenv";
 import Link from "next/link";
@@ -166,7 +166,7 @@ function NewFormDialog({
             )} */}
           </div>
           <DialogFooter className="mt-12">
-            <DialogClose />
+            {/* <DialogClose /> */}
             <Button loading={mutation.isPending} data-testid="add-form" type="submit" variant="default">
               {t("continue")}
             </Button>
@@ -193,7 +193,7 @@ export const FormActionsDropdown = ({
             type="button"
             variant="icon"
             size="sm"
-            color="secondary"
+            color="minimal"
             className={classNames(disabled && "opacity-30")}>
             <Icon name="ellipsis" className="h-3 w-3" />
           </Button>
@@ -537,7 +537,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     duplicate: {
       onClick: () => setNewFormDialogState?.({ action: "duplicate", target: routingForm?.id ?? null }),
-      variant: "ghost",
+      variant: "button",
+      color: "minimal",
       icon: "copy",
     },
     embed: {
@@ -550,7 +551,8 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     edit: {
       href: `${appUrl}/form-edit/${routingForm?.id}`,
-      variant: "ghost",
+      variant: "button",
+      color: "minimal",
       icon: "pencil",
     },
     incompleteBooking: {
@@ -559,13 +561,15 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     download: {
       href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
       target: "_blank",
-      variant: "ghost",
+      variant: "button",
+      color: "minimal",
       icon: "download",
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),
       loading: _delete.isPending,
-      variant: "ghost",
+      variant: "button",
+      color: "minimal",
       icon: "trash",
     },
     create: {
@@ -649,7 +653,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
           {...actionProps}
           className={classNames(
             props.className,
-            "text-cal-destructive w-full p-2 transition-none",
+            "w-full p-2 transition-none",
             props.color === "destructive" && "border-0"
           )}>
           {icon && <Icon name={icon} className="h-4 w-4" />}
