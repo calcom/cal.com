@@ -580,8 +580,18 @@ export class BookingsService_2024_08_13 {
       .filter((booking) => booking?.rescheduled)
       .map((booking) => booking!.uid);
 
-    const rescheduleBookings = await this.bookingsRepository.getByFromRescheduleMany(rescheduledBookingUids);
-    const rescheduleMap = new Map(rescheduleBookings.map((booking) => [booking.fromReschedule, booking]));
+    const fromRescheduleUids = orderedBookings
+      .filter((booking) => booking?.fromReschedule)
+      .map((booking) => booking!.fromReschedule!);
+
+    const allRescheduleUids = [...rescheduledBookingUids, ...fromRescheduleUids];
+    const rescheduleBookings = await this.bookingsRepository.getByFromRescheduleMany(allRescheduleUids);
+    const rescheduleMap = new Map([
+      ...rescheduleBookings
+        .filter((b) => b.fromReschedule)
+        .map((booking) => [booking.fromReschedule, booking]),
+      ...rescheduleBookings.filter((b) => !b.fromReschedule).map((booking) => [booking.uid, booking]),
+    ]);
 
     for (const booking of orderedBookings) {
       if (!booking) {
@@ -592,6 +602,12 @@ export class BookingsService_2024_08_13 {
         ? this.outputService.getRescheduledToInfoFromMap(booking.uid, rescheduleMap)
         : undefined;
 
+      const rescheduledByEmail =
+        booking.fromReschedule && !booking.rescheduledBy
+          ? this.outputService.getRescheduledToInfoFromMap(booking.fromReschedule, rescheduleMap)
+              ?.rescheduledBy
+          : booking.rescheduledBy;
+
       const formatted = {
         ...booking,
         eventType: booking.eventType,
@@ -600,7 +616,7 @@ export class BookingsService_2024_08_13 {
         endTime: new Date(booking.endTime),
         absentHost: !!booking.noShowHost,
         rescheduledToUid: rescheduledToInfo?.uid,
-        rescheduledByEmail: booking.rescheduledBy,
+        rescheduledByEmail,
       };
 
       const isRecurring = !!formatted.recurringEventId;
