@@ -267,7 +267,7 @@ export class CalendarEventBuilder {
     return this;
   }
 
-  build(): CalendarEvent {
+  build(): CalendarEvent | null {
     // Validate required fields
     if (
       !this.event.startTime ||
@@ -276,10 +276,7 @@ export class CalendarEventBuilder {
       !this.event.bookerUrl ||
       !this.event.title
     ) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Missing required fields for calendar event",
-      });
+      return null;
     }
 
     return this.event as CalendarEvent;
