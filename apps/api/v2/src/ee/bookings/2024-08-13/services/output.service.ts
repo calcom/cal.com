@@ -80,6 +80,8 @@ type DatabaseBooking = Booking & {
   }[];
   user: DatabaseUser | null;
   createdAt: Date;
+  rescheduledToUid?: string;
+  rescheduledByEmail?: string | null;
 };
 
 type BookingWithUser = Booking & { user: DatabaseUser | null };
@@ -90,7 +92,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  async getOutputBooking(databaseBooking: DatabaseBooking, rescheduleMap?: Map<string, any>) {
+  async getOutputBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -101,16 +103,8 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? rescheduleMap
-        ? this.getRescheduledToInfoFromMap(databaseBooking.uid, rescheduleMap)
-        : await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
-
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled
-      ? rescheduledToInfo?.rescheduledBy
-      : databaseBooking.rescheduledBy;
+    const rescheduledToUid = databaseBooking.rescheduledToUid;
+    const rescheduledByEmail = databaseBooking.rescheduledByEmail;
 
     const booking = {
       id: databaseBooking.id,
@@ -168,7 +162,7 @@ export class OutputBookingsService_2024_08_13 {
 
   getRescheduledToInfoFromMap(
     bookingUid: string,
-    rescheduleMap: Map<string, any>
+    rescheduleMap: Map<string | null, any>
   ): { uid?: string; rescheduledBy?: string | null } {
     const rescheduledTo = rescheduleMap.get(bookingUid);
     return {
@@ -284,22 +278,14 @@ export class OutputBookingsService_2024_08_13 {
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, rescheduleMap?: Map<string, any>) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? rescheduleMap
-        ? this.getRescheduledToInfoFromMap(databaseBooking.uid, rescheduleMap)
-        : await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
-
-    const rescheduledToUid = rescheduledToInfo?.uid;
-    const rescheduledByEmail = databaseBooking.rescheduled
-      ? rescheduledToInfo?.rescheduledBy
-      : databaseBooking.rescheduledBy;
+    const rescheduledToUid = databaseBooking.rescheduledToUid;
+    const rescheduledByEmail = databaseBooking.rescheduledByEmail;
 
     const booking = {
       id: databaseBooking.id,

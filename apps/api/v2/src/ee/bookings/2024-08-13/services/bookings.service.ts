@@ -588,6 +588,10 @@ export class BookingsService_2024_08_13 {
         continue;
       }
 
+      const rescheduledToInfo = booking.rescheduled
+        ? this.outputService.getRescheduledToInfoFromMap(booking.uid, rescheduleMap)
+        : undefined;
+
       const formatted = {
         ...booking,
         eventType: booking.eventType,
@@ -595,6 +599,8 @@ export class BookingsService_2024_08_13 {
         startTime: new Date(booking.startTime),
         endTime: new Date(booking.endTime),
         absentHost: !!booking.noShowHost,
+        rescheduledToUid: rescheduledToInfo?.uid,
+        rescheduledByEmail: booking.rescheduled ? rescheduledToInfo?.rescheduledBy : booking.rescheduledBy,
       };
 
       const isRecurring = !!formatted.recurringEventId;
@@ -604,9 +610,9 @@ export class BookingsService_2024_08_13 {
       } else if (isRecurring && isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
       } else if (isSeated) {
-        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, rescheduleMap));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
       } else {
-        formattedBookings.push(await this.outputService.getOutputBooking(formatted, rescheduleMap));
+        formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }
     }
 
