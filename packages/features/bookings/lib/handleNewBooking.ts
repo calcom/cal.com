@@ -313,17 +313,35 @@ export const buildEventForTeamEventType = async ({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
+  const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+    ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
     .build();
 
-  return CalendarEventBuilder.fromEvent(evt)
-    .withTeam({
+  if (!updatedEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build event with destination calendar due to missing required fields",
+    });
+  }
+
+  evt = updatedEvt;
+
+  const teamEvt = CalendarEventBuilder.fromEvent(evt)
+    ?.withTeam({
       members: teamMembers,
       name: team?.name || "Nameless",
       id: team?.id ?? 0,
     })
     .build();
+
+  if (!teamEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build team event due to missing required fields",
+    });
+  }
+
+  return teamEvt;
 };
 
 function buildTroubleshooterData({
@@ -1156,7 +1174,7 @@ async function handler(
 
   const eventName = getEventName(eventNameObject);
 
-  let evt: CalendarEvent = new CalendarEventBuilder()
+  const builtEvt = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
       title: eventName,
@@ -1214,20 +1232,44 @@ async function handler(
     })
     .build();
 
+  if (!builtEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build calendar event due to missing required fields",
+    });
+  }
+
+  let evt: CalendarEvent = builtEvt;
+
   if (input.bookingData.thirdPartyRecurringEventId) {
-    evt = CalendarEventBuilder.fromEvent(evt)
-      .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+    const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+      ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
       .build();
+
+    if (!updatedEvt) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Failed to build event with recurring event ID due to missing required fields",
+      });
+    }
+
+    evt = updatedEvt;
   }
 
   if (isTeamEventType) {
-    evt = await buildEventForTeamEventType({
+    const teamEvt = await buildEventForTeamEventType({
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
       team: eventType.team,
       organizerUser,
     });
+
+    if (!teamEvt) {
+      throw new HttpError({ statusCode: 400, message: "Failed to build team event" });
+    }
+
+    evt = teamEvt;
   }
 
   // data needed for triggering webhooks
@@ -1345,13 +1387,22 @@ async function handler(
       // Rescheduling logic for the original seated event was handled in handleSeats
       // We want to use new booking logic for the new time slot
       originalRescheduledBooking = null;
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withIdentifiers({
+      const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+        ?.withIdentifiers({
           iCalUID: getICalUID({
             attendeeId: bookingSeat?.attendeeId,
           }),
         })
         .build();
+
+      if (!updatedEvt) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with new identifiers due to missing required fields",
+        });
+      }
+
+      evt = updatedEvt;
     }
   }
 
@@ -1472,13 +1523,31 @@ async function handler(
         }
       }
 
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withUid(booking.uid ?? null)
+      const updatedEvtWithUid = CalendarEventBuilder.fromEvent(evt)
+        ?.withUid(booking.uid ?? null)
         .build();
 
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withOneTimePassword(booking.oneTimePassword ?? null)
+      if (!updatedEvtWithUid) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with UID due to missing required fields",
+        });
+      }
+
+      evt = updatedEvtWithUid;
+
+      const updatedEvtWithPassword = CalendarEventBuilder.fromEvent(evt)
+        ?.withOneTimePassword(booking.oneTimePassword ?? null)
         .build();
+
+      if (!updatedEvtWithPassword) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with one-time password due to missing required fields",
+        });
+      }
+
+      evt = updatedEvtWithPassword;
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
