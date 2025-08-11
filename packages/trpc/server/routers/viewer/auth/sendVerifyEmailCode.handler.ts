@@ -6,6 +6,7 @@ import getIP from "@calcom/lib/getIP";
 
 import type { TRPCContext } from "../../../createContext";
 import type { TSendVerifyEmailCodeSchema } from "./sendVerifyEmailCode.schema";
+import { hashEmail, piiHasher } from "@calcom/lib/server/PiiHasher";
 
 type SendVerifyEmailCode = {
   input: TSendVerifyEmailCodeSchema;
@@ -13,11 +14,11 @@ type SendVerifyEmailCode = {
 };
 
 export const sendVerifyEmailCodeHandler = async ({ input, req }: SendVerifyEmailCode) => {
-  const identifer = req ? getIP(req as NextApiRequest) : input.email;
+  const identifier = req ? piiHasher.hash(getIP(req as NextApiRequest)) : hashEmail(input.email);
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `emailVerifyByCode.${identifer}`,
+    identifier: `emailVerifyByCode.${identifier}`,
   });
 
   const email = await sendEmailVerificationByCode({
