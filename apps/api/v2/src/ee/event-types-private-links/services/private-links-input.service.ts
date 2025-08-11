@@ -7,7 +7,7 @@ export class PrivateLinksInputService {
   constructor() {}
 
   transformCreateInput(input: CreatePrivateLinkInput): CreatePrivateLinkInput {
-    const hasExpires = input.expiresAt instanceof Date;
+    const hasExpires = input.expiresAt !== undefined && input.expiresAt !== null;
     const hasMaxCount = typeof input.maxUsageCount === "number";
 
     if (!hasExpires && !hasMaxCount) {
@@ -32,5 +32,3 @@ export class PrivateLinksInputService {
     };
   }
 }
-
-
