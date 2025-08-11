@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { BookingAuditAction, getBookingAuditSchema } from "./booking-audit-schemas";
+import { BookingAuditAction, getBookingAuditSchema } from "./bookingAudit.schemas";
 
 describe("BookingAuditSchemas", () => {
   describe("CREATED action schema", () => {

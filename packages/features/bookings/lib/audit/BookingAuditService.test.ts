@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { BookingAuditAction } from "./booking-audit-schemas";
+import { BookingAuditAction } from "./bookingAudit.schemas";
 
 // Mock Prisma client
 const mockPrismaCreate = vi.fn();
@@ -35,7 +35,7 @@ describe("BookingAuditService", () => {
 
   describe("Audit System Integration", () => {
     it("should create audit log for booking creation with valid data", async () => {
-      const { BookingAuditService } = await import("./booking-audit-service");
+      const { BookingAuditService } = await import("./BookingAuditService");
 
       const mockResult = {
         id: "audit-123",
@@ -67,7 +67,7 @@ describe("BookingAuditService", () => {
     });
 
     it("should create audit log for booking cancellation", async () => {
-      const { BookingAuditService } = await import("./booking-audit-service");
+      const { BookingAuditService } = await import("./BookingAuditService");
 
       const mockResult = {
         id: "audit-124",
@@ -96,7 +96,7 @@ describe("BookingAuditService", () => {
     });
 
     it("should create audit log for booking reschedule", async () => {
-      const { BookingAuditService } = await import("./booking-audit-service");
+      const { BookingAuditService } = await import("./BookingAuditService");
 
       const mockResult = {
         id: "audit-125",
@@ -126,7 +126,7 @@ describe("BookingAuditService", () => {
     });
 
     it("should retrieve audit logs for a booking", async () => {
-      const { BookingAuditService } = await import("./booking-audit-service");
+      const { BookingAuditService } = await import("./BookingAuditService");
 
       const mockLogs = [
         {
@@ -157,7 +157,7 @@ describe("BookingAuditService", () => {
     });
 
     it("should handle errors gracefully and not throw", async () => {
-      const { BookingAuditService } = await import("./booking-audit-service");
+      const { BookingAuditService } = await import("./BookingAuditService");
 
       // Mock Prisma to reject with an error
       mockPrismaCreate.mockRejectedValue(new Error("Database error"));

@@ -11,7 +11,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { BookingAuditService } from "../audit/booking-audit-service";
+import { BookingAuditService } from "../audit/BookingAuditService";
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
 import type { AwaitedBookingData, EventTypeId } from "./getBookingData";
 import type { NewBookingEventType } from "./getEventTypesFromDB";

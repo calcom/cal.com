@@ -9,7 +9,7 @@ import {
   type BookingAuditInput,
   getBookingAuditSchema,
   type ActorMetadata,
-} from "./booking-audit-schemas";
+} from "./bookingAudit.schemas";
 
 const log = logger.getSubLogger({ prefix: ["BookingAuditService"] });
 
