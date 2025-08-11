@@ -1,7 +1,7 @@
 import type { TemplateType, Fields } from "./zod-utils";
 import { fieldNameEnum } from "./zod-utils";
 
-export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
+export const templateFieldsMap: Record<TemplateType, Fields> = {
   CHECK_IN_APPOINTMENT: [
     {
       type: "text",
