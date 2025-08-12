@@ -89,6 +89,17 @@ export const routingRepositoryBaseInputSchema = z.object({
   columnFilters: z.array(ZColumnFilter).optional(),
 });
 
+export const routedToPerPeriodInputSchema = routingRepositoryBaseInputSchema.extend({
+  period: z.enum(["perDay", "perWeek", "perMonth"]),
+  limit: z.number().optional(),
+  searchQuery: z.string().optional(),
+});
+
+export const routedToPerPeriodCsvInputSchema = routingRepositoryBaseInputSchema.extend({
+  period: z.enum(["perDay", "perWeek", "perMonth"]),
+  searchQuery: z.string().optional(),
+});
+
 export const bookingRepositoryBaseInputSchema = z.object({
   scope: z.union([z.literal("user"), z.literal("team"), z.literal("org")]),
   selectedTeamId: z.number().optional(),
