@@ -4,8 +4,12 @@ import dayjs from "@calcom/dayjs";
 
 import { getBusyTimesService } from "./di/containers/BusyTimes";
 
-vi.mock("@calcom/prisma", () => {
-  return {};
+vi.mock(import("@calcom/prisma"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    // your mocked methods
+  };
 });
 
 const startOfTomorrow = dayjs().add(1, "day").startOf("day");
