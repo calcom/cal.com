@@ -51,7 +51,7 @@ import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
 type UserWithProfiles = NonNullable<
-  Awaited<ReturnType<typeof UserRepository.findByEmailAndIncludeProfilesAndPassword>>
+  Awaited<ReturnType<UserRepository["findByEmailAndIncludeProfilesAndPassword"]>>
 >;
 
 // This adapts our internal user model to what NextAuth expects
