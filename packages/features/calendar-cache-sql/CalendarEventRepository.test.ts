@@ -311,30 +311,59 @@ describe("CalendarEventRepository", () => {
 
   describe("bulkUpsertEvents", () => {
     it("should bulk upsert events", async () => {
+      const subscriptionId = "subscription-1";
+      const now = new Date();
+      const later = new Date(now.getTime() + 60 * 60 * 1000);
+
       const events = [
         {
-          calendarSubscription: { connect: { id: "subscription-1" } },
+          calendarSubscription: { connect: { id: subscriptionId } },
           googleEventId: "event-1",
           etag: "etag-1",
           summary: "Event 1",
-          start: new Date(),
-          end: new Date(),
+          start: now,
+          end: later,
         },
         {
-          calendarSubscription: { connect: { id: "subscription-1" } },
+          calendarSubscription: { connect: { id: subscriptionId } },
           googleEventId: "event-2",
           etag: "etag-2",
           summary: "Event 2",
-          start: new Date(),
-          end: new Date(),
+          start: now,
+          end: later,
         },
       ];
 
-      await repository.bulkUpsertEvents(events);
+      // Ensure the subscription exists for the relation connect
+      await prismock.calendarSubscription.create({
+        data: { id: subscriptionId, selectedCalendarId: "sc-1", createdAt: now, updatedAt: now },
+      });
 
-      // Verify that events were created by checking if they exist
-      const createdEvents = await prismock.calendarEvent.findMany();
-      expect(createdEvents.length).toBeGreaterThan(0);
+      await repository.bulkUpsertEvents(events, subscriptionId);
+
+      // Verify count matches input
+      const ids = events.map((e) => e.googleEventId);
+      // Prismock may not support `{ in: [...] }` reliably; fetch and filter in memory
+      const allForSubscription = await prismock.calendarEvent.findMany({
+        where: { calendarSubscriptionId: subscriptionId },
+      });
+      const createdEvents = allForSubscription.filter((e: any) => ids.includes(e.googleEventId));
+      expect(createdEvents).toHaveLength(events.length);
+
+      // Verify each record has expected properties
+      const byId = new Map(createdEvents.map((e: any) => [e.googleEventId, e]));
+      for (const expected of events) {
+        const record = byId.get(expected.googleEventId);
+        expect(record).toBeTruthy();
+        expect(record).toMatchObject({
+          googleEventId: expected.googleEventId,
+          etag: expected.etag,
+          summary: expected.summary,
+          calendarSubscriptionId: subscriptionId,
+        });
+        expect(record.start).toBeInstanceOf(Date);
+        expect(record.end).toBeInstanceOf(Date);
+      }
     });
   });
 
