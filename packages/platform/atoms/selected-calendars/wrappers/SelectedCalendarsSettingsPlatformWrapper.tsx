@@ -39,10 +39,10 @@ export type SelectedCalendarsClassNames = {
   };
   selectedCalendarsListClassNames?: {
     container?: string;
-    selectedCalendar: {
+    selectedCalendar?: {
       container?: string;
       header?: {
-        container: string;
+        container?: string;
         title?: string;
         description?: string;
       };
