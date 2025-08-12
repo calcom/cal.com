@@ -1,12 +1,11 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { prisma } from "@calcom/prisma";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: NextJsLegacyContext) {
   const bookingRepo = new BookingRepository(prisma);
   const booking = await bookingRepo.findBookingForMeetingEndedPage({
     bookingUid: context.query.uid as string,

@@ -1,5 +1,4 @@
 import { createRouterCaller } from "app/_trpc/context";
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -15,6 +14,7 @@ import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 const stringToBoolean = z
@@ -37,7 +37,7 @@ const querySchema = z.object({
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: NextJsLegacyContext) {
   // this is needed to prevent bundling of lib/booking to the client bundle
   // usually functions that are used in getServerSideProps are tree shaken from client bundle
   // but not in case when they are exported. So we have to dynamically load them, or to copy paste them to the /future/page.

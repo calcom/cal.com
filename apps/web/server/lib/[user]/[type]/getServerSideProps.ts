@@ -1,4 +1,3 @@
-import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
 
@@ -15,6 +14,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
@@ -115,7 +115,7 @@ async function processSeatedEvent({
   }
 }
 
-async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
+async function getDynamicGroupPageProps(context: NextJsLegacyContext) {
   const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
@@ -212,7 +212,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   };
 }
 
-async function getUserPageProps(context: GetServerSidePropsContext) {
+async function getUserPageProps(context: NextJsLegacyContext) {
   const session = await getServerSession({ req: context.req });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
@@ -315,7 +315,7 @@ const paramsSchema = z.object({
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 

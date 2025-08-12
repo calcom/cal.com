@@ -1,5 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -11,8 +9,9 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const providerParam = asStringOrNull(context.query.provider);

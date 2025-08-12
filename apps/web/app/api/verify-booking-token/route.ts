@@ -1,5 +1,6 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { headers, cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -119,8 +120,8 @@ async function handleBookingAction(
     const createCaller = createCallerFactory(bookingsRouter);
 
     // Use buildLegacyRequest to create a request object compatible with Pages Router
-    const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
-    const res = {} as any;
+    const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as NextApiRequest);
+    const res = {} as NextApiResponse;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
     const caller = createCaller({

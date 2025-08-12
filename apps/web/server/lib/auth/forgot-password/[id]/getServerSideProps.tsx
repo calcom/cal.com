@@ -1,9 +1,10 @@
-import type { GetServerSidePropsContext } from "next";
 import { getCsrfToken } from "next-auth/react";
 
 import prisma from "@calcom/prisma";
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
+export async function getServerSideProps(context: NextJsLegacyContext) {
   const id = context.params?.id as string;
 
   let resetPasswordRequest = await prisma.resetPasswordRequest.findFirst({

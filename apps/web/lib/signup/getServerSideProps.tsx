@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
@@ -9,6 +8,8 @@ import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 
@@ -22,7 +23,7 @@ const querySchema = z.object({
   email: emailSchema.optional(),
 });
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const featuresRepository = new FeaturesRepository(prisma);
   const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
