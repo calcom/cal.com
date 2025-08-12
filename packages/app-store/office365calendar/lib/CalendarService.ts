@@ -470,7 +470,7 @@ export default class Office365CalendarService implements Calendar {
       const fromDate = new Date(dateFrom);
       const toDate = new Date(dateTo);
       const oneDayMs = 1000 * 60 * 60 * 24;
-      const diff = Math.floor((fromDate.getTime() - toDate.getTime()) / oneDayMs);
+      const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / oneDayMs);
 
       if (diff <= 90) {
         return await this.getCacheOrFetchAvailability(dateFrom, dateTo, calendarIds, shouldServeCache);
