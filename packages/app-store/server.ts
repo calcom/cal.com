@@ -60,14 +60,21 @@ export async function getLocationGroupedOptions(
       where: {
         id: userOrTeamId.userId,
       },
+      include: {
+        teams: {
+          select: {
+            teamId: true,
+          },
+        },
+      },
     });
 
-    if (user?.organizationId) {
+    if (user?.teams?.length) {
       idToSearchObject = {
         OR: [
           {
             teamId: {
-              in: [user.organizationId],
+              in: user.teams.map((m) => m.teamId),
             },
           },
           idToSearchObject,
