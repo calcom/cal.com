@@ -2,7 +2,7 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 
-import type { Attribute } from "@calcom/prisma/client";
+import type { Attribute, AttributeOption } from "@calcom/prisma/client";
 
 import { createAttributes } from "../organizationHelpers";
 
@@ -89,7 +89,7 @@ describe("createAttributes", () => {
     });
 
     // Verify all attributes were created
-    const attributes: Attribute[] = await prismock.attribute.findMany({
+    const attributes: (Attribute & { options: AttributeOption })[] = await prismock.attribute.findMany({
       where: { teamId: orgId },
       include: { options: true },
     });
