@@ -21,7 +21,7 @@ export const generateMetadata = async () => {
 
 const ServerPageWrapper = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  const callbackUrl = `${WEBAPP_URL}/settings/platform/plans`;
+  const callbackUrl = `/settings/platform/plans`;
 
   if (!session?.user) {
     redirect(`/login?callbackUrl=${callbackUrl}`);
