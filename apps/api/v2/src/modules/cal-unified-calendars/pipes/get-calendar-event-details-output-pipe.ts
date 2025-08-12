@@ -109,6 +109,7 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.status = this.transformEventStatus(googleEvent.status);
 
     calendarEvent.calendarEventOwner = googleEvent.organizer 
+    calendarEvent.hosts = this.transformHosts(googleEvent) 
 
     calendarEvent.source = "google";
 
@@ -155,6 +156,30 @@ export class GoogleCalendarEventOutputPipe
       default:
         return null;
     }
+  }
+
+  private transformHosts(googleEvent: GoogleCalendarEventResponse) {
+    const hosts: Array<{ email: string; name?: string; responseStatus: CalendarEventResponseStatus | null }> =
+      [];
+
+    const organizerAttendees = googleEvent?.attendees?.filter((attendee) => attendee.organizer);
+    if (organizerAttendees?.length) {
+      organizerAttendees.forEach((organizer) => {
+        hosts.push({
+          email: organizer.email,
+          name: organizer.displayName,
+          responseStatus: this.transformAttendeeResponseStatus(organizer.responseStatus),
+        });
+      });
+    } else {
+      hosts.push({
+        email: googleEvent.organizer.email,
+        name: googleEvent.organizer.displayName,
+        responseStatus: null,
+      });
+    }
+
+    return hosts;
   }
 
   private transformLocations(

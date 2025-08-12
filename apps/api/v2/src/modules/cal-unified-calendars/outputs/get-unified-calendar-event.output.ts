@@ -400,6 +400,16 @@ export class UnifiedCalendarEventOutput {
 
   @IsOptional()
   @ValidateNested({ each: true })
+  @Type(() => CalendarEventHost)
+  @ApiPropertyOptional({
+    type: [CalendarEventHost],
+    nullable: true,
+    description: "Information about the event hosts (organizers)",
+  })
+  hosts?: CalendarEventHost[];
+
+  @IsOptional()
+  @ValidateNested({ each: true })
   @Type(() => calendarEventOwner)
   @ApiPropertyOptional({
     type: calendarEventOwner,

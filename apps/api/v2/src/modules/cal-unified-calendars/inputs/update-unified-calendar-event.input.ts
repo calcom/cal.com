@@ -1,4 +1,4 @@
-import { ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsISO8601, IsOptional, IsString, ValidateNested, IsEnum, IsArray } from "class-validator";
 
