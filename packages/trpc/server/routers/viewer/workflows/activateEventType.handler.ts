@@ -1,6 +1,7 @@
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -37,9 +38,6 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
               some: {
                 userId: ctx.user.id,
                 accepted: true,
-                NOT: {
-                  role: MembershipRole.MEMBER,
-                },
               },
             },
           },
@@ -96,6 +94,21 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
   if (!eventType)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
+
+  if (eventType.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+
+    const hasPermissionToActivate = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: eventType.teamId,
+      permission: "eventType.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermissionToActivate) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authorized to edit this event type" });
+    }
+  }
 
   // at this point we know that the event type belongs to the user or team
   // so we don't use OR, we use logic.
