@@ -1,9 +1,14 @@
-import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { notFound, redirect } from "next/navigation";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
 export const withAppDirSsr =
-  <T extends Record<string, any>>(getServerSideProps: GetServerSideProps<T>) =>
-  async (context: GetServerSidePropsContext) => {
+  <T extends Record<string, any>>(
+    getServerSideProps: (
+      context: NextJsLegacyContext
+    ) => Promise<{ props: T } | { redirect: any } | { notFound: true }>
+  ) =>
+  async (context: NextJsLegacyContext) => {
     const ssrResponse = await getServerSideProps(context);
 
     if ("redirect" in ssrResponse) {

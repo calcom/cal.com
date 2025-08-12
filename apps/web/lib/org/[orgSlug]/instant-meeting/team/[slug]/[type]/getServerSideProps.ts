@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -10,12 +9,14 @@ import { EventRepository } from "@calcom/lib/server/repository/event";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
   slug: z.string().transform((s) => slugify(s)),
 });
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
   const { duration: queryDuration } = context.query;
 

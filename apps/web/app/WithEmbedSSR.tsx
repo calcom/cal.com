@@ -1,15 +1,20 @@
-import type { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { WebAppURL } from "@calcom/lib/WebAppURL";
+
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
 export type EmbedProps = {
   isEmbed?: boolean;
 };
 
 const withEmbedSsrAppDir =
-  <T extends Record<string, any>>(getServerSideProps: GetServerSideProps<T>) =>
-  async (context: GetServerSidePropsContext): Promise<T> => {
+  <T extends Record<string, any>>(
+    getServerSideProps: (
+      context: NextJsLegacyContext
+    ) => Promise<{ props: T } | { redirect: any } | { notFound: true }>
+  ) =>
+  async (context: NextJsLegacyContext): Promise<T> => {
     const { embed, layout } = context.query;
     const ssrResponse = await getServerSideProps(context);
 

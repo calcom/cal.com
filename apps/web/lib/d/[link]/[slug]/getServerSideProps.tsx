@@ -1,5 +1,4 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -15,12 +14,13 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-async function getUserPageProps(context: GetServerSidePropsContext) {
+async function getUserPageProps(context: NextJsLegacyContext) {
   const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
@@ -155,6 +155,6 @@ const paramsSchema = z.object({ link: z.string(), slug: z.string().transform((s)
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   return await getUserPageProps(context);
 };

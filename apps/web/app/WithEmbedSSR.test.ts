@@ -68,7 +68,8 @@ function getServerSidePropsContextArg({ embedRelatedParams = {} }: ServerSidePro
     query: {
       ...embedRelatedParams,
     },
-    resolvedUrl: "/MOCKED_RESOLVED_URL",
+    params: {},
+    resolvedUrl: "/test-url",
   };
 }
 

@@ -1,5 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getOrganizationSettings,
@@ -19,6 +17,7 @@ import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
@@ -60,7 +59,7 @@ const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefine
   return value.at(-1);
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
 
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(

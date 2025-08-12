@@ -1,4 +1,4 @@
-import type { GetServerSidePropsResult, GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
@@ -6,12 +6,14 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
 const paramsSchema = z.object({
   pages: z.array(z.string()),
 });
 
 export async function getServerSideProps(
-  context: GetServerSidePropsContext
+  context: NextJsLegacyContext
 ): Promise<GetServerSidePropsResult<any>> {
   const { params, req } = context;
 
@@ -33,7 +35,7 @@ export async function getServerSideProps(
   const session = await getServerSession({ req });
   const user = session?.user;
 
-  const result = await getServerSideProps(context as AppGetServerSidePropsContext, prisma, user);
+  const result = await getServerSideProps(context as unknown as AppGetServerSidePropsContext, prisma, user);
 
   if (result.notFound) {
     return { notFound: true };

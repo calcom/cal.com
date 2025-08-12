@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -13,6 +12,8 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
 import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
@@ -196,7 +197,7 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
   return appInstalls;
 };
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { req, query, params } = context;
   let eventTypeGroups: TEventTypeGroup[] | null = null;
   let isOrg = false;

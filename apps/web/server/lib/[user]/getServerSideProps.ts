@@ -1,5 +1,4 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
 
@@ -18,6 +17,7 @@ import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
@@ -71,7 +71,9 @@ type UserPageProps = {
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
-export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
+export const getServerSideProps = async (
+  context: NextJsLegacyContext
+): Promise<{ props: UserPageProps } | { redirect: any } | { notFound: true }> => {
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const usernameList = getUsernameList(context.query.user as string);

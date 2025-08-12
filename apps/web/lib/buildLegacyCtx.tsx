@@ -1,8 +1,16 @@
 import type { SearchParams } from "app/_types";
 import { type Params } from "app/_types";
-import type { GetServerSidePropsContext, NextApiRequest } from "next";
+import type { NextApiRequest } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+
+export interface NextJsLegacyContext {
+  query: Record<string, string | string[] | undefined>;
+  params: Params;
+  req: NextApiRequest;
+  res: any;
+  resolvedUrl: string;
+}
 
 const createProxifiedObject = (object: Record<string, string>) =>
   new Proxy(object, {
@@ -45,7 +53,17 @@ export function decodeParams(params: Params): Params {
   }, {} as Params);
 }
 
-export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+const buildResolvedUrl = (params: Params, searchParams: SearchParams): string => {
+  const pathSegments = Object.values(params).flat().filter(Boolean);
+  const path = pathSegments.length > 0 ? `/${pathSegments.join("/")}` : "/";
+  const queryString = new URLSearchParams(searchParams as Record<string, string>).toString();
+  return queryString ? `${path}?${queryString}` : path;
+};
+
+export const buildLegacyRequest = (
+  headers: ReadonlyHeaders,
+  cookies: ReadonlyRequestCookies
+): NextApiRequest => {
   return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
 };
 
@@ -54,14 +72,16 @@ export const buildLegacyCtx = (
   cookies: ReadonlyRequestCookies,
   params: Params,
   searchParams: SearchParams
-) => {
+): NextJsLegacyContext => {
+  const resolvedUrl = buildResolvedUrl(params, searchParams);
+
   return {
     query: { ...searchParams, ...decodeParams(params) },
     // decoding is required to be backward compatible with Pages Router
     // because Next.js App Router does not auto-decode query params while Pages Router does
     // e.g., params: { name: "John%20Doe" } => params: { name: "John Doe" }
     params: decodeParams(params),
-    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
+    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest,
     res: new Proxy(Object.create(null), {
       // const { req, res } = ctx - valid
       // res.anything - throw
@@ -71,5 +91,6 @@ export const buildLegacyCtx = (
         );
       },
     }),
-  } as unknown as GetServerSidePropsContext;
+    resolvedUrl,
+  };
 };
