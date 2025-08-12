@@ -5,8 +5,76 @@ import { useCallback, useMemo, useEffect } from "react";
 import { trpc } from "@calcom/trpc/react";
 
 import { recalculateDateRange } from "../lib/dateRange";
-import { type UseSegments, type SegmentIdentifier, SYSTEM_SEGMENT_PREFIX } from "../lib/types";
+import {
+  type UseSegments,
+  type SegmentIdentifier,
+  type CombinedFilterSegment,
+  SYSTEM_SEGMENT_PREFIX,
+} from "../lib/types";
 import { isDateRangeFilterValue } from "../lib/utils";
+
+// Custom hook to manage segment ID lifecycle and prevent race conditions
+const useSegmentIdManager = ({
+  segments,
+  segmentId,
+  setSegmentId,
+  isFetchingSegments,
+  preferredSegmentId,
+  rawSegments,
+  selectedSegment,
+  hasStateChanged,
+}: {
+  segments: CombinedFilterSegment[];
+  segmentId: SegmentIdentifier | null;
+  setSegmentId: (id: SegmentIdentifier | null) => void;
+  isFetchingSegments: boolean;
+  preferredSegmentId?: SegmentIdentifier | null;
+  rawSegments?: { preferredSegmentId?: SegmentIdentifier | null };
+  selectedSegment: CombinedFilterSegment | undefined;
+  hasStateChanged: boolean;
+}) => {
+  const memoizedPreferredSegmentId = useMemo(
+    () => preferredSegmentId ?? rawSegments?.preferredSegmentId,
+    [preferredSegmentId, rawSegments]
+  );
+
+  // Consolidated effect to handle segment ID lifecycle and prevent race conditions
+  useEffect(() => {
+    if (!isFetchingSegments) {
+      // If we have a preferred segment and no valid current segment, use preferred
+      if (memoizedPreferredSegmentId && segments.length > 0) {
+        const hasValidCurrentSegment =
+          segmentId &&
+          segments.find((segment) => segmentId.type === segment.type && segmentId.id === segment.id);
+
+        if (!hasValidCurrentSegment || (segmentId?.id === -1 && segmentId?.type === "user")) {
+          setSegmentId(memoizedPreferredSegmentId);
+          return;
+        }
+      }
+
+      // Clear invalid segments (but not preferred ones we're trying to set)
+      if (segments.length > 0 && segmentId) {
+        const matchingSegment = segments.find(
+          (segment) => segmentId.type === segment.type && segmentId.id === segment.id
+        );
+        if (!matchingSegment) {
+          // If segmentId is invalid (or not found), clear the segmentId from the query params,
+          // but we still keep all the other states like activeFilters, etc.
+          // This is useful when someone shares a URL that is inaccessible to someone else.
+          setSegmentId(null);
+        }
+      }
+    }
+  }, [segments, segmentId, setSegmentId, isFetchingSegments, memoizedPreferredSegmentId]);
+
+  // Auto-clear system segment selection when user modifies filters
+  useEffect(() => {
+    if (selectedSegment && selectedSegment.type === "system" && hasStateChanged) {
+      setSegmentId(null);
+    }
+  }, [selectedSegment, hasStateChanged, setSegmentId]);
+};
 
 export const useSegments: UseSegments = ({
   tableIdentifier,
@@ -38,12 +106,10 @@ export const useSegments: UseSegments = ({
       enabled: !providedSegments, // Only fetch if segments are not provided
     }
   );
-
   const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation();
 
   const segments = useMemo(() => {
-    const segmentsSource = providedSegments || rawSegments?.segments;
-    const userSegments = segmentsSource || [];
+    const userSegments = providedSegments || rawSegments?.segments || [];
 
     const processedSystemSegments = (systemSegments || []).map((segment) => ({
       tableIdentifier,
@@ -89,31 +155,32 @@ export const useSegments: UseSegments = ({
     return segments?.find((segment) => segmentId.type === segment.type && segmentId.id === segment.id);
   }, [segments, segmentId]);
 
-  useEffect(() => {
-    if (segments && segmentId && !isFetchingSegments) {
-      const matchingSegment = segments.find(
-        (segment) => segmentId.type === segment.type && segmentId.id === segment.id
-      );
-      if (!matchingSegment) {
-        // If segmentId is invalid (or not found), clear the segmentId from the query params,
-        // but we still keep all the other states like activeFilters, etc.
-        // This is useful when someone shares a URL that is inaccessible to someone else.
-        setSegmentId(null);
-      }
-    }
-  }, [segments, segmentId, setSegmentId, isFetchingSegments]);
+  // Check if current state differs from selected segment
+  const hasStateChanged = useMemo(() => {
+    if (!selectedSegment) return false;
 
-  const memoizedPreferredSegmentId = useMemo(
-    () => preferredSegmentId ?? rawSegments?.preferredSegmentId,
-    [preferredSegmentId, rawSegments]
-  );
+    return (
+      !isEqual(activeFilters, selectedSegment.activeFilters) ||
+      !isEqual(sorting, selectedSegment.sorting) ||
+      !isEqual(columnVisibility, selectedSegment.columnVisibility) ||
+      !isEqual(columnSizing, selectedSegment.columnSizing) ||
+      !isEqual(pageSize, selectedSegment.perPage) ||
+      !isEqual(searchTerm || "", selectedSegment.searchTerm || "")
+    );
+  }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm]);
 
-  useEffect(() => {
-    if (memoizedPreferredSegmentId) {
-      setSegmentId(memoizedPreferredSegmentId);
-    }
-  }, [memoizedPreferredSegmentId, setSegmentId]);
+  useSegmentIdManager({
+    segments,
+    segmentId,
+    setSegmentId,
+    isFetchingSegments,
+    preferredSegmentId,
+    rawSegments,
+    selectedSegment,
+    hasStateChanged,
+  });
 
+  // Apply segment settings to table state when a segment is selected
   useEffect(() => {
     if (selectedSegment) {
       // segment is selected, so we apply the filters, sorting, etc. from the segment
@@ -137,27 +204,18 @@ export const useSegments: UseSegments = ({
   ]);
 
   const canSaveSegment = useMemo(() => {
-    if (!selectedSegment) {
-      // if no segment is selected, we can save the segment if there are any active filters, sorting, etc.
-      return (
-        activeFilters.length > 0 ||
-        sorting.length > 0 ||
-        Object.keys(columnVisibility).length > 0 ||
-        Object.keys(columnSizing).length > 0 ||
-        pageSize !== defaultPageSize ||
-        searchTerm?.length > 0
-      );
-    } else {
-      // if a segment is selected, we can save the segment if the active filters, sorting, etc. are different from the segment
-      return (
-        !isEqual(activeFilters, selectedSegment.activeFilters) ||
-        !isEqual(sorting, selectedSegment.sorting) ||
-        !isEqual(columnVisibility, selectedSegment.columnVisibility) ||
-        !isEqual(columnSizing, selectedSegment.columnSizing) ||
-        !isEqual(pageSize, selectedSegment.perPage) ||
-        !isEqual(searchTerm, selectedSegment.searchTerm)
-      );
+    if (selectedSegment) {
+      return hasStateChanged;
     }
+    // if no segment is selected, we can save the segment if there are any active filters, sorting, etc.
+    return (
+      activeFilters.length > 0 ||
+      sorting.length > 0 ||
+      Object.keys(columnVisibility).length > 0 ||
+      Object.keys(columnSizing).length > 0 ||
+      pageSize !== defaultPageSize ||
+      searchTerm?.length > 0
+    );
   }, [
     selectedSegment,
     activeFilters,
@@ -167,6 +225,7 @@ export const useSegments: UseSegments = ({
     pageSize,
     searchTerm,
     defaultPageSize,
+    hasStateChanged,
   ]);
 
   const setAndPersistSegmentId = useCallback(

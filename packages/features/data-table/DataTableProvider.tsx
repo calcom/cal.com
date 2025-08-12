@@ -131,7 +131,7 @@ export function DataTableProvider({
   const setSegmentId = useCallback(
     (id: SegmentIdentifier | null) => {
       if (id === null) {
-        setSegmentIdString("");
+        setSegmentIdString(null);
       } else {
         setSegmentIdString(String(id.id));
       }

@@ -19,7 +19,7 @@ import { useDataTable } from "../../hooks";
 import type {
   FilterSegmentOutput,
   CombinedFilterSegment,
-  SystemFilterSegment,
+  SystemFilterSegmentInternal,
   UserFilterSegment,
 } from "../../lib/types";
 import { DeleteSegmentDialog } from "./DeleteSegmentDialog";
@@ -84,7 +84,8 @@ export function FilterSegmentSelect() {
   const segmentGroups = useMemo(() => {
     const sortFn = (a: CombinedFilterSegment, b: CombinedFilterSegment) => a.name.localeCompare(b.name);
 
-    const systemSegments = segments?.filter((s): s is SystemFilterSegment => s.type === "system") || [];
+    const systemSegments =
+      segments?.filter((s): s is SystemFilterSegmentInternal => s.type === "system") || [];
     const personalSegments =
       segments?.filter((s): s is UserFilterSegment => s.type === "user" && !s.team) || [];
     const teamSegments =

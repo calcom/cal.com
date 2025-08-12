@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useMemo, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -56,14 +56,14 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
+  userId?: number;
 };
 
-function useSystemSegments() {
-  const { data: user } = useMeQuery();
+function useSystemSegments(userId?: number) {
   const { t } = useLocale();
 
   const systemSegments: SystemFilterSegment[] = useMemo(() => {
-    if (!user) return [];
+    if (!userId) return [];
 
     return [
       {
@@ -75,26 +75,26 @@ function useSystemSegments() {
             f: "userId",
             v: {
               type: ColumnFilterType.MULTI_SELECT,
-              data: [user.id],
+              data: [userId],
             },
           },
         ],
-        sorting: [{ id: "startTime", desc: false }],
         perPage: 10,
-        columnVisibility: {},
-        columnSizing: {},
-        searchTerm: null,
       },
     ];
-  }, [user, t]);
+  }, [userId, t]);
 
   return systemSegments;
 }
 
 export default function Bookings(props: BookingsProps) {
-  const systemSegments = useSystemSegments();
+  const pathname = usePathname();
+  const systemSegments = useSystemSegments(props.userId);
   return (
-    <DataTableProvider useSegments={useSegments} systemSegments={systemSegments}>
+    <DataTableProvider
+      useSegments={useSegments}
+      systemSegments={systemSegments}
+      tableIdentifier={pathname || undefined}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
