@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import type { ParsedUrlQuery } from "querystring";
 import { stringify } from "querystring";
 
@@ -105,7 +104,9 @@ interface HandleOrgRedirectParams {
   slugs: string[];
   redirectType: RedirectType;
   eventTypeSlug: string | null;
-  context: GetServerSidePropsContext;
+  context: {
+    query: ParsedUrlQuery;
+  };
   currentOrgDomain: string | null;
 }
 
