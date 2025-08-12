@@ -79,6 +79,15 @@ describe("Query Builder Config", () => {
     it("should have maxNesting set to 1 in settings", () => {
       assertMaxNesting(FormFieldsBaseConfig, 1);
     });
+
+    it("should support starts_with operator for text fields", () => {
+      expect(FormFieldsBaseConfig.operators).toHaveProperty("starts_with");
+      expect(FormFieldsBaseConfig.operators.starts_with).toHaveProperty("jsonLogic");
+      expect(FormFieldsBaseConfig.operators.starts_with.label).toBe("Starts with");
+
+      // Verify starts_with is available for text widget
+      expect(FormFieldsBaseConfig.types.text.widgets.text.operators).toContain("starts_with");
+    });
   });
 
   describe("AttributesBaseConfig", () => {
@@ -154,6 +163,24 @@ describe("Query Builder Config", () => {
           { ">": [{ var: "89ee81ae-953c-409b-aacc-700e1ce5ae20" }, 5] },
         ],
       });
+    });
+
+    it("should provide jsonlogic for starts_with operator", () => {
+      // Verify starts_with operator has correct jsonLogic string (like other simple operators)
+      expect(AttributesBaseConfig.operators.starts_with.jsonLogic).toBe("starts_with");
+
+      // Verify the operator is properly configured
+      expect(AttributesBaseConfig.operators.starts_with.label).toBe("Starts with");
+      expect(AttributesBaseConfig.operators.starts_with.labelForFormat).toBe("Starts with");
+    });
+
+    it("should support starts_with operator for text fields", () => {
+      expect(AttributesBaseConfig.operators).toHaveProperty("starts_with");
+      expect(AttributesBaseConfig.operators.starts_with).toHaveProperty("jsonLogic");
+      expect(AttributesBaseConfig.operators.starts_with.label).toBe("Starts with");
+
+      // Verify starts_with is available for text widget
+      expect(AttributesBaseConfig.types.text.widgets.text.operators).toContain("starts_with");
     });
   });
 });
