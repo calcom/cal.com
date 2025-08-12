@@ -129,6 +129,24 @@ export class HashedLinkService {
     return hashedLink;
   }
 
+  async createLinkForEventType(eventTypeId: number, input: string | HashedLinkInputType) {
+    const normalized = this.normalizeLinkInput(input);
+    return this.hashedLinkRepository.createLink(eventTypeId, normalized);
+  }
+
+  async updateLinkForEventType(eventTypeId: number, input: string | HashedLinkInputType) {
+    const normalized = this.normalizeLinkInput(input);
+    return this.hashedLinkRepository.updateLink(eventTypeId, normalized);
+  }
+
+  async deleteLinkForEventType(eventTypeId: number, linkId: string) {
+    return this.hashedLinkRepository.deleteLinks(eventTypeId, [linkId]);
+  }
+
+  async listLinksByEventType(eventTypeId: number) {
+    return this.hashedLinkRepository.findLinksByEventTypeId(eventTypeId);
+  }
+
   /**
    * Checks if a user has permission to access a link
    * @param link - Link object with event type information
