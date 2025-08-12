@@ -45,7 +45,8 @@ export const useSegments: UseSegments = ({
     const segmentsSource = providedSegments || rawSegments?.segments;
     const userSegments = segmentsSource || [];
 
-    const processedDefaultSegments = systemSegments.map((segment) => ({
+    const processedSystemSegments = systemSegments.map((segment) => ({
+      tableIdentifier,
       sorting: [],
       columnVisibility: {},
       columnSizing: {},
@@ -79,7 +80,7 @@ export const useSegments: UseSegments = ({
       }),
     }));
 
-    return [...processedDefaultSegments, ...processedUserSegments];
+    return [...processedSystemSegments, ...processedUserSegments];
   }, [rawSegments, providedSegments, systemSegments]);
 
   const selectedSegment = useMemo(() => {

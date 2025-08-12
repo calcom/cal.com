@@ -10,7 +10,7 @@ import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useDataTable } from "../../hooks";
-import type { FilterSegmentOutput } from "../../lib/types";
+import type { CombinedFilterSegment } from "../../lib/types";
 
 type FormValues = {
   name: string;
@@ -20,7 +20,7 @@ export function DuplicateSegmentDialog({
   segment,
   onClose,
 }: {
-  segment: FilterSegmentOutput;
+  segment: CombinedFilterSegment;
   onClose: () => void;
 }) {
   const { t } = useLocale();
@@ -50,20 +50,27 @@ export function DuplicateSegmentDialog({
     if (!segment) {
       return;
     }
-    const { id: _id, name: _name, team: _team, teamId, ...rest } = segment;
-
-    if (segment.scope === "TEAM" && isAdminOrOwner) {
-      createSegment({
-        ...rest,
-        teamId: teamId ?? 0,
-        scope: "TEAM",
-        name: data.name,
-      });
-    } else {
+    if (segment.type === "user") {
+      const { type: _type, id: _id, name: _name, team: _team, teamId, ...rest } = segment;
+      if (segment.scope === "TEAM" && isAdminOrOwner) {
+        createSegment({
+          ...rest,
+          teamId: teamId ?? 0,
+          scope: "TEAM",
+          name: data.name,
+        });
+      } else {
+        createSegment({
+          ...rest,
+          scope: "USER",
+          name: data.name,
+        });
+      }
+    } else if (segment.type === "system") {
+      const { type: _type, ...rest } = segment;
       createSegment({
         ...rest,
         scope: "USER",
-        name: data.name,
       });
     }
   };

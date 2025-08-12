@@ -29,23 +29,33 @@ import { RenameSegmentDialog } from "./RenameSegmentDialog";
 type SubmenuItem = {
   iconName: IconName;
   labelKey: string;
-  onClick: (segment: FilterSegmentOutput) => void;
+  onClick: (segment: CombinedFilterSegment) => void;
   isDestructive?: boolean;
   adminOnly: boolean;
+  enabledForSystemSegment?: boolean;
 };
 
 export function FilterSegmentSelect() {
   const { t } = useLocale();
+  const session = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
   const { segments, selectedSegment, segmentId, setSegmentId, isSegmentEnabled } = useDataTable();
   const [segmentToRename, setSegmentToRename] = useState<FilterSegmentOutput | undefined>();
-  const [segmentToDuplicate, setSegmentToDuplicate] = useState<FilterSegmentOutput | undefined>();
+  const [segmentToDuplicate, setSegmentToDuplicate] = useState<CombinedFilterSegment | undefined>();
   const [segmentToDelete, setSegmentToDelete] = useState<FilterSegmentOutput | undefined>();
 
   const submenuItems: SubmenuItem[] = [
     {
       iconName: "square-pen",
       labelKey: "rename",
-      onClick: (segment) => setSegmentToRename(segment),
+      onClick: (segment) => {
+        if (segment.type === "system") {
+          setSegmentToRename(undefined);
+        } else {
+          const { type: _type, ...rest } = segment;
+          setSegmentToRename(rest);
+        }
+      },
       adminOnly: true,
     },
     {
@@ -53,11 +63,19 @@ export function FilterSegmentSelect() {
       labelKey: "duplicate",
       onClick: (segment) => setSegmentToDuplicate(segment),
       adminOnly: false,
+      enabledForSystemSegment: true,
     },
     {
       iconName: "trash-2",
       labelKey: "delete",
-      onClick: (segment) => setSegmentToDelete(segment),
+      onClick: (segment) => {
+        if (segment.type === "system") {
+          setSegmentToDelete(undefined);
+        } else {
+          const { type: _type, ...rest } = segment;
+          setSegmentToDelete(rest);
+        }
+      },
       isDestructive: true,
       adminOnly: true,
     },
@@ -81,7 +99,7 @@ export function FilterSegmentSelect() {
       groups.push({
         label: t("default"),
         segments: systemSegments.sort(sortFn),
-        isDefault: true,
+        isSystem: true,
       });
     }
 
@@ -90,7 +108,7 @@ export function FilterSegmentSelect() {
       groups.push({
         label: t("personal"),
         segments: personalSegments.sort(sortFn),
-        isDefault: false,
+        isSystem: false,
       });
     }
 
@@ -111,7 +129,7 @@ export function FilterSegmentSelect() {
         .map(([teamName, segments]) => ({
           label: teamName,
           segments: segments.sort(sortFn),
-          isDefault: false,
+          isSystem: false,
         }))
         .sort((a, b) => a.label.localeCompare(b.label))
     );
@@ -148,31 +166,43 @@ export function FilterSegmentSelect() {
                 {group.label && (
                   <DropdownMenuLabel className={index === 0 ? "" : "mt-2"}>{group.label}</DropdownMenuLabel>
                 )}
-                {group.segments.map((segment) => (
-                  <DropdownItemWithSubmenu
-                    key={segment.id}
-                    submenuItems={group.isDefault ? [] : submenuItems}
-                    segment={segment}
-                    onSelect={() => {
-                      if (segmentId && segmentId.type === segment.type && segmentId.id === segment.id) {
-                        setSegmentId(null);
-                      } else {
-                        if (segment.type === "system") {
-                          setSegmentId({ id: segment.id, type: "system" });
+                {group.segments.map((segment) => {
+                  let items: SubmenuItem[] = [];
+                  if (segment.type === "system") {
+                    items = submenuItems.filter((item) => item.enabledForSystemSegment);
+                  } else if (segment.type === "user" && segment.scope === "USER") {
+                    items = submenuItems;
+                  } else if (segment.type === "user" && segment.scope === "TEAM") {
+                    items = submenuItems.filter(
+                      (item) =>
+                        // Team segments: show if not admin-only or if user is admin/owner
+                        isAdminOrOwner || !item.adminOnly
+                    );
+                  }
+
+                  return (
+                    <DropdownItemWithSubmenu
+                      key={segment.id}
+                      submenuItems={items}
+                      segment={segment}
+                      onSelect={() => {
+                        if (segmentId && segmentId.type === segment.type && segmentId.id === segment.id) {
+                          setSegmentId(null);
                         } else {
-                          setSegmentId({ id: segment.id, type: "user" });
+                          if (segment.type === "system") {
+                            setSegmentId({ id: segment.id, type: "system" });
+                          } else {
+                            setSegmentId({ id: segment.id, type: "user" });
+                          }
                         }
-                      }
-                    }}>
-                    {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
-                      <Icon name="check" className="ml-3 h-4 w-4" />
-                    )}
-                    {segment.type === "system" && segment.icon && (
-                      <Icon name={segment.icon} className="text-muted-foreground ml-3 h-4 w-4" />
-                    )}
-                    <span className="ml-3">{segment.name}</span>
-                  </DropdownItemWithSubmenu>
-                ))}
+                      }}>
+                      {segmentId && segmentId.type === segment.type && segmentId.id === segment.id && (
+                        <Icon name="check" className="ml-3 h-4 w-4" />
+                      )}
+                      <span className="ml-3">{segment.name}</span>
+                    </DropdownItemWithSubmenu>
+                  );
+                })}
               </div>
             ))}
           </DropdownMenuContent>
@@ -210,23 +240,6 @@ function DropdownItemWithSubmenu({
 }) {
   const { t } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
-
-  // Filter submenu items based on segment type and user role
-  const filteredSubmenuItems = submenuItems.filter((item) => {
-    if (segment.type === "system") {
-      return false;
-    }
-
-    if (!segment.team) {
-      // Personal segments: show all actions
-      return true;
-    }
-
-    // Team segments: show if not admin-only or if user is admin/owner
-    return !item.adminOnly || isAdminOrOwner;
-  });
 
   return (
     <DropdownMenuItem className="cursor-pointer" onSelect={onSelect}>
@@ -253,16 +266,14 @@ function DropdownItemWithSubmenu({
               side="right"
               sideOffset={8}
               data-testid="filter-segment-select-submenu-content">
-              {filteredSubmenuItems.map((item, index) => (
+              {submenuItems.map((item, index) => (
                 <DropdownMenuItem key={index}>
                   <DropdownItem
                     color={item.isDestructive ? "destructive" : undefined}
                     StartIcon={item.iconName}
                     onClick={(event) => {
                       event.preventDefault();
-                      if (segment.type === "user") {
-                        item.onClick(segment);
-                      }
+                      item.onClick(segment);
                       setIsOpen(false);
                     }}>
                     {t(item.labelKey)}

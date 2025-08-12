@@ -260,7 +260,6 @@ export type FilterSegmentOutput = {
 export type SystemFilterSegment = {
   id: string;
   name: string;
-  icon?: IconName;
   activeFilters: ActiveFilters;
   sorting?: SortingState;
   columnVisibility?: Record<string, boolean>;
@@ -270,11 +269,15 @@ export type SystemFilterSegment = {
   type: "system";
 };
 
+export type SystemFilterSegmentInternal = Required<SystemFilterSegment> & {
+  tableIdentifier: string;
+};
+
 export type UserFilterSegment = FilterSegmentOutput & {
   type: "user";
 };
 
-export type CombinedFilterSegment = SystemFilterSegment | UserFilterSegment;
+export type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegment;
 
 export type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
 
