@@ -1,7 +1,7 @@
 import { useSearchParams } from "next/navigation";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
@@ -48,7 +48,7 @@ export const useSchedule = ({
   useApiV2 = false,
   enabled: enabledProp = true,
 }: UseScheduleWithCacheArgs) => {
-  const bookerState = useBookerStore((state) => state.state);
+  const bookerState = useBookerStoreContext((state) => state.state);
 
   const [startTime, endTime] = useTimesForSchedule({
     month,

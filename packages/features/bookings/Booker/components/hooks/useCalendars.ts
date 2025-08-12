@@ -6,7 +6,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
-import { useBookerStore } from "../../store";
+import { useBookerStoreContext } from "../../BookerStoreProvider";
 import { useOverlayCalendarStore } from "../OverlayCalendar/store";
 import { useLocalSet } from "./useLocalSet";
 
@@ -21,7 +21,7 @@ export type ToggledConnectedCalendars = Set<{
 
 export const useCalendars = ({ hasSession }: UseCalendarsProps) => {
   const searchParams = useSearchParams();
-  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const { timezone } = useTimePreferences();
   const switchEnabled =
     searchParams?.get("overlayCalendar") === "true" ||

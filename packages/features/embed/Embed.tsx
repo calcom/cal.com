@@ -11,7 +11,8 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
-import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -261,12 +262,12 @@ const EmailEmbed = ({
     isTeamEvent,
   });
 
-  const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
+  const [month, selectedDate, selectedDatesAndTimes] = useBookerStoreContext(
     (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
     shallow
   );
   const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimezone] =
-    useBookerStore(
+    useBookerStoreContext(
       (state) => [
         state.setSelectedDate,
         state.setMonth,
@@ -686,7 +687,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
 
-  const [month, selectedDatesAndTimes] = useBookerStore(
+  const [month, selectedDatesAndTimes] = useBookerStoreContext(
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );

@@ -7,8 +7,8 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 
+import { useBookerStoreContext } from "../../BookerStoreProvider";
 import { extraDaysConfig } from "../../config";
-import { useBookerStore } from "../../store";
 import type { BookerLayout } from "../../types";
 import { validateLayout } from "../../utils/layout";
 import { getQueryParam } from "../../utils/query-param";
@@ -18,7 +18,7 @@ export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 export const useBookerLayout = (
   profileBookerLayouts: BookerEvent["profile"]["bookerLayouts"] | undefined | null
 ) => {
-  const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
+  const [_layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");

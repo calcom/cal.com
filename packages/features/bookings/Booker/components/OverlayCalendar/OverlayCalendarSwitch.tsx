@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Switch } from "@calcom/ui/components/form";
-import { Button } from "@calcom/ui/components/button";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Switch } from "@calcom/ui/components/form";
 
-import { useBookerStore } from "../../store";
+import { useBookerStoreContext } from "../../BookerStoreProvider";
 import { useOverlayCalendarStore } from "./store";
 
 interface OverlayCalendarSwitchProps {
@@ -20,7 +20,7 @@ export function OverlayCalendarSwitch({ enabled, hasSession, onStateChange }: Ov
   const setCalendarSettingsOverlay = useOverlayCalendarStore(
     (state) => state.setCalendarSettingsOverlayModal
   );
-  const layout = useBookerStore((state) => state.layout);
+  const layout = useBookerStoreContext((state) => state.layout);
   const switchEnabled = enabled;
 
   /**
