@@ -16,7 +16,7 @@ import { RedirectType } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
@@ -34,19 +34,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: teamSlug,
-      redirectType: RedirectType.Team,
-      eventTypeSlug: meetingSlug,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: [teamSlug],
+    redirectType: RedirectType.Team,
+    eventTypeSlug: meetingSlug,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
   const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
