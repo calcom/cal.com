@@ -18,6 +18,7 @@ import { TRPCClientError } from "@trpc/react-query";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import { findMatchingRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import type { SingleFormComponentProps } from "../../types/shared";
 import type { RoutingForm, FormResponse, NonRouterRoute } from "../../types/types";
 import FormInputFields from "../FormInputFields";
@@ -130,23 +131,37 @@ export const TestForm = ({
     const route = findMatchingRoute({ form, response });
     let eventTypeRedirectUrl: string | null = null;
 
-    if (route?.action?.type === "eventTypeRedirectUrl") {
-      if ("team" in form) {
-        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: route.action.value,
-          form,
-          allURLSearchParams: new URLSearchParams(),
-        });
-        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+    // Create a copy of the route with substituted variables for display
+    let displayRoute = route;
+    if (route && form.fields) {
+      // Substitute variables for both eventTypeRedirectUrl and externalRedirectUrl
+      if (route.action.type === "eventTypeRedirectUrl" || route.action.type === "externalRedirectUrl") {
+        const substitutedUrl = substituteVariables(route.action.value, response, form.fields);
+        displayRoute = {
+          ...route,
+          action: {
+            ...route.action,
+            value: substitutedUrl,
+          },
+        };
+
+        if (route.action.type === "eventTypeRedirectUrl" && "team" in form) {
+          eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+            eventTypeRedirectUrl: substitutedUrl,
+            form,
+            allURLSearchParams: new URLSearchParams(),
+          });
+          setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+        }
       }
     }
 
-    setChosenRoute(route || null);
+    setChosenRoute(displayRoute || null);
     setShowResults(true);
 
     if (!route) return;
 
-    if (supportsTeamMembersMatchingLogic) {
+    if (supportsTeamMembersMatchingLogic && route.action.eventTypeId) {
       findTeamMembersMatchingAttributeLogicMutation.mutate({
         formId: form.id,
         response,
