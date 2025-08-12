@@ -22,6 +22,12 @@ type ShouldHighlight =
       slug?: never;
     };
 
+export type AppCardClassNames = {
+  container: string;
+  title?: string;
+  description?: string;
+};
+
 export type AppListCardProps = {
   logo?: string;
   title: string;
@@ -33,6 +39,7 @@ export type AppListCardProps = {
   children?: ReactNode;
   credentialOwner?: CredentialOwner;
   className?: string;
+  classNameObject?: AppCardClassNames;
 } & ShouldHighlight;
 
 export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) => {
@@ -48,11 +55,16 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
     children,
     credentialOwner,
     className,
+    classNameObject,
     highlight,
   } = props;
 
   return (
-    <div className={classNames(highlight && "dark:bg-muted bg-yellow-100", className)}>
+    <div
+      className={classNames(
+        highlight && "dark:bg-muted bg-yellow-100",
+        className || classNameObject?.container
+      )}>
       <div className="flex items-start gap-x-3 px-4 py-4 sm:px-6">
         {logo ? (
           <img
@@ -63,13 +75,18 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
         ) : null}
         <div className="flex min-w-0 grow flex-col gap-y-1">
           <div className="flex items-center gap-x-2">
-            <h3 className="text-emphasis truncate text-sm font-semibold">{title}</h3>
+            <h3
+              className={classNames("text-emphasis truncate text-sm font-semibold", classNameObject?.title)}>
+              {title}
+            </h3>
             <div className="flex flex-shrink-0 items-center gap-x-2">
               {isDefault && <Badge variant="green">{t("default")}</Badge>}
               {isTemplate && <Badge variant="red">Template</Badge>}
             </div>
           </div>
-          <ListItemText component="p" className="whitespace-normal break-words">
+          <ListItemText
+            component="p"
+            className={classNames("whitespace-normal break-words", classNameObject?.description)}>
             {description}
           </ListItemText>
           {invalidCredential && (

@@ -20,4 +20,6 @@ availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSl
   checkBookingLimitsService: DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE,
   userAvailabilityService: DI_TOKENS.GET_USER_AVAILABILITY_SERVICE,
   busyTimesService: DI_TOKENS.BUSY_TIMES_SERVICE,
+  featuresRepo: DI_TOKENS.FEATURES_REPOSITORY,
+  qualifiedHostsService: DI_TOKENS.QUALIFIED_HOSTS_SERVICE,
 } satisfies Record<keyof IAvailableSlotsService, symbol>);
