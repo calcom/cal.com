@@ -181,7 +181,7 @@ function UserListTableContent({
       canEdit: permissions?.canChangeMemberRole ?? adminOrOwner,
       canRemove: permissions?.canRemove ?? adminOrOwner,
       canResendInvitation: permissions?.canInvite ?? adminOrOwner,
-      canImpersonate: false,
+      canImpersonate: permissions?.canImpersonate ?? adminOrOwner,
     };
     const generateAttributeColumns = () => {
       if (!attributes?.length) {
@@ -460,7 +460,11 @@ function UserListTableContent({
             canEdit: permissionsRaw.canEdit && user.accepted && !isSelf,
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
-              user.accepted && !user.disableImpersonation && !isSelf && !!org?.canAdminImpersonate,
+              user.accepted &&
+              !user.disableImpersonation &&
+              !isSelf &&
+              !!org?.canAdminImpersonate &&
+              permissionsRaw.canImpersonate,
             canLeave: user.accepted && isSelf,
             canResendInvitation: permissionsRaw.canResendInvitation && !user.accepted,
           };
