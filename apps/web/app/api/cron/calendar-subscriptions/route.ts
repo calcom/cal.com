@@ -5,10 +5,8 @@ import { NextResponse } from "next/server";
 import { CalendarSubscriptionRepository } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionRepository";
 import { CalendarSubscriptionService } from "@calcom/features/calendar-cache-sql/CalendarSubscriptionService";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getCredentialForCalendarCache } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionsSqlCron"] });
@@ -29,93 +27,15 @@ async function getHandler(req: NextRequest) {
       return NextResponse.json({ message: "SQL cache write disabled" });
     }
 
-    const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
-    const selectedCalendars = await SelectedCalendarRepository.getNextBatchForSqlCache(50);
-
-    let createdCount = 0;
-    let errorCount = 0;
-
-    if (selectedCalendars.length > 0) {
-      try {
-        const selectedCalendarIds = selectedCalendars.map((selectedCalendar) => selectedCalendar.id);
-
-        await subscriptionRepo.upsertManyBySelectedCalendarId(selectedCalendarIds);
-        createdCount = selectedCalendars.length;
-      } catch (error) {
-        log.error(
-          `Failed to bulk upsert subscriptions for selected calendars:`,
-          safeStringify({ error, selectedCalendarIds: selectedCalendars.map((sc) => sc.id) })
-        );
-        errorCount = selectedCalendars.length;
-      }
-    }
-
-    const subscriptionsToWatch = await subscriptionRepo.getSubscriptionsToWatch(50);
-    let watchedCount = 0;
-
-    // Instantiate CalendarSubscriptionService once outside the loop for better performance
-    const calendarSubscriptionService = new CalendarSubscriptionService();
-
-    for (const subscription of subscriptionsToWatch) {
-      try {
-        if (!subscription.selectedCalendar?.credential) {
-          log.warn(
-            `Subscription ${subscription.id} has no credential, marking as error to prevent infinite retries`
-          );
-          await subscriptionRepo.setWatchError(
-            subscription.id,
-            "No credential available for calendar subscription"
-          );
-          errorCount++;
-          continue;
-        }
-
-        const credentialForCalendarCache = await getCredentialForCalendarCache({
-          credentialId: subscription.selectedCalendar.credential.id,
-        });
-
-        if (!credentialForCalendarCache) {
-          log.warn(`No credential found for calendar cache for subscription ${subscription.id}`);
-          await subscriptionRepo.setWatchError(subscription.id, "No credential found for calendar cache");
-          errorCount++;
-          continue;
-        }
-
-        const watchResult = await calendarSubscriptionService.watchCalendar(
-          subscription.selectedCalendar.externalId,
-          credentialForCalendarCache
-        );
-
-        if (watchResult?.id && watchResult?.expiration) {
-          await subscriptionRepo.updateWatchDetails(subscription.id, {
-            googleChannelId: watchResult.id,
-            googleChannelKind: watchResult.kind || "",
-            googleChannelResourceId: watchResult.resourceId || "",
-            googleChannelResourceUri: watchResult.resourceUri || "",
-            googleChannelExpiration: watchResult.expiration,
-          });
-        }
-
-        await subscriptionRepo.clearWatchError(subscription.id);
-        watchedCount++;
-      } catch (error) {
-        log.error(`Failed to watch calendar subscription ${subscription.id}:`, safeStringify({ error }));
-        await subscriptionRepo.setWatchError(
-          subscription.id,
-          error instanceof Error ? error.message : String(error)
-        );
-        errorCount++;
-      }
-    }
-
-    return NextResponse.json({
-      createdCount,
-      watchedCount,
-      errorCount,
-      totalProcessed: selectedCalendars.length + subscriptionsToWatch.length,
+    const calendarSubscriptionService = new CalendarSubscriptionService({
+      subscriptionRepo: new CalendarSubscriptionRepository(prisma),
+      selectedCalendarRepo: new SelectedCalendarRepository(prisma),
     });
+
+    const result = await calendarSubscriptionService.processNextBatch({ batchSize: 50 });
+    return NextResponse.json(result);
   } catch (error) {
-    log.error("Calendar subscriptions SQL cron error:", safeStringify({ error }));
+    log.error("Calendar subscriptions SQL cron error:", { error });
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

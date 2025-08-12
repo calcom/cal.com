@@ -3,6 +3,16 @@ import type { CalendarSubscription, Credential } from "@prisma/client";
 // Safe credential type that excludes sensitive fields
 export type SafeCredential = Pick<Credential, "id" | "type" | "userId" | "teamId" | "appId" | "invalid">;
 
+export type SubscriptionWithSelectedCalendar = CalendarSubscription & {
+  selectedCalendar: {
+    id: string;
+    externalId: string;
+    integration: string;
+    userId: number;
+    credential: SafeCredential | null;
+  };
+};
+
 export interface ICalendarSubscriptionRepository {
   findBySelectedCalendar(selectedCalendarId: string): Promise<CalendarSubscription | null>;
   findByCredentialId(credentialId: number): Promise<CalendarSubscription | null>;
@@ -33,7 +43,7 @@ export interface ICalendarSubscriptionRepository {
       googleChannelExpiration: string;
     }
   ): Promise<void>;
-  getSubscriptionsToWatch(limit?: number): Promise<CalendarSubscription[]>;
+  getSubscriptionsToWatch(limit?: number): Promise<SubscriptionWithSelectedCalendar[]>;
   setWatchError(id: string, error: string): Promise<void>;
   clearWatchError(id: string): Promise<void>;
 }

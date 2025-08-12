@@ -16,4 +16,29 @@ export class SelectedCalendarRepository {
       select: { id: true, externalId: true, credentialId: true },
     });
   }
+
+  async getNextBatchForSqlCache(limit = 100) {
+    const nextBatch = await this.prismaClient.selectedCalendar.findMany({
+      take: limit,
+      where: {
+        user: {
+          teams: {
+            some: {
+              team: {
+                features: {
+                  some: {
+                    featureId: "calendar-cache-sql-write",
+                  },
+                },
+              },
+            },
+          },
+        },
+        integration: "google_calendar",
+        eventTypeId: null,
+        calendarSubscription: null, // Only get selected calendars that don't have a subscription
+      },
+    });
+    return nextBatch;
+  }
 }
