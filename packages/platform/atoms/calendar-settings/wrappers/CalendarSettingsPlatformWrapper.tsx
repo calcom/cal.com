@@ -1,5 +1,4 @@
-import type { DestinationCalendarClassNames } from "destination-calendar/DestinationCalendar";
-
+import type { DestinationCalendarClassNames } from "../../destination-calendar/DestinationCalendar";
 import { DestinationCalendarSettingsPlatformWrapper } from "../../destination-calendar/index";
 import { SelectedCalendarsSettingsPlatformWrapper } from "../../selected-calendars/index";
 import type {
