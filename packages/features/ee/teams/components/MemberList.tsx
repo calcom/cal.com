@@ -15,7 +15,6 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTableProvider,
@@ -292,8 +291,6 @@ function MemberListContent(props: Props) {
   //   const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
   //   return owners.length;
   // };
-
-  const isAdminOrOwner = checkAdminOrOwner(props.team.membership.role);
 
   const removeMember = () =>
     removeMemberMutation.mutate({
@@ -715,7 +712,7 @@ function MemberListContent(props: Props) {
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            {isAdminOrOwner && (
+            {props.permissions.canInvite && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"
