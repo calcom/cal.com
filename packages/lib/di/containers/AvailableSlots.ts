@@ -12,8 +12,10 @@ import { cacheModule } from "../modules/Cache";
 import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
 import { eventTypeRepositoryModule } from "../modules/EventType";
 import { featuresRepositoryModule } from "../modules/Features";
+import { filterHostsModule } from "../modules/FilterHosts";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
 import { oooRepositoryModule } from "../modules/Ooo";
+import { qualifiedHostsModule } from "../modules/QualifiedHosts";
 import { routingFormResponseRepositoryModule } from "../modules/RoutingFormResponse";
 import { scheduleRepositoryModule } from "../modules/Schedule";
 import { selectedSlotsRepositoryModule } from "../modules/SelectedSlots";
@@ -37,6 +39,9 @@ container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimits
 container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
 container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule);
 container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
+container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
+container.load(DI_TOKENS.FILTER_HOSTS_SERVICE_MODULE, filterHostsModule);
+container.load(DI_TOKENS.QUALIFIED_HOSTS_SERVICE_MODULE, qualifiedHostsModule);
 
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);

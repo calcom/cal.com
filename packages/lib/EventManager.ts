@@ -635,7 +635,7 @@ export default class EventManager {
     const shouldUpdateBookingReferences =
       !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
 
-    if (evt.requiresConfirmation) {
+    if (evt.requiresConfirmation && !changedOrganizer) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
       // As the reschedule requires confirmation, we can't update the events and meetings to new time yet. So, just delete them and let it be handled when organizer confirms the booking.
       await this.deleteEventsAndMeetings({
@@ -644,14 +644,7 @@ export default class EventManager {
       });
     } else {
       if (changedOrganizer) {
-        log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
-        await this.deleteEventsAndMeetings({
-          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
-          bookingReferences: booking.references,
-        });
-
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
-
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
@@ -728,7 +721,7 @@ export default class EventManager {
     });
   }
 
-  private async deleteEventsAndMeetings({
+  public async deleteEventsAndMeetings({
     event,
     bookingReferences,
     isBookingInRecurringSeries,
