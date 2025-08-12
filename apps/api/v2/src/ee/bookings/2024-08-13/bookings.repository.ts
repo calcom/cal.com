@@ -180,10 +180,6 @@ export class BookingsRepository_2024_08_13 {
           in: fromRescheduleUids,
         },
       },
-      include: {
-        attendees: true,
-        user: true,
-      },
     });
   }
 
