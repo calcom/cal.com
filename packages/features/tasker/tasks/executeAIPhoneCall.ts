@@ -142,7 +142,10 @@ export async function executeAIPhoneCall(payload: string) {
     // Get form responses if available
     const { responses } = getCalEventResponses({
       bookingFields: booking.eventType?.bookingFields ?? null,
-      booking: booking,
+      booking: {
+        ...booking,
+        customInputs: null,
+      },
     });
 
     // Split attendee name into first and last name
