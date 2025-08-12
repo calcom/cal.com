@@ -31,7 +31,9 @@ export const createStandardVideoMock = (overrides?: {
   });
 };
 
-export const createBookingMocks = (_scenario: "fresh" | "reschedule" | "team" = "fresh") => {
+export const createBookingMocks = (
+  _scenario: "fresh" | "reschedule" | "team" | "seated" | "round-robin" | "recurring" = "fresh"
+) => {
   const calendarMock = createStandardCalendarMock();
   const videoMock = createStandardVideoMock();
 
@@ -45,7 +47,7 @@ export const createBookingMocks = (_scenario: "fresh" | "reschedule" | "team" = 
 };
 
 export const createMockRequestData = (
-  scenario: "fresh" | "reschedule" | "team",
+  scenario: "fresh" | "reschedule" | "team" | "seated" | "round-robin" | "recurring",
   overrides?: Record<string, unknown>
 ) => {
   const tomorrow = new Date();
@@ -68,6 +70,13 @@ export const createMockRequestData = (
     return {
       ...baseData,
       rescheduleUid: (overrides?.rescheduleUid as string) || "existing-booking-uid",
+    };
+  }
+
+  if (scenario === "seated" && overrides?.bookingUid) {
+    return {
+      ...baseData,
+      bookingUid: overrides.bookingUid as string,
     };
   }
 

@@ -7,10 +7,20 @@ import {
 } from "./expects";
 import { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 import { createBookingMocks, createMockRequestData } from "./mockFactories";
+// import {
+//   createMockCalendarService,
+//   createMockVideoService,
+//   createMockPaymentService,
+//   createMockWebhookService,
+//   createMockWorkflowService,
+// } from "@calcom/lib/test/testHelpers";
 import {
   createFreshBookingScenario,
   createRescheduleScenario,
   createTeamBookingScenario,
+  createSeatedEventScenario,
+  createRoundRobinScenario,
+  createRecurringEventScenario,
 } from "./scenarioTemplates";
 
 export const setupFreshBookingTest = async (overrides?: {
@@ -64,7 +74,7 @@ export const setupRescheduleTest = async (overrides?: {
   const scenarioData = createRescheduleScenario(overrides);
   await createBookingScenario(scenarioData);
 
-  const mocks = createBookingMocks("reschedule");
+  const mocks = createBookingMocks("fresh");
 
   const bookerData = { email: "booker@example.com", name: "Booker", ...overrides?.booker };
 
@@ -106,7 +116,7 @@ export const setupTeamBookingTest = async (overrides?: {
   const scenarioData = createTeamBookingScenario(overrides);
   await createBookingScenario(scenarioData);
 
-  const mocks = createBookingMocks("team");
+  const mocks = createBookingMocks("fresh");
 
   const bookerData = { email: "booker@example.com", name: "Booker", ...overrides?.booker };
 
@@ -128,6 +138,122 @@ export const setupTeamBookingTest = async (overrides?: {
     organizer: { name: "Team Lead", email: "lead@example.com", id: 101, timeZone: "Asia/Kolkata" },
     booker: bookerData,
     teamMembers: overrides?.teamMembers || [],
+  };
+};
+
+export const setupSeatedEventTest = async (overrides?: {
+  organizer?: { name?: string; email?: string; id?: number; [key: string]: unknown };
+  booker?: { name?: string; email?: string; [key: string]: unknown };
+  seatsPerTimeSlot?: number;
+  seatsShowAttendees?: boolean;
+  withWebhooks?: boolean;
+  mockData?: Record<string, unknown>;
+}) => {
+  const scenarioData = createSeatedEventScenario(overrides);
+  await createBookingScenario(scenarioData);
+
+  const mocks = createBookingMocks("fresh");
+
+  const bookerData = { email: "booker@example.com", name: "Booker", ...overrides?.booker };
+
+  const mockRequestData = getMockRequestDataForBooking({
+    data: createMockRequestData("seated", {
+      responses: {
+        email: bookerData.email as string,
+        name: bookerData.name as string,
+        location: { optionValue: "" as const, value: "Cal Video" },
+      },
+      ...overrides?.mockData,
+    }),
+  });
+
+  return {
+    scenarioData,
+    mocks,
+    mockRequestData,
+    organizer: {
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      timeZone: "Asia/Kolkata",
+      ...overrides?.organizer,
+    },
+    booker: bookerData,
+  };
+};
+
+export const setupRoundRobinTest = async (overrides?: {
+  teamMembers?: Array<{ name?: string; email?: string; id?: number; [key: string]: unknown }>;
+  withWebhooks?: boolean;
+  withWorkflows?: boolean;
+  booker?: { name?: string; email?: string; [key: string]: unknown };
+  mockData?: Record<string, unknown>;
+}) => {
+  const scenarioData = createRoundRobinScenario(overrides);
+  await createBookingScenario(scenarioData);
+
+  const mocks = createBookingMocks("fresh");
+
+  const bookerData = { email: "booker@example.com", name: "Booker", ...overrides?.booker };
+
+  const mockRequestData = getMockRequestDataForBooking({
+    data: createMockRequestData("round-robin", {
+      responses: {
+        email: bookerData.email as string,
+        name: bookerData.name as string,
+        location: { optionValue: "" as const, value: "Cal Video" },
+      },
+      ...overrides?.mockData,
+    }),
+  });
+
+  return {
+    scenarioData,
+    mocks,
+    mockRequestData,
+    organizer: { name: "Team Lead", email: "lead@example.com", id: 101, timeZone: "Asia/Kolkata" },
+    booker: bookerData,
+    teamMembers: overrides?.teamMembers || [],
+  };
+};
+
+export const setupRecurringEventTest = async (overrides?: {
+  organizer?: { name?: string; email?: string; id?: number; [key: string]: unknown };
+  booker?: { name?: string; email?: string; [key: string]: unknown };
+  recurringEvent?: { freq: number; count: number; interval?: number };
+  withWebhooks?: boolean;
+  mockData?: Record<string, unknown>;
+}) => {
+  const scenarioData = createRecurringEventScenario(overrides);
+  await createBookingScenario(scenarioData);
+
+  const mocks = createBookingMocks("fresh");
+
+  const bookerData = { email: "booker@example.com", name: "Booker", ...overrides?.booker };
+
+  const mockRequestData = getMockRequestDataForBooking({
+    data: createMockRequestData("recurring", {
+      responses: {
+        email: bookerData.email as string,
+        name: bookerData.name as string,
+        location: { optionValue: "" as const, value: "Cal Video" },
+      },
+      ...overrides?.mockData,
+    }),
+  });
+
+  return {
+    scenarioData,
+    mocks,
+    mockRequestData,
+    organizer: {
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      timeZone: "Asia/Kolkata",
+      ...overrides?.organizer,
+    },
+    booker: bookerData,
   };
 };
 
