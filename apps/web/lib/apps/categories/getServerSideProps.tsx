@@ -1,12 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { req } = context;
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({
+    req: { headers: context.req.headers, cookies: context.req.cookies } as any,
+  });
 
   let appStore;
   if (session?.user?.id) {

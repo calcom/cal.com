@@ -8,8 +8,6 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import "../styles/globals.css";
 import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
 import { SpeculationRules } from "./SpeculationRules";
@@ -83,7 +81,7 @@ const getInitialProps = async () => {
   const h = await headers();
   const isEmbed = h.get("x-isEmbed") === "true";
   const embedColorScheme = h.get("x-embedColorScheme");
-  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()))) ?? "en";
+  const newLocale = (await getLocale({ headers: await headers(), cookies: await cookies() } as any)) ?? "en";
   const direction = dir(newLocale) ?? "ltr";
 
   return {

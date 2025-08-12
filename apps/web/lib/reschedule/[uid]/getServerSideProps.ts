@@ -1,5 +1,4 @@
 // page can be a server component
-import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";
 
@@ -13,6 +12,8 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
 const querySchema = z.object({
   uid: z.string(),
   seatReferenceUid: z.string().optional(),
@@ -23,8 +24,12 @@ const querySchema = z.object({
     .optional(),
 });
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession({ req: context.req });
+export async function getServerSideProps(context: NextJsLegacyContext) {
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
 
   const {
     uid: bookingUid,

@@ -1,5 +1,4 @@
 import MarkdownIt from "markdown-it";
-import type { GetServerSidePropsContext } from "next";
 
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
@@ -16,6 +15,8 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepo
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
 
@@ -120,7 +121,7 @@ const checkIfUserIsHost = async ({
   return !!eventType;
 };
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: NextJsLegacyContext) {
   const { req } = context;
 
   const bookingRepo = new BookingRepository(prisma);
@@ -195,7 +196,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     endTime: booking.endTime.toString(),
   });
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   const oldVideoReference = getCalVideoReference(bookingObj.references);
 

@@ -19,7 +19,7 @@ import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@calcom/web/lib/buildLegacyCtx";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
 import {
@@ -210,7 +210,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     }
     sendEmailVerification({
       email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+      language: await getLocaleFromRequest({
+        headers: buildLegacyHeaders(await headers()),
+        cookies: buildLegacyCookies(await cookies()),
+      } as any),
       username: username || "",
     });
   }

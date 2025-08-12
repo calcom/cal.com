@@ -1,11 +1,11 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { getOptions } from "@calcom/feature-auth/lib/next-auth-options";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const session = await getServerSession({
-    req: context.req,
+    req: { headers: context.req.headers, cookies: context.req.cookies } as any,
     authOptions: getOptions({
       getDubId: () => context.req.cookies.dub_id || context.req.cookies.dclid,
     }),

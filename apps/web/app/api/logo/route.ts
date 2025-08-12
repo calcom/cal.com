@@ -1,10 +1,9 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   ANDROID_CHROME_ICON_192,
   ANDROID_CHROME_ICON_256,
@@ -18,8 +17,6 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const log = logger.getSubLogger({ prefix: ["[api/logo]"] });
 
@@ -167,11 +164,8 @@ async function getHandler(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const parsedQuery = logoApiSchema.parse(Object.fromEntries(searchParams.entries()));
 
-  // Create a legacy request object for compatibility
-  const legacyReq = buildLegacyRequest(await headers(), await cookies());
-  const { isValidOrgDomain } = orgDomainConfig(legacyReq);
-
-  const hostname = request.headers.get("host");
+  const hostname = request.headers.get("host") || "";
+  const { isValidOrgDomain } = getOrgDomainConfig({ hostname });
   if (!hostname) {
     return NextResponse.json({ error: "No hostname" }, { status: 400 });
   }

@@ -1,11 +1,10 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
@@ -15,16 +14,28 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
-async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession({ req: context.req });
+async function getUserPageProps(context: NextJsLegacyContext) {
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
   const org = isValidOrgDomain ? currentOrgDomain : null;
 
   let name: string;
@@ -155,6 +166,6 @@ const paramsSchema = z.object({ link: z.string(), slug: z.string().transform((s)
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   return await getUserPageProps(context);
 };

@@ -19,6 +19,8 @@ vi.mock("@calcom/lib/constants", async () => {
 
 vi.mock("@lib/buildLegacyCtx", () => ({
   buildLegacyRequest: vi.fn(() => ({ headers: {}, cookies: {} })),
+  buildLegacyHeaders: vi.fn(() => ({})),
+  buildLegacyCookies: vi.fn(() => ({})),
 }));
 
 vi.mock("next/headers", () => ({

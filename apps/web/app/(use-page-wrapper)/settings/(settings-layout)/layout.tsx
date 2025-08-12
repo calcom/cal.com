@@ -11,7 +11,7 @@ import { Resource, CrudAction } from "@calcom/features/pbac/domain/types/permiss
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
 
 import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
 import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
@@ -37,7 +37,13 @@ const getCachedResourcePermissions = unstable_cache(
 );
 
 export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: (await cookies())
+      .getAll()
+      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const userId = session?.user?.id;
   if (!userId) {
     return redirect("/auth/login");

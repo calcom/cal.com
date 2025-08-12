@@ -1,11 +1,10 @@
-import { type GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
@@ -15,6 +14,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
@@ -115,12 +115,23 @@ async function processSeatedEvent({
   }
 }
 
-async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession({ req: context.req });
+async function getDynamicGroupPageProps(context: NextJsLegacyContext) {
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
   const org = isValidOrgDomain ? currentOrgDomain : null;
   if (!org) {
     const redirect = await getTemporaryOrgRedirect({
@@ -212,13 +223,24 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   };
 }
 
-async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession({ req: context.req });
+async function getUserPageProps(context: NextJsLegacyContext) {
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
 
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
   if (!isOrgContext) {
@@ -315,7 +337,7 @@ const paramsSchema = z.object({
 
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 

@@ -1,5 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { LicenseKeySingleton } from "@calcom/features/ee/common/server/LicenseKeyService";
 import { getDeploymentKey } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
@@ -7,12 +5,14 @@ import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
+export async function getServerSideProps(context: NextJsLegacyContext) {
   const { req } = context;
 
   const userCount = await prisma.user.count();
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {

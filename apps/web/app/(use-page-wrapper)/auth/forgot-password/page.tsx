@@ -22,7 +22,11 @@ export const generateMetadata = async () => {
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
-  const session = await getServerSession({ req: context.req });
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
 
   if (session) {
     redirect("/");

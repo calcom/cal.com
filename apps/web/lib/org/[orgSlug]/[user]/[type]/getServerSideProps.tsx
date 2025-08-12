@@ -1,10 +1,10 @@
-import type { GetServerSidePropsContext } from "next";
 import z from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getServerSideProps as GSSTeamTypePage } from "@lib/team/[slug]/[type]/getServerSideProps";
 
 import { getServerSideProps as GSSUserTypePage } from "@server/lib/[user]/[type]/getServerSideProps";
@@ -15,7 +15,7 @@ const paramsSchema = z.object({
   type: z.string().transform((s) => slugify(s)),
 });
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
   const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
   const team = await prisma.team.findFirst({
     where: {

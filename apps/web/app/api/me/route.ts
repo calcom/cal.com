@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { performance } from "@calcom/lib/server/perfObserver";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 async function getHandler() {
   const prePrismaDate = performance.now();
@@ -13,9 +13,12 @@ async function getHandler() {
   const preSessionDate = performance.now();
 
   // Create a legacy request object for compatibility
-  const legacyReq = buildLegacyRequest(await headers(), await cookies());
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
 
-  const session = await getServerSession({ req: legacyReq });
+  const session = await getServerSession({ req });
   if (!session) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 409 });
   }

@@ -9,7 +9,7 @@ import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permi
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -23,7 +23,13 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: (await cookies())
+      .getAll()
+      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
     return redirect("/settings/profile");

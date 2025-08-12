@@ -12,7 +12,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 const stateSchema = z.object({
   teamId: z.string(),
@@ -22,9 +22,12 @@ async function getHandler(request: NextRequest) {
   try {
     const headersList = await headers();
     const cookiesList = await cookies();
-    const legacyReq = buildLegacyRequest(headersList, cookiesList);
+    const req = {
+      headers: buildLegacyHeaders(headersList),
+      cookies: buildLegacyCookies(cookiesList),
+    } as any;
 
-    const session = await getServerSession({ req: legacyReq });
+    const session = await getServerSession({ req });
 
     if (!session?.user?.id) {
       return NextResponse.json({ message: "You must be logged in to do this" }, { status: 401 });

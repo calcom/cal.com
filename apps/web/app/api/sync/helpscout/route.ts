@@ -1,16 +1,11 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "crypto";
-import { headers } from "next/headers";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import getRawBody from "raw-body";
 import z from "zod";
 
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { default as webPrisma } from "@calcom/prisma";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const helpscoutRequestBodySchema = z.object({
   customer: z.object({
@@ -29,13 +24,11 @@ async function postHandler(request: NextRequest) {
   if (!process.env.CALENDSO_ENCRYPTION_KEY)
     return NextResponse.json({ message: "Missing encryption key" }, { status: 500 });
 
-  const legacyRequest = buildLegacyRequest(await headers(), await cookies());
-
   // Get the raw request body
-  const rawBody = await getRawBody(legacyRequest);
+  const rawBody = await request.text();
 
   try {
-    const parsedBody = helpscoutRequestBodySchema.safeParse(JSON.parse(rawBody.toString()));
+    const parsedBody = helpscoutRequestBodySchema.safeParse(JSON.parse(rawBody));
     if (!parsedBody.success) return NextResponse.json({ message: "Invalid request body" }, { status: 400 });
 
     // Verify the signature

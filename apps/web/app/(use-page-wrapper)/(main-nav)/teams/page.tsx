@@ -6,8 +6,6 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { ServerTeamsListing } from "./server-page";
 
 export const generateMetadata = async () =>
@@ -20,7 +18,11 @@ export const generateMetadata = async () =>
   );
 
 const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: (await headers()) as any,
+    cookies: (await cookies()) as any,
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const searchParams = await _searchParams;
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
   const callbackUrl = token ? `/teams?token=${encodeURIComponent(token)}` : null;

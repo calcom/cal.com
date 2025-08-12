@@ -1,8 +1,23 @@
-import type { SearchParams } from "app/_types";
-import { type Params } from "app/_types";
-import type { GetServerSidePropsContext, NextApiRequest } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+
+export type SearchParams = Record<string, string | string[] | undefined>;
+export type Params = Record<string, string | string[] | undefined>;
+
+export interface LegacyRequest {
+  headers: Record<string, string>;
+  cookies: Record<string, string>;
+  url?: string;
+  method?: string;
+  [key: string]: unknown;
+}
+
+export interface NextJsLegacyContext {
+  query: Record<string, string | string[] | undefined>;
+  params: Params;
+  req: LegacyRequest;
+  res: Record<string, never>;
+}
 
 const createProxifiedObject = (object: Record<string, string>) =>
   new Proxy(object, {
@@ -11,13 +26,13 @@ const createProxifiedObject = (object: Record<string, string>) =>
     },
   });
 
-const buildLegacyHeaders = (headers: ReadonlyHeaders) => {
+export const buildLegacyHeaders = (headers: ReadonlyHeaders) => {
   const headersObject = Object.fromEntries(headers.entries());
 
   return createProxifiedObject(headersObject);
 };
 
-const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
+export const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
   const cookiesObject = cookies.getAll().reduce<Record<string, string>>((acc, { name, value }) => {
     acc[name] = value;
     return acc;
@@ -35,7 +50,7 @@ export function decodeParams(params: Params): Params {
     }
 
     // Handle single values
-    if (value !== undefined) {
+    if (value !== undefined && value !== null) {
       acc[key] = decodeURIComponent(value);
     } else {
       acc[key] = value;
@@ -45,8 +60,11 @@ export function decodeParams(params: Params): Params {
   }, {} as Params);
 }
 
-export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
+export const buildLegacyRequest = (
+  headers: ReadonlyHeaders,
+  cookies: ReadonlyRequestCookies
+): LegacyRequest => {
+  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) };
 };
 
 export const buildLegacyCtx = (
@@ -54,7 +72,7 @@ export const buildLegacyCtx = (
   cookies: ReadonlyRequestCookies,
   params: Params,
   searchParams: SearchParams
-) => {
+): NextJsLegacyContext => {
   return {
     query: { ...searchParams, ...decodeParams(params) },
     // decoding is required to be backward compatible with Pages Router
@@ -71,5 +89,5 @@ export const buildLegacyCtx = (
         );
       },
     }),
-  } as unknown as GetServerSidePropsContext;
+  };
 };

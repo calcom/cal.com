@@ -1,9 +1,10 @@
-import type { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-export async function getServerSideProps(ctx: GetServerSidePropsContext) {
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
+export async function getServerSideProps(ctx: NextJsLegacyContext) {
   const session = await getSession(ctx);
   if (!session || !session.user) {
     return {

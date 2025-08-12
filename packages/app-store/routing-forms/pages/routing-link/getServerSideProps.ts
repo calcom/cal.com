@@ -1,12 +1,13 @@
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
+import type { AppPrisma } from "@calcom/types/AppGetServerSideProps";
+import type { NextJsLegacyContext } from "@calcom/web/lib/buildLegacyCtx";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
+  context: NextJsLegacyContext,
   prisma: AppPrisma
 ) {
   const { params } = context;
@@ -15,14 +16,22 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const appPages = params.pages.slice(1);
+  const pages = Array.isArray(params?.pages) ? params.pages : [];
+  const appPages = pages.slice(1);
   const formId = appPages[0];
   if (!formId || appPages.length > 2) {
     return {
       notFound: true,
     };
   }
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
 
   const isEmbed = appPages[1] === "embed";
 

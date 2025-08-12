@@ -1,18 +1,21 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
+import type { NextJsLegacyContext } from "@calcom/web/lib/buildLegacyCtx";
 
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
 import type { IHitPaySetupProps } from "./index";
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
   const notFound = { notFound: true } as const;
 
   if (typeof ctx.params?.slug !== "string") return notFound;
 
   const { req } = ctx;
-  const session = await getServerSession({ req });
+  const reqForSession = {
+    headers: req.headers,
+    cookies: req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
 
   if (!session?.user?.id) {
     const redirect = { redirect: { permanent: false, destination: "/auth/login" } } as const;

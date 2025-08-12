@@ -9,7 +9,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { getCachedHasTeamPlan } from "@calcom/web/app/cache/membership";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import AppearancePage from "~/settings/my-account/appearance-view";
 
@@ -23,7 +23,11 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
+  const session = await getServerSession({ req });
   const userId = session?.user?.id;
   const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/appearance";
 

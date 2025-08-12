@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 const SettingsOrganizationsLayout = async ({ children }: { children: React.ReactNode }) => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: (await headers()) as any,
+    cookies: (await cookies()) as any,
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   const orgExists =
     session?.user?.org || session?.user?.profile?.organizationId || session?.user?.profile?.organization;

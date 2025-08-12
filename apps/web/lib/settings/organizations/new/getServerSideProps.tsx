@@ -1,9 +1,11 @@
-import type { GetServerSidePropsResult } from "next";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
-export const getServerSideProps = async (): Promise<GetServerSidePropsResult<{ isOrg: boolean }>> => {
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
+
+export const getServerSideProps = async (
+  _context: NextJsLegacyContext
+): Promise<{ props: { isOrg: boolean } } | { notFound: true }> => {
   const featuresRepository = new FeaturesRepository(prisma);
   const organizations = await featuresRepository.checkIfFeatureIsEnabledGlobally("organizations");
   // Check if organizations are enabled

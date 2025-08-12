@@ -1,4 +1,3 @@
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -15,6 +14,7 @@ import type { User } from "@calcom/prisma/client";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 const paramsSchema = z.object({
@@ -26,13 +26,16 @@ function hasApiV2RouteInEnv() {
   return Boolean(process.env.NEXT_PUBLIC_API_V2_URL);
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { req, params, query } = context;
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    { headers: req.headers, cookies: req.cookies } as any,
+    params?.orgSlug
+  );
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {

@@ -1,5 +1,6 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
+import type { NextApiRequest, NextApiResponse } from "next";
 import { headers, cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -12,7 +13,7 @@ import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_rou
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import { TRPCError } from "@trpc/server";
 
@@ -118,9 +119,14 @@ async function handleBookingAction(
     /** @see https://trpc.io/docs/server-side-calls */
     const createCaller = createCallerFactory(bookingsRouter);
 
-    // Use buildLegacyRequest to create a request object compatible with Pages Router
-    const legacyReq = request ? buildLegacyRequest(await headers(), await cookies()) : ({} as any);
-    const res = {} as any;
+    // Use buildLegacyHeaders and buildLegacyCookies to create a request object compatible with Pages Router
+    const legacyReq = request
+      ? ({
+          headers: buildLegacyHeaders(await headers()),
+          cookies: buildLegacyCookies(await cookies()),
+        } as any)
+      : ({} as NextApiRequest);
+    const res = {} as NextApiResponse;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);
     const caller = createCaller({

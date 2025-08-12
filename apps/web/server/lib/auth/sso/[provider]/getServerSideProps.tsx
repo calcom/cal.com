@@ -1,8 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
@@ -11,8 +9,9 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (context: NextJsLegacyContext) => {
   // get query params and typecast them to string
   // (would be even better to assert them instead of typecasting)
   const providerParam = asStringOrNull(context.query.provider);
@@ -25,9 +24,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const { req } = context;
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({
+    req: { headers: context.req.headers, cookies: context.req.cookies } as any,
+  });
 
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
 
   if (session) {
     // Validating if username is Premium, while this is true an email its required for stripe user confirmation

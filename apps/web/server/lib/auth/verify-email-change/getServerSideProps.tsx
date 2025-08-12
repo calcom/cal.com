@@ -1,13 +1,14 @@
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
 const tokenSchema = z.object({
   token: z.string(),
 });
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: NextJsLegacyContext) {
   const parsed = tokenSchema.safeParse(context.query);
   if (!parsed.success) {
     return {

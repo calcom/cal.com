@@ -1,8 +1,7 @@
 import { createRouterCaller } from "app/_trpc/context";
-import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
-import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -15,6 +14,7 @@ import prisma from "@calcom/prisma";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
+import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 const stringToBoolean = z
@@ -37,7 +37,7 @@ const querySchema = z.object({
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: NextJsLegacyContext) {
   // this is needed to prevent bundling of lib/booking to the client bundle
   // usually functions that are used in getServerSideProps are tree shaken from client bundle
   // but not in case when they are exported. So we have to dynamically load them, or to copy paste them to the /future/page.
@@ -46,7 +46,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     "@lib/booking"
   );
 
-  const session = await getServerSession({ req: context.req });
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
@@ -202,7 +206,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
 
   async function getInternalNotePresets(teamId: number | null) {
     if (!teamId || !isLoggedInUserHost) return [];

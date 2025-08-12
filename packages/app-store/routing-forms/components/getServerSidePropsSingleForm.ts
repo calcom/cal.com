@@ -2,13 +2,14 @@ import { Resource } from "@calcom/features/pbac/domain/types/permission-registry
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type { AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import type { NextJsLegacyContext } from "@calcom/web/lib/buildLegacyCtx";
 
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
-  context: AppGetServerSidePropsContext,
+  context: NextJsLegacyContext,
   prisma: AppPrisma,
   user: AppUser
 ) {
@@ -26,7 +27,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       notFound: true,
     };
   }
-  const appPages = params.pages.slice(1);
+  const pages = Array.isArray(params?.pages) ? params.pages : [];
+  const appPages = pages.slice(1);
   const formId = appPages[0];
   if (!formId || appPages.length > 1) {
     return {
