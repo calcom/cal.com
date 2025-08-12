@@ -1,4 +1,5 @@
-import type { Prisma } from "@prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export interface ISelectedCalendarRepository {
   findFirst(args: { where: Prisma.SelectedCalendarWhereInput }): Promise<{ id: string } | null>;
@@ -8,12 +9,16 @@ export interface ISelectedCalendarRepository {
 export class SelectedCalendarRepository implements ISelectedCalendarRepository {
   constructor(private prismaClient: PrismaClient) {}
   async findFirst(args: { where: Prisma.SelectedCalendarWhereInput }): Promise<{ id: string } | null> {
-    const result = await this.prismaClient.selectedCalendar.findFirst(args);
-    return result ? { id: result.id } : null;
+    return this.prismaClient.selectedCalendar.findFirst({
+      where: args.where,
+      select: { id: true },
+    });
   }
 
   async findMany(args: { where: Prisma.SelectedCalendarWhereInput }): Promise<Array<{ id: string }>> {
-    const results = await this.prismaClient.selectedCalendar.findMany(args);
-    return results.map((r) => ({ id: r.id }));
+    return this.prismaClient.selectedCalendar.findMany({
+      where: args.where,
+      select: { id: true },
+    });
   }
 }
