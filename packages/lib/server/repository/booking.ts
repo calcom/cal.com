@@ -925,23 +925,4 @@ export class BookingRepository {
     }
     return totalBookingTime.totalMinutes ?? 0;
   }
-
-  async findOriginalRescheduledBookingUserId({ rescheduleUid }: { rescheduleUid: string }) {
-    return await this.prismaClient.booking.findFirst({
-      where: {
-        uid: rescheduleUid,
-        status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
-        },
-      },
-      select: {
-        userId: true,
-        attendees: {
-          select: {
-            email: true,
-          },
-        },
-      },
-    });
-  }
 }

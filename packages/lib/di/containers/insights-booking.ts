@@ -9,7 +9,7 @@ import type {
 import type { InsightsBookingService } from "@calcom/lib/server/service/InsightsBookingDIService";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import { insightsBookingModule } from "../modules/InsightsBooking";
+import { insightsBookingModule } from "../modules/insights-booking";
 
 export function getInsightsBookingService({
   options,

@@ -5,9 +5,9 @@ import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { CheckBookingAndDurationLimitsService } from "../../../features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import type { CheckBookingLimitsService } from "../../intervalLimits/server/checkBookingLimits";
-import { bookingRepositoryModule } from "../modules/Booking";
-import { checkBookingAndDurationLimitsModule } from "../modules/CheckBookingAndDurationLimits";
-import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
+import { bookingRepositoryModule } from "../modules/booking";
+import { checkBookingAndDurationLimitsModule } from "../modules/check-booking-and-duration-limits";
+import { checkBookingLimitsModule } from "../modules/check-booking-limits";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);

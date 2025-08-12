@@ -9,8 +9,8 @@ import {
   routingRepositoryBaseInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
-import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
+import { getInsightsBookingService } from "@calcom/lib/di/containers/insights-booking";
+import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";

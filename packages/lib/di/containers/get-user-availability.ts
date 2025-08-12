@@ -5,11 +5,11 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { UserAvailabilityService } from "../../getUserAvailability";
-import { bookingRepositoryModule } from "../modules/Booking";
-import { busyTimesModule } from "../modules/BusyTimes";
-import { eventTypeRepositoryModule } from "../modules/EventType";
-import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
-import { oooRepositoryModule } from "../modules/Ooo";
+import { bookingRepositoryModule } from "../modules/booking";
+import { busyTimesModule } from "../modules/busy-times";
+import { eventTypeRepositoryModule } from "../modules/eventType";
+import { getUserAvailabilityModule } from "../modules/get-user-availability";
+import { oooRepositoryModule } from "../modules/ooo";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);

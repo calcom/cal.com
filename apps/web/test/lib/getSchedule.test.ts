@@ -17,7 +17,7 @@ import {
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
 
 import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";

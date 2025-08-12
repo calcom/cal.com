@@ -9,7 +9,7 @@ import type {
 import type { InsightsRoutingService } from "@calcom/lib/server/service/insightsRoutingDI";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
-import { insightsRoutingModule } from "../modules/InsightsRouting";
+import { insightsRoutingModule } from "../modules/insights-routing";
 
 export function getInsightsRoutingService({
   options,
