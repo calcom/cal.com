@@ -30,6 +30,7 @@ import {
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
+import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -163,6 +164,7 @@ interface Props {
       }[];
     }[];
   };
+  permissions: MemberPermissions;
 }
 
 export default function MemberList(props: Props) {
@@ -429,11 +431,10 @@ function MemberListContent(props: Props) {
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
-          const editMode =
-            (props.team.membership?.role === MembershipRole.OWNER &&
-              (user.role !== MembershipRole.OWNER || !isSelf)) ||
-            (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
-            props.isOrgAdminOrOwner;
+          // Use PBAC permissions for edit mode, with role-based fallback
+          const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
+          const canRemove = props.permissions?.canRemove ?? false;
+          const editMode = canChangeRole || canRemove;
           const impersonationMode =
             editMode &&
             !user.disableImpersonation &&

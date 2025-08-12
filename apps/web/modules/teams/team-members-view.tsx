@@ -46,6 +46,7 @@ export const TeamMembersView = ({ team, facetedTeamValues, permissions }: TeamMe
               isOrgAdminOrOwner={false}
               setShowMemberInvitationModal={setShowMemberInvitationModal}
               facetedTeamValues={facetedTeamValues}
+              permissions={permissions!}
             />
           </div>
         )}
