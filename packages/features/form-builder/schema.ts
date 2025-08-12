@@ -293,7 +293,7 @@ export const fieldTypesSchemaMap: Partial<
         response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
-        m: (key: string) => string;
+  m: (key: string, options?: Record<string, any>) => string;
       }) => void;
     }
   >
@@ -356,7 +356,7 @@ export const fieldTypesSchemaMap: Partial<
         const valueIdentified = response as unknown as Record<string, string>;
         if (subField.required) {
           if (!isPartialSchema && !valueIdentified[subField.name])
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
           if (!schema.safeParse(valueIdentified[subField.name]).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
             return;
@@ -382,14 +382,14 @@ export const fieldTypesSchemaMap: Partial<
       if (hasExceededMaxLength) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Max. ${maxLength} characters allowed`),
+          message: m("max_characters_allowed", { count: maxLength }),
         });
         return;
       }
       if (hasNotReachedMinLength) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Min. ${minLength} characters required`),
+          message: m("min_characters_required", { count: minLength }),
         });
         return;
       }
@@ -404,7 +404,7 @@ export const fieldTypesSchemaMap: Partial<
       const urlSchema = z.string().url();
 
       // Check for malformed protocols (missing second slash test case)
-      if (value.match(/^https?:\/[^\/]/)) {
+      if (value.match(/^https?:\/[^F]/)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: m("url_validation_error"),
@@ -426,7 +426,7 @@ export const fieldTypesSchemaMap: Partial<
       // 3. If all attempts fail, throw err
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: m("url_validation_error"),
+  message: m("url_validation_error"),
       });
     },
   },
