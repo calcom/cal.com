@@ -378,17 +378,19 @@ export class CalendarCacheSqlService {
       .filter((item) => item.selectedCalendarId !== null)
       .map((item) => item.selectedCalendarId!);
 
-    const cacheStatuses = await Promise.all(
-      validSelectedCalendarIds.map(async (selectedCalendarId) => {
-        const subscription = await this.subscriptionRepo.findBySelectedCalendar(selectedCalendarId);
+    // Batch fetch subscriptions to avoid N+1
+    const subscriptions = await this.subscriptionRepo.findBySelectedCalendarIds(validSelectedCalendarIds);
 
-        return {
-          selectedCalendarId,
-          lastSyncAt: subscription?.updatedAt || null,
-          subscriptionCount: subscription ? 1 : 0,
-        };
-      })
-    );
+    const subscriptionBySelectedCalendarId = new Map(subscriptions.map((s) => [s.selectedCalendarId, s]));
+
+    const cacheStatuses = validSelectedCalendarIds.map((selectedCalendarId) => {
+      const subscription = subscriptionBySelectedCalendarId.get(selectedCalendarId);
+      return {
+        selectedCalendarId,
+        lastSyncAt: subscription?.updatedAt || null,
+        subscriptionCount: subscription ? 1 : 0,
+      };
+    });
 
     const cacheStatusMap = new Map(
       cacheStatuses.map((cache) => [

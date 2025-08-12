@@ -76,6 +76,8 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       },
       select: {
         id: true,
+        selectedCalendarId: true,
+        updatedAt: true,
       },
     });
   }
