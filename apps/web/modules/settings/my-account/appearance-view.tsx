@@ -1,5 +1,8 @@
 "use client";
 
+// import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calid/features/ui";
+import { Avatar, Button } from "@calid/features/ui";
 import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/appearance/actions";
 import { revalidateHasTeamPlan } from "app/cache/membership";
 import { useSession } from "next-auth/react";
@@ -23,7 +26,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
@@ -154,8 +156,11 @@ const AppearanceView = ({
   });
 
   return (
-    <SettingsHeader title={t("appearance")} description={t("appearance_description")}>
-      <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
+    <SettingsHeader
+      title={t("appearance")}
+      description={t("appearance_description")}
+      borderInShellHeader={false}>
+      <div className="border-subtle mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
         <div>
           <p className="text-default text-base font-semibold">{t("app_theme")}</p>
           <p className="text-default">{t("app_theme_applies_note")}</p>
@@ -169,7 +174,7 @@ const AppearanceView = ({
             appTheme,
           });
         }}>
-        <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
+        <div className="border-subtle flex flex-col justify-between border-x px-6 pb-4 pt-8 sm:flex-row">
           <ThemeLabel
             variant="system"
             value="system"
@@ -195,7 +200,7 @@ const AppearanceView = ({
             fieldName="appTheme"
           />
         </div>
-        <SectionBottomActions className="mb-6" align="end">
+        <div className="border-subtle flex flex-row justify-start rounded-b-lg border-x border-b px-6 pb-4">
           <Button
             loading={mutation.isPending}
             disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
@@ -204,12 +209,12 @@ const AppearanceView = ({
             color="primary">
             {t("update")}
           </Button>
-        </SectionBottomActions>
+        </div>
       </Form>
 
       {isApartOfOrganization ? null : (
         <>
-          <div className="border-subtle mt-6 flex items-center rounded-t-lg border p-6 text-sm">
+          <div className="border-subtle mt-6 flex items-center rounded-b-none rounded-t-lg border-x border-t px-6 pt-6 text-sm">
             <div>
               <p className="text-default text-base font-semibold">{t("theme")}</p>
               <p className="text-default">{t("theme_applies_note")}</p>
@@ -228,7 +233,7 @@ const AppearanceView = ({
                 theme: null,
               });
             }}>
-            <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
+            <div className="border-subtle flex flex-col justify-between border-x px-6 pb-4 pt-8 sm:flex-row">
               <ThemeLabel
                 variant="system"
                 value="system"
@@ -251,7 +256,8 @@ const AppearanceView = ({
                 register={userThemeFormMethods.register}
               />
             </div>
-            <SectionBottomActions className="mb-6" align="end">
+
+            <div className="border-subtle flex flex-row justify-start rounded-b-lg border-x border-b px-6 pb-4">
               <Button
                 loading={mutation.isPending}
                 disabled={isUserThemeSubmitting || !isUserThemeDirty}
@@ -260,11 +266,12 @@ const AppearanceView = ({
                 color="primary">
                 {t("update")}
               </Button>
-            </SectionBottomActions>
+            </div>
           </Form>
 
           <Form
             form={bookerLayoutFormMethods}
+            className="mt-6"
             handleSubmit={(values) => {
               const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
               if (layoutError) {
@@ -290,9 +297,10 @@ const AppearanceView = ({
             handleSubmit={(values) => {
               mutation.mutate(values);
             }}>
-            <div className="mt-6">
+            <div className="border-subtle mt-6 rounded-md border p-6">
               <SettingsToggle
                 toggleSwitchAtTheEnd={true}
+                titleToggle={true}
                 title={t("custom_brand_colors")}
                 description={t("customize_your_brand_colors")}
                 checked={isCustomBrandColorChecked}
@@ -306,7 +314,7 @@ const AppearanceView = ({
                   }
                 }}
                 childrenClassName="lg:ml-0">
-                <div className="border-subtle flex flex-col gap-6 border-x p-6">
+                <div className="flex flex-col gap-6 py-6">
                   <Controller
                     name="brandColor"
                     control={brandColorsFormMethods.control}
@@ -316,18 +324,20 @@ const AppearanceView = ({
                         <p className="text-default mb-2 block text-sm font-medium">
                           {t("light_brand_color")}
                         </p>
-                        <ColorPicker
-                          defaultValue={DEFAULT_BRAND_COLOURS.light}
-                          resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
-                          onChange={(value) => {
-                            if (checkWCAGContrastColor("#ffffff", value)) {
-                              setLightModeError(false);
-                            } else {
-                              setLightModeError(true);
-                            }
-                            brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
-                          }}
-                        />
+                        <div className="flex flex-row justify-start">
+                          <ColorPicker
+                            defaultValue={DEFAULT_BRAND_COLOURS.light}
+                            resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
+                            onChange={(value) => {
+                              if (checkWCAGContrastColor("#ffffff", value)) {
+                                setLightModeError(false);
+                              } else {
+                                setLightModeError(true);
+                              }
+                              brandColorsFormMethods.setValue("brandColor", value, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
                         {lightModeError ? (
                           <div className="mt-4">
                             <Alert severity="warning" message={t("light_theme_contrast_error")} />
@@ -344,18 +354,20 @@ const AppearanceView = ({
                     render={() => (
                       <div className="mt-6 sm:mt-0">
                         <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
-                        <ColorPicker
-                          defaultValue={DEFAULT_BRAND_COLOURS.dark}
-                          resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
-                          onChange={(value) => {
-                            if (checkWCAGContrastColor("#101010", value)) {
-                              setDarkModeError(false);
-                            } else {
-                              setDarkModeError(true);
-                            }
-                            brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
-                          }}
-                        />
+                        <div className="flex flex-row justify-start">
+                          <ColorPicker
+                            defaultValue={DEFAULT_BRAND_COLOURS.dark}
+                            resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
+                            onChange={(value) => {
+                              if (checkWCAGContrastColor("#101010", value)) {
+                                setDarkModeError(false);
+                              } else {
+                                setDarkModeError(true);
+                              }
+                              brandColorsFormMethods.setValue("darkBrandColor", value, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
                         {darkModeError ? (
                           <div className="mt-4">
                             <Alert severity="warning" message={t("dark_theme_contrast_error")} />
@@ -365,15 +377,13 @@ const AppearanceView = ({
                     )}
                   />
                 </div>
-                <SectionBottomActions align="end">
-                  <Button
-                    loading={mutation.isPending}
-                    disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
-                    color="primary"
-                    type="submit">
-                    {t("update")}
-                  </Button>
-                </SectionBottomActions>
+                <Button
+                  loading={mutation.isPending}
+                  disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
+                  color="primary"
+                  type="submit">
+                  {t("update")}
+                </Button>
               </SettingsToggle>
             </div>
           </Form>
@@ -387,19 +397,54 @@ const AppearanceView = ({
         Preview
       </Button> */}
 
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            title={t("disable_cal_branding", { appName: APP_NAME })}
-            disabled={!hasPaidPlan || mutation?.isPending}
-            description={t("removes_cal_branding", { appName: APP_NAME })}
-            checked={hasPaidPlan ? hideBrandingValue : false}
-            Badge={<UpgradeTeamsBadge />}
-            onCheckedChange={(checked) => {
-              setHideBrandingValue(checked);
-              mutation.mutate({ hideBranding: checked });
-            }}
-            switchContainerClassName="mt-6"
-          />
+          <div className="border-subtle mt-6 rounded-md border p-6">
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("disable_branding")}
+              disabled={!hasPaidPlan || mutation?.isPending}
+              description={t("removes_cal_branding", { appName: APP_NAME })}
+              checked={hasPaidPlan ? hideBrandingValue : false}
+              Badge={<UpgradeTeamsBadge />}
+              onCheckedChange={(checked) => {
+                setHideBrandingValue(checked);
+                mutation.mutate({ hideBranding: checked });
+              }}
+            />
+            <div className="mt-6 flex flex-row justify-between">
+              <div className="flex flex-col">
+                <div className="text-sm">{t("custom_brand_logo")}</div>
+                <div className="text-subtle text-xs">{t("custom_brand_logo_description")}</div>
+              </div>
+              <Button color="secondary" size="sm">
+                {t("preview")}
+              </Button>
+            </div>
+
+            <div className="mt-4 flex flex-row items-center gap-6">
+              <Avatar size="lg" />
+
+              <Button color="secondary" size="base" className="h-[36px]">
+                <Icon name="upload" className="h-4 w-4" />
+                {t("upload_logo")}
+              </Button>
+            </div>
+
+            <div className="mt-6 flex flex-row justify-between">
+              <div className="flex flex-col">
+                <div className="text-sm">{t("custom_brand_favicon")}</div>
+                <div className="text-subtle text-xs">{t("custom_brand_favicon_description")}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-row items-center gap-6">
+              <Avatar size="lg" />
+
+              <Button color="secondary" size="base" className="h-[36px]">
+                <Icon name="upload" className="h-4 w-4" />
+                {t("upload_favicon")}
+              </Button>
+            </div>
+          </div>
         </>
       )}
     </SettingsHeader>

@@ -713,10 +713,6 @@ select:focus {
   border-color: var(--cal-bg-destructive);;
 }
 
-.checked\:cal-bg-actie:checked {
-  background-color: var(--cal-bg-active);
-}
-
 .data-\[state\=checked\]\:cal-bg-active[data-state="checked"] {
   background-color: var(--cal-bg-active);
 }

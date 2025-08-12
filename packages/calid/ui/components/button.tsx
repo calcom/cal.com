@@ -76,7 +76,7 @@ export const buttonClasses = cva(
           "bg-white",
           "text-default",
           "border",
-          "border-default",
+          "border-subtle",
           // Hover state
           "enabled:hover:bg-muted",
           "enabled:hover:text-emphasis",
@@ -269,7 +269,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       // className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
       className: (() => {
         const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
-        console.log("Button classes:", classes);
         return classes;
       })(),
       // if we click a disabled button, we prevent going through the click handler

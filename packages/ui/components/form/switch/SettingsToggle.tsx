@@ -24,6 +24,7 @@ type Props = {
   descriptionClassName?: string;
   noIndentation?: boolean;
   hideSwitch?: boolean;
+  titleToggle?: boolean;
 };
 
 export function SettingsToggle({
@@ -37,6 +38,7 @@ export function SettingsToggle({
   disabled,
   tooltip,
   toggleSwitchAtTheEnd = false,
+  titleToggle = false,
   childrenClassName,
   switchContainerClassName,
   labelClassName,
@@ -61,7 +63,11 @@ export function SettingsToggle({
               <div>
                 <div className="flex items-center gap-x-2" data-testid={`${rest["data-testid"]}-title`}>
                   <Label
-                    className={classNames("mt-0.5 text-sm leading-none", labelClassName)}
+                    className={classNames(
+                      "mt-0.5 leading-none",
+                      titleToggle ? "text-base" : "text-sm",
+                      labelClassName
+                    )}
                     htmlFor="">
                     {title}
                     {LockedIcon}
@@ -71,7 +77,9 @@ export function SettingsToggle({
                 {description && (
                   <p
                     className={classNames(
-                      "text-subtle -mt-1.5 text-xs leading-normal",
+                      "text-subtle -mt-1.5 leading-normal",
+
+                      titleToggle ? "text-sm" : "text-xs",
                       descriptionClassName
                     )}
                     data-testid={`${rest["data-testid"]}-description`}>
