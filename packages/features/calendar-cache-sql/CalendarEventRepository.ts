@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient, PrismaTransaction } from "@calcom/prisma";
 
 import type {
   ICalendarEventRepository,
@@ -13,7 +13,7 @@ export class CalendarEventRepository implements ICalendarEventRepository {
   async upsertEvent(
     data: Prisma.CalendarEventCreateInput,
     subscriptionId: string,
-    tx?: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">
+    tx?: PrismaTransaction
   ): Promise<CalendarEventUpsertResult> {
     const client = tx || this.prismaClient;
     // Split participant relations from scalar fields so we can handle nested writes safely on update
