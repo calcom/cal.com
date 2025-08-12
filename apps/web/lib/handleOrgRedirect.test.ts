@@ -5,7 +5,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as constants from "@calcom/lib/constants";
 import { RedirectType } from "@calcom/prisma/client";
 
-import { handleOrgRedirect } from "./handleOrgRedirect";
+import { handleOrgRedirect, getRedirectWithOriginAndSearchString } from "./handleOrgRedirect";
 
 // Mock prisma for all tests
 const prismaMock = vi.hoisted(() => ({
@@ -21,7 +21,6 @@ vi.mock("@calcom/prisma", () => ({
 const createTestContext = (overrides?: {
   host?: string;
   query?: ParsedUrlQuery;
-  resolvedUrl?: string;
 }): GetServerSidePropsContext =>
   ({
     req: {
@@ -30,15 +29,7 @@ const createTestContext = (overrides?: {
       },
     },
     query: overrides?.query || {},
-    resolvedUrl: overrides?.resolvedUrl || "/pro",
   } as unknown as GetServerSidePropsContext);
-
-const createTestOrgRedirect = (overrides?: { from?: string; toUrl?: string; type?: RedirectType }) => ({
-  from: overrides?.from || "pro",
-  toUrl: overrides?.toUrl || "https://acme.cal.local:3000/pro-example",
-  type: overrides?.type || RedirectType.User,
-  fromOrgId: 0,
-});
 
 const createTestRedirectParams = (overrides?: {
   slugs?: string[];
@@ -227,97 +218,51 @@ describe("handleOrgRedirect", () => {
       vi.spyOn(constants, "SINGLE_ORG_SLUG", "get").mockReturnValue("acme");
     });
 
-    describe("when not on actual org subdomain", () => {
-      it("should redirect using relative path when accessing from base domain", async () => {
-        createRedirectScenario({
-          redirects: [
-            {
-              from: "pro",
-              toUrl: "https://acme.cal.local:3000/pro-example",
-              type: RedirectType.User,
-            },
-          ],
-        });
-
-        const params = createTestRedirectParams({
-          context: createTestContext({ host: "cal.local:3000" }),
-          currentOrgDomain: "acme",
-        });
-        const result = await handleOrgRedirect(params);
-
-        expectPrismaCalledWith({ type: RedirectType.User, slugs: ["pro"] });
-        // Should use relative path to stay on same domain
-        expectRedirectTo(result, "/pro-example?orgRedirection=true");
+    it("should redirect using relative path when accessing from base domain", async () => {
+      createRedirectScenario({
+        redirects: [
+          {
+            from: "pro",
+            toUrl: "https://acme.cal.local:3000/pro-example",
+            type: RedirectType.User,
+          },
+        ],
       });
 
-      it("should prevent infinite redirects when target path equals current path", async () => {
-        createRedirectScenario({
-          redirects: [
-            {
-              from: "pro",
-              toUrl: "https://cal.local:3000/pro",
-              type: RedirectType.User,
-            },
-          ],
-        });
-
-        const params = createTestRedirectParams({
-          context: createTestContext({ resolvedUrl: "/pro" }),
-          currentOrgDomain: "acme",
-        });
-        const result = await handleOrgRedirect(params);
-
-        expectNoRedirect(result);
+      const params = createTestRedirectParams({
+        context: createTestContext({ host: "cal.local:3000" }),
+        currentOrgDomain: "acme",
       });
+      const result = await handleOrgRedirect(params);
 
-      it("should redirect john87 to john using relative path in single org mode", async () => {
-        createRedirectScenario({
-          redirects: [
-            {
-              from: "john87",
-              toUrl: "https://acme.cal.local:3000/john",
-              type: RedirectType.User,
-            },
-          ],
-        });
-
-        const params = createTestRedirectParams({
-          slugs: ["john87"],
-          context: createTestContext({
-            host: "my-instance.com",
-            resolvedUrl: "/john87",
-          }),
-          currentOrgDomain: "acme",
-        });
-        const result = await handleOrgRedirect(params);
-
-        expectPrismaCalledWith({ type: RedirectType.User, slugs: ["john87"] });
-        // Should redirect to relative path /john to stay on my-instance.com
-        expectRedirectTo(result, "/john?orgRedirection=true");
-      });
+      expectPrismaCalledWith({ type: RedirectType.User, slugs: ["pro"] });
+      // Should use relative path to stay on same domain
+      expectRedirectTo(result, "/pro-example?orgRedirection=true");
     });
 
-    describe("when on actual org subdomain", () => {
-      it("should not check for redirects", async () => {
-        createRedirectScenario({
-          redirects: [
-            {
-              from: "pro",
-              toUrl: "https://acme.cal.local:3000/pro-example",
-              type: RedirectType.User,
-            },
-          ],
-        });
-        const params = createTestRedirectParams({
-          context: createTestContext({ host: "acme.cal.local:3000" }),
-          currentOrgDomain: "acme",
-          slugs: ["pro"],
-        });
-        const result = await handleOrgRedirect(params);
-
-        expectPrismaNotCalled();
-        expectNoRedirect(result);
+    it("should redirect john87 to john using relative path in single org mode", async () => {
+      createRedirectScenario({
+        redirects: [
+          {
+            from: "john87",
+            toUrl: "https://acme.cal.local:3000/john",
+            type: RedirectType.User,
+          },
+        ],
       });
+
+      const params = createTestRedirectParams({
+        slugs: ["john87"],
+        context: createTestContext({
+          host: "my-instance.com",
+        }),
+        currentOrgDomain: "acme",
+      });
+      const result = await handleOrgRedirect(params);
+
+      expectPrismaCalledWith({ type: RedirectType.User, slugs: ["john87"] });
+      // Should redirect to relative path /john to stay on my-instance.com
+      expectRedirectTo(result, "/john?orgRedirection=true");
     });
 
     describe("when orgRedirection parameter is present", () => {
@@ -656,5 +601,104 @@ describe("handleOrgRedirect", () => {
       expectPrismaNotCalled();
       expectNoRedirect(result);
     });
+  });
+});
+
+describe("getRedirectWithOriginAndSearchString", () => {
+  beforeEach(() => {
+    vi.spyOn(constants, "SINGLE_ORG_SLUG", "get").mockReturnValue(undefined);
+  });
+
+  afterEach(() => {
+    prismaMock.tempOrgRedirect.findMany.mockReset();
+  });
+
+  it("should return origin and search string for absolute URL redirects", async () => {
+    createRedirectScenario({
+      redirects: [
+        {
+          from: "john",
+          toUrl: "https://acme.cal.local:3000/john-org",
+          type: RedirectType.User,
+        },
+      ],
+    });
+
+    const params = {
+      slugs: ["john"],
+      redirectType: RedirectType.User,
+      context: createTestContext(),
+      currentOrgDomain: null,
+    };
+    const result = await getRedirectWithOriginAndSearchString(params);
+
+    expect(result).not.toBeNull();
+    expect(result?.origin).toBe("https://acme.cal.local:3000");
+    expect(result?.searchString).toBe("?orgRedirection=true");
+  });
+
+  it("should return null origin for relative path redirects", async () => {
+    // Enable SINGLE_ORG_SLUG for this test to get relative paths
+    vi.spyOn(constants, "SINGLE_ORG_SLUG", "get").mockReturnValue("acme");
+
+    createRedirectScenario({
+      redirects: [
+        {
+          from: "john",
+          toUrl: "https://acme.cal.local:3000/john-org",
+          type: RedirectType.User,
+        },
+      ],
+    });
+
+    const params = {
+      slugs: ["john"],
+      redirectType: RedirectType.User,
+      context: createTestContext({ host: "my-instance.com" }),
+      currentOrgDomain: "acme",
+    };
+    const result = await getRedirectWithOriginAndSearchString(params);
+
+    expect(result).not.toBeNull();
+    expect(result?.origin).toBeNull(); // Relative path has no origin
+    expect(result?.searchString).toBe("?orgRedirection=true");
+  });
+
+  it("should preserve existing query parameters in search string", async () => {
+    createRedirectScenario({
+      redirects: [
+        {
+          from: "john",
+          toUrl: "https://acme.cal.local:3000/john-org",
+          type: RedirectType.User,
+        },
+      ],
+    });
+
+    const params = {
+      slugs: ["john"],
+      redirectType: RedirectType.User,
+      context: createTestContext({ query: { foo: "bar", baz: "qux" } }),
+      currentOrgDomain: null,
+    };
+    const result = await getRedirectWithOriginAndSearchString(params);
+
+    expect(result).not.toBeNull();
+    expect(result?.origin).toBe("https://acme.cal.local:3000");
+    expect(result?.searchString).toBe("?foo=bar&baz=qux&orgRedirection=true");
+  });
+
+  it("should return null when no redirect exists", async () => {
+    createRedirectScenario({ redirects: [] });
+
+    const params = {
+      slugs: ["john"],
+      redirectType: RedirectType.User,
+      context: createTestContext(),
+      currentOrgDomain: null,
+    };
+    const result = await getRedirectWithOriginAndSearchString(params);
+
+    expect(result).toBeNull();
   });
 });

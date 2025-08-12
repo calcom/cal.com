@@ -18,6 +18,11 @@ type NextJsRedirect = {
   };
 };
 
+function getSearchString(relativeOrAbsoluteUrl: string) {
+  const url = new URL(relativeOrAbsoluteUrl, "http://localhost");
+  return url.search;
+}
+
 const getTemporaryOrgRedirect = async ({
   slugs,
   redirectType,
@@ -147,14 +152,6 @@ export async function handleOrgRedirect({
     return null;
   }
 
-  const isActualOrgDomain = context.req.headers.host?.includes(currentOrgDomain || "");
-
-  // Differentiate between accessing organization booking pages through my-instance.com(where slug comes from SINGLE_ORG_SLUG) or acme.my-instance.com(where slug is in the domain itself)
-  // If the actual org domain(acme.my-instance.com) is used then the intent clearly is to access the new username but if my-instance.com(which is not an org subdomain) is used then the intent is not clear and we should allow a redirect if available
-  if (isActualOrgDomain) {
-    return null;
-  }
-
   // If already redirected from a non-org link, we shouldn't redirect again. Protects against infinite redirects
   if (isARedirectFromNonOrgLink) {
     return null;
@@ -171,17 +168,35 @@ export async function handleOrgRedirect({
     useRelativePath: true,
   });
 
-  if (nextJsRedirect) {
-    // Destination could be relative or full URL, so we need to pass a base URL to construct URL instance from it
-    const targetPath = new URL(nextJsRedirect.redirect.destination, "http://localhost").pathname;
-    // resolvedUrl is just a path, so we need to pass a base URL to construct URL instance from it
-    const currentPath = new URL(context.resolvedUrl || "", "http://localhost").pathname;
+  return nextJsRedirect;
+}
 
-    // Prevents against infinite and unnecessary redirects
-    if (targetPath !== currentPath) {
-      return nextJsRedirect;
-    }
+export async function getRedirectWithOriginAndSearchString({
+  slugs,
+  redirectType,
+  context,
+  currentOrgDomain,
+}: Omit<HandleOrgRedirectParams, "eventTypeSlug">) {
+  const nextJsRedirect = await handleOrgRedirect({
+    slugs,
+    redirectType,
+    eventTypeSlug: null,
+    context,
+    currentOrgDomain,
+  });
+  if (!nextJsRedirect) {
+    return null;
   }
 
-  return null;
+  const newDestination = nextJsRedirect.redirect.destination;
+  // If there is an origin use it, otherwise mark no new Origin and it remains the same domain
+  const newOrigin =
+    newDestination.startsWith("http://") || newDestination.startsWith("https://")
+      ? new URL(newDestination).origin
+      : null;
+
+  return {
+    origin: newOrigin,
+    searchString: getSearchString(newDestination),
+  };
 }
