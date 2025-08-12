@@ -69,17 +69,14 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   }
 
   const calAISteps = workflowToDelete.steps?.filter(
-    (step) =>
-      step.action === WorkflowActions.CAL_AI_PHONE_CALL &&
-      step.agent?.outboundPhoneNumbers &&
-      step.agent.outboundPhoneNumbers.length > 0
+    (step) => step.action === WorkflowActions.CAL_AI_PHONE_CALL
   );
 
   if (calAISteps && calAISteps.length > 0) {
     const aiPhoneService = createDefaultAIPhoneServiceProvider();
 
     for (const step of calAISteps) {
-      if (step.agent?.outboundPhoneNumbers) {
+      if (step.agent?.outboundPhoneNumbers && step.agent.outboundPhoneNumbers.length > 0) {
         for (const phoneNumber of step.agent.outboundPhoneNumbers) {
           try {
             // Check subscription status and handle accordingly

@@ -8,6 +8,7 @@ import type {
   AIPhoneServiceTools,
   AIPhoneServiceProviderType,
 } from "../../interfaces/AIPhoneService.interface";
+import type { AgentWithDetailsData } from "../interfaces/AgentRepositoryInterface";
 import type {
   RetellLLMGeneralTools,
   UpdateLLMRequest,
@@ -16,22 +17,9 @@ import type {
   UpdateAgentRequest,
   RetellAgentWithDetails,
   Language,
-  Agent,
   RetellAgent,
   RetellLLM,
 } from "./types";
-
-type AgentWithDetails = Agent & {
-  userId: number | null;
-  outboundPhoneNumbers: Array<{
-    id: number;
-    phoneNumber: string;
-    subscriptionStatus: string | null;
-    provider: string | null;
-  }>;
-  user: { id: number; name: string | null; email: string | null } | null;
-  team: { id: number; name: string | null; slug: string | null; logoUrl?: string | null } | null;
-};
 
 export class RetellAIServiceMapper {
   /**
@@ -154,7 +142,7 @@ export class RetellAIServiceMapper {
   /**
    * Format agent for listing response
    */
-  static formatAgentForList(agent: AgentWithDetails) {
+  static formatAgentForList(agent: AgentWithDetailsData) {
     return {
       id: agent.id,
       name: agent.name,
@@ -174,7 +162,7 @@ export class RetellAIServiceMapper {
    * Format agent details response
    */
   static formatAgentDetails(
-    agent: AgentWithDetails,
+    agent: AgentWithDetailsData,
     retellAgent: RetellAgent,
     llmDetails: RetellLLM
   ): RetellAgentWithDetails {

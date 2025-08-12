@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
@@ -859,18 +860,21 @@ describe("RetellAIService", () => {
   describe("createTestCall", () => {
     it("should create test call successfully with sufficient credits", async () => {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
-      const { checkRateLimitAndThrowError } = await import("@calcom/lib/checkRateLimitAndThrowError");
 
       // Mock credit service to return sufficient credits
       const mockGetAllCredits = vi.fn().mockResolvedValue({
         totalRemainingMonthlyCredits: 10,
         additionalCredits: 5,
       });
-      (CreditService as any).mockImplementation(() => ({
-        getAllCredits: mockGetAllCredits,
-      }));
+      vi.mocked(CreditService).mockImplementation(
+        () =>
+          ({
+            getAllCredits: mockGetAllCredits,
+          } as any)
+      );
 
-      (checkRateLimitAndThrowError as any).mockResolvedValue(undefined);
+      // Mock rate limiting like the working example
+      vi.mocked(checkRateLimitAndThrowError).mockResolvedValueOnce(undefined as any);
       mockAgentRepository.findByIdWithCallAccess.mockResolvedValue({
         id: "1",
         name: "Test Agent",
@@ -898,7 +902,7 @@ describe("RetellAIService", () => {
         userId: 1,
         teamId: 2,
       });
-      expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
+      expect(vi.mocked(checkRateLimitAndThrowError)).toHaveBeenCalledWith({
         rateLimitingType: "core",
         identifier: "test-call:1",
       });
