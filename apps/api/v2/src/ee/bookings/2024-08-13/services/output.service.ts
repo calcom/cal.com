@@ -80,6 +80,8 @@ type DatabaseBooking = Booking & {
   }[];
   user: DatabaseUser | null;
   createdAt: Date;
+  rescheduledToUid?: string;
+  rescheduledByEmail?: string | null;
 };
 
 type BookingWithUser = Booking & { user: DatabaseUser | null };
@@ -90,7 +92,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
-  async getOutputBooking(databaseBooking: DatabaseBooking) {
+  async getOutputBooking(databaseBooking: DatabaseBooking, withRescheduleInfo = true) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
@@ -101,9 +103,11 @@ export class OutputBookingsService_2024_08_13 {
     );
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
+
+    const rescheduledToInfo =
+      databaseBooking.rescheduled && withRescheduleInfo
+        ? await this.getRescheduledToInfo(databaseBooking.uid)
+        : undefined;
 
     const rescheduledToUid = rescheduledToInfo?.uid;
     const rescheduledByEmail = databaseBooking.rescheduled
@@ -145,8 +149,8 @@ export class OutputBookingsService_2024_08_13 {
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
-      rescheduledToUid,
-      rescheduledByEmail,
+      rescheduledToUid: databaseBooking.rescheduledToUid ?? rescheduledToUid,
+      rescheduledByEmail: databaseBooking.rescheduledByEmail ?? rescheduledByEmail,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -167,6 +171,7 @@ export class OutputBookingsService_2024_08_13 {
   getUserDefinedMetadata(databaseMetadata: DatabaseMetadata) {
     if (databaseMetadata === null) return {};
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { videoCallUrl, ...userDefinedMetadata } = databaseMetadata;
 
     return userDefinedMetadata;
@@ -270,15 +275,16 @@ export class OutputBookingsService_2024_08_13 {
     return { ...getSeatedBookingOutput, seatUid };
   }
 
-  async getOutputSeatedBooking(databaseBooking: DatabaseBooking) {
+  async getOutputSeatedBooking(databaseBooking: DatabaseBooking, withRescheduleInfo = true) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
     const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
-    const rescheduledToInfo = databaseBooking.rescheduled
-      ? await this.getRescheduledToInfo(databaseBooking.uid)
-      : undefined;
+    const rescheduledToInfo =
+      databaseBooking.rescheduled && withRescheduleInfo
+        ? await this.getRescheduledToInfo(databaseBooking.uid)
+        : undefined;
 
     const rescheduledToUid = rescheduledToInfo?.uid;
     const rescheduledByEmail = databaseBooking.rescheduled
@@ -310,8 +316,8 @@ export class OutputBookingsService_2024_08_13 {
       updatedAt: databaseBooking.updatedAt,
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
-      rescheduledToUid,
-      rescheduledByEmail,
+      rescheduledToUid: rescheduledToUid ?? databaseBooking.rescheduledToUid,
+      rescheduledByEmail: rescheduledByEmail,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });

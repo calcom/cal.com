@@ -170,6 +170,23 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByFromRescheduleMany(fromRescheduleUids: string[]) {
+    if (fromRescheduleUids.length === 0) {
+      return [];
+    }
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        fromReschedule: {
+          in: fromRescheduleUids,
+        },
+      },
+      include: {
+        attendees: true,
+        user: true,
+      },
+    });
+  }
+
   async getByUidWithBookingReference(uid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
