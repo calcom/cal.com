@@ -87,7 +87,12 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
     teamId: teamId,
     resource: Resource.Team,
     userRole: team.membership.role,
-    actions: [CustomAction.Invite, CustomAction.ChangeMemberRole, CustomAction.Remove],
+    actions: [
+      CustomAction.Invite,
+      CustomAction.ChangeMemberRole,
+      CustomAction.Remove,
+      CustomAction.ListMembers,
+    ],
     fallbackRoles: {
       [CustomAction.Invite]: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
@@ -98,12 +103,15 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
       [CustomAction.Remove]: {
         roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
       },
+      [CustomAction.ListMembers]: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
     },
   });
 
   // Map specific permissions to member actions
   const memberPermissions = {
-    canListMembers: true, // Team members can always see other members (handled by team privacy logic)
+    canListMembers: permissions[CustomAction.ListMembers],
     canInvite: permissions[CustomAction.Invite],
     canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
     canRemove: permissions[CustomAction.Remove],
