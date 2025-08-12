@@ -36,7 +36,10 @@ export class CalendarCacheSqlService {
     }));
   }
 
-  async processWebhookEvents(channelId: string, credential: CredentialForCalendarService) {
+  async processWebhookEvents(
+    channelId: string,
+    credential: CredentialForCalendarService
+  ) {
     const subscription = await this.subscriptionRepo.findByChannelId(channelId);
     if (!subscription) {
       throw new Error("Calendar subscription not found");
@@ -44,8 +47,10 @@ export class CalendarCacheSqlService {
 
     console.info("Got subscription", subscription);
 
-    if (credential.delegatedTo && !credential.delegatedTo.serviceAccountKey.client_email) {
-      throw new Error("Delegation credential missing required client_email");
+    if (credential.delegatedTo) {
+      if (!credential.delegatedTo.serviceAccountKey?.client_email) {
+        throw new Error("Delegation credential missing required client_email");
+      }
     }
 
     const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
@@ -53,9 +58,11 @@ export class CalendarCacheSqlService {
       delegatedTo: credential.delegatedTo
         ? {
             serviceAccountKey: {
-              client_email: credential.delegatedTo.serviceAccountKey.client_email!,
+              client_email:
+                credential.delegatedTo.serviceAccountKey.client_email,
               client_id: credential.delegatedTo.serviceAccountKey.client_id,
-              private_key: credential.delegatedTo.serviceAccountKey.private_key,
+              private_key:
+                credential.delegatedTo.serviceAccountKey.private_key,
             },
           }
         : null,
