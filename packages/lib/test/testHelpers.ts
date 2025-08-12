@@ -23,13 +23,13 @@ export class TestScenarioBuilder {
 
 class BookingScenarioBuilder {
   private bookingData: Partial<Booking> = {};
-  private userCount = 1;
   private existingBookingsCount = 0;
   private bookingLimits: Record<string, number> = {};
   private eventTypeData: Partial<EventType> = {};
+  private userData: Partial<User> = {};
 
-  withUser(userData?: Partial<User>) {
-    this.userCount = 1;
+  withUserData(data: Partial<User>) {
+    this.userData = data;
     return this;
   }
 
@@ -54,7 +54,7 @@ class BookingScenarioBuilder {
   }
 
   async create() {
-    const user = await createTestUser();
+    const user = await createTestUser(this.userData);
     const eventType = await createTestEventType({
       userId: user.id,
       bookingLimits: this.bookingLimits,
@@ -143,76 +143,72 @@ class EventTypeScenarioBuilder {
 }
 
 export const createTestUser = async (userData: Partial<User> = {}): Promise<User> => {
-  const defaultUser = {
-    email: faker.internet.email(),
-    name: faker.name.fullName(),
-    username: faker.internet.userName(),
-    timeZone: "UTC",
-    weekStart: "SUNDAY",
-    createdDate: new Date(),
-    ...userData,
-  };
-
   return await prismock.user.create({
-    data: defaultUser,
+    data: {
+      email: userData.email || faker.internet.email(),
+      name: userData.name !== undefined ? userData.name : faker.name.fullName(),
+      username: userData.username !== undefined ? userData.username : faker.internet.userName(),
+      timeZone: userData.timeZone || "UTC",
+      weekStart: userData.weekStart || "SUNDAY",
+      createdDate: userData.createdDate || new Date(),
+    },
   });
 };
 
 export const createTestEventType = async (eventTypeData: Partial<EventType> = {}): Promise<EventType> => {
-  const defaultEventType = {
-    title: faker.lorem.words(3),
-    slug: faker.lorem.slug(),
-    description: faker.lorem.paragraph(),
-    length: 30,
-    position: 1,
-    hidden: false,
-    requiresConfirmation: false,
-    disableGuests: false,
-    minimumBookingNotice: 120,
-    beforeEventBuffer: 0,
-    afterEventBuffer: 0,
-    price: 0,
-    currency: "usd",
-    ...eventTypeData,
-  };
-
   return await prismock.eventType.create({
-    data: defaultEventType,
+    data: {
+      title: eventTypeData.title || faker.lorem.words(3),
+      slug: eventTypeData.slug || faker.lorem.slug(),
+      description:
+        eventTypeData.description !== undefined ? eventTypeData.description : faker.lorem.paragraph(),
+      length: eventTypeData.length || 30,
+      position: eventTypeData.position || 1,
+      hidden: eventTypeData.hidden || false,
+      requiresConfirmation: eventTypeData.requiresConfirmation || false,
+      disableGuests: eventTypeData.disableGuests || false,
+      minimumBookingNotice: eventTypeData.minimumBookingNotice || 120,
+      beforeEventBuffer: eventTypeData.beforeEventBuffer || 0,
+      afterEventBuffer: eventTypeData.afterEventBuffer || 0,
+      price: eventTypeData.price || 0,
+      currency: eventTypeData.currency || "usd",
+      ...(eventTypeData.userId && { userId: eventTypeData.userId }),
+      ...(eventTypeData.bookingLimits && { bookingLimits: eventTypeData.bookingLimits }),
+      ...(eventTypeData.durationLimits && { durationLimits: eventTypeData.durationLimits }),
+    },
   });
 };
 
 export const createTestBooking = async (bookingData: Partial<Booking> = {}): Promise<Booking> => {
-  const uid = faker.datatype.uuid();
-  const defaultBooking = {
-    uid,
-    title: faker.lorem.words(3),
-    description: faker.lorem.paragraph(),
-    startTime: faker.date.future(),
-    endTime: faker.date.future(),
-    status: BookingStatus.ACCEPTED,
-    paid: false,
-    createdAt: new Date(),
-    creationSource: CreationSource.WEBAPP,
-    iCalUID: `${uid}@cal.com`,
-    iCalSequence: 0,
-    ...bookingData,
-  };
+  const uid = bookingData.uid || faker.datatype.uuid();
 
   return await prismock.booking.create({
-    data: defaultBooking,
+    data: {
+      uid,
+      title: bookingData.title || faker.lorem.words(3),
+      description: bookingData.description !== undefined ? bookingData.description : faker.lorem.paragraph(),
+      startTime: bookingData.startTime || faker.date.future(),
+      endTime: bookingData.endTime || faker.date.future(),
+      status: bookingData.status || BookingStatus.ACCEPTED,
+      paid: bookingData.paid || false,
+      createdAt: bookingData.createdAt || new Date(),
+      creationSource: bookingData.creationSource || CreationSource.WEBAPP,
+      iCalUID: bookingData.iCalUID || `${uid}@cal.com`,
+      iCalSequence: bookingData.iCalSequence || 0,
+      ...(bookingData.eventTypeId && { eventTypeId: bookingData.eventTypeId }),
+      ...(bookingData.userId && { userId: bookingData.userId }),
+    },
   });
 };
 
 export const createTestCredential = async (credentialData: Partial<Credential> = {}): Promise<Credential> => {
-  const defaultCredential = {
-    type: "google_calendar",
-    key: { access_token: faker.random.alphaNumeric(32) },
-    invalid: false,
-    ...credentialData,
-  };
-
   return await prismock.credential.create({
-    data: defaultCredential,
+    data: {
+      type: credentialData.type || "google_calendar",
+      key: credentialData.key || { access_token: faker.random.alphaNumeric(32) },
+      invalid: credentialData.invalid !== undefined ? credentialData.invalid : false,
+      ...(credentialData.userId && { userId: credentialData.userId }),
+    },
   });
 };
 
