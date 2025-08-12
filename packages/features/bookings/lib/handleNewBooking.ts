@@ -83,7 +83,13 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  CalEventResponses,
+  Person,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
@@ -314,17 +320,35 @@ export const buildEventForTeamEventType = async ({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
+  const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+    ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
     .build();
 
-  return CalendarEventBuilder.fromEvent(evt)
-    .withTeam({
+  if (!updatedEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build event with destination calendar due to missing required fields",
+    });
+  }
+
+  evt = updatedEvt;
+
+  const teamEvt = CalendarEventBuilder.fromEvent(evt)
+    ?.withTeam({
       members: teamMembers,
       name: team?.name || "Nameless",
       id: team?.id ?? 0,
     })
     .build();
+
+  if (!teamEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build team event due to missing required fields",
+    });
+  }
+
+  return teamEvt;
 };
 
 function buildTroubleshooterData({
@@ -1162,7 +1186,7 @@ async function handler(
 
   const eventName = getEventName(eventNameObject);
 
-  let evt: CalendarEvent = new CalendarEventBuilder()
+  const builtEvt = new CalendarEventBuilder()
     .withBasicDetails({
       bookerUrl,
       title: eventName,
@@ -1220,20 +1244,44 @@ async function handler(
     })
     .build();
 
+  if (!builtEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build calendar event due to missing required fields",
+    });
+  }
+
+  let evt: CalendarEvent = builtEvt;
+
   if (input.bookingData.thirdPartyRecurringEventId) {
-    evt = CalendarEventBuilder.fromEvent(evt)
-      .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+    const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+      ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
       .build();
+
+    if (!updatedEvt) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Failed to build event with recurring event ID due to missing required fields",
+      });
+    }
+
+    evt = updatedEvt;
   }
 
   if (isTeamEventType) {
-    evt = await buildEventForTeamEventType({
+    const teamEvt = await buildEventForTeamEventType({
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
       team: eventType.team,
       organizerUser,
     });
+
+    if (!teamEvt) {
+      throw new HttpError({ statusCode: 400, message: "Failed to build team event" });
+    }
+
+    evt = teamEvt;
   }
 
   // data needed for triggering webhooks
@@ -1351,13 +1399,22 @@ async function handler(
       // Rescheduling logic for the original seated event was handled in handleSeats
       // We want to use new booking logic for the new time slot
       originalRescheduledBooking = null;
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withIdentifiers({
+      const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+        ?.withIdentifiers({
           iCalUID: getICalUID({
             attendeeId: bookingSeat?.attendeeId,
           }),
         })
         .build();
+
+      if (!updatedEvt) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with new identifiers due to missing required fields",
+        });
+      }
+
+      evt = updatedEvt;
     }
   }
 
@@ -1478,13 +1535,31 @@ async function handler(
         }
       }
 
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withUid(booking.uid ?? null)
+      const updatedEvtWithUid = CalendarEventBuilder.fromEvent(evt)
+        ?.withUid(booking.uid ?? null)
         .build();
 
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withOneTimePassword(booking.oneTimePassword ?? null)
+      if (!updatedEvtWithUid) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with UID due to missing required fields",
+        });
+      }
+
+      evt = updatedEvtWithUid;
+
+      const updatedEvtWithPassword = CalendarEventBuilder.fromEvent(evt)
+        ?.withOneTimePassword(booking.oneTimePassword ?? null)
         .build();
+
+      if (!updatedEvtWithPassword) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with one-time password due to missing required fields",
+        });
+      }
+
+      evt = updatedEvtWithPassword;
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
@@ -1580,6 +1655,47 @@ async function handler(
       evt.iCalUID = undefined;
     }
 
+    if (changedOrganizer && originalRescheduledBooking?.user) {
+      const originalHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+        originalRescheduledBooking.user,
+        eventType
+      );
+      const refreshedOriginalHostCredentials = await refreshCredentials(originalHostCredentials);
+
+      // Create EventManager with original host's credentials for deletion operations
+      const originalHostEventManager = new EventManager(
+        { ...originalRescheduledBooking.user, credentials: refreshedOriginalHostCredentials },
+        apps
+      );
+      log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+      // Create deletion event with original host's organizer info and original booking properties
+      const deletionEvent = {
+        ...evt,
+        organizer: {
+          id: originalRescheduledBooking.user.id,
+          name: originalRescheduledBooking.user.name || "",
+          email: originalRescheduledBooking.user.email,
+          username: originalRescheduledBooking.user.username || undefined,
+          timeZone: originalRescheduledBooking.user.timeZone,
+          language: { translate: tOrganizer, locale: originalRescheduledBooking.user.locale ?? "en" },
+          timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
+        },
+        destinationCalendar: previousHostDestinationCalendar,
+        // Override with original booking properties used by deletion operations
+        startTime: originalRescheduledBooking.startTime.toISOString(),
+        endTime: originalRescheduledBooking.endTime.toISOString(),
+        uid: originalRescheduledBooking.uid,
+        location: originalRescheduledBooking.location,
+        responses: originalRescheduledBooking.responses
+          ? (originalRescheduledBooking.responses as CalEventResponses)
+          : evt.responses,
+      };
+
+      await originalHostEventManager.deleteEventsAndMeetings({
+        event: deletionEvent,
+        bookingReferences: originalRescheduledBooking.references,
+      });
+    }
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
@@ -1737,6 +1853,8 @@ async function handler(
 
           originalBookingMemberEmails.push({
             ...originalRescheduledBooking.user,
+            username: originalRescheduledBooking.user.username ?? undefined,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(originalRescheduledBooking.user.timeFormat),
             name: originalRescheduledBooking.user.name || "",
             language: { translate, locale: originalRescheduledBooking.user.locale ?? "en" },
           });
@@ -1941,7 +2059,7 @@ async function handler(
           })
         );
 
-        if (!isDryRun) {
+        if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
           await sendScheduledEmailsAndSMS(
             {
               ...evt,
