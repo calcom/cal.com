@@ -232,7 +232,7 @@ describe("CalendarEventRepository", () => {
         updatedAt: new Date(),
       };
 
-      prismock.calendarEvent.create({ data: mockEvent });
+      await prismock.calendarEvent.create({ data: mockEvent });
 
       const events = await repository.getEventsForAvailability(
         subscriptionId,
@@ -265,7 +265,7 @@ describe("CalendarEventRepository", () => {
         updatedAt: new Date(),
       };
 
-      prismock.calendarEvent.create({ data: mockEvent });
+      await prismock.calendarEvent.create({ data: mockEvent });
 
       const events = await repository.getEventsForAvailability(
         subscriptionId,
@@ -292,7 +292,7 @@ describe("CalendarEventRepository", () => {
         updatedAt: new Date(),
       };
 
-      prismock.calendarEvent.create({ data: mockEvent });
+      await prismock.calendarEvent.create({ data: mockEvent });
 
       await repository.deleteEvent(subscriptionId, "google-event-id");
 
@@ -385,7 +385,7 @@ describe("CalendarEventRepository", () => {
         updatedAt: oldDate,
       };
 
-      prismock.calendarEvent.create({ data: mockOldEvent });
+      await prismock.calendarEvent.create({ data: mockOldEvent });
 
       // Verify the event was created
       const eventsBefore = await prismock.calendarEvent.findMany();
@@ -415,7 +415,7 @@ describe("CalendarEventRepository", () => {
         updatedAt: pastDate,
       };
 
-      prismock.calendarEvent.create({ data: mockPastEvent });
+      await prismock.calendarEvent.create({ data: mockPastEvent });
 
       // Verify the event was created
       const eventsBefore = await prismock.calendarEvent.findMany();
