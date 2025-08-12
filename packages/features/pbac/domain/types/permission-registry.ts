@@ -29,6 +29,7 @@ export enum CustomAction {
   ReadTeamBookings = "readTeamBookings",
   ReadOrgBookings = "readOrgBookings",
   ReadRecordings = "readRecordings",
+  Impersonate = "impersonate",
 }
 
 export enum Scope {
@@ -240,6 +241,12 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_team_member_role",
     },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate team members",
+      category: "team",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_team_members",
+    },
     [CrudAction.Manage]: {
       description: "Manage team members",
       category: "team",
@@ -299,6 +306,13 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "org",
       i18nKey: "pbac_action_change_member_role",
       descriptionI18nKey: "pbac_desc_change_organization_member_role",
+      scope: [Scope.Organization],
+    },
+    [CustomAction.Impersonate]: {
+      description: "Impersonate organization members",
+      category: "org",
+      i18nKey: "pbac_action_impersonate",
+      descriptionI18nKey: "pbac_desc_impersonate_organization_members",
       scope: [Scope.Organization],
     },
     [CrudAction.Update]: {
