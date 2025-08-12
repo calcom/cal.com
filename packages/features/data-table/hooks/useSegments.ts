@@ -46,6 +46,11 @@ export const useSegments: UseSegments = ({
     const userSegments = segmentsSource || [];
 
     const processedDefaultSegments = systemSegments.map((segment) => ({
+      sorting: [],
+      columnVisibility: {},
+      columnSizing: {},
+      perPage: 10,
+      searchTerm: null,
       ...segment,
       id: `${SYSTEM_SEGMENT_PREFIX}${segment.id}`,
       type: "system" as const,
@@ -80,25 +85,15 @@ export const useSegments: UseSegments = ({
   const selectedSegment = useMemo(() => {
     if (!segmentId) return undefined;
 
-    return segments?.find((segment) => {
-      if (segment.type === "system") {
-        return segmentId.type === "system" && segment.id === segmentId.id;
-      } else {
-        return segmentId.type === "user" && segment.id === segmentId.id;
-      }
-    });
+    return segments?.find((segment) => segmentId.type === segment.type && segmentId.id === segment.id);
   }, [segments, segmentId]);
 
   useEffect(() => {
     if (segments && segmentId && !isFetchingSegments) {
-      const segment = segments.find((segment) => {
-        if (segment.type === "system") {
-          return segmentId.type === "system" && segment.id === segmentId.id;
-        } else {
-          return segmentId.type === "user" && segment.id === segmentId.id;
-        }
-      });
-      if (!segment) {
+      const matchingSegment = segments.find(
+        (segment) => segmentId.type === segment.type && segmentId.id === segment.id
+      );
+      if (!matchingSegment) {
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
         // but we still keep all the other states like activeFilters, etc.
         // This is useful when someone shares a URL that is inaccessible to someone else.
@@ -114,13 +109,7 @@ export const useSegments: UseSegments = ({
 
   useEffect(() => {
     if (memoizedPreferredSegmentId) {
-      if (typeof memoizedPreferredSegmentId === "object") {
-        setSegmentId(memoizedPreferredSegmentId);
-      } else if (typeof memoizedPreferredSegmentId === "string") {
-        setSegmentId({ id: memoizedPreferredSegmentId, type: "system" });
-      } else if (typeof memoizedPreferredSegmentId === "number") {
-        setSegmentId({ id: memoizedPreferredSegmentId, type: "user" });
-      }
+      setSegmentId(memoizedPreferredSegmentId);
     }
   }, [memoizedPreferredSegmentId, setSegmentId]);
 
@@ -128,11 +117,11 @@ export const useSegments: UseSegments = ({
     if (selectedSegment) {
       // segment is selected, so we apply the filters, sorting, etc. from the segment
       setActiveFilters(selectedSegment.activeFilters);
-      setSorting(selectedSegment.sorting || []);
-      setColumnVisibility(selectedSegment.columnVisibility || {});
-      setColumnSizing(selectedSegment.columnSizing || {});
-      setPageSize(selectedSegment.perPage || defaultPageSize);
-      setSearchTerm(selectedSegment.searchTerm || null);
+      setSorting(selectedSegment.sorting);
+      setColumnVisibility(selectedSegment.columnVisibility);
+      setColumnSizing(selectedSegment.columnSizing);
+      setPageSize(selectedSegment.perPage);
+      setSearchTerm(selectedSegment.searchTerm);
       setPageIndex(0);
     }
   }, [

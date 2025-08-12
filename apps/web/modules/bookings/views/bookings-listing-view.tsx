@@ -82,6 +82,9 @@ function useSystemSegments() {
         ],
         sorting: [{ id: "startTime", desc: false }],
         perPage: 10,
+        columnVisibility: {},
+        columnSizing: {},
+        searchTerm: null,
       },
     ];
   }, [user, t]);
