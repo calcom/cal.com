@@ -4,8 +4,8 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { BusyTimesService } from "../../getBusyTimes";
-import { bookingRepositoryModule } from "../modules/booking";
-import { busyTimesModule } from "../modules/busy-times";
+import { bookingRepositoryModule } from "../modules/Booking";
+import { busyTimesModule } from "../modules/BusyTimes";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
