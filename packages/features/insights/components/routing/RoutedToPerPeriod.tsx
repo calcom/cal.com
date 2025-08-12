@@ -6,6 +6,7 @@ import { type ReactNode, useMemo, useRef, useState } from "react";
 
 import { DataTableSkeleton } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -187,12 +188,22 @@ export function RoutedToPerPeriod() {
   });
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  const { data, isLoading } = trpc.viewer.insights.routedToPerPeriod.useQuery({
-    ...routingParams,
-    period: selectedPeriod,
-    searchQuery: searchQuery || undefined,
-  });
+  const { data, isLoading } = trpc.viewer.insights.routedToPerPeriod.useQuery(
+    {
+      ...routingParams,
+      period: selectedPeriod,
+      searchQuery: debouncedSearchQuery || undefined,
+    },
+    {
+      staleTime: 30000,
+      refetchOnWindowFocus: false,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
 
   const flattenedUsers = useMemo(() => {
     return data?.users.data || [];
