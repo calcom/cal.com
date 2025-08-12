@@ -118,6 +118,11 @@ export default function JoinCall(props: PageProps) {
   );
 
   useEffect(() => {
+    if (window.location.search.includes("callbackUrl")){
+      window.location.reload();
+      return;
+    }
+    
     if (displayLogInOverlay && !loggedInUserName && !overrideName && !isUserNameConfirmed) {
       return;
     }
