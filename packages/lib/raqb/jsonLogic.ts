@@ -53,11 +53,15 @@ jsonLogic.add_operation("in", function (a: string, b: string | string[]) {
 /**
  * Short Text/Long Text "starts with" uses it
  */
-jsonLogic.add_operation("starts_with", function (a: string, b: string) {
+jsonLogic.add_operation("starts_with", function (a: unknown, b: unknown) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+
   const first = normalize(a);
   const second = normalize(b);
-  if (!first || !second || typeof first !== "string" || typeof second !== "string") return false;
-  return first.indexOf(second) === 0;
+
+  if (!second) return false;
+
+  return first.startsWith(second);
 });
 
 export default jsonLogic;
