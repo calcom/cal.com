@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { captureException } from "@sentry/nextjs";
 
 import type { PrismaClient } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
@@ -18,7 +19,7 @@ interface CacheOptions {
 export class FeaturesRepository implements IFeaturesRepository {
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient = prisma) {}
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;

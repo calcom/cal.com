@@ -1,7 +1,7 @@
-import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
@@ -10,53 +10,44 @@ import { Resource } from "../../domain/types/permission-registry";
 import { PermissionCheckService } from "../permission-check.service";
 import type { PermissionService } from "../permission.service";
 
-vi.mock("../../infrastructure/repositories/PermissionRepository");
-vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/lib/server/repository/membership");
-vi.mock("../permission.service");
-
-type MockRepository = {
-  [K in keyof IPermissionRepository]: Mock;
-};
-
 describe("PermissionCheckService", () => {
   let service: PermissionCheckService;
-  let mockRepository: MockRepository;
-  let mockFeaturesRepository: { checkIfTeamHasFeature: Mock };
-  let mockPermissionService: { validatePermission: Mock; validatePermissions: Mock };
+  let mockRepository: Partial<IPermissionRepository>;
+  let mockFeaturesRepository: Partial<FeaturesRepository>;
+  let mockPermissionService: Partial<PermissionService>;
+  let mockMembershipRepository: Partial<MembershipRepository>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+
     mockRepository = {
       getMembershipByMembershipId: vi.fn(),
-      getMembershipByUserAndTeam: vi.fn(),
       getOrgMembership: vi.fn(),
-      getUserMemberships: vi.fn(),
       checkRolePermission: vi.fn(),
       checkRolePermissions: vi.fn(),
-      getResourcePermissions: vi.fn(),
-      getResourcePermissionsByRoleId: vi.fn(),
+      getUserMemberships: vi.fn(),
       getTeamIdsWithPermission: vi.fn(),
       getTeamIdsWithPermissions: vi.fn(),
-    } as MockRepository;
-
+      getMembershipByUserAndTeam: vi.fn(),
+      getResourcePermissionsByRoleId: vi.fn(),
+    };
     mockFeaturesRepository = {
       checkIfTeamHasFeature: vi.fn(),
     };
-
+    mockMembershipRepository = {
+      findUniqueByUserIdAndTeamId: vi.fn(),
+    };
     mockPermissionService = {
       validatePermission: vi.fn().mockReturnValue({ isValid: true }),
       validatePermissions: vi.fn().mockReturnValue({ isValid: true }),
     };
 
-    service = new PermissionCheckService(
-      mockRepository,
-      mockFeaturesRepository as unknown as FeaturesRepository,
-      mockPermissionService as unknown as PermissionService
-    );
-
-    // Mock MembershipRepository static method
-    (MembershipRepository.findUniqueByUserIdAndTeamId as Mock) = vi.fn();
+    service = new PermissionCheckService({
+      repository: mockRepository as IPermissionRepository,
+      membershipRepository: mockMembershipRepository as MembershipRepository,
+      featuresRepository: mockFeaturesRepository as FeaturesRepository,
+      permissionService: mockPermissionService as PermissionService,
+    });
   });
 
   describe("checkPermission", () => {
@@ -73,17 +64,17 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByMembershipId").mockResolvedValueOnce({
         id: membership.id,
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
         team: { parentId: null },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
-      mockRepository.checkRolePermission.mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce(null);
+      vi.spyOn(mockRepository, "checkRolePermission").mockResolvedValueOnce(true);
 
       const result = await service.checkPermission({
         userId: 1,
@@ -93,7 +84,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -115,8 +106,8 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(false);
 
       const result = await service.checkPermission({
         userId: 1,
@@ -126,7 +117,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -135,7 +126,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return false if membership not found", async () => {
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(null);
 
       const result = await service.checkPermission({
         userId: 1,
@@ -160,8 +151,8 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
 
       const result = await service.checkPermission({
         userId: 1,
@@ -188,17 +179,17 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByMembershipId").mockResolvedValueOnce({
         id: membership.id,
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
         team: { parentId: null },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
-      mockRepository.checkRolePermissions.mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce(null);
+      vi.spyOn(mockRepository, "checkRolePermissions").mockResolvedValueOnce(true);
 
       const result = await service.checkPermissions({
         userId: 1,
@@ -208,7 +199,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -233,8 +224,8 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(false);
 
       const result = await service.checkPermissions({
         userId: 1,
@@ -244,7 +235,7 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(true);
-      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
+      expect(mockMembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledWith({
         userId: 1,
         teamId: 1,
       });
@@ -265,8 +256,8 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
 
       const result = await service.checkPermissions({
         userId: 1,
@@ -292,7 +283,7 @@ describe("PermissionCheckService", () => {
         },
       ];
 
-      mockRepository.getUserMemberships.mockResolvedValueOnce(memberships);
+      vi.spyOn(mockRepository, "getUserMemberships").mockResolvedValueOnce(memberships);
 
       const result = await service.getUserPermissions(1);
       expect(result).toEqual(memberships);
@@ -303,7 +294,7 @@ describe("PermissionCheckService", () => {
   describe("getTeamIdsWithPermission", () => {
     it("should return team IDs where user has the specified permission", async () => {
       const expectedTeamIds = [1, 2, 3];
-      mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
+      vi.spyOn(mockRepository, "getTeamIdsWithPermission").mockResolvedValueOnce(expectedTeamIds);
 
       const result = await service.getTeamIdsWithPermission(1, "eventType.read");
 
@@ -312,7 +303,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array when permission validation fails", async () => {
-      mockPermissionService.validatePermission.mockReturnValueOnce({
+      vi.spyOn(mockPermissionService, "validatePermission").mockReturnValueOnce({
         isValid: false,
         error: "Invalid permissions",
       });
@@ -324,7 +315,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array and log error when repository throws", async () => {
-      mockRepository.getTeamIdsWithPermission.mockRejectedValueOnce(new Error("Database error"));
+      vi.spyOn(mockRepository, "getTeamIdsWithPermission").mockRejectedValueOnce(new Error("Database error"));
 
       const result = await service.getTeamIdsWithPermission(1, "eventType.read");
 
@@ -337,7 +328,7 @@ describe("PermissionCheckService", () => {
     it("should return team IDs where user has all specified permissions", async () => {
       const expectedTeamIds = [1, 2];
       const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
-      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
+      vi.spyOn(mockRepository, "getTeamIdsWithPermissions").mockResolvedValueOnce(expectedTeamIds);
 
       const result = await service.getTeamIdsWithPermissions(1, permissions);
 
@@ -346,7 +337,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array when permissions validation fails", async () => {
-      mockPermissionService.validatePermissions.mockReturnValueOnce({
+      vi.spyOn(mockPermissionService, "validatePermissions").mockReturnValueOnce({
         isValid: false,
         error: "Invalid permissions",
       });
@@ -358,7 +349,7 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array when permissions array is empty", async () => {
-      mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce([]);
+      vi.spyOn(mockRepository, "getTeamIdsWithPermissions").mockResolvedValueOnce([]);
 
       const result = await service.getTeamIdsWithPermissions(1, []);
 
@@ -368,7 +359,9 @@ describe("PermissionCheckService", () => {
 
     it("should return empty array and log error when repository throws", async () => {
       const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
-      mockRepository.getTeamIdsWithPermissions.mockRejectedValueOnce(new Error("Database error"));
+      vi.spyOn(mockRepository, "getTeamIdsWithPermissions").mockRejectedValueOnce(
+        new Error("Database error")
+      );
 
       const result = await service.getTeamIdsWithPermissions(1, permissions);
 
@@ -379,7 +372,7 @@ describe("PermissionCheckService", () => {
 
   describe("getResourcePermissions", () => {
     it("should return empty array when PBAC is disabled", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(false);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -393,16 +386,16 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return team-level permissions when PBAC is enabled and no org membership", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
         team: { parentId: null },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
-      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["create", "read"]);
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce(null);
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId").mockResolvedValueOnce(["create", "read"]);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -420,15 +413,19 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return only team permissions when team has no parentId", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
         team: { parentId: null },
       });
-      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["create", "read", "update"]);
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId").mockResolvedValueOnce([
+        "create",
+        "read",
+        "update",
+      ]);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -447,15 +444,15 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return combined team and org permissions when both exist", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -463,7 +460,7 @@ describe("PermissionCheckService", () => {
       });
 
       // Mock team permissions - create implies read
-      mockRepository.getResourcePermissionsByRoleId
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId")
         .mockResolvedValueOnce(["create", "read"]) // team permissions
         .mockResolvedValueOnce(["update", "delete", "read"]); // org permissions - update/delete imply read
 
@@ -490,15 +487,15 @@ describe("PermissionCheckService", () => {
     });
 
     it("should deduplicate permissions when team and org have overlapping permissions", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -506,7 +503,7 @@ describe("PermissionCheckService", () => {
       });
 
       // Mock overlapping permissions - both include read, update implies read
-      mockRepository.getResourcePermissionsByRoleId
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId")
         .mockResolvedValueOnce(["create", "read"]) // team permissions - create implies read
         .mockResolvedValueOnce(["read", "update"]); // org permissions - update implies read, explicit read
 
@@ -521,15 +518,15 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return only org permissions when team has no custom role", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: null,
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -537,7 +534,11 @@ describe("PermissionCheckService", () => {
       });
 
       // Update and delete imply read access
-      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["update", "delete", "read"]);
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId").mockResolvedValueOnce([
+        "update",
+        "delete",
+        "read",
+      ]);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -554,8 +555,8 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array when no membership found", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce(null);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce(null);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -568,8 +569,10 @@ describe("PermissionCheckService", () => {
     });
 
     it("should return empty array and log error when repository throws", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockRejectedValueOnce(new Error("Database error"));
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockRejectedValueOnce(
+        new Error("Database error")
+      );
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -581,15 +584,15 @@ describe("PermissionCheckService", () => {
     });
 
     it("should enforce correct hierarchy - org permissions should take precedence over team permissions", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: "admin_team_role",
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -598,7 +601,7 @@ describe("PermissionCheckService", () => {
 
       // Team role has broad permissions - CUD actions include read
       // Org role has restricted permissions (only read)
-      mockRepository.getResourcePermissionsByRoleId
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId")
         .mockResolvedValueOnce(["create", "read", "update"]) // team permissions - CRU
         .mockResolvedValueOnce(["delete"]); // org permissions - delete only
 
@@ -626,8 +629,8 @@ describe("PermissionCheckService", () => {
     });
 
     it("should expand permissions when user has manage permission", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
@@ -636,7 +639,7 @@ describe("PermissionCheckService", () => {
       });
 
       // User has manage permission
-      mockRepository.getResourcePermissionsByRoleId.mockResolvedValueOnce(["manage", "read"]);
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId").mockResolvedValueOnce(["manage", "read"]);
 
       const result = await service.getResourcePermissions({
         userId: 1,
@@ -654,15 +657,15 @@ describe("PermissionCheckService", () => {
     });
 
     it("should expand permissions when user has manage permission at org level", async () => {
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByUserAndTeam").mockResolvedValueOnce({
         id: 1,
         teamId: 1,
         userId: 1,
         customRoleId: "team_role",
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -670,7 +673,7 @@ describe("PermissionCheckService", () => {
       });
 
       // Team has basic permissions, org has manage
-      mockRepository.getResourcePermissionsByRoleId
+      vi.spyOn(mockRepository, "getResourcePermissionsByRoleId")
         .mockResolvedValueOnce(["read"]) // team permissions
         .mockResolvedValueOnce(["manage"]); // org permissions
 
@@ -703,19 +706,19 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByMembershipId").mockResolvedValueOnce({
         id: membership.id,
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
         team: { parentId: null },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce(null);
 
       // User doesn't have explicit permission but has manage permission
-      mockRepository.checkRolePermission
+      vi.spyOn(mockRepository, "checkRolePermission")
         .mockResolvedValueOnce(false) // explicit permission check fails
         .mockResolvedValueOnce(true); // manage permission check succeeds
 
@@ -744,16 +747,16 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByMembershipId").mockResolvedValueOnce({
         id: membership.id,
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -761,7 +764,7 @@ describe("PermissionCheckService", () => {
       });
 
       // Team level permissions fail, org level manage permission succeeds
-      mockRepository.checkRolePermission
+      vi.spyOn(mockRepository, "checkRolePermission")
         .mockResolvedValueOnce(false) // team explicit permission
         .mockResolvedValueOnce(false) // team manage permission
         .mockResolvedValueOnce(true); // org manage permission
@@ -792,20 +795,20 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByMembershipId").mockResolvedValueOnce({
         id: membership.id,
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
         team: { parentId: null },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce(null);
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce(null);
 
       // Explicit permissions check fails, but manage permissions succeed
-      mockRepository.checkRolePermissions.mockResolvedValueOnce(false);
-      mockRepository.checkRolePermission
+      vi.spyOn(mockRepository, "checkRolePermissions").mockResolvedValueOnce(false);
+      vi.spyOn(mockRepository, "checkRolePermission")
         .mockResolvedValueOnce(true) // eventType.manage
         .mockResolvedValueOnce(true); // role.manage
 
@@ -834,16 +837,16 @@ describe("PermissionCheckService", () => {
         updatedAt: new Date(),
       };
 
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(membership);
-      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
-      mockRepository.getMembershipByMembershipId.mockResolvedValueOnce({
+      vi.spyOn(mockMembershipRepository, "findUniqueByUserIdAndTeamId").mockResolvedValueOnce(membership);
+      vi.spyOn(mockFeaturesRepository, "checkIfTeamHasFeature").mockResolvedValueOnce(true);
+      vi.spyOn(mockRepository, "getMembershipByMembershipId").mockResolvedValueOnce({
         id: membership.id,
         teamId: membership.teamId,
         userId: membership.userId,
         customRoleId: membership.customRoleId,
         team: { parentId: 2 },
       });
-      mockRepository.getOrgMembership.mockResolvedValueOnce({
+      vi.spyOn(mockRepository, "getOrgMembership").mockResolvedValueOnce({
         id: 2,
         teamId: 2,
         userId: 1,
@@ -851,12 +854,12 @@ describe("PermissionCheckService", () => {
       });
 
       // All explicit permission checks fail
-      mockRepository.checkRolePermissions
+      vi.spyOn(mockRepository, "checkRolePermissions")
         .mockResolvedValueOnce(false) // team permissions
         .mockResolvedValueOnce(false); // org permissions
 
       // Has manage for eventType but not for booking
-      mockRepository.checkRolePermission
+      vi.spyOn(mockRepository, "checkRolePermission")
         .mockResolvedValueOnce(true) // team eventType.manage
         .mockResolvedValueOnce(false) // team booking.manage
         .mockResolvedValueOnce(true) // org eventType.manage (duplicate check)
