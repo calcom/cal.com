@@ -321,6 +321,14 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     status: string;
     message: string;
   }>;
+
+  /**
+   * Update tools from event type ID
+   */
+  updateToolsFromEventTypeId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ): Promise<void>;
 }
 
 /**

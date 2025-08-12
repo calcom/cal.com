@@ -187,7 +187,8 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         seatReferenceUid,
       });
 
-      // Schedule the actual AI phone call immediately
+      // Schedule the actual AI phone call immediatel
+      // Should i execute the task immediately or schedule it for later?
       await scheduleAIPhoneCallTask({
         workflowReminderId: workflowReminder.id,
         scheduledDate: currentDate.toDate(),

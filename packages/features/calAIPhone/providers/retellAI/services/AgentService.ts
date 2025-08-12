@@ -1,7 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
+import { v4 } from "uuid";
 
+import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -23,6 +26,26 @@ export class AgentService {
     private agentRepository: AgentRepositoryInterface
   ) {}
 
+  private async generateUniqueAPIKey({ userId, teamId }: { userId: number; teamId?: number }) {
+    const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+    await prisma.apiKey.create({
+      data: {
+        id: v4(),
+        userId,
+        teamId,
+        // And here we pass a null to expiresAt if never expires is true
+        expiresAt: null,
+        hashedKey: hashedApiKey,
+      },
+    });
+
+    const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
+
+    const prefixedApiKey = `${apiKeyPrefix}${apiKey}`;
+
+    return prefixedApiKey;
+  }
+
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
       throw new HttpError({
@@ -42,6 +65,84 @@ export class AgentService {
         statusCode: 500,
         message: `Failed to get agent ${agentId}`,
       });
+    }
+  }
+
+  async updateToolsFromEventTypeId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ) {
+    if (!agentId?.trim()) {
+      throw new Error("Agent ID is required and cannot be empty");
+    }
+
+    if (!data.eventTypeId || !data.userId) {
+      throw new Error("Event type ID and user ID are required");
+    }
+
+    try {
+      const agent = await this.getAgent(agentId);
+      const llmId = getLlmId(agent);
+
+      if (!llmId) {
+        throw new Error("Agent does not have an LLM configured.");
+      }
+      const llmDetails = await this.retellRepository.getLLM(llmId);
+
+      if (!llmDetails) {
+        throw new Error("LLM details not found.");
+      }
+
+      const generalTools = llmDetails.general_tools;
+
+      const doesEventTypeIdExist = generalTools?.find(
+        (tool) =>
+          "event_type_id" in tool &&
+          tool.event_type_id === data.eventTypeId &&
+          tool.type === "check_availability_cal"
+      );
+
+      if (doesEventTypeIdExist) {
+        // If the event type ID does exist in the general tools, we don't need to update the agent general tools
+        return;
+      }
+
+      const apiKey = await this.generateUniqueAPIKey({
+        userId: data.userId,
+        teamId: data.teamId || undefined,
+      });
+
+      const newGeneralTools: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI> = [
+        {
+          type: "end_call",
+          name: "end_call",
+          description: "Hang up the call, triggered only after appointment successfully scheduled.",
+        },
+        {
+          name: "check_availability",
+          type: "check_availability_cal",
+          event_type_id: data.eventTypeId,
+          cal_api_key: apiKey,
+          timezone: data.timeZone,
+        },
+        {
+          name: "book_appointment",
+          type: "book_appointment_cal",
+          event_type_id: data.eventTypeId,
+          cal_api_key: apiKey,
+          timezone: data.timeZone,
+        },
+      ];
+
+      await this.retellRepository.updateLLM(llmId, {
+        general_tools: newGeneralTools,
+      });
+    } catch (error) {
+      this.logger.error("Failed to update agent general tools in external AI service", {
+        agentId,
+        error,
+      });
+      throw new Error(`Failed to update agent general tools ${agentId}`);
     }
   }
 

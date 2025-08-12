@@ -12,7 +12,6 @@ import type {
   AIPhoneServiceUpdateModelParams,
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceCreatePhoneNumberParams,
-  AIPhoneServiceImportPhoneNumberParams,
   AIPhoneServiceUpdatePhoneNumberParams,
   AIPhoneServiceAgentListItem,
   AIPhoneServiceImportPhoneNumberParamsExtended,
@@ -23,7 +22,7 @@ import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInte
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
-import type { RetellAIRepository, RetellAgentWithDetails, RetellLLMGeneralTools } from "./types";
+import type { RetellAIRepository } from "./types";
 
 export class RetellAIPhoneServiceProvider
   implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI>
@@ -262,5 +261,12 @@ export class RetellAIPhoneServiceProvider
     message: string;
   }> {
     return await this.service.createTestCall(params);
+  }
+
+  async updateToolsFromEventTypeId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ): Promise<void> {
+    return await this.service.updateToolsFromEventTypeId(agentId, data);
   }
 }

@@ -49,12 +49,14 @@ export async function executeAIPhoneCall(payload: string) {
           select: {
             uid: true,
             startTime: true,
+            eventTypeId: true,
             responses: true,
             attendees: {
               select: {
                 name: true,
                 email: true,
                 phoneNumber: true,
+                timeZone: true,
               },
             },
             eventType: {
@@ -125,7 +127,7 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("No phone number found for attendee");
     }
 
-    // Prepare dynamic variables for the AI call
+    // TODO:Prepare dynamic variables for the AI call
     const dynamicVariables = {
       guestName: booking.attendees[0]?.name || "",
       guestEmail: booking.attendees[0]?.email || "",
@@ -133,12 +135,17 @@ export async function executeAIPhoneCall(payload: string) {
       schedulerName: booking.user?.name || "",
       eventName: booking.eventType?.title || "",
       eventDate: booking.startTime.toISOString(),
-      // TODO:Add more dynamic variables
     };
 
     const aiService = createDefaultAIPhoneServiceProvider();
 
-    // Update general tools before making the call
+    // Update general tools before making the call so that the agent can use the check_availability_cal and book_appointment_cal tools
+    await aiService.updateToolsFromEventTypeId(data.agentId, {
+      eventTypeId: booking.eventTypeId,
+      timeZone: booking.attendees[0]?.timeZone ?? "Europe/London",
+      userId: data.userId,
+      teamId: data.teamId,
+    });
 
     const call = await aiService.createPhoneCall({
       from_number: data.fromNumber,
