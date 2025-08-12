@@ -8,6 +8,8 @@ import { z } from "zod";
 
 import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -40,6 +42,30 @@ const getCachedEventType = unstable_cache(
   { revalidate: 3600 } // Cache for 1 hour
 );
 
+const getEventPermissions = async (userId: number, teamId: number | null) => {
+  if (!teamId) return { eventTypes: [], workflows: [] };
+
+  const permissionService = new PermissionCheckService();
+
+  const [eventTypePermissions, workflowPermissions] = await Promise.all([
+    permissionService.getResourcePermissions({
+      userId,
+      teamId,
+      resource: Resource.EventType,
+    }),
+    permissionService.getResourcePermissions({
+      userId,
+      teamId,
+      resource: Resource.Workflow,
+    }),
+  ]);
+
+  return {
+    eventTypes: eventTypePermissions,
+    workflows: workflowPermissions,
+  };
+};
+
 const ServerPage = async ({ params }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.id) {
@@ -59,7 +85,10 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("This event type does not exist");
   }
 
-  return <EventTypeWebWrapper data={data} id={eventTypeId} />;
+  // Fetch permissions for the event type's team
+  const permissions = await getEventPermissions(session.user.id, data.eventType.teamId);
+
+  return <EventTypeWebWrapper data={data} id={eventTypeId} permissions={permissions} />;
 };
 
 export default ServerPage;

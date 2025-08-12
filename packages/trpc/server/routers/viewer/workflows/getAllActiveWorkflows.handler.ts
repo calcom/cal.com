@@ -1,4 +1,5 @@
-import { isTeamMember } from "@calcom/lib/server/queries/teams";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -25,20 +26,39 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
     metadata: eventType.metadata,
   };
 
-  if (eventType.userId && eventType.userId !== ctx.user.id) {
+  if (
+    eventType.userId &&
+    eventType.userId !== ctx.user.id &&
+    !eventType.teamId &&
+    !eventType.parent?.teamId
+  ) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
   }
 
+  const permissionCheckService = new PermissionCheckService();
+
   if (eventType.teamId) {
-    const team = await isTeamMember(ctx.user?.id, eventType.teamId);
-    if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
+    const hasPermissionToViewWorkflows = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: eventType.teamId,
+      permission: "workflow.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermissionToViewWorkflows) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   if (eventType.parent?.teamId) {
-    const team = await isTeamMember(ctx.user?.id, eventType.parent?.teamId);
-    if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
+    const hasPermissionToViewWorkflows = await permissionCheckService.checkPermission({
+      userId: ctx.user.id,
+      teamId: eventType.parent?.teamId,
+      permission: "workflow.read",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermissionToViewWorkflows) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
   const allActiveWorkflows = await getAllWorkflowsFromEventType(
