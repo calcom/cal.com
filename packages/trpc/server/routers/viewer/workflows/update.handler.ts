@@ -4,6 +4,7 @@ import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -727,7 +728,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  // Add permissions to the workflow
+  const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
+
   return {
-    workflow,
+    workflow: workflowWithPermissions,
   };
 };

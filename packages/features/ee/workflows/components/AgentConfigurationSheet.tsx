@@ -424,7 +424,7 @@ export function AgentConfigurationSheet({
                       agentForm.register("generalPrompt").ref(e);
                       generalPromptRef.current = e;
                     }}
-                    placeholder={t("Enter the general prompt for the agent")}
+                    placeholder={t("enter_the_general_prompt_for_the_agent")}
                     className="min-h-[500px] rounded-t-none"
                     disabled={readOnly}
                   />
