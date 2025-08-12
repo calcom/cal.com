@@ -69,29 +69,6 @@ export const createGoogleCalendarEventFixture = (
   return { ...baseEvent, ...overrides };
 };
 
-export const googleEventWithMultipleHosts = createGoogleCalendarEventFixture({
-  attendees: [
-    {
-      email: "attendee@example.com",
-      displayName: "Regular Attendee",
-      responseStatus: "accepted",
-      organizer: false,
-    },
-    {
-      email: "host1@example.com",
-      displayName: "Host 1",
-      responseStatus: "accepted",
-      organizer: true,
-    },
-    {
-      email: "host2@example.com",
-      displayName: "Host 2",
-      responseStatus: "tentative",
-      organizer: true,
-    },
-  ],
-});
-
 export const googleEventWithConferenceData = createGoogleCalendarEventFixture({
   conferenceData: {
     conferenceId: "test-conference-id",
@@ -123,28 +100,4 @@ export const googleEventWithHangoutLink = createGoogleCalendarEventFixture({
   hangoutLink: "https://hangouts.google.com/call/abc123",
   conferenceData: undefined,
   location: undefined,
-});
-
-export const googleEventWithMixedAttendees = createGoogleCalendarEventFixture({
-  attendees: [
-    {
-      email: "attendee1@example.com",
-      displayName: "Attendee 1",
-      responseStatus: "accepted",
-      organizer: false,
-    },
-    {
-      email: "organizer@example.com",
-      displayName: "Organizer",
-      responseStatus: "accepted",
-      organizer: true,
-    },
-    {
-      email: "attendee2@example.com",
-      displayName: "Attendee 2",
-      responseStatus: "tentative",
-      organizer: false,
-      optional: true,
-    },
-  ],
 });

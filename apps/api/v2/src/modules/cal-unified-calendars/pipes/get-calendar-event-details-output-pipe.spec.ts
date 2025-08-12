@@ -5,11 +5,9 @@ import {
 
 import {
   createGoogleCalendarEventFixture,
-  googleEventWithMultipleHosts,
   googleEventWithConferenceData,
   googleEventWithLocationOnly,
   googleEventWithHangoutLink,
-  googleEventWithMixedAttendees,
 } from "./__fixtures__/google-calendar-event.fixture";
 import {
   GoogleCalendarEventOutputPipe,
@@ -200,5 +198,4 @@ describe("GoogleCalendarEventOutputPipe", () => {
       expect(result).toEqual([]);
     });
   });
-
 });
