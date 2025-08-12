@@ -21,7 +21,7 @@ describe("CalendarSubscriptionRepository", () => {
         updatedAt: new Date(),
       };
 
-      prismock.calendarSubscription.create({ data: mockSubscription });
+      await prismock.calendarSubscription.create({ data: mockSubscription });
 
       const result = await repository.findBySelectedCalendar("selected-calendar-id");
 
@@ -72,7 +72,7 @@ describe("CalendarSubscriptionRepository", () => {
         updatedAt: new Date(),
       };
 
-      prismock.calendarSubscription.create({ data: mockSubscription });
+      await prismock.calendarSubscription.create({ data: mockSubscription });
 
       const result = await repository.findByChannelId("test-channel-id");
 
