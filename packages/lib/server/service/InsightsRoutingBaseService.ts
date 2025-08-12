@@ -750,19 +750,8 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    // Extract form field filters (exclude the system filters we already processed)
-    const alreadyHandledFilters = [
-      "bookingStatusOrder",
-      "bookingAssignmentReason",
-      "bookingUid",
-      "attendeeName",
-      "attendeeEmail",
-      "attendeePhone",
-      "bookingUserId",
-      "formId",
-    ];
-
-    const fieldFilters = columnFilters.filter((filter) => !alreadyHandledFilters.includes(filter.id));
+    const fieldIdSchema = z.string().uuid();
+    const fieldFilters = (columnFilters || []).filter((filter) => fieldIdSchema.safeParse(filter.id).success);
 
     if (fieldFilters.length > 0) {
       const fieldConditions = fieldFilters
