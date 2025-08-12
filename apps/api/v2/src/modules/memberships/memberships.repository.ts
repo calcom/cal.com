@@ -35,6 +35,21 @@ export class MembershipsRepository {
     return owner?.userId ?? null;
   }
 
+  async findPlatformAdminUserId(organizationId: number): Promise<number | null> {
+    const admin = await this.dbRead.prisma.membership.findFirst({
+      where: {
+        teamId: organizationId,
+        role: MembershipRole.ADMIN,
+        accepted: true,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return admin?.userId ?? null;
+  }
+
   async findMembershipByTeamId(teamId: number, userId: number) {
     const membership = await this.dbRead.prisma.membership.findUnique({
       where: {

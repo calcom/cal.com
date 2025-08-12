@@ -174,7 +174,9 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("ApiAuthStrategy - oAuth client - Invalid client secret");
     }
 
-    const platformCreatorId = await this.membershipsRepository.findPlatformOwnerUserId(client.organizationId);
+    const platformCreatorId =
+      (await this.membershipsRepository.findPlatformOwnerUserId(client.organizationId)) ||
+      (await this.membershipsRepository.findPlatformAdminUserId(client.organizationId));
 
     if (!platformCreatorId) {
       throw new UnauthorizedException(
