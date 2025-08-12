@@ -346,21 +346,25 @@ export class CalendarCacheSqlService {
     );
 
     // Find SelectedCalendar records for each external ID and credential ID combination
-    const selectedCalendarIds = await Promise.all(
-      calendarLookups.map(async ({ externalId, credentialId }) => {
-        const selectedCalendar = await this.selectedCalendarRepo.findFirst({
-          where: {
-            externalId,
-            credentialId,
-          },
-        });
-        return {
+    // Find SelectedCalendar records in a single query
+    const selectedCalendars = await this.selectedCalendarRepo.findMany({
+      where: {
+        OR: calendarLookups.map(({ externalId, credentialId }) => ({
           externalId,
           credentialId,
-          selectedCalendarId: selectedCalendar?.id || null,
-        };
-      })
+        })),
+      },
+    });
+
+    const selectedCalendarMap = new Map(
+      selectedCalendars.map((sc) => [`${sc.externalId}_${sc.credentialId}`, sc.id])
     );
+
+    const selectedCalendarIds = calendarLookups.map(({ externalId, credentialId }) => ({
+      externalId,
+      credentialId,
+      selectedCalendarId: selectedCalendarMap.get(`${externalId}_${credentialId}`) || null,
+    }));
 
     // Get subscriptions for each selected calendar ID that exists
     const validSelectedCalendarIds = selectedCalendarIds
