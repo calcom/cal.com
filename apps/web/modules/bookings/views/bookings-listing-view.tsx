@@ -69,7 +69,6 @@ function useSystemSegments() {
       {
         id: "my_bookings",
         name: t("my_bookings"),
-        icon: "user",
         type: "system",
         activeFilters: [
           {
