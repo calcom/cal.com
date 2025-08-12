@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext } from "next";
+import type { NextJsLegacyContext } from "@calcom/web/lib/buildLegacyCtx";
 
 import getAppKeysFromSlug from "../../../_utils/getAppKeysFromSlug";
 
@@ -6,7 +6,7 @@ export interface IMakeSetupProps {
   inviteLink: string;
 }
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
   const notFound = { notFound: true } as const;
 
   if (typeof ctx.params?.slug !== "string") return notFound;

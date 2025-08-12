@@ -1,15 +1,15 @@
-import type { SearchParams } from "app/_types";
-import { type Params } from "app/_types";
 import type { NextApiRequest } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+
+export type SearchParams = Record<string, string | string[] | undefined>;
+export type Params = Record<string, string | string[] | undefined>;
 
 export interface NextJsLegacyContext {
   query: Record<string, string | string[] | undefined>;
   params: Params;
   req: NextApiRequest;
   res: any;
-  resolvedUrl: string;
 }
 
 const createProxifiedObject = (object: Record<string, string>) =>
@@ -43,7 +43,7 @@ export function decodeParams(params: Params): Params {
     }
 
     // Handle single values
-    if (value !== undefined) {
+    if (value !== undefined && value !== null) {
       acc[key] = decodeURIComponent(value);
     } else {
       acc[key] = value;
@@ -52,13 +52,6 @@ export function decodeParams(params: Params): Params {
     return acc;
   }, {} as Params);
 }
-
-const buildResolvedUrl = (params: Params, searchParams: SearchParams): string => {
-  const pathSegments = Object.values(params).flat().filter(Boolean);
-  const path = pathSegments.length > 0 ? `/${pathSegments.join("/")}` : "/";
-  const queryString = new URLSearchParams(searchParams as Record<string, string>).toString();
-  return queryString ? `${path}?${queryString}` : path;
-};
 
 export const buildLegacyRequest = (
   headers: ReadonlyHeaders,
@@ -73,8 +66,6 @@ export const buildLegacyCtx = (
   params: Params,
   searchParams: SearchParams
 ): NextJsLegacyContext => {
-  const resolvedUrl = buildResolvedUrl(params, searchParams);
-
   return {
     query: { ...searchParams, ...decodeParams(params) },
     // decoding is required to be backward compatible with Pages Router
@@ -91,6 +82,5 @@ export const buildLegacyCtx = (
         );
       },
     }),
-    resolvedUrl,
   };
 };

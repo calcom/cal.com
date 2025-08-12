@@ -1,12 +1,11 @@
-import type { GetServerSidePropsContext } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
+import type { NextJsLegacyContext } from "@calcom/web/lib/buildLegacyCtx";
 
 import { getAlbyKeys } from "../../lib/getAlbyKeys";
 import type { IAlbySetupProps } from "./index";
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
   const notFound = { notFound: true } as const;
 
   if (typeof ctx.params?.slug !== "string") return notFound;

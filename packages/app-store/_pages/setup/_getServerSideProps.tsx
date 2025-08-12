@@ -1,4 +1,4 @@
-import type { GetServerSidePropsContext } from "next";
+import type { NextJsLegacyContext } from "@calcom/web/lib/buildLegacyCtx";
 
 export const AppSetupPageMap = {
   alby: import("../../alby/pages/setup/_getServerSideProps"),
@@ -9,7 +9,7 @@ export const AppSetupPageMap = {
   btcpayserver: import("../../btcpayserver/pages/setup/_getServerSideProps"),
 };
 
-export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
   const { slug } = ctx.params || {};
   if (typeof slug !== "string") return { notFound: true } as const;
 

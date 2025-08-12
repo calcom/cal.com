@@ -69,7 +69,6 @@ function getServerSidePropsContextArg({ embedRelatedParams = {} }: ServerSidePro
       ...embedRelatedParams,
     },
     params: {},
-    resolvedUrl: "/test-url",
   };
 }
 
