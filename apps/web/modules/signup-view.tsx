@@ -691,25 +691,23 @@ export default function Signup({
               />
             </div>
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
-              {FEATURES.map((feature) => (
-                <>
-                  <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
-                    <div className="text-emphasis items-center">
-                      <Icon name={feature.icon} className="mb-1 h-4 w-4" />
-                      <span className="text-sm font-medium">{t(feature.title)}</span>
-                    </div>
-                    <div className="text-subtle text-sm">
-                      <p>
-                        {t(
-                          feature.description,
-                          feature.i18nOptions && {
-                            ...feature.i18nOptions,
-                          }
-                        )}
-                      </p>
-                    </div>
+              {FEATURES.map((feature, index) => (
+                <div key={index} className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
+                  <div className="text-emphasis items-center">
+                    <Icon name={feature.icon} className="mb-1 h-4 w-4" />
+                    <span className="text-sm font-medium">{t(feature.title)}</span>
                   </div>
-                </>
+                  <div className="text-subtle text-sm">
+                    <p>
+                      {t(
+                        feature.description,
+                        feature.i18nOptions && {
+                          ...feature.i18nOptions,
+                        }
+                      )}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

@@ -15,7 +15,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
@@ -121,21 +121,22 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { rescheduleUid, bookingUid } = context.query;
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  if (!orgSlug) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
+  const org = isValidOrgDomain ? currentOrgDomain : null;
 
-    if (redirect) {
-      return redirect;
-    }
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: org,
+  });
+
+  if (redirect) {
+    return redirect;
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const userRepo = new UserRepository(prisma);
+  const usersInOrgContext = await userRepo.findUsersByUsername({
     usernameList: usernames,
     orgSlug: isValidOrgDomain ? currentOrgDomain : null,
   });
@@ -155,9 +156,8 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     {
       username: usernames.join("+"),
       eventSlug: slug,
-      orgSlug,
+      org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
     },
     session?.user?.id
   );
@@ -220,18 +220,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
   const [user] = await getUsersInOrgContext([username], isValidOrgDomain ? currentOrgDomain : null);
@@ -242,7 +240,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const org = isValidOrgDomain ? currentOrgDomain : null;
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
@@ -250,7 +248,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     {
       username,
       eventSlug: slug,
-      orgSlug,
+      org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
     },
     session?.user?.id
@@ -262,7 +260,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  const allowSEOIndexing = orgSlug
+  const allowSEOIndexing = org
     ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
       ? user?.allowSEOIndexing
       : false

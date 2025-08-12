@@ -43,8 +43,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  if (!orgSlug) {
+  const org = isValidOrgDomain ? currentOrgDomain : null;
+  if (!org) {
     return {
       notFound: true,
     } as const;
@@ -55,9 +55,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       username: teamSlug,
       eventSlug: meetingSlug,
       isTeamEvent: true,
-      orgSlug,
+      org,
       fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-      orgId: session?.user?.org?.id ?? session?.user?.profile?.organizationId ?? undefined,
     },
     session?.user?.id
   );

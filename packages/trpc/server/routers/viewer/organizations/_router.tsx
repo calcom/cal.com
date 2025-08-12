@@ -1,4 +1,4 @@
-import { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
 import authedProcedure, {
@@ -15,6 +15,7 @@ import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
@@ -156,6 +157,10 @@ export const viewerOrganizationsRouter = router({
   }),
   createPhoneCall: eventOwnerProcedure.input(createPhoneCallSchema).mutation(async (opts) => {
     const { default: handler } = await import("./createPhoneCall.handler");
+    return handler(opts);
+  }),
+  createSelfHosted: authedProcedure.input(ZCreateSelfHostedInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./createSelfHosted.handler");
     return handler(opts);
   }),
 });

@@ -1,8 +1,9 @@
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-const getInstallCountPerApp = async () => {
+const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => {
   const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
     await prisma.$queryRaw`
     SELECT
@@ -24,4 +25,12 @@ const getInstallCountPerApp = async () => {
   }, {} as Record<string, number>);
 };
 
+const getInstallCountPerApp = async (): Promise<Record<string, number>> => {
+  return unstable_cache(async () => computeInstallCountsFromDB(), ["app-install-counts"], {
+    revalidate: 300,
+    tags: ["app-install-counts"],
+  })();
+};
+
 export default getInstallCountPerApp;
+export { computeInstallCountsFromDB };
