@@ -1,12 +1,14 @@
 "use client";
 
+import { type ButtonProps, Button, buttonClasses } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
+import { Popover, PopoverTrigger, PopoverContent } from "@calid/features/ui/components/popover";
 import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { forwardRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { type ButtonProps, Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandInput,
@@ -16,8 +18,6 @@ import {
   CommandItem,
   CommandSeparator,
 } from "@calcom/ui/components/command";
-import { Icon } from "@calcom/ui/components/icon";
-import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
 
 export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;

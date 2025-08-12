@@ -16,7 +16,7 @@ import type { InputFieldProps } from "./types";
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 ltr:border-r-0 rtl:border-l-0 sm:text-sm sm:leading-4">
+    <span className="bg-muted border-default text-subtle inline-flex flex-shrink-0 items-center rounded-l-sm border px-3 sm:text-sm sm:leading-4 ltr:border-r-0 rtl:border-l-0">
       {props.children}
     </span>
   );
@@ -194,7 +194,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
       ref={ref}
       addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
-      containerClassName="mx-3 mt-2"
+      containerClassName=""
       {...props}
     />
   );

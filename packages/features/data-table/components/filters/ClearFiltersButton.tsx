@@ -1,6 +1,7 @@
+import { Button } from "@calid/features/ui/components/button";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { useDataTable } from "../../hooks/useDataTable";
 

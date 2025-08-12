@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
+import { Button } from "@calid/features/ui/components/button";
 import startCase from "lodash/startCase";
 
 import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 

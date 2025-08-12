@@ -29,8 +29,8 @@ export function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1 pb-1">
-      <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
+    <div className="group relative flex w-full flex-col items-center rounded-md border px-1 pb-1">
+      <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-2">
         <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
         <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
           {legend && legend.length > 0 && <Legend items={legend} size={legendSize} />}
@@ -41,7 +41,7 @@ export function ChartCard({
           )}
         </div>
       </div>
-      <div className="bg-default border-muted w-full grow gap-3 rounded-xl border">
+      <div className="w-full grow gap-3 p-2">
         {subtitle && (
           <h3 className="text-subtle border-muted border-b p-3 text-sm font-medium leading-none">
             {subtitle}

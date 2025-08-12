@@ -1,3 +1,10 @@
+import { Button } from "@calid/features/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -5,13 +12,6 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
 import { showToast, showProgressToast, hideProgressToast } from "@calcom/ui/components/toast";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
@@ -90,7 +90,7 @@ const Download = () => {
   };
 
   return (
-    <Dropdown modal={false}>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           EndIcon="file-down"
@@ -101,9 +101,9 @@ const Download = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownItem onClick={handleDownloadClick}>{t("as_csv")}</DropdownItem>
+        <DropdownMenuItem onClick={handleDownloadClick}>{t("as_csv")}</DropdownMenuItem>
       </DropdownMenuContent>
-    </Dropdown>
+    </DropdownMenu>
   );
 };
 

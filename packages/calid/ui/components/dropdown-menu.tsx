@@ -1,10 +1,9 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import * as React from "react";
 import type { ComponentProps } from "react";
-
-import { Icon } from "@calcom/ui/components/icon";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -75,8 +74,9 @@ const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     inset?: boolean;
+    StartIcon?: React.ComponentProps<typeof Icon>["name"];
   }
->(({ className, inset, disabled, ...props }, ref) => (
+>(({ className, inset, disabled, StartIcon, color = "default", children, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
     disabled={disabled}
@@ -86,10 +86,13 @@ const DropdownMenuItem = React.forwardRef<
       disabled
         ? "text-emphasis cursor-not-allowed opacity-50 hover:bg-transparent"
         : "hover:bg-subtle focus:bg-muted focus:text-accent-foreground cursor-pointer",
+      color === "destructive" && "text-destructive focus:bg-destructive/10 hover:bg-destructive/10",
       className
     )}
-    {...props}
-  />
+    {...props}>
+    {StartIcon && <Icon name={StartIcon} className="mr-2 h-4 w-4" />}
+    {children}
+  </DropdownMenuPrimitive.Item>
 ));
 
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;

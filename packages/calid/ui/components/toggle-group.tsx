@@ -1,51 +1,94 @@
-import { cn } from "@calid/features/lib/cn";
-import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";
-import { type VariantProps } from "class-variance-authority";
-import * as React from "react";
+import * as RadixToggleGroup from "@radix-ui/react-toggle-group";
+import type { ReactNode } from "react";
 
-import { toggleVariants } from "./toggle";
+import classNames from "@calcom/ui/classNames";
 
-const ToggleGroupContext = React.createContext<VariantProps<typeof toggleVariants>>({
-  size: "default",
-  variant: "default",
-});
+import { Tooltip } from "./tooltip";
 
-const ToggleGroup = React.forwardRef<
-  React.ElementRef<typeof ToggleGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & VariantProps<typeof toggleVariants>
->(({ className, variant, size, children, ...props }, ref) => (
-  <ToggleGroupPrimitive.Root
-    ref={ref}
-    className={cn("flex items-center justify-center gap-1", className)}
-    {...props}>
-    <ToggleGroupContext.Provider value={{ variant, size }}>{children}</ToggleGroupContext.Provider>
-  </ToggleGroupPrimitive.Root>
-));
+interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
+  options: {
+    value: string;
+    label: string | ReactNode;
+    disabled?: boolean;
+    tooltip?: string;
+    iconLeft?: ReactNode;
+    dataTestId?: string;
+  }[];
+  isFullWidth?: boolean;
+  orientation?: "horizontal" | "vertical";
+}
 
-ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName;
+const OptionalTooltipWrapper = ({
+  children,
+  tooltipText,
+}: {
+  children: ReactNode;
+  tooltipText?: ReactNode;
+}) => {
+  if (tooltipText) {
+    return (
+      <Tooltip delayDuration={150} sideOffset={12} side="bottom" content={tooltipText}>
+        {children}
+      </Tooltip>
+    );
+  }
+  return <>{children}</>;
+};
 
-const ToggleGroupItem = React.forwardRef<
-  React.ElementRef<typeof ToggleGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> & VariantProps<typeof toggleVariants>
->(({ className, children, variant, size, ...props }, ref) => {
-  const context = React.useContext(ToggleGroupContext);
-
+export const ToggleGroup = ({
+  options,
+  onValueChange,
+  isFullWidth,
+  orientation = "horizontal",
+  customClassNames,
+  ...props
+}: ToggleGroupProps & { customClassNames?: string }) => {
   return (
-    <ToggleGroupPrimitive.Item
-      ref={ref}
-      className={cn(
-        toggleVariants({
-          variant: context.variant || variant,
-          size: context.size || size,
-        }),
-        className
-      )}
-      {...props}>
-      {children}
-    </ToggleGroupPrimitive.Item>
+    <>
+      <RadixToggleGroup.Root
+        type="single"
+        {...props}
+        orientation={orientation}
+        onValueChange={onValueChange}
+        style={{
+          // @ts-expect-error --toggle-group-shadow is not a valid CSS property but can be a variable
+          "--toggle-group-shadow":
+            "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+        }}
+        className={classNames(
+          `bg-subtle border-subtle rounded-md border p-0.5`,
+          orientation === "horizontal" && "inline-flex gap-0.5 rtl:flex-row-reverse",
+          orientation === "vertical" && "flex w-fit flex-col gap-0.5",
+          props.className,
+          isFullWidth && "w-full",
+          customClassNames
+        )}>
+        {options.map((option) => (
+          <OptionalTooltipWrapper key={option.value} tooltipText={option.tooltip}>
+            <RadixToggleGroup.Item
+              disabled={option.disabled}
+              value={option.value}
+              data-testid={option.dataTestId ?? `toggle-group-item-${option.value}`}
+              className={classNames(
+                "aria-checked:bg-default aria-checked:border-subtle rounded-md border border-transparent p-1.5 text-sm leading-none transition aria-checked:shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]",
+                option.disabled
+                  ? "text-gray-400 hover:cursor-not-allowed"
+                  : "text-default [&[aria-checked='false']]:hover:text-emphasis",
+                isFullWidth && "w-full"
+              )}>
+              <div
+                className={classNames(
+                  "flex items-center gap-1",
+                  orientation === "horizontal" && "justify-center",
+                  orientation === "vertical" && "justify-start"
+                )}>
+                {option.iconLeft && <span className="flex h-4 w-4 items-center">{option.iconLeft}</span>}
+                {option.label}
+              </div>
+            </RadixToggleGroup.Item>
+          </OptionalTooltipWrapper>
+        ))}
+      </RadixToggleGroup.Root>
+    </>
   );
-});
-
-ToggleGroupItem.displayName = ToggleGroupPrimitive.Item.displayName;
-
-export { ToggleGroup, ToggleGroupItem };
+};

@@ -53,7 +53,7 @@ export function NotFound({ host }: { host: string }) {
   const { username, pageType, url } = getPageInfo(pathname, host);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
   const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
-  const isInsights = pathname?.startsWith("/insights");
+  const isInsights = pathname?.startsWith("/insights/bookings");
 
   const links = [
     {

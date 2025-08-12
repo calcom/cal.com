@@ -60,33 +60,12 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
     },
-    // child: [
-    //   {
-    //     name: "app_store",
-    //     href: "/apps",
-    //     isCurrent: ({ pathname: path, item }) => {
-    //       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-    //       return (
-    //         (path?.startsWith(item.href) ?? false) &&
-    //         !(path?.includes("routing-forms/") ?? false) &&
-    //         !(path?.includes("/installed") ?? false)
-    //       );
-    //     },
-    //   },
-    //   {
-    //     name: "installed_apps",
-    //     href: "/apps/installed/calendar",
-    //     isCurrent: ({ pathname: path }) =>
-    //       (path?.startsWith("/apps/installed/") ?? false) ||
-    //       (path?.startsWith("/v2/apps/installed/") ?? false),
-    //   },
-    // ],
   },
-  // {
-  //   name: MORE_SEPARATOR_NAME,
-  //   href: "/more",
-  //   icon: "ellipsis",
-  // },
+  {
+    name: MORE_SEPARATOR_NAME,
+    href: "/more",
+    icon: "ellipsis",
+  },
   {
     name: "routing",
     href: "/routing",
@@ -102,27 +81,10 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "insights",
-    href: "/insights",
+    href: "/insights/bookings",
     icon: "chart-no-axes-column-increasing",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
-    // child: [
-    //   {
-    //     name: "bookings",
-    //     href: "/insights",
-    //     isCurrent: ({ pathname: path }) => path === "/insights",
-    //   },
-    //   {
-    //     name: "routing",
-    //     href: "/insights/routing",
-    //     isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
-    //   },
-    //   {
-    //     name: "router_position",
-    //     href: "/insights/router-position",
-    //     isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
-    //   },
-    // ],
   },
 ];
 

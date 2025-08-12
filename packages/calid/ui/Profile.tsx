@@ -36,7 +36,7 @@ export const Profile = ({ small }: ProfileProps) => {
         window.open("https://docs.cal.id", "_blank");
         break;
       case "contact":
-        window.location.href = "mailto:support@cal.id";
+        window.location.href = "mailto:support@onehash.ai";
         break;
     }
   };
@@ -52,7 +52,7 @@ export const Profile = ({ small }: ProfileProps) => {
         }
       }}>
       <DropdownMenuTrigger asChild>
-        <button className="hover:bg-subtle flex hidden w-auto items-center space-x-3 rounded-lg p-2 transition-colors md:flex">
+        <button className="hover:bg-muted flex hidden w-auto items-center space-x-3 rounded-lg p-2 transition-colors md:flex">
           <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full">
             <span className="text-primary-foreground text-xs font-medium">
               <Avatar
