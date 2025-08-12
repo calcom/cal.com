@@ -15,7 +15,7 @@ interface DatePickerWithRangeProps {
   onChange?: (range: DateRange | undefined) => void;
 }
 
-export function DatePickerWithRange({ className, value, onChange }: DatePickerWithRangeProps) {
+function DateRangePicker({ className, value, onChange }: DatePickerWithRangeProps) {
   const [date, setDate] = React.useState<DateRange | undefined>(
     value || {
       from: new Date(2022, 0, 20),
@@ -64,3 +64,5 @@ export function DatePickerWithRange({ className, value, onChange }: DatePickerWi
     </div>
   );
 }
+
+export { DateRangePicker };
