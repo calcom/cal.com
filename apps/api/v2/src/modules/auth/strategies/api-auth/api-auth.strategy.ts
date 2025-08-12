@@ -7,7 +7,6 @@ import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { TokensService } from "@/modules/tokens/tokens.service";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -46,7 +45,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     private readonly userRepository: UsersRepository,
     private readonly apiKeyRepository: ApiKeysRepository,
     private readonly oauthRepository: OAuthClientRepository,
-    private readonly profilesRepository: ProfilesRepository,
     private readonly usersService: UsersService,
     private readonly membershipsRepository: MembershipsRepository
   ) {
