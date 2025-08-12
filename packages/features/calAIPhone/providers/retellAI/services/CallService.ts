@@ -111,6 +111,8 @@ export class CallService {
       });
     }
 
+    // TODO:update tools before call
+
     const call = await this.createPhoneCall({
       from_number: agentPhoneNumber,
       to_number: toNumber,

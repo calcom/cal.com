@@ -87,7 +87,8 @@ async function handleCallAnalyzed(callData: any) {
     return;
   }
 
-  const baseCost = call_cost.combined_cost; // in cents
+  const baseCost = call_cost.combined_cost;
+  // in cents
   const creditsToDeduct = Math.ceil(baseCost * 1.8);
 
   const creditService = new CreditService();
@@ -130,7 +131,6 @@ async function handleCallAnalyzed(callData: any) {
  * - Log all transactions for audit purposes
  */
 async function handler(request: NextRequest) {
-  // Get the raw body for signature verification
   const rawBody = await request.text();
   const body = JSON.parse(rawBody);
 
@@ -161,10 +161,13 @@ async function handler(request: NextRequest) {
   }
 
   if (body.event !== "call_analyzed") {
-    return NextResponse.json({
-      success: true,
-      message: `No handling for ${body.event} for call ${body.call?.call_id ?? "unknown"}`,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: `No handling for ${body.event} for call ${body.call?.call_id ?? "unknown"}`,
+      },
+      { status: 200 }
+    );
   }
 
   try {
@@ -174,10 +177,13 @@ async function handler(request: NextRequest) {
 
     const result = await handleCallAnalyzed(callData);
 
-    return NextResponse.json({
-      success: true,
-      message: result?.message ?? `Processed ${payload.event} for call ${callData.call_id}`,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: result?.message ?? `Processed ${payload.event} for call ${callData.call_id}`,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     log.error("Error processing Retell AI webhook:", safeStringify(error));
     return NextResponse.json(
@@ -185,7 +191,8 @@ async function handler(request: NextRequest) {
         error: "Internal server error",
         message: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      // we need to return 200 to retell ai to avoid retries
+      { status: 200 }
     );
   }
 }
