@@ -728,10 +728,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  // Add permissions to the workflow
-  const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
+  if (workflow) {
+    // Add permissions to the workflow
+    const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
+    return {
+      workflow: workflowWithPermissions,
+    };
+  }
 
   return {
-    workflow: workflowWithPermissions,
+    workflow,
   };
 };
