@@ -29,6 +29,7 @@ type TaskPayloads = {
     bookingUid: string;
     userId: number | null;
     teamId: number | null;
+    providerAgentId: string;
   };
 };
 export type TaskTypes = keyof TaskPayloads;

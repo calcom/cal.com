@@ -263,10 +263,10 @@ export class RetellAIPhoneServiceProvider
     return await this.service.createTestCall(params);
   }
 
-  async updateToolsFromEventTypeId(
+  async updateToolsFromAgentId(
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ): Promise<void> {
-    return await this.service.updateToolsFromEventTypeId(agentId, data);
+    return await this.service.updateToolsFromAgentId(agentId, data);
   }
 }

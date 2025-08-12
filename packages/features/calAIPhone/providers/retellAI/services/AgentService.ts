@@ -68,7 +68,7 @@ export class AgentService {
     }
   }
 
-  async updateToolsFromEventTypeId(
+  async updateToolsFromAgentId(
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
@@ -93,9 +93,7 @@ export class AgentService {
         throw new Error("LLM details not found.");
       }
 
-      const generalTools = llmDetails.general_tools;
-
-      const doesEventTypeIdExist = generalTools?.find(
+      const doesEventTypeIdExist = llmDetails.general_tools?.find(
         (tool) =>
           "event_type_id" in tool &&
           tool.event_type_id === data.eventTypeId &&

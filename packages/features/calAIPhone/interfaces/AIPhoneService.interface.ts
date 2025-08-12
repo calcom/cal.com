@@ -325,7 +325,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   /**
    * Update tools from event type ID
    */
-  updateToolsFromEventTypeId(
+  updateToolsFromAgentId(
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ): Promise<void>;

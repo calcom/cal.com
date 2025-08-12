@@ -106,6 +106,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
       agent: {
         select: {
           id: true,
+          providerAgentId: true,
           outboundPhoneNumbers: {
             select: {
               phoneNumber: true,
@@ -171,6 +172,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         bookingUid: uid,
         userId,
         teamId,
+        providerAgentId: workflowStep.agent.providerAgentId,
       });
 
       logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
@@ -198,6 +200,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         bookingUid: uid,
         userId,
         teamId,
+        providerAgentId: workflowStep.agent.providerAgentId,
       });
 
       logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
@@ -216,6 +219,7 @@ interface ScheduleAIPhoneCallTaskArgs {
   bookingUid: string;
   userId: number | null;
   teamId: number | null;
+  providerAgentId: string;
 }
 
 const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
@@ -228,6 +232,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     bookingUid,
     userId,
     teamId,
+    providerAgentId,
   } = args;
 
   if (userId) {
@@ -248,6 +253,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
         bookingUid,
         userId,
         teamId,
+        providerAgentId,
       },
       {
         scheduledAt: scheduledDate,

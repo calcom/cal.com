@@ -175,11 +175,11 @@ export class RetellAIService {
     });
   }
 
-  async updateToolsFromEventTypeId(
+  async updateToolsFromAgentId(
     agentId: string,
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ): Promise<void> {
-    return this.agentService.updateToolsFromEventTypeId(agentId, data);
+    return this.agentService.updateToolsFromAgentId(agentId, data);
   }
 
   async deleteAgent(params: { id: string; userId: number; teamId?: number }) {

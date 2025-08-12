@@ -11,6 +11,7 @@ interface ExecuteAIPhoneCallPayload {
   bookingUid: string;
   userId: number | null;
   teamId: number | null;
+  providerAgentId: string;
 }
 
 export async function executeAIPhoneCall(payload: string) {
@@ -140,7 +141,7 @@ export async function executeAIPhoneCall(payload: string) {
     const aiService = createDefaultAIPhoneServiceProvider();
 
     // Update general tools before making the call so that the agent can use the check_availability_cal and book_appointment_cal tools
-    await aiService.updateToolsFromEventTypeId(data.agentId, {
+    await aiService.updateToolsFromAgentId(data.providerAgentId, {
       eventTypeId: booking.eventTypeId,
       timeZone: booking.attendees[0]?.timeZone ?? "Europe/London",
       userId: data.userId,
