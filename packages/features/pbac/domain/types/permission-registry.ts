@@ -356,13 +356,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_workflows",
     },
-    [CrudAction.Manage]: {
-      description: "Manage workflows",
-      category: "workflow",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_workflows",
-      scope: [Scope.Organization],
-    },
   },
   [Resource.Attributes]: {
     _resource: {
@@ -420,13 +413,6 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       category: "routing",
       i18nKey: "pbac_action_delete",
       descriptionI18nKey: "pbac_desc_delete_routing_forms",
-    },
-    [CrudAction.Manage]: {
-      description: "Manage routing forms",
-      category: "routing",
-      i18nKey: "pbac_action_manage",
-      descriptionI18nKey: "pbac_desc_manage_routing_forms",
-      scope: [Scope.Organization],
     },
   },
 };
