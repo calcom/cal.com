@@ -29,7 +29,7 @@ export const connectedCalendarsHandler = async ({ ctx, input }: ConnectedCalenda
 
   const subscriptionRepo = new CalendarSubscriptionRepository(prisma);
   const eventRepo = new CalendarEventRepository(prisma);
-  const selectedCalendarRepo = new SelectedCalendarRepository();
+  const selectedCalendarRepo = new SelectedCalendarRepository(prisma);
   const sqlCacheService = new CalendarCacheSqlService(subscriptionRepo, eventRepo, selectedCalendarRepo);
 
   const enrichedWithSqlCache = await sqlCacheService.enrichCalendarsWithSqlCacheData(connectedCalendars);
