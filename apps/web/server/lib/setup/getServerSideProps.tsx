@@ -12,7 +12,7 @@ export async function getServerSideProps(context: NextJsLegacyContext) {
 
   const userCount = await prisma.user.count();
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {

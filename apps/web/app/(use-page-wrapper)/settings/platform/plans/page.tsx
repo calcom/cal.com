@@ -5,8 +5,6 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import PlatformPlansView from "~/settings/platform/plans/platform-plans-view";
 
 export const generateMetadata = async () => {
@@ -20,7 +18,11 @@ export const generateMetadata = async () => {
 };
 
 const ServerPageWrapper = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: (await headers()) as any,
+    cookies: (await cookies()) as any,
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const callbackUrl = `${WEBAPP_URL}/settings/platform/plans`;
 
   if (!session?.user) {

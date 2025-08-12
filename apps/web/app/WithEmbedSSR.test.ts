@@ -63,8 +63,11 @@ interface ServerSidePropsContext {
 function getServerSidePropsContextArg({ embedRelatedParams = {} }: ServerSidePropsContext) {
   const { req, res } = createMockNextJsRequest();
   return {
-    req,
-    res,
+    req: {
+      headers: Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k, String(v)])),
+      cookies: req.cookies || {},
+    },
+    res: {},
     query: {
       ...embedRelatedParams,
     },

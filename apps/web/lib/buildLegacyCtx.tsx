@@ -1,15 +1,22 @@
-import type { NextApiRequest } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 export type Params = Record<string, string | string[] | undefined>;
 
+export interface LegacyRequest {
+  headers: Record<string, string>;
+  cookies: Record<string, string>;
+  url?: string;
+  method?: string;
+  [key: string]: unknown;
+}
+
 export interface NextJsLegacyContext {
   query: Record<string, string | string[] | undefined>;
   params: Params;
-  req: NextApiRequest;
-  res: any;
+  req: LegacyRequest;
+  res: Record<string, never>;
 }
 
 const createProxifiedObject = (object: Record<string, string>) =>
@@ -19,13 +26,13 @@ const createProxifiedObject = (object: Record<string, string>) =>
     },
   });
 
-const buildLegacyHeaders = (headers: ReadonlyHeaders) => {
+export const buildLegacyHeaders = (headers: ReadonlyHeaders) => {
   const headersObject = Object.fromEntries(headers.entries());
 
   return createProxifiedObject(headersObject);
 };
 
-const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
+export const buildLegacyCookies = (cookies: ReadonlyRequestCookies) => {
   const cookiesObject = cookies.getAll().reduce<Record<string, string>>((acc, { name, value }) => {
     acc[name] = value;
     return acc;
@@ -56,8 +63,8 @@ export function decodeParams(params: Params): Params {
 export const buildLegacyRequest = (
   headers: ReadonlyHeaders,
   cookies: ReadonlyRequestCookies
-): NextApiRequest => {
-  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
+): LegacyRequest => {
+  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) };
 };
 
 export const buildLegacyCtx = (
@@ -72,7 +79,7 @@ export const buildLegacyCtx = (
     // because Next.js App Router does not auto-decode query params while Pages Router does
     // e.g., params: { name: "John%20Doe" } => params: { name: "John Doe" }
     params: decodeParams(params),
-    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest,
+    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
     res: new Proxy(Object.create(null), {
       // const { req, res } = ctx - valid
       // res.anything - throw

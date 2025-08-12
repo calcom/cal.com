@@ -1,7 +1,7 @@
 import { createRouterCaller } from "app/_trpc/context";
 import { z } from "zod";
 
-import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -46,7 +46,11 @@ export async function getServerSideProps(context: NextJsLegacyContext) {
     "@lib/booking"
   );
 
-  const session = await getServerSession({ req: context.req });
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;
@@ -202,7 +206,14 @@ export async function getServerSideProps(context: NextJsLegacyContext) {
     }
   }
 
-  const { currentOrgDomain } = orgDomainConfig(context.req);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug,
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
 
   async function getInternalNotePresets(teamId: number | null) {
     if (!teamId || !isLoggedInUserHost) return [];

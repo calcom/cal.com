@@ -7,7 +7,7 @@ import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
 
 const contactFormSchema = z.object({
@@ -17,18 +17,24 @@ const contactFormSchema = z.object({
 
 const log = logger.getSubLogger({ prefix: [`/api/support`] });
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   if (!IS_PLAIN_CHAT_ENABLED) {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
   }
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: (await cookies())
+      .getAll()
+      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
+  } as any;
+  const session = await getServerSession({ req });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session found" }, { status: 401 });
   }
 
   try {
-    const body = await req.json();
+    const body = await request.json();
     const { message, attachmentIds } = contactFormSchema.parse(body);
 
     const plainApiKey = process.env.PLAIN_API_KEY;

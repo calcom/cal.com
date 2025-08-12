@@ -14,7 +14,7 @@ import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 export async function getServerSideProps(context: NextJsLegacyContext) {
   const { req, query } = context;
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   const verifyJwt = (jwt: string) => {
     const secret = new TextEncoder().encode(process.env.CALENDSO_ENCRYPTION_KEY);

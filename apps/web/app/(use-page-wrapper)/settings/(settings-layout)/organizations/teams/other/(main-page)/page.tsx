@@ -7,7 +7,7 @@ import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/compo
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -20,7 +20,11 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
+  const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
     redirect("/auth/login");

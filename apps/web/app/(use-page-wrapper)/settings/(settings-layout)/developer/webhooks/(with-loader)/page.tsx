@@ -9,7 +9,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_router";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -21,7 +21,11 @@ export const generateMetadata = async () =>
   );
 
 const WebhooksViewServerWrapper = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
+  const session = await getServerSession({ req });
   if (!session?.user?.id) {
     redirect("/auth/login");
   }

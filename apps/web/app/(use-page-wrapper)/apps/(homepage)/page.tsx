@@ -7,7 +7,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import AppsPage from "~/apps/apps-view";
 
@@ -22,7 +22,10 @@ export const generateMetadata = async () => {
 };
 
 const ServerPage = async () => {
-  const req = buildLegacyRequest(await headers(), await cookies());
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
   const session = await getServerSession({ req });
   let appStore, userAdminTeamsIds: number[];
   if (session?.user?.id) {

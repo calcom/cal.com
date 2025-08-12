@@ -8,7 +8,7 @@ import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
 
 const log = logger.getSubLogger({ prefix: ["/api/support/upload"] });
@@ -16,12 +16,12 @@ const log = logger.getSubLogger({ prefix: ["/api/support/upload"] });
 /**
  * Returns a signed url from plain to upload the attachment
  */
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   if (!IS_PLAIN_CHAT_ENABLED) {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
   }
 
-  const searchParams = req.nextUrl.searchParams;
+  const searchParams = request.nextUrl.searchParams;
   const name = searchParams.get("name");
   const size = searchParams.get("size");
 
@@ -29,7 +29,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing required parameters: name and size" }, { status: 400 });
   }
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
+  const session = await getServerSession({ req });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session found" }, { status: 401 });
   }

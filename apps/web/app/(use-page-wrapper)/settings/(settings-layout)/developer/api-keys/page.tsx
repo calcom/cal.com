@@ -7,7 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { APP_NAME } from "@calcom/lib/constants";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import ApiKeysView from "~/settings/developer/api-keys-view";
 
@@ -29,7 +29,11 @@ const getCachedApiKeys = unstable_cache(
 );
 
 const Page = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   if (!session) {
     redirect("/auth/login?callbackUrl=/settings/developer/api-keys");

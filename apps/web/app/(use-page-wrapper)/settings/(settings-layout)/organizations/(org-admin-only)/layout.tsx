@@ -4,10 +4,16 @@ import { redirect } from "next/navigation";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
 
 const OrgAdminOnlyLayout = async ({ children }: { children: React.ReactNode }) => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: (await cookies())
+      .getAll()
+      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
+  } as any;
+  const session = await getServerSession({ req });
   const userProfile = session?.user?.profile;
   const userId = session?.user?.id;
   const orgRole =

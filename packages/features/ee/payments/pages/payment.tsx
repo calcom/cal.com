@@ -18,7 +18,11 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { uid } = querySchema.parse(context.query);
-  const session = await getServerSession({ req: context.req });
+  const req = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any; // This is a temporary workaround for getServerSession compatibility
+  const session = await getServerSession({ req });
 
   const rawPayment = await prisma.payment.findUnique({
     where: {

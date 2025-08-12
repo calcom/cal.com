@@ -10,7 +10,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -22,7 +22,13 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: (await cookies())
+      .getAll()
+      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const t = await getTranslate();
 
   const orgRole = session?.user.profile?.organization.members?.find(

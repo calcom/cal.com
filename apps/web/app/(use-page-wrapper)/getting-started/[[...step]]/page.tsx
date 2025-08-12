@@ -8,7 +8,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
 
 import Page from "~/getting-started/[[...step]]/onboarding-view";
 
@@ -25,7 +25,13 @@ export const generateMetadata = async ({ params }: ServerPageProps) => {
 };
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: (await cookies())
+      .getAll()
+      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
+  } as any;
+  const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
     return redirect("/auth/login");

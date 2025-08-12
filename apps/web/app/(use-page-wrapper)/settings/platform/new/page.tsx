@@ -6,8 +6,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import LegacyPage, { LayoutWrapper } from "~/settings/platform/new/create-new-view";
 
 export const generateMetadata = async () =>
@@ -20,7 +18,11 @@ export const generateMetadata = async () =>
   );
 
 const ServerPage = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: Object.fromEntries((await headers()).entries()),
+    cookies: Object.fromEntries((await cookies()).getAll().map((c) => [c.name, c.value])),
+  } as any;
+  const session = await getServerSession({ req });
   const callbackUrl = `${WEBAPP_URL}/settings/platform/new`;
 
   if (!session?.user) {

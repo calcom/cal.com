@@ -13,8 +13,6 @@ import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { CreateRoleCTA } from "./_components/CreateRoleCta";
 import { RolesList } from "./_components/RolesList";
 import { roleSearchParamsCache } from "./_components/searchParams";
@@ -58,7 +56,11 @@ export const generateMetadata = async () =>
 
 const Page = async ({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) => {
   const t = await getTranslate();
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: (await headers()) as any,
+    cookies: (await cookies()) as any,
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   if (!session?.user?.org?.id || !session.user.id) {
     return notFound();

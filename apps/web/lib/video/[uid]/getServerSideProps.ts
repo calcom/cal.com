@@ -196,7 +196,7 @@ export async function getServerSideProps(context: NextJsLegacyContext) {
     endTime: booking.endTime.toString(),
   });
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
 
   const oldVideoReference = getCalVideoReference(bookingObj.references);
 

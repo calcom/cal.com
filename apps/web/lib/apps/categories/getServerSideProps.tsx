@@ -6,7 +6,9 @@ import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { req } = context;
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({
+    req: { headers: context.req.headers, cookies: context.req.cookies } as any,
+  });
 
   let appStore;
   if (session?.user?.id) {

@@ -2,7 +2,7 @@ import type { EmbedProps } from "app/WithEmbedSSR";
 import { encode } from "querystring";
 import type { z } from "zod";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
@@ -74,7 +74,14 @@ type UserPageProps = {
 export const getServerSideProps = async (
   context: NextJsLegacyContext
 ): Promise<{ props: UserPageProps } | { redirect: any } | { notFound: true }> => {
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
+  const hostname = context.req.headers.host || "";
+  const forcedSlugHeader = context.req.headers["x-cal-force-slug"];
+  const forcedSlug = Array.isArray(forcedSlugHeader) ? forcedSlugHeader[0] : forcedSlugHeader;
+  const { currentOrgDomain, isValidOrgDomain } = getOrgDomainConfig({
+    hostname,
+    forcedSlug: forcedSlug || (context.params?.orgSlug as string),
+    isPlatform: !!context.req.headers["x-cal-client-id"],
+  });
 
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
@@ -150,7 +157,7 @@ export const getServerSideProps = async (
 
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
-    context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
+    // Note: context.res.setHeader is not available in NextJsLegacyContext
   }
 
   const eventTypes = await getEventTypesPublic(user.id);

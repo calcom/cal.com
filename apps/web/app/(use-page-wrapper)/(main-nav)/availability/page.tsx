@@ -11,7 +11,7 @@ import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/compone
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
 
@@ -44,7 +44,11 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const t = await getTranslate();
   const _headers = await headers();
   const _cookies = await cookies();
-  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
+  const req = {
+    headers: buildLegacyHeaders(_headers),
+    cookies: buildLegacyCookies(_cookies),
+  } as any;
+  const session = await getServerSession({ req });
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }

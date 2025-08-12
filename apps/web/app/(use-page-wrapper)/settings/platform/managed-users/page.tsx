@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import ManagedUsersView from "~/settings/platform/managed-users/managed-users-view";
 
@@ -19,7 +19,11 @@ export const generateMetadata = async () =>
   );
 
 const ServerPageWrapper = async () => {
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: buildLegacyHeaders(await headers()),
+    cookies: buildLegacyCookies(await cookies()),
+  } as any;
+  const session = await getServerSession({ req });
   const callbackUrl = `${WEBAPP_URL}/settings/platform/managed-users`;
 
   if (!session?.user) {

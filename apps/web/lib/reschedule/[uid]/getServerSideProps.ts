@@ -25,7 +25,11 @@ const querySchema = z.object({
 });
 
 export async function getServerSideProps(context: NextJsLegacyContext) {
-  const session = await getServerSession({ req: context.req });
+  const reqForSession = {
+    headers: context.req.headers,
+    cookies: context.req.cookies,
+  } as any;
+  const session = await getServerSession({ req: reqForSession });
 
   const {
     uid: bookingUid,

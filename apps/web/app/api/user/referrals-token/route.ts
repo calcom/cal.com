@@ -6,8 +6,6 @@ import { dub } from "@calcom/feature-auth/lib/dub";
 import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 export const dynamic = "force-dynamic";
 
 const handler = async () => {
@@ -16,7 +14,11 @@ const handler = async () => {
     return NextResponse.json({ error: "Referrals feature is disabled" }, { status: 404 });
   }
 
-  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const req = {
+    headers: (await headers()) as any,
+    cookies: (await cookies()) as any,
+  } as any;
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

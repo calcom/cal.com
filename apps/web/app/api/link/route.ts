@@ -13,7 +13,7 @@ import { bookingsRouter } from "@calcom/trpc/server/routers/viewer/bookings/_rou
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
 
 import { TRPCError } from "@trpc/server";
 
@@ -81,7 +81,10 @@ async function handler(request: NextRequest) {
   try {
     /** @see https://trpc.io/docs/server-side-calls */
     // Create a legacy request object for compatibility
-    const legacyReq = buildLegacyRequest(await headers(), await cookies());
+    const legacyReq = {
+      headers: buildLegacyHeaders(await headers()),
+      cookies: buildLegacyCookies(await cookies()),
+    } as any;
     const res = {} as NextApiResponse;
 
     const ctx = await createContext({ req: legacyReq, res }, sessionGetter);

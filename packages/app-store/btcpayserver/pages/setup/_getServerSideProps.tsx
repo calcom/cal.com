@@ -11,7 +11,11 @@ export const getServerSideProps = async (ctx: NextJsLegacyContext) => {
     if (typeof ctx.params?.slug !== "string") return notFound;
 
     const { req } = ctx;
-    const session = await getServerSession({ req });
+    const reqForSession = {
+      headers: req.headers,
+      cookies: req.cookies,
+    } as any;
+    const session = await getServerSession({ req: reqForSession });
     if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
 
     const credential = await CredentialRepository.findFirstByUserIdAndType({

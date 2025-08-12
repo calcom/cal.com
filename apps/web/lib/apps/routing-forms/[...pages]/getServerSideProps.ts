@@ -4,7 +4,6 @@ import { z } from "zod";
 import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
-import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 
 import type { NextJsLegacyContext } from "@lib/buildLegacyCtx";
 
@@ -32,10 +31,10 @@ export async function getServerSideProps(
     return { notFound: true };
   }
 
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const user = session?.user;
 
-  const result = await getServerSideProps(context as unknown as AppGetServerSidePropsContext, prisma, user);
+  const result = await getServerSideProps(context, prisma, user);
 
   if (result.notFound) {
     return { notFound: true };
