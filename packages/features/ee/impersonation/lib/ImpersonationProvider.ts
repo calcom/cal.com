@@ -363,11 +363,6 @@ const ImpersonationProvider = CredentialsProvider({
           where: {
             AND: [
               {
-                role: {
-                  in: ["ADMIN", "OWNER"],
-                },
-              },
-              {
                 team: {
                   id: teamId,
                 },
