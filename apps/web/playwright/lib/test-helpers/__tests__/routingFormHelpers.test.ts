@@ -2,6 +2,8 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { Attribute } from "@calcom/prisma/client";
+
 import { createRoutingForm } from "../routingFormHelpers";
 
 // Mock console.log to avoid noise in tests
@@ -245,7 +247,7 @@ describe("createRoutingForm", () => {
       });
 
       // Check that attributes were created for the organization
-      const attributes = await prismock.attribute.findMany({
+      const attributes: Attribute[] = await prismock.attribute.findMany({
         where: { teamId: 100 }, // Organization ID
         include: { options: true },
       });
