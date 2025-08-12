@@ -150,7 +150,9 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
   @ApiOperation({ summary: "Get team event types" })
   async getTeamEventTypes(

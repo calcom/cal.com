@@ -39,7 +39,6 @@ import { handleCreatePhoneCall } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   GetTeamEventTypesQuery_2024_06_14,
-  SkipTakePagination,
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
@@ -137,6 +136,9 @@ export class TeamsEventTypesController {
 
   @Get("/")
   @ApiOperation({ summary: "Get a team event type" })
+  @Roles("TEAM_ADMIN")
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @ApiHeader(API_KEY_HEADER)
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
