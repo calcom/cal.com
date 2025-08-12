@@ -5,7 +5,6 @@ import { Retell } from "retell-sdk";
 import { z } from "zod";
 
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { RETELL_API_KEY } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -122,7 +121,7 @@ async function handleCallAnalyzed(callData: any) {
  * Setup Instructions:
  * 1. Add this webhook URL to your Retell AI dashboard: https://yourdomain.com/api/webhooks/retell-ai
  * 2. Ensure your domain is accessible from the internet (for local development, use ngrok or similar)
- * 3. Set the RETELL_API_KEY environment variable with your Retell API key (must have webhook badge)
+ * 3. Set the RETELL_AI_KEY environment variable with your Retell API key (must have webhook badge)
  *
  * This webhook will:
  * - Verify webhook signature for security
@@ -137,7 +136,7 @@ async function handler(request: NextRequest) {
 
   // Verify webhook signature
   const signature = request.headers.get("x-retell-signature");
-  const apiKey = RETELL_API_KEY;
+  const apiKey = process.env.RETELL_AI_KEY;
 
   if (!signature || !apiKey) {
     log.error("Missing signature or API key for webhook verification");
