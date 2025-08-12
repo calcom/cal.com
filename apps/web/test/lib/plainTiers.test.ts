@@ -35,6 +35,8 @@ vi.mock("@lib/buildLegacyCtx", () => ({
     headers: new Headers(),
     cookies: {},
   }),
+  buildLegacyHeaders: vi.fn(() => ({})),
+  buildLegacyCookies: vi.fn(() => ({})),
 }));
 
 vi.mock("app/api/defaultResponderForAppDir", () => ({
