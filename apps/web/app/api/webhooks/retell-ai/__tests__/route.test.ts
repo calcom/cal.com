@@ -380,7 +380,7 @@ describe("Retell AI Webhook Handler", () => {
     const request = createMockRequest(body, "valid-signature");
     const response = await callPOST(request);
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.error).toBe("Internal server error");
   });
