@@ -100,24 +100,23 @@ export class CalendarEventRepository implements ICalendarEventRepository {
         await client.calendarEventParticipant.delete({ where: { id: row.id } });
       }
     }
-    if (attendees?.createMany?.data?.length) {
+    const attendeesData = attendees?.createMany?.data;
+    const attendeesArray: Prisma.CalendarEventParticipantCreateManyAttendeeOfInput[] = attendeesData
+      ? Array.isArray(attendeesData)
+        ? attendeesData
+        : [attendeesData]
+      : [];
+
+    if (attendeesArray.length > 0) {
       await client.calendarEventParticipant.createMany({
-        data: attendees.createMany.data.map(
-          (a: {
-            email?: string | null;
-            displayName?: string | null;
-            responseStatus?: string | null;
-            isOrganizer?: boolean;
-            isSelf?: boolean;
-          }) => ({
-            attendeeOfId: eventId,
-            email: a.email ?? null,
-            displayName: a.displayName ?? null,
-            responseStatus: a.responseStatus ?? null,
-            isOrganizer: a.isOrganizer ?? false,
-            isSelf: a.isSelf ?? false,
-          })
-        ),
+        data: attendeesArray.map((a) => ({
+          attendeeOfId: eventId,
+          email: a.email ?? null,
+          displayName: a.displayName ?? null,
+          responseStatus: a.responseStatus ?? null,
+          isOrganizer: a.isOrganizer ?? false,
+          isSelf: a.isSelf ?? false,
+        })),
         skipDuplicates: true,
       });
     }
