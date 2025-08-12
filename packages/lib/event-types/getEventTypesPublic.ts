@@ -34,14 +34,14 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
   const eventTypes = await prisma.$queryRaw<RawEventType[]>`
     SELECT data."id", data."title", data."description", data."length", data."schedulingType"::text,
       data."recurringEvent", data."slug", data."hidden", data."price", data."currency",
-      data."lockTimeZoneToggleOnBookingPage", data."requiresConfirmation", data."requiresBookerEmailVerification",
-      data."metadata", data."canSendCalVideoTranscriptionEmails", data."seatsPerTimeSlot"
+      data."lockTimeZoneToggleOnBookingPage", data."lockedTimeZone", data."requiresConfirmation", data."requiresBookerEmailVerification",
+      data."metadata", data."canSendCalVideoTranscriptionEmails"
       FROM (
         SELECT "EventType"."id", "EventType"."title", "EventType"."description",
           "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
           "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
           "EventType"."price", "EventType"."currency",
-          "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
+          "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
           "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
           "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot"
         FROM "EventType"
@@ -51,7 +51,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
         "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
         "EventType"."price", "EventType"."currency",
-        "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
+        "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
         "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
         "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot"
         FROM "EventType"

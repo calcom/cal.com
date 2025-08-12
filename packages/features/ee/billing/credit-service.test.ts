@@ -24,6 +24,17 @@ vi.mock("@calcom/prisma", () => {
 
 vi.mock("stripe");
 
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: async (locale: string, namespace: string) => {
+      const t = (key: string) => key;
+      t.locale = locale;
+      t.namespace = namespace;
+      return t;
+    },
+  };
+});
+
 vi.mock("@calcom/lib/constants", async () => {
   const actual = (await vi.importActual("@calcom/lib/constants")) as typeof import("@calcom/lib/constants");
   return {
@@ -128,7 +139,7 @@ describe("CreditService", () => {
 
     describe("getTeamWithAvailableCredits", () => {
       it("should return team with available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -154,7 +165,7 @@ describe("CreditService", () => {
       });
 
       it("should return first team if no team has available credits", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
           {
             id: 1,
             teamId: 1,
@@ -342,7 +353,9 @@ describe("CreditService", () => {
       });
 
       it("should return team with available credits when userId is provided", async () => {
-        vi.mocked(MembershipRepository.findAllAcceptedMemberships).mockResolvedValue([{ teamId: 1 }]);
+        vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+          { teamId: 1 },
+        ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
@@ -373,10 +386,13 @@ describe("CreditService", () => {
 
     describe("getMonthlyCredits", () => {
       it("should return 0 if subscription is not active", async () => {
-        vi.mocked(TeamRepository.findTeamWithMembers).mockResolvedValue({
-          id: 1,
-          members: [{ accepted: true }],
-        } as any);
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            members: [{ accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("trialing"),
@@ -390,10 +406,13 @@ describe("CreditService", () => {
       });
 
       it("should calculate credits based on active members and price", async () => {
-        vi.mocked(TeamRepository.findTeamWithMembers).mockResolvedValue({
-          id: 1,
-          members: [{ accepted: true }, { accepted: true }, { accepted: true }],
-        } as any);
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            members: [{ accepted: true }, { accepted: true }, { accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
@@ -620,6 +639,34 @@ describe("CreditService", () => {
           creditType: CreditType.ADDITIONAL,
         });
       });
+    });
+
+    it("should skip unpublished platform organizations and return regular team with credits", async () => {
+      vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
+        { teamId: 2 },
+      ]);
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "2",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 200,
+        additionalCredits: 100,
+      });
+      const result = await creditService.getTeamWithAvailableCredits(1);
+      expect(result).toEqual({
+        teamId: 2,
+        availableCredits: 300,
+        creditType: CreditType.MONTHLY,
+      });
+
+      expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
+      expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
     });
   });
 });

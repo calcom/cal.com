@@ -2,6 +2,7 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import type { DefaultEvent } from "@calcom/lib/defaultEvents";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -23,6 +24,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       disableGuests: true,
       restrictionScheduleId: true,
       useBookerTimezone: true,
+      disableRescheduling: true,
+      disableCancelling: true,
       users: {
         select: {
           credentials: {
@@ -61,6 +64,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       periodDays: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
+      lockedTimeZone: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
@@ -99,6 +103,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
               bookingLimits: true,
               includeManagedEventsInLimits: true,
             },
+            ...userSelect,
           },
         },
       },
@@ -130,6 +135,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           priority: true,
           weight: true,
           createdAt: true,
+          groupId: true,
           user: {
             select: {
               credentials: {
@@ -172,10 +178,21 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       useEventLevelSelectedCalendars: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
+  if (!eventType) {
+    throw new Error(ErrorCode.EventTypeNotFound);
+  }
+
   const { profile, hosts, users, ...restEventType } = eventType;
+
   const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
   const hostsWithSelectedCalendars = hosts.map((host) => ({
@@ -196,6 +213,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
+    hostGroups: eventType.hostGroups || [],
   };
 };
 

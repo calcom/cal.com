@@ -8,9 +8,7 @@ import { Logger } from "@nestjs/common";
 import { JWT } from "googleapis-common";
 
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
-import { Prisma } from "@calcom/prisma/client";
-
-import { UnifiedCalendarEventOutput } from "../outputs/get-unified-calendar-event";
+import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class GoogleCalendarService {

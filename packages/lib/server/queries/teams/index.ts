@@ -10,13 +10,13 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   unlockedManagedEventTypeProps,
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
-import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 import { getBookerBaseUrlSync } from "../../../getBookerUrl/client";
 import { getTeam, getOrg } from "../../repository/team";
@@ -186,10 +186,11 @@ export async function getTeamWithMembers(args: {
   if (!teamOrOrg) return null;
 
   const teamOrOrgMemberships = [];
+  const userRepo = new UserRepository(prisma);
   for (const membership of teamOrOrg.members) {
     teamOrOrgMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await userRepo.enrichUserWithItsProfile({
         user: membership.user,
       }),
     });
@@ -239,7 +240,7 @@ export async function getTeamWithMembers(args: {
     const usersWithUserProfile = [];
     for (const { user } of eventType.hosts) {
       usersWithUserProfile.push(
-        await UserRepository.enrichUserWithItsProfile({
+        await userRepo.enrichUserWithItsProfile({
           user,
         })
       );

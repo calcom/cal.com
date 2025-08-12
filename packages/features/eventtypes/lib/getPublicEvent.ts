@@ -49,7 +49,7 @@ const userSelect = {
   defaultScheduleId: true,
 } satisfies Prisma.UserSelect;
 
-const getPublicEventSelect = (fetchAllUsers: boolean) => {
+export const getPublicEventSelect = (fetchAllUsers: boolean) => {
   return {
     id: true,
     title: true,
@@ -67,6 +67,7 @@ const getPublicEventSelect = (fetchAllUsers: boolean) => {
     disableGuests: true,
     metadata: true,
     lockTimeZoneToggleOnBookingPage: true,
+    lockedTimeZone: true,
     requiresConfirmation: true,
     autoTranslateDescriptionEnabled: true,
     fieldTranslations: {
@@ -221,6 +222,33 @@ function isAvailableInTimeSlot(
 }
 
 export type PublicEventType = Awaited<ReturnType<typeof getPublicEvent>>;
+
+export async function getEventTypeHosts({
+  hosts,
+  fetchAllUsers = false,
+  prisma,
+}: {
+  hosts: Prisma.EventTypeGetPayload<{ select: ReturnType<typeof getPublicEventSelect> }>["hosts"];
+  fetchAllUsers?: boolean;
+  prisma: PrismaClient;
+}) {
+  const usersAsHosts = hosts.map((host) => host.user);
+
+  // Enrich users in a single batch call
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
+
+  // Map enriched users back to the hosts
+  const enrichedHosts = hosts.map((host, index) => ({
+    ...host,
+    user: enrichedUsers[index],
+  }));
+
+  return {
+    subsetOfHosts: enrichedHosts,
+    hosts: fetchAllUsers ? enrichedHosts : undefined,
+  };
+}
+
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
@@ -236,7 +264,7 @@ export const getPublicEvent = async (
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
   if (usernameList.length > 1) {
-    const usersInOrgContext = await UserRepository.findUsersByUsername({
+    const usersInOrgContext = await new UserRepository(prisma).findUsersByUsername({
       usernameList,
       orgSlug: org,
     });
@@ -396,7 +424,7 @@ export const getPublicEvent = async (
   const usersAsHosts = event.hosts.map((host) => host.user);
 
   // Enrich users in a single batch call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(usersAsHosts);
 
   // Map enriched users back to the hosts
   const hosts = event.hosts.map((host, index) => ({
@@ -407,7 +435,7 @@ export const getPublicEvent = async (
   const eventWithUserProfiles = {
     ...event,
     owner: event.owner
-      ? await UserRepository.enrichUserWithItsProfile({
+      ? await new UserRepository(prisma).enrichUserWithItsProfile({
           user: event.owner,
         })
       : null,
@@ -534,7 +562,7 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = getPublicEventSelect(true) satisfies Prisma.EventTypeSelect;
+const eventData = getPublicEventSelect(true);
 
 type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
 
@@ -543,7 +571,7 @@ type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   subsetOfHosts: Event["hosts"];
 };
 
-function getProfileFromEvent(event: GetProfileFromEventInput) {
+export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const { team, subsetOfHosts: hosts, owner } = event;
   const nonTeamprofile = hosts?.[0]?.user || owner;
   const profile = team || nonTeamprofile;
@@ -573,7 +601,7 @@ function getProfileFromEvent(event: GetProfileFromEventInput) {
   };
 }
 
-async function getUsersFromEvent(
+export async function getUsersFromEvent(
   event: Omit<Event, "owner" | "hosts"> & {
     owner:
       | (Event["owner"] & {
@@ -637,7 +665,7 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
   if (!users.length) return null;
 
   // Batch enrich users in a single call
-  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(users);
+  const enrichedUsers = await new UserRepository(prisma).enrichUsersWithTheirProfiles(users);
 
   // Map the enriched users back to include the organization info
   const usersWithUserProfile = enrichedUsers.map((user) => ({
@@ -670,3 +698,39 @@ function mapHostsToUsers(host: {
     profile: host.user.profile,
   };
 }
+
+export const processEventDataShared = async ({
+  eventData,
+  metadata,
+  prisma,
+}: {
+  eventData: Prisma.EventTypeGetPayload<{ select: ReturnType<typeof getPublicEventSelect> }>;
+  metadata: ReturnType<typeof eventTypeMetaDataSchemaWithTypedApps.parse>;
+  prisma: PrismaClient;
+}) => {
+  let showInstantEventConnectNowModal = eventData.isInstantEvent ?? false;
+  if (eventData.isInstantEvent && eventData.instantMeetingSchedule?.id) {
+    const { id, timeZone } = eventData.instantMeetingSchedule;
+    showInstantEventConnectNowModal = await isCurrentlyAvailable({
+      prisma,
+      instantMeetingScheduleId: id,
+      availabilityTimezone: timeZone ?? "Europe/London",
+      length: eventData.length,
+    });
+  }
+
+  return {
+    ...eventData,
+    bookerLayouts: bookerLayoutsSchema.parse(metadata?.bookerLayouts || null),
+    description: markdownToSafeHTML(eventData.description),
+    metadata,
+    customInputs: customInputSchema.array().parse(eventData.customInputs || []),
+    locations: privacyFilteredLocations((eventData.locations || []) as LocationObject[]),
+    bookingFields: getBookingFieldsWithSystemFields(eventData),
+    recurringEvent: isRecurringEvent(eventData.recurringEvent)
+      ? parseRecurringEvent(eventData.recurringEvent)
+      : null,
+    isDynamic: false,
+    showInstantEventConnectNowModal,
+  };
+};

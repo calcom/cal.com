@@ -108,7 +108,7 @@ export const listOtherTeamMembers = async ({ input }: ListOptions) => {
   for (const membership of members) {
     enrichedMemberships.push({
       ...membership,
-      user: await UserRepository.enrichUserWithItsProfile({
+      user: await new UserRepository(prisma).enrichUserWithItsProfile({
         user: membership.user,
       }),
     });

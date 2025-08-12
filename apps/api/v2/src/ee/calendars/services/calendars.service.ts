@@ -82,32 +82,31 @@ export class CalendarsService {
       calendarsToLoad,
       userId
     );
-    try {
-      const calendarBusyTimes = await getBusyCalendarTimes(
-        this.buildNonDelegationCredentials(credentials),
-        dateFrom,
-        dateTo,
-        composedSelectedCalendars
-      );
-      const calendarBusyTimesConverted = calendarBusyTimes.map(
-        (busyTime: EventBusyDate & { timeZone?: string }) => {
-          const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
-          const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
-          const busyTimeStartDate = busyTimeStart.toJSDate();
-          const busyTimeEndDate = busyTimeEnd.toJSDate();
-          return {
-            ...busyTime,
-            start: busyTimeStartDate,
-            end: busyTimeEndDate,
-          };
-        }
-      );
-      return calendarBusyTimesConverted;
-    } catch (error) {
+    const calendarBusyTimesQuery = await getBusyCalendarTimes(
+      this.buildNonDelegationCredentials(credentials),
+      dateFrom,
+      dateTo,
+      composedSelectedCalendars
+    );
+    if (!calendarBusyTimesQuery.success) {
       throw new InternalServerErrorException(
         "Unable to fetch connected calendars events. Please try again later."
       );
     }
+    const calendarBusyTimesConverted = calendarBusyTimesQuery.data.map(
+      (busyTime: EventBusyDate & { timeZone?: string }) => {
+        const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
+        const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
+        const busyTimeStartDate = busyTimeStart.toJSDate();
+        const busyTimeEndDate = busyTimeEnd.toJSDate();
+        return {
+          ...busyTime,
+          start: busyTimeStartDate,
+          end: busyTimeEndDate,
+        };
+      }
+    );
+    return calendarBusyTimesConverted;
   }
 
   async getUniqCalendarCredentials(calendarsToLoad: Calendar[], userId: User["id"]) {

@@ -7,7 +7,6 @@ import type { WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { TFilteredListInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/filteredList.schema";
 import type { TGetVerifiedEmailsInputSchema } from "@calcom/trpc/server/routers/viewer/workflows/getVerifiedEmails.schema";
@@ -242,7 +241,7 @@ export class WorkflowRepository {
     if (!filtered) {
       const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+          (member) => member.userId === userId && member.role === "MEMBER"
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
@@ -294,7 +293,7 @@ export class WorkflowRepository {
 
       const workflowsWithReadOnly: WorkflowType[] = filteredWorkflows.map((workflow) => {
         const readOnly = !!workflow.team?.members?.find(
-          (member) => member.userId === userId && member.role === MembershipRole.MEMBER
+          (member) => member.userId === userId && member.role === "MEMBER"
         );
 
         return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };

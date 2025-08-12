@@ -1,7 +1,8 @@
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
-import type { PrismaClient } from "@calcom/prisma";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -9,12 +10,12 @@ import { TRPCError } from "@trpc/server";
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
-import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import isRouter from "../lib/isRouter";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
 import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
+import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
 interface FormMutationHandlerOptions {
   ctx: {
@@ -29,10 +30,36 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   const { name, id, description, disabled, addFallback, duplicateFrom, shouldConnect } = input;
   let teamId = input.teamId;
   const settings = input.settings;
-  if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
+
+  const existingForm = await prisma.app_RoutingForms_Form.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (existingForm) {
+    // Check PBAC permissions for updating routing forms only
+    await checkPermissionOnExistingRoutingForm({
+      formId: existingForm.id,
+      userId: user.id,
+      permission: "routingForm.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
+  } else if (teamId) {
+    // Check PBAC permissions for creating team-scoped routing forms only
+    // Personal forms (teamId = null) are always allowed for the user
+    const permissionService = new PermissionCheckService();
+    const hasPermission = await permissionService.checkPermission({
+      userId: user.id,
+      teamId,
+      permission: "routingForm.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `You don't have permission to create routing forms for this team`,
+      });
+    }
   }
 
   let { routes: inputRoutes, fields: inputFields } = input;

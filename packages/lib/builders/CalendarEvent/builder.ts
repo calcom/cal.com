@@ -3,7 +3,6 @@ import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getRescheduleLink } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -11,9 +10,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
 
-const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "builder"] });
 const translator = short();
-
 const userSelect = {
   id: true,
   email: true,
@@ -162,6 +159,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           destinationCalendar: true,
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
+          disableCancelling: true,
+          disableRescheduling: true,
         },
       });
     } catch (error) {

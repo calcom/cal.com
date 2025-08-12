@@ -1,3 +1,5 @@
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import {
   getDate,
   createBookingScenario,
@@ -286,7 +288,8 @@ describe("roundRobinReassignment test", () => {
       userId: 1,
     });
 
-    const attendees = await BookingRepository.getBookingAttendees(123);
+    const bookingRepo = new BookingRepository(prismaMock);
+    const attendees = await bookingRepo.getBookingAttendees(123);
 
     expect(attendees.some((attendee) => attendee.email === currentRRHost.email)).toBe(false);
 

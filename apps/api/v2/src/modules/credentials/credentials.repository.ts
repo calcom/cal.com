@@ -4,7 +4,7 @@ import { Injectable } from "@nestjs/common";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class CredentialsRepository {

@@ -92,6 +92,8 @@ describe("Platform Destination Calendar Endpoints", () => {
               publisher: "",
               url: "",
               email: "",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             },
             // calendars: {
             //   externalId:
@@ -118,6 +120,8 @@ describe("Platform Destination Calendar Endpoints", () => {
           id: 0,
           delegationCredentialId: null,
           domainWideDelegationCredentialId: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       })
     );

@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
+import type { GetUserAvailabilityResult } from "@calcom/lib/getUserAvailability";
 import type { userSelect } from "@calcom/prisma";
 import type { App } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -40,6 +41,8 @@ export type IsFixedAwareUser = User & {
   weight?: number;
   userLevelSelectedCalendars: SelectedCalendar[];
   allSelectedCalendars: SelectedCalendar[];
+  groupId?: string | null;
+  availabilityData?: GetUserAvailabilityResult;
 };
 
 export type { PaymentAppData };

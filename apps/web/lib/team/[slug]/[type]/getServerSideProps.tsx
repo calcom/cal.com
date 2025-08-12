@@ -93,6 +93,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
+  const crmRecordIdParam = query["cal.crmRecordId"];
 
   // Handle string[] type from query params
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
@@ -102,6 +103,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     : crmContactOwnerRecordType;
 
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
+  let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
@@ -111,6 +113,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       email,
       recordType,
       crmAppSlug: crmAppSlugQuery,
+      recordId,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query,
       eventData,
@@ -119,12 +122,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     teamMemberEmail = email ?? undefined;
     crmOwnerRecordType = recordType ?? undefined;
     crmAppSlug = crmAppSlugQuery ?? undefined;
+    crmRecordId = recordId ?? undefined;
   }
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
-  const featureRepo = new FeaturesRepository();
+  const featureRepo = new FeaturesRepository(prisma);
   const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
@@ -168,6 +172,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
+      crmRecordId,
       isSEOIndexable: allowSEOIndexing,
     },
   };

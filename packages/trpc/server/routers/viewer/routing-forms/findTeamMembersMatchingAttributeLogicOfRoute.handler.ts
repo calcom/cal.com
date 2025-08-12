@@ -13,7 +13,7 @@ import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.serve
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
@@ -51,10 +51,10 @@ async function getEnrichedSerializableForm<
       metadata: unknown;
     } | null;
   }
->(form: TForm) {
+>({ form, prisma }: { prisma: PrismaClient; form: TForm }) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
   };
 
   const serializableForm = await getSerializableForm({
@@ -125,7 +125,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const beforeEnrichedForm = performance.now();
-  const serializableForm = await getEnrichedSerializableForm(form);
+  const serializableForm = await getEnrichedSerializableForm({ form, prisma });
   const afterEnrichedForm = performance.now();
   const timeTakenToEnrichForm = afterEnrichedForm - beforeEnrichedForm;
 
@@ -176,7 +176,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
@@ -23,6 +23,14 @@ vi.mock("@calcom/prisma", () => {
   return { prisma: prismaMock };
 });
 
+// Mock FeaturesRepository
+const mockCheckIfTeamHasFeature = vi.fn();
+vi.mock("@calcom/features/flags/features.repository", () => ({
+  FeaturesRepository: vi.fn().mockImplementation(() => ({
+    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+  })),
+}));
+
 const ORGANIZATION_ID = 123;
 
 const mockUser = {
@@ -45,7 +53,86 @@ const mockUser = {
 };
 
 describe("listMembersHandler", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should filter by customRoleId when PBAC is enabled", async () => {
+    // Mock PBAC enabled
+    mockCheckIfTeamHasFeature.mockResolvedValue(true);
+
+    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+      id: "role",
+      value: {
+        type: ColumnFilterType.MULTI_SELECT,
+        data: ["ADMIN"],
+      },
+    };
+
+    await listMembersHandler({
+      ctx: {
+        user: mockUser as any,
+      },
+      input: {
+        limit: 25,
+        offset: 0,
+        filters: [roleFilter],
+      },
+    });
+
+    expect(prisma.membership.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          customRoleId: {
+            in: ["ADMIN"],
+          },
+          teamId: ORGANIZATION_ID,
+          user: {
+            isPlatformManaged: false,
+          },
+        }),
+      })
+    );
+  });
+
+  it("should filter by role when PBAC is disabled", async () => {
+    // Mock PBAC disabled
+    mockCheckIfTeamHasFeature.mockResolvedValue(false);
+
+    const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
+      id: "role",
+      value: {
+        type: ColumnFilterType.MULTI_SELECT,
+        data: ["ADMIN"],
+      },
+    };
+
+    await listMembersHandler({
+      ctx: {
+        user: mockUser as any,
+      },
+      input: {
+        limit: 25,
+        offset: 0,
+        filters: [roleFilter],
+      },
+    });
+
+    expect(prisma.membership.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          role: {
+            in: ["ADMIN"],
+          },
+        }),
+      })
+    );
+  });
+
   it("should combine multiple attribute filters with AND logic", async () => {
+    // Mock PBAC disabled for this test
+    mockCheckIfTeamHasFeature.mockResolvedValue(false);
+
     const roleFilter: TypedColumnFilter<ColumnFilterType.MULTI_SELECT> = {
       id: "role",
       value: {
@@ -80,7 +167,6 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {

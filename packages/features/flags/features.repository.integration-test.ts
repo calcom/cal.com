@@ -1,12 +1,9 @@
 import { describe, expect, beforeAll, afterAll, beforeEach, it } from "vitest";
-
-import { PrismaClient } from "@calcom/prisma/client";
-
+import prisma from "@calcom/prisma";
 import type { AppFlags } from "./config";
 import { FeaturesRepository } from "./features.repository";
 
-const prisma = new PrismaClient();
-const featuresRepository = new FeaturesRepository();
+const featuresRepository = new FeaturesRepository(prisma);
 
 // Access private clearCache method through type assertion
 const clearCache = () => {

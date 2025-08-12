@@ -290,7 +290,10 @@ describe("Event types Endpoints", () => {
           expect(responseBookingFields).toBeDefined();
           // note(Lauris): response bookingFields are already existing default bookingFields + the new one
           const responseBookingField = responseBookingFields.find((field) => field.name === bookingFieldName);
-          expect(responseBookingField).toEqual(bookingFields[0]);
+          const fields = responseBookingField
+          //@ts-ignore
+          delete fields.labelAsSafeHtml
+          expect(fields).toEqual(bookingFields[0]);
           eventType.bookingFields = responseBookingFields;
         });
     });

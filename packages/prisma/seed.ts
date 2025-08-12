@@ -293,6 +293,19 @@ async function createOrganizationAndAddMembersAndTeams({
   }[];
 }) {
   console.log(`\n🏢 Creating organization "${orgData.name}"`);
+
+  const existingTeam = await prisma.team.findFirst({
+    where: {
+      slug: orgData.slug,
+      parentId: null,
+    },
+  });
+
+  if (existingTeam) {
+    console.log(`Organization with slug '${orgData.slug}' already exists, skipping.`);
+    return;
+  }
+
   const orgMembersInDb: (User & {
     inTeams: { slug: string; role: MembershipRole }[];
     orgMembership: Partial<Membership>;
@@ -312,7 +325,11 @@ async function createOrganizationAndAddMembersAndTeams({
           const newUser = await createUserAndEventType({
             user: {
               ...member.memberData,
-              password: member.memberData.password.create?.hash,
+              theme:
+                member.memberData.theme === "dark" || member.memberData.theme === "light"
+                  ? member.memberData.theme
+                  : undefined,
+              password: member.memberData.password.create?.hash ?? "",
             },
             eventTypes: [
               {
@@ -338,8 +355,19 @@ async function createOrganizationAndAddMembersAndTeams({
             orgProfile: member.orgProfile,
           };
 
-          await prisma.tempOrgRedirect.create({
-            data: {
+          // Create temp org redirect with upsert to handle duplicates
+          await prisma.tempOrgRedirect.upsert({
+            where: {
+              from_type_fromOrgId: {
+                from: member.memberData.username,
+                type: RedirectType.User,
+                fromOrgId: 0,
+              },
+            },
+            update: {
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+            },
+            create: {
               fromOrgId: 0,
               type: RedirectType.User,
               from: member.memberData.username,
