@@ -53,7 +53,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
 
   return (
     <div className={classNames(highlight && "dark:bg-muted bg-yellow-100", className)}>
-      <div className="flex items-center gap-x-3 px-4 py-4 sm:px-6">
+      <div className="flex items-center gap-x-3 px-4 py-6 sm:px-6">
         {logo ? (
           <img
             className={classNames(logo.includes("-dark") && "dark:invert", "h-10 w-10")}
@@ -61,7 +61,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
             alt={`${title} logo`}
           />
         ) : null}
-        <div className="flex grow flex-col gap-y-1 truncate">
+        <div className="flex grow flex-col gap-y-2 truncate">
           <div className="flex items-center gap-x-2">
             <h3 className="text-emphasis truncate text-sm font-semibold">{title}</h3>
             <div className="flex items-center gap-x-2">
