@@ -63,7 +63,7 @@ export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
 
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
-    context.req,
+    { headers: context.req.headers, cookies: context.req.cookies } as any,
     context.params?.orgSlug ?? context.query?.orgSlug
   );
   const isOrgContext = isValidOrgDomain && currentOrgDomain;

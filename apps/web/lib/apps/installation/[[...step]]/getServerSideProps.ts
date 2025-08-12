@@ -206,9 +206,11 @@ export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const parsedStepParam = z.coerce.string().parse(params?.step);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
   const _ = stepsEnum.parse(parsedStepParam);
-  const session = await getServerSession({ req });
+  const session = await getServerSession({
+    req: { headers: context.req.headers, cookies: context.req.cookies } as any,
+  });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
-  const locale = await getLocale(context.req);
+  const locale = await getLocale({ headers: context.req.headers, cookies: context.req.cookies } as any);
   const app = await getAppBySlug(parsedAppSlug);
   if (!app) return { redirect: { permanent: false, destination: "/apps" } };
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];

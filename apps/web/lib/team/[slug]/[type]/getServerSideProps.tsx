@@ -28,11 +28,14 @@ function hasApiV2RouteInEnv() {
 
 export const getServerSideProps = async (context: NextJsLegacyContext) => {
   const { req, params, query } = context;
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
+    { headers: req.headers, cookies: req.cookies } as any,
+    params?.orgSlug
+  );
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
   if (!isOrgContext) {
