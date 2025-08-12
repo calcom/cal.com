@@ -24,7 +24,6 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -121,6 +120,7 @@ type EventTypeScheduleProps = {
   isSchedulePending?: boolean;
   isRestrictionSchedulePending?: boolean;
   restrictionScheduleRedirectUrl?: string;
+  isRestrictionScheduleEnabled?: boolean;
 } & Omit<EventTypeScheduleDetailsProps, "customClassNames"> &
   Omit<EventTypeTeamScheduleProps, "customClassNames">;
 
@@ -259,9 +259,9 @@ const EventTypeScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
+        <div className="bg-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
-            <span className="text-default flex items-center justify-center text-sm sm:justify-start">
+            <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
               <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
               {scheduleQueryData?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
@@ -666,7 +666,7 @@ const TeamMemberSchedule = ({
         {isPlatform && <Icon name="user" className={classNames("h-4 w-4", customClassNames?.labelAvatar)} />}
         <p className={classNames("text-emphasis my-auto ms-3 text-sm", customClassNames?.label)}>{label}</p>
       </div>
-      <div className="flex w-full flex-col pt-2 ">
+      <div className="flex w-full flex-col pt-2">
         {isPending ? (
           <Spinner className="mt-2 h-6 w-6" />
         ) : (
@@ -810,6 +810,7 @@ const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null
 const UseTeamEventScheduleSettingsToggle = ({
   eventType,
   customClassNames,
+  isRestrictionScheduleEnabled,
   ...rest
 }: UseTeamEventScheduleSettingsToggle) => {
   const { t } = useLocale();
@@ -817,18 +818,6 @@ const UseTeamEventScheduleSettingsToggle = ({
   const { useHostSchedulesForTeamEvent, toggleScheduleState } = useCommonScheduleState(eventType.schedule);
   const { restrictScheduleForHosts, toggleRestrictScheduleState } = useRestrictionScheduleState(
     eventType.restrictionScheduleId
-  );
-
-  // Check if team has restriction schedule feature enabled
-  const { data: isRestrictionScheduleEnabled = false } = trpc.viewer.features.checkTeamFeature.useQuery(
-    {
-      teamId: eventType.team?.id || 0,
-      feature: "restriction-schedule",
-    },
-    {
-      enabled: !!eventType.team?.id,
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    }
   );
 
   return (
@@ -862,7 +851,7 @@ const UseTeamEventScheduleSettingsToggle = ({
             checked={restrictScheduleForHosts}
             onCheckedChange={toggleRestrictScheduleState}
             title={t("choose_restriction_schedule")}
-            description={t("choose_restriction_schedule_description")}>
+            description={t("restriction_schedule_description")}>
             <EventTypeSchedule
               customClassNames={customClassNames?.userAvailability}
               eventType={eventType}

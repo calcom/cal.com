@@ -4,8 +4,9 @@ import { sendSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/remind
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { TimeFormat } from "@calcom/lib/timeFormat";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 const handleSendingSMS = async ({
@@ -32,7 +33,7 @@ const handleSendingSMS = async ({
         ? `handleSendingSMS:team:${teamId}`
         : organizerUserId
         ? `handleSendingSMS:user:${organizerUserId}`
-        : `handleSendingSMS:user:${reminderPhone}`,
+        : `handleSendingSMS:user:${piiHasher.hash(reminderPhone)}`,
       rateLimitingType: "sms",
     });
 
@@ -51,6 +52,20 @@ const handleSendingSMS = async ({
     console.error("sendSmsOrFallbackEmail failed", e);
     throw e; // propagate the error
   }
+};
+
+const getTeamWithOrganizationSettings = async (teamId: number) => {
+  return await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      parent: {
+        select: {
+          isOrganization: true,
+          organizationSettings: true,
+        },
+      },
+    },
+  });
 };
 
 export default abstract class SMSManager {
@@ -75,7 +90,7 @@ export default abstract class SMSManager {
     const teamId = this.teamId;
 
     if (teamId) {
-      const team = await TeamRepository.findTeamWithOrganizationSettings(teamId);
+      const team = await getTeamWithOrganizationSettings(teamId);
 
       this._isSMSNotificationEnabled = !team?.parent?.organizationSettings?.disablePhoneOnlySMSNotifications;
       return this._isSMSNotificationEnabled;

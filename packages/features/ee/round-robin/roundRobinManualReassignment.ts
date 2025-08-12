@@ -24,6 +24,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
 import { getEventName } from "@calcom/lib/event";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -90,6 +91,13 @@ export const roundRobinManualReassignment = async ({
     throw new Error("Event type not found");
   }
 
+  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
+    roundRobinReassignLogger.error(
+      `Event type ${eventTypeId} has more than one round robin group, reassignment is not allowed`
+    );
+    throw new Error("Reassignment not allowed with more than one round robin group");
+  }
+
   const eventTypeHosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
@@ -99,6 +107,7 @@ export const roundRobinManualReassignment = async ({
         weight: 100,
         schedule: null,
         createdAt: new Date(0), // use earliest possible date as fallback
+        groupId: null,
       }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
@@ -181,6 +190,12 @@ export const roundRobinManualReassignment = async ({
         userPrimaryEmail: newUser.email,
         reassignReason,
         reassignById: reassignedById,
+        idempotencyKey: IdempotencyKeyService.generate({
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          userId: newUser.id,
+          reassignedById,
+        }),
       },
       select: bookingSelect,
     });
@@ -379,7 +394,7 @@ export const roundRobinManualReassignment = async ({
   return booking;
 };
 
-async function handleWorkflowsUpdate({
+export async function handleWorkflowsUpdate({
   booking,
   newUser,
   evt,
@@ -403,6 +418,7 @@ async function handleWorkflowsUpdate({
       scheduled: true,
       OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
+        action: WorkflowActions.EMAIL_HOST,
         workflow: {
           trigger: {
             in: [

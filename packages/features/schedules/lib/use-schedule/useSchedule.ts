@@ -139,8 +139,8 @@ export const useSchedule = ({
   const schedule = isTeamEvent
     ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
         ...options,
-        // Only enable if we're not using API V2 or if API V2 failed
-        enabled: options.enabled && (!isCallingApiV2Slots || !!teamScheduleV2.failureReason),
+        // Only enable if we're not using API V2
+        enabled: options.enabled && !isCallingApiV2Slots,
       })
     : trpc.viewer.slots.getSchedule.useQuery(input, options);
 
