@@ -20,6 +20,7 @@ export class SelectedCalendarRepository {
   async getNextBatchForSqlCache(limit = 100) {
     const nextBatch = await this.prismaClient.selectedCalendar.findMany({
       take: limit,
+      orderBy: { id: "asc" },
       where: {
         user: {
           teams: {
@@ -36,8 +37,10 @@ export class SelectedCalendarRepository {
         },
         integration: "google_calendar",
         eventTypeId: null,
-        calendarSubscription: null, // Only get selected calendars that don't have a subscription
+        // Only get selected calendars that don't have a subscription (1:1 relation)
+        calendarSubscription: { is: null },
       },
+      select: { id: true },
     });
     return nextBatch;
   }
