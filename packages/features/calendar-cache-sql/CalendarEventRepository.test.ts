@@ -7,10 +7,10 @@ import { CalendarEventRepository } from "./CalendarEventRepository";
 describe("CalendarEventRepository", () => {
   let repository: CalendarEventRepository;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repository = new CalendarEventRepository(prismock);
-    prismock.calendarEvent.deleteMany();
-    prismock.calendarEventParticipant.deleteMany();
+    await prismock.calendarEvent.deleteMany();
+    await prismock.calendarEventParticipant.deleteMany();
   });
 
   describe("upsertEvent", () => {
