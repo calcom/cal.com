@@ -4,8 +4,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Account, IdentityProvider, Prisma, User } from "@calcom/prisma/client";
 import { PrismaClientKnownRequestError } from "@calcom/prisma/client/runtime/library";
 
-import { identityProviderNameMap } from "./identityProviderNameMap";
-
 const parseIntSafe = (id: string | number): number => {
   if (typeof id === "number") return id;
   const parsed = parseInt(id, 10);
@@ -89,14 +87,16 @@ export default function CalComAdapter(prismaClient: PrismaClient): Adapter {
       }
 
       // Fallback for legacy users without Account entries
-      const provider = providerAccountId.provider.toUpperCase() as IdentityProvider;
-      if (!["GOOGLE", "SAML"].includes(provider)) return null;
+      const provider = providerAccountId.provider.toUpperCase();
 
-      const obtainProvider = identityProviderNameMap[provider].toUpperCase() as IdentityProvider;
+      const isGoogleOrSaml = (p: string): p is Extract<IdentityProvider, "GOOGLE" | "SAML"> =>
+        ["GOOGLE", "SAML"].includes(p);
+      if (!isGoogleOrSaml(provider)) return null;
+
       const user = await prismaClient.user.findFirst({
         where: {
           identityProviderId: providerAccountId.providerAccountId,
-          identityProvider: obtainProvider,
+          identityProvider: provider,
         },
       });
 
