@@ -7,9 +7,9 @@ import { CalendarSubscriptionRepository } from "./CalendarSubscriptionRepository
 describe("CalendarSubscriptionRepository", () => {
   let repository: CalendarSubscriptionRepository;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await prismock.calendarSubscription.deleteMany();
     repository = new CalendarSubscriptionRepository(prismock as any);
-    prismock.calendarSubscription.deleteMany();
   });
 
   describe("findBySelectedCalendar", () => {
