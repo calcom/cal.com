@@ -1,7 +1,7 @@
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
 
-import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
+import type { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import type {
   CredentialForCalendarService,
   CredentialForCalendarServiceWithEmail,
@@ -14,7 +14,7 @@ export class CalendarCacheSqlService {
   constructor(
     private subscriptionRepo: ICalendarSubscriptionRepository,
     private eventRepo: ICalendarEventRepository,
-    private selectedCalendarRepo: ISelectedCalendarRepository
+    private selectedCalendarRepo: SelectedCalendarRepository
   ) {}
 
   async getAvailability(selectedCalendarId: string, start: Date, end: Date) {
@@ -36,10 +36,7 @@ export class CalendarCacheSqlService {
     }));
   }
 
-  async processWebhookEvents(
-    channelId: string,
-    credential: CredentialForCalendarService
-  ) {
+  async processWebhookEvents(channelId: string, credential: CredentialForCalendarService) {
     const subscription = await this.subscriptionRepo.findByChannelId(channelId);
     if (!subscription) {
       throw new Error("Calendar subscription not found");
@@ -47,25 +44,18 @@ export class CalendarCacheSqlService {
 
     console.info("Got subscription", subscription);
 
-    if (credential.delegatedTo) {
-      if (!credential.delegatedTo.serviceAccountKey?.client_email) {
-        throw new Error("Delegation credential missing required client_email");
-      }
-    }
-
     const credentialWithEmail: CredentialForCalendarServiceWithEmail = {
       ...credential,
-      delegatedTo: credential.delegatedTo
-        ? {
-            serviceAccountKey: {
-              client_email:
-                credential.delegatedTo.serviceAccountKey.client_email,
-              client_id: credential.delegatedTo.serviceAccountKey.client_id,
-              private_key:
-                credential.delegatedTo.serviceAccountKey.private_key,
-            },
-          }
-        : null,
+      delegatedTo:
+        credential.delegatedTo && credential.delegatedTo.serviceAccountKey?.client_email
+          ? {
+              serviceAccountKey: {
+                client_email: credential.delegatedTo.serviceAccountKey.client_email,
+                client_id: credential.delegatedTo.serviceAccountKey.client_id,
+                private_key: credential.delegatedTo.serviceAccountKey.private_key,
+              },
+            }
+          : null,
     };
 
     // Import Google Calendar service to fetch events
