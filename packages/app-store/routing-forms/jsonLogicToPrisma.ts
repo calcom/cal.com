@@ -63,6 +63,10 @@ const OPERATOR_MAP = {
     operator: "array_contains",
     secondaryOperand: null,
   },
+  starts_with: {
+    operator: "startsWith",
+    secondaryOperand: null,
+  },
 };
 
 /**

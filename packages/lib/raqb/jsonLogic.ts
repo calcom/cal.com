@@ -50,4 +50,14 @@ jsonLogic.add_operation("in", function (a: string, b: string | string[]) {
   return second.indexOf(first) !== -1;
 });
 
+/**
+ * Short Text/Long Text "starts with" uses it
+ */
+jsonLogic.add_operation("starts_with", function (a: string, b: string) {
+  const first = normalize(a);
+  const second = normalize(b);
+  if (!second) return false;
+  return first.indexOf(second) === 0;
+});
+
 export default jsonLogic;
