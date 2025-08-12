@@ -5,7 +5,6 @@
   "main": "./index.ts",
   "description": "For calendars hosted on on-premises Microsoft Exchange 2016 servers",
   "dependencies": {
-    "@calcom/core": "*",
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/ui": "*",

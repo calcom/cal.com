@@ -1,3 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
+/* eslint-enable @typescript-eslint/ban-ts-comment */
+// TODO: Currently this file is not type checked as it's deprecated
+//       it must be refactored if we want to restore TeamAvailability
 import classNames from "classnames";
 import React from "react";
 import type { ITimezone } from "react-timezone-select";

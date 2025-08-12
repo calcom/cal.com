@@ -14,12 +14,16 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { User } from "@prisma/client";
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries";
+import {
+  getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
+  getBusyCalendarTimes,
+  type EventBusyDate,
+} from "@calcom/platform-libraries";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -36,17 +40,34 @@ export class CalendarsService {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
+  private buildNonDelegationCredentials<TCredential>(credentials: TCredential[]) {
+    return credentials
+      .map((credential) => ({
+        ...credential,
+        delegatedTo: null,
+        delegatedToId: null,
+        delegationCredentialId: null,
+      }))
+      .filter((credential) => !!credential);
+  }
+
   async getCalendars(userId: number) {
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
     if (!userWithCalendars) {
       throw new NotFoundException("User not found");
     }
-
-    return getConnectedDestinationCalendars(
-      userWithCalendars,
-      false,
-      this.dbWrite.prisma as unknown as PrismaClient
-    );
+    return getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+      user: {
+        ...userWithCalendars,
+        allSelectedCalendars: userWithCalendars.selectedCalendars,
+        userLevelSelectedCalendars: userWithCalendars.selectedCalendars.filter(
+          (calendar) => !calendar.eventTypeId
+        ),
+      },
+      onboarding: false,
+      eventTypeId: null,
+      prisma: this.dbWrite.prisma as unknown as PrismaClient,
+    });
   }
 
   async getBusyTimes(
@@ -62,15 +83,19 @@ export class CalendarsService {
       calendarsToLoad,
       userId
     );
-    try {
-      const calendarBusyTimes = await getBusyCalendarTimes(
-        "",
-        credentials,
-        dateFrom,
-        dateTo,
-        composedSelectedCalendars
+    const calendarBusyTimesQuery = await getBusyCalendarTimes(
+      this.buildNonDelegationCredentials(credentials),
+      dateFrom,
+      dateTo,
+      composedSelectedCalendars
+    );
+    if (!calendarBusyTimesQuery.success) {
+      throw new InternalServerErrorException(
+        "Unable to fetch connected calendars events. Please try again later."
       );
-      const calendarBusyTimesConverted = calendarBusyTimes.map((busyTime) => {
+    }
+    const calendarBusyTimesConverted = calendarBusyTimesQuery.data.map(
+      (busyTime: EventBusyDate & { timeZone?: string }) => {
         const busyTimeStart = DateTime.fromJSDate(new Date(busyTime.start)).setZone(timezone);
         const busyTimeEnd = DateTime.fromJSDate(new Date(busyTime.end)).setZone(timezone);
         const busyTimeStartDate = busyTimeStart.toJSDate();
@@ -80,13 +105,9 @@ export class CalendarsService {
           start: busyTimeStartDate,
           end: busyTimeEndDate,
         };
-      });
-      return calendarBusyTimesConverted;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        "Unable to fetch connected calendars events. Please try again later."
-      );
-    }
+      }
+    );
+    return calendarBusyTimesConverted;
   }
 
   async getUniqCalendarCredentials(calendarsToLoad: Calendar[], userId: User["id"]) {
@@ -153,7 +174,7 @@ export class CalendarsService {
     calendarType: keyof typeof APPS_TYPE_ID_MAPPING,
     credentialId?: number | null
   ) {
-    const credential = await this.credentialsRepository.upsertAppCredential(
+    const credential = await this.credentialsRepository.upsertUserAppCredential(
       calendarType,
       key,
       userId,

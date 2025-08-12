@@ -1,10 +1,14 @@
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZEditAttributeSchema } from "./edit.schema";
+import { getOptionsWithValidContains } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -23,7 +27,44 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const options = input.options;
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: org.id,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!membership) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be apart of this organization to use this feature",
+    });
+  }
+
+  const { canEdit } = await getResourcePermissions({
+    userId: ctx.user.id,
+    teamId: org.id,
+    resource: Resource.Attributes,
+    userRole: membership.role,
+    fallbackRoles: {
+      update: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!canEdit) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You don't have permission to edit attributes",
+    });
+  }
+
+  // If an option is removed, it is to be removed from contains of corresponding group as well if any
+  const options = getOptionsWithValidContains(input.options);
 
   const foundAttribute = await prisma.attribute.findUnique({
     where: {
@@ -50,6 +91,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
       name: input.name,
       type: input.type,
       teamId: org.id,
+      isLocked: input.isLocked,
+      isWeightsEnabled: input.isWeightsEnabled,
     },
     select: {
       id: true,
@@ -62,7 +105,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   await prisma.$transaction(async (tx) => {
     const updateOptions = options.filter((option) => option.id !== undefined && option.id !== "");
     const updatedOptionsIds = updateOptions.map((option) => option.id!);
-
     // We need to delete all options that are not present in this UpdateOptions.id (as they have been deleted)
     await tx.attributeOption.deleteMany({
       where: {
@@ -87,6 +129,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
         data: {
           value: option.value,
           slug: slugify(option.value),
+          isGroup: option.isGroup,
+          contains: option.contains,
         },
       });
     });
@@ -97,6 +141,8 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
         data: {
           attributeId: attributes.id,
           value: option.value,
+          isGroup: option.isGroup,
+          contains: option.contains,
           slug: slugify(option.value),
         },
       });
@@ -117,7 +163,6 @@ async function validateOptionsBelongToAttribute(
   const optionsWithId = options
     .filter((option) => option.id !== undefined && option.id !== "")
     .map((option) => option.id!);
-  console.log("optionsWithId", optionsWithId);
 
   // Check all ids of options passed in are owned by the attribute
   const optionsWithIdOwnedByAttribute = await prisma.attributeOption.findMany({

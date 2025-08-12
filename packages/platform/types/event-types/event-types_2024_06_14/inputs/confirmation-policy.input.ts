@@ -30,6 +30,7 @@ export class BaseConfirmationPolicy_2024_06_14 {
   @IsEnum(ConfirmationPolicyEnum)
   @ApiProperty({
     description: "The policy that determines when confirmation is required",
+    enum: [ConfirmationPolicyEnum.ALWAYS, ConfirmationPolicyEnum.TIME],
     example: ConfirmationPolicyEnum.ALWAYS,
   })
   type!: ConfirmationPolicyEnum;
@@ -44,6 +45,10 @@ export class BaseConfirmationPolicy_2024_06_14 {
   noticeThreshold?: NoticeThreshold_2024_06_14;
 
   @IsBoolean()
+  @ApiProperty({
+    description: "Unconfirmed bookings still block calendar slots.",
+    type: Boolean,
+  })
   blockUnconfirmedBookingsInBooker!: boolean;
 
   @IsOptional()

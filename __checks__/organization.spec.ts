@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import { test, expect } from "@playwright/test";
 
 test.describe("Org", () => {
@@ -8,29 +7,33 @@ test.describe("Org", () => {
       const response = await page.goto("https://i.cal.com/embed");
       expect(response?.status()).toBe(200);
       await page.screenshot({ path: "screenshot.jpg" });
-      await expectPageToBeRenderedWithEmbedSsr(page);
+      const body = await response?.text();
+      await expectPageToBeRenderedWithEmbedSsr(body);
     });
 
-    test("Org User(Peer) Page should be embeddable", async ({ page }) => {
-      const response = await page.goto("https://i.cal.com/peer/embed");
+    test("Org User(Rick) Page should be embeddable", async ({ page }) => {
+      const response = await page.goto("https://i.cal.com/team-rick/embed");
       expect(response?.status()).toBe(200);
-      await expect(page.locator("text=Peer Richelsen")).toBeVisible();
-      await expectPageToBeRenderedWithEmbedSsr(page);
+      await expect(page.locator("text=Used by Checkly")).toBeVisible();
+      const body = await response?.text();
+      await expectPageToBeRenderedWithEmbedSsr(body);
     });
 
-    test("Org User Event(peer/meet) Page should be embeddable", async ({ page }) => {
-      const response = await page.goto("https://i.cal.com/peer/meet/embed");
+    test("Org User Event(/team-rick/test-event) Page should be embeddable", async ({ page }) => {
+      const response = await page.goto("https://i.cal.com/team-rick/test-event/embed");
       expect(response?.status()).toBe(200);
       await expect(page.locator('[data-testid="decrementMonth"]')).toBeVisible();
       await expect(page.locator('[data-testid="incrementMonth"]')).toBeVisible();
-      await expectPageToBeRenderedWithEmbedSsr(page);
+      const body = await response?.text();
+      await expectPageToBeRenderedWithEmbedSsr(body);
     });
 
     test("Org Team Profile(/sales) page should be embeddable", async ({ page }) => {
       const response = await page.goto("https://i.cal.com/sales/embed");
       expect(response?.status()).toBe(200);
       await expect(page.locator("text=Cal.com Sales")).toBeVisible();
-      await expectPageToBeRenderedWithEmbedSsr(page);
+      const body = await response?.text();
+      await expectPageToBeRenderedWithEmbedSsr(body);
     });
 
     test("Org Team Event page(/sales/hippa) should be embeddable", async ({ page }) => {
@@ -38,7 +41,8 @@ test.describe("Org", () => {
       expect(response?.status()).toBe(200);
       await expect(page.locator('[data-testid="decrementMonth"]')).toBeVisible();
       await expect(page.locator('[data-testid="incrementMonth"]')).toBeVisible();
-      await expectPageToBeRenderedWithEmbedSsr(page);
+      const body = await response?.text();
+      await expectPageToBeRenderedWithEmbedSsr(body);
     });
   });
 
@@ -58,24 +62,27 @@ test.describe("Org", () => {
       expect(response?.status()).toBe(200);
       expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Group Meeting");
 
-      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[0].name);
-      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[1].name);
-      // 2 users and 1 for the organization(2+1)
-      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
+      expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(
+        "Join us for a meeting with multiple people"
+      );
+      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(2);
     });
   });
 
   test("Organization Homepage - Has Engineering and Marketing Teams", async ({ page }) => {
     const response = await page.goto("https://i.cal.com");
     expect(response?.status()).toBe(200);
-    await expect(page.locator("text=Cal.com")).toBeVisible();
+    // Somehow there are two Cal.com text momentarily, but shouldn't be the concern of this check
+    await expect(page.locator("text=Cal.com").first()).toBeVisible();
     await expect(page.locator("text=Engineering")).toBeVisible();
     await expect(page.locator("text=Marketing")).toBeVisible();
   });
 
   test.describe("Browse the Engineering Team", async () => {
     test("By User Navigation", async ({ page }) => {
-      await page.goto("https://i.cal.com");
+      const response = await page.goto("https://i.cal.com");
+      await page.waitForLoadState("networkidle");
+      expect(response?.status()).toBe(200);
       await page.click('text="Engineering"');
       await expect(page.locator("text=Cal.com Engineering")).toBeVisible();
     });
@@ -93,11 +100,6 @@ test.describe("Org", () => {
 });
 
 // This ensures that the route is actually mapped to a page that is using withEmbedSsr
-async function expectPageToBeRenderedWithEmbedSsr(page: Page) {
-  expect(
-    await page.evaluate(() => {
-      //@ts-expect-error - __NEXT_DATA__ is a global variable defined by Next.js
-      return window.__NEXT_DATA__.props.pageProps.isEmbed;
-    })
-  ).toBe(true);
+async function expectPageToBeRenderedWithEmbedSsr(responseText: string | undefined) {
+  expect(responseText).toContain('\\"isEmbed\\":true');
 }

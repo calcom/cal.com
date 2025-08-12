@@ -7,7 +7,7 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 /**
  * Organization branding
  *
- * Entries consist of the different properties that constitues a brand for an organization.
+ * Entries consist of the different properties that constitute a brand for an organization.
  */
 export type OrganizationBranding =
   | ({

@@ -20,6 +20,7 @@ export const dailyReturnTypeSchema = z.object({
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
     enable_transcription_storage: z.boolean().default(false),
+    enable_pip_ui: z.boolean(),
   }),
 });
 

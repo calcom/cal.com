@@ -1,5 +1,8 @@
 import prisma from "@calcom/prisma";
 
+/**
+ * Will update all the selected calendars with the same userId, integration and externalId including user-level and event-type-level calendars with new credentialId
+ */
 export async function renewSelectedCalendarCredentialId(
   selectedCalendarWhereUnique: {
     userId: number;
@@ -8,22 +11,26 @@ export async function renewSelectedCalendarCredentialId(
   },
   credentialId: number
 ): Promise<boolean> /* True if renewed, false if not */ {
-  const selectedCalendar = await prisma.selectedCalendar.findFirst({
+  // There could be multiple calendars because same combination could be used across multiple events as event-type-level calendars
+  const selectedCalendars = await prisma.selectedCalendar.findMany({
     where: {
       ...selectedCalendarWhereUnique,
       credentialId: null,
     },
   });
-  if (selectedCalendar) {
-    await prisma.selectedCalendar.update({
-      where: {
-        userId_integration_externalId: selectedCalendarWhereUnique,
+
+  if (!selectedCalendars.length) return false;
+
+  await prisma.selectedCalendar.updateMany({
+    where: {
+      id: {
+        in: selectedCalendars.map((selectedCalendar) => selectedCalendar.id),
       },
-      data: {
-        credentialId: credentialId,
-      },
-    });
-    return true;
-  }
-  return false;
+    },
+    data: {
+      credentialId: credentialId,
+    },
+  });
+
+  return true;
 }

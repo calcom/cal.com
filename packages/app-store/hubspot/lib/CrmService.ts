@@ -9,6 +9,7 @@ import type {
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -19,8 +20,6 @@ import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/C
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
-
-const hubspotClient = new hubspot.Client();
 
 interface CustomPublicObjectInput extends SimplePublicObjectInput {
   id?: string;
@@ -33,8 +32,11 @@ export default class HubspotCalendarService implements CRM {
   private log: typeof logger;
   private client_id = "";
   private client_secret = "";
+  private hubspotClient: hubspot.Client;
 
   constructor(credential: CredentialPayload) {
+    this.hubspotClient = new hubspot.Client();
+
     this.integrationName = "hubspot_other_calendar";
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
@@ -43,11 +45,29 @@ export default class HubspotCalendarService implements CRM {
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
+    const userFields = getLabelValueMapFromResponses(event);
+    const plainText = event?.description?.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+    const location = getLocation(event);
+    const userFieldsHtml = Object.entries(userFields)
+      .map(([key, value]) => {
+        const formattedValue = typeof value === "boolean" ? (value ? "Yes" : "No") : value || "-";
+        return `<b>${event.organizer.language.translate(key)}:</b> ${formattedValue}`;
+      })
+      .join("<br><br>");
+
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
       event.attendees[0].timeZone
-    }<br><br><b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
-      event.additionalNotes || "-"
-    }`;
+    }<br><br>${
+      event.additionalNotes
+        ? `<b>${event.organizer.language.translate("share_additional_notes")}</b><br>${
+            event.additionalNotes
+          }<br><br>`
+        : ""
+    }
+    ${userFieldsHtml}<br><br>
+    <b>${event.organizer.language.translate("where")}:</b> ${location}<br><br>
+    ${plainText ? `<b>${event.organizer.language.translate("description")}</b><br>${plainText}` : ""}
+  `;
   };
 
   private hubspotCreateMeeting = async (event: CalendarEvent) => {
@@ -63,7 +83,7 @@ export default class HubspotCalendarService implements CRM {
       },
     };
 
-    return hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
+    return this.hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
   };
 
   private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Array<{ id: string }>) => {
@@ -74,7 +94,7 @@ export default class HubspotCalendarService implements CRM {
         type: "meeting_event_to_contact",
       })),
     };
-    return hubspotClient.crm.associations.batchApi.create(
+    return this.hubspotClient.crm.associations.batchApi.create(
       "meetings",
       "contacts",
       batchInputPublicAssociation
@@ -94,11 +114,11 @@ export default class HubspotCalendarService implements CRM {
       },
     };
 
-    return hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
   private hubspotDeleteMeeting = async (uid: string) => {
-    return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
+    return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
   private hubspotAuth = async (credential: CredentialPayload) => {
@@ -120,7 +140,7 @@ export default class HubspotCalendarService implements CRM {
       try {
         const hubspotRefreshToken: HubspotToken = await refreshOAuthTokens(
           async () =>
-            await hubspotClient.oauth.tokensApi.createToken(
+            await this.hubspotClient.oauth.tokensApi.createToken(
               "refresh_token",
               undefined,
               `${WEBAPP_URL}/api/integrations/hubspot/callback`,
@@ -131,7 +151,6 @@ export default class HubspotCalendarService implements CRM {
           "hubspot",
           credential.userId
         );
-
         // set expiry date as offset from current time.
         hubspotRefreshToken.expiryDate = Math.round(Date.now() + hubspotRefreshToken.expiresIn * 1000);
         await prisma.credential.update({
@@ -143,7 +162,7 @@ export default class HubspotCalendarService implements CRM {
           },
         });
 
-        hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
+        this.hubspotClient.setAccessToken(hubspotRefreshToken.accessToken);
       } catch (e: unknown) {
         this.log.error(e);
       }
@@ -220,7 +239,7 @@ export default class HubspotCalendarService implements CRM {
       after: 0,
     };
 
-    const contacts = await hubspotClient.crm.contacts.searchApi
+    const contacts = await this.hubspotClient.crm.contacts.searchApi
       .doSearch(publicObjectSearchRequest)
       .then((apiResponse) => apiResponse.results);
 
@@ -248,7 +267,7 @@ export default class HubspotCalendarService implements CRM {
     });
     const createdContacts = await Promise.all(
       simplePublicObjectInputs.map((contact) =>
-        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
+        this.hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
           // If multiple events are created, subsequent events may fail due to
           // contact was created by previous event creation, so we introduce a
           // fallback taking advantage of the error message providing the contact id
@@ -272,5 +291,9 @@ export default class HubspotCalendarService implements CRM {
 
   getAppOptions() {
     console.log("No options implemented");
+  }
+
+  async handleAttendeeNoShow() {
+    console.log("Not implemented");
   }
 }

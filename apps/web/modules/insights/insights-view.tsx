@@ -1,67 +1,115 @@
 "use client";
 
 import {
+  DataTableProvider,
+  DataTableFilters,
+  DateRangeFilter,
+  ColumnFilterType,
+  type FilterableColumn,
+} from "@calcom/features/data-table";
+import {
   AverageEventDurationChart,
   BookingKPICards,
-  BookingStatusLineChart,
-  LeastBookedTeamMembersTable,
-  MostBookedTeamMembersTable,
-  PopularEventsTable,
+  BookingsByHourChart,
+  EventTrendsChart,
   HighestNoShowHostTable,
-  RecentFeedbackTable,
   HighestRatedMembersTable,
+  LeastBookedTeamMembersTable,
   LowestRatedMembersTable,
-} from "@calcom/features/insights/components";
-import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { Filters } from "@calcom/features/insights/filters";
+  MostBookedTeamMembersTable,
+  MostCancelledBookingsTables,
+  PopularEventsTable,
+  RecentFeedbackTable,
+  TimezoneBadge,
+} from "@calcom/features/insights/components/booking";
+import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { Download } from "@calcom/features/insights/filters/Download";
+import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
+import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
+import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { getServerSideProps } from "@lib/insights/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
+export default function InsightsPage({ timeZone }: { timeZone: string }) {
+  return (
+    <DataTableProvider timeZone={timeZone}>
+      <InsightsOrgTeamsProvider>
+        <InsightsPageContent />
+      </InsightsOrgTeamsProvider>
+    </DataTableProvider>
+  );
+}
 
-import InsightsLayout from "./layout";
+const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "createdAt",
+  title: "createdAt",
+  type: ColumnFilterType.DATE_RANGE,
+};
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
-
-export default function InsightsPage() {
+function InsightsPageContent() {
   const { t } = useLocale();
+  const { table } = useInsightsBookings();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
 
   return (
-    <InsightsLayout>
-      <FiltersProvider>
-        <Filters />
+    <>
+      <div
+        className="flex flex-wrap items-center gap-2"
+        data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
+        <OrgTeamsFilter />
+        <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
+        <DataTableFilters.ActiveFilters table={table} />
+        <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+        <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+        <div className="grow" />
+        <Download />
+        <DateRangeFilter column={createdAtColumn} />
+        <TimezoneBadge />
+      </div>
 
-        <div className="mb-4 space-y-4">
-          <BookingKPICards />
+      <div className="my-4 space-y-4">
+        <BookingKPICards />
 
-          <BookingStatusLineChart />
+        <EventTrendsChart />
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <PopularEventsTable />
-
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <BookingsByHourChart />
+          </div>
+          <div className="sm:col-span-2">
             <AverageEventDurationChart />
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <MostBookedTeamMembersTable />
-            <LeastBookedTeamMembersTable />
-          </div>
-          <RecentFeedbackTable />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <HighestNoShowHostTable />
-            <HighestRatedMembersTable />
-            <LowestRatedMembersTable />
-          </div>
-          <small className="text-default block text-center">
-            {t("looking_for_more_insights")}{" "}
-            <a
-              className="text-blue-500 hover:underline"
-              href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
-              {" "}
-              {t("contact_support")}
-            </a>
-          </small>
         </div>
-      </FiltersProvider>
-    </InsightsLayout>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <PopularEventsTable />
+          </div>
+          <MostBookedTeamMembersTable />
+          <LeastBookedTeamMembersTable />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <MostCancelledBookingsTables />
+          <HighestNoShowHostTable />
+          <HighestRatedMembersTable />
+          <LowestRatedMembersTable />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+          <div className="sm:col-span-2">
+            <RecentFeedbackTable />
+          </div>
+        </div>
+
+        <small className="text-default block text-center">
+          {t("looking_for_more_insights")}{" "}
+          <a
+            className="text-blue-500 hover:underline"
+            href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+            {" "}
+            {t("contact_support")}
+          </a>
+        </small>
+      </div>
+    </>
   );
 }

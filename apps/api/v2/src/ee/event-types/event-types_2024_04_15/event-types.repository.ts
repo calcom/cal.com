@@ -5,7 +5,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { getEventTypeById } from "@calcom/platform-libraries";
+import { getEventTypeById } from "@calcom/platform-libraries/event-types";
 import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
@@ -77,5 +77,12 @@ export class EventTypesRepository_2024_04_15 {
 
   async deleteEventType(eventTypeId: number) {
     return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
+  }
+
+  async getEventTypeWithDuration(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { length: true },
+    });
   }
 }

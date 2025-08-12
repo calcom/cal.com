@@ -1,12 +1,15 @@
+import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
+import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import { Prisma, MembershipRole } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { ZCreateAttributeSchema } from "./create.schema";
+import { getOptionsWithValidContains } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -27,9 +30,45 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: ctx.user.id,
+      teamId: org.id,
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (!membership) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be apart of this organization to use this feature",
+    });
+  }
+
+  const { canCreate } = await getResourcePermissions({
+    userId: ctx.user.id,
+    teamId: org.id,
+    resource: Resource.Attributes,
+    userRole: membership.role,
+    fallbackRoles: {
+      create: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
+  if (!canCreate) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You don't have permission to create attributes",
+    });
+  }
+
   const slug = slugify(input.name);
-  const options = input.options.map((v) => v.value);
-  const optionsWithoutDuplicates = Array.from(new Set(options));
+  const uniqueOptions = getOptionsWithValidContains(input.options);
+
   const typeHasOptions = typesWithOptions.includes(input.type);
 
   let attributes: Attribute;
@@ -39,6 +78,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
         slug,
         name: input.name,
         type: input.type,
+        isLocked: input.isLocked,
         teamId: org.id,
       },
     });
@@ -54,10 +94,11 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   // TEXT/NUMBER don't have options
   if (typeHasOptions) {
     await prisma.attributeOption.createMany({
-      data: optionsWithoutDuplicates.map((value) => ({
+      data: uniqueOptions.map(({ value, isGroup }) => ({
         attributeId: attributes.id,
         value,
         slug: slugify(value),
+        isGroup,
       })),
     });
   }

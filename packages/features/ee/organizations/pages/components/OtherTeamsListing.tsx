@@ -1,23 +1,19 @@
-import SkeletonLoaderTeamList from "@calcom/ee/teams/components/SkeletonloaderTeamList";
+"use client";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { Alert, EmptyScreen } from "@calcom/ui";
+import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import OtherTeamList from "./OtherTeamList";
 
-export function OtherTeamsListing() {
+type OtherTeamsListingProps = {
+  teams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>>;
+};
+export function OtherTeamsListing({ teams }: OtherTeamsListingProps) {
   const { t } = useLocale();
-
-  const { data: teams, isPending, error } = trpc.viewer.organizations.listOtherTeams.useQuery();
-
-  if (isPending) {
-    return <SkeletonLoaderTeamList />;
-  }
 
   return (
     <>
-      {!!error && <Alert severity="error" title={error.message} />}
-
       {teams && teams.length > 0 ? (
         <OtherTeamList teams={teams} />
       ) : (

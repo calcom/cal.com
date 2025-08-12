@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
@@ -10,11 +9,11 @@ import {
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import type { NewBookingEventType } from "./types";
+import type { NewBookingEventType } from "./getEventTypesFromDB";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
@@ -33,23 +32,42 @@ type EventType = Pick<
 export const loadUsers = async ({
   eventType,
   dynamicUserList,
-  req,
+  hostname,
+  forcedSlug,
+  isPlatform,
   routedTeamMemberIds,
   contactOwnerEmail,
 }: {
   eventType: EventType;
   dynamicUserList: string[];
-  req: IncomingMessage;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
+  hostname: string;
+  forcedSlug: string | undefined;
+  isPlatform: boolean;
 }) => {
   try {
-    const { currentOrgDomain } = orgDomainConfig(req);
+    const { currentOrgDomain } = getOrgDomainConfig({
+      hostname,
+      forcedSlug,
+      isPlatform,
+    });
+
     const users = eventType.id
       ? await loadUsersByEventType(eventType)
       : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
 
-    return getRoutedUsersWithContactOwnerAndFixedUsers({ users, routedTeamMemberIds, contactOwnerEmail });
+    const routedUsers = getRoutedUsersWithContactOwnerAndFixedUsers({
+      users,
+      routedTeamMemberIds,
+      contactOwnerEmail,
+    });
+
+    if (routedUsers.length) {
+      return routedUsers;
+    }
+
+    return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -65,14 +83,15 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
   });
   const matchingHosts = await findMatchingHostsWithEventSegment({
     eventType,
-    normalizedHosts: hosts ?? fallbackHosts,
+    hosts: hosts ?? fallbackHosts,
   });
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
+  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId }) => ({
     ...user,
     isFixed,
     priority,
     weight,
     createdAt,
+    groupId,
   }));
 };
 
@@ -98,7 +117,7 @@ export const findUsersByUsername = async ({
   usernameList: string[];
 }) => {
   log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+  const { where, profiles } = await new UserRepository(prisma)._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });
@@ -113,7 +132,8 @@ export const findUsersByUsername = async ({
         metadata: true,
       },
     })
-  ).map((user) => {
+  ).map((_user) => {
+    const user = withSelectedCalendars(_user);
     const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
     return {
       ...user,
@@ -124,3 +144,8 @@ export const findUsersByUsername = async ({
 };
 
 export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;
+
+export type OrganizerUser = LoadedUsers[number] & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+};

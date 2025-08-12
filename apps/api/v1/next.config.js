@@ -5,12 +5,8 @@ const plugins = [withAxiom];
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
   transpilePackages: [
     "@calcom/app-store",
-    "@calcom/core",
     "@calcom/dayjs",
     "@calcom/emails",
     "@calcom/features",
@@ -47,7 +43,7 @@ const nextConfig = {
   async rewrites() {
     return {
       afterFiles: [
-        // This redirects requests recieved at / the root to the /api/ folder.
+        // This redirects requests received at / the root to the /api/ folder.
         {
           source: "/v:version/:rest*",
           destination: "/api/v:version/:rest*",

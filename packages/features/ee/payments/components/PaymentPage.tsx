@@ -2,7 +2,6 @@
 
 import classNames from "classnames";
 import dynamic from "next/dynamic";
-import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
@@ -12,10 +11,11 @@ import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import type { PaymentPageProps } from "../pages/payment";
@@ -41,6 +41,26 @@ const AlbyPaymentComponent = dynamic(
   }
 );
 
+const HitpayPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/hitpay/components/HitpayPaymentComponent").then(
+      (m) => m.HitpayPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
+
+const BtcpayPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/btcpayserver/components/BtcpayPaymentComponent").then(
+      (m) => m.BtcpayPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -51,8 +71,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const paymentAppData = getPaymentAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
-    const _timezone =
-      localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
+    const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
     setTimezone(_timezone);
     setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());
@@ -79,12 +98,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   return (
     <div className="h-screen">
-      <Head>
-        <title>
-          {t("payment")} | {eventName} | {APP_NAME}
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <main className="mx-auto max-w-3xl py-24">
         <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
@@ -114,7 +127,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">{eventName}</div>
                       <div className="font-medium">{t("when")}</div>
                       <div className="col-span-2 mb-6">
-                        {date.format("dddd, DD MMMM YYYY")}
+                        {date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
                         <span className="text-subtle">({timezone})</span>
@@ -159,6 +172,12 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "alby" && !props.payment.success && (
                     <AlbyPaymentComponent payment={props.payment} paymentPageProps={props} />
+                  )}
+                  {props.payment.appId === "hitpay" && !props.payment.success && (
+                    <HitpayPaymentComponent payment={props.payment} />
+                  )}
+                  {props.payment.appId === "btcpayserver" && !props.payment.success && (
+                    <BtcpayPaymentComponent payment={props.payment} paymentPageProps={props} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

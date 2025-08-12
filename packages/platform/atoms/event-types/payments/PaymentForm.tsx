@@ -6,9 +6,10 @@ import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
@@ -25,8 +26,8 @@ export const PaymentForm = ({
   onEventTypePaymentInfoFailure,
 }: {
   paymentUid: string;
-  onPaymentSuccess?: (input: Omit<PaymentPageProps, "trpcState">) => void;
-  onPaymentCancellation?: (input: Omit<PaymentPageProps, "trpcState">) => void;
+  onPaymentSuccess?: (input: PaymentPageProps) => void;
+  onPaymentCancellation?: (input: PaymentPageProps) => void;
   onEventTypePaymentInfoSuccess?: () => void;
   onEventTypePaymentInfoFailure?: () => void;
 }) => {
@@ -40,8 +41,7 @@ export const PaymentForm = ({
   const eventName = paymentInfo?.booking.title;
 
   const is24h = isBrowserLocale24h();
-  const timezone =
-    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
+  const timezone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
   const date = dayjs.utc(paymentInfo?.booking.startTime).tz(timezone);
 
   if (isLoading) return <h1 className="p-4 pt-4 text-xl">Loading...</h1>;

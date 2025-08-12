@@ -18,8 +18,10 @@ import {
   CAL_API_VERSION_HEADER,
   X_CAL_CLIENT_ID,
   X_CAL_SECRET_KEY,
+  X_CAL_PLATFORM_EMBED,
 } from "@calcom/platform-constants";
 
+import { CalendarServiceExceptionFilter } from "./filters/calendar-service-exception.filter";
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
@@ -45,6 +47,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     allowedHeaders: [
       X_CAL_CLIENT_ID,
       X_CAL_SECRET_KEY,
+      X_CAL_PLATFORM_EMBED,
       CAL_API_VERSION_HEADER,
       "Accept",
       "Authorization",
@@ -74,8 +77,13 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalFilters(new TRPCExceptionFilter());
+  app.useGlobalFilters(new CalendarServiceExceptionFilter());
 
   app.use(cookieParser());
+
+  if (process?.env?.API_GLOBAL_PREFIX) {
+    app.setGlobalPrefix(process?.env?.API_GLOBAL_PREFIX);
+  }
 
   return app;
 };

@@ -1,16 +1,18 @@
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
+import type { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { calendar_v3 } from "@googleapis/calendar";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
-import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
 
 import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
@@ -22,7 +24,7 @@ const CALENDAR_SCOPES = [
 
 @Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
+  public readonly redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private logger = new Logger("GcalService");
 
@@ -38,31 +40,44 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   async connect(
     authorization: string,
     req: Request,
-    redir?: string
+    redir?: string,
+    isDryRun?: boolean
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
+    const redirectUrl = await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir, isDryRun);
 
     return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }
 
-  async save(code: string, accessToken: string, origin: string, redir?: string): Promise<{ url: string }> {
-    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin, redir);
+  async save(
+    code: string,
+    accessToken: string,
+    origin: string,
+    redir?: string,
+    isDryRun?: boolean
+  ): Promise<{ url: string }> {
+    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin, redir, isDryRun);
   }
 
   async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     return await this.checkIfCalendarConnected(userId);
   }
 
-  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string) {
+  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string, isDryRun?: boolean) {
     const oAuth2Client = await this.getOAuthClient(this.redirectUri);
+    const state: CalendarState = {
+      accessToken,
+      origin,
+      redir,
+      isDryRun,
+    };
 
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: CALENDAR_SCOPES,
       prompt: "consent",
-      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}`,
+      state: JSON.stringify(state),
     });
 
     return authUrl;
@@ -78,19 +93,22 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
 
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirectUri);
+    const oAuth2Client = new OAuth2Client(client_id, client_secret, redirectUri);
     return oAuth2Client;
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const gcalCredentials = await this.credentialRepository.getByTypeAndUserId("google_calendar", userId);
+    const gcalCredentials = await this.credentialRepository.findCredentialByTypeAndUserId(
+      "google_calendar",
+      userId
+    );
 
     if (!gcalCredentials) {
       throw new BadRequestException("Credentials for google_calendar not found.");
     }
 
     if (gcalCredentials.invalid) {
-      throw new BadRequestException("Invalid google oauth credentials.");
+      throw new BadRequestException("Invalid google OAuth credentials.");
     }
 
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
@@ -111,11 +129,17 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     code: string,
     accessToken: string,
     origin: string,
-    redir?: string
+    redir?: string,
+    isDryRun?: boolean
   ) {
     // User chose not to authorize your app or didn't authorize your app
     // redirect directly without oauth code
-    if (!code) {
+    if (!code || code === "undefined") {
+      return { url: redir || origin };
+    }
+
+    // if isDryRun is true we know its a dry run so we just redirect straight away
+    if (isDryRun) {
       return { url: redir || origin };
     }
 
@@ -134,8 +158,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
     oAuth2Client.setCredentials(key);
 
-    const calendar = google.calendar({
-      version: "v3",
+    const calendar = new calendar_v3.Calendar({
       auth: oAuth2Client,
     });
 

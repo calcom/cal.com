@@ -6,9 +6,9 @@
   "main": "./index.ts",
   "dependencies": {
     "@calcom/lib": "*",
-    "@getalby/lightning-tools": "^4.0.2",
-    "@getalby/sdk": "^2.4.0",
-    "@webbtc/webln-types": "^2.0.1",
+    "@getalby/lightning-tools": "^5.1.2",
+    "@getalby/sdk": "^4.0.0",
+    "@webbtc/webln-types": "^3.0.0",
     "react-qr-code": "^2.0.12",
     "svix": "^0.85.1"
   },

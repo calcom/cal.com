@@ -18,6 +18,7 @@ export const WORKFLOW_ACTIONS = [
   WorkflowActions.SMS_NUMBER,
   WorkflowActions.WHATSAPP_ATTENDEE,
   WorkflowActions.WHATSAPP_NUMBER,
+  WorkflowActions.CAL_AI_PHONE_CALL,
 ] as const;
 
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
@@ -61,7 +62,9 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "additional_notes",
   "meeting_url",
   "cancel_url",
+  "cancel_reason",
   "reschedule_url",
+  "reschedule_reason",
   "rating_url",
   "no_show_url",
   "attendee_timezone",

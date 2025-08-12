@@ -6,7 +6,9 @@ import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
+import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -29,11 +31,18 @@ import {
 } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  SUCCESS_STATUS,
+  VERSION_2024_06_14,
+} from "@calcom/platform-constants";
 import {
   UpdateEventTypeInput_2024_06_14,
   GetEventTypesQuery_2024_06_14,
   CreateEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+
 } from "@calcom/platform-types";
 
 @Controller({
@@ -44,8 +53,12 @@ import {
 @DocsTags("Event Types")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to \`2024-06-14\``,
+  description: `Must be set to ${VERSION_2024_06_14}`,
+  example: VERSION_2024_06_14,
   required: true,
+  schema: {
+    default: VERSION_2024_06_14,
+  },
 })
 export class EventTypesController_2024_06_14 {
   constructor(
@@ -57,19 +70,14 @@ export class EventTypesController_2024_06_14 {
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Create an event type" })
   async createEventType(
     @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateCreateEventTypeInput(
-      user.id,
+      user,
       body
     );
 
@@ -84,12 +92,7 @@ export class EventTypesController_2024_06_14 {
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get an event type" })
   async getEventTypeById(
     @Param("eventTypeId") eventTypeId: string,
@@ -113,22 +116,36 @@ export class EventTypesController_2024_06_14 {
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    if (!eventTypes || eventTypes.length === 0) {
+      throw new NotFoundException(`Event types not found`);
+    }
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
+      return {
+        ...eventType,
+        bookingFields: Array.isArray(eventType?.bookingFields)
+          ? eventType?.bookingFields
+              .map((field) => {
+                if ("hidden" in field) {
+                  return field.hidden !== true ? field : null;
+                }
+                return field;
+              })
+              .filter((f) => f)
+          : [],
+      };
+    }) as EventTypeOutput_2024_06_14[];
 
     return {
       status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventTypes),
+      data: eventTypesWithoutHiddenFields,
     };
   }
 
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Update an event type" })
   async updateEventType(
@@ -138,7 +155,7 @@ export class EventTypesController_2024_06_14 {
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
     const transformedBody = await this.inputEventTypesService.transformAndValidateUpdateEventTypeInput(
       body,
-      user.id,
+      user,
       eventTypeId
     );
 
@@ -153,12 +170,7 @@ export class EventTypesController_2024_06_14 {
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiHeader({
-    name: "Authorization",
-    description:
-      "value must be `Bearer <token>` where `<token>` either managed user access token or api key prefixed with cal_",
-    required: true,
-  })
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Delete an event type" })
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,

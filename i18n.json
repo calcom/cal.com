@@ -6,6 +6,7 @@
       "ar",
       "az",
       "bg",
+      "bn",
       "ca",
       "cs",
       "da",
@@ -15,6 +16,7 @@
       "es-419",
       "eu",
       "et",
+      "fi",
       "fr",
       "he",
       "hu",
@@ -43,5 +45,6 @@
     "json": {
       "include": ["apps/web/public/static/locales/[locale]/common.json"]
     }
-  }
+  },
+  "$schema": "https://lingo.dev/schema/i18n.json"
 }

@@ -5,19 +5,22 @@ import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "../lib/future-legacy-routes";
+
+test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
 
-testBothFutureAndLegacyRoutes.describe("Forgot password", async () => {
+test.describe("Forgot password", async () => {
   test("Can reset forgotten password", async ({ page, users }) => {
     const user = await users.create();
 
     // Got to reset password flow
     await page.goto("/auth/forgot-password");
+    await page.waitForSelector("text=Forgot Password?");
 
     await page.fill('input[name="email"]', `${user.username}@example.com`);
     await page.press('input[name="email"]', "Enter");
+    await page.waitForLoadState("networkidle");
 
     // wait for confirm page.
     await page.waitForSelector("text=Reset link sent");

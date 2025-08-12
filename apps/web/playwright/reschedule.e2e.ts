@@ -33,7 +33,8 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/upcoming");
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
 
     await page.locator('[data-testid="reschedule_request"]').click();
 
@@ -48,6 +49,58 @@ test.describe("Reschedule Tests", async () => {
     expect(updatedBooking?.cancellationReason).toBe("I can't longer have it");
     expect(updatedBooking?.status).toBe(BookingStatus.CANCELLED);
     await booking.delete();
+  });
+
+  test("Should not show reschedule and request reschedule option if booking in past and disallowed", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const booking = await bookings.create(user.id, user.username, user.eventTypes[0].id!, {
+      status: BookingStatus.ACCEPTED,
+      startTime: dayjs().subtract(2, "day").toDate(),
+      endTime: dayjs().subtract(2, "day").add(30, "minutes").toDate(),
+    });
+
+    await prisma.eventType.update({
+      where: {
+        id: user.eventTypes[0].id,
+      },
+      data: {
+        allowReschedulingPastBookings: true,
+      },
+    });
+
+    await user.apiLogin();
+    await page.goto("/bookings/past");
+
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+
+    await prisma.eventType.update({
+      where: {
+        id: user.eventTypes[0].id,
+      },
+      data: {
+        allowReschedulingPastBookings: false,
+      },
+    });
+
+    await page.reload();
+
+    // Click the ellipsis menu button to open the dropdown
+    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+
+    // Check that the reschedule options are visible but disabled
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeVisible();
+    await expect(page.locator('[data-testid="reschedule"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="reschedule_request"]')).toBeDisabled();
   });
 
   test("Should display former time when rescheduling availability", async ({ page, users, bookings }) => {
@@ -340,6 +393,62 @@ test.describe("Reschedule Tests", async () => {
 
   test("Team Event Booking", () => {
     // It is tested in teams.e2e.ts
+  });
+
+  test("Should redirect to cancelled page when allowReschedulingCancelledBookings is false (default)", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        allowReschedulingCancelledBookings: false,
+      },
+    });
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.CANCELLED,
+    });
+
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    expect(page.url()).not.toContain("rescheduleUid");
+    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+  });
+
+  test("Should allow rescheduling when allowReschedulingCancelledBookings is true", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        allowReschedulingCancelledBookings: true,
+      },
+    });
+
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.CANCELLED,
+    });
+
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await bookTimeSlot(page);
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
   test.describe("Organization", () => {

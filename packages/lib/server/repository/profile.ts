@@ -2,17 +2,19 @@ import type { User as PrismaUser } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
 import { getParsedTeam } from "./teamUtils";
-import { UserRepository } from "./user";
 
-const userSelect = Prisma.validator<Prisma.UserSelect>()({
+const userSelect = {
   name: true,
   avatarUrl: true,
   username: true,
@@ -24,18 +26,22 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   endTime: true,
   bufferTime: true,
   isPlatformManaged: true,
-});
+} satisfies Prisma.UserSelect;
 
-const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
+const membershipSelect = {
   id: true,
   teamId: true,
   userId: true,
   accepted: true,
   role: true,
   disableImpersonation: true,
-});
+} satisfies Prisma.MembershipSelect;
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
+const organizationSettingsSelect = {
+  allowSEOIndexing: true,
+  orgProfileRedirectsToVerifiedDomain: true,
+} satisfies Prisma.OrganizationSettingsSelect;
 const organizationSelect = {
   id: true,
   slug: true,
@@ -44,6 +50,13 @@ const organizationSelect = {
   logoUrl: true,
   bannerUrl: true,
   isPlatform: true,
+  hideBranding: true,
+};
+const organizationWithSettingsSelect = {
+  ...organizationSelect,
+  organizationSettings: {
+    select: organizationSettingsSelect,
+  },
 };
 
 export enum LookupTarget {
@@ -54,6 +67,33 @@ export enum LookupTarget {
 export class ProfileRepository {
   static generateProfileUid() {
     return uuidv4();
+  }
+
+  // This is a minimal replication of UserRepository.findById only selecting the data we need here to prevent circular dependency
+  private static async findUserByid({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+        metadata: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+    return {
+      ...user,
+      metadata: userMetadata.parse(user.metadata),
+    };
   }
 
   private static getInheritedDataFromUser({
@@ -212,20 +252,91 @@ export class ProfileRepository {
     });
   }
 
+  static async createManyForExistingUsers({
+    users,
+    organizationId,
+    orgAutoAcceptEmail,
+  }: {
+    users: { id: number; username: string | null; email: string }[];
+    organizationId: number;
+    orgAutoAcceptEmail: string;
+  }) {
+    await prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: ProfileRepository.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
+      })),
+      skipDuplicates: true,
+    });
+
+    // Populate the movedFromUser
+    const createdProfiles = await prisma.profile.findMany({
+      where: {
+        userId: {
+          in: users.map((user) => user.id),
+        },
+        organizationId,
+      },
+    });
+
+    for (let i = 0; i < createdProfiles.length; i += DATABASE_CHUNK_SIZE) {
+      const profilesBatch = createdProfiles.slice(i, i + DATABASE_CHUNK_SIZE);
+      await Promise.allSettled([
+        profilesBatch.map((profile) => {
+          prisma.user.update({
+            where: {
+              id: profile.userId,
+            },
+            data: {
+              movedToProfile: {
+                connect: { id: profile.id },
+              },
+            },
+          });
+        }),
+      ]);
+    }
+  }
+
+  static async createManyPromise({
+    users,
+    organizationId,
+    orgAutoAcceptEmail,
+  }: {
+    users: { id: number; username: string | null; email: string }[];
+    organizationId: number;
+    orgAutoAcceptEmail: string;
+  }) {
+    return await prisma.profile.createMany({
+      data: users.map((user) => ({
+        uid: ProfileRepository.generateProfileUid(),
+        userId: user.id,
+        organizationId,
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
   static createMany({
     users,
     organizationId,
+    orgAutoAcceptEmail,
   }: {
-    users: { id: number; username: string; email: string }[];
+    users: { id: number; username: string | null; email: string }[];
     organizationId: number;
+    orgAutoAcceptEmail: string;
   }) {
     return prisma.profile.createMany({
       data: users.map((user) => ({
         uid: ProfileRepository.generateProfileUid(),
         userId: user.id,
         organizationId,
-        username: user.username || user.email.split("@")[0],
+        username: user?.username || getOrgUsernameFromEmail(user.email, orgAutoAcceptEmail),
       })),
+      skipDuplicates: true,
     });
   }
 
@@ -253,10 +364,12 @@ export class ProfileRepository {
     if (!organizationId) {
       return null;
     }
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        userId,
-        organizationId,
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -290,10 +403,12 @@ export class ProfileRepository {
     organizationId: number;
     username: string;
   }) {
-    const profile = await prisma.profile.findFirst({
+    const profile = await prisma.profile.findUnique({
       where: {
-        username,
-        organizationId,
+        username_organizationId: {
+          username,
+          organizationId,
+        },
       },
       include: {
         organization: {
@@ -311,7 +426,7 @@ export class ProfileRepository {
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
     log.debug("findByUpId", safeStringify({ upId, lookupTarget }));
     if (lookupTarget.type === LookupTarget.User) {
-      const user = await UserRepository.findById({ id: lookupTarget.id });
+      const user = await this.findUserByid({ id: lookupTarget.id });
       if (!user) {
         return null;
       }
@@ -370,9 +485,11 @@ export class ProfileRepository {
             bannerUrl: true,
             isPrivate: true,
             isPlatform: true,
+            hideBranding: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
+                allowSEOIndexing: true,
               },
             },
             members: {
@@ -416,7 +533,7 @@ export class ProfileRepository {
           select: userSelect,
         },
         organization: {
-          select: organizationSelect,
+          select: organizationWithSettingsSelect,
         },
       },
     });
@@ -546,6 +663,29 @@ export class ProfileRepository {
       return profile;
     }
     return normalizeProfile(profile);
+  }
+
+  static async findByUserIdAndOrgSlug({
+    userId,
+    organizationId,
+  }: {
+    userId: number;
+    organizationId: number;
+  }) {
+    const profile = await prisma.profile.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId,
+        },
+      },
+      include: {
+        organization: {
+          select: organizationSelect,
+        },
+      },
+    });
+    return profile;
   }
 
   /**

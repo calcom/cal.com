@@ -21,6 +21,7 @@ export const Info = (props: {
     return (
       <p
         className="dark:text-darkgray-600 mt-2 text-sm text-gray-500 [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: htmlContent
             .replaceAll("<p>", `<p style="${css}">`)

@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
   ArrayNotEmpty,
   IsBoolean,
@@ -50,11 +50,10 @@ export class CreateIcsFeedInputDto {
   urls!: string[];
 
   @IsBoolean()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: false,
     description: "Whether to allowing writing to the calendar or not",
     type: "boolean",
-    required: false,
     default: true,
   })
   @IsOptional()

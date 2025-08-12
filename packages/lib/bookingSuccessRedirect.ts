@@ -8,18 +8,52 @@ import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
-function getNewSearchParams(args: {
+import { getSafe } from "./getSafe";
+
+export function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
   searchParams?: URLSearchParams;
+  filterInternalParams?: boolean;
 }) {
-  const { query, searchParams } = args;
-  const newSearchParams = new URLSearchParams(searchParams);
+  const { query, searchParams, filterInternalParams = false } = args;
+  const newSearchParams = new URLSearchParams();
+
+  // Embed-specific params
+  const embedParams = new Set(["embed", "layout", "embedType", "ui.color-scheme"]);
+
+  // Webapp-specific params
+  const webappParams = new Set(["overlayCalendar"]);
+
+  // Add non-excluded params from searchParams if provided
+  if (searchParams) {
+    searchParams.forEach((value, key) => {
+      if (shouldExcludeParam(key)) {
+        return;
+      }
+      newSearchParams.append(key, value);
+    });
+  }
+
+  // Add params from query, filtering excluded params
   Object.entries(query).forEach(([key, value]) => {
     if (value === null || value === undefined) {
       return;
     }
+
+    if (shouldExcludeParam(key)) {
+      return;
+    }
+
     newSearchParams.append(key, String(value));
   });
+
+  function shouldExcludeParam(key: string) {
+    if (filterInternalParams) {
+      return embedParams.has(key) || webappParams.has(key);
+    }
+    return false;
+  }
+
   return newSearchParams;
 }
 
@@ -54,13 +88,6 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "user",
     "responses",
   ];
-
-  function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
-    return path.reduce(
-      (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
-      obj
-    ) as T | undefined;
-  }
 
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
@@ -120,18 +147,21 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     };
   }
 
-  const result = (Object.keys(booking) as BookingResponseKey[])
+  const bookingParams = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
-    .reduce<ResultType>((obj, key) => {
-      if (key === "responses") return extractResponseDetails(booking, obj);
-      if (key === "user") return extractUserDetails(booking, obj);
-      if (key === "attendees") return extractAttendeesAndGuests(booking, obj);
-      return { ...obj, [key]: booking[key] };
-    }, {});
+    .reduce<ResultType>(
+      (obj, key) => {
+        if (key === "responses") return extractResponseDetails(booking, obj);
+        if (key === "user") return extractUserDetails(booking, obj);
+        if (key === "attendees") return extractAttendeesAndGuests(booking, obj);
+        return { ...obj, [key]: booking[key] };
+      },
+      { uid: booking.uid }
+    );
 
   const queryCompatibleParams: Record<string, string | boolean | null | undefined> = {
     ...Object.fromEntries(
-      Object.entries(result).map(([key, value]) => {
+      Object.entries(bookingParams).map(([key, value]) => {
         if (Array.isArray(value)) {
           return [key, value.join(", ")];
         }
@@ -142,10 +172,10 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
         return [key, value];
       })
     ),
-    hostName: result.hostName?.join(", "),
-    attendeeName: result.attendeeName || undefined,
-    hostStartTime: result.hostStartTime || undefined,
-    attendeeStartTime: result.attendeeStartTime || undefined,
+    hostName: bookingParams.hostName?.join(", "),
+    attendeeName: bookingParams.attendeeName || undefined,
+    hostStartTime: bookingParams.hostStartTime || undefined,
+    attendeeStartTime: bookingParams.attendeeStartTime || undefined,
   };
 
   return queryCompatibleParams;
@@ -179,14 +209,22 @@ export const useBookingSuccessRedirect = () => {
         navigateInTopWindow(url.toString());
         return;
       }
+
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
+
+      // Filter internal Cal.com params when redirecting to external URLs.
+      // - It prevents leaking internal state.
+      // - Certain websites might break due to the presence of certain params e.g. Wordpress has different meaning for `embed` param and an embed param passed by Cal.com breaks a wordpress webpage
       const newSearchParams = getNewSearchParams({
         query: {
           ...query,
           ...bookingExtraParams,
+          isEmbed,
         },
-        searchParams: searchParams ?? undefined,
+        searchParams: new URLSearchParams(searchParams.toString()),
+        filterInternalParams: true,
       });
+
       newSearchParams.forEach((value, key) => {
         url.searchParams.append(key, value);
       });

@@ -5,9 +5,8 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { moveUserToOrg } from "@lib/orgMigration";
-
 import { test } from "../lib/fixtures";
+import { moveUserToOrg } from "../lib/orgMigration";
 import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
@@ -24,7 +23,7 @@ test.describe("Organization", () => {
       const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
-      await page.goto("/settings/organizations/members");
+      await page.goto(`/settings/organizations/${org.slug}/members`);
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
@@ -42,6 +41,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: false,
@@ -61,6 +61,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -78,6 +79,7 @@ test.describe("Organization", () => {
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -103,7 +105,7 @@ test.describe("Organization", () => {
       const { team: org } = await orgOwner.getOrgMembership();
 
       await test.step("By email", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
         const usernameDerivedFromEmail = `${invitedUserEmail.split("@")[0]}-domain`;
@@ -119,6 +121,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: false,
@@ -156,6 +159,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -164,7 +168,7 @@ test.describe("Organization", () => {
       });
 
       await test.step("By invite link", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
         const inviteLink = await copyInviteLink(page, true);
         const email = users.trackEmail({ username: "rick", domain: "domain.com" });
         // '-domain' because the email doesn't match orgAutoAcceptEmail
@@ -184,6 +188,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -203,7 +208,7 @@ test.describe("Organization", () => {
       });
       const { team: org } = await orgOwner.getOrgMembership();
       await orgOwner.apiLogin();
-      await page.goto("/settings/organizations/members");
+      await page.goto(`/settings/organizations/${org.slug}/members`);
 
       await test.step("By email", async () => {
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
@@ -219,6 +224,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -238,6 +244,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -255,6 +262,7 @@ test.describe("Organization", () => {
         expect(dbUser?.username).toBe(usernameDerivedFromEmail);
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -331,7 +339,7 @@ test.describe("Organization", () => {
       await orgOwner.apiLogin();
 
       await test.step("By email", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
         const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
         const usernameDerivedFromEmail = invitedUserEmail.split("@")[0];
         await inviteAnEmail(page, invitedUserEmail, true);
@@ -346,6 +354,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -382,6 +391,7 @@ test.describe("Organization", () => {
 
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -390,7 +400,7 @@ test.describe("Organization", () => {
       });
 
       await test.step("By invite link", async () => {
-        await page.goto(`/settings/teams/${team.id}/members`);
+        await page.goto(`/settings/teams/${team.id}/settings`);
 
         const inviteLink = await copyInviteLink(page, true);
         const email = users.trackEmail({ username: "rick", domain: "example.com" });
@@ -411,6 +421,7 @@ test.describe("Organization", () => {
         });
         await expectUserToBeAMemberOfOrganization({
           page,
+          orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
           isMemberShipAccepted: true,
@@ -436,7 +447,7 @@ test.describe("Organization", () => {
       const { team } = await orgOwner.getFirstTeamMembership();
 
       await orgOwner.apiLogin();
-      await page.goto(`/settings/teams/${team.id}/members`);
+      await page.goto(`/settings/teams/${team.id}/settings`);
       const invitedUserEmail = users.trackEmail({ username: "rick", domain: "example.com" });
       await inviteAnEmail(page, invitedUserEmail, true);
 
@@ -529,32 +540,41 @@ export async function signupFromEmailInviteLink({
 
 async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: boolean) {
   if (teamPage) {
+    const url = page.url();
+    const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
+    if (teamIdMatch && teamIdMatch[1]) {
+      await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    }
     await page.getByTestId("new-member-button").click();
   } else {
     await page.getByTestId("new-organization-member-button").click();
   }
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
-  await page.locator('button:text("Send invite")').click();
+  await page.getByTestId("invite-new-member-button").click();
   const response = await submitPromise;
   expect(response.status()).toBe(200);
 }
 
 async function expectUserToBeAMemberOfOrganization({
   page,
+  orgSlug,
   username,
   email,
   role,
   isMemberShipAccepted,
 }: {
   page: Page;
+  orgSlug: string | null;
   username: string;
   role: string;
   isMemberShipAccepted: boolean;
   email: string;
 }) {
   // Check newly invited member is not pending anymore
-  await page.goto("/settings/organizations/members");
+  await page.goto(`/settings/organizations/${orgSlug}/members`);
   await expect(page.locator(`[data-testid="member-${username}-username"]`)).toHaveText(username);
   await expect(page.locator(`[data-testid="member-${username}-email"]`)).toHaveText(email);
   expect((await page.locator(`[data-testid="member-${username}-role"]`).textContent())?.toLowerCase()).toBe(
@@ -584,8 +604,8 @@ async function expectUserToBeAMemberOfTeam({
 }) {
   // Check newly invited member is not pending anymore
   await page.goto(`/settings/teams/${teamId}/members`);
-  await page.reload();
   await page.waitForLoadState("domcontentloaded");
+  await page.waitForTimeout(1000); // Add a small delay to ensure UI is fully loaded
   expect(
     (
       await page
@@ -610,6 +630,13 @@ function assertInviteLink(inviteLink: string | null | undefined): asserts invite
 
 async function copyInviteLink(page: Page, teamPage?: boolean) {
   if (teamPage) {
+    const url = page.url();
+    const teamIdMatch = url.match(/\/settings\/teams\/(\d+)/);
+    if (teamIdMatch && teamIdMatch[1]) {
+      await page.goto(`/settings/teams/${teamIdMatch[1]}/members`);
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
+    }
     await page.getByTestId("new-member-button").click();
   } else {
     await page.getByTestId("new-organization-member-button").click();

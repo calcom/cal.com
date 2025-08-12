@@ -3,12 +3,10 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
-import {
-  useSubscribeTeamToStripe,
-  useUpgradeTeamSubscriptionInStripe,
-} from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useSubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useSubscribeTeamToStripe";
+import { useUpgradeTeamSubscriptionInStripe } from "@lib/hooks/settings/platform/billing/useUpgradeTeamSubscriptionInStripe";
 
 import { platformPlans } from "@components/settings/platform/platformUtils";
 import { PlatformBillingCard } from "@components/settings/platform/pricing/billing-card";
@@ -43,7 +41,7 @@ export const PlatformPricing = ({ teamId, teamPlan, heading }: PlatformPricingPr
 
   const handleStripeSubscription = async (plan: string) => {
     if (plan === "Enterprise") {
-      router.push("https://i.cal.com/sales/exploration");
+      return router.push("https://go.cal.com/quote");
     }
 
     if (currentPage === "platform") {

@@ -1,25 +1,26 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZValidateLicenseInputSchema } from "./validateLicense.schema";
 
 type DeploymentSetupRouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
+  validateLicense?: typeof import("./validateLicense.handler").validateLicenseHandler;
 };
-
-const UNSTABLE_HANDLER_CACHE: DeploymentSetupRouterHandlerCache = {};
 
 export const deploymentSetupRouter = router({
   update: authedAdminProcedure.input(ZUpdateInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      UNSTABLE_HANDLER_CACHE.update = await import("./update.handler").then((mod) => mod.updateHandler);
-    }
+    const { updateHandler } = await import("./update.handler");
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.update) {
-      throw new Error("Failed to load handler");
-    }
+    return updateHandler({
+      ctx,
+      input,
+    });
+  }),
+  validateLicense: authedAdminProcedure.input(ZValidateLicenseInputSchema).query(async ({ input, ctx }) => {
+    const { validateLicenseHandler } = await import("./validateLicense.handler");
 
-    return UNSTABLE_HANDLER_CACHE.update({
+    return validateLicenseHandler({
       ctx,
       input,
     });

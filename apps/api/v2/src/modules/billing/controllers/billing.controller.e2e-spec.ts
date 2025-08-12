@@ -16,13 +16,14 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Team, PlatformOAuthClient, PlatformBilling } from "@calcom/prisma/client";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "platform-billing-controller-e2e@api.com";
+  const userEmail = `billing-user-${randomString()}@api.com`;
   let user: UserWithProfile;
   let billing: PlatformBilling;
   let userRepositoryFixture: UserRepositoryFixture;
@@ -47,7 +48,9 @@ describe("Platform Billing Controller (e2e)", () => {
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
-    organization = await organizationsRepositoryFixture.create({ name: "platform billing" });
+    organization = await organizationsRepositoryFixture.create({
+      name: `billing-organization-${randomString()}`,
+    });
 
     user = await userRepositoryFixture.create({
       email: userEmail,
@@ -113,6 +116,7 @@ describe("Platform Billing Controller (e2e)", () => {
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
@@ -138,9 +142,9 @@ describe("Platform Billing Controller (e2e)", () => {
           },
         } as unknown as Stripe)
     );
-
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
@@ -170,6 +174,7 @@ describe("Platform Billing Controller (e2e)", () => {
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);
@@ -202,6 +207,7 @@ describe("Platform Billing Controller (e2e)", () => {
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
+      .set("stripe-signature", "t=1234567890,v1=random_signature_for_e2e_test")
       .expect(200)
       .then(async (res) => {
         const billing = await platformBillingRepositoryFixture.get(organization.id);

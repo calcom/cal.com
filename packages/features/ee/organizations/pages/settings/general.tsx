@@ -5,30 +5,26 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
-import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Form,
-  Label,
-  Meta,
-  Select,
-  showToast,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  TimezoneSelect,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form";
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
 
+import { DisablePhoneOnlySMSNotificationsSwitch } from "../components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
       <div className="mb-8 mt-6 space-y-6">
@@ -45,22 +41,31 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
-  isAdminOrOwner: boolean;
   localeProp: string;
+
+  permissions: {
+    canRead: boolean;
+    canEdit: boolean;
+  };
 }
 
-const OrgGeneralView = () => {
+const OrgGeneralView = ({
+  permissions,
+}: {
+  permissions: {
+    canRead: boolean;
+    canEdit: boolean;
+  };
+}) => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
 
   const {
     data: currentOrg,
     isPending,
     error,
   } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
-  const { data: user } = trpc.viewer.me.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -71,27 +76,31 @@ const OrgGeneralView = () => {
     [error]
   );
 
-  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  if (isPending) return <SkeletonLoader />;
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <LicenseRequired>
       <GeneralView
         currentOrg={currentOrg}
-        isAdminOrOwner={isAdminOrOwner}
-        localeProp={user?.locale ?? "en"}
+        localeProp={session.data?.user.locale ?? "en"}
+        permissions={permissions}
       />
 
-      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
-      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      {permissions.canEdit && (
+        <>
+          <LockEventTypeSwitch currentOrg={currentOrg} />
+          <NoSlotsNotificationSwitch currentOrg={currentOrg} />
+          <DisablePhoneOnlySMSNotificationsSwitch currentOrg={currentOrg} />
+        </>
+      )}
     </LicenseRequired>
   );
 };
 
-const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProps) => {
+const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) => {
   const { t } = useLocale();
 
   const mutation = trpc.viewer.organizations.update.useMutation({
@@ -139,7 +148,7 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
     reset,
     getValues,
   } = formMethods;
-  const isDisabled = isSubmitting || !isDirty || !isAdminOrOwner;
+  const isDisabled = isSubmitting || !isDirty || !permissions.canEdit;
   return (
     <Form
       form={formMethods}
@@ -150,7 +159,11 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
           weekStart: values.weekStart.value,
         });
       }}>
-      <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
+      <div
+        className={classNames(
+          "border-subtle border-x border-y-0 px-4 py-8 sm:px-6",
+          !permissions.canEdit && "rounded-b-lg border-y"
+        )}>
         <Controller
           name="timeZone"
           control={formMethods.control}
@@ -210,11 +223,13 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
         />
       </div>
 
-      <SectionBottomActions align="end">
-        <Button disabled={isDisabled} color="primary" type="submit">
-          {t("update")}
-        </Button>
-      </SectionBottomActions>
+      {permissions?.canEdit && (
+        <SectionBottomActions align="end">
+          <Button disabled={isDisabled} color="primary" type="submit">
+            {t("update")}
+          </Button>
+        </SectionBottomActions>
+      )}
     </Form>
   );
 };

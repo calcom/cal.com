@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TListInputSchema } from "./list.schema";
 
@@ -18,7 +18,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     AND: [{ appId: !input?.appId ? null : input.appId }],
   };
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
     },
@@ -29,7 +29,25 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
 
   if (Array.isArray(where.AND)) {
     if (input?.eventTypeId) {
-      where.AND?.push({ eventTypeId: input.eventTypeId });
+      const managedParentEvt = await prisma.eventType.findFirst({
+        where: {
+          id: input.eventTypeId,
+          parentId: {
+            not: null,
+          },
+        },
+        select: {
+          parentId: true,
+        },
+      });
+
+      if (managedParentEvt?.parentId) {
+        where.AND?.push({
+          OR: [{ eventTypeId: input.eventTypeId }, { eventTypeId: managedParentEvt.parentId, active: true }],
+        });
+      } else {
+        where.AND?.push({ eventTypeId: input.eventTypeId });
+      }
     } else {
       where.AND?.push({
         OR: [{ userId: ctx.user.id }, { teamId: { in: user?.teams.map((membership) => membership.teamId) } }],

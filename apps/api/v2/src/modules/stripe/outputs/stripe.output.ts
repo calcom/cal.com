@@ -23,7 +23,7 @@ export class StripConnectOutputResponseDto {
 
 export class StripCredentialsCheckOutputResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS })
-  status!: typeof SUCCESS_STATUS;
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 }
 
 export class StripCredentialsSaveOutputResponseDto {

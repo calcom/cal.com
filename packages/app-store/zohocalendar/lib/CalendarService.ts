@@ -1,11 +1,12 @@
 import { stringify } from "querystring";
 
 import dayjs from "@calcom/dayjs";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
+import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
+  CalendarServiceEvent,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
@@ -112,7 +113,7 @@ export default class ZohoCalendarService implements Calendar {
     return this.handleData(response, this.log);
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarServiceEvent): Promise<NewCalendarEventType> {
     let eventId = "";
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
@@ -158,7 +159,7 @@ export default class ZohoCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
+  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId?: string) {
     const eventId = uid;
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
@@ -235,6 +236,14 @@ export default class ZohoCalendarService implements Calendar {
     }
   }
 
+  private parseDateTime = (dateTimeStr: string) => {
+    const dateOnlyFormat = "YYYYMMDD";
+    const dateTimeFormat = "YYYYMMDD[T]HHmmss[Z]";
+    // Check if the string matches the date-only format (YYYYMMDDZ) or date-time format
+    const format = /^\d{8}Z$/.test(dateTimeStr) ? dateOnlyFormat : dateTimeFormat;
+    return dayjs.utc(dateTimeStr, format);
+  };
+
   private async getBusyData(dateFrom: string, dateTo: string, userEmail: string) {
     const query = stringify({
       sdate: dateFrom,
@@ -256,8 +265,8 @@ export default class ZohoCalendarService implements Calendar {
         .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
         .map((freebusy: FreeBusy) => ({
           // using dayjs utc plugin because by default, dayjs parses and displays in local time, which causes a mismatch
-          start: dayjs.utc(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
-          end: dayjs.utc(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+          start: this.parseDateTime(freebusy.startTime).toISOString(),
+          end: this.parseDateTime(freebusy.endTime).toISOString(),
         })) || []
     );
   }
@@ -397,6 +406,7 @@ export default class ZohoCalendarService implements Calendar {
     try {
       const resp = await this.fetcher(`/calendars`);
       const data = (await this.handleData(resp, this.log)) as ZohoCalendarListResp;
+      const userInfo = await this.getUserInfo();
       const result = data.calendars
         .filter((cal) => {
           if (cal.privilege === "owner") {
@@ -410,7 +420,7 @@ export default class ZohoCalendarService implements Calendar {
             integration: this.integrationName,
             name: cal.name || "No calendar name",
             primary: cal.isdefault,
-            email: cal.uid ?? "",
+            email: userInfo.Email ?? "",
           };
           return calendar;
         });
@@ -428,7 +438,7 @@ export default class ZohoCalendarService implements Calendar {
           integration: this.integrationName,
           name: cal.name || "No calendar name",
           primary: cal.isdefault,
-          email: cal.uid ?? "",
+          email: userInfo.Email ?? "",
         };
         return calendar;
       });
@@ -448,10 +458,10 @@ export default class ZohoCalendarService implements Calendar {
     return data;
   }
 
-  private translateEvent = (event: CalendarEvent) => {
+  private translateEvent = (event: CalendarServiceEvent) => {
     const zohoEvent = {
       title: event.title,
-      description: getRichDescription(event),
+      description: event.calendarDescription,
       dateandtime: {
         start: dayjs(event.startTime).format("YYYYMMDDTHHmmssZZ"),
         end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),

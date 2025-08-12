@@ -1,4 +1,4 @@
-import { defaultHandler } from "@calcom/lib/server";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 

@@ -4,8 +4,10 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -22,7 +24,7 @@ const querySchema = z.object({
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
 
   const {
     uid: bookingUid,
@@ -35,10 +37,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } = querySchema.parse(context.query);
 
   const coepFlag = context.query["flag.coep"];
-  const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
-    prisma,
-    bookingUid
-  );
+  const {
+    uid,
+    seatReferenceUid: maybeSeatReferenceUid,
+    bookingSeat,
+  } = await maybeGetBookingUidFromSeat(prisma, bookingUid);
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -46,6 +49,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     select: {
       ...bookingMinimalSelect,
+      responses: true,
       eventType: {
         select: {
           users: {
@@ -54,6 +58,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             },
           },
           slug: true,
+          allowReschedulingPastBookings: true,
+          disableRescheduling: true,
+          allowReschedulingCancelledBookings: true,
           team: {
             select: {
               parentId: true,
@@ -92,15 +99,44 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
+
+  const userRepo = new UserRepository(prisma);
+  const enrichedBookingUser = booking.user
+    ? await userRepo.enrichUserWithItsProfile({ user: booking.user })
+    : null;
+
+  const eventUrl = await buildEventUrlFromBooking({
+    eventType,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    profileEnrichedBookingUser: enrichedBookingUser,
+  });
+
+  const isForcedRescheduleForCancelledBooking = allowRescheduleForCancelledBooking;
+  // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  if (
-    !allowRescheduleForCancelledBooking &&
-    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
-  ) {
+  const isDisabledRescheduling = booking.eventType?.disableRescheduling;
+  // This comes from query param and thus is considered forced
+  const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
+  const isNonRescheduleableBooking =
+    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+
+  if (isDisabledRescheduling) {
     return {
       redirect: {
         destination: `/booking/${uid}`,
+        permanent: false,
+      },
+    };
+  }
+
+  if (isNonRescheduleableBooking && !isForcedRescheduleForCancelledBooking) {
+    const canReschedule =
+      booking.status === BookingStatus.CANCELLED && canBookThroughCancelledBookingRescheduleLink;
+    return {
+      redirect: {
+        destination: canReschedule ? eventUrl : `/booking/${uid}`,
         permanent: false,
       },
     };
@@ -112,6 +148,25 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true,
     } as {
       notFound: true;
+    };
+  }
+
+  const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
+  if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
+    const destinationUrlSearchParams = new URLSearchParams();
+    const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
+    const name = getFullName(getSafe<string | { firstName: string; lastName?: string }>(responses, ["name"]));
+    const email = getSafe<string>(responses, ["email"]);
+
+    if (name) destinationUrlSearchParams.set("name", name);
+    if (email) destinationUrlSearchParams.set("email", email);
+
+    const searchParamsString = destinationUrlSearchParams.toString();
+    return {
+      redirect: {
+        destination: searchParamsString ? `${eventUrl}?${searchParamsString}` : eventUrl,
+        permanent: false,
+      },
     };
   }
 
@@ -142,21 +197,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
-  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
-
-  const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
-    : null;
-
-  const eventUrl = await buildEventUrlFromBooking({
-    eventType,
-    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
-    profileEnrichedBookingUser: enrichedBookingUser,
-  });
-
   const destinationUrlSearchParams = new URLSearchParams();
 
   destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
+
+  if (allowRescheduleForCancelledBooking) {
+    destinationUrlSearchParams.set("allowRescheduleForCancelledBooking", "true");
+  }
 
   // TODO: I think we should just forward all the query params here including coep flag
   if (coepFlag) {

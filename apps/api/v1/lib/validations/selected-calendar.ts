@@ -9,11 +9,30 @@ export const schemaSelectedCalendarBaseBodyParams = SelectedCalendar;
 
 export const schemaSelectedCalendarPublic = SelectedCalendar.omit({});
 
-export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams.partial({
-  userId: true,
-});
+export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
+  .partial({
+    userId: true,
+  })
+  .omit({
+    // id will be set by the database
+    id: true,
+    // No eventTypeId support in API v1
+    eventTypeId: true,
 
-export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams.partial();
+    /** No watch related fields support in API v1 */
+    watchAttempts: true,
+    unwatchAttempts: true,
+    maxAttempts: true,
+  });
+
+export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams
+  .omit({
+    // id is decided by DB
+    id: true,
+    // No eventTypeId support in API v1
+    eventTypeId: true,
+  })
+  .partial();
 
 export const selectedCalendarIdSchema = schemaQueryIdAsString.transform((v, ctx) => {
   /** We can assume the first part is the userId since it's an integer */

@@ -4,7 +4,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
 
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class EventTypesRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -38,6 +38,11 @@ export class EventTypesRepositoryFixture {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
+        users: {
+          connect: {
+            id: userId,
+          },
+        },
         owner: {
           connect: {
             id: userId,

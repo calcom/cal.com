@@ -1,6 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
 import { getSession } from "next-auth/react";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -25,8 +24,6 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
     };
   }
   return {
-    props: {
-      ...(await serverSideTranslations(ctx.locale || "en", ["common"])),
-    },
+    props: {},
   };
 }

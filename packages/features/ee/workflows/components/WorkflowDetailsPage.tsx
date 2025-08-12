@@ -4,21 +4,32 @@ import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
-import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField, InfoBadge } from "@calcom/ui";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
+import { Label, MultiSelectCheckbox, TextField, CheckboxField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
-import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
+import { isSMSAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
-type User = RouterOutputs["viewer"]["me"];
+type User = RouterOutputs["viewer"]["me"]["get"];
+
+interface WorkflowPermissions {
+  canView: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canManage: boolean;
+  readOnly: boolean; // Keep for backward compatibility
+}
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -30,12 +41,30 @@ interface Props {
   readOnly: boolean;
   isOrg: boolean;
   allOptions: Option[];
+  permissions?: WorkflowPermissions;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
+  const {
+    form,
+    workflowId,
+    selectedOptions,
+    setSelectedOptions,
+    teamId,
+    isOrg,
+    allOptions,
+    permissions: _permissions,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const permissions = _permissions || {
+    canView: !teamId ? true : !props.readOnly,
+    canUpdate: !teamId ? true : !props.readOnly,
+    canDelete: !teamId ? true : !props.readOnly,
+    canManage: !teamId ? true : !props.readOnly,
+    readOnly: !teamId ? false : props.readOnly,
+  };
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
 
@@ -83,12 +112,14 @@ export default function WorkflowDetailsPage(props: Props) {
       workflowId: workflowId,
       reminderBody: null,
       emailSubject: null,
-      template: isWhatsappAction(action) ? WorkflowTemplates.REMINDER : WorkflowTemplates.CUSTOM,
+      template: WorkflowTemplates.REMINDER,
       numberRequired: numberRequired || false,
       sender: isSMSAction(action) ? sender || SENDER_ID : SENDER_ID,
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
       includeCalendarEvent: false,
+      verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
+      agentId: null
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -122,7 +153,7 @@ export default function WorkflowDetailsPage(props: Props) {
             control={form.control}
             render={() => {
               return (
-                <MultiSelectCheckboxes
+                <MultiSelectCheckbox
                   options={allOptions}
                   isDisabled={props.readOnly || form.getValues("selectAll")}
                   className="w-full md:w-64"
@@ -156,7 +187,7 @@ export default function WorkflowDetailsPage(props: Props) {
             />
           </div>
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
-          {!props.readOnly && (
+          {permissions.canDelete && (
             <Button
               type="button"
               StartIcon="trash-2"

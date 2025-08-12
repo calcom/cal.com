@@ -1,45 +1,18 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import { SchedulingType } from "@calcom/prisma/enums";
-
-import { test, type Fixtures } from "./lib/fixtures";
+import { test } from "./lib/fixtures";
+import { localize } from "./lib/localize";
 import {
   bookTimeSlot,
-  localize,
   submitAndWaitForResponse,
   selectFirstAvailableTimeSlotNextMonth,
+  setupManagedEvent,
 } from "./lib/testUtils";
 
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
-
-/** So we can test different areas in parallel and avoiding the creation flow each time */
-async function setupManagedEvent({
-  users,
-  unlockedFields,
-}: {
-  users: Fixtures["users"];
-  unlockedFields?: Record<string, boolean>;
-}) {
-  const teamMateName = "teammate-1";
-  const teamEventTitle = "Managed";
-  const adminUser = await users.create(null, {
-    hasTeam: true,
-    teammates: [{ name: teamMateName }],
-    teamEventTitle,
-    teamEventSlug: "managed",
-    schedulingType: "MANAGED",
-    addManagedEventToTeamMates: true,
-    managedEventUnlockedFields: unlockedFields,
-  });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const memberUser = users.get().find((u) => u.name === teamMateName)!;
-  const { team } = await adminUser.getFirstTeamMembership();
-  const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
-  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle, teamId: team.id };
-}
 
 /** Short hand to get elements by translation key */
 const getByKey = async (page: Page, key: string) => page.getByText((await localize("en"))(key));
@@ -48,23 +21,31 @@ test.describe("Managed Event Types", () => {
   /** We don't use setupManagedEvent here to test the actual creation flow */
   test("Can create managed event type", async ({ page, users }) => {
     // Creating the owner user of the team
-    const adminUser = await users.create(null, {
-      hasTeam: true,
-      teammates: [{ name: "teammate-1" }],
-    });
+    const adminUser = await users.create(
+      { name: "Owner" },
+      {
+        hasTeam: true,
+        teammates: [{ name: "teammate-1" }],
+      }
+    );
     // Creating the member user of the team
     // First we work with owner user, logging in
     await adminUser.apiLogin();
     // Let's create a team
     // Going to create an event type
     await page.goto("/event-types");
+    const tabItem = page.getByTestId(`horizontal-tab-Owner`);
+    await expect(tabItem).toBeVisible();
+    // We wait until loading is finished
+    await page.waitForSelector('[data-testid="event-types"]');
     await page.getByTestId("new-event-type").click();
     await page.getByTestId("option-team-1").click();
     // Expecting we can add a managed event type as team owner
-    await expect(page.locator('button[value="MANAGED"]')).toBeVisible();
+    const locator = page.locator('div:has(input[value="MANAGED"]) > button');
 
+    await expect(locator).toBeVisible();
     // Actually creating a managed event type to test things further
-    await page.click('button[value="MANAGED"]');
+    await locator.click();
     await page.fill("[name=title]", "managed");
     await page.click("[type=submit]");
 
@@ -98,6 +79,11 @@ test.describe("Managed Event Types", () => {
     const { adminUser, managedEvent } = await setupManagedEvent({ users });
     await adminUser.apiLogin();
     await page.goto(`/event-types/${managedEvent.id}?tabName=setup`);
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
+      "aria-current",
+      "page"
+    ); // fix the race condition
+    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toContainText("Event Setup"); //fix the race condition
     await page.locator("#location-select").click();
     const optionText = await getByKey(page, "organizer_default_conferencing_app");
     await expect(optionText).toBeVisible();
@@ -207,7 +193,7 @@ test.describe("Managed Event Types", () => {
   });
 
   const MANAGED_EVENT_TABS: { slug: string; locator: (page: Page) => Locator | Promise<Locator> }[] = [
-    { slug: "setup", locator: (page) => getByKey(page, "title") },
+    { slug: "setup", locator: (page) => getByKey(page, "translate_description_button") },
     {
       slug: "team",
       locator: (page) => getByKey(page, "automatically_add_all_team_members"),

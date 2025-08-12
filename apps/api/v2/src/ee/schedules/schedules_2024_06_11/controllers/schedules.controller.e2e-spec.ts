@@ -32,11 +32,11 @@ describe("Schedules Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let scheduleRepositoryFixture: SchedulesRepositoryFixture;
 
-    const userEmail = "schedules-controller-e2e@api.com";
+    const userEmail = `schedules-2024-06-11-user@api.com`;
     let user: User;
 
     const createScheduleInput: CreateScheduleInput_2024_06_11 = {
-      name: "work",
+      name: `schedules-2024-06-11-work`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };

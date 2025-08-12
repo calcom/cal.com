@@ -1,15 +1,18 @@
+import type { Prisma } from "@prisma/client";
+
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import type { TListMembersInputSchema } from "./legacyListMembers.schema";
+import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 
 type ListMembersOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TListMembersInputSchema;
+  input: TLegacyListMembersInputSchema;
 };
 
 export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
@@ -35,6 +38,9 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
       where: {
         userId: ctx.user.id,
         accepted: true,
+        ...(input.adminOrOwnedTeamsOnly
+          ? { role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } }
+          : {}),
       },
       select: { teamId: true },
     });
@@ -45,6 +51,9 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
         teamId: { in: input.teamIds },
         userId: ctx.user.id,
         accepted: true,
+        ...(input.adminOrOwnedTeamsOnly
+          ? { role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] } }
+          : {}),
       },
     });
     teamsToQuery = memberships.map((m) => m.teamId);
@@ -57,6 +66,11 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     };
   }
 
+  const searchTextClauses: Prisma.UserWhereInput[] = [
+    { name: { contains: input.searchText, mode: "insensitive" } },
+    { username: { contains: input.searchText, mode: "insensitive" } },
+  ];
+
   // Fetch unique users through memberships
   const memberships = await prisma.membership.findMany({
     where: {
@@ -64,10 +78,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
       teamId: { in: teamsToQuery },
       user: input.searchText?.trim()?.length
         ? {
-            OR: [
-              { name: { contains: input.searchText, mode: "insensitive" } },
-              { username: { contains: input.searchText, mode: "insensitive" } },
-            ],
+            OR: searchTextClauses,
           }
         : undefined,
     },
@@ -80,6 +91,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
           name: true,
           username: true,
           avatarUrl: true,
+          email: true,
         },
       },
     },
@@ -94,7 +106,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
 
   const enrichedMembers = await Promise.all(
     memberships.map(async (membership) =>
-      UserRepository.enrichUserWithItsProfile({
+      new UserRepository(prisma).enrichUserWithItsProfile({
         user: {
           ...membership.user,
           accepted: membership.accepted,

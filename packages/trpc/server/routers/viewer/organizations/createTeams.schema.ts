@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CreationSource } from "@calcom/prisma/enums";
+
 export const ZCreateTeamsSchema = z.object({
   teamNames: z.string().array(),
   orgId: z.number(),
@@ -10,6 +12,7 @@ export const ZCreateTeamsSchema = z.object({
       shouldMove: z.boolean(),
     })
   ),
+  creationSource: z.nativeEnum(CreationSource),
 });
 
 export type TCreateTeamsSchema = z.infer<typeof ZCreateTeamsSchema>;

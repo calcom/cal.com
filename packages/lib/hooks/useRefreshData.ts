@@ -7,6 +7,10 @@ export function useRefreshData() {
   const router = useRouter();
   const asPath = useAsPath();
   const refreshData = () => {
+    if ("refresh" in router) {
+      // Refresh the server components
+      router.refresh();
+    }
     router.replace(asPath);
   };
   return refreshData;

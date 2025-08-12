@@ -5,11 +5,15 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
-import { IconSprites } from "@calcom/ui";
+import { loadTranslations } from "@calcom/lib/server/i18n";
+import { IconSprites } from "@calcom/ui/components/icon";
 
-import { prepareRootMetadata } from "@lib/metadata";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import "../styles/globals.css";
+import { AppRouterI18nProvider } from "./AppRouterI18nProvider";
+import { SpeculationRules } from "./SpeculationRules";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -20,75 +24,104 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
+export const viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  maximumScale: 1.0,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: [
+    {
+      media: "(prefers-color-scheme: light)",
+      color: "#f9fafb",
     },
-  });
-
-const getInitialProps = async (url: string) => {
-  const { pathname, searchParams } = new URL(url);
-
-  const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
-  const embedColorScheme = searchParams?.get("ui.color-scheme");
-
-  const req = { headers: headers(), cookies: cookies() };
-  const newLocale = await getLocale(req);
-  const direction = dir(newLocale);
-
-  return { isEmbed, embedColorScheme, locale: newLocale, direction };
+    {
+      media: "(prefers-color-scheme: dark)",
+      color: "#1C1C1C",
+    },
+  ],
 };
 
-const getFallbackProps = () => ({
-  locale: "en",
-  direction: "ltr",
-  isEmbed: false,
-  embedColorScheme: false,
-});
+export const metadata = {
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/api/logo?type=apple-touch-icon",
+    other: [
+      {
+        rel: "icon-mask",
+        url: "/safari-pinned-tab.svg",
+        color: "#000000",
+      },
+      {
+        url: "/api/logo?type=favicon-16",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/api/logo?type=favicon-32",
+        sizes: "32x32",
+        type: "image/png",
+      },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  other: {
+    "application-TileColor": "#ff0000",
+  },
+  twitter: {
+    site: "@calcom",
+    creator: "@calcom",
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+const getInitialProps = async () => {
+  const h = await headers();
+  const isEmbed = h.get("x-isEmbed") === "true";
+  const embedColorScheme = h.get("x-embedColorScheme");
+  const newLocale = (await getLocale(buildLegacyRequest(await headers(), await cookies()))) ?? "en";
+  const direction = dir(newLocale) ?? "ltr";
+
+  return {
+    isEmbed,
+    embedColorScheme,
+    locale: newLocale,
+    direction,
+  };
+};
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const h = headers();
+  const h = await headers();
+  const nonce = h.get("x-csp-nonce") ?? "";
 
-  const fullUrl = h.get("x-url") ?? "";
-  const nonce = h.get("x-csp") ?? "";
+  const { locale, direction, isEmbed, embedColorScheme } = await getInitialProps();
 
-  const isSSG = !fullUrl;
-
-  const { locale, direction, isEmbed, embedColorScheme } = isSSG
-    ? getFallbackProps()
-    : await getInitialProps(fullUrl);
+  const ns = "common";
+  const translations = await loadTranslations(locale, ns);
 
   return (
     <html
+      className="notranslate"
+      translate="no"
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
-        {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
-          <script
-            nonce={nonce}
-            id="injected-head-scripts"
-            dangerouslySetInnerHTML={{
-              __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
-            }}
-          />
-        )}
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
-        className="dark:bg-darkgray-50 bg-subtle antialiased"
+        className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {
@@ -99,18 +132,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
                 visibility: "hidden",
               }
-            : {}
+            : {
+                visibility: "visible",
+              }
         }>
-        {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
-          <script
-            nonce={nonce}
-            id="injected-head-scripts"
-            dangerouslySetInnerHTML={{
-              __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
-            }}
-          />
-        )}
-        {children}
+        <IconSprites />
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
+
+        <Providers isEmbed={isEmbed} nonce={nonce}>
+          <AppRouterI18nProvider translations={translations} locale={locale} ns={ns}>
+            {children}
+          </AppRouterI18nProvider>
+        </Providers>
       </body>
     </html>
   );

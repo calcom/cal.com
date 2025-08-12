@@ -1,4 +1,4 @@
-import type { DehydratedState } from "@tanstack/react-query";
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
@@ -13,18 +13,15 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
+import prisma from "@calcom/prisma";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import type { EmbedProps } from "@lib/withEmbedSsr";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
-  trpcState: DehydratedState;
   profile: {
     name: string;
     image: string;
@@ -63,16 +60,18 @@ type UserPageProps = {
     | "length"
     | "hidden"
     | "lockTimeZoneToggleOnBookingPage"
+    | "lockedTimeZone"
     | "requiresConfirmation"
+    | "canSendCalVideoTranscriptionEmails"
     | "requiresBookerEmailVerification"
     | "price"
     | "currency"
     | "recurringEvent"
   >)[];
+  isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
-  const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const usernameList = getUsernameList(context.query.user as string);
@@ -95,16 +94,19 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     }
   }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
+  const usersInOrgContext = await getUsersInOrgContext(
     usernameList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+    isValidOrgDomain ? currentOrgDomain : null
+  );
 
   const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
 
   if (isDynamicGroup) {
-    const destinationUrl = `/${usernameList.join("+")}/dynamic`;
+    const destinationUrl = encodeURI(`/${usernameList.join("+")}/dynamic`);
+
+    // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
+    // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
     const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
@@ -161,7 +163,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     return {
       redirect: {
         permanent: false,
-        destination: `${urlDestination}?${urlQuery}`,
+        destination: `${encodeURI(urlDestination)}?${urlQuery}`,
       },
     };
   }
@@ -192,8 +194,29 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       profile,
       // Dynamic group has no theme preference right now. It uses system theme.
       themeBasis: user.username,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
+      isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
   };
 };
+
+export async function getUsersInOrgContext(usernameList: string[], orgSlug: string | null) {
+  const userRepo = new UserRepository(prisma);
+
+  const usersInOrgContext = await userRepo.findUsersByUsername({
+    usernameList,
+    orgSlug,
+  });
+
+  if (usersInOrgContext.length) {
+    return usersInOrgContext;
+  }
+
+  // note(Lauris): platform members (people who run platform) are part of platform organization while
+  // the platform organization does not have a domain. In this case there is no org domain but also platform member
+  // "User.organization" is not null so "UserRepository.findUsersByUsername" returns empty array and we do this as a last resort
+  // call to find platform member.
+  return await userRepo.findPlatformMembersByUsernames({
+    usernameList,
+  });
+}

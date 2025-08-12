@@ -7,15 +7,14 @@ import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, EmailField } from "@calcom/ui";
-
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
+import { Button } from "@calcom/ui/components/button";
+import { EmailField } from "@calcom/ui/components/form";
 
 import AuthContainer from "@components/ui/AuthContainer";
 
-import type { getServerSideProps } from "@server/lib/auth/forgot-password/getServerSideProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+export type PageProps = {
+  csrfToken?: string;
+};
 
 export default function ForgotPassword(props: PageProps) {
   const csrfToken = "csrfToken" in props ? (props.csrfToken as string) : undefined;
@@ -91,9 +90,7 @@ export default function ForgotPassword(props: PageProps) {
   return (
     <AuthContainer
       showLogo
-      title={!success ? t("forgot_password") : t("reset_link_sent")}
       heading={!success ? t("forgot_password") : t("reset_link_sent")}
-      description={t("request_password_reset")}
       footerText={
         !success && (
           <>
@@ -115,7 +112,7 @@ export default function ForgotPassword(props: PageProps) {
               {
                 "--cal-brand": "#111827",
                 "--cal-brand-emphasis": "#101010",
-                "--cal-brand-text": "white",
+                "--cal-brand-text": "Black",
                 "--cal-brand-subtle": "#9CA3AF",
               } as CSSProperties
             }>
@@ -130,7 +127,7 @@ export default function ForgotPassword(props: PageProps) {
             />
             <div className="space-y-2">
               <Button
-                className="w-full justify-center dark:bg-white dark:text-black"
+                className="w-full justify-center bg-white hover:bg-black hover:text-white"
                 type="submit"
                 color="primary"
                 disabled={loading}

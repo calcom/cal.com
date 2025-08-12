@@ -59,7 +59,7 @@ describe("unlinkConnectedAccount.handler", () => {
       }
     `);
   });
-  it("Should respond with an error message if unlink was unsucessful", async () => {
+  it("Should respond with an error message if unlink was unsuccessful", async () => {
     const user = await buildMockData(IdentityProvider.CAL);
     const response = await unlinkConnectedAccountHandler({ ctx: { user } });
     expect(response).toMatchInlineSnapshot(`

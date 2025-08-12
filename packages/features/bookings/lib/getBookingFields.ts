@@ -160,7 +160,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "email",
       name: "email",
       required: !isEmailFieldOptional,
-      editable: isOrgTeamEvent ? "system-but-optional" : "system",
+      editable: "system-but-optional",
       sources: [
         {
           label: "Default",
@@ -169,7 +169,21 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
-
+    {
+      defaultLabel: "phone_number",
+      type: "phone",
+      name: "attendeePhoneNumber",
+      required: false,
+      hidden: true,
+      editable: "system-but-optional",
+      sources: [
+        {
+          label: "Default",
+          id: "default",
+          type: "default",
+        },
+      ],
+    },
     {
       defaultLabel: "location",
       type: "radioInput",
@@ -204,23 +218,6 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
-  if (isOrgTeamEvent) {
-    systemBeforeFields.splice(2, 0, {
-      defaultLabel: "phone_number",
-      type: "phone",
-      name: "attendeePhoneNumber",
-      required: false,
-      hidden: true,
-      editable: "system-but-optional",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    });
-  }
 
   // These fields should be added after other user fields
   const systemAfterFields: typeof bookingFields = [
@@ -315,7 +312,7 @@ export const ensureBookingInputsHaveSystemFields = ({
 
   // Backward Compatibility for SMS Reminder Number
   // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
-  // Also, note that even if Workflows don't explicity add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
+  // Also, note that even if Workflows don't explicitly add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
   if (
     smsNumberSources.length &&
     !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))

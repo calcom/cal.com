@@ -1,9 +1,9 @@
 import { beforeEach, vi } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type * as videoClient from "@calcom/core/videoClient";
+import type * as videoClient from "@calcom/lib/videoClient";
 
-vi.mock("@calcom/core/videoClient", () => videoClientMock);
+vi.mock("@calcom/lib/videoClient", () => videoClientMock);
 
 beforeEach(() => {
   mockReset(videoClientMock);

@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { Schedule } from "@prisma/client";
 
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class SchedulesRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];
@@ -28,5 +28,9 @@ export class SchedulesRepositoryFixture {
 
   async deleteAvailabilities(scheduleId: Schedule["id"]) {
     return this.prismaWriteClient.availability.deleteMany({ where: { scheduleId } });
+  }
+
+  async getByUserId(userId: Schedule["userId"]) {
+    return this.prismaReadClient.schedule.findMany({ where: { userId } });
   }
 }

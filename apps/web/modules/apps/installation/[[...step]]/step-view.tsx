@@ -1,27 +1,28 @@
 "use client";
 
-import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import type { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
-import type { LocationObject } from "@calcom/core/location";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { LocationObject } from "@calcom/lib/location";
 import type { Team } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
-import { Form, Steps, showToast } from "@calcom/ui";
+import { Form, Steps } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -36,7 +37,13 @@ import { STEPS } from "~/apps/installation/[[...step]]/constants";
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
     EventTypeModel,
-    "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
+    | "metadata"
+    | "schedulingType"
+    | "slug"
+    | "requiresConfirmation"
+    | "position"
+    | "destinationCalendar"
+    | "calVideoSettings"
   > & {
     selected: boolean;
     locations: LocationFormValues["locations"];
@@ -112,16 +119,19 @@ const OnboardingPage = ({
   const STEPS_MAP: StepObj = {
     [AppOnboardingSteps.ACCOUNTS_STEP]: {
       getTitle: () => `${t("select_account_header")}`,
-      getDescription: (appName) => `${t("select_account_description", { appName })}`,
+      getDescription: (appName) =>
+        `${t("select_account_description", { appName, interpolation: { escapeValue: false } })}`,
       stepNumber: 1,
     },
     [AppOnboardingSteps.EVENT_TYPES_STEP]: {
       getTitle: () => `${t("select_event_types_header")}`,
-      getDescription: (appName) => `${t("select_event_types_description", { appName })}`,
+      getDescription: (appName) =>
+        `${t("select_event_types_description", { appName, interpolation: { escapeValue: false } })}`,
       stepNumber: installableOnTeams ? 2 : 1,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
-      getTitle: (appName) => `${t("configure_app_header", { appName })}`,
+      getTitle: (appName) =>
+        `${t("configure_app_header", { appName, interpolation: { escapeValue: false } })}`,
       getDescription: () => `${t("configure_app_description")}`,
       stepNumber: installableOnTeams ? 3 : 2,
     },
@@ -225,12 +235,6 @@ const OnboardingPage = ({
       key={pathname}
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
       data-testid="onboarding">
-      <Head>
-        <title>
-          {t("install")} {appMetadata?.name ?? ""}
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
@@ -243,15 +247,20 @@ const OnboardingPage = ({
                   const promises = group.eventTypes
                     .filter((eventType) => eventType.selected)
                     .map((value: TEventType) => {
-                      // Prevent two payment apps to be enabled
-                      // Ok to cast type here because this metadata will be updated as the event type metadata
-                      if (
-                        checkForMultiplePaymentApps(value.metadata as z.infer<typeof EventTypeMetaDataSchema>)
-                      )
-                        throw new Error(t("event_setup_multiple_payment_apps_error"));
-                      if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
-                        throw new Error(t("seats_and_no_show_fee_error"));
+                      if (value.metadata) {
+                        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(value.metadata);
+                        // Prevent two payment apps to be enabled
+                        // Ok to cast type here because this metadata will be updated as the event type metadata
+                        if (checkForMultiplePaymentApps(metadata))
+                          throw new Error(t("event_setup_multiple_payment_apps_error"));
+                        if (
+                          value.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
+                          value.seatsPerTimeSlot
+                        ) {
+                          throw new Error(t("seats_and_no_show_fee_error"));
+                        }
                       }
+
                       let updateObject: TUpdateObject = { id: value.id };
                       if (isConferencing) {
                         updateObject = {

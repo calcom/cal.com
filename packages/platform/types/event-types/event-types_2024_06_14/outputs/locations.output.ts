@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsUrl, IsIn, IsOptional, IsNumber, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
@@ -53,34 +53,45 @@ const integrationsValues = [
   "eightxeight-video",
   "discord-video",
   "demodesk-video",
-  "campsite-conferencing",
   "campfire-video",
-  "around-video",
 ] as const;
 export type OutputIntegration_2024_06_14 = (typeof integrationsValues)[number];
 
 export class OutputIntegrationLocation_2024_06_14 {
   @IsIn(outputLocations)
-  @DocsProperty({ example: "integration", description: "only allowed value for type is `integration`" })
+  @DocsProperty({
+    example: "integration",
+    description: "Only allowed value for type is `integration`",
+  })
   type!: "integration";
 
   @IsIn(integrationsValues)
   @DocsProperty({ example: integrationsValues[0], enum: integrationsValues })
   integration!: OutputIntegration_2024_06_14;
 
-  @IsUrl()
   @IsOptional()
+  @IsUrl()
+  @ApiPropertyOptional({
+    type: String,
+    example: "https://example.com",
+  })
   link?: string;
 
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
+  @ApiPropertyOptional({
+    description: "Credential ID associated with the integration",
+  })
   credentialId?: number;
 }
 
-export class OutputConferencingLocation_2024_06_14 {
+export class OutputOrganizersDefaultAppLocation_2024_06_14 {
   @IsIn(outputLocations)
-  @DocsProperty({ example: "conferencing", description: "only allowed value for type is `conferencing`" })
-  type!: "conferencing";
+  @DocsProperty({
+    example: "organizersDefaultApp",
+    description: "only allowed value for type is `organizersDefaultApp`",
+  })
+  type!: "organizersDefaultApp";
 }
 
 export class OutputUnknownLocation_2024_06_14 {
@@ -89,6 +100,7 @@ export class OutputUnknownLocation_2024_06_14 {
   type!: "unknown";
 
   @IsString()
+  @DocsProperty()
   location!: string;
 }
 
@@ -100,7 +112,7 @@ export type OutputLocation_2024_06_14 =
   | OutputAttendeeAddressLocation_2024_06_14
   | OutputAttendeePhoneLocation_2024_06_14
   | OutputAttendeeDefinedLocation_2024_06_14
-  | OutputConferencingLocation_2024_06_14
+  | OutputOrganizersDefaultAppLocation_2024_06_14
   | OutputUnknownLocation_2024_06_14;
 
 @ValidatorConstraint({ async: true })
@@ -113,7 +125,7 @@ class OutputLocationValidator_2024_06_14 implements ValidatorConstraintInterface
     attendeePhone: OutputAttendeePhoneLocation_2024_06_14,
     attendeeAddress: OutputAttendeeAddressLocation_2024_06_14,
     attendeeDefined: OutputAttendeeDefinedLocation_2024_06_14,
-    conferencing: OutputConferencingLocation_2024_06_14,
+    conferencing: OutputOrganizersDefaultAppLocation_2024_06_14,
     unknown: OutputUnknownLocation_2024_06_14,
   };
 

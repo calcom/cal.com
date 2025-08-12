@@ -20,14 +20,15 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
-import { withNextAuth } from "test/utils/withNextAuth";
+import { randomString } from "test/utils/randomString";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
-describe("EventTypes WebhooksController (e2e)", () => {
+describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "event-types-webhook-controller-e2e@api.com";
-  const otherUserEmail = "other-event-types-webhook-controller-e2e@api.com";
+  const userEmail = `oauth-client-webhooks-user-${randomString()}@api.com`;
+  const otherUserEmail = `oauth-client-webhooks-other-user-${randomString()}@api.com`;
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
   let oAuthClient: PlatformOAuthClient;
@@ -46,7 +47,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
   let webhook: OAuthClientWebhookOutputResponseDto["data"];
 
   beforeAll(async () => {
-    const moduleRef = await withNextAuth(
+    const moduleRef = await withApiAuth(
       userEmail,
       Test.createTestingModule({
         imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -69,7 +70,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
     });
 
     org = await orgRepositoryFixture.create({
-      name: "apiOrg",
+      name: `oauth-client-webhooks-organization-${randomString()}`,
       isOrganization: true,
       metadata: {
         isOrganization: true,
@@ -80,7 +81,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       isPlatform: true,
     });
     otherOrg = await orgRepositoryFixture.create({
-      name: "otherOrg",
+      name: `oauth-client-webhooks-other-organization-${randomString()}`,
       isOrganization: true,
       metadata: {
         isOrganization: true,
@@ -244,7 +245,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
         });
       });
   });
-  it("/webhooks (GET) should fail to get webhooks of oauth client that doesn't belong to you", () => {
+  it("/webhooks (GET) should fail to get webhooks of OAuth client that doesn't belong to you", () => {
     return request(app.getHttpServer()).get(`/v2/oauth-clients/${otherOAuthClient.id}/webhooks`).expect(403);
   });
 
@@ -267,13 +268,13 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete webhooks of an oauth client that doesn't belong to you", () => {
+  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete webhooks of an OAuth client that doesn't belong to you", () => {
     return request(app.getHttpServer())
       .delete(`/v2/oauth-clients/${otherOAuthClient.id}/webhooks/${otherOAuthClientWebhook.id}`)
       .expect(403);
   });
 
-  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer())
       .delete(`/v2/oauth-clients/${oAuthClient.id}/webhooks/1234453`)
       .expect(404);

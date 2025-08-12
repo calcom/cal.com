@@ -1,41 +1,45 @@
 "use client";
 
-import { Booker } from "@calcom/atoms/monorepo";
+import type { EmbedProps } from "app/WithEmbedSSR";
+
+import { BookerWebWrapper as Booker } from "@calcom/atoms/booker";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 
-function Type({ slug, user, booking, isEmbed, isBrandingHidden, entity, eventTypeId, duration }: PageProps) {
+export type Props = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+
+function Type({
+  slug,
+  user,
+  booking,
+  isEmbed,
+  isBrandingHidden,
+  entity,
+  eventTypeId,
+  duration,
+  eventData,
+}: Props) {
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={undefined}
-        hideBranding={isBrandingHidden}
-        isTeamEvent
-        entity={entity}
-        bookingData={booking}
-      />
-      <Booker
-        username={user}
-        eventSlug={slug}
-        bookingData={booking}
-        hideBranding={isBrandingHidden}
-        isTeamEvent
-        isInstantMeeting
-        entity={{ ...entity, eventTypeId: eventTypeId }}
-        duration={duration}
-      />
-    </main>
+    <BookingPageErrorBoundary>
+      <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+        <Booker
+          username={user}
+          eventSlug={slug}
+          eventData={eventData}
+          bookingData={booking}
+          hideBranding={isBrandingHidden}
+          isTeamEvent
+          isInstantMeeting
+          entity={{ ...entity, eventTypeId: eventTypeId }}
+          duration={duration}
+        />
+      </main>
+    </BookingPageErrorBoundary>
   );
 }
-
-Type.isBookingPage = true;
 
 export default Type;

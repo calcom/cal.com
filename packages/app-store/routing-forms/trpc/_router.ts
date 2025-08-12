@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
-import publicProcedure from "@calcom/trpc/server/procedures/publicProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
+import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
-import { ZResponseInputSchema } from "./response.schema";
+import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
@@ -53,12 +53,6 @@ export const ZFormByResponseIdInputSchema = z.object({
 export type TFormQueryInputSchema = z.infer<typeof ZFormQueryInputSchema>;
 
 const appRoutingForms = router({
-  public: router({
-    response: publicProcedure.input(ZResponseInputSchema).mutation(async ({ ctx, input }) => {
-      const handler = await getHandler("response", () => import("./response.handler"));
-      return handler({ ctx, input });
-    }),
-  }),
   forms,
   formQuery: authedProcedure.input(ZFormQueryInputSchema).query(async ({ ctx, input }) => {
     const handler = await getHandler("formQuery", () => import("./formQuery.handler"));
@@ -93,6 +87,26 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "getAttributesForTeam",
         () => import("./getAttributesForTeam.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  getIncompleteBookingSettings: authedProcedure
+    .input(ZGetIncompleteBookingSettingsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getIncompleteBookingSettings",
+        () => import("./getIncompleteBookingSettings.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  saveIncompleteBookingSettings: authedProcedure
+    .input(ZSaveIncompleteBookingSettingsInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "saveIncompleteBookingSettings",
+        () => import("./saveIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
     }),

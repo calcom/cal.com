@@ -2,7 +2,6 @@
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
-import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS,
@@ -14,26 +13,28 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import AssignmentReasonRecorder, {
+  RRReassignmentType,
+} from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
-  scheduleEmailReminder,
-  deleteScheduledEmailReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { SENDER_NAME } from "@calcom/lib/constants";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+  enrichHostsWithDelegationCredentials,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
+} from "@calcom/lib/delegationCredential/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getEventName } from "@calcom/lib/event";
+import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server";
+import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
+import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
@@ -42,14 +43,20 @@ export const roundRobinReassignment = async ({
   bookingId,
   orgId,
   emailsEnabled = true,
+  platformClientParams,
+  reassignedById,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
+  platformClientParams?: PlatformClientParams;
+  reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
+
+  roundRobinReassignLogger.info(`User ${reassignedById} initiating round robin reassignment`);
 
   let booking = await prisma.booking.findUnique({
     where: {
@@ -82,6 +89,13 @@ export const roundRobinReassignment = async ({
     throw new Error("Event type not found");
   }
 
+  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
+    logger.error(
+      `Event type ${eventTypeId} has more than one round robin group, reassignment is not allowed`
+    );
+    throw new Error("Reassignment not allowed with more than one round robin group");
+  }
+
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
@@ -91,7 +105,12 @@ export const roundRobinReassignment = async ({
         weight: 100,
         schedule: null,
         createdAt: new Date(0), // use earliest possible date as fallback
+        groupId: null,
       }));
+
+  if (eventType.hosts.length === 0) {
+    throw new Error(ErrorCode.EventTypeNoHosts);
+  }
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
@@ -113,8 +132,12 @@ export const roundRobinReassignment = async ({
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
+  const eventTypeHosts = await enrichHostsWithDelegationCredentials({
+    orgId,
+    hosts: eventType.hosts,
+  });
   // Filter out the current attendees of the booking from the event type
-  const availableEventTypeUsers = eventType.hosts.reduce((availableUsers, host) => {
+  const availableEventTypeUsers = eventTypeHosts.reduce((availableUsers, host) => {
     if (!attendeeEmailsSet.has(host.user.email) && host.user.email !== originalOrganizer.email) {
       availableUsers.push({ ...host.user, isFixed: host.isFixed, priority: host?.priority ?? 2 });
     }
@@ -134,7 +157,7 @@ export const roundRobinReassignment = async ({
   const reassignedRRHost = await getLuckyUser({
     availableUsers,
     eventType,
-    allRRHosts: eventType.hosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
+    allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
     routingFormResponse: null,
   });
 
@@ -215,7 +238,7 @@ export const roundRobinReassignment = async ({
       host: organizer.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
-      eventDuration: eventType.length,
+      eventDuration: dayjs(booking.endTime).diff(booking.startTime, "minutes"),
       t: organizerT,
     };
 
@@ -227,7 +250,14 @@ export const roundRobinReassignment = async ({
       },
       data: {
         userId: reassignedRRHost.id,
+        userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
+        idempotencyKey: IdempotencyKeyService.generate({
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          userId: reassignedRRHost.id,
+          reassignedById,
+        }),
       },
       select: bookingSelect,
     });
@@ -247,6 +277,14 @@ export const roundRobinReassignment = async ({
       },
     });
   }
+
+  roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);
+
+  await AssignmentReasonRecorder.roundRobinReassignment({
+    bookingId,
+    reassignById: reassignedById,
+    reassignmentType: RRReassignmentType.ROUND_ROBIN,
+  });
 
   const destinationCalendar = await getDestinationCalendar({
     eventType,
@@ -293,7 +331,10 @@ export const roundRobinReassignment = async ({
       bookingFields: eventType?.bookingFields ?? null,
       booking,
     }),
+    hideOrganizerEmail: eventType.hideOrganizerEmail,
+    customReplyToEmail: eventType?.customReplyToEmail,
     location: bookingLocation,
+    ...(platformClientParams ? platformClientParams : {}),
   };
 
   const credentials = await prisma.credential.findMany({
@@ -309,6 +350,10 @@ export const roundRobinReassignment = async ({
     },
   });
 
+  const organizerWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user: { ...organizer, credentials },
+  });
+
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
     rescheduleUid: booking.uid,
@@ -316,7 +361,8 @@ export const roundRobinReassignment = async ({
     changedOrganizer: hasOrganizerChanged,
     previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
-      user: { ...organizer, credentials: [...credentials] },
+      user: organizerWithCredentials,
+      eventType,
     },
     bookingId,
     bookingLocation,
@@ -393,145 +439,19 @@ export const roundRobinReassignment = async ({
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
-    if (emailsEnabled) {
+    if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
       });
     }
 
-    const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
-      where: {
-        bookingUid: booking.uid,
-        method: WorkflowMethods.EMAIL,
-        scheduled: true,
-        OR: [{ cancelled: false }, { cancelled: null }],
-        workflowStep: {
-          workflow: {
-            trigger: {
-              in: [
-                WorkflowTriggerEvents.BEFORE_EVENT,
-                WorkflowTriggerEvents.NEW_EVENT,
-                WorkflowTriggerEvents.AFTER_EVENT,
-              ],
-            },
-          },
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        workflowStep: {
-          select: {
-            id: true,
-            template: true,
-            workflow: {
-              select: {
-                trigger: true,
-                time: true,
-                timeUnit: true,
-              },
-            },
-            emailSubject: true,
-            reminderBody: true,
-            sender: true,
-            includeCalendarEvent: true,
-          },
-        },
-      },
-    });
-
-    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evtWithAdditionalInfo) };
-
-    const bookerUrl = await getBookerBaseUrl(orgId);
-
-    for (const workflowReminder of scheduledWorkflowReminders) {
-      const workflowStep = workflowReminder?.workflowStep;
-      const workflow = workflowStep?.workflow;
-
-      if (workflowStep && workflow) {
-        await scheduleEmailReminder({
-          evt: {
-            ...evtWithAdditionalInfo,
-            metadata: workflowEventMetadata,
-            eventType,
-            bookerUrl,
-          },
-          action: WorkflowActions.EMAIL_HOST,
-          triggerEvent: workflow.trigger,
-          timeSpan: {
-            time: workflow.time,
-            timeUnit: workflow.timeUnit,
-          },
-          sendTo: reassignedRRHost.email,
-          template: workflowStep.template,
-          emailSubject: workflowStep.emailSubject || undefined,
-          emailBody: workflowStep.reminderBody || undefined,
-          sender: workflowStep.sender || SENDER_NAME,
-          hideBranding: true,
-          includeCalendarEvent: workflowStep.includeCalendarEvent,
-          workflowStepId: workflowStep.id,
-        });
-      }
-
-      await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
-    }
-    // Send new event workflows to new organizer
-    const newEventWorkflows = await prisma.workflow.findMany({
-      where: {
-        trigger: WorkflowTriggerEvents.NEW_EVENT,
-        OR: [
-          {
-            isActiveOnAll: true,
-            teamId: eventType?.teamId,
-          },
-          {
-            activeOn: {
-              some: {
-                eventTypeId: eventTypeId,
-              },
-            },
-          },
-          ...(eventType?.teamId
-            ? [
-                {
-                  activeOnTeams: {
-                    some: {
-                      teamId: eventType.teamId,
-                    },
-                  },
-                },
-              ]
-            : []),
-          ...(eventType?.team?.parentId
-            ? [
-                {
-                  isActiveOnAll: true,
-                  teamId: eventType.team.parentId,
-                },
-              ]
-            : []),
-        ],
-      },
-      include: {
-        steps: {
-          where: {
-            action: WorkflowActions.EMAIL_HOST,
-          },
-        },
-      },
-    });
-
-    await scheduleWorkflowReminders({
-      workflows: newEventWorkflows,
-      smsReminderNumber: null,
-      calendarEvent: {
-        ...evtWithAdditionalInfo,
-        metadata: workflowEventMetadata,
-        eventType: { slug: eventType.slug },
-        bookerUrl,
-      },
-      hideBranding: !!eventType?.owner?.hideBranding,
+    await handleWorkflowsUpdate({
+      booking,
+      newUser: reassignedRRHost,
+      evt: evtWithAdditionalInfo,
+      eventType,
+      orgId,
     });
   }
 

@@ -9,18 +9,24 @@ import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-team-event-type";
 
-export const useTeamEventType = (teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
+export const useTeamEventType = (teamId: number | undefined, eventSlug: string, isTeamEvent: boolean | undefined, hostsLimit?: number) => {
   const { organizationId } = useAtomsContext();
+  const requestEventSlug = eventSlug;
 
+  let pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
 
-  const requestEventSlug =  eventSlug;
+  if (!organizationId) {
+    pathname = `/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`
+  }
 
-  const pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
+  if (hostsLimit !== undefined) {
+    pathname += `&hostsLimit=${hostsLimit}`;
+  }
 
   const event = useQuery({
     queryKey: [QUERY_KEY, eventSlug, organizationId, teamId],
     queryFn: async () => {
-      if(organizationId && teamId && eventSlug && isTeamEvent) {
+      if (teamId && eventSlug && isTeamEvent) {
         return http?.get<ApiResponse<TeamEventTypeOutput_2024_06_14[]>>(pathname).then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             return (res.data as ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]>).data;
@@ -29,7 +35,7 @@ export const useTeamEventType = (teamId: number  | undefined, eventSlug: string,
         });
       }
     },
-    enabled: Boolean(organizationId) && Boolean(teamId) && Boolean(eventSlug) && Boolean(isTeamEvent),
+    enabled: Boolean(teamId) && Boolean(eventSlug) && Boolean(isTeamEvent),
   });
 
   return event;

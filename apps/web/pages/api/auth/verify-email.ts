@@ -1,13 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -29,6 +30,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
     inviterName: null,
     teamId: org.id,
     language: "en",
+    creationSource: CreationSource.WEBAPP,
     invitations: [
       {
         usernameOrEmail: email,
@@ -41,6 +43,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
+  const billingService = new StripeBillingService();
 
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
@@ -86,7 +89,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userMetadataParsed = userMetadata.parse(user.metadata);
   // Attach the new email and verify
   if (userMetadataParsed?.emailChangeWaitingForVerification) {
-    // Ensure this email isnt in use
+    // Ensure this email isn't in use
     const existingUser = await prisma.user.findUnique({
       where: { email: userMetadataParsed?.emailChangeWaitingForVerification },
       select: {
@@ -128,7 +131,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
-      await stripe.customers.update(userMetadataParsed.stripeCustomerId, {
+      await billingService.updateCustomer({
+        customerId: userMetadataParsed.stripeCustomerId,
         email: updatedEmail,
       });
     }

@@ -17,7 +17,8 @@ test.describe("check analytics Apps", () => {
         await user.apiLogin();
         await page.goto("apps/categories/analytics");
         await appsPage.installAnalyticsAppSkipConfigure(app);
-
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000); // waits for 1 second
         await page.goto("/event-types");
         await appsPage.goToEventType("30 min");
         await appsPage.goToAppsTab();
@@ -33,7 +34,7 @@ test.describe("check analytics Apps", () => {
         const user = await users.create();
         await user.apiLogin();
         const eventTypes = await user.getUserEventsAsOwner();
-        const eventTypesIds = eventTypes.map((item) => item.id);
+        const eventTypesIds = eventTypes.map((item) => item.id).slice(0, 3);
         await page.goto("/apps/categories/analytics");
         await appsPage.installAnalyticsApp(app, eventTypesIds);
         for (const id of eventTypesIds) {

@@ -11,8 +11,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if (typeof ctx.params?.slug !== "string") return notFound;
 
-  const { req, res } = ctx;
-  const session = await getServerSession({ req, res });
+  const { req } = ctx;
+  const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
     const redirect = { redirect: { permanent: false, destination: "/auth/login" } } as const;

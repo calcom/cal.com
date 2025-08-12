@@ -1,8 +1,9 @@
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { prisma } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
@@ -18,6 +19,11 @@ type AddSecondaryEmailOptions = {
 
 export const addSecondaryEmailHandler = async ({ ctx, input }: AddSecondaryEmailOptions) => {
   const { user } = ctx;
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `addSecondaryEmail.${user.id}`,
+  });
 
   const existingPrimaryEmail = await prisma.user.findUnique({
     where: {

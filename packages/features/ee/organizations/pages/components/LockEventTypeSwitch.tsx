@@ -1,22 +1,17 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { classNames } from "@calcom/lib";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import {
-  showToast,
-  Form,
-  SettingsToggle,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogClose,
-  Button,
-  RadioGroup as RadioArea,
-} from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
+import { showToast } from "@calcom/ui/components/toast";
 
 enum CurrentEventTypeOptions {
   DELETE = "DELETE",
@@ -25,14 +20,13 @@ enum CurrentEventTypeOptions {
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
-  isAdminOrOwner: boolean;
 }
 
 interface FormValues {
   currentEventTypeOptions: CurrentEventTypeOptions;
 }
 
-export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
+export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
   const [lockEventTypeCreationForUsers, setLockEventTypeCreationForUsers] = useState(
     !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
   );
@@ -55,8 +49,6 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
     },
   });
 
-  if (!isAdminOrOwner) return null;
-
   const currentLockedOption = formMethods.watch("currentEventTypeOptions");
 
   const { reset, getValues } = formMethods;
@@ -74,7 +66,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("lock_org_users_eventtypes")}
-        disabled={mutation?.isPending || !isAdminOrOwner}
+        disabled={mutation?.isPending}
         description={t("lock_org_users_eventtypes_description")}
         checked={lockEventTypeCreationForUsers}
         onCheckedChange={(checked) => {
@@ -129,9 +121,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
 
                   <DialogFooter>
                     <DialogClose />
-                    <Button disabled={!isAdminOrOwner} type="submit">
-                      {t("submit")}
-                    </Button>
+                    <Button type="submit">{t("submit")}</Button>
                   </DialogFooter>
                 </div>
               </div>

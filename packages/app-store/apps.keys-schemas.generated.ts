@@ -4,9 +4,10 @@
 **/
 import { appKeysSchema as alby_zod_ts } from "./alby/zod";
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
-import { appKeysSchema as campsite_zod_ts } from "./campsite/zod";
+import { appKeysSchema as btcpayserver_zod_ts } from "./btcpayserver/zod";
 import { appKeysSchema as closecom_zod_ts } from "./closecom/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
+import { appKeysSchema as dub_zod_ts } from "./dub/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as feishucalendar_zod_ts } from "./feishucalendar/zod";
 import { appKeysSchema as ga4_zod_ts } from "./ga4/zod";
@@ -14,7 +15,9 @@ import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
 import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
+import { appKeysSchema as hitpay_zod_ts } from "./hitpay/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appKeysSchema as insihts_zod_ts } from "./insihts/zod";
 import { appKeysSchema as intercom_zod_ts } from "./intercom/zod";
 import { appKeysSchema as jelly_zod_ts } from "./jelly/zod";
 import { appKeysSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
@@ -52,9 +55,10 @@ import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appKeysSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
-  campsite: campsite_zod_ts,
+  btcpayserver: btcpayserver_zod_ts,
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
+  dub: dub_zod_ts,
   fathom: fathom_zod_ts,
   feishucalendar: feishucalendar_zod_ts,
   ga4: ga4_zod_ts,
@@ -62,7 +66,9 @@ export const appKeysSchemas = {
   googlecalendar: googlecalendar_zod_ts,
   googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
+  hitpay: hitpay_zod_ts,
   hubspot: hubspot_zod_ts,
+  insihts: insihts_zod_ts,
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,

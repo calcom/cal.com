@@ -21,9 +21,15 @@ type GetUrlSearchParamsToForwardOptions = {
   >[];
   searchParams: URLSearchParams;
   formResponseId: number | null;
+  queuedFormResponseId: string | null;
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
   reroutingFormResponses?: FormResponseValueOnly;
+  teamId?: number | null;
+  orgId?: number | null;
+  crmContactOwnerEmail?: string | null;
+  crmContactOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
 };
 
 export function getUrlSearchParamsToForward({
@@ -32,8 +38,14 @@ export function getUrlSearchParamsToForward({
   searchParams,
   teamMembersMatchingAttributeLogic,
   formResponseId,
+  queuedFormResponseId,
   attributeRoutingConfig,
   reroutingFormResponses,
+  teamId,
+  orgId,
+  crmContactOwnerEmail,
+  crmContactOwnerRecordType,
+  crmAppSlug,
 }: GetUrlSearchParamsToForwardOptions) {
   type Params = Record<string, string | string[]>;
   const paramsFromResponse: Params = {};
@@ -101,13 +113,21 @@ export function getUrlSearchParamsToForward({
   }
 
   const allQueryParams: Params = {
+    ...(teamId && { ["cal.teamId"]: `${teamId}` }),
+    ...(orgId && { ["cal.orgId"]: `${orgId}` }),
+    ...(crmContactOwnerEmail && { ["cal.crmContactOwnerEmail"]: `${crmContactOwnerEmail}` }),
+    ...(crmContactOwnerRecordType && { ["cal.crmContactOwnerRecordType"]: `${crmContactOwnerRecordType}` }),
+    ...(crmAppSlug && { ["cal.crmAppSlug"]: `${crmAppSlug}` }),
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,
     ...(teamMembersMatchingAttributeLogic
       ? { ["cal.routedTeamMemberIds"]: teamMembersMatchingAttributeLogic.join(",") }
       : null),
-    [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId),
+    ...(typeof formResponseId === "number"
+      ? { [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: String(formResponseId) }
+      : null),
+    ...(queuedFormResponseId ? { ["cal.queuedFormResponseId"]: queuedFormResponseId } : null),
     ...attributeRoutingConfigParams,
     ...(reroutingFormResponses
       ? { ["cal.reroutingFormResponses"]: JSON.stringify(reroutingFormResponses) }
@@ -136,7 +156,7 @@ export function getUrlSearchParamsToForwardForReroute({
   attributeRoutingConfig,
   rescheduleUid,
   reroutingFormResponses,
-}: GetUrlSearchParamsToForwardOptions & {
+}: Omit<GetUrlSearchParamsToForwardOptions, "queuedFormResponseId"> & {
   rescheduleUid: string;
   reroutingFormResponses: FormResponseValueOnly;
 }) {
@@ -145,6 +165,8 @@ export function getUrlSearchParamsToForwardForReroute({
   return getUrlSearchParamsToForward({
     formResponse,
     formResponseId,
+    // Queued form response id is not available in rerouting
+    queuedFormResponseId: null,
     fields,
     searchParams,
     teamMembersMatchingAttributeLogic,
@@ -172,6 +194,8 @@ export function getUrlSearchParamsToForwardForTestPreview({
     teamMembersMatchingAttributeLogic,
     // There is no form response being stored in test preview
     formResponseId: null,
+    // Queued form response id is not available in test preview
+    queuedFormResponseId: null,
     searchParams,
   });
 }

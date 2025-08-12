@@ -7,7 +7,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 
 type PublishOptions = {
   ctx: {
@@ -22,7 +22,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
 
   if (!(await isOrganisationAdmin(ctx.user.id, orgId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const prevTeam = await prisma.team.findFirst({
+  const prevTeam = await prisma.team.findUnique({
     where: {
       id: orgId,
     },

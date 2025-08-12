@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 export function ShellSubHeading(props: {
   title: ReactNode;

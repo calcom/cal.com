@@ -1,7 +1,7 @@
 import type { Membership } from "@prisma/client";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -19,21 +19,17 @@ export const webhookProcedure = authedProcedure
       if (!memberships) return false;
       if (teamId) {
         return memberships.some(
-          (membership) =>
-            membership.teamId === teamId &&
-            (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+          (membership) => membership.teamId === teamId && checkAdminOrOwner(membership.role)
         );
       }
       return memberships.some(
-        (membership) =>
-          membership.userId === ctx.user.id &&
-          (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+        (membership) => membership.userId === ctx.user.id && checkAdminOrOwner(membership.role)
       );
     };
 
     if (id) {
       //check if user is authorized to edit webhook
-      const webhook = await prisma.webhook.findFirst({
+      const webhook = await prisma.webhook.findUnique({
         where: {
           id: id,
         },
@@ -58,7 +54,7 @@ export const webhookProcedure = authedProcedure
         }
 
         if (webhook.teamId) {
-          const user = await prisma.user.findFirst({
+          const user = await prisma.user.findUnique({
             where: {
               id: ctx.user.id,
             },
@@ -70,9 +66,7 @@ export const webhookProcedure = authedProcedure
           const userHasAdminOwnerPermissionInTeam =
             user &&
             user.teams.some(
-              (membership) =>
-                membership.teamId === webhook.teamId &&
-                (membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER)
+              (membership) => membership.teamId === webhook.teamId && checkAdminOrOwner(membership.role)
             );
 
           if (!userHasAdminOwnerPermissionInTeam) {
@@ -81,7 +75,7 @@ export const webhookProcedure = authedProcedure
             });
           }
         } else if (webhook.eventTypeId) {
-          const eventType = await prisma.eventType.findFirst({
+          const eventType = await prisma.eventType.findUnique({
             where: {
               id: webhook.eventTypeId,
             },
@@ -110,7 +104,7 @@ export const webhookProcedure = authedProcedure
     } else {
       //check if user is authorized to create webhook on event type or team
       if (teamId) {
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
           where: {
             id: ctx.user.id,
           },
@@ -125,7 +119,7 @@ export const webhookProcedure = authedProcedure
           });
         }
       } else if (eventTypeId) {
-        const eventType = await prisma.eventType.findFirst({
+        const eventType = await prisma.eventType.findUnique({
           where: {
             id: eventTypeId,
           },

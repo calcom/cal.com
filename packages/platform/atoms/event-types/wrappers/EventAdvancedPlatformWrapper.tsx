@@ -4,11 +4,11 @@ import { EventAdvancedTab } from "@calcom/features/eventtypes/components/tabs/ad
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 
 const EventAdvancedPlatformWrapper = (props: EventAdvancedBaseProps) => {
-  const { data: connectedCalendarsQuery } = useConnectedCalendars({});
+  const { isPending, data: connectedCalendarsQuery, error } = useConnectedCalendars({});
   return (
     <EventAdvancedTab
       {...props}
-      calendarsQueryData={connectedCalendarsQuery}
+      calendarsQuery={{ data: connectedCalendarsQuery, isPending, error }}
       showBookerLayoutSelector={false}
     />
   );

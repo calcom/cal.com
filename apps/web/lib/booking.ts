@@ -26,10 +26,12 @@ export const getEventTypesFromDB = async (id: number) => {
       id: true,
       title: true,
       description: true,
+      interfaceLanguage: true,
       length: true,
       eventName: true,
       recurringEvent: true,
       requiresConfirmation: true,
+      canSendCalVideoTranscriptionEmails: true,
       userId: true,
       successRedirectUrl: true,
       customInputs: true,
@@ -37,6 +39,10 @@ export const getEventTypesFromDB = async (id: number) => {
       price: true,
       currency: true,
       bookingFields: true,
+      allowReschedulingPastBookings: true,
+      hideOrganizerEmail: true,
+      disableCancelling: true,
+      disableRescheduling: true,
       disableGuests: true,
       timeZone: true,
       profile: {
@@ -60,9 +66,15 @@ export const getEventTypesFromDB = async (id: number) => {
       },
       team: {
         select: {
+          id: true,
           slug: true,
           name: true,
           hideBranding: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
         },
       },
       workflows: {
@@ -79,6 +91,11 @@ export const getEventTypesFromDB = async (id: number) => {
       schedulingType: true,
       periodStartDate: true,
       periodEndDate: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
     },
   });
 
@@ -140,7 +157,7 @@ export const handleSeatsEventTypeOnBooking = async (
   } | null;
   let seatAttendee: seatAttendee = null;
   if (seatReferenceUid) {
-    seatAttendee = await prisma.bookingSeat.findFirst({
+    seatAttendee = await prisma.bookingSeat.findUnique({
       where: {
         referenceUid: seatReferenceUid,
       },
@@ -190,7 +207,9 @@ export async function getRecurringBookings(recurringEventId: string | null) {
   const recurringBookings = await prisma.booking.findMany({
     where: {
       recurringEventId,
-      status: BookingStatus.ACCEPTED,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+      },
     },
     select: {
       startTime: true,

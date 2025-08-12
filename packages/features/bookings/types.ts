@@ -1,9 +1,11 @@
 import type { SchedulingType } from "@prisma/client";
 import type { ErrorOption, FieldPath } from "react-hook-form";
 
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
+
+import type { DatePickerProps } from "../calendars/DatePicker";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
 
@@ -15,7 +17,7 @@ export type BookerEventQuery = {
 };
 
 type BookerEventUser = Pick<
-  PublicEvent["users"][number],
+  PublicEvent["subsetOfUsers"][number],
   "name" | "username" | "avatarUrl" | "weekStart" | "profile"
 > & {
   metadata?: undefined;
@@ -25,6 +27,9 @@ type BookerEventUser = Pick<
 };
 
 type BookerEventProfile = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
+
+// marked as required to keep responsibility on consumers to handle the case where slots is undefined
+export type Slots = Required<NonNullable<DatePickerProps["slots"]>>;
 
 export type BookerEvent = Pick<
   PublicEvent,
@@ -41,20 +46,27 @@ export type BookerEvent = Pick<
   | "price"
   | "currency"
   | "lockTimeZoneToggleOnBookingPage"
+  | "lockedTimeZone"
   | "schedule"
   | "seatsPerTimeSlot"
   | "title"
   | "description"
   | "forwardParamsSuccessRedirect"
   | "successRedirectUrl"
-  | "hosts"
+  | "subsetOfHosts"
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
   | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
-> & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
+  | "disableCancelling"
+  | "disableRescheduling"
+  | "interfaceLanguage"
+> & {
+  subsetOfUsers: BookerEventUser[];
+  showInstantEventConnectNowModal: boolean;
+} & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
@@ -65,7 +77,7 @@ export enum EventDetailBlocks {
   DURATION,
   LOCATION,
   REQUIRES_CONFIRMATION,
-  // Includes input to select # of occurences.
+  // Includes input to select # of occurrences.
   OCCURENCES,
   PRICE,
 }

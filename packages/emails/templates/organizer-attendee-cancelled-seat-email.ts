@@ -23,7 +23,7 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
         date: this.getFormattedDate(),
       })}`,
       html: await renderEmail("OrganizerAttendeeCancelledSeatEmail", {
-        attendee: this.calEvent.organizer,
+        attendee: this.attendee || this.calEvent.organizer,
         calEvent: this.calEvent,
       }),
       text: this.getTextBody("event_request_cancelled"),

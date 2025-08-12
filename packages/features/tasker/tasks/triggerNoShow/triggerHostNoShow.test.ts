@@ -22,16 +22,9 @@ import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName
 import type { TSendNoShowWebhookPayloadSchema } from "./schema";
 import { triggerHostNoShow } from "./triggerHostNoShow";
 
-vi.mock(
-  "@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName",
-  async (importOriginal) => {
-    const actual = await importOriginal();
-    return {
-      ...actual,
-      getMeetingSessionsFromRoomName: vi.fn(),
-    };
-  }
-);
+vi.mock("@calcom/features/tasker/tasks/triggerNoShow/getMeetingSessionsFromRoomName", () => ({
+  getMeetingSessionsFromRoomName: vi.fn(),
+}));
 
 const timeout = process.env.CI ? 5000 : 20000;
 
@@ -149,7 +142,7 @@ describe("Trigger Host No Show:", () => {
       } satisfies TSendNoShowWebhookPayloadSchema);
 
       await triggerHostNoShow(payload);
-      const maxStartTime = calculateMaxStartTime(bookingStartTime, 5, TimeUnit.MINUTE);
+      const maxStartTime = calculateMaxStartTime(bookingStartTime as unknown as Date, 5, TimeUnit.MINUTE);
       const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
 
       await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
@@ -159,6 +152,7 @@ describe("Trigger Host No Show:", () => {
           attendees: [],
           bookingId: 222,
           bookingUid: uidOfBooking,
+          participants: [],
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
@@ -264,25 +258,27 @@ describe("Trigger Host No Show:", () => {
         })
       );
 
+      const MOCKED_PARTICIPANTS = [
+        {
+          user_id: null,
+          participant_id: "MOCK_PARTICIPANT_ID",
+          user_name: "MOCK_USER_NAME",
+          join_time: 0,
+          duration: 15,
+        },
+      ];
+
       const MOCKED_MEETING_SESSIONS = {
         total_count: 1,
         data: [
           {
             id: "MOCK_ID",
             room: "MOCK_ROOM",
-            start_time: "MOCK_START_TIME",
+            start_time: 1234567890,
             duration: 15,
             max_participants: 1,
             // User with id 101 is not in the participants list
-            participants: [
-              {
-                user_id: null,
-                participant_id: "MOCK_PARTICIPANT_ID",
-                user_name: "MOCK_USER_NAME",
-                join_time: 0,
-                duration: 15,
-              },
-            ],
+            participants: MOCKED_PARTICIPANTS,
           },
         ],
       };
@@ -320,6 +316,7 @@ describe("Trigger Host No Show:", () => {
           attendees: [],
           bookingId: 222,
           bookingUid: uidOfBooking,
+          participants: MOCKED_PARTICIPANTS,
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:00:00.000Z`,
           endTime: `${plus1DateString}T05:15:00.000Z`,
@@ -464,25 +461,27 @@ describe("Trigger Host No Show:", () => {
         })
       );
 
+      const MOCKED_PARTICIPANTS = [
+        {
+          user_id: null,
+          participant_id: "MOCK_PARTICIPANT_ID",
+          user_name: "MOCK_USER_NAME",
+          join_time: 0,
+          duration: 15,
+        },
+      ];
+
       const MOCKED_MEETING_SESSIONS = {
         total_count: 1,
         data: [
           {
             id: "MOCK_ID",
             room: "MOCK_ROOM",
-            start_time: "MOCK_START_TIME",
+            start_time: 1234567890,
             duration: 15,
             max_participants: 1,
             // User with id 101 is not in the participants list
-            participants: [
-              {
-                user_id: null,
-                participant_id: "MOCK_PARTICIPANT_ID",
-                user_name: "MOCK_USER_NAME",
-                join_time: 0,
-                duration: 15,
-              },
-            ],
+            participants: MOCKED_PARTICIPANTS,
           },
         ],
       };
@@ -520,6 +519,7 @@ describe("Trigger Host No Show:", () => {
           attendees: [],
           bookingId: 224,
           bookingUid: newUidOfBooking,
+          participants: MOCKED_PARTICIPANTS,
           hostEmail: "organizer@example.com",
           startTime: `${plus1DateString}T05:15:00.000Z`,
           endTime: `${plus1DateString}T05:30:00.000Z`,

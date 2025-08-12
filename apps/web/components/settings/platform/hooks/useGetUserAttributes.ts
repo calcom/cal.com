@@ -1,4 +1,4 @@
-import { useCheckTeamBilling } from "@calcom/web/lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useCheckTeamBilling } from "@calcom/web/lib/hooks/settings/platform/billing/useCheckTeamBilling";
 
 import { usePlatformMe } from "./usePlatformMe";
 

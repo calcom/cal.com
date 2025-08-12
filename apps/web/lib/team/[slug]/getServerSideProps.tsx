@@ -1,7 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import {
+  getOrganizationSettings,
+  getVerifiedDomain,
+} from "@calcom/features/ee/organizations/lib/orgSettings";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import logger from "@calcom/lib/logger";
@@ -10,15 +15,42 @@ import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import prisma from "@calcom/prisma";
-import type { Team } from "@calcom/prisma/client";
+import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
-import { ssrInit } from "@server/lib/ssr";
-
 const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
+
+function getOrgProfileRedirectToVerifiedDomain(
+  team: {
+    isOrganization: boolean;
+  },
+  settings: Pick<OrganizationSettings, "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain">
+) {
+  if (!team.isOrganization) {
+    return null;
+  }
+  // when this is not on a Cal.com page we don't auto redirect -
+  // good for diagnosis purposes.
+  if (!IS_CALCOM) {
+    return null;
+  }
+
+  const verifiedDomain = getVerifiedDomain(settings);
+
+  if (!settings.orgProfileRedirectsToVerifiedDomain || !verifiedDomain) {
+    return null;
+  }
+
+  return {
+    redirect: {
+      permanent: false,
+      destination: `https://${verifiedDomain}`,
+    },
+  };
+}
 
 const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefined): string | undefined => {
   if (value === undefined || typeof value === "string") {
@@ -39,7 +71,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // Provided by Rewrite from next.config.js
   const isOrgProfile = context.query?.isOrgProfile === "1";
-  const organizationsEnabled = await getFeatureFlag(prisma, "organizations");
+  const featuresRepository = new FeaturesRepository(prisma);
+  const organizationsEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("organizations");
 
   log.debug("getServerSideProps", {
     isOrgProfile,
@@ -69,7 +102,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const ssr = await ssrInit(context);
   const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   // Taking care of sub-teams and orgs
@@ -115,9 +147,19 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           parent: teamParent,
           createdAt: null,
         },
-        trpcState: ssr.dehydrate(),
       },
     } as const;
+  }
+
+  const organizationSettings = getOrganizationSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  const redirectToVerifiedDomain = organizationSettings
+    ? getOrgProfileRedirectToVerifiedDomain(team, organizationSettings)
+    : null;
+
+  if (redirectToVerifiedDomain) {
+    return redirectToVerifiedDomain;
   }
 
   const isTeamOrParentOrgPrivate = team.isPrivate || (team.parent?.isOrganization && team.parent?.isPrivate);
@@ -170,7 +212,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       props: {
         considerUnpublished: true,
         team: { ...serializableTeam },
-        trpcState: ssr.dehydrate(),
       },
     } as const;
   }
@@ -185,10 +226,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         children: isTeamOrParentOrgPrivate ? [] : team.children,
       },
       themeBasis: serializableTeam.slug,
-      trpcState: ssr.dehydrate(),
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
+      isSEOIndexable: allowSEOIndexing,
     },
   } as const;
 };

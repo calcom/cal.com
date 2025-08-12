@@ -1,7 +1,7 @@
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
-import type { WorkflowActions } from "@calcom/prisma/enums";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import { isSMSOrWhatsappAction, isWhatsappAction, isEmailToAttendeeAction } from "./actionHelperFunctions";
 import {
@@ -12,14 +12,14 @@ import {
   ATTENDEE_WORKFLOW_TEMPLATES,
 } from "./constants";
 
-export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isOrgsPlan?: boolean) {
-  return WORKFLOW_ACTIONS.map((action) => {
+export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
+  return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.CAL_AI_PHONE_CALL).map((action) => {
     const actionString = t(`${action.toLowerCase()}_action`);
 
     return {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: action,
-      needsTeamsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
+      needsCredits: !isOrgsPlan && isSMSOrWhatsappAction(action),
     };
   });
 }
@@ -39,7 +39,11 @@ export function getWorkflowTriggerOptions(t: TFunction) {
   });
 }
 
-export function getWorkflowTemplateOptions(t: TFunction, action: WorkflowActions | undefined) {
+export function getWorkflowTemplateOptions(
+  t: TFunction,
+  action: WorkflowActions | undefined,
+  hasPaidPlan: boolean
+) {
   const TEMPLATES =
     action && isWhatsappAction(action)
       ? WHATSAPP_WORKFLOW_TEMPLATES
@@ -47,6 +51,10 @@ export function getWorkflowTemplateOptions(t: TFunction, action: WorkflowActions
       ? ATTENDEE_WORKFLOW_TEMPLATES
       : BASIC_WORKFLOW_TEMPLATES;
   return TEMPLATES.map((template) => {
-    return { label: t(`${template.toLowerCase()}`), value: template };
-  }) as { label: string; value: any }[];
+    return {
+      label: t(`${template.toLowerCase()}`),
+      value: template,
+      needsTeamsUpgrade: !hasPaidPlan && template == WorkflowTemplates.CUSTOM,
+    };
+  }) as { label: string; value: any; needsTeamsUpgrade: boolean }[];
 }

@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import dayjs from "@calcom/dayjs";
 
 import { parseRecurringEvent } from "./isRecurringEvent";
-import { getTranslation } from "./server";
+import { getTranslation } from "./server/i18n";
 
 type DestinationCalendar = {
   id: number;
@@ -13,6 +13,10 @@ type DestinationCalendar = {
   userId: number | null;
   eventTypeId: number | null;
   credentialId: number | null;
+  delegationCredentialId: string | null;
+  domainWideDelegationCredentialId: string | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 } | null;
 
 type Attendee = {
@@ -34,6 +38,8 @@ type EventType = {
   recurringEvent: Prisma.JsonValue | null;
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
+  hideOrganizerEmail: boolean;
+  customReplyToEmail: string | null;
 };
 
 type Booking = {
@@ -49,6 +55,8 @@ type Booking = {
   } | null;
   attendees: Attendee[];
   eventType: EventType | null;
+  iCalUID: string | null;
+  iCalSequence: number;
 };
 
 export const buildCalEventFromBooking = async ({
@@ -91,6 +99,7 @@ export const buildCalEventFromBooking = async ({
       language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
     },
     attendees: attendeesList,
+    hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     uid: booking.uid,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     location,
@@ -102,5 +111,8 @@ export const buildCalEventFromBooking = async ({
       : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    customReplyToEmail: booking.eventType?.customReplyToEmail,
+    iCalUID: booking.iCalUID ?? booking.uid,
+    iCalSequence: booking.iCalSequence ?? 0,
   };
 };

@@ -6,6 +6,7 @@ import z from "zod";
 import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -87,8 +88,10 @@ export class PaymentService implements IAbstractPaymentService {
       const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
-        payment_method_types: ["card"],
         customer: customer.id,
+        automatic_payment_methods: {
+          enabled: true,
+        },
         metadata: {
           identifier: "cal.com",
           bookingId,
@@ -260,7 +263,7 @@ export class PaymentService implements IAbstractPaymentService {
         throw new Error(`Stripe paymentMethod does not exist for setupIntent ${setupIntent.id}`);
       }
 
-      const params = {
+      const params: Stripe.PaymentIntentCreateParams = {
         amount: payment.amount,
         currency: payment.currency,
         application_fee_amount: paymentFee,
@@ -294,7 +297,28 @@ export class PaymentService implements IAbstractPaymentService {
       return paymentData;
     } catch (error) {
       log.error("Stripe: Could not charge card for payment", _bookingId, safeStringify(error));
-      throw new Error(ErrorCode.ChargeCardFailure);
+
+      const errorMappings = {
+        "your card was declined": "your_card_was_declined",
+        "your card does not support this type of purchase":
+          "your_card_does_not_support_this_type_of_purchase",
+        "amount must convert to at least": "amount_must_convert_to_at_least",
+      };
+
+      let userMessage = "could_not_charge_card";
+
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+
+        for (const [key, message] of Object.entries(errorMappings)) {
+          if (errorMessage.includes(key)) {
+            userMessage = message;
+            break;
+          }
+        }
+      }
+
+      throw new ErrorWithCode(ErrorCode.ChargeCardFailure, userMessage);
     }
   }
 

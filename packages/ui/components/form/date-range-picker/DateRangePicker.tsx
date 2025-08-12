@@ -3,19 +3,22 @@
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import * as React from "react";
-import type { DateRange } from "react-day-picker";
 
-import { classNames as cn } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
 
 import { Button } from "../../button";
 import { Calendar } from "./Calendar";
 
 type DatePickerWithRangeProps = {
-  dates: { startDate: Date; endDate?: Date };
+  dates: { startDate?: Date; endDate?: Date };
   onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
   disabled?: boolean;
   minDate?: Date | null;
   maxDate?: Date;
+  withoutPopover?: boolean;
+  "data-testid"?: string;
+  strictlyBottom?: boolean;
+  allowPastDates?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -25,33 +28,80 @@ export function DatePickerWithRange({
   maxDate,
   onDatesChange,
   disabled,
+  withoutPopover,
+  "data-testid": testId,
+  strictlyBottom,
+  allowPastDates = false,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
-  // Even though this is uncontrolled we need to do a bit of logic to improve the UX when selecting dates
-  function _onDatesChange(onChangeValues: DateRange | undefined) {
-    if (onChangeValues?.from && !onChangeValues?.to) {
-      onDatesChange({ startDate: onChangeValues.from, endDate: onChangeValues.from });
+  function handleDayClick(date: Date) {
+    if (allowPastDates) {
+      // for Out of Office (past dates allowed)
+      if (dates?.endDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
+      } else {
+        const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
+        const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
+        onDatesChange({ startDate, endDate });
+      }
     } else {
-      onDatesChange({ startDate: onChangeValues?.from, endDate: onChangeValues?.to });
+      // for Limit Future Booking and other date range selections (no past dates)
+      if (!dates.startDate) {
+        onDatesChange({ startDate: date, endDate: undefined });
+      } else if (!dates.endDate) {
+        if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: dates.startDate });
+        } else {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        }
+      } else {
+        if (date.getTime() === dates.startDate.getTime() || date.getTime() === dates.endDate.getTime()) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else if (date < dates.startDate) {
+          onDatesChange({ startDate: date, endDate: undefined });
+        } else {
+          onDatesChange({ startDate: dates.startDate, endDate: date });
+        }
+      }
     }
   }
-  const fromDate = minDate ?? new Date();
+
+  const fromDate = allowPastDates && minDate === null ? undefined : minDate ?? new Date();
+
+  const calendar = (
+    <Calendar
+      initialFocus
+      fromDate={fromDate}
+      toDate={maxDate}
+      mode="range"
+      defaultMonth={dates?.startDate}
+      selected={{ from: dates?.startDate, to: dates?.endDate }}
+      onDayClick={(day) => handleDayClick(day)}
+      numberOfMonths={1}
+      disabled={disabled}
+      data-testid={testId}
+    />
+  );
+
+  if (withoutPopover) {
+    return calendar;
+  }
 
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={classNames("grid gap-2", className)}>
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
-            id="date"
+            data-testid="date-range"
             color="secondary"
             EndIcon="calendar"
-            className={cn("justify-between text-left font-normal", !dates && "text-subtle")}>
+            className={classNames("justify-between text-left font-normal", !dates && "text-subtle")}>
             {dates?.startDate ? (
               dates?.endDate ? (
                 <>
                   {format(dates.startDate, "LLL dd, y")} - {format(dates.endDate, "LLL dd, y")}
                 </>
               ) : (
-                format(dates.startDate, "LLL dd, y")
+                <>{format(dates.startDate, "LLL dd, y")} - End</>
               )
             ) : (
               <span>Pick a date</span>
@@ -61,19 +111,10 @@ export function DatePickerWithRange({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
-          sideOffset={4}>
-          <Calendar
-            initialFocus
-            //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
-            fromDate={minDate === null ? undefined : fromDate}
-            toDate={maxDate}
-            mode="range"
-            defaultMonth={dates?.startDate}
-            selected={{ from: dates?.startDate, to: dates?.endDate }}
-            onSelect={(values) => _onDatesChange(values)}
-            numberOfMonths={1}
-            disabled={disabled}
-          />
+          sideOffset={4}
+          side={strictlyBottom ? "bottom" : undefined}
+          avoidCollisions={!strictlyBottom}>
+          {calendar}
         </Popover.Content>
       </Popover.Root>
     </div>

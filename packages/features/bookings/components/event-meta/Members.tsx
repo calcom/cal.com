@@ -1,3 +1,4 @@
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -5,7 +6,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { AvatarGroup } from "@calcom/ui";
+import { AvatarGroup } from "@calcom/ui/components/avatar";
 
 export interface EventMembersProps {
   /**
@@ -13,15 +14,25 @@ export interface EventMembersProps {
    * In case of Round Robin type, members aren't shown.
    */
   schedulingType: BookerEvent["schedulingType"];
-  users: BookerEvent["users"];
+  users: BookerEvent["subsetOfUsers"];
   profile: BookerEvent["profile"];
   entity: BookerEvent["entity"];
+  isPrivateLink: boolean;
+  roundRobinHideOrgAndTeam?: boolean;
 }
 
-export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
+export const EventMembers = ({
+  schedulingType,
+  users,
+  profile,
+  entity,
+  isPrivateLink,
+  roundRobinHideOrgAndTeam,
+}: EventMembersProps) => {
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
+  const isPlatform = useIsPlatform();
 
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
@@ -31,17 +42,22 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
+  if (schedulingType === SchedulingType.ROUND_ROBIN && roundRobinHideOrgAndTeam) {
+    return <div className="h-6" />;
+  }
+
   const orgOrTeamAvatarItem =
     isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug
       ? []
       : [
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
-            href: isEmbed
-              ? null
-              : entity.teamSlug
-              ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
-              : getBookerBaseUrlSync(entity.orgSlug),
+            href:
+              isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
+                ? null
+                : entity.teamSlug
+                ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+                : getBookerBaseUrlSync(entity.orgSlug),
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",
@@ -56,9 +72,12 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
         items={[
           ...orgOrTeamAvatarItem,
           ...shownUsers.map((user) => ({
-            href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-              user.profile?.username
-            }?redirect=false`,
+            href:
+              isPlatform || isPrivateLink || entity.hideProfileLink
+                ? null
+                : `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+                    user.profile?.username
+                  }?redirect=false`,
             alt: user.name || "",
             title: user.name || "",
             image: getUserAvatarUrl(user),

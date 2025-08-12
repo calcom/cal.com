@@ -4,7 +4,7 @@ import type { Page } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
@@ -17,7 +17,7 @@ test.describe("Google Calendar", async () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.describe.skip("Test using the primary calendar", async () => {
     let qaUsername: string;
-    let qaGCalCredential: CredentialPayload;
+    let qaGCalCredential: CredentialForCalendarServiceWithEmail;
     test.beforeAll(async () => {
       let runIntegrationTest = false;
       const errorMessage = "Could not run test";
@@ -42,22 +42,25 @@ test.describe("Google Calendar", async () => {
       test.skip(!process.env.E2E_TEST_CALCOM_QA_PASSWORD, "QA password not found");
 
       if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
-        qaGCalCredential = await prisma.credential.findFirstOrThrow({
-          where: {
-            user: {
-              email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
+        qaGCalCredential = {
+          ...(await prisma.credential.findFirstOrThrow({
+            where: {
+              user: {
+                email: process.env.E2E_TEST_CALCOM_QA_EMAIL,
+              },
+              type: metadata.type,
             },
-            type: metadata.type,
-          },
-          include: {
-            user: {
-              select: {
-                email: true,
+            include: {
+              user: {
+                select: {
+                  email: true,
+                },
               },
             },
-          },
-        });
-        test.skip(!qaGCalCredential, "Google QA credential not found");
+          })),
+          delegatedTo: null,
+        } as CredentialForCalendarServiceWithEmail;
+        test.skip(!qaGCalCredential?.id, "Google QA credential not found");
 
         const qaUserQuery = await prisma.user.findFirstOrThrow({
           where: {

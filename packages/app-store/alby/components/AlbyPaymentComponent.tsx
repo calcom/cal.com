@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
@@ -9,8 +11,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, showToast } from "@calcom/ui";
-import { Spinner } from "@calcom/ui/components/icon/Spinner";
+import { Button } from "@calcom/ui/components/button";
+import { Spinner } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 interface IAlbyPaymentComponentProps {
   payment: {
@@ -81,15 +84,14 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
           {showQRCode && (
             <>
               <div className="flex items-center justify-center gap-2">
-                <p className="text-xs">Waiting for payment...</p>
                 <Spinner className="h-4 w-4" />
+                <p className="text-xs">Waiting for payment</p>
               </div>
               <p className="text-sm">Click or scan the invoice below to pay</p>
               <Link
                 href={`lightning:${paymentRequest}`}
-                className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent p-2
-                font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
-                <QRCode size={128} value={paymentRequest} />
+                className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent bg-white p-2 font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
+                <QRCode size={192} value={paymentRequest} />
               </Link>
 
               <Button

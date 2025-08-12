@@ -1,10 +1,13 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+
+import { TRPCError } from "@trpc/server";
 
 import { createFallbackRoute } from "../lib/createFallbackRoute";
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -15,6 +18,7 @@ import isRouterLinkedField from "../lib/isRouterLinkedField";
 import type { SerializableForm } from "../types/types";
 import { zodFields, zodRouterRoute, zodRoutes } from "../zod";
 import type { TFormMutationInputSchema } from "./formMutation.schema";
+import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
 interface FormMutationHandlerOptions {
   ctx: {
@@ -29,10 +33,36 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   const { name, id, description, disabled, addFallback, duplicateFrom, shouldConnect } = input;
   let teamId = input.teamId;
   const settings = input.settings;
-  if (!(await isFormCreateEditAllowed({ userId: user.id, formId: id, targetTeamId: teamId }))) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
+
+  const existingForm = await prisma.app_RoutingForms_Form.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (existingForm) {
+    // Check PBAC permissions for updating routing forms only
+    await checkPermissionOnExistingRoutingForm({
+      formId: existingForm.id,
+      userId: user.id,
+      permission: "routingForm.update",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
+  } else if (teamId) {
+    // Check PBAC permissions for creating team-scoped routing forms only
+    // Personal forms (teamId = null) are always allowed for the user
+    const permissionService = new PermissionCheckService();
+    const hasPermission = await permissionService.checkPermission({
+      userId: user.id,
+      teamId,
+      permission: "routingForm.create",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: `You don't have permission to create routing forms for this team`,
+      });
+    }
   }
 
   let { routes: inputRoutes, fields: inputFields } = input;
@@ -63,6 +93,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       settings: true,
       teamId: true,
       position: true,
+      updatedById: true,
     },
   });
 
@@ -145,6 +176,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       description,
       settings: settings === null ? Prisma.JsonNull : settings,
       routes: routes === null ? Prisma.JsonNull : routes,
+      updatedById: user.id,
     },
   });
 
@@ -232,7 +264,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
     inputFields: InputFields
   ) {
     for (const [, connectedForm] of Object.entries(serializedForm.connectedForms)) {
-      const connectedFormDb = await prisma.app_RoutingForms_Form.findFirst({
+      const connectedFormDb = await prisma.app_RoutingForms_Form.findUnique({
         where: {
           id: connectedForm.id,
         },
@@ -269,6 +301,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
         },
         data: {
           fields: updatedConnectedFormFields,
+          updatedById: user.id,
         },
       });
     }

@@ -58,13 +58,17 @@ export function getPiiFreeBooking(booking: {
   };
 }
 
-export function getPiiFreeCredential(credential: Partial<Credential>) {
+export function getPiiFreeCredential(credential: Partial<Credential> & { delegatedTo?: unknown }) {
   /**
    * Let's just get a boolean value for PII sensitive fields so that we atleast know if it's present or not
    */
   const booleanKeyStatus = getBooleanStatus(credential?.key);
 
-  return { ...credential, key: booleanKeyStatus };
+  return {
+    ...credential,
+    key: booleanKeyStatus,
+    delegatedTo: !!credential.delegatedTo,
+  };
 }
 
 export function getPiiFreeSelectedCalendar(selectedCalendar: Partial<SelectedCalendar>) {
@@ -89,7 +93,9 @@ export function getPiiFreeDestinationCalendar(destinationCalendar: Partial<Desti
   };
 }
 
-export function getPiiFreeEventType(eventType: Partial<Omit<EventType, "recurringEvent">>) {
+export function getPiiFreeEventType(
+  eventType: Partial<Pick<EventType, "id" | "schedulingType" | "seatsPerTimeSlot">>
+) {
   return {
     id: eventType.id,
     schedulingType: eventType.schedulingType,

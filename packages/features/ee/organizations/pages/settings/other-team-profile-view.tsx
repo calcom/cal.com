@@ -9,6 +9,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
@@ -20,23 +21,18 @@ import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Avatar,
-  Button,
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
-  Editor,
-  Form,
-  ImageUploader,
-  Label,
-  LinkIconButton,
-  Meta,
-  showToast,
-  SkeletonContainer,
-  SkeletonText,
-  TextField,
-} from "@calcom/ui";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button, LinkIconButton } from "@calcom/ui/components/button";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { Editor } from "@calcom/ui/components/editor";
+import { Form } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { subdomainSuffix } from "../../../organizations/lib/orgDomains";
 
@@ -71,6 +67,13 @@ const OtherTeamProfileView = () => {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      if (team?.slug) {
+        // Org admins editing another team's profile should purge the cached team data
+        revalidateTeamDataCache({
+          teamSlug: team.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -134,6 +137,7 @@ const OtherTeamProfileView = () => {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
+      revalidateTeamsList();
       await utils.viewer.eventTypes.invalidate();
       showToast(t("success"), "success");
     },
@@ -287,7 +291,8 @@ const OtherTeamProfileView = () => {
                     <Label className="text-emphasis mt-5">{t("about")}</Label>
                     <div
                       className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                      // eslint-disable-next-line react/no-danger
+                      dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
                     />
                   </>
                 )}

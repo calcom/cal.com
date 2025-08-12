@@ -227,6 +227,11 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
+    await page.waitForSelector("text=Reason for cancellation");
+
+    await expect(page.locator('text="Cancel event"')).toBeVisible();
+
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
     await page.locator('[data-testid="confirm_cancel"]').click();
 
@@ -235,6 +240,8 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
+
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
 
     // Page should not be 404
     await page.locator('[data-testid="confirm_cancel"]').click();

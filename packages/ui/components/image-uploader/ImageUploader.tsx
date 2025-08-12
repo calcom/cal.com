@@ -6,7 +6,7 @@ import Cropper from "react-easy-crop";
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import type { ButtonColor } from "../button";
+import type { ButtonColor, ButtonProps } from "../button";
 import { Button } from "../button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
 import { showToast } from "../toast";
@@ -18,6 +18,7 @@ const MAX_IMAGE_SIZE = 512;
 type ImageUploaderProps = {
   id: string;
   buttonMsg: string;
+  buttonSize?: ButtonProps["size"];
   handleAvatarChange: (imageSrc: string) => void;
   imageSrc?: string;
   target: string;
@@ -78,6 +79,7 @@ export default function ImageUploader({
   uploadInstruction,
   disabled = false,
   testId,
+  buttonSize,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -130,6 +132,7 @@ export default function ImageUploader({
           color={triggerButtonColor ?? "secondary"}
           type="button"
           disabled={disabled}
+          size={buttonSize}
           data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
           className="cursor-pointer py-1 text-sm">
           {buttonMsg}
@@ -189,6 +192,12 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Context is null, this should never happen.");
 
+  // Detect original image format from data URL
+  const originalFormat =
+    imageSrc.startsWith("data:image/jpeg") || imageSrc.startsWith("data:image/jpg")
+      ? "image/jpeg"
+      : "image/png";
+
   const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
   const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
 
@@ -213,7 +222,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
   // on very low ratios, the quality of the resize becomes awful. For this reason the resizeRatio is limited to 0.75
   if (resizeRatio <= 0.75) {
     // With a smaller image, thus improved ratio. Keep doing this until the resizeRatio > 0.75.
-    return getCroppedImg(canvas.toDataURL("image/png"), {
+    return getCroppedImg(canvas.toDataURL(originalFormat), {
       width: canvas.width,
       height: canvas.height,
       x: 0,
@@ -221,5 +230,6 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
     });
   }
 
-  return canvas.toDataURL("image/png");
+  // Use original format with quality setting for JPEG
+  return canvas.toDataURL(originalFormat, originalFormat === "image/jpeg" ? 0.9 : undefined);
 }

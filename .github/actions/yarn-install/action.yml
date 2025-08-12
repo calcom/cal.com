@@ -14,7 +14,7 @@ description: "Run yarn install with node_modules linker and cache enabled"
 inputs:
   node_version:
     required: false
-    default: v18.x
+    default: v20.x
 
 runs:
   using: "composite"

@@ -2,7 +2,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
 import { useRef, useState } from "react";
 
-import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
@@ -17,6 +18,14 @@ interface TeamGroupMapping {
 }
 
 const GroupTeamMappingTable = () => {
+  return (
+    <DataTableProvider>
+      <GroupTeamMappingTableContent />
+    </DataTableProvider>
+  );
+};
+
+const GroupTeamMappingTableContent = () => {
   const { t } = useLocale();
   const [createTeamDialogOpen, setCreateTeamDialogOpen] = useState(false);
 
@@ -28,6 +37,9 @@ const GroupTeamMappingTable = () => {
     {
       id: "name",
       header: t("team"),
+      size: 200,
+      enableHiding: false,
+      enableSorting: false,
       cell: ({ row }) => {
         const { name } = row.original;
 
@@ -37,6 +49,9 @@ const GroupTeamMappingTable = () => {
     {
       id: "group",
       header: t("group_name"),
+      size: 500,
+      enableHiding: false,
+      enableSorting: false,
       cell: ({ row }) => {
         const { id, groupNames, directoryId } = row.original;
 

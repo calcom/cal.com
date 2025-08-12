@@ -32,23 +32,23 @@ export const Codes = {
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import Cal, { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${uiInstructionCode}
-	  })();
-	}, [])
-	return <Cal ${namespaceProp}
-	  calLink="${calLink}"
-	  style={{width:"${width}",height:"${height}",overflow:"scroll"}}
-	  config={${JSON.stringify(previewState.config)}}
-    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  calOrigin="${embedCalOrigin}"` : ""}
-	  ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
-	/>;
-  };`;
+import Cal, { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${uiInstructionCode}
+    })();
+  }, [])
+  return <Cal ${namespaceProp}
+    calLink="${calLink}"
+    style={{width:"${width}",height:"${height}",overflow:"scroll"}}
+    config={${JSON.stringify(previewState.config)}}
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `calOrigin="${embedCalOrigin}"` : ""}
+    ${IS_SELF_HOSTED ? `embedJsUrl="${embedLibUrl}"` : ""}
+  />;
+};`;
     },
     "floating-popup": ({
       calLink,
@@ -70,17 +70,17 @@ export const Codes = {
         ...previewState,
       });
       return code`
-  import { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
-		${uiInstructionCode}
-	  })();
-	}, [])
-  };`;
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
+      ${uiInstructionCode}
+    })();
+  }, [])
+};`;
     },
     "element-click": ({
       calLink,
@@ -97,21 +97,144 @@ export const Codes = {
     }) => {
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-  import { getCalApi } from "@calcom/embed-react";
-  import { useEffect } from "react";
-  export default function MyApp() {
-	useEffect(()=>{
-	  (async function () {
-		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${uiInstructionCode}
-	  })();
-	}, [])
-	return <button data-cal-namespace="${namespace}"
-	  data-cal-link="${calLink}"
-    ${doWeNeedCalOriginProp(embedCalOrigin) ? `  data-cal-origin="${embedCalOrigin}"` : ""}
-	  ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
-	  >Click me</button>;
-  };`;
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
+export default function MyApp() {
+  useEffect(() => {
+    (async function () {
+      const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
+      ${uiInstructionCode}
+    })();
+  }, [])
+  return <button data-cal-namespace="${namespace}"
+    data-cal-link="${calLink}"
+    ${doWeNeedCalOriginProp(embedCalOrigin) ? `data-cal-origin="${embedCalOrigin}"` : ""}
+    ${`data-cal-config='${JSON.stringify(previewState.config)}'`}
+  >Click me</button>;
+};`;
+    },
+    headless: () => {
+      return null;
+    },
+  },
+  "react-atom": {
+    inline: ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["inline"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+// For example: type BookerProps = { eventTypeSlug: string; calUsername: string; /* other props */ };
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <BookerEmbed
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
+        username={calUsername}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+    </>
+  );
+};`;
+    },
+    "floating-popup": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      embedCalOrigin: string;
+      uiInstructionCode: string;
+      namespace: string;
+      previewState: PreviewState["floatingPopup"];
+    }) => {
+      return code`
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <BookerEmbed
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
+        username={calUsername}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+    </>
+  );
+};`;
+    },
+    "element-click": ({
+      calLink,
+      uiInstructionCode,
+      previewState,
+      embedCalOrigin,
+      namespace,
+    }: {
+      calLink: string;
+      uiInstructionCode: string;
+      previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
+      namespace: string;
+    }) => {
+      return code`
+import { BookerEmbed } from "@calcom/atoms";
+
+// You might need to define or import BookerProps depending on your setup
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <BookerEmbed
+        // Use the parsed username and event slug from calLink
+        eventSlug={eventSlug}
+        // layout can be of three types: COLUMN_VIEW, MONTH_VIEW or WEEK_VIEW, 
+        // you can choose whichever you prefer
+        view="${previewState.config?.layout || "MONTH_VIEW"}"
+        username={calUsername}
+        customClassNames={{
+          bookerContainer: "border-subtle border",
+        }}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+        }}
+      />
+    </>
+  );
+};`;
+    },
+    headless: () => {
+      return null;
     },
   },
   HTML: {
@@ -119,31 +242,34 @@ export const Codes = {
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["inline"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
-    elementOrSelector:"#my-cal-inline",
+    elementOrSelector:"#my-cal-inline-${namespace}",
     config: ${JSON.stringify(previewState.config)},
     calLink: "${calLink}",
   });
 
   ${uiInstructionCode}`;
     },
-
     "floating-popup": ({
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["floatingPopup"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       const floatingButtonArg = JSON.stringify({
@@ -160,11 +286,13 @@ export const Codes = {
       calLink,
       uiInstructionCode,
       previewState,
+      embedCalOrigin,
       namespace,
     }: {
       calLink: string;
       uiInstructionCode: string;
       previewState: PreviewState["elementClick"];
+      embedCalOrigin: string;
       namespace: string;
     }) => {
       return code`
@@ -175,9 +303,11 @@ export const Codes = {
 
   ${uiInstructionCode}`;
     },
+    headless: () => {
+      return null;
+    },
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} satisfies Record<string, Record<string, (...args: any[]) => string>>;
+};
 
 /**
  * It allows us to show code with certain reusable blocks indented according to the block variable placement

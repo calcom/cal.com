@@ -2,7 +2,7 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
+import type { TrpcSessionUser } from "../../../../types";
 import type { TBulkUpdateToDefaultAvailabilityInputSchema } from "./bulkUpdateDefaultAvailability.schema";
 
 type BulkUpdateToDefaultAvailabilityOptions = {
@@ -16,10 +16,10 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
   ctx,
   input,
 }: BulkUpdateToDefaultAvailabilityOptions) => {
-  const { eventTypeIds } = input;
+  const { eventTypeIds, selectedDefaultScheduleId } = input;
   const defaultScheduleId = ctx.user.defaultScheduleId;
 
-  if (!defaultScheduleId) {
+  if (!selectedDefaultScheduleId && !defaultScheduleId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Default schedule not set",
@@ -34,7 +34,7 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
       userId: ctx.user.id,
     },
     data: {
-      scheduleId: defaultScheduleId,
+      scheduleId: selectedDefaultScheduleId || defaultScheduleId,
     },
   });
 };

@@ -1,3 +1,4 @@
+import type { calendar_v3 } from "@googleapis/calendar";
 import type {
   BookingSeat,
   DestinationCalendar,
@@ -5,17 +6,16 @@ import type {
   SelectedCalendar as _SelectedCalendar,
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
-import type { calendar_v3 } from "googleapis";
+import type { TFunction } from "i18next";
 import type { Time } from "ical.js";
-import type { TFunction } from "next-i18next";
+import type { Frequency } from "rrule";
 import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { Frequency } from "@calcom/prisma/zod-utils";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
 
@@ -80,6 +80,7 @@ export type NewCalendarEventType = {
   location?: string | null;
   hangoutLink?: string | null;
   conferenceData?: ConferenceData;
+  delegatedToId?: string | null;
 };
 
 export type CalendarEventType = {
@@ -134,9 +135,7 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
-export type IntervalLimitUnit = "day" | "week" | "month" | "year";
-
-export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
+export type { IntervalLimit, IntervalLimitUnit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export type AppsStatus = {
   appName: string;
@@ -206,6 +205,9 @@ export interface CalendarEvent {
   schedulingType?: SchedulingType | null;
   iCalUID?: string | null;
   iCalSequence?: number | null;
+  hideOrganizerEmail?: boolean;
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
@@ -217,6 +219,10 @@ export interface CalendarEvent {
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
+  delegationCredentialId?: string | null;
+  domainWideDelegationCredentialId?: string | null;
+  customReplyToEmail?: string | null;
+  rescheduledBy?: string;
 }
 
 export interface EntryPoint {
@@ -247,12 +253,26 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   integrationTitle?: string;
 }
 
+/**
+ * null is to refer to user-level SelectedCalendar
+ */
+export type SelectedCalendarEventTypeIds = (number | null)[];
+
+export interface CalendarServiceEvent extends CalendarEvent {
+  calendarDescription: string;
+}
+
 export interface Calendar {
-  createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType>;
+  getCredentialId?(): number;
+  createEvent(
+    event: CalendarServiceEvent,
+    credentialId: number,
+    externalCalendarId?: string
+  ): Promise<NewCalendarEventType>;
 
   updateEvent(
     uid: string,
-    event: CalendarEvent,
+    event: CalendarServiceEvent,
     externalCalendarId?: string | null
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
@@ -261,16 +281,33 @@ export interface Calendar {
   getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean,
+    fallbackToPrimary?: boolean
   ): Promise<EventBusyDate[]>;
+
+  // for OOO calibration (only google calendar for now)
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[],
+    fallbackToPrimary?: boolean
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
+  testDelegationCredentialSetup?(): Promise<boolean>;
 
-  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<unknown>;
+  unwatchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void>;
 }
 
 /**
@@ -278,7 +315,7 @@ export interface Calendar {
  */
 type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
 
-export type CalendarClass = Class<Calendar, [CredentialPayload]>;
+export type CalendarClass = Class<Calendar, [CredentialForCalendarService]>;
 
 export type SelectedCalendar = Pick<
   _SelectedCalendar,

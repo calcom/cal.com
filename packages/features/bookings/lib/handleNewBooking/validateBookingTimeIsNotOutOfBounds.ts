@@ -1,8 +1,10 @@
 import type { Logger } from "tslog";
 
-import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
+import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventType } from "@calcom/prisma/client";
 
 type ValidateBookingTimeEventType = Pick<
@@ -15,9 +17,11 @@ type ValidateBookingTimeEventType = Pick<
   | "minimumBookingNotice"
   | "eventName"
   | "id"
+  | "title"
 >;
 
-export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTimeEventType>(
+// Define the function with underscore prefix
+const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTimeEventType>(
   reqBodyStartTime: string,
   reqBodyTimeZone: string,
   eventType: T,
@@ -41,22 +45,19 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
     );
   } catch (error) {
     logger.warn({
-      message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
+      message: "NewBooking: Unable to determine timeOutOfBounds status. Defaulting to false.",
     });
+
     if (error instanceof BookingDateInPastError) {
       logger.info(`Booking eventType ${eventType.id} failed`, JSON.stringify({ error }));
       throw new HttpError({ statusCode: 400, message: error.message });
     }
   }
 
-  if (timeOutOfBounds) {
-    const error = {
-      errorCode: "BookingTimeOutOfBounds",
-      message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
-    };
-    logger.warn({
-      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
-    });
-    throw new HttpError({ statusCode: 400, message: error.message });
-  }
+  if (timeOutOfBounds) throw new HttpError({ statusCode: 400, message: ErrorCode.BookingTimeOutOfBounds });
 };
+
+export const validateBookingTimeIsNotOutOfBounds = withReporting(
+  _validateBookingTimeIsNotOutOfBounds,
+  "validateBookingTimeIsNotOutOfBounds"
+);

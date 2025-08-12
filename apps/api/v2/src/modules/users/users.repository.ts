@@ -3,7 +3,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import type { Profile, User, Team } from "@prisma/client";
+import type { Profile, User, Team, Prisma } from "@prisma/client";
+import { CreationSource } from "@prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -30,6 +31,7 @@ export class UsersRepository {
           connect: { id: oAuthClientId },
         },
         isPlatformManaged,
+        creationSource: CreationSource.API_V2,
       },
     });
   }
@@ -71,6 +73,27 @@ export class UsersRepository {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
+      },
+      include: {
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+      },
+    });
+  }
+
+  async findOwnerByTeamIdWithProfile(teamId: number): Promise<UserWithProfile | null> {
+    return this.dbRead.prisma.user.findFirst({
+      where: {
+        teams: {
+          some: {
+            teamId,
+            role: "OWNER",
+          },
+        },
       },
       include: {
         movedToProfile: {
@@ -142,11 +165,21 @@ export class UsersRepository {
     });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-      },
+      where:
+        orgId || orgSlug
+          ? {
+              profiles: {
+                some: {
+                  organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+                  username: username,
+                },
+              },
+            }
+          : {
+              username,
+            },
     });
   }
 
@@ -165,11 +198,45 @@ export class UsersRepository {
     });
   }
 
+  async findManagedUsersByOAuthClientIdAndEmails(
+    oauthClientId: string,
+    cursor: number,
+    limit: number,
+    oAuthEmails?: string[]
+  ) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        platformOAuthClients: {
+          some: {
+            id: oauthClientId,
+          },
+        },
+        isPlatformManaged: true,
+        ...(oAuthEmails && oAuthEmails.length > 0
+          ? {
+              email: {
+                in: oAuthEmails,
+              },
+            }
+          : {}),
+      },
+      take: limit,
+      skip: cursor,
+    });
+  }
+
   async update(userId: number, updateData: UpdateManagedUserInput) {
     this.formatInput(updateData);
 
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
+      data: updateData,
+    });
+  }
+
+  async updateByEmail(email: string, updateData: Prisma.UserUpdateInput) {
+    return this.dbWrite.prisma.user.update({
+      where: { email },
       data: updateData,
     });
   }
@@ -246,6 +313,98 @@ export class UsersRepository {
       },
 
       where: { id: userId },
+    });
+  }
+
+  async findUserOOORedirectEligible(userId: number, toTeamUserId: number) {
+    return await this.dbRead.prisma.user.findUnique({
+      where: {
+        id: toTeamUserId,
+        teams: {
+          some: {
+            team: {
+              members: {
+                some: {
+                  userId: userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async getOrgsManagedUserEmailsBySubscriptionId(subscriptionId: string) {
+    return await this.dbRead.prisma.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  async getActiveManagedUsersAsHost(subscriptionId: string, startTime: Date, endTime: Date) {
+    return await this.dbRead.prisma.user.findMany({
+      distinct: ["email"],
+      where: {
+        isPlatformManaged: true,
+        profiles: {
+          some: {
+            organization: {
+              platformBilling: {
+                subscriptionId,
+              },
+            },
+          },
+        },
+        bookings: {
+          some: {
+            userId: { not: null },
+            startTime: {
+              gte: startTime,
+              lte: endTime,
+            },
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+  }
+
+  async getActiveManagedUsersAsAttendee(managedUsersEmails: string[], startTime: Date, endTime: Date) {
+    return await this.dbRead.prisma.attendee.findMany({
+      distinct: ["email"],
+      where: {
+        email: { in: managedUsersEmails },
+        booking: {
+          startTime: {
+            gte: startTime,
+            lte: endTime,
+          },
+        },
+      },
+      select: {
+        email: true,
+      },
     });
   }
 }

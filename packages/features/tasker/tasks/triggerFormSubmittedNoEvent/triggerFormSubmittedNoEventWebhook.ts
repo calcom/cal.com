@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/lib/incompleteBooking/actionFunctions";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import prisma from "@calcom/prisma";
@@ -33,17 +34,12 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
     id: z.string(),
     name: z.string(),
     teamId: z.number().nullable(),
-    fields: z
-      .array(z.object({ id: z.string(), label: z.string() }).passthrough())
-      .nullable()
-      .default([]),
   }),
 });
 
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
-
   const bookingFromResponse = await prisma.booking.findFirst({
     where: {
       routedFromRoutingFormReponse: {
@@ -81,7 +77,6 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       return typeof value === "string" && value.includes("@");
     }
   )?.value;
-
   // Check for duplicate email in recent responses
   const hasDuplicate =
     emailValue &&
@@ -109,9 +104,30 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       formName: form.name,
       teamId: form.teamId,
       redirect,
+      responseId,
       responses,
     },
   }).catch((e) => {
     console.error(`Error executing FORM_SUBMITTED_NO_EVENT webhook`, webhook, e);
   });
+
+  // See if there are other incomplete booking actions
+  const incompleteBookingActions = await prisma.app_RoutingForms_IncompleteBookingActions.findMany({
+    where: {
+      formId: form.id,
+    },
+  });
+
+  if (incompleteBookingActions) {
+    for (const incompleteBookingAction of incompleteBookingActions) {
+      const actionType = incompleteBookingAction.actionType;
+
+      // Get action function
+      const bookingActionFunction = incompleteBookingActionFunctions[actionType];
+
+      if (emailValue) {
+        await bookingActionFunction(incompleteBookingAction, emailValue);
+      }
+    }
+  }
 }

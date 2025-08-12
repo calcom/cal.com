@@ -195,9 +195,20 @@
   "ooo_user_is_ooo": "{{displayName}} OOO தில் உள்ளது",
   "ooo_slots_returning": "<0>{{displayName}}</0> வெளியில் இருக்கும் போது அவர்களின் கூட்டுகளில் பங்கேற்க முடியும்.",
   "ooo_slots_book_with": "{{displayName}} பதிவேற்று",
-  "ooo_create_entry_modal": "வேலை முடிவில் வெளியேறு",
   "ooo_select_reason": "காரணம் தேர்ந்தெடு",
   "enterprise_license_locally": "இந்த சாதனையை நீங்கள் உள்ளூரில் சோதிக்கலாம் ஆனால் தயாரிப்பில் இல்லை.",
   "enterprise_license_sales": "பணியில் பதிவேற்றம் செய்து தொழில் பதிப்பிற்கு மாற்றுங்கள் என்றால் எங்கள் விற்பனை குழுவுடன் தொடர்பு கொள்ளுங்கள். ஒரு உரிமை முக்கிய தொடர்பு ஏற்கனவே உள்ளது என்றால் support@cal.com க்கு தொடர்பு கொள்ளுங்கள் உதவிக்கு.",
-  "apply_to_all_event_types": "எல்லா நிகழ்வுகள் தொடர்புகளிலும் பயன்படுத்துங்கள், எதிர்கால நிகழ்வுகள் தொடர்புகள் உட்பட."
+  "apply_to_all_event_types": "எல்லா நிகழ்வுகள் தொடர்புகளிலும் பயன்படுத்துங்கள், எதிர்கால நிகழ்வுகள் தொடர்புகள் உட்பட.",
+  "date_and_time": "தேதி மற்றும் நேரம்",
+  "email_reminder_upcoming_event_notice": "இது உங்கள் வரவிருக்கும் நிகழ்வைப் பற்றிய நினைவூட்டல்.",
+  "email_reminder_triggered_by_workflow": "இந்த நினைவூட்டல் Cal-ல் உள்ள ஒரு Workflow மூலம் தூண்டப்பட்டது.",
+  "event_upper_case": "நிகழ்வு",
+  "scheduling_by": "ஷெடியூல் செய்தவர்",
+  "experience_review_prompt": "உங்களது சமீபத்திய அனுபவம் எப்படி இருந்தது?",
+  "improve_customer_experience_message": "நாங்கள் வாடிக்கையாளர் அனுபவத்தை மேம்படுத்துவதில் தீவிரமாக உள்ளோம்.",
+  "meeting_satisfaction_question": "உங்கள் கடைசி கூட்டத்தில் எவ்வளவு திருப்தியாக இருந்தீர்கள்?",
+  "meeting_not_joined_question": "கூட்டத்தில் சேரவில்லையா?",
+  "reschedule_cta_short": "இங்கே மீண்டும் ஷெடியூல் செய்யவும்.",
+  "you_and_conjunction": "நீங்கள் &",
+  "email_survey_triggered_by_workflow": "இந்த ஆய்வு Cal-ல் உள்ள பணிப்பாய்வு மூலம் தூண்டப்பட்டது."
 }

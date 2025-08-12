@@ -1,5 +1,7 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
+import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
@@ -8,10 +10,14 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
-import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
 import { dynamicEvent } from "@calcom/platform-libraries";
-import { GetEventTypesQuery_2024_06_14, InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
+import {
+  createEventType,
+  updateEventType,
+  getEventTypesPublic,
+  EventTypesPublic,
+} from "@calcom/platform-libraries/event-types";
+import { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -27,6 +33,9 @@ export class EventTypesService_2024_06_14 {
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: InputEventTransformed_2024_06_14) {
+    if (body.bookingFields) {
+      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+    }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
@@ -74,8 +83,23 @@ export class EventTypesService_2024_06_14 {
     await this.checkUserOwnsSchedule(userId, body.scheduleId);
   }
 
-  async getEventTypeByUsernameAndSlug(username: string, eventTypeSlug: string) {
-    const user = await this.usersRepository.findByUsername(username);
+  checkHasUserAccessibleEmailBookingField(bookingFields: (SystemField | CustomField)[]) {
+    const emailField = bookingFields.find((field) => field.type === "email" && field.name === "email");
+    const isEmailFieldRequiredAndVisible = emailField?.required && !emailField?.hidden;
+    if (!isEmailFieldRequiredAndVisible) {
+      throw new BadRequestException(
+        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+      );
+    }
+  }
+
+  async getEventTypeByUsernameAndSlug(
+    username: string,
+    eventTypeSlug: string,
+    orgSlug?: string,
+    orgId?: number
+  ) {
+    const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
     if (!user) {
       return null;
     }
@@ -92,8 +116,8 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getEventTypesByUsername(username: string) {
-    const user = await this.usersRepository.findByUsername(username);
+  async getEventTypesByUsername(username: string, orgSlug?: string, orgId?: number) {
+    const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
     if (!user) {
       return [];
     }
@@ -107,8 +131,11 @@ export class EventTypesService_2024_06_14 {
       : false;
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
+    const eventTypeSelectedCalendars =
+      await this.selectedCalendarsRepository.getUserEventTypeSelectedCalendar(user.id);
     return {
       id: user.id,
+      locale: user.locale ?? "en",
       role: user.role,
       username: user.username,
       organizationId: user.organizationId,
@@ -116,6 +143,9 @@ export class EventTypesService_2024_06_14 {
       profile: { id: profileId },
       metadata: user.metadata,
       selectedCalendars,
+      email: user.email,
+      userLevelSelectedCalendars: selectedCalendars,
+      allSelectedCalendars: [...eventTypeSelectedCalendars, ...selectedCalendars],
     };
   }
 
@@ -152,27 +182,26 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
-    const { username, eventSlug, usernames } = queryParams;
-
+    const { username, eventSlug, usernames, orgSlug, orgId } = queryParams;
     if (username && eventSlug) {
-      const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug);
+      const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug, orgSlug, orgId);
       return eventType ? [eventType] : [];
     }
 
     if (username) {
-      return await this.getEventTypesByUsername(username);
+      return await this.getEventTypesByUsername(username, orgSlug, orgId);
     }
 
     if (usernames) {
-      const dynamicEventType = await this.getDynamicEventType(usernames);
+      const dynamicEventType = await this.getDynamicEventType(usernames, orgSlug, orgId);
       return [dynamicEventType];
     }
 
     return [];
   }
 
-  async getDynamicEventType(usernames: string[]) {
-    const users = await this.usersService.getByUsernames(usernames);
+  async getDynamicEventType(usernames: string[], orgSlug?: string, orgId?: number) {
+    const users = await this.usersService.getByUsernames(usernames, orgSlug, orgId);
     const usersFiltered: UserWithProfile[] = [];
     for (const user of users) {
       if (user) {
@@ -200,7 +229,14 @@ export class EventTypesService_2024_06_14 {
     return defaultEventTypes;
   }
 
-  async updateEventType(eventTypeId: number, body: InputEventTransformed_2024_06_14, user: UserWithProfile) {
+  async updateEventType(
+    eventTypeId: number,
+    body: Partial<InputEventTransformed_2024_06_14>,
+    user: UserWithProfile
+  ) {
+    if (body.bookingFields) {
+      this.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+    }
     await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
 
@@ -226,7 +262,7 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined) {
+  async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined | null) {
     const existingEventType = await this.getUserEventType(userId, eventTypeId);
     if (!existingEventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
@@ -238,7 +274,15 @@ export class EventTypesService_2024_06_14 {
   async getUserToUpdateEvent(user: UserWithProfile) {
     const profileId = this.usersService.getUserMainProfile(user)?.id || null;
     const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
-    return { ...user, profile: { id: profileId }, selectedCalendars };
+    const eventTypeSelectedCalendars =
+      await this.selectedCalendarsRepository.getUserEventTypeSelectedCalendar(user.id);
+    return {
+      ...user,
+      locale: user.locale ?? "en",
+      profile: { id: profileId },
+      userLevelSelectedCalendars: selectedCalendars,
+      allSelectedCalendars: [...eventTypeSelectedCalendars, ...selectedCalendars],
+    };
   }
 
   async deleteEventType(eventTypeId: number, userId: number) {

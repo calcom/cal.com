@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -11,10 +12,13 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -23,14 +27,15 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] } & { isAppDir?: boolean };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
-const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
+const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
   const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
+  const [hideTeamProfileLink, setHideTeamProfileLink] = useState(team?.hideTeamProfileLink ?? false);
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
@@ -67,6 +72,14 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
       }
 
       showToast(t("your_team_updated_successfully"), "success");
+      if (res?.slug) {
+        // Appearance changes (theme, colours, branding toggles) are read on the team booking page through
+        // `getCachedTeamData` in `queries.ts`.
+        await revalidateTeamDataCache({
+          teamSlug: res?.slug,
+          orgSlug: team?.parent?.slug ?? null,
+        });
+      }
     },
   });
 
@@ -74,18 +87,10 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
     mutation.mutate({ ...values, id: team.id });
   };
 
-  const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta
-          title={t("booking_appearance")}
-          description={t("appearance_team_description")}
-          borderInShellHeader={false}
-        />
-      ) : null}
       {isAdmin ? (
         <>
           <Form
@@ -98,8 +103,8 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
               <div>
-                <p className="font-semibold">{t("theme")}</p>
-                <p className="text-default">{t("theme_applies_note")}</p>
+                <p className="mt-0.5 text-base font-semibold leading-none">{t("theme")}</p>
+                <p className="text-default text-sm leading-normal">{t("theme_applies_note")}</p>
               </div>
             </div>
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -172,6 +177,18 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
                 mutation.mutate({ id: team.id, hideBookATeamMember: checked });
               }}
             />
+
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              title={t("hide_team_profile_link")}
+              disabled={mutation?.isPending}
+              description={t("hide_team_profile_link_description")}
+              checked={hideTeamProfileLink ?? false}
+              onCheckedChange={(checked) => {
+                setHideTeamProfileLink(checked);
+                mutation.mutate({ id: team.id, hideTeamProfileLink: checked });
+              }}
+            />
           </div>
         </>
       ) : (
@@ -183,7 +200,7 @@ const ProfileView = ({ team, isAppDir }: ProfileViewProps) => {
   );
 };
 
-const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
+const ProfileViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
@@ -209,18 +226,11 @@ const ProfileViewWrapper = ({ isAppDir }: { isAppDir?: boolean }) => {
     [error]
   );
 
-  if (isPending)
-    return (
-      <AppearanceSkeletonLoader
-        isAppDir={isAppDir}
-        title={t("appearance")}
-        description={t("appearance_team_description")}
-      />
-    );
+  if (isPending) return <AppearanceSkeletonLoader />;
 
   if (!team) return null;
 
-  return <ProfileView team={team} isAppDir={isAppDir} />;
+  return <ProfileView team={team} />;
 };
 
 export default ProfileViewWrapper;

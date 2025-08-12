@@ -1,3 +1,4 @@
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -5,51 +6,26 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
+import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-
-  const { ssrInit } = await import("@server/lib/ssr");
-  const ssr = await ssrInit(context);
-
-  const hashedLink = await prisma.hashedLink.findUnique({
-    where: {
-      link,
-    },
-    select: {
-      eventTypeId: true,
-      eventType: {
-        select: {
-          users: {
-            select: {
-              username: true,
-            },
-          },
-          team: {
-            select: {
-              id: true,
-              slug: true,
-              hideBranding: true,
-            },
-          },
-        },
-      },
-    },
-  });
 
   let name: string;
   let hideBranding = false;
@@ -58,16 +34,32 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     notFound: true,
   } as const;
 
+  // Use centralized validation logic to avoid duplication
+  const hashedLinkService = new HashedLinkService();
+  try {
+    await hashedLinkService.validate(link);
+  } catch (error) {
+    // Link is expired, invalid, or doesn't exist
+    return notFound;
+  }
+
+  // If validation passes, fetch the complete data needed for rendering
+  const hashedLink = await hashedLinkService.findLinkWithDetails(link);
+
   if (!hashedLink) {
     return notFound;
   }
 
+  const username = hashedLink.eventType.users[0]?.username;
+  const profileUsername = hashedLink.eventType.users[0]?.profiles[0]?.username;
+
   if (hashedLink.eventType.team) {
     name = hashedLink.eventType.team.slug || "";
-    hideBranding = hashedLink.eventType.team.hideBranding;
+    hideBranding = shouldHideBrandingForTeamEvent({
+      eventTypeId: hashedLink.eventTypeId,
+      team: hashedLink.eventType.team,
+    });
   } else {
-    const username = hashedLink.eventType.users[0]?.username;
-
     if (!username) {
       return notFound;
     }
@@ -85,8 +77,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       }
     }
 
-    const [user] = await UserRepository.findUsersByUsername({
-      usernameList: [username],
+    name = profileUsername || username;
+
+    const userRepo = new UserRepository(prisma);
+    const [user] = await userRepo.findUsersByUsername({
+      usernameList: [name],
       orgSlug: org,
     });
 
@@ -94,8 +89,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return notFound;
     }
 
-    name = username;
-    hideBranding = user.hideBranding;
+    hideBranding = shouldHideBrandingForUserEvent({
+      eventTypeId: hashedLink.eventTypeId,
+      owner: user,
+    });
   }
 
   let booking: GetBookingType | null = null;
@@ -105,22 +102,36 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
 
-  // We use this to both prefetch the query on the server,
-  // as well as to check if the event exist, so we c an show a 404 otherwise.
-  const eventData = await ssr.viewer.public.event.fetch({
-    username: name,
-    eventSlug: slug,
-    isTeamEvent,
-    org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-  });
+  const eventData = await EventRepository.getPublicEvent(
+    {
+      username: name,
+      eventSlug: slug,
+      isTeamEvent,
+      org,
+      fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    },
+    session?.user?.id
+  );
 
   if (!eventData) {
     return notFound;
   }
 
+  // Check if team has API v2 feature flag enabled (same logic as team pages)
+  let useApiV2 = false;
+  if (isTeamEvent && hashedLink.eventType.team?.id) {
+    const featureRepo = new FeaturesRepository(prisma);
+    const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(
+      hashedLink.eventType.team.id,
+      "use-api-v2-for-team-slots"
+    );
+    useApiV2 = teamHasApiV2Route;
+  }
+
   return {
     props: {
+      useApiV2,
+      eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,
@@ -131,12 +142,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       booking,
       user: name,
       slug,
-      trpcState: ssr.dehydrate(),
       isBrandingHidden: hideBranding,
       // Sending the team event from the server, because this template file
       // is reused for both team and user events.
       isTeamEvent,
-      hashedLink: link,
+      hashedLink: hashedLink?.link,
     },
   };
 }

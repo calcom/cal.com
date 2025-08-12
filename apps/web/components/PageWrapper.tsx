@@ -10,7 +10,7 @@ import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
-import { IconSprites } from "@calcom/ui";
+import { IconSprites } from "@calcom/ui/components/icon";
 
 import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
@@ -44,17 +44,8 @@ function PageWrapper(props: AppProps) {
     pageStatus = "403";
   }
 
-  // On client side don't let nonce creep into DOM
-  // It also avoids hydration warning that says that Client has the nonce value but server has "" because browser removes nonce attributes before DOM is built
-  // See https://github.com/kentcdodds/nonce-hydration-issues
-  // Set "" only if server had it set otherwise keep it undefined because server has to match with client to avoid hydration error
-  const nonce = typeof window !== "undefined" ? (pageProps.nonce ? "" : undefined) : pageProps.nonce;
   const providerProps = {
     ...props,
-    pageProps: {
-      ...props.pageProps,
-      nonce,
-    },
   };
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -79,8 +70,10 @@ function PageWrapper(props: AppProps) {
         {...seoConfig.defaultNextSeo}
       />
       <Script
-        nonce={nonce}
         id="page-status"
+        // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+        // And we don't want it to error here anyways
+        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
 

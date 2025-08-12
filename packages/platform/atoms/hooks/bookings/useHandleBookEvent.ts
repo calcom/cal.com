@@ -1,17 +1,20 @@
+import { useSearchParams } from "next/navigation";
+
+import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
-import {
-  useTimePreferences,
-  mapBookingToMutationInput,
-  mapRecurringBookingToMutationInput,
-} from "@calcom/features/bookings/lib";
+import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
+import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import { showToast } from "@calcom/ui/components/toast";
 
+import { getUtmTrackingParameters } from "../../lib/getUtmTrackingParameters";
 import type { UseCreateBookingInput } from "./useCreateBooking";
 
+type Callbacks = { onSuccess?: () => void; onError?: (err: any) => void };
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   event?: {
@@ -22,10 +25,12 @@ type UseHandleBookingProps = {
   };
   metadata: Record<string, string>;
   hashedLink?: string | null;
-  handleBooking: (input: UseCreateBookingInput) => void;
-  handleInstantBooking: (input: BookingCreateBody) => void;
-  handleRecBooking: (input: BookingCreateBody[]) => void;
+  handleBooking: (input: UseCreateBookingInput, callbacks?: Callbacks) => void;
+  handleInstantBooking: (input: BookingCreateBody, callbacks?: Callbacks) => void;
+  handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
+  routingFormSearchParams?: RoutingFormSearchParams;
+  isBookingDryRun?: boolean;
 };
 
 export const useHandleBookEvent = ({
@@ -37,11 +42,14 @@ export const useHandleBookEvent = ({
   handleInstantBooking,
   handleRecBooking,
   locationUrl,
+  routingFormSearchParams,
+  isBookingDryRun,
 }: UseHandleBookingProps) => {
+  const isPlatform = useIsPlatform();
   const setFormValues = useBookerStore((state) => state.setFormValues);
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const storeTimeSlot = useBookerStore((state) => state.selectedTimeslot);
   const duration = useBookerStore((state) => state.selectedDuration);
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const { t, i18n } = useLocale();
@@ -54,9 +62,17 @@ export const useHandleBookEvent = ({
   const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
   const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
   const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
+  const crmRecordId = useBookerStore((state) => state.crmRecordId);
+  const handleError = (err: any) => {
+    const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
+    showToast(errorMessage, "error");
+  };
+  const searchParams = useSearchParams();
 
-  const handleBookEvent = () => {
+  const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
+    const timeslot = inputTimeSlot ?? storeTimeSlot;
+    const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
@@ -77,8 +93,6 @@ export const useHandleBookEvent = ({
         ? duration
         : event.data.length;
 
-      setLastBookingResponse(values.responses);
-
       const bookingInput = {
         values,
         duration: validDuration,
@@ -95,15 +109,23 @@ export const useHandleBookEvent = ({
         teamMemberEmail,
         crmOwnerRecordType,
         crmAppSlug,
+        crmRecordId,
         orgSlug: orgSlug ? orgSlug : undefined,
+        routingFormSearchParams,
+        isDryRunProp: isBookingDryRun,
       };
 
+      const tracking = getUtmTrackingParameters(searchParams);
+
       if (isInstantMeeting) {
-        handleInstantBooking(mapBookingToMutationInput(bookingInput));
+        handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
       } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
-        handleRecBooking(mapRecurringBookingToMutationInput(bookingInput, recurringEventCount));
+        handleRecBooking(
+          mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
+          callbacks
+        );
       } else {
-        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl });
+        handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});

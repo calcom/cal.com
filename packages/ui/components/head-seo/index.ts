@@ -1,1 +1,0 @@
-export { HeadSeo } from "./HeadSeo";

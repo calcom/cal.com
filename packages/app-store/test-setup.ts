@@ -21,13 +21,13 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   },
 }));
 
-vi.mock("@calcom/atoms/monorepo", () => ({
+vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => {
     return false;
   },
 }));
-vi.mock("@calcom/lib", () => ({
-  classNames: (...args: string[]) => {
+vi.mock("@calcom/ui/classNames", () => ({
+  default: (...args: string[]) => {
     return args.filter(Boolean).join(" ");
   },
 }));

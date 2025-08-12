@@ -30,7 +30,7 @@ test.describe("Preview", () => {
   test("Preview - embed-core should load from embedLibUrl", async ({ page }) => {
     // Intentionally pass a URL that will not load to be able to easily test that the embed was loaded from there
     page.goto(
-      "http://localhost:3000/embed/preview.html?embedLibUrl=http://wronglocalhost:3000/embed/embed.js&bookerUrl=http://localhost:3000&calLink=pro/30min"
+      "http://localhost:3000/embed/preview.html?embedLibUrl=http://localhost:3000/embed/embed-not-found.js&bookerUrl=http://localhost:3000&calLink=pro/30min"
     );
 
     const failedRequestUrl = await new Promise<string>((resolve) =>
@@ -40,6 +40,6 @@ test.describe("Preview", () => {
       })
     );
 
-    expect(failedRequestUrl).toBe("http://wronglocalhost:3000/embed/embed.js");
+    expect(failedRequestUrl).toBe("http://localhost:3000/embed/embed-not-found.js");
   });
 });

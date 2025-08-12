@@ -6,12 +6,14 @@ import {
   sendEmailVerificationLink,
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
@@ -33,11 +35,17 @@ export const sendEmailVerification = async ({
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const emailVerification = await getFeatureFlag(prisma, "email-verification");
+  const featuresRepository = new FeaturesRepository(prisma);
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
+  }
+
+  if (await checkIfEmailIsBlockedInWatchlistController(email)) {
+    log.warn("Email is blocked - not sending verification email", email);
+    return { ok: false, skipped: false };
   }
 
   if (isPlatform) {
@@ -47,7 +55,7 @@ export const sendEmailVerification = async ({
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: email,
+    identifier: hashEmail(email),
   });
 
   await prisma.verificationToken.create({
@@ -82,6 +90,11 @@ export const sendEmailVerificationByCode = async ({
   username,
   isVerifyingEmail,
 }: VerifyEmailType) => {
+  if (await checkIfEmailIsBlockedInWatchlistController(email)) {
+    log.warn("Email is blocked - not sending verification email", email);
+    return { ok: false, skipped: false };
+  }
+
   const translation = await getTranslation(language ?? "en", "common");
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
@@ -115,16 +128,22 @@ interface ChangeOfEmail {
 export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOfEmail) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
-  const emailVerification = await getFeatureFlag(prisma, "email-verification");
+  const featuresRepository = new FeaturesRepository(prisma);
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
     return { ok: true, skipped: true };
   }
 
+  if (await checkIfEmailIsBlockedInWatchlistController(user.emailFrom)) {
+    log.warn("Email is blocked - not sending verification email", user.emailFrom);
+    return { ok: false, skipped: false };
+  }
+
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: user.emailFrom,
+    identifier: hashEmail(user.emailFrom),
   });
 
   await prisma.verificationToken.create({

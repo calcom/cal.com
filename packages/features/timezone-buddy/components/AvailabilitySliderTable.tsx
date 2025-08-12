@@ -6,15 +6,19 @@ import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/r
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
+import { useDataTable } from "@calcom/features/data-table/hooks";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { Button, ButtonGroup, UserAvatar } from "@calcom/ui";
+import { UserAvatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
 import { createTimezoneBuddyStore, TBContext } from "../store";
@@ -43,7 +47,7 @@ function UpgradeTeamTip() {
     <UpgradeTip
       plan="team"
       title={t("calcom_is_better_with_team", { appName: APP_NAME }) as string}
-      description="add_your_team_members"
+      description={t("add_your_team_members")}
       background="/tips/teams"
       features={[]}
       buttons={
@@ -63,13 +67,20 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
+export function AvailabilitySliderTable(props: { isOrg: boolean }) {
+  return (
+    <DataTableProvider>
+      <AvailabilitySliderTableContent {...props} />
+    </DataTableProvider>
+  );
+}
+
+function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
-  const [searchString, setSearchString] = useState("");
-  const debouncedSearchString = useDebounce(searchString, 500);
+  const { searchTerm } = useDataTable();
 
   const tbStore = createTimezoneBuddyStore({
     browsingDate: browsingDate.toDate(),
@@ -78,10 +89,10 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
-      loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
+      loggedInUsersTz: CURRENT_TIMEZONE,
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
-      searchString: debouncedSearchString,
+      searchString: searchTerm,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -94,7 +105,10 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       {
         id: "member",
         accessorFn: (data) => data.username,
+        enableHiding: false,
+        enableSorting: false,
         header: "Member",
+        size: 200,
         cell: ({ row }) => {
           const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
@@ -125,6 +139,9 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "timezone",
         accessorFn: (data) => data.timeZone,
         header: "Timezone",
+        enableHiding: false,
+        enableSorting: false,
+        size: 160,
         cell: ({ row }) => {
           const { timeZone } = row.original;
           const timeRaw = dayjs().tz(timeZone);
@@ -146,6 +163,11 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       },
       {
         id: "slider",
+        meta: {
+          autoWidth: true,
+        },
+        enableHiding: false,
+        enableSorting: false,
         header: () => {
           return (
             <div className="flex items-center space-x-2">
@@ -180,7 +202,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as SliderUser[];
-  const totalDBRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+  const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const totalFetched = flatData.length;
 
   //called on scroll and possibly on mount to fetch more data as the user scrolls and reaches bottom of table
@@ -189,12 +211,12 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
         //once the user has scrolled within 300px of the bottom of the table, fetch more data if there is any
-        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalDBRowCount) {
+        if (scrollHeight - scrollTop - clientHeight < 300 && !isFetching && totalFetched < totalRowCount) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, totalFetched, totalDBRowCount]
+    [fetchNextPage, isFetching, totalFetched, totalRowCount]
   );
 
   useEffect(() => {
@@ -230,7 +252,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
             isPending={isPending}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
             <DataTableToolbar.Root>
-              <DataTableToolbar.SearchBar table={table} onSearch={(value) => setSearchString(value)} />
+              <DataTableToolbar.SearchBar />
             </DataTableToolbar.Root>
           </DataTable>
         </CellHighlightContainer>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import BrandColorsForm from "@calcom/features/ee/components/BrandColorsForm";
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
@@ -12,10 +13,12 @@ import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
+import { SettingsToggle } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -43,6 +46,12 @@ const OrgAppearanceView = ({
   } = themeForm;
 
   const [hideBrandingValue, setHideBrandingValue] = useState(currentOrg?.hideBranding ?? false);
+  const [allowSEOIndexingValue, setAllowSEOIndexingValue] = useState(
+    currentOrg?.organizationSettings?.allowSEOIndexing ?? false
+  );
+  const [orgProfileRedirectsToVerifiedDomainValue, setOrgProfileRedirectsToVerifiedDomainValue] = useState(
+    currentOrg?.organizationSettings?.orgProfileRedirectsToVerifiedDomain ?? false
+  );
 
   const brandColorsFormMethods = useForm<BrandColorsFormValues>({
     defaultValues: {
@@ -153,16 +162,45 @@ const OrgAppearanceView = ({
         }}
         switchContainerClassName="mt-6"
       />
+
+      <SettingsToggle
+        data-testid={`${currentOrg?.id}-seo-indexing-switch`}
+        toggleSwitchAtTheEnd={true}
+        title={t("seo_indexing")}
+        description={t("allow_seo_indexing")}
+        disabled={mutation.isPending}
+        checked={allowSEOIndexingValue}
+        onCheckedChange={(checked) => {
+          setAllowSEOIndexingValue(checked);
+          mutation.mutate({ allowSEOIndexing: checked });
+        }}
+        switchContainerClassName="mt-6"
+      />
+
+      <SettingsToggle
+        toggleSwitchAtTheEnd={true}
+        title={t("disable_org_url_label")}
+        description={t("disable_org_url_description", {
+          orgSlug: currentOrg?.slug,
+          destination: currentOrg?.organizationSettings?.orgAutoAcceptEmail,
+        })}
+        disabled={mutation.isPending}
+        checked={orgProfileRedirectsToVerifiedDomainValue}
+        onCheckedChange={(checked) => {
+          setOrgProfileRedirectsToVerifiedDomainValue(checked);
+          mutation.mutate({ orgProfileRedirectsToVerifiedDomain: checked });
+        }}
+        switchContainerClassName="mt-6"
+      />
     </div>
   );
 };
 
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
-  const { t } = useLocale();
-  const session = useSession();
-  const orgRole = session?.data?.user?.org?.role;
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
+  const session = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -174,12 +212,10 @@ const OrgAppearanceViewWrapper = () => {
   );
 
   if (isPending) {
-    return <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_org_description")} />;
+    return <AppearanceSkeletonLoader />;
   }
 
   if (!currentOrg) return null;
-
-  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return <OrgAppearanceView currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />;
 };

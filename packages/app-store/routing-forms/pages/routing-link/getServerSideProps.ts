@@ -1,43 +1,9 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { Prisma } from "@calcom/prisma/client";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
-
-export async function isAuthorizedToViewTheForm({
-  user,
-  currentOrgDomain,
-}: {
-  user: {
-    username: string | null;
-    metadata: Prisma.JsonValue;
-    movedToProfileId: number | null;
-    profile: {
-      organization: { slug: string | null; requestedSlug: string | null } | null;
-    };
-    id: number;
-  };
-  currentOrgDomain: string | null;
-}) {
-  const formUser = {
-    ...user,
-    metadata: userMetadata.parse(user.metadata),
-  };
-  const orgSlug = formUser.profile.organization?.slug ?? formUser.profile.organization?.requestedSlug ?? null;
-
-  if (!currentOrgDomain) {
-    // If not on org domain, let's allow serving any form belong to any organization so that even if the form owner is migrate to an organization, old links for the form keep working
-    return true;
-  } else if (currentOrgDomain !== orgSlug) {
-    // If on org domain,
-    // We don't serve the form that is of another org
-    // We don't serve the form that doesn't belong to any org
-    return false;
-  }
-  return true;
-}
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
@@ -49,20 +15,18 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 2) {
+  const appPages = params.pages.slice(1);
+  const formId = appPages[0];
+  if (!formId || appPages.length > 2) {
     return {
       notFound: true,
     };
   }
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
-  const isEmbed = params.appPages[1] === "embed";
-  if (context.query["flag.coep"] === "true") {
-    context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-  }
+  const isEmbed = appPages[1] === "embed";
 
-  const form = await prisma.app_RoutingForms_Form.findFirst({
+  const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
     },
@@ -103,12 +67,15 @@ export const getServerSideProps = async function getServerSideProps(
   }
 
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await userRepo.enrichUserWithItsProfile({ user: form.user }),
   };
 
-  if (!(await isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain }))) {
+  if (
+    !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
+  ) {
     return {
       notFound: true,
     };
@@ -116,7 +83,6 @@ export const getServerSideProps = async function getServerSideProps(
   return {
     props: {
       isEmbed,
-      themeBasis: form.user.username,
       profile: {
         theme: form.user.theme,
         brandColor: form.user.brandColor,

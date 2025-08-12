@@ -4,9 +4,8 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { moveUserToOrg } from "@lib/orgMigration";
-
 import { test } from "./lib/fixtures";
+import { moveUserToOrg } from "./lib/orgMigration";
 import { IS_STRIPE_ENABLED, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -42,7 +41,7 @@ test.describe("Change username on settings", () => {
 
       await usernameInput.fill(item.username);
       await page.click("[data-testid=update-username-btn]");
-      await submitAndWaitForResponse(page, "/api/trpc/viewer/updateProfile?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
         action: () => page.click("[data-testid=save-username]"),
       });
 

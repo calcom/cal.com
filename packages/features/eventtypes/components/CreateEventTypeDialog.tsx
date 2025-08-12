@@ -3,16 +3,20 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
 
-import usePostHog from "../../ee/event-tracking/lib/posthog/userPostHog";
 import CreateEventTypeForm from "./CreateEventTypeForm";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
@@ -61,7 +65,6 @@ export default function CreateEventTypeDialog({
     membershipRole: MembershipRole | null | undefined;
   }[];
 }) {
-  const postHog = usePostHog();
   const { t } = useLocale();
   const router = useRouter();
   const orgBranding = useOrgBranding();
@@ -72,10 +75,7 @@ export default function CreateEventTypeDialog({
 
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
-  const isTeamAdminOrOwner =
-    teamId !== undefined &&
-    (teamProfile?.membershipRole === MembershipRole.OWNER ||
-      teamProfile?.membershipRole === MembershipRole.ADMIN);
+  const isTeamAdminOrOwner = teamId !== undefined && checkAdminOrOwner(teamProfile?.membershipRole);
 
   const onSuccessMutation = (eventType: EventType) => {
     router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
@@ -114,16 +114,7 @@ export default function CreateEventTypeDialog({
   return (
     <Dialog
       name="new"
-      clearQueryParamsOnClose={[
-        "eventPage",
-        "teamId",
-        "type",
-        "description",
-        "title",
-        "length",
-        "slug",
-        "locations",
-      ]}>
+      clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}>
       <DialogContent
         type="creation"
         enableOverflow
@@ -139,7 +130,6 @@ export default function CreateEventTypeDialog({
             form={form}
             isManagedEventType={isManagedEventType}
             handleSubmit={(values) => {
-              postHog.capture("Event Created Frontend");
               createMutation.mutate(values);
             }}
             SubmitButton={SubmitButton}

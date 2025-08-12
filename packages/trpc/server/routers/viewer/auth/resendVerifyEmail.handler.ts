@@ -1,14 +1,18 @@
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { TRPCError } from "@calcom/trpc/server";
 
-import type { TrpcSessionUser } from "../../../trpc";
+import { TRPCError } from "@trpc/server";
+
+import type { TRPCContext } from "../../../createContext";
+import type { TrpcSessionUser } from "../../../types";
 import type { TResendVerifyEmailSchema } from "./resendVerifyEmail.schema";
 
 type ResendEmailOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    req: TRPCContext["req"] | undefined;
   };
   input: TResendVerifyEmailSchema;
 };
@@ -17,6 +21,12 @@ const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 
 export const resendVerifyEmail = async ({ input, ctx }: ResendEmailOptions) => {
   let emailToVerify = ctx.user.email;
+
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `resendVerifyEmail.${ctx.user.id}`,
+  });
+
   let emailVerified = Boolean(ctx.user.emailVerified);
   let secondaryEmail;
   // If the input which is coming is not the current user's email, it could be a secondary email

@@ -5,6 +5,7 @@ const initialData: AppFlags = {
   organizations: false,
   teams: false,
   "calendar-cache": false,
+  "calendar-cache-serve": false,
   emails: false,
   insights: false,
   webhooks: false,
@@ -14,6 +15,14 @@ const initialData: AppFlags = {
   "disable-signup": false,
   attributes: false,
   "organizer-request-email-v2": false,
+  "delegation-credential": false,
+  "salesforce-crm-tasker": false,
+  "workflow-smtp-emails": false,
+  "cal-video-log-in-overlay": false,
+  "use-api-v2-for-team-slots": false,
+  pbac: false,
+  "restriction-schedule": false,
+  "team-booking-page-cache": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
@@ -22,8 +31,6 @@ if (process.env.NEXT_PUBLIC_IS_E2E) {
 }
 
 export function useFlags(): Partial<AppFlags> {
-  const query = trpc.viewer.features.map.useQuery(undefined, {
-    initialData,
-  });
-  return query.data ?? {};
+  const query = trpc.viewer.features.map.useQuery();
+  return query.data ?? initialData;
 }

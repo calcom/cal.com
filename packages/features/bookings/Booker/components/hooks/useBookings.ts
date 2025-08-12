@@ -1,23 +1,27 @@
+"use client";
+
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
-import { useHandleBookEvent } from "@calcom/atoms/monorepo";
+import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
-import { showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui/components/toast";
 
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
@@ -28,7 +32,7 @@ export interface IUseBookings {
           BookerEvent,
           | "id"
           | "slug"
-          | "hosts"
+          | "subsetOfHosts"
           | "requiresConfirmation"
           | "isDynamic"
           | "metadata"
@@ -38,8 +42,8 @@ export interface IUseBookings {
           | "recurringEvent"
           | "schedulingType"
         > & {
-          users: Pick<
-            BookerEvent["users"][number],
+          subsetOfUsers: Pick<
+            BookerEvent["subsetOfUsers"][number],
             "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
           >[];
         })
@@ -49,6 +53,7 @@ export interface IUseBookings {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
   teamMemberEmail?: string | null;
+  isBookingDryRun?: boolean;
 }
 
 const getBookingSuccessfulEventPayload = (booking: {
@@ -60,6 +65,7 @@ const getBookingSuccessfulEventPayload = (booking: {
   paymentRequired: boolean;
   uid?: string;
   isRecurring: boolean;
+  videoCallUrl?: string;
 }) => {
   return {
     uid: booking.uid,
@@ -70,6 +76,7 @@ const getBookingSuccessfulEventPayload = (booking: {
     status: booking.status,
     paymentRequired: booking.paymentRequired,
     isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
   };
 };
 
@@ -101,7 +108,14 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
+export const useBookings = ({
+  event,
+  hashedLink,
+  bookingForm,
+  metadata,
+  teamMemberEmail,
+  isBookingDryRun,
+}: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const eventTypeId = useBookerStore((state) => state.eventId);
@@ -181,15 +195,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        showToast(t("booking_dry_run_successful"), "success");
+        router.push("/booking/dry-run-successful");
         return;
       }
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.hosts?.length
-        ? event.data?.hosts.map((host) => host.user)
-        : event.data?.users;
+      const users = !!event.data?.subsetOfHosts?.length
+        ? event.data?.subsetOfHosts.map((host) => host.user)
+        : event.data?.subsetOfUsers;
 
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
@@ -262,7 +276,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
-        seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
+        seatReferenceUid: "seatReferenceUid" in booking ? (booking.seatReferenceUid as string) : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
         rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
@@ -281,6 +295,23 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     onError: (err, _, ctx) => {
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+
+      const error = err as Error & {
+        data: { rescheduleUid: string; startTime: string; attendees: string[] };
+      };
+
+      if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
+        useBookerStore.setState({
+          rescheduleUid: error.data?.rescheduleUid,
+        });
+        useBookerStore.setState({
+          bookingData: {
+            uid: error.data?.rescheduleUid,
+            startTime: error.data?.startTime,
+            attendees: error.data?.attendees,
+          } as unknown as GetBookingType,
+        });
+      }
     },
   });
 
@@ -311,7 +342,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       const booking = bookings[0] || {};
 
       if (booking.isDryRun) {
-        showToast(t("booking_dry_run_successful"), "success");
+        router.push("/booking/dry-run-successful");
         return;
       }
 
@@ -376,6 +407,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
+    isBookingDryRun,
   });
 
   const errors = {

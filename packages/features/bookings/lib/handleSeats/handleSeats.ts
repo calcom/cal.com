@@ -8,7 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { createLoggerWithEventDetails } from "../handleNewBooking";
+import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import createNewSeat from "./create/createNewSeat";
 import rescheduleSeatedBooking from "./reschedule/rescheduleSeatedBooking";
 import type { NewSeatedBookingObject, SeatedBooking, HandleSeatsResultBooking } from "./types";
@@ -32,8 +32,11 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     evt,
     workflows,
     rescheduledBy,
+    rescheduleReason,
+    isDryRun = false,
   } = newSeatedBookingObject;
-
+  // TODO: We could allow doing more things to support good dry run for seats
+  if (isDryRun) return;
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;
@@ -110,6 +113,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
+          rescheduleReason,
           ...{
             metadata,
             eventType: {
@@ -124,6 +128,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
+        isDryRun,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -149,7 +154,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduledBy,
     };
 
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
   }
 
   return resultBooking;

@@ -3,11 +3,12 @@ import { expect } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 
 import { test } from "./lib/fixtures";
-import { localize, submitAndWaitForResponse } from "./lib/testUtils";
+import { localize } from "./lib/localize";
+import { submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Availablity", () => {
+test.describe("Availability", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();

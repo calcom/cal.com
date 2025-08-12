@@ -4,14 +4,13 @@ import { z } from "zod";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
-import { ssrInit } from "@server/lib/ssr";
 
 const checkValidEmail = (email: string) => emailSchema.safeParse(email).success;
 
@@ -25,9 +24,11 @@ const querySchema = z.object({
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
-  await ssrInit(ctx);
-  const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
+  const featuresRepository = new FeaturesRepository(prisma);
+  const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "email-verification"
+  );
+  const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -49,9 +50,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     emailVerificationEnabled,
   };
 
-  // username + email prepopulated from query params
-  const { username: preFillusername, email: prefilEmail } = querySchema.parse(ctx.query);
-
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
     return {
       redirect: {
@@ -63,13 +61,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   // no token given, treat as a normal signup without verification token
   if (!token) {
+    // username + email prepopulated from query params
+    const queryData = querySchema.safeParse(ctx.query);
     return {
       props: JSON.parse(
         JSON.stringify({
           ...props,
           prepopulateFormValues: {
-            username: preFillusername || null,
-            email: prefilEmail || null,
+            username: queryData.success ? queryData.data.username : null,
+            email: queryData.success ? queryData.data.email : null,
           },
         })
       ),

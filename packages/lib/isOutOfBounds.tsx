@@ -204,6 +204,7 @@ export function getRollingWindowEndDate({
 /**
  * To be used when we work on Timeslots(and not Dates) to check boundaries
  * It ensures that the time isn't in the past and also checks if the time is within the minimum booking notice.
+ * Note: It throws error that needs to be caught by caller.
  */
 export function isTimeOutOfBounds({
   time,
@@ -226,6 +227,37 @@ export function isTimeOutOfBounds({
   return false;
 }
 
+/**
+ * Wrapper over isTimeOutOfBounds to return a status object.
+ * Note: It doesn't throw any error and can be safely used
+ */
+export function getPastTimeAndMinimumBookingNoticeBoundsStatus({
+  time,
+  minimumBookingNotice,
+}: {
+  time: dayjs.ConfigType;
+  minimumBookingNotice?: number;
+}): {
+  isOutOfBounds: boolean;
+  reason: "minBookNoticeViolation" | "slotInPast" | null;
+} {
+  try {
+    const isOutOfBounds = isTimeOutOfBounds({ time, minimumBookingNotice });
+    return {
+      isOutOfBounds,
+      reason: isOutOfBounds ? "minBookNoticeViolation" : null,
+    };
+  } catch (error) {
+    if (error instanceof BookingDateInPastError) {
+      return {
+        isOutOfBounds: true,
+        reason: "slotInPast",
+      };
+    }
+    throw error;
+  }
+}
+
 type PeriodLimits = {
   endOfRollingPeriodEndDayInBookerTz: dayjs.Dayjs | null;
   startOfRangeStartDayInEventTz: dayjs.Dayjs | null;
@@ -236,40 +268,49 @@ export function isTimeViolatingFutureLimit({
   time,
   periodLimits,
 }: {
-  time: dayjs.ConfigType;
+  time: string | Date | number;
   periodLimits: PeriodLimits;
 }) {
   const log = logger.getSubLogger({ prefix: ["isTimeViolatingFutureLimit"] });
-  // Because we are just going to compare times, we need not convert the time to a particular timezone
-  // date.isAfter/isBefore are timezone neutral
-  const dateInSystemTz = dayjs(time);
+
+  const dateObj = new Date(time);
   if (periodLimits.endOfRollingPeriodEndDayInBookerTz) {
-    const isAfterRollingEndDay = dateInSystemTz.isAfter(periodLimits.endOfRollingPeriodEndDayInBookerTz);
-    log.debug("rollingEndDayCheck", {
-      formattedDate: dateInSystemTz.format(),
-      isAfterRollingEndDay,
-      endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
-    });
+    const isAfterRollingEndDay =
+      dateObj.valueOf() > periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf();
+
+    if (isAfterRollingEndDay)
+      log.warn(
+        "Booking is out of bounds due to rolling period end day.",
+        safeStringify({
+          formattedDate: dateObj.toISOString(),
+          isAfterRollingEndDay,
+          endOfRollingPeriodEndDayTs: periodLimits.endOfRollingPeriodEndDayInBookerTz.valueOf(),
+        })
+      );
     return isAfterRollingEndDay;
   }
 
   if (periodLimits.startOfRangeStartDayInEventTz && periodLimits.endOfRangeEndDayInEventTz) {
-    const isBeforeRangeStart = dateInSystemTz.isBefore(periodLimits.startOfRangeStartDayInEventTz);
-    const isAfterRangeEnd = dateInSystemTz.isAfter(periodLimits.endOfRangeEndDayInEventTz);
-    log.debug("rangeCheck", {
-      formattedDate: dateInSystemTz.format(),
-      isAfterRangeEnd,
-      isBeforeRangeStart,
-      startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
-      endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
-    });
+    const isBeforeRangeStart = dateObj.valueOf() < periodLimits.startOfRangeStartDayInEventTz.valueOf();
+    const isAfterRangeEnd = dateObj.valueOf() > periodLimits.endOfRangeEndDayInEventTz.valueOf();
+    if (isBeforeRangeStart || isAfterRangeEnd)
+      log.warn(
+        "Booking is out of bounds due to range start and end.",
+        safeStringify({
+          formattedDate: dateObj.toISOString(),
+          isBeforeRangeStart,
+          isAfterRangeEnd,
+          startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.toDate().toISOString(),
+          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.toDate().toISOString(),
+        })
+      );
     return isBeforeRangeStart || isAfterRangeEnd;
   }
   return false;
 }
 
 export default function isOutOfBounds(
-  time: dayjs.ConfigType,
+  time: NonNullable<dayjs.ConfigType>,
   {
     periodType,
     periodDays,
@@ -287,22 +328,37 @@ export default function isOutOfBounds(
   },
   minimumBookingNotice?: number
 ) {
-  return (
-    isTimeOutOfBounds({ time, minimumBookingNotice }) ||
-    isTimeViolatingFutureLimit({
-      time,
-      periodLimits: calculatePeriodLimits({
-        periodType,
-        periodDays,
-        periodCountCalendarDays,
-        periodStartDate,
-        periodEndDate,
-        // Temporary till we find a way to provide allDatesWithBookabilityStatus in handleNewBooking without re-computing availability for the booked timeslot
-        allDatesWithBookabilityStatusInBookerTz: null,
-        _skipRollingWindowCheck: true,
-        eventUtcOffset,
-        bookerUtcOffset,
-      }),
-    })
-  );
+  const log = logger.getSubLogger({ prefix: ["isOutOfBounds"] });
+  const isOutOfBoundsByTime = isTimeOutOfBounds({ time, minimumBookingNotice });
+  const periodLimits = calculatePeriodLimits({
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    allDatesWithBookabilityStatusInBookerTz: null, // Temporary workaround
+    _skipRollingWindowCheck: true,
+    eventUtcOffset,
+    bookerUtcOffset,
+  });
+
+  const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
+    time: dayjs.isDayjs(time) ? time.toDate() : time,
+    periodLimits,
+  });
+
+  if (isOutOfBoundsByTime) {
+    log.warn(
+      "Booking is out of bounds due to minimum booking notice.",
+      safeStringify({ minimumBookingNotice })
+    );
+    return true;
+  }
+
+  if (isOutOfBoundsByPeriod) {
+    log.warn("Booking is out of bounds due to period restrictions", safeStringify({ periodLimits }));
+    return true;
+  }
+
+  return false;
 }

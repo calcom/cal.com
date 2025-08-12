@@ -5,9 +5,9 @@ import type {
   ApiResponse,
   CreateOAuthClientInput,
   DeleteOAuthClientInput,
+  PlatformOAuthClientDto,
   SubscribeTeamInput,
 } from "@calcom/platform-types";
-import type { OAuthClient } from "@calcom/prisma/client";
 
 interface IPersistOAuthClient {
   onSuccess?: () => void;
@@ -96,7 +96,7 @@ export const useDeleteOAuthClient = (
     },
   }
 ) => {
-  const mutation = useMutation<ApiResponse<OAuthClient>, unknown, DeleteOAuthClientInput>({
+  const mutation = useMutation<ApiResponse<PlatformOAuthClientDto>, unknown, DeleteOAuthClientInput>({
     mutationFn: (data) => {
       const { id } = data;
       return fetch(`/api/v2/oauth-clients/${id}`, {

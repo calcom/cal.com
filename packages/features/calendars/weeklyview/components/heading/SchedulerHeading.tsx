@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { Button, ButtonGroup } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 import { useCalendarStore } from "../../state/store";
 

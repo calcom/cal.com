@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
@@ -16,6 +17,7 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 const catchAllSchema = bookingResponsesDbSchema;
 
 const ensureValidPhoneNumber = (value: string) => {
+  if (!value) return "";
   // + in URL could be replaced with space, so we need to replace it back
   // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
   return value.replace(/^ +/, "+");
@@ -34,6 +36,12 @@ export default function getBookingResponsesSchema({ bookingFields, view }: Commo
   return preprocess({ schema, bookingFields, isPartialSchema: false, view });
 }
 
+// Should be used when we want to check if the optional fields are entered and valid as well
+export function getBookingResponsesSchemaWithOptionalChecks({ bookingFields, view }: CommonParams) {
+  const schema = bookingResponses.and(z.record(z.any()));
+  return preprocess({ schema, bookingFields, isPartialSchema: false, view, checkOptional: true });
+}
+
 // TODO: Move preprocess of `booking.responses` to FormBuilder schema as that is going to parse the fields supported by FormBuilder
 // It allows anyone using FormBuilder to get the same preprocessing automatically
 function preprocess<T extends z.ZodType>({
@@ -41,12 +49,14 @@ function preprocess<T extends z.ZodType>({
   bookingFields,
   isPartialSchema,
   view: currentView,
+  checkOptional = false,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
   // - Not all required fields are need to be provided for prefill.
   // - Even a field response itself can be partial so the content isn't validated e.g. a field with type="phone" can be given a partial phone number(e.g. Specifying the country code like +91)
   isPartialSchema: boolean;
+  checkOptional?: boolean;
 }): z.ZodType<z.infer<T>, z.infer<T>, z.infer<T>> {
   const preprocessed = z.preprocess(
     (responses) => {
@@ -136,7 +146,6 @@ function preprocess<T extends z.ZodType>({
         const phoneSchema = isPartialSchema
           ? z.string()
           : z.string().refine(async (val) => {
-              const { isValidPhoneNumber } = await import("libphonenumber-js");
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
@@ -149,8 +158,11 @@ function preprocess<T extends z.ZodType>({
         if (bookingField.hideWhenJustOneOption) {
           hidden = hidden || numOptions <= 1;
         }
+        let isRequired = false;
         // If the field is hidden, then it can never be required
-        const isRequired = hidden ? false : isFieldApplicableToCurrentView ? bookingField.required : false;
+        if (!hidden && isFieldApplicableToCurrentView) {
+          isRequired = checkOptional || !!bookingField.required;
+        }
 
         if ((isPartialSchema || !isRequired) && value === undefined) {
           continue;
@@ -162,7 +174,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden) {
+          if (!bookingField.hidden && checkOptional ? true : bookingField.required) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
@@ -181,6 +193,18 @@ function preprocess<T extends z.ZodType>({
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: m("exclude_emails_match_found_error_message"),
+              });
+            }
+            const requiredEmails =
+              bookingField.requireEmails
+                ?.split(",")
+                .map((domain) => domain.trim())
+                .filter(Boolean) || [];
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("require_emails_no_match_found_error_message"),
               });
             }
           }
@@ -252,8 +276,14 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+          // Determine if the phone field needs validation
+          const needsValidation = isRequired || (value && value.trim() !== "");
+
+          // Validate phone number if the field is not hidden and requires validation
+          if (!bookingField.hidden && needsValidation) {
+            if (!(await phoneSchema.safeParseAsync(value)).success) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
+            }
           }
           continue;
         }
@@ -273,9 +303,7 @@ function preprocess<T extends z.ZodType>({
             const typeOfOptionInput = optionField?.type;
             if (
               // Either the field is required or there is a radio selected, we need to check if the optionInput is required or not.
-              (isRequired || value?.value) &&
-              optionField?.required &&
-              !optionValue
+              (isRequired || value?.value) && checkOptional ? true : optionField?.required && !optionValue
             ) {
               ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("error_required_field") });
               return;

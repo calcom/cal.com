@@ -5,15 +5,18 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
+import classNames from "@calcom/ui/classNames";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { AnimatedPopover } from "@calcom/ui/components/popover";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -70,7 +73,6 @@ function WorkflowsPage({ filteredList }: PageProps) {
           subtitle={t("workflows_to_automate_notifications")}
           title={t("workflows")}
           description={t("workflows_to_automate_notifications")}
-          hideHeadingOnMobile
           CTA={
             session.data?.hasValidLicense ? (
               <CreateButtonWithTeamsList
@@ -82,6 +84,10 @@ function WorkflowsPage({ filteredList }: PageProps) {
                 disableMobileButton={true}
                 onlyShowWithNoTeams={true}
                 includeOrg={true}
+                withPermission={{
+                  permission: "workflow.create",
+                  fallbackRoles: ["ADMIN", "OWNER"],
+                }}
               />
             ) : null
           }>
@@ -97,6 +103,10 @@ function WorkflowsPage({ filteredList }: PageProps) {
                     disableMobileButton={true}
                     onlyShowWithTeams={true}
                     includeOrg={true}
+                    withPermission={{
+                      permission: "workflow.create",
+                      fallbackRoles: ["ADMIN", "OWNER"],
+                    }}
                   />
                 </div>
               </div>

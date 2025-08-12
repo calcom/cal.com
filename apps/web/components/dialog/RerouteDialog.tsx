@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,6 +17,7 @@ import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/t
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
@@ -24,9 +26,10 @@ import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
-import { Button, Tooltip } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
+import { Button } from "@calcom/ui/components/button";
+import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 const enum ReroutingStatusEnum {
   REROUTING_NOT_INITIATED = "not_initiated",
@@ -277,6 +280,7 @@ const NewRoutingManager = ({
   const { t } = useLocale();
   const router = useRouter();
   const bookerUrl = useBookerUrl();
+  const session = useSession();
   const teamMemberIdsMatchingAttributeLogic =
     teamMembersMatchingAttributeLogic?.data
       ?.map((member) => member.id)
@@ -303,7 +307,7 @@ const NewRoutingManager = ({
     booking,
     currentResponse,
     searchParams: new URLSearchParams({
-      // rescheduleReason
+      rescheduledBy: session?.data?.user?.email ?? "",
     }),
   });
 
@@ -467,6 +471,7 @@ const NewRoutingManager = ({
     // TODO: Long term, we should refactor handleNewBooking and use a different route specific for this purpose,
     createBookingMutation.mutate({
       rescheduleUid: booking.uid,
+      rescheduledBy: session?.data?.user?.email ?? undefined,
       // rescheduleReason,
       reroutingFormResponses: reroutingFormResponses,
       ...getTimeslotFields(),

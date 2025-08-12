@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Fragment } from "react";
 
@@ -5,18 +7,17 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import {
-  Badge,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Icon,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 
 export function ScheduleListItem({
   schedule,
@@ -39,12 +40,10 @@ export function ScheduleListItem({
 }) {
   const { t, i18n } = useLocale();
 
-  const { data, isPending } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule.id });
-
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
-        <div className="group flex w-full items-center justify-between sm:px-6">
+      <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
+        <div className="group flex w-full items-center justify-between ">
           <Link
             href={`/availability/${schedule.id}`}
             className="flex-grow truncate text-sm"
@@ -87,63 +86,61 @@ export function ScheduleListItem({
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
-              className="mx-5"
               type="button"
               variant="icon"
               color="secondary"
               StartIcon="ellipsis"
             />
           </DropdownMenuTrigger>
-          {!isPending && data && (
-            <DropdownMenuContent>
+          <DropdownMenuContent>
+            {!schedule.isDefault && (
               <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                {!schedule.isDefault && (
-                  <DropdownItem
-                    type="button"
-                    StartIcon="star"
-                    onClick={() => {
-                      updateDefault({
-                        scheduleId: schedule.id,
-                        isDefault: true,
-                      });
-                    }}>
-                    {t("set_as_default")}
-                  </DropdownItem>
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem className="outline-none">
                 <DropdownItem
                   type="button"
-                  data-testid={`schedule-duplicate${schedule.id}`}
-                  StartIcon="copy"
+                  StartIcon="star"
                   onClick={() => {
-                    duplicateFunction({
+                    updateDefault({
                       scheduleId: schedule.id,
+                      isDefault: true,
                     });
                   }}>
-                  {t("duplicate")}
+                  {t("set_as_default")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                <DropdownItem
-                  type="button"
-                  color="destructive"
-                  StartIcon="trash"
-                  data-testid="delete-schedule"
-                  onClick={() => {
-                    if (!isDeletable) {
-                      showToast(t("requires_at_least_one_schedule"), "error");
-                    } else {
-                      deleteFunction({
-                        scheduleId: schedule.id,
-                      });
-                    }
-                  }}>
-                  {t("delete")}
-                </DropdownItem>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          )}
+            )}
+            <DropdownMenuItem className="outline-none">
+              <DropdownItem
+                type="button"
+                data-testid={`schedule-duplicate${schedule.id}`}
+                StartIcon="copy"
+                onClick={() => {
+                  duplicateFunction({
+                    scheduleId: schedule.id,
+                  });
+                }}>
+                {t("duplicate")}
+              </DropdownItem>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="min-w-40 focus:ring-muted">
+              <DropdownItem
+                type="button"
+                color="destructive"
+                StartIcon="trash"
+                data-testid="delete-schedule"
+                className="rounded-t-none"
+                onClick={() => {
+                  if (!isDeletable) {
+                    showToast(t("requires_at_least_one_schedule"), "error");
+                  } else {
+                    deleteFunction({
+                      scheduleId: schedule.id,
+                    });
+                  }
+                }}>
+                {t("delete")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
         </Dropdown>
       </div>
     </li>

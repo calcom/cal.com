@@ -1,12 +1,11 @@
 import { useSession } from "next-auth/react";
 
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import {
-  ButtonGroup,
-  Tooltip,
-  Button,
   Dropdown,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -14,8 +13,9 @@ import {
   DropdownMenuPortal,
   DropdownItem,
   DropdownMenuSeparator,
-  showToast,
-} from "@calcom/ui";
+} from "@calcom/ui/components/dropdown";
+import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { UserTableUser, UserTableAction } from "./types";
 

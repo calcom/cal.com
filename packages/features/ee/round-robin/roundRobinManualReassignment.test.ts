@@ -1,3 +1,5 @@
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import {
   getDate,
   createBookingScenario,
@@ -19,7 +21,7 @@ import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-vi.mock("@calcom/core/EventManager");
+vi.mock("@calcom/lib/EventManager");
 
 const testDestinationCalendar = {
   integration: "test-calendar",
@@ -59,7 +61,7 @@ describe("roundRobinManualReassignment test", () => {
 
   test("manually reassign round robin organizer", async ({ emails }) => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const EventManager = (await import("@calcom/core/EventManager")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
@@ -160,7 +162,7 @@ describe("roundRobinManualReassignment test", () => {
 
   test("Manually reassign round robin host with fixed host as organizer", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const EventManager = (await import("@calcom/core/EventManager")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
@@ -242,7 +244,8 @@ describe("roundRobinManualReassignment test", () => {
       userId: fixedHost.id,
     });
 
-    const attendees = await BookingRepository.getBookingAttendees(123);
+    const bookingRepo = new BookingRepository(prismaMock);
+    const attendees = await bookingRepo.getBookingAttendees(123);
 
     expect(attendees.some((attendee) => attendee.email === currentRRHost.email)).toBe(false);
     expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
@@ -250,7 +253,7 @@ describe("roundRobinManualReassignment test", () => {
 
   test("sends cancellation email to previous RR host when reassigning", async ({ emails }) => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
-    const EventManager = (await import("@calcom/core/EventManager")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });

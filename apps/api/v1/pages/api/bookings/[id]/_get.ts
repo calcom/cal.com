@@ -1,6 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { defaultResponder } from "@calcom/lib/server";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 
 import { schemaBookingReadPublic } from "~/lib/validations/booking";
@@ -106,6 +108,11 @@ export async function getHandler(req: NextApiRequest) {
       eventType: expand.includes("team") ? { include: { team: true } } : false,
     },
   });
+
+  if (!booking) {
+    throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+  }
+
   return { booking: schemaBookingReadPublic.parse(booking) };
 }
 

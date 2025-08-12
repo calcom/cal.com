@@ -12,9 +12,6 @@ import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 const log = logger.getSubLogger({ prefix: [`[[intercom/api/callback]`] });
 
-let client_id = "";
-let client_secret = "";
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
 
@@ -26,12 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
 
+  let clientId = "";
+  let clientSecret = "";
   const appKeys = await getAppKeysFromSlug("intercom");
 
-  if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
-  if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
-  if (!client_id) return res.status(400).json({ message: "Intercom client_id missing." });
-  if (!client_secret) return res.status(400).json({ message: "Intercom client_secret missing." });
+  if (typeof appKeys.client_id === "string") clientId = appKeys.client_id;
+  if (typeof appKeys.client_secret === "string") clientSecret = appKeys.client_secret;
+  if (!clientId) return res.status(400).json({ message: "Intercom client_id missing." });
+  if (!clientSecret) return res.status(400).json({ message: "Intercom client_secret missing." });
 
   const response = await fetch(`https://api.intercom.io/auth/eagle/token`, {
     method: "POST",
@@ -40,8 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     body: JSON.stringify({
       code,
-      client_id,
-      client_secret,
+      client_id: clientId,
+      client_secret: clientSecret,
     }),
   });
 

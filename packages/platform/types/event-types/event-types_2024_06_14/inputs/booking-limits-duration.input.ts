@@ -54,7 +54,7 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
     comparedLimit?: string;
   } = {};
   validate(value: BookingLimitsDuration_2024_06_14) {
-    if (!value) return false;
+    if (!value || typeof value !== "object") return false;
     if ("disabled" in value) {
       return true;
     }
@@ -88,9 +88,9 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
   defaultMessage() {
     const { invalidLimit, comparedLimit } = this.errorDetails;
     if (invalidLimit && comparedLimit) {
-      return `Invalid booking durations: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
+      return `Invalid bookingLimitsDuration: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
     }
-    return `Invalid booking durations structure`;
+    return `Invalid bookingLimitsDuration`;
   }
 }
 

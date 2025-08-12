@@ -31,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       teamId: null,
       appId: "caldav-calendar",
       invalid: false,
+      delegationCredentialId: null,
     };
 
     try {

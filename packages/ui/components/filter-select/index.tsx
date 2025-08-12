@@ -1,9 +1,8 @@
-import { classNames } from "@calcom/lib";
+import classNames from "@calcom/ui/classNames";
+
+import { Badge } from "../badge/Badge";
+import { Button } from "../button/Button";
 import {
-  Button,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   Command,
   CommandInput,
   CommandList,
@@ -11,9 +10,10 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-  Badge,
-  Icon,
-} from "@calcom/ui";
+} from "../command/Command";
+import type { IconName } from "../icon/Icon";
+import { Icon } from "../icon/Icon";
+import { Popover, PopoverTrigger, PopoverContent } from "../popover/Popover";
 
 export interface FilterOption {
   value: string | number;
@@ -26,7 +26,7 @@ interface FilterSelectProps {
   options: FilterOption[];
   selectedValue?: string | number | null;
   onChange: (value: string | number | null) => void;
-  buttonIcon?: React.ReactNode;
+  buttonIcon?: IconName;
   placeholder?: string;
   emptyText?: string;
   testId?: string;
@@ -47,8 +47,7 @@ export function FilterSelect({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="border-subtle rounded-md" data-testid={`${testId}-button`}>
-          {buttonIcon}
+        <Button color="secondary" data-testid={`${testId}-button`} StartIcon={buttonIcon}>
           {title}
           {selectedValue && (
             <div className="ml-2 hidden space-x-1 md:flex">

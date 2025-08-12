@@ -1,12 +1,33 @@
-import React from "react";
+import { _generateMetadata } from "app/_utils";
+import { headers } from "next/headers";
 
-const NotFound = () => {
-  return (
-    <div data-testid="404-page">
-      <h1>404 - Page Not Found</h1>
-      <p>Sorry, the page you are looking for does not exist.</p>
-    </div>
+import PageWrapper from "@components/PageWrapperAppDir";
+
+import { NotFound } from "./notFoundClient";
+
+export const generateMetadata = async () => {
+  const metadata = await _generateMetadata(
+    (t) => t("404_page_not_found"),
+    (t) => t("404_page_not_found")
   );
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
 };
 
-export default NotFound;
+const ServerPage = async () => {
+  const h = await headers();
+  const nonce = h.get("x-csp-nonce") ?? undefined;
+  const host = h.get("x-forwarded-host") ?? "";
+
+  return (
+    <PageWrapper requiresLicense={false} nonce={nonce}>
+      <NotFound host={host} />
+    </PageWrapper>
+  );
+};
+export default ServerPage;
