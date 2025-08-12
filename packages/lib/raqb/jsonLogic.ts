@@ -56,7 +56,7 @@ jsonLogic.add_operation("in", function (a: string, b: string | string[]) {
 jsonLogic.add_operation("starts_with", function (a: string, b: string) {
   const first = normalize(a);
   const second = normalize(b);
-  if (!second) return false;
+  if (!first || !second || typeof first !== "string" || typeof second !== "string") return false;
   return first.indexOf(second) === 0;
 });
 

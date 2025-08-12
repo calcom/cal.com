@@ -248,5 +248,14 @@ describe("jsonLogic", () => {
       expect(jsonLogic.apply({ starts_with: ["", "hello"] })).toBe(false);
       expect(jsonLogic.apply({ starts_with: ["hello", "hello world"] })).toBe(false);
     });
+
+    it("should handle non-string first argument (haystack) safely", () => {
+      expect(jsonLogic.apply({ starts_with: [null, "x"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [undefined, "x"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [123, "1"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [true, "t"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [[], ""] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [{}, ""] })).toBe(false);
+    });
   });
 });
