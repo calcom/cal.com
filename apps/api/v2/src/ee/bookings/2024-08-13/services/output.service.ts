@@ -317,7 +317,7 @@ export class OutputBookingsService_2024_08_13 {
       rating: databaseBooking.rating,
       icsUid: databaseBooking.iCalUID,
       rescheduledToUid: rescheduledToUid ?? databaseBooking.rescheduledToUid,
-      rescheduledByEmail: rescheduledByEmail,
+      rescheduledByEmail: rescheduledByEmail ?? databaseBooking.rescheduledByEmail,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
