@@ -24,7 +24,7 @@ interface TeamMembersViewProps {
     }[];
   };
   attributes?: any[];
-  permissions?: MemberPermissions;
+  permissions: MemberPermissions;
 }
 
 export const TeamMembersView = ({ team, facetedTeamValues, permissions }: TeamMembersViewProps) => {
@@ -46,7 +46,7 @@ export const TeamMembersView = ({ team, facetedTeamValues, permissions }: TeamMe
               isOrgAdminOrOwner={false}
               setShowMemberInvitationModal={setShowMemberInvitationModal}
               facetedTeamValues={facetedTeamValues}
-              permissions={permissions!}
+              permissions={permissions}
             />
           </div>
         )}

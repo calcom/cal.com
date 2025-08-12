@@ -34,7 +34,6 @@ import type { MemberPermissions } from "@calcom/features/users/components/UserTa
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -434,7 +433,9 @@ function MemberListContent(props: Props) {
           // Use PBAC permissions for edit mode, with role-based fallback
           const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
           const canRemove = props.permissions?.canRemove ?? false;
-          const editMode = canChangeRole || canRemove;
+          const editMode = (canChangeRole || canRemove) && !isSelf;
+          // For now impersonation just lives on the canChangeRole OR canRemove permission (since without pbac these check admin or owner)
+          // In my next PR on this stack i will implement a custom impersonation permission that lives on orgs + teams.
           const impersonationMode =
             editMode &&
             !user.disableImpersonation &&
