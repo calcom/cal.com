@@ -1,3 +1,5 @@
+import dayjs from "@calcom/dayjs";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -50,8 +52,11 @@ export async function executeAIPhoneCall(payload: string) {
           select: {
             uid: true,
             startTime: true,
+            endTime: true,
             eventTypeId: true,
             responses: true,
+            location: true,
+            description: true,
             attendees: {
               select: {
                 name: true,
@@ -63,11 +68,13 @@ export async function executeAIPhoneCall(payload: string) {
             eventType: {
               select: {
                 title: true,
+                bookingFields: true,
               },
             },
             user: {
               select: {
                 name: true,
+                timeZone: true,
               },
             },
           },
@@ -128,14 +135,53 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("No phone number found for attendee");
     }
 
-    // TODO:Prepare dynamic variables for the AI call
+    // Prepare dynamic variables for the AI call using the same format as workflow system
+    const attendee = booking.attendees[0];
+    const timeZone = booking.user?.timeZone || attendee?.timeZone || "UTC";
+
+    // Get form responses if available
+    const { responses } = getCalEventResponses({
+      bookingFields: booking.eventType?.bookingFields ?? null,
+      booking: booking,
+    });
+
+    // Split attendee name into first and last name
+    const attendeeNameWords = attendee?.name?.trim().split(" ") || [];
+    const attendeeNameWordCount = attendeeNameWords.length;
+    const attendeeFirstName = attendeeNameWords[0] || "";
+    const attendeeLastName = attendeeNameWordCount > 1 ? attendeeNameWords[attendeeNameWordCount - 1] : "";
+
     const dynamicVariables = {
-      guestName: booking.attendees[0]?.name || "",
-      guestEmail: booking.attendees[0]?.email || "",
-      guestCompany: "",
-      schedulerName: booking.user?.name || "",
-      eventName: booking.eventType?.title || "",
-      eventDate: booking.startTime.toISOString(),
+      EVENT_NAME: booking.eventType?.title || "",
+      EVENT_DATE: dayjs(booking.startTime).tz(timeZone).format("dddd, MMMM D, YYYY"),
+      EVENT_TIME: dayjs(booking.startTime).tz(timeZone).format("h:mm A"),
+      EVENT_END_TIME: dayjs(booking.endTime).tz(timeZone).format("h:mm A"),
+      TIMEZONE: timeZone,
+      LOCATION: booking.location || "",
+      ORGANIZER_NAME: booking.user?.name || "",
+      ATTENDEE_NAME: attendee?.name || "",
+      ATTENDEE_FIRST_NAME: attendeeFirstName,
+      ATTENDEE_LAST_NAME: attendeeLastName,
+      ATTENDEE_EMAIL: attendee?.email || "",
+      ATTENDEE_TIMEZONE: attendee?.timeZone || "",
+      ADDITIONAL_NOTES: booking.description || "",
+      EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: dayjs(booking.startTime)
+        .tz(attendee?.timeZone || timeZone)
+        .format("h:mm A"),
+      EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: dayjs(booking.endTime)
+        .tz(attendee?.timeZone || timeZone)
+        .format("h:mm A"),
+      // Include any custom form responses
+      ...Object.fromEntries(
+        Object.entries(responses || {}).map(([key, value]) => [
+          key
+            .replace(/[^a-zA-Z0-9 ]/g, "")
+            .trim()
+            .replaceAll(" ", "_")
+            .toUpperCase(),
+          value.value?.toString() || "",
+        ])
+      ),
     };
 
     const aiService = createDefaultAIPhoneServiceProvider();
