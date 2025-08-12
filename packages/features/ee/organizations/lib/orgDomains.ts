@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
-import { IS_PRODUCTION, WEBSITE_URL } from "@calcom/lib/constants";
+import { IS_PRODUCTION, WEBSITE_URL, SINGLE_ORG_SLUG } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
@@ -26,6 +26,12 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
     });
   }
 
+  // If SINGLE_ORG_SLUG is set we know that the Cal.com instance is configured to run just one organization, so we can return the slug directly.
+  if (SINGLE_ORG_SLUG) {
+    log.debug("In Single Org Mode, using SINGLE_ORG_SLUG as the Org slug", { SINGLE_ORG_SLUG });
+    return SINGLE_ORG_SLUG;
+  }
+
   if (!hostname.includes(".")) {
     log.warn('Org support not enabled for hostname without "."', { hostname });
     // A no-dot domain can never be org domain. It automatically considers localhost to be non-org domain
@@ -39,7 +45,7 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
   });
 
   if (!currentHostname) {
-    log.warn("Match of WEBAPP_URL with ALLOWED_HOSTNAME failed", { WEBAPP_URL, ALLOWED_HOSTNAMES });
+    log.warn("Match of WEBAPP_URL with ALLOWED_HOSTNAMES failed", { WEBAPP_URL, ALLOWED_HOSTNAMES });
     return null;
   }
   // Define which is the current domain/subdomain

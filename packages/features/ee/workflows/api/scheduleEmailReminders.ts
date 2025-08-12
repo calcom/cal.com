@@ -10,6 +10,7 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -20,6 +21,7 @@ import {
   getAllRemindersToCancel,
   getAllRemindersToDelete,
   getAllUnscheduledReminders,
+  getWorkflowRecipientEmail,
 } from "../lib/getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "../lib/reminders/providers/emailProvider";
 import {
@@ -186,6 +188,13 @@ export async function handler(req: NextRequest) {
             reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
           );
 
+          const recipientEmail = getWorkflowRecipientEmail({
+            action: reminder.workflowStep.action || WorkflowActions.EMAIL_ADDRESS,
+            attendeeEmail: reminder.booking.attendees[0].email,
+            organizerEmail: reminder.booking.user?.email,
+            sendToEmail: reminder.workflowStep.sendTo,
+          });
+
           const variables: VariablesType = {
             eventName: reminder.booking.eventType?.title || "",
             organizerName: reminder.booking.user?.name || "",
@@ -198,8 +207,12 @@ export async function handler(req: NextRequest) {
             additionalNotes: reminder.booking.description,
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl,
-            cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
-            rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
+            cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true${
+              recipientEmail ? `&cancelledBy=${encodeURIComponent(recipientEmail)}` : ""
+            }`,
+            rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}${
+              recipientEmail ? `?rescheduledBy=${encodeURIComponent(recipientEmail)}` : ""
+            }`,
             ratingUrl: `${bookerUrl}/booking/${reminder.booking.uid}?rating`,
             noShowUrl: `${bookerUrl}/booking/${reminder.booking.uid}?noShow=true`,
             attendeeTimezone: reminder.booking.attendees[0].timeZone,
@@ -378,7 +391,14 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
+          workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
+        });
       }
     } else if (reminder.isMandatoryReminder) {
       try {
@@ -459,7 +479,14 @@ export async function handler(req: NextRequest) {
           });
         }
       } catch (error) {
-        logger.error(`Error scheduling Email with error ${error}`);
+        logger.error(`Error scheduling Email with error ${error}`, {
+          reminderId: reminder.id,
+          scheduledDate: reminder.scheduledDate,
+          isMandatoryReminder: reminder.isMandatoryReminder,
+          workflowStepId: reminder?.workflowStep?.id,
+          bookingUid: reminder.booking?.uid,
+          fullError: safeStringify(error),
+        });
       }
     }
   }

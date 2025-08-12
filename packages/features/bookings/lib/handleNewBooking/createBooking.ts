@@ -4,7 +4,8 @@ import type { z } from "zod";
 
 import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -71,7 +72,8 @@ async function getAssociatedBookingForFormResponse(formResponseId: number) {
   return formResponse?.routedToBookingUid ?? null;
 }
 
-export async function createBooking({
+// Define the function with underscore prefix
+const _createBooking = async ({
   uid,
   reqBody,
   eventType,
@@ -83,7 +85,7 @@ export async function createBooking({
   rescheduledBy,
   creationSource,
   tracking,
-}: CreateBookingParams & { rescheduledBy: string | undefined }) {
+}: CreateBookingParams & { rescheduledBy: string | undefined }) => {
   updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
     ? await getAssociatedBookingForFormResponse(routingFormResponseId)
@@ -126,7 +128,9 @@ export async function createBooking({
     }
     return true;
   }
-}
+};
+
+export const createBooking = withReporting(_createBooking, "createBooking");
 
 async function saveBooking(
   bookingAndAssociatedData: ReturnType<typeof buildNewBookingData>,

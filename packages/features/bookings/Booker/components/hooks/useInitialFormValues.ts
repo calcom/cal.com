@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -21,7 +21,6 @@ type UseInitialFormValuesProps = {
     guests: string[];
     name: string | null;
   };
-  lastBookingResponse?: Record<string, string>;
   clientId?: string;
 };
 
@@ -63,7 +62,6 @@ export function useInitialFormValues({
   hasSession,
   extraOptions,
   prefillFormParams,
-  lastBookingResponse,
   clientId,
 }: UseInitialFormValuesProps) {
   const stableHashExtraOptions = getStableHash(extraOptions);
@@ -105,7 +103,6 @@ export function useInitialFormValues({
         // `guests` because the `name` of the corresponding bookingField is `guests`
         guests: prefillFormParams.guests,
       });
-      const parsedLastBookingResponse = z.record(z.any()).nullish().parse(lastBookingResponse);
 
       const defaultUserValues = {
         email:
@@ -113,13 +110,13 @@ export function useInitialFormValues({
             ? bookingData?.attendees[0].email
             : !!parsedQuery["email"]
             ? parsedQuery["email"]
-            : email ?? parsedLastBookingResponse?.email ?? "",
+            : email ?? "",
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
             : !!parsedQuery["name"]
             ? parsedQuery["name"]
-            : name ?? username ?? parsedLastBookingResponse?.name ?? "",
+            : name ?? username ?? "",
       };
 
       if (clientId) {

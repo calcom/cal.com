@@ -6,6 +6,7 @@ import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -41,6 +42,7 @@ import {
   GetEventTypesQuery_2024_06_14,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
+
 } from "@calcom/platform-types";
 
 @Controller({
@@ -114,6 +116,9 @@ export class EventTypesController_2024_06_14 {
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    if (!eventTypes || eventTypes.length === 0) {
+      throw new NotFoundException(`Event types not found`);
+    }
     const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
     const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
       return {

@@ -207,9 +207,13 @@ const ChooseEmbedTypesDialogContent = ({
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              gotoState({
-                embedType: embed.type as EmbedType,
-              });
+              if (embed.type === "headless") {
+                window.open("https://cal.com/help/routing/headless-routing", "_blank");
+              } else {
+                gotoState({
+                  embedType: embed.type as EmbedType,
+                });
+              }
             }}>
             <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
@@ -278,6 +282,7 @@ const EmailEmbed = ({
     eventId: eventType?.id,
     isTeamEvent,
     duration: selectedDuration,
+    useApiV2: false,
   });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
@@ -358,11 +363,11 @@ const EmailEmbed = ({
             <DatePicker
               isLoading={schedule.isPending}
               onChange={(date: Dayjs | null) => {
-                setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+                setSelectedDate({ date: date === null ? date : date.format("YYYY-MM-DD") });
               }}
               onMonthChange={(date: Dayjs) => {
                 setMonth(date.format("YYYY-MM"));
-                setSelectedDate(date.format("YYYY-MM-DD"));
+                setSelectedDate({ date: date.format("YYYY-MM-DD") });
               }}
               includedDates={nonEmptyScheduleDays}
               locale={i18n.language}

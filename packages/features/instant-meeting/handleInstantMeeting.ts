@@ -13,9 +13,9 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
-import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { createInstantMeetingWithCalVideo } from "@calcom/lib/videoClient";
@@ -200,6 +200,7 @@ async function handler(req: NextApiRequest) {
       name: fullName,
       timeZone: attendeeTimezone,
       locale: attendeeLanguage ?? "en",
+      phoneNumber: reqBody.attendeePhoneNumber ?? null,
     },
   ];
 
@@ -209,6 +210,7 @@ async function handler(req: NextApiRequest) {
       name: "",
       timeZone: attendeeTimezone,
       locale: "en",
+      phoneNumber: null,
     });
     return guestArray;
   }, [] as typeof invitee);

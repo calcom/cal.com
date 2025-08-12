@@ -52,6 +52,8 @@ export const useSlots = (
     onError: onReserveSlotError,
   });
 
+  const seatedEventData = useBookerStore((state) => state.seatedEventData);
+
   const removeSelectedSlot = useDeleteSelectedSlot({
     onSuccess: onDeleteSlotSuccess,
     onError: onDeleteSlotError,
@@ -78,6 +80,7 @@ export const useSlots = (
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
         _isDryRun: isBookingDryRun,
+        bookingUid: seatedEventData.bookingUid || undefined,
       });
     }
   };

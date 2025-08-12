@@ -6,14 +6,12 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
-import { trpc } from "@calcom/trpc";
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 import { FormAction, FormActionsDropdown } from "../FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
 
@@ -61,6 +59,7 @@ const Actions = ({
   setIsTestPreviewOpen,
   isTestPreviewOpen,
   isMobile = false,
+  permissions,
 }: {
   form: RoutingFormWithResponseCount;
   setIsTestPreviewOpen: (value: boolean) => void;
@@ -68,6 +67,12 @@ const Actions = ({
   appUrl: string;
   isTestPreviewOpen: boolean;
   isMobile?: boolean;
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
 }) => {
   const { t } = useLocale();
   const formContext = useFormContext<RoutingFormWithResponseCount>();
@@ -111,17 +116,15 @@ const Actions = ({
               StartIcon="external-link">
               {t("view_form")}
             </FormAction>
-            {isMobile ? (
-              <FormAction
-                action="incompleteBooking"
-                className="w-full"
-                routingForm={form}
-                color="minimal"
-                type="button"
-                StartIcon="calendar">
-                {t("routing_incomplete_booking_tab")}
-              </FormAction>
-            ) : null}
+            <FormAction
+              action="incompleteBooking"
+              className="w-full"
+              routingForm={form}
+              color="minimal"
+              type="button"
+              StartIcon="calendar">
+              {t("routing_incomplete_booking_tab")}
+            </FormAction>
             <FormAction
               action="copyLink"
               className="w-full"
@@ -169,6 +172,7 @@ const Actions = ({
               className="w-full"
               type="button"
               color="destructive"
+              disabled={!permissions.canDelete}
               StartIcon="trash">
               {t("delete")}
             </FormAction>
@@ -186,6 +190,7 @@ const Actions = ({
           <Button
             data-testid={isMobile ? "update-form-mobile" : "update-form"}
             loading={isSaving}
+            disabled={!permissions.canEdit}
             type="submit"
             color="primary">
             {t("save")}
@@ -210,6 +215,7 @@ export function Header({
   setShowInfoLostDialog,
   setIsTestPreviewOpen,
   isTestPreviewOpen,
+  permissions,
 }: {
   routingForm: RoutingFormWithResponseCount;
   isSaving: boolean;
@@ -217,19 +223,17 @@ export function Header({
   setShowInfoLostDialog: (value: boolean) => void;
   setIsTestPreviewOpen: (value: boolean) => void;
   isTestPreviewOpen: boolean;
+  permissions: {
+    canCreate: boolean;
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
 }) {
   const { t } = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(routingForm.name);
   const form = useFormContext<RoutingFormWithResponseCount>();
-
-  const { data } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
-    formId: routingForm.id,
-  });
-
-  const showIncompleteBookingTab = data?.credentials.some((credential) =>
-    enabledIncompleteBookingApps.includes(credential?.appId ?? "")
-  );
 
   const { getCurrentPage, handleNavigation } = useRoutingFormNavigation(
     routingForm,
@@ -336,7 +340,8 @@ export function Header({
             isSaving={isSaving}
             appUrl={appUrl}
             isMobile={true}
-          />
+            permissions={permissions}
+          />{" "}
         </div>
       </div>
 
@@ -357,15 +362,6 @@ export function Header({
               label: t("routing"),
               iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
             },
-            ...(showIncompleteBookingTab
-              ? [
-                  {
-                    value: "incomplete-booking",
-                    label: t("routing_incomplete_booking_tab"),
-                    iconLeft: <Icon name="calendar" className="h-3 w-3" />,
-                  },
-                ]
-              : []),
           ]}
         />
       </div>
@@ -378,6 +374,7 @@ export function Header({
           isTestPreviewOpen={isTestPreviewOpen}
           isSaving={isSaving}
           appUrl={appUrl}
+          permissions={permissions}
         />
       </div>
     </div>

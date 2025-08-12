@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import type { AnyRouter } from "@trpc/server";
 import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
 
@@ -42,9 +40,6 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
       const defaultHeaders: Record<"headers", Record<string, string>> = {
         headers: {},
       };
-
-      const timezone = z.string().safeParse(ctx.req?.headers["x-vercel-ip-timezone"]);
-      if (timezone.success) defaultHeaders.headers["x-cal-timezone"] = timezone.data;
 
       // We need all these conditions to be true to set cache headers
       if (!(isPublic && allOk && isQuery)) return defaultHeaders;

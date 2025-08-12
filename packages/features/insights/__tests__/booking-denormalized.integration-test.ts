@@ -9,6 +9,7 @@ describe("BookingDenormalized", () => {
   let bookingId: number;
   const randomId = Math.floor(Math.random() * 1000000);
   const email = `booking-denorm-${randomId}@example.com`;
+  const updatedEmail = `updated-${email}`;
 
   beforeEach(async () => {
     // Create test user
@@ -101,7 +102,7 @@ describe("BookingDenormalized", () => {
         where: { id: userId },
         data: {
           name: "Updated User",
-          email: "updated@example.com",
+          email: updatedEmail,
         },
       });
 
@@ -110,7 +111,7 @@ describe("BookingDenormalized", () => {
       });
 
       expect(userUpdatedDenormalizedBooking.userName).toBe("Updated User");
-      expect(userUpdatedDenormalizedBooking.userEmail).toBe("updated@example.com");
+      expect(userUpdatedDenormalizedBooking.userEmail).toBe(updatedEmail);
     });
 
     it("should update denormalized entry when event type is updated", async () => {

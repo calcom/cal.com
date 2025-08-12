@@ -93,7 +93,8 @@ export class OrganizationRepository {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
-    const ownerInDb = await UserRepository.create({
+    const userRepo = new UserRepository(prisma);
+    const ownerInDb = await userRepo.create({
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,
@@ -247,11 +248,11 @@ export class OrganizationRepository {
   }
 
   static async findCurrentOrg({ userId, orgId }: { userId: number; orgId: number }) {
-    const membership = await prisma.membership.findFirst({
+    const membership = await prisma.membership.findUnique({
       where: {
-        userId,
-        team: {
-          id: orgId,
+        userId_teamId: {
+          userId,
+          teamId: orgId,
         },
       },
       include: {

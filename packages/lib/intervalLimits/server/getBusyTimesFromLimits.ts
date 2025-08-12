@@ -1,25 +1,19 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
+import { getCheckBookingLimitsService } from "@calcom/lib/di/containers/BookingLimits";
+import { getBusyTimesService } from "@calcom/lib/di/containers/BusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
-import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
-import monitorCallbackAsync from "@calcom/lib/sentryWrapper";
+import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit } from "../intervalLimitSchema";
 import LimitManager from "../limitManager";
 import { isBookingWithinPeriod } from "../utils";
-import { checkBookingLimit } from "./checkBookingLimits";
-
-export const getBusyTimesFromLimits = async (
-  ...args: Parameters<typeof _getBusyTimesFromLimits>
-): Promise<ReturnType<typeof _getBusyTimesFromLimits>> => {
-  return monitorCallbackAsync(_getBusyTimesFromLimits, ...args);
-};
 
 const _getBusyTimesFromLimits = async (
   bookingLimits: IntervalLimit | null,
@@ -78,12 +72,6 @@ const _getBusyTimesFromLimits = async (
   return limitManager.getBusyTimes();
 };
 
-const getBusyTimesFromBookingLimits = async (
-  ...args: Parameters<typeof _getBusyTimesFromBookingLimits>
-): Promise<ReturnType<typeof _getBusyTimesFromBookingLimits>> => {
-  return monitorCallbackAsync(_getBusyTimesFromBookingLimits, ...args);
-};
-
 const _getBusyTimesFromBookingLimits = async (params: {
   bookings: EventBusyDetails[];
   bookingLimits: IntervalLimit;
@@ -124,7 +112,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
       // special handling of yearly limits to improve performance
       if (unit === "year") {
         try {
-          await checkBookingLimit({
+          const checkBookingLimitsService = getCheckBookingLimitsService();
+          await checkBookingLimitsService.checkBookingLimit({
             eventStartDate: periodStart.toDate(),
             limitingNumber: limit,
             eventId: eventTypeId,
@@ -161,13 +150,6 @@ const _getBusyTimesFromBookingLimits = async (params: {
     }
   }
 };
-
-const getBusyTimesFromDurationLimits = async (
-  ...args: Parameters<typeof _getBusyTimesFromDurationLimits>
-): Promise<ReturnType<typeof _getBusyTimesFromDurationLimits>> => {
-  return monitorCallbackAsync(_getBusyTimesFromDurationLimits, ...args);
-};
-
 const _getBusyTimesFromDurationLimits = async (
   bookings: EventBusyDetails[],
   durationLimits: IntervalLimit,
@@ -198,7 +180,8 @@ const _getBusyTimesFromDurationLimits = async (
 
       // special handling of yearly limits to improve performance
       if (unit === "year") {
-        const totalYearlyDuration = await getTotalBookingDuration({
+        const bookingRepo = new BookingRepository(prisma);
+        const totalYearlyDuration = await bookingRepo.getTotalBookingDuration({
           eventId: eventType.id,
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf(unit).toDate(),
@@ -231,11 +214,10 @@ const _getBusyTimesFromDurationLimits = async (
   }
 };
 
-export const getBusyTimesFromTeamLimits = async (
-  ...args: Parameters<typeof _getBusyTimesFromTeamLimits>
-): Promise<ReturnType<typeof _getBusyTimesFromTeamLimits>> => {
-  return monitorCallbackAsync(_getBusyTimesFromTeamLimits, ...args);
-};
+const getBusyTimesFromDurationLimits = withReporting(
+  _getBusyTimesFromDurationLimits,
+  "getBusyTimesFromDurationLimits"
+);
 
 const _getBusyTimesFromTeamLimits = async (
   user: { id: number; email: string },
@@ -247,13 +229,15 @@ const _getBusyTimesFromTeamLimits = async (
   timeZone: string,
   rescheduleUid?: string
 ) => {
-  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+  const busyTimesService = getBusyTimesService();
+  const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
     dateFrom.toISOString(),
     dateTo.toISOString(),
     bookingLimits
   );
 
-  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+  const bookingRepo = new BookingRepository(prisma);
+  const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUser({
     user,
     teamId,
     startDate: limitDateFrom.toDate(),
@@ -287,3 +271,15 @@ const _getBusyTimesFromTeamLimits = async (
 
   return limitManager.getBusyTimes();
 };
+
+export const getBusyTimesFromLimits = withReporting(_getBusyTimesFromLimits, "getBusyTimesFromLimits");
+
+export const getBusyTimesFromBookingLimits = withReporting(
+  _getBusyTimesFromBookingLimits,
+  "getBusyTimesFromBookingLimits"
+);
+
+export const getBusyTimesFromTeamLimits = withReporting(
+  _getBusyTimesFromTeamLimits,
+  "getBusyTimesFromTeamLimits"
+);

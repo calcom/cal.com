@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 
 import { TRPCError } from "@trpc/server";
 
@@ -20,14 +20,7 @@ const listHandler = async (opts: GetOptions) => {
     });
   }
 
-  return await prisma.attribute.findMany({
-    where: {
-      teamId: org.id,
-    },
-    include: {
-      options: true,
-    },
-  });
+  return await PrismaAttributeRepository.findAllByOrgIdWithOptions({ orgId: org.id });
 };
 
 export default listHandler;

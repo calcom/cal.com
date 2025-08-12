@@ -127,6 +127,7 @@ export function ScheduleListItem({
                 color="destructive"
                 StartIcon="trash"
                 data-testid="delete-schedule"
+                className="rounded-t-none"
                 onClick={() => {
                   if (!isDeletable) {
                     showToast(t("requires_at_least_one_schedule"), "error");

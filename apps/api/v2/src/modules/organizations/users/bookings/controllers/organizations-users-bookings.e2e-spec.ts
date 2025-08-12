@@ -29,6 +29,7 @@ import {
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
+  PaginationMetaDto,
 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
@@ -373,17 +374,26 @@ describe("Organizations UsersBookings Endpoints 2024-08-13", () => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
+            expect(responseBody.pagination).toBeDefined();
             const data: (
               | BookingOutput_2024_08_13
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
+            const pagination: PaginationMetaDto = responseBody.pagination;
             expect(data.length).toEqual(3);
             expect(data.find((booking) => booking.id === createdPersonalBooking.id)).toBeDefined();
             expect(data.find((booking) => booking.id === createdTeamBooking.id)).toBeDefined();
             expect(
               data.find((booking) => booking.id === createdPersonalBookingUsingUsername.id)
             ).toBeDefined();
+            expect(pagination.totalItems).toEqual(3);
+            expect(pagination.remainingItems).toEqual(0);
+            expect(pagination.hasNextPage).toEqual(false);
+            expect(pagination.hasPreviousPage).toEqual(false);
+            expect(pagination.itemsPerPage).toEqual(100);
+            expect(pagination.totalPages).toEqual(1);
+            expect(pagination.currentPage).toEqual(1);
           });
       });
     });

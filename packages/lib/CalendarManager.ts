@@ -5,13 +5,17 @@ import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
+import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
+import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
@@ -241,21 +245,11 @@ export const getBusyCalendarTimes = async (
   }
 
   // const months = getMonths(dateFrom, dateTo);
+  // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
+  const startDate = dayjs(dateFrom).subtract(11, "hours").format();
+  // Add 14 hours from the start date to avoid problems in UTC+ time zones.
+  const endDate = dayjs(dateTo).add(14, "hours").format();
   try {
-    // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
-    const startDate = dayjs(dateFrom).subtract(11, "hours").format();
-    // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-    const endDate = dayjs(dateTo).add(14, "hours").format();
-
-    log.debug(
-      "getBusyCalendarTimes manipulated dates",
-      safeStringify({
-        newStartDate: startDate,
-        newEndDate: endDate,
-        oldStartDate: dateFrom,
-        oldEndDate: dateTo,
-      })
-    );
     if (includeTimeZone) {
       results = await getCalendarsEventsWithTimezones(
         deduplicatedCredentials,
@@ -273,17 +267,23 @@ export const getBusyCalendarTimes = async (
       );
     }
   } catch (e) {
-    log.warn(safeStringify(e));
+    log.warn(`Error getting calendar availability`, {
+      selectedCalendarIds: selectedCalendars.map((calendar) => calendar.externalId),
+      error: safeStringify(e),
+    });
+    return { success: false, data: [{ start: startDate, end: endDate, source: "error-placeholder" }] };
   }
-  return results.reduce((acc, availability) => acc.concat(availability), []);
+  return { success: true, data: results.reduce((acc, availability) => acc.concat(availability), []) };
 };
 
 export const createEvent = async (
   credential: CredentialForCalendarService,
-  calEvent: CalendarEvent,
+  originalEvent: CalendarEvent,
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
-  const uid: string = getUid(calEvent);
+  // Some calendar libraries may edit the original event so let's clone it
+  const formattedEvent = formatCalEvent(originalEvent);
+  const uid: string = getUid(formattedEvent);
   const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
@@ -291,13 +291,15 @@ export const createEvent = async (
   log.debug(
     "Creating calendar event",
     safeStringify({
-      calEvent: getPiiFreeCalendarEvent(calEvent),
+      calEvent: getPiiFreeCalendarEvent(formattedEvent),
     })
   );
   // Check if the disabledNotes flag is set to true
-  if (calEvent.hideCalendarNotes) {
-    calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
+  if (formattedEvent.hideCalendarNotes) {
+    formattedEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
+
+  const calEvent = processEvent(formattedEvent);
 
   const externalCalendarIdWhenDelegationCredentialIsChosen = credential.delegatedToId
     ? externalId
@@ -369,10 +371,12 @@ export const createEvent = async (
 
 export const updateEvent = async (
   credential: CredentialForCalendarService,
-  calEvent: CalendarEvent,
+  rawCalEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
+  const formattedEvent = formatCalEvent(rawCalEvent);
+  const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent);
   const calendar = await getCalendar(credential);
   let success = false;
@@ -478,4 +482,26 @@ export const deleteEvent = async ({
   }
 
   return Promise.resolve({});
+};
+
+/**
+ * Process the calendar event by generating description and removing attendees if needed
+ */
+const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
+  // Generate the calendar event description
+  const calendarEvent: CalendarServiceEvent = {
+    ...calEvent,
+    calendarDescription: getRichDescription(calEvent),
+  };
+
+  // Determine if the calendar event should include attendees
+  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+    .filter((domain) => domain.trim() !== "")
+    .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+
+  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
+    calendarEvent.attendees = [];
+  }
+
+  return calendarEvent;
 };

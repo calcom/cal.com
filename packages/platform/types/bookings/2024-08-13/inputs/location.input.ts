@@ -1,6 +1,6 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsIn, IsPhoneNumber } from "class-validator";
+import { IsString, IsIn, IsPhoneNumber, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -104,6 +104,7 @@ export class BookingInputAttendeeAddressLocation_2024_08_13 {
   type!: "attendeeAddress";
 
   @IsString()
+  @MinLength(1)
   @DocsProperty({ example: "123 Example St, City, Country" })
   address!: string;
 }
@@ -126,6 +127,7 @@ export class BookingInputAttendeeDefinedLocation_2024_08_13 {
   type!: "attendeeDefined";
 
   @IsString()
+  @MinLength(1)
   @DocsProperty({ example: "321 Example St, City, Country" })
   location!: string;
 }

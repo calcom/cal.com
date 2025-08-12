@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -7,7 +6,11 @@ import {
   rawDataInputSchema,
   routingFormResponsesInputSchema,
   routingFormStatsInputSchema,
+  routingRepositoryBaseInputSchema,
+  bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
+import { getInsightsBookingService } from "@calcom/lib/di/containers/InsightsBooking";
+import { getInsightsRoutingService } from "@calcom/lib/di/containers/InsightsRouting";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
@@ -15,7 +18,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { EventsInsights } from "./events";
+import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
 
@@ -41,7 +44,7 @@ interface BuildBaseWhereConditionType {
 
 const bookingStatusSchema = z.enum(["NO_BOOKING", ...Object.values(BookingStatus)]).optional();
 
-const buildBaseWhereCondition = async ({
+export const buildBaseWhereCondition = async ({
   teamId,
   eventTypeId,
   memberUserId,
@@ -49,18 +52,29 @@ const buildBaseWhereCondition = async ({
   isAll,
   ctx,
 }: BuildBaseWhereConditionType): Promise<{
-  whereCondition: Prisma.BookingTimeStatusWhereInput;
-  isEmptyResponse?: boolean;
+  whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput;
 }> => {
-  let whereCondition: Prisma.BookingTimeStatusWhereInput = {};
+  const conditions: Prisma.BookingTimeStatusDenormalizedWhereInput[] = [];
+
   // EventType Filter
-  if (eventTypeId) whereCondition.OR = [{ eventTypeId }, { eventParentId: eventTypeId }];
-  // User/Member filter
-  if (memberUserId) whereCondition.userId = memberUserId;
-  if (userId) {
-    whereCondition.teamId = null;
-    whereCondition.userId = userId;
+  if (eventTypeId) {
+    conditions.push({
+      OR: [{ eventTypeId }, { eventParentId: eventTypeId }],
+    });
   }
+
+  // User/Member filter
+  if (memberUserId) {
+    conditions.push({ userId: memberUserId });
+  }
+
+  if (userId) {
+    conditions.push({
+      teamId: null,
+      userId: userId,
+    });
+  }
+
   // organization-wide queries condition
   if (isAll && ctx.userIsOwnerAdminOfParentTeam && ctx.userOrganizationId) {
     const teamsFromOrg = await ctx.insightsDb.team.findMany({
@@ -72,57 +86,48 @@ const buildBaseWhereCondition = async ({
       },
     });
 
-    if (teamsFromOrg.length === 0) {
-      return {
-        whereCondition: {
-          ...whereCondition,
-          OR: [
-            ...(whereCondition.OR ?? []),
-            {
-              teamId: ctx.userOrganizationId,
-              isTeamBooking: true,
+    const teamIds = [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)];
+    const usersFromOrg =
+      teamsFromOrg.length > 0
+        ? await ctx.insightsDb.membership.findMany({
+            where: {
+              team: {
+                id: {
+                  in: teamIds,
+                },
+              },
+              accepted: true,
             },
-          ],
-        },
-        isEmptyResponse: true,
-      };
-    }
+            select: {
+              userId: true,
+            },
+          })
+        : [];
 
-    const teamConditional = {
-      id: {
-        in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
-      },
-    };
-    const usersFromOrg = await ctx.insightsDb.membership.findMany({
-      where: {
-        team: teamConditional,
-        accepted: true,
-      },
-      select: {
-        userId: true,
-      },
-    });
-    const userIdsFromOrg = usersFromOrg.map((u) => u.userId);
-    whereCondition = {
-      ...whereCondition,
+    conditions.push({
       OR: [
         {
           teamId: {
-            in: [ctx.userOrganizationId, ...teamsFromOrg.map((t) => t.id)],
+            in: teamIds,
           },
           isTeamBooking: true,
         },
-        {
-          userId: {
-            in: userIdsFromOrg,
-          },
-          isTeamBooking: false,
-        },
+        ...(usersFromOrg.length > 0
+          ? [
+              {
+                userId: {
+                  in: usersFromOrg.map((u) => u.userId),
+                },
+                isTeamBooking: false,
+              },
+            ]
+          : []),
       ],
-    };
+    });
   }
 
-  if (teamId && !isAll && !eventTypeId) {
+  // Team-specific queries condition
+  if (!isAll && teamId) {
     const usersFromTeam = await ctx.insightsDb.membership.findMany({
       where: {
         teamId: teamId,
@@ -133,8 +138,8 @@ const buildBaseWhereCondition = async ({
       },
     });
     const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
-    whereCondition = {
-      ...whereCondition,
+
+    conditions.push({
       OR: [
         {
           teamId,
@@ -147,9 +152,23 @@ const buildBaseWhereCondition = async ({
           isTeamBooking: false,
         },
       ],
-    };
+    });
   }
-  return { whereCondition };
+
+  let whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
+
+  if (conditions.length === 1) {
+    whereCondition = conditions[0];
+  } else if (conditions.length > 1) {
+    whereCondition = { AND: conditions };
+  }
+
+  return {
+    whereCondition:
+      Object.keys(whereCondition).length === 0
+        ? { id: -1 } // Ensure no data is returned for invalid parameters
+        : whereCondition,
+  };
 };
 
 const buildHashMapForUsers = <
@@ -242,7 +261,7 @@ const userSelect = {
   avatarUrl: true,
 };
 
-const emptyResponseEventsByStatus = {
+const emptyResponseBookingKPIStats = {
   empty: true,
   created: {
     count: 0,
@@ -293,709 +312,278 @@ export interface IResultTeamList {
 
 const BATCH_SIZE = 1000; // Adjust based on your needs
 
-export const insightsRouter = router({
-  eventsByStatus: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, startDate, endDate, eventTypeId, memberUserId, userId, isAll } = input;
-    if (userId && userId !== ctx.user.id) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+/**
+ * Helper function to create InsightsBookingService with standardized parameters
+ */
+function createInsightsBookingService(
+  ctx: { user: { id: number; organizationId: number | null } },
+  input: z.infer<typeof bookingRepositoryBaseInputSchema>,
+  dateTarget: "createdAt" | "startTime" = "createdAt"
+) {
+  const { scope, selectedTeamId, startDate, endDate, columnFilters } = input;
 
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    const { whereCondition: whereConditional } = r;
-
-    const baseWhereCondition = {
-      ...whereConditional,
-      createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
-      },
-    };
-
-    const startTimeEndTimeDiff = dayjs(endDate).diff(dayjs(startDate), "day");
-
-    const lastPeriodStartDate = dayjs(startDate).subtract(startTimeEndTimeDiff, "day");
-    const lastPeriodEndDate = dayjs(endDate).subtract(startTimeEndTimeDiff, "day");
-
-    const lastPeriodBaseCondition = {
-      ...whereConditional,
-      createdAt: {
-        gte: lastPeriodStartDate.toDate(),
-        lte: lastPeriodEndDate.toDate(),
-      },
-    };
-
-    const [
-      countGroupedByStatus,
-      totalRatingsAggregate,
-      totalCSAT,
-      totalNoShowGuests,
-      lastPeriodCountGroupedByStatus,
-      lastPeriodTotalRatingsAggregate,
-      lastPeriodTotalCSAT,
-      lastPeriodTotalNoShowGuests,
-    ] = await Promise.all([
-      EventsInsights.countGroupedByStatus(baseWhereCondition),
-      EventsInsights.getAverageRating(baseWhereCondition),
-      EventsInsights.getTotalCSAT(baseWhereCondition),
-      EventsInsights.getTotalNoShowGuests(baseWhereCondition),
-      EventsInsights.countGroupedByStatus(lastPeriodBaseCondition),
-      EventsInsights.getAverageRating(lastPeriodBaseCondition),
-      EventsInsights.getTotalCSAT(lastPeriodBaseCondition),
-      EventsInsights.getTotalNoShowGuests(lastPeriodBaseCondition),
-    ]);
-
-    const baseBookingsCount = countGroupedByStatus["_all"];
-    const totalCompleted = countGroupedByStatus["completed"];
-    const totalRescheduled = countGroupedByStatus["rescheduled"];
-    const totalCancelled = countGroupedByStatus["cancelled"];
-    const totalNoShow = countGroupedByStatus["noShowHost"];
-
-    const averageRating = totalRatingsAggregate._avg.rating
-      ? parseFloat(totalRatingsAggregate._avg.rating.toFixed(1))
-      : 0;
-
-    const lastPeriodBaseBookingsCount = lastPeriodCountGroupedByStatus["_all"];
-    const lastPeriodTotalRescheduled = lastPeriodCountGroupedByStatus["rescheduled"];
-    const lastPeriodTotalCancelled = lastPeriodCountGroupedByStatus["cancelled"];
-    const lastPeriodTotalNoShow = lastPeriodCountGroupedByStatus["noShowHost"];
-
-    const lastPeriodAverageRating = lastPeriodTotalRatingsAggregate._avg.rating
-      ? parseFloat(lastPeriodTotalRatingsAggregate._avg.rating.toFixed(1))
-      : 0;
-
-    const result = {
-      empty: false,
-      created: {
-        count: baseBookingsCount,
-        deltaPrevious: EventsInsights.getPercentage(baseBookingsCount, lastPeriodBaseBookingsCount),
-      },
-      completed: {
-        count: totalCompleted,
-        deltaPrevious: EventsInsights.getPercentage(
-          baseBookingsCount - totalCancelled - totalRescheduled,
-          lastPeriodBaseBookingsCount - lastPeriodTotalCancelled - lastPeriodTotalRescheduled
-        ),
-      },
-      rescheduled: {
-        count: totalRescheduled,
-        deltaPrevious: EventsInsights.getPercentage(totalRescheduled, lastPeriodTotalRescheduled),
-      },
-      cancelled: {
-        count: totalCancelled,
-        deltaPrevious: EventsInsights.getPercentage(totalCancelled, lastPeriodTotalCancelled),
-      },
-      no_show: {
-        count: totalNoShow,
-        deltaPrevious: EventsInsights.getPercentage(totalNoShow, lastPeriodTotalNoShow),
-      },
-      no_show_guest: {
-        count: totalNoShowGuests,
-        deltaPrevious: EventsInsights.getPercentage(totalNoShowGuests, lastPeriodTotalNoShowGuests),
-      },
-      rating: {
-        count: averageRating,
-        deltaPrevious: EventsInsights.getPercentage(averageRating, lastPeriodAverageRating),
-      },
-      csat: {
-        count: totalCSAT,
-        deltaPrevious: EventsInsights.getPercentage(totalCSAT, lastPeriodTotalCSAT),
-      },
-      previousRange: {
-        startDate: lastPeriodStartDate.format("YYYY-MM-DD"),
-        endDate: lastPeriodEndDate.format("YYYY-MM-DD"),
-      },
-    };
-    if (
-      result.created.count === 0 &&
-      result.completed.count === 0 &&
-      result.rescheduled.count === 0 &&
-      result.cancelled.count === 0 &&
-      result.no_show.count === 0 &&
-      result.no_show_guest.count === 0 &&
-      result.rating.count === 0
-    ) {
-      return emptyResponseEventsByStatus;
-    }
-
-    return result;
-  }),
-  eventsTimeline: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        timeView: z.enum(["week", "month", "year", "day"]),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const {
-        teamId,
-        eventTypeId,
-        memberUserId,
-        isAll,
-        startDate: startDateString,
-        endDate: endDateString,
-        timeView: inputTimeView,
-        userId: selfUserId,
-      } = input;
-
-      // Convert to UTC without shifting the time zone
-      let startDate = dayjs.utc(startDateString).startOf("day");
-      let endDate = dayjs.utc(endDateString).endOf("day");
-
-      if (selfUserId && ctx.user?.id !== selfUserId) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-
-      if (!teamId && !selfUserId) {
-        return [];
-      }
-
-      let timeView = inputTimeView;
-
-      // Adjust the timeView if the range is less than 14 days
-      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
-        timeView = "day";
-      }
-
-      // Align startDate to the Monday of the week if timeView is 'week'
-      if (timeView === "week") {
-        startDate = startDate.day(1); // Set startDate to Monday
-        endDate = endDate.day(1).add(6, "day").endOf("day"); // Set endDate to Sunday of the same week
-      }
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: selfUserId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      const { whereCondition: whereConditional } = r;
-      const timeline = await EventsInsights.getTimeLine(timeView, startDate, endDate);
-
-      if (!timeline) {
-        return [];
-      }
-
-      const dateFormat: string = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
-
-      // Align date ranges consistently with weeks starting on Monday
-      const dateRanges = timeline.map((date) => {
-        let startOfRange = dayjs.utc(date).startOf(timeView);
-        let endOfRange = dayjs.utc(date).endOf(timeView);
-
-        if (timeView === "week") {
-          startOfRange = dayjs.utc(date).day(1); // Start at Monday in UTC
-          endOfRange = startOfRange.add(6, "day").endOf("day"); // End at Sunday in UTC
-        }
-
-        return {
-          startDate: startOfRange.toISOString(),
-          endDate: endOfRange.toISOString(),
-          formattedDate: startOfRange.format(dateFormat), // Align formatted date for consistency
-        };
-      });
-      // Fetch counts grouped by status for the entire range
-      const countsByStatus = await EventsInsights.countGroupedByStatusForRanges(
-        whereConditional,
+  return getInsightsBookingService({
+    options: {
+      scope,
+      userId: ctx.user.id,
+      orgId: ctx.user.organizationId ?? 0,
+      ...(selectedTeamId && { teamId: selectedTeamId }),
+    },
+    filters: {
+      ...(columnFilters && { columnFilters }),
+      dateRange: {
+        target: dateTarget,
         startDate,
         endDate,
-        timeView
-      );
-      const result = dateRanges.map(({ formattedDate }) => {
-        const EventData = {
-          Month: formattedDate,
-          Created: 0,
-          Completed: 0,
-          Rescheduled: 0,
-          Cancelled: 0,
-          "No-Show (Host)": 0,
-          "No-Show (Guest)": 0,
-        };
-
-        const countsForDateRange = countsByStatus[formattedDate];
-
-        if (countsForDateRange) {
-          EventData["Created"] = countsForDateRange["_all"] || 0;
-          EventData["Completed"] = countsForDateRange["completed"] || 0;
-          EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
-          EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
-          EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
-          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
-        }
-        return EventData;
-      });
-
-      return result;
-    }),
-  popularEventTypes: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, startDate, endDate, memberUserId, userId, isAll, eventTypeId } = input;
-
-    const user = ctx.user;
-
-    if (userId && user?.id !== userId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    if (!teamId && !userId) {
-      return [];
-    }
-
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
       },
-    });
+    },
+  });
+}
 
-    let { whereCondition: bookingWhere } = r;
+function createInsightsRoutingService(
+  ctx: { insightsDb: typeof readonlyPrisma; user: { id: number; organizationId: number | null } },
+  input: z.infer<typeof routingRepositoryBaseInputSchema>
+) {
+  return getInsightsRoutingService({
+    options: {
+      scope: input.scope,
+      teamId: input.selectedTeamId,
+      userId: ctx.user.id,
+      orgId: ctx.user.organizationId,
+    },
+    filters: {
+      startDate: input.startDate,
+      endDate: input.endDate,
+      columnFilters: input.columnFilters,
+    },
+  });
+}
 
-    bookingWhere = {
-      ...bookingWhere,
-      createdAt: {
-        gte: dayjs(startDate).toISOString(),
-        lte: dayjs(endDate).toISOString(),
-      },
-    };
-
-    const bookingsFromSelected = await ctx.insightsDb.bookingTimeStatus.groupBy({
-      by: ["eventTypeId"],
-      where: bookingWhere,
-      _count: {
-        id: true,
-      },
-      orderBy: {
-        _count: {
-          id: "desc",
-        },
-      },
-      take: 10,
-    });
-
-    const eventTypeIds = bookingsFromSelected
-      .filter((booking) => typeof booking.eventTypeId === "number")
-      .map((booking) => booking.eventTypeId);
-
-    const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {
-      id: {
-        in: eventTypeIds as number[],
-      },
-    };
-
-    const eventTypesFrom = await ctx.insightsDb.eventType.findMany({
-      select: {
-        id: true,
-        title: true,
-        teamId: true,
-        userId: true,
-        slug: true,
-        users: {
-          select: {
-            username: true,
-          },
-        },
-        team: {
-          select: {
-            slug: true,
-          },
-        },
-      },
-      where: eventTypeWhereConditional,
-    });
-
-    const eventTypeHashMap: Map<
-      number,
-      Prisma.EventTypeGetPayload<{
-        select: {
-          id: true;
-          title: true;
-          teamId: true;
-          userId: true;
-          slug: true;
-          users: {
-            select: {
-              username: true;
-            };
-          };
-          team: {
-            select: {
-              slug: true;
-            };
-          };
-        };
-      }>
-    > = new Map();
-    eventTypesFrom.forEach((eventType) => {
-      eventTypeHashMap.set(eventType.id, eventType);
-    });
-
-    const result = bookingsFromSelected.map((booking) => {
-      const eventTypeSelected = eventTypeHashMap.get(booking.eventTypeId ?? 0);
-      if (!eventTypeSelected) {
-        return {};
-      }
-
-      let eventSlug = "";
-      if (eventTypeSelected.userId) {
-        eventSlug = `${eventTypeSelected?.users[0]?.username}/${eventTypeSelected?.slug}`;
-      }
-      if (eventTypeSelected?.team && eventTypeSelected?.team?.slug) {
-        eventSlug = `${eventTypeSelected.team.slug}/${eventTypeSelected.slug}`;
-      }
-      return {
-        eventTypeId: booking.eventTypeId,
-        eventTypeName: eventSlug,
-        count: booking._count.id,
-      };
-    });
-
-    return result;
-  }),
-  averageEventDuration: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const {
-      teamId,
-      startDate: startDateString,
-      endDate: endDateString,
-      memberUserId,
-      userId,
-      eventTypeId,
-      isAll,
-    } = input;
-
-    if (userId && ctx.user?.id !== userId) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    if (!teamId && !userId) {
-      return [];
-    }
-
-    const startDate = dayjs.utc(startDateString).startOf("day");
-    const endDate = dayjs.utc(endDateString).endOf("day");
-
-    const { whereCondition: whereConditional } = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    const timeView = EventsInsights.getTimeView("week", startDate, endDate);
-    const timeLine = await EventsInsights.getTimeLine("week", startDate, endDate);
-
-    if (!timeLine) {
-      return [];
-    }
-
-    const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
-
-    const allBookings = await ctx.insightsDb.bookingTimeStatus.findMany({
-      select: {
-        eventLength: true,
-        createdAt: true,
-      },
-      where: {
-        ...whereConditional,
-        createdAt: {
-          gte: startDate.toDate(),
-          lte: endDate.toDate(),
-        },
-      },
-    });
-
-    const resultMap = new Map<string, { totalDuration: number; count: number }>();
-
-    for (const date of timeLine) {
-      resultMap.set(dayjs(date).startOf(startOfEndOf).format("ll"), { totalDuration: 0, count: 0 });
-    }
-
-    for (const booking of allBookings) {
-      const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
-      if (resultMap.has(periodStart)) {
-        const current = resultMap.get(periodStart)!;
-        current.totalDuration += booking.eventLength || 0;
-        current.count += 1;
-      }
-    }
-
-    const result = Array.from(resultMap.entries()).map(([date, { totalDuration, count }]) => ({
-      Date: date,
-      Average: count > 0 ? totalDuration / count : 0,
-    }));
-
-    return result;
-  }),
-  membersWithMostCancelledBookings: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
+export const insightsRouter = router({
+  bookingKPIStats: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
+      const currentPeriodService = createInsightsBookingService(ctx, input);
 
-      if (!teamId) {
-        return [];
-      }
-      const user = ctx.user;
+      // Get current period stats
+      const currentStats = await currentPeriodService.getBookingStats();
 
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
+      // Calculate previous period dates and create service for previous period
+      const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
+      const previousPeriodService = createInsightsBookingService(ctx, {
+        ...input,
+        startDate: previousPeriodDates.startDate,
+        endDate: previousPeriodDates.endDate,
       });
 
-      let { whereCondition: bookingWhere } = r;
+      // Get previous period stats
+      const previousStats = await previousPeriodService.getBookingStats();
 
-      bookingWhere = {
-        ...bookingWhere,
-        createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
-        },
-        status: "CANCELLED",
+      // Helper function to calculate percentage change
+      const getPercentage = (current: number, previous: number): number => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
       };
 
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _count: {
-          id: true,
-        },
-        orderBy: {
-          _count: {
-            id: "desc",
-          },
-        },
-        take: 10,
-      });
+      // Calculate percentages and CSAT
+      const currentCSAT =
+        currentStats.total_ratings > 0
+          ? (currentStats.ratings_above_3 / currentStats.total_ratings) * 100
+          : 0;
+      const previousCSAT =
+        previousStats.total_ratings > 0
+          ? (previousStats.ratings_above_3 / previousStats.total_ratings) * 100
+          : 0;
 
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
+      const currentRating = currentStats.avg_rating ? parseFloat(currentStats.avg_rating.toFixed(1)) : 0;
+      const previousRating = previousStats.avg_rating ? parseFloat(previousStats.avg_rating.toFixed(1)) : 0;
 
-      if (userIds.length === 0) {
-        return [];
+      // Check if all metrics are zero for empty state
+      const isEmpty =
+        currentStats.total_bookings === 0 &&
+        currentStats.completed_bookings === 0 &&
+        currentStats.rescheduled_bookings === 0 &&
+        currentStats.cancelled_bookings === 0 &&
+        currentStats.no_show_host_bookings === 0 &&
+        currentStats.no_show_guests === 0 &&
+        currentRating === 0;
+
+      if (isEmpty) {
+        return emptyResponseBookingKPIStats;
       }
 
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
+      return {
+        empty: false,
+        created: {
+          count: currentStats.total_bookings,
+          deltaPrevious: getPercentage(currentStats.total_bookings, previousStats.total_bookings),
         },
-        select: userSelect,
+        completed: {
+          count: currentStats.completed_bookings,
+          deltaPrevious: getPercentage(
+            currentStats.total_bookings - currentStats.cancelled_bookings - currentStats.rescheduled_bookings,
+            previousStats.total_bookings -
+              previousStats.cancelled_bookings -
+              previousStats.rescheduled_bookings
+          ),
+        },
+        rescheduled: {
+          count: currentStats.rescheduled_bookings,
+          deltaPrevious: getPercentage(currentStats.rescheduled_bookings, previousStats.rescheduled_bookings),
+        },
+        cancelled: {
+          count: currentStats.cancelled_bookings,
+          deltaPrevious: getPercentage(currentStats.cancelled_bookings, previousStats.cancelled_bookings),
+        },
+        no_show: {
+          count: currentStats.no_show_host_bookings,
+          deltaPrevious: getPercentage(
+            currentStats.no_show_host_bookings,
+            previousStats.no_show_host_bookings
+          ),
+        },
+        no_show_guest: {
+          count: currentStats.no_show_guests,
+          deltaPrevious: getPercentage(currentStats.no_show_guests, previousStats.no_show_guests),
+        },
+        rating: {
+          count: currentRating,
+          deltaPrevious: getPercentage(currentRating, previousRating),
+        },
+        csat: {
+          count: currentCSAT,
+          deltaPrevious: getPercentage(currentCSAT, previousCSAT),
+        },
+        previousRange: {
+          startDate: previousPeriodDates.formattedStartDate,
+          endDate: previousPeriodDates.formattedEndDate,
+        },
+      };
+    }),
+  eventTrends: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate, timeZone } = input;
+
+      // Calculate timeView and dateRanges
+      const timeView = getTimeView(startDate, endDate);
+      const dateRanges = getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone,
+        weekStart: ctx.user.weekStart,
       });
 
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      try {
+        return await insightsBookingService.getEventTrendsStats({
+          timeZone,
+          dateRanges,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  popularEvents: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
-      const result = bookingsFromTeam.map((booking) => {
-        return {
-          userId: booking.userId,
-          // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          user: userHashMap.get(booking.userId)!,
-          emailMd5: md5(user?.email),
-          count: booking._count.id,
-        };
-      });
+      try {
+        return await insightsBookingService.getPopularEventsStats();
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  averageEventDuration: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate, timeZone } = input;
 
-      return result;
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+
+      try {
+        const timeView = getTimeView(startDate, endDate);
+        const dateRanges = getDateRanges({
+          startDate,
+          endDate,
+          timeView,
+          timeZone,
+          weekStart: ctx.user.weekStart as GetDateRangesParams["weekStart"],
+        });
+
+        if (!dateRanges.length) {
+          return [];
+        }
+
+        const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
+
+        const allBookings = await insightsBookingService.findAll({
+          select: {
+            eventLength: true,
+            createdAt: true,
+          },
+        });
+
+        const resultMap = new Map<string, { totalDuration: number; count: number }>();
+
+        // Initialize the map with all date ranges
+        for (const range of dateRanges) {
+          resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
+        }
+
+        for (const booking of allBookings) {
+          const periodStart = dayjs(booking.createdAt).startOf(startOfEndOf).format("ll");
+          if (resultMap.has(periodStart)) {
+            const current = resultMap.get(periodStart)!;
+            current.totalDuration += booking.eventLength || 0;
+            current.count += 1;
+          }
+        }
+
+        const result = Array.from(resultMap.entries()).map(([date, { totalDuration, count }]) => ({
+          Date: date,
+          Average: count > 0 ? totalDuration / count : 0,
+        }));
+
+        return result;
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  membersWithMostCancelledBookings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
     }),
   membersWithMostBookings: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
-      if (!teamId) {
-        return [];
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      const user = ctx.user;
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      let { whereCondition: bookingWhere } = r;
-
-      bookingWhere = {
-        ...bookingWhere,
-        createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
-        },
-      };
-
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _count: {
-          id: true,
-        },
-        orderBy: {
-          _count: {
-            id: "desc",
-          },
-        },
-        take: 10,
-      });
-
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
-
-      if (userIds.length === 0) {
-        return [];
-      }
-
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: userSelect,
-      });
-
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-      const result = bookingsFromTeam.map((booking) => {
-        return {
-          userId: booking.userId,
-          // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          user: userHashMap.get(booking.userId)!,
-          emailMd5: md5(user?.email),
-          count: booking._count.id,
-        };
-      });
-
-      return result;
     }),
   membersWithLeastBookings: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
-      if (!teamId) {
-        return [];
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      const user = ctx.user;
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      let { whereCondition: bookingWhere } = r;
-
-      bookingWhere = {
-        ...bookingWhere,
-        createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
-        },
-      };
-
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _count: {
-          id: true,
-        },
-        orderBy: {
-          _count: {
-            id: "asc",
-          },
-        },
-        take: 10,
-      });
-
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
-
-      if (userIds.length === 0) {
-        return [];
-      }
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: userSelect,
-      });
-
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-      const result = bookingsFromTeam.map((booking) => ({
-        userId: booking.userId,
-        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        user: userHashMap.get(booking.userId)!,
-        emailMd5: md5(user?.email),
-        count: booking._count.id,
-      }));
-
-      return result;
     }),
   teamListForUser: authedProcedure.query(async ({ ctx }) => {
     const user = ctx.user;
@@ -1176,398 +764,56 @@ export const insightsRouter = router({
 
       return eventTypeList;
     }),
-  recentRatings: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
-    if (!teamId) {
-      return [];
-    }
-    const user = ctx.user;
-
-    const r = await buildBaseWhereCondition({
-      teamId,
-      eventTypeId: eventTypeId ?? undefined,
-      memberUserId: memberUserId ?? undefined,
-      userId: userId ?? undefined,
-      isAll: isAll ?? false,
-      ctx: {
-        userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-        userOrganizationId: ctx.user.organizationId,
-        insightsDb: ctx.insightsDb,
-      },
-    });
-
-    let { whereCondition: bookingWhere } = r;
-
-    bookingWhere = {
-      ...bookingWhere,
-      teamId,
-      eventTypeId,
-      createdAt: {
-        gte: dayjs(startDate).startOf("day").toDate(),
-        lte: dayjs(endDate).endOf("day").toDate(),
-      },
-      ratingFeedback: { not: null },
-    };
-
-    if (isAll && user.isOwnerAdminOfParentTeam) {
-      delete bookingWhere.teamId;
-      const teamsFromOrg = await ctx.insightsDb.team.findMany({
-        where: {
-          parentId: user?.organizationId,
-        },
-        select: {
-          id: true,
-        },
-      });
-      const usersFromTeam = await ctx.insightsDb.membership.findMany({
-        where: {
-          teamId: {
-            in: teamsFromOrg.map((t) => t.id),
-          },
-          accepted: true,
-        },
-        select: {
-          userId: true,
-        },
-      });
-
-      bookingWhere["OR"] = [
-        ...(bookingWhere.OR || []),
-        {
-          teamId: {
-            in: teamsFromOrg.map((t) => t.id),
-          },
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: usersFromTeam.map((u) => u.userId),
-          },
-          isTeamBooking: false,
-        },
-      ];
-    }
-
-    const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.findMany({
-      where: bookingWhere,
-      orderBy: {
-        endTime: "desc",
-      },
-      select: {
-        userId: true,
-        rating: true,
-        ratingFeedback: true,
-      },
-      take: 10,
-    });
-
-    const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-      if (!!booking.userId && !userIds.includes(booking.userId)) {
-        userIds.push(booking.userId);
-      }
-      return userIds;
-    }, []);
-
-    if (userIds.length === 0) {
-      return [];
-    }
-    const usersFromTeam = await ctx.insightsDb.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select: userSelect,
-    });
-
-    const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-    const result = bookingsFromTeam.map((booking) => ({
-      userId: booking.userId,
-      // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      user: userHashMap.get(booking.userId)!,
-      emailMd5: md5(user?.email),
-      rating: booking.rating,
-      feedback: booking.ratingFeedback,
-    }));
-
-    return result;
-  }),
-  membersWithMostNoShow: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
+  recentRatings: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, userId, memberUserId } = input;
-      if (!teamId) {
-        return [];
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      return await insightsBookingService.getRecentRatingsStats();
+    }),
+  membersWithMostNoShow: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ input, ctx }) => {
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+
+      try {
+        return await insightsBookingService.getMembersStatsWithCount("noShow", "DESC");
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      const user = ctx.user;
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-      let { whereCondition: bookingWhere } = r;
-
-      bookingWhere = {
-        ...bookingWhere,
-        teamId,
-        eventTypeId,
-        createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
-        },
-        noShowHost: true,
-      };
-
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _count: {
-          id: true,
-        },
-        orderBy: {
-          _count: {
-            id: "asc",
-          },
-        },
-        take: 10,
-      });
-
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
-
-      if (userIds.length === 0) {
-        return [];
-      }
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: userSelect,
-      });
-
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-      const result = bookingsFromTeam.map((booking) => ({
-        userId: booking.userId,
-        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        user: userHashMap.get(booking.userId)!,
-        emailMd5: md5(user?.email),
-        count: booking._count.id,
-      }));
-
-      return result;
     }),
   membersWithHighestRatings: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
+    .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, memberUserId, userId } = input;
-      if (!teamId) {
-        return [];
-      }
-      const user = ctx.user;
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-      let { whereCondition: bookingWhere } = r;
-
-      bookingWhere = {
-        teamId,
-        eventTypeId,
-        createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
-        },
-        rating: { not: null },
-      };
-
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _avg: {
-          rating: true,
-        },
-        orderBy: {
-          _avg: {
-            rating: "desc",
-          },
-        },
-        take: 10,
-      });
-
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
-
-      if (userIds.length === 0) {
-        return [];
-      }
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: userSelect,
-      });
-
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-      const result = bookingsFromTeam.map((booking) => ({
-        userId: booking.userId,
-        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        user: userHashMap.get(booking.userId)!,
-        emailMd5: md5(user?.email),
-        averageRating: booking._avg.rating,
-      }));
-
-      return result;
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      return await insightsBookingService.getMembersRatingStats("DESC");
     }),
   membersWithLowestRatings: userBelongsToTeamProcedure
-    .input(rawDataInputSchema)
+    .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, eventTypeId, isAll, memberUserId, userId } = input;
-      if (!teamId) {
-        return [];
-      }
-      const user = ctx.user;
-
-      const r = await buildBaseWhereCondition({
-        teamId,
-        eventTypeId: eventTypeId ?? undefined,
-        memberUserId: memberUserId ?? undefined,
-        userId: userId ?? undefined,
-        isAll: isAll ?? false,
-        ctx: {
-          userIsOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-          userOrganizationId: ctx.user.organizationId,
-          insightsDb: ctx.insightsDb,
-        },
-      });
-
-      let { whereCondition: bookingWhere } = r;
-      bookingWhere = {
-        teamId,
-        eventTypeId,
-        createdAt: {
-          gte: dayjs(startDate).startOf("day").toDate(),
-          lte: dayjs(endDate).endOf("day").toDate(),
-        },
-        rating: { not: null },
-      };
-
-      const bookingsFromTeam = await ctx.insightsDb.bookingTimeStatus.groupBy({
-        by: ["userId"],
-        where: bookingWhere,
-        _avg: {
-          rating: true,
-        },
-        orderBy: {
-          _avg: {
-            rating: "asc",
-          },
-        },
-        take: 10,
-      });
-
-      const userIds = bookingsFromTeam.reduce((userIds: number[], booking) => {
-        if (typeof booking.userId === "number" && !userIds.includes(booking.userId)) {
-          userIds.push(booking.userId);
-        }
-        return userIds;
-      }, []);
-
-      if (userIds.length === 0) {
-        return [];
-      }
-      const usersFromTeam = await ctx.insightsDb.user.findMany({
-        where: {
-          id: {
-            in: userIds,
-          },
-        },
-        select: userSelect,
-      });
-
-      const userHashMap = buildHashMapForUsers(usersFromTeam);
-
-      const result = bookingsFromTeam.map((booking) => ({
-        userId: booking.userId,
-        // We know with 100% certainty that userHashMap.get(...) will retrieve a user
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        user: userHashMap.get(booking.userId)!,
-        emailMd5: md5(user?.email),
-        averageRating: booking._avg.rating,
-      }));
-
-      return result;
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      return await insightsBookingService.getMembersRatingStats("ASC");
     }),
-  rawData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
-    const { startDate, endDate, teamId, userId, memberUserId, isAll, limit, offset } = input;
+  rawData: userBelongsToTeamProcedure
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(100).optional(),
+        offset: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { limit, offset } = input;
 
-    const eventTypeList = await getEventTypeList({
-      prisma: ctx.prisma,
-      teamId,
-      userId,
-      isAll,
-      user: {
-        id: ctx.user.id,
-        organizationId: ctx.user.organizationId,
-        isOwnerAdminOfParentTeam: ctx.user.isOwnerAdminOfParentTeam,
-      },
-    });
+      const insightsBookingService = createInsightsBookingService(ctx, input);
 
-    // use eventTypeId filter only if it's accessible by this user
-    const eventTypeId = eventTypeList.find((eventType) => eventType.id === input.eventTypeId)?.id;
-
-    const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
-    try {
-      return await EventsInsights.getCsvData({
-        startDate,
-        endDate,
-        teamId,
-        userId,
-        memberUserId,
-        isAll,
-        isOrgAdminOrOwner,
-        eventTypeId,
-        organizationId: ctx.user.organizationId || null,
-        limit,
-        offset,
-      });
-    } catch (e) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    }
-  }),
+      try {
+        return await insightsBookingService.getCsvData({
+          limit: limit ?? 100,
+          offset: offset ?? 0,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 
   getRoutingFormsForFilters: userBelongsToTeamProcedure
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
@@ -1763,6 +1009,38 @@ export const insightsRouter = router({
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
+  getRoutingFunnelData: userBelongsToTeamProcedure
+    .input(routingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const timeView = getTimeView(input.startDate, input.endDate);
+      const dateRanges = getDateRanges({
+        startDate: input.startDate,
+        endDate: input.endDate,
+        timeZone: ctx.user.timeZone,
+        timeView,
+        weekStart: ctx.user.weekStart,
+      });
+      const insightsRoutingService = createInsightsRoutingService(ctx, input);
+      try {
+        return await insightsRoutingService.getRoutingFunnelData(dateRanges);
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  bookingsByHourStats: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { timeZone } = input;
+      const insightsBookingService = createInsightsBookingService(ctx, input, "startTime");
+
+      try {
+        return await insightsBookingService.getBookingsByHourStats({
+          timeZone,
+        });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
 });
 
 async function getEventTypeList({

@@ -48,10 +48,6 @@ if (!process.env.EMAIL_FROM) {
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
-if (!process.env.NEXT_PUBLIC_API_V2_URL) {
-  console.error("Please set NEXT_PUBLIC_API_V2_URL");
-}
-
 const getHttpsUrl = (url) => {
   if (!url) return url;
   if (url.startsWith("http://")) {
@@ -235,13 +231,6 @@ const nextConfig = {
       config.externals.push("formidable");
     }
 
-    config.plugins.push(
-      new webpack.DefinePlugin({
-        __SENTRY_DEBUG__: false,
-        __SENTRY_TRACING__: false,
-      })
-    );
-
     config.plugins.push(new webpack.DefinePlugin({ "process.env.BUILD_ID": JSON.stringify(buildId) }));
 
     config.resolve.fallback = {
@@ -343,10 +332,6 @@ const nextConfig = {
 
     let afterFiles = [
       {
-        source: "/api/v2/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
-      },
-      {
         source: "/org/:slug",
         destination: "/team/:slug",
       },
@@ -381,6 +366,13 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
     ];
+
+    if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      afterFiles.push({
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+      });
+    }
 
     return {
       beforeFiles,

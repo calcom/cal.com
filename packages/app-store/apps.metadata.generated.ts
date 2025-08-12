@@ -10,6 +10,7 @@ import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
 import bolna_config_json from "./bolna/config.json";
+import btcpayserver_config_json from "./btcpayserver/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import chatbase_config_json from "./chatbase/config.json";
@@ -21,6 +22,7 @@ import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
 import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
+import dub_config_json from "./dub/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
 import elevenlabs_config_json from "./elevenlabs/config.json";
@@ -116,6 +118,7 @@ export const appStoreMetadata = {
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
   bolna: bolna_config_json,
+  btcpayserver: btcpayserver_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   chatbase: chatbase_config_json,
@@ -127,6 +130,7 @@ export const appStoreMetadata = {
   demodesk: demodesk_config_json,
   dialpad: dialpad_config_json,
   discord: discord_config_json,
+  dub: dub_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
   elevenlabs: elevenlabs_config_json,
