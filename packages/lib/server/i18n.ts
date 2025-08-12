@@ -29,22 +29,28 @@ export async function loadTranslations(_locale: string, _ns: string) {
   }
 
   const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
-  const response = await fetchWithTimeout(
-    url,
-    {
-      cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
-    },
-    3000
-  );
+  try {
+    const response = await fetchWithTimeout(
+      url,
+      {
+        cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+      },
+      process.env.NODE_ENV === "development" ? 30000 : 3000
+    );
 
-  if (!response.ok) {
-    logger.error(`Failed to fetch translations: ${response.status}`);
+    if (!response.ok) {
+      logger.error(`Failed to fetch translations: ${response.status}`);
+      return {};
+    }
+
+    const translations = await response.json();
+    translationCache.set(cacheKey, translations);
+    return translations;
+  } catch (err) {
+    console.error("loadTranslations Error:", err);
+
     return {};
   }
-
-  const translations = await response.json();
-  translationCache.set(cacheKey, translations);
-  return translations;
 }
 
 /**
