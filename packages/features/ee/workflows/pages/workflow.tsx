@@ -126,13 +126,26 @@ function WorkflowPage({
     });
   }
 
-  const readOnly = !workflow?.permissions?.canUpdate;
+  // Type guard to check if workflow has permissions
+  const hasPermissions = (
+    w: typeof workflow
+  ): w is NonNullable<typeof workflow> & { permissions: { canUpdate: boolean } } => {
+    return w && "permissions" in w && w.permissions !== null && w.permissions !== undefined;
+  };
+
+  const readOnly = hasPermissions(workflow) ? !workflow.permissions.canUpdate : true;
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   useEffect(() => {
-    if (!isPending) {
-      setFormData(workflow);
+    if (!isPending && workflow) {
+      // Add default permissions if not present
+      const workflowWithPermissions = {
+        ...workflow,
+        permissions: hasPermissions(workflow) ? workflow.permissions : { canUpdate: false },
+        readOnly: hasPermissions(workflow) && "readOnly" in workflow ? workflow.readOnly : true,
+      } as RouterOutputs["viewer"]["workflows"]["get"];
+      setFormData(workflowWithPermissions);
     }
   }, [isPending]);
 
@@ -369,7 +382,7 @@ function WorkflowPage({
                 {isAllDataLoaded && user ? (
                   <>
                     <WorkflowDetailsPage
-                      permissions={workflow?.permissions}
+                      permissions={hasPermissions(workflow) ? workflow.permissions : { canUpdate: false }}
                       form={form}
                       workflowId={+workflowId}
                       user={user}

@@ -690,12 +690,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-emphasis text-base font-medium">Cal.ai Agent</h3>
-                      {getActivePhoneNumbers(agentData.outboundPhoneNumbers).length > 0 ? (
+                      {getActivePhoneNumbers(
+                        agentData.outboundPhoneNumbers?.map((phone) => ({
+                          ...phone,
+                          subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                        }))
+                      ).length > 0 ? (
                         <div className="flex items-center gap-2">
                           <Icon name="phone" className="text-emphasis h-4 w-4" />
                           <span className="text-emphasis text-sm">
                             {formatPhoneNumber(
-                              getActivePhoneNumbers(agentData.outboundPhoneNumbers)[0].phoneNumber
+                              getActivePhoneNumbers(
+                                agentData.outboundPhoneNumbers?.map((phone) => ({
+                                  ...phone,
+                                  subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                                }))
+                              )[0].phoneNumber
                             )}
                           </span>
                           <Badge variant="green" size="sm" withDot>
@@ -713,7 +723,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         color="secondary"
                         onClick={() => setIsTestAgentDialogOpen(true)}
                         disabled={
-                          props.readOnly || !getActivePhoneNumbers(agentData.outboundPhoneNumbers).length
+                          props.readOnly ||
+                          !getActivePhoneNumbers(
+                            agentData.outboundPhoneNumbers?.map((phone) => ({
+                              ...phone,
+                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                            }))
+                          ).length
                         }>
                         <Icon name="phone" className="mr-2 h-4 w-4" />
                         {t("test_agent")}
@@ -737,7 +753,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               {t("edit")}
                             </DropdownItem>
                           </DropdownMenuItem>
-                          {getActivePhoneNumbers(agentData.outboundPhoneNumbers).length > 0 && (
+                          {getActivePhoneNumbers(
+                            agentData.outboundPhoneNumbers?.map((phone) => ({
+                              ...phone,
+                              subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                            }))
+                          ).length > 0 && (
                             <DropdownMenuItem>
                               <DropdownItem
                                 type="button"
@@ -1372,13 +1393,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent type="creation" title={t("unsubscribe_phone_number")}>
             <div className="space-y-4">
               <p className="text-default text-sm">{t("are_you_still_want_to_unsubscribe")}</p>
-              {getActivePhoneNumbers(agentData?.outboundPhoneNumbers).length > 0 && (
+              {getActivePhoneNumbers(
+                agentData?.outboundPhoneNumbers?.map((phone) => ({
+                  ...phone,
+                  subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                }))
+              ).length > 0 && (
                 <div className="bg-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Icon name="phone" className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
                       {formatPhoneNumber(
-                        getActivePhoneNumbers(agentData?.outboundPhoneNumbers)?.[0]?.phoneNumber
+                        getActivePhoneNumbers(
+                          agentData?.outboundPhoneNumbers?.map((phone) => ({
+                            ...phone,
+                            subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                          }))
+                        )?.[0]?.phoneNumber
                       )}
                     </span>
                   </div>
@@ -1395,7 +1426,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 StartIcon="trash"
                 color="destructive"
                 onClick={() => {
-                  const activePhoneNumbers = getActivePhoneNumbers(agentData?.outboundPhoneNumbers);
+                  const activePhoneNumbers = getActivePhoneNumbers(
+                    agentData?.outboundPhoneNumbers?.map((phone) => ({
+                      ...phone,
+                      subscriptionStatus: phone.subscriptionStatus ?? undefined,
+                    }))
+                  );
                   if (activePhoneNumbers?.[0]) {
                     unsubscribePhoneNumberMutation.mutate({
                       phoneNumber: activePhoneNumbers[0].phoneNumber,

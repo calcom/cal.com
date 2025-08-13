@@ -99,7 +99,7 @@ async function handlePhoneNumberSubscription(session: any) {
   const agent = await PrismaAgentRepository.findByIdWithUserAccess({
     agentId,
     userId,
-    teamId,
+    teamId: teamId ?? undefined,
   });
 
   if (!agent) {
