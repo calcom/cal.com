@@ -12,10 +12,7 @@ import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
-import {
-  BookerStoreProvider,
-  useBookerStoreContext,
-} from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
 import { useBookingForm } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookings } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
