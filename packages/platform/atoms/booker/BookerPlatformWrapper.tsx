@@ -285,6 +285,7 @@ export const BookerPlatformWrapper = (
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
+    _silentCalendarFailures: props.silentlyHandleCalendarFailures,
     ...routingParams,
   });
 
@@ -550,6 +551,7 @@ export const BookerPlatformWrapper = (
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
+        silentlyHandleCalendarFailures={props.silentlyHandleCalendarFailures}
       />
     </AtomsWrapper>
   );
