@@ -8,6 +8,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -24,9 +25,11 @@ import {
   BookingStatus,
   MembershipRole,
   WebhookTriggerEvents,
+  WorkflowTriggerEvents,
   UserPermissionRole,
 } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -377,6 +380,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
+    const workflows = await getAllWorkflowsFromEventType(booking.eventType);
+    const workflowsToTriggerForRejected = workflows.filter(
+      (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REJECTED
+    );
+
+    if (workflowsToTriggerForRejected.length > 0) {
+      await scheduleWorkflowReminders({
+        workflows: workflowsToTriggerForRejected,
+        smsReminderNumber: booking.smsReminderNumber,
+        calendarEvent: evt as any,
+      });
+    }
   }
 
   const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
