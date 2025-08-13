@@ -14,17 +14,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -79,11 +69,10 @@ export class OrganizationsEventTypesPrivateLinksController {
   @ApiOperation({ summary: "Get all private links for a team event type" })
   async getPrivateLinks(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @GetUser("id") userId: number
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<GetPrivateLinksOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
-    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId, userId);
+    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId);
     return {
       status: SUCCESS_STATUS,
       data: privateLinks,
@@ -99,12 +88,11 @@ export class OrganizationsEventTypesPrivateLinksController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
-    @Body() body: Omit<UpdatePrivateLinkInput, "linkId">,
-    @GetUser("id") userId: number
+    @Body() body: Omit<UpdatePrivateLinkInput, "linkId">
   ): Promise<UpdatePrivateLinkOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
     const updateInput: UpdatePrivateLinkInput = { ...body, linkId };
-    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, userId, updateInput);
+    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, updateInput);
     return {
       status: SUCCESS_STATUS,
       data: privateLink,
@@ -119,11 +107,10 @@ export class OrganizationsEventTypesPrivateLinksController {
   async deletePrivateLink(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Param("linkId") linkId: string,
-    @GetUser("id") userId: number
+    @Param("linkId") linkId: string
   ): Promise<DeletePrivateLinkOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
-    await this.privateLinksService.deletePrivateLink(eventTypeId, userId, linkId);
+    await this.privateLinksService.deletePrivateLink(eventTypeId, linkId);
     return {
       status: SUCCESS_STATUS,
       data: {
@@ -133,5 +120,3 @@ export class OrganizationsEventTypesPrivateLinksController {
     };
   }
 }
-
-

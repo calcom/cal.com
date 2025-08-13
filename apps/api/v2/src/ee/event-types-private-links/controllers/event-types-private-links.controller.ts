@@ -4,24 +4,10 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { EventTypeOwnershipGuard } from "@/modules/event-types/guards/event-type-ownership.guard";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags, OmitType } from "@nestjs/swagger";
 
-import {
-  EVENT_TYPE_READ,
-  EVENT_TYPE_WRITE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
+import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   CreatePrivateLinkInput,
   CreatePrivateLinkOutput,
@@ -67,10 +53,9 @@ export class EventTypesPrivateLinksController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all private links for an event type" })
   async getPrivateLinks(
-    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @GetUser("id") userId: number
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<GetPrivateLinksOutput> {
-    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId, userId);
+    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId);
 
     return {
       status: SUCCESS_STATUS,
@@ -86,11 +71,10 @@ export class EventTypesPrivateLinksController {
   async updatePrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Param("linkId") linkId: string,
-    @Body() body: UpdatePrivateLinkBody,
-    @GetUser("id") userId: number
+    @Body() body: UpdatePrivateLinkBody
   ): Promise<UpdatePrivateLinkOutput> {
     const updateInput = { ...body, linkId };
-    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, userId, updateInput);
+    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, updateInput);
 
     return {
       status: SUCCESS_STATUS,
@@ -105,10 +89,9 @@ export class EventTypesPrivateLinksController {
   @ApiOperation({ summary: "Delete a private link for an event type" })
   async deletePrivateLink(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Param("linkId") linkId: string,
-    @GetUser("id") userId: number
+    @Param("linkId") linkId: string
   ): Promise<DeletePrivateLinkOutput> {
-    await this.privateLinksService.deletePrivateLink(eventTypeId, userId, linkId);
+    await this.privateLinksService.deletePrivateLink(eventTypeId, linkId);
 
     return {
       status: SUCCESS_STATUS,
@@ -119,5 +102,3 @@ export class EventTypesPrivateLinksController {
     };
   }
 }
-
-
