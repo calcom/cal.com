@@ -200,14 +200,7 @@ export class BusyTimesService {
       );
 
       if (!calendarBusyTimesQuery.success) {
-        if (bypassBusyCalendarTimes) {
-          logger.warn(
-            `Calendar busy times fetch failed but bypassing due to bypassBusyCalendarTimes flag for user ${username}`,
-            {
-              selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
-            }
-          );
-        } else if (silentlyHandleCalendarFailures) {
+        if (silentlyHandleCalendarFailures) {
           logger.warn(
             `Calendar busy times fetch failed but handling silently due to silentlyHandleCalendarFailures flag for user ${username}`,
             {
