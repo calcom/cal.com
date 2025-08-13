@@ -53,6 +53,7 @@ export class BusyTimesService {
         })[]
       | null;
     bypassBusyCalendarTimes: boolean;
+    silentlyHandleCalendarFailures?: boolean;
     shouldServeCache?: boolean;
   }) {
     const {
@@ -70,6 +71,7 @@ export class BusyTimesService {
       rescheduleUid,
       duration,
       bypassBusyCalendarTimes = false,
+      silentlyHandleCalendarFailures = false,
       shouldServeCache,
     } = params;
 
@@ -201,6 +203,13 @@ export class BusyTimesService {
         if (bypassBusyCalendarTimes) {
           logger.warn(
             `Calendar busy times fetch failed but bypassing due to bypassBusyCalendarTimes flag for user ${username}`,
+            {
+              selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
+            }
+          );
+        } else if (silentlyHandleCalendarFailures) {
+          logger.warn(
+            `Calendar busy times fetch failed but handling silently due to silentlyHandleCalendarFailures flag for user ${username}`,
             {
               selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
             }
