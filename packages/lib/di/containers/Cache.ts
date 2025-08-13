@@ -4,8 +4,8 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { CacheService } from "../../../features/calendar-cache/lib/getShouldServeCache";
-import { cacheModule } from "../modules/cache";
-import { featuresRepositoryModule } from "../modules/features";
+import { cacheModule } from "../modules/Cache";
+import { featuresRepositoryModule } from "../modules/Features";
 
 const container = createContainer();
 container.load(DI_TOKENS.PRISMA_MODULE, prismaModule);
