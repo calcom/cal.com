@@ -845,7 +845,7 @@ export function AgentConfigurationSheet({
                     color="secondary"
                     size="base"
                     EndIcon="external-link"
-                    className="text-emphasis">
+                    className="text-emphasis my-auto">
                     {t("learn")}
                   </Button>
                 </div>
