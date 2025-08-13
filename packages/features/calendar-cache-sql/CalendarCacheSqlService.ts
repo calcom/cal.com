@@ -208,6 +208,13 @@ export class CalendarCacheSqlService {
   }
 
   /**
+   * Determines if an event is from Cal.com based on iCalUID suffix
+   */
+  private isCalComEvent(iCalUID: string | null | undefined): boolean {
+    return Boolean(iCalUID && iCalUID.endsWith("@Cal.com"));
+  }
+
+  /**
    * Parses and transforms raw Google Calendar events into Prisma-compatible event objects
    * @param rawEvents - Array of raw events from Google Calendar API
    * @param subscriptionId - ID of the calendar subscription
@@ -253,41 +260,45 @@ export class CalendarCacheSqlService {
         isSelf: Boolean(a.self),
       }));
 
+      const isCalComEvent = this.isCalComEvent(event.iCalUID);
+
       events.push({
         calendarSubscription: { connect: { id: subscriptionId } },
         googleEventId: event.id!,
         iCalUID: event.iCalUID || null,
         etag: event.etag || "",
         sequence: event.sequence || 0,
-        summary: event.summary || null,
-        description: event.description || null,
-        location: event.location || null,
+        summary: isCalComEvent ? event.summary || null : null,
+        description: isCalComEvent ? event.description || null : null,
+        location: isCalComEvent ? event.location || null : null,
         start,
         end,
         isAllDay,
         // Save event-level timezone if provided
         timeZone: (event.start?.timeZone as string | undefined) ?? null,
-        creator: event.creator
-          ? {
-              create: {
-                email: event.creator.email || null,
-                displayName: event.creator.displayName || null,
-                isSelf: Boolean(event.creator.self),
-              },
-            }
-          : undefined,
-        organizer: event.organizer
-          ? {
-              create: {
-                email: event.organizer.email || null,
-                displayName: event.organizer.displayName || null,
-                isSelf: Boolean(event.organizer.self),
-                isOrganizer: true,
-              },
-            }
-          : undefined,
+        creator:
+          isCalComEvent && event.creator
+            ? {
+                create: {
+                  email: event.creator.email || null,
+                  displayName: event.creator.displayName || null,
+                  isSelf: Boolean(event.creator.self),
+                },
+              }
+            : undefined,
+        organizer:
+          isCalComEvent && event.organizer
+            ? {
+                create: {
+                  email: event.organizer.email || null,
+                  displayName: event.organizer.displayName || null,
+                  isSelf: Boolean(event.organizer.self),
+                  isOrganizer: true,
+                },
+              }
+            : undefined,
         attendees:
-          createAttendees.length > 0
+          isCalComEvent && createAttendees.length > 0
             ? {
                 createMany: {
                   data: createAttendees,

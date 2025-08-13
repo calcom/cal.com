@@ -135,6 +135,7 @@ describe("CalendarCacheSqlService", () => {
                   start: { dateTime: "2024-01-01T10:00:00Z" },
                   end: { dateTime: "2024-01-01T11:00:00Z" },
                   summary: "Cancelled Event",
+                  iCalUID: "cancelled-event@Cal.com",
                 },
                 {
                   id: "active-event-id",
@@ -142,6 +143,7 @@ describe("CalendarCacheSqlService", () => {
                   start: { dateTime: "2024-01-01T14:00:00Z" },
                   end: { dateTime: "2024-01-01T15:00:00Z" },
                   summary: "Active Event",
+                  iCalUID: "active-event@Cal.com",
                 },
               ],
               nextSyncToken: "new-sync-token",
@@ -213,6 +215,7 @@ describe("CalendarCacheSqlService", () => {
                   start: { dateTime: "2024-01-01T10:00:00Z" },
                   end: { dateTime: "2024-01-01T11:00:00Z" },
                   summary: "Meeting with Participants",
+                  iCalUID: "meeting-with-participants@Cal.com",
                   creator: {
                     email: "creator@example.com",
                     displayName: "Event Creator",
