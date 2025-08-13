@@ -1,5 +1,5 @@
 import { type TFunction } from "i18next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,15 +43,16 @@ const ConnectedVideoStepInner = ({
     sortByInstalledFirst: true,
   });
 
-  if (isPending) {
-    return <StepConnectionLoader />;
-  }
-
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
-  if (hasAnyInstalledVideoApps) {
-    setAnyInstalledVideoApps(true);
+
+  useEffect(() => {
+    setAnyInstalledVideoApps(Boolean(hasAnyInstalledVideoApps));
+  }, [hasAnyInstalledVideoApps, setAnyInstalledVideoApps]);
+
+  if (isPending) {
+    return <StepConnectionLoader />;
   }
 
   const result = userMetadata.safeParse(user.metadata);
