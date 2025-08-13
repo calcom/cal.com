@@ -26,7 +26,7 @@ vi.mock("@calcom/lib/payment/processPaymentRefund", () => ({
 describe("Cancel Booking", () => {
   setupAndTeardown();
 
-  test("Should trigger BOOKING_CANCELLED webhook", async () => {
+  test("Should trigger BOOKING_CANCELLED webhook and workflow", async () => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
 
     const booker = getBooker({

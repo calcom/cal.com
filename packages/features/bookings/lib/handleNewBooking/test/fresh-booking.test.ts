@@ -2118,6 +2118,7 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send emails to the booker as well as organizer for booking request and awaiting approval
             3. Should trigger BOOKING_REQUESTED webhook
+            4. Should trigger BOOKING_REQUESTED workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2150,6 +2151,13 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
                 activeOn: [1],
@@ -2246,6 +2254,7 @@ describe("handleNewBooking", () => {
         1. Should create a booking in the database with status PENDING
         2. Should send emails to the booker as well as organizer for booking request and awaiting approval
         3. Should trigger BOOKING_REQUESTED webhook
+        4. Should trigger BOOKING_REQUESTED workflow
     `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2278,6 +2287,13 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
                 activeOn: [1],
@@ -2811,9 +2827,10 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send email to the booker for Payment request
             3. Should trigger BOOKING_PAYMENT_INITIATED webhook
-            4. Once payment is successful, should trigger BOOKING_CREATED webhook
-            5. Workflow should not trigger before payment is made
-            6. Workflow triggers once payment is successful
+            4. Should trigger BOOKING_PAYMENT_INITIATED workflow
+            5. Once payment is successful, should trigger BOOKING_CREATED webhook
+            6. Workflow should not trigger before payment is made
+            7. Workflow triggers once payment is successful
       `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -2845,6 +2862,13 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_PAYMENT_INITIATED",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
                 activeOn: [1],
@@ -2969,8 +2993,10 @@ describe("handleNewBooking", () => {
             1. Should create a booking in the database with status PENDING
             2. Should send email to the booker for Payment request
             3. Should trigger BOOKING_PAYMENT_INITIATED webhook
-            4. Once payment is successful, should trigger BOOKING_REQUESTED webhook
-            5. Booking should still stay in pending state
+            4. Should trigger BOOKING_PAYMENT_INITIATED workflow
+            5. Once payment is successful, should trigger BOOKING_REQUESTED webhook
+            6. Should trigger BOOKING_REQUESTED workflow
+            7. Booking should still stay in pending state
       `,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -3004,6 +3030,20 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_PAYMENT_INITIATED",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+              {
+                userId: organizer.id,
+                trigger: "BOOKING_REQUESTED",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
                 activeOn: [1],
