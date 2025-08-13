@@ -7,6 +7,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { getTravelSchedule } from "@calcom/web/app/cache/travelSchedule";
 
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 import GeneralView from "~/settings/my-account/general-view";
 
 export const generateMetadata = async () =>
@@ -19,11 +21,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const req = {
-    headers: (await headers()) as any,
-    cookies: (await cookies()) as any,
-  } as any;
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
   const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/general";
 

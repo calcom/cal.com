@@ -10,6 +10,8 @@ import { EventTypeWebWrapper } from "@calcom/atoms/event-types/wrappers/EventTyp
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
 
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 const querySchema = z.object({
   type: z
     .string()
@@ -39,11 +41,7 @@ const getCachedEventType = unstable_cache(
 );
 
 const ServerPage = async ({ params }: PageProps) => {
-  const req = {
-    headers: (await headers()) as any,
-    cookies: (await cookies()) as any,
-  } as any;
-  const session = await getServerSession({ req });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }

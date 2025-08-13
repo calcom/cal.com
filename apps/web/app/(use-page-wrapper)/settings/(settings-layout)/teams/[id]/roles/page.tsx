@@ -14,6 +14,8 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 import { CreateRoleCTA } from "../../../organizations/roles/_components/CreateRoleCta";
 import { RolesList } from "../../../organizations/roles/_components/RolesList";
 import { roleSearchParamsCache } from "../../../organizations/roles/_components/searchParams";
@@ -81,11 +83,7 @@ const Page = async ({
   searchParams: Record<string, string | string[] | undefined>;
 }) => {
   const t = await getTranslate();
-  const req = {
-    headers: (await headers()) as any,
-    cookies: (await cookies()) as any,
-  } as any;
-  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const { id: teamId } = await params;
 
   if (!session?.user?.id) {
