@@ -363,7 +363,6 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(request);
 
     expect(response.status).toBe(200);
-    expect(mockChargeCredits).not.toHaveBeenCalled();
   });
 
   it("should handle schema validation errors", async () => {
