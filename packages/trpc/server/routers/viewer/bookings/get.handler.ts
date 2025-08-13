@@ -99,6 +99,20 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        ...(user.orgId && {
+          OR: [
+            // note(Lauris): in case orgId provided refers to a manager (parent) org
+            {
+              teamId: user.orgId,
+            },
+            // note(Lauris): in case orgId provided refers to a managed (child) org
+            {
+              team: {
+                parentId: user.orgId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
