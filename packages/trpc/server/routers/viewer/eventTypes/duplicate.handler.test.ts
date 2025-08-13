@@ -11,8 +11,6 @@ vi.mock("@calcom/prisma", () => ({
   default: prismaMock,
 }));
 vi.mock("@calcom/lib/server/repository/eventTypeRepository");
-vi.mock("@calcom/lib/server/repository/calVideoSettings");
-vi.mock("../../viewer/calendars/setDestinationCalendar.handler");
 
 describe("duplicateHandler", () => {
   const ctx = { user: { id: 1, profile: { id: 1 } } } as any;
