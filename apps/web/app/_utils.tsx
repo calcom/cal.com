@@ -9,13 +9,10 @@ import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { truncateOnWord } from "@calcom/lib/text";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 export const getTranslate = async () => {
-  const locale = await getLocale({
-    headers: buildLegacyHeaders(await headers()),
-    cookies: buildLegacyCookies(await cookies()),
-  } as any);
+  const locale = await getLocale(buildLegacyRequest(await headers(), await cookies()));
 
   return await getTranslation(locale ?? "en", "common");
 };

@@ -14,7 +14,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const querySchema = z.object({
   team: z.string().transform((val) => parseInt(val)),
@@ -86,11 +86,8 @@ async function getHandler(request: NextRequest, { params }: { params: Promise<Pa
       }
     }
 
-    const req = {
-      headers: buildLegacyHeaders(await headers()),
-      cookies: buildLegacyCookies(await cookies()),
-    } as any;
-    const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
+    const req = buildLegacyRequest(await headers(), await cookies());
+    const session = await getServerSession({ req });
 
     if (!session) {
       return NextResponse.json({ message: "Team upgraded successfully" });

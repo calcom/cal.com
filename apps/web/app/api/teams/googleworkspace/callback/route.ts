@@ -12,7 +12,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const stateSchema = z.object({
   teamId: z.string(),
@@ -22,10 +22,7 @@ async function getHandler(request: NextRequest) {
   try {
     const headersList = await headers();
     const cookiesList = await cookies();
-    const req = {
-      headers: buildLegacyHeaders(headersList),
-      cookies: buildLegacyCookies(cookiesList),
-    } as any;
+    const req = buildLegacyRequest(headersList, cookiesList);
 
     const session = await getServerSession({ req });
 
