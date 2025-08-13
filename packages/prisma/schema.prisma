@@ -818,6 +818,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  // Partial index on fromReschedule added via migration 20250813070446
 
   @@index([eventTypeId])
   @@index([userId])
