@@ -389,6 +389,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
+  const maxActiveBookingsPerBookerLocked = shouldLockDisableProps("maxActiveBookingsPerBooker");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
   const [maxActiveBookingsPerBookerToggle, setMaxActiveBookingsPerBookerToggle] = useState(
@@ -687,7 +688,9 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
           );
         }}
       />
-      <MaxActiveBookingsPerBookerController />
+      <MaxActiveBookingsPerBookerController
+        maxActiveBookingsPerBookerLocked={maxActiveBookingsPerBookerLocked}
+      />
       <Controller
         name="periodType"
         render={({ field: { onChange, value } }) => {

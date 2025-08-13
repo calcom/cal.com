@@ -15,6 +15,10 @@ export function useInsightsOrgTeams() {
   const teamId = orgTeamsType === "org" ? currentOrgId : orgTeamsType === "team" ? selectedTeamId : undefined;
   const userId = orgTeamsType === "yours" ? session.data?.user.id : undefined;
 
+  // Adding `scope` for InsightsRoutingBaseService
+  // (renaming 'yours' to 'user')
+  const scope: "org" | "team" | "user" = orgTeamsType === "yours" ? "user" : orgTeamsType;
+
   return {
     orgTeamsType,
     setOrgTeamsType,
@@ -23,5 +27,6 @@ export function useInsightsOrgTeams() {
     isAll,
     teamId,
     userId,
+    scope,
   };
 }

@@ -25,6 +25,7 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
@@ -344,7 +345,7 @@ const Locations: React.FC<LocationsProps> = ({
               {isCalVideo && !isPlatform && (
                 <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
                   <div className="w-full">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4">
                       <Controller
                         name="calVideoSettings.disableRecordingForGuests"
                         defaultValue={!!eventType.calVideoSettings?.disableRecordingForGuests}
@@ -352,9 +353,10 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("disable_recording_for_guests")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
@@ -367,13 +369,32 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("disable_recording_for_organizer")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
                       />
+
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.enableAutomaticRecordingForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.enableAutomaticRecordingForOrganizer}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("enable_automatic_recording")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                              />
+                            );
+                          }}
+                        />
+                      )}
 
                       <Controller
                         name="calVideoSettings.enableAutomaticTranscription"
@@ -382,9 +403,10 @@ const Locations: React.FC<LocationsProps> = ({
                           return (
                             <SettingsToggle
                               title={t("enable_automatic_transcription")}
-                              labelClassName="text-sm"
+                              labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
@@ -398,9 +420,10 @@ const Locations: React.FC<LocationsProps> = ({
                             return (
                               <SettingsToggle
                                 title={t("disable_transcription_for_guests")}
-                                labelClassName="text-sm"
+                                labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}
@@ -414,9 +437,10 @@ const Locations: React.FC<LocationsProps> = ({
                             return (
                               <SettingsToggle
                                 title={t("disable_transcription_for_organizer")}
-                                labelClassName="text-sm"
+                                labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}
@@ -427,7 +451,8 @@ const Locations: React.FC<LocationsProps> = ({
                         label={t("enter_redirect_url_on_exit_description")}
                         defaultValue={eventType.calVideoSettings?.redirectUrlOnExit || ""}
                         data-testid="calVideoSettings.redirectUrlOnExit"
-                        containerClassName="mt-2"
+                        containerClassName="mt-4"
+                        className="leading-6"
                         {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
                           setValueAs: (v) => (!v || v.trim() === "" ? null : v),
                         })}
