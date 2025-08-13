@@ -16,7 +16,6 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { TRPCClientError } from "@trpc/react-query";
 
-import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import type { SingleFormComponentProps } from "../../types/shared";
@@ -93,7 +92,6 @@ export const TestForm = ({
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -129,7 +127,6 @@ export const TestForm = ({
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
-    let eventTypeRedirectUrl: string | null = null;
 
     // Create a copy of the route with substituted variables for display
     let displayRoute = route;
@@ -142,15 +139,6 @@ export const TestForm = ({
           value: substitutedUrl,
         },
       };
-
-      if ("team" in form) {
-        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: substitutedUrl,
-          form,
-          allURLSearchParams: new URLSearchParams(),
-        });
-        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
-      }
     }
 
     setChosenRoute(displayRoute || null);
@@ -158,6 +146,7 @@ export const TestForm = ({
 
     if (!route) return;
 
+    // Custom Event Type Redirect URL has eventTypeId=0. Also, findTeamMembersMatchingAttributeLogicMutation can't work without eventTypeId
     if (supportsTeamMembersMatchingLogic && route.action.eventTypeId) {
       findTeamMembersMatchingAttributeLogicMutation.mutate({
         formId: form.id,

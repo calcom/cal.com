@@ -256,12 +256,6 @@ describe("TestFormDialog", () => {
 
     it("submits the form and shows test results for Event Type", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
-      mockFindTeamMembersMatchingAttributeLogicResponse({
-        result: {
-          users: [{ email: "test@example.com" }],
-        },
-        checkedFallback: false,
-      });
       render(
         <TestFormRenderer
           isMobile={true}

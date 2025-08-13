@@ -137,11 +137,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const eventTypeUrlWithResolvedVariables = substituteVariables(
-          decidedAction.value,
-          chosenRouteWithFormResponse.response,
-          fields
-        );
+        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
         router.push(
           getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
             form,

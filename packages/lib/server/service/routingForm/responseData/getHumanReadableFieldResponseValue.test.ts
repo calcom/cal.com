@@ -75,12 +75,12 @@ describe("getHumanReadableFieldResponseValue", () => {
       expect(result).toEqual(["Option One", "Option Three"]);
     });
 
-    it("should handle mixed IDs and labels in multiselect", () => {
+    it("should support legacy options with used to have labels directly", () => {
       const field = createMultiselectField([
         { id: "opt-1", label: "Option One" },
         { id: "opt-2", label: "Option Two" },
       ]);
-      const value: FormResponse[string]["value"] = ["opt-1", "Option Two", "unknown"];
+      const value: FormResponse[string]["value"] = ["Option One", "Option Two", "unknown"];
 
       const result = getHumanReadableFieldResponseValue({ field, value });
 
