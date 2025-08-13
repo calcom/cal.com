@@ -40,5 +40,3 @@ export class EventTypeOwnershipGuard implements CanActivate {
     return true;
   }
 }
-
-

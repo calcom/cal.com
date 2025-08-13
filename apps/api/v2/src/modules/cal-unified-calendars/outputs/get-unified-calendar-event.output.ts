@@ -225,6 +225,22 @@ export class CalendarEventHost {
   responseStatus!: CalendarEventResponseStatus | null;
 }
 
+export class calendarEventOwner {
+  @IsString()
+  @ApiProperty({
+    description: "Email address of the event host",
+  })
+  email!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Display name of the event host",
+  })
+  name?: string;
+}
+
 export class CalendarEventAttendee {
   @IsString()
   @ApiProperty({
@@ -264,6 +280,14 @@ export class CalendarEventAttendee {
     description: "Indicates if this attendee's attendance is optional",
   })
   optional?: boolean;
+
+
+  @IsOptional()
+  @ApiPropertyOptional({
+    nullable: true,
+    description: "Indicates if this attendee is the host",
+  })
+  host?: boolean;
 }
 
 export class DateTimeWithZone {
@@ -383,6 +407,16 @@ export class UnifiedCalendarEventOutput {
     description: "Information about the event hosts (organizers)",
   })
   hosts?: CalendarEventHost[];
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => calendarEventOwner)
+  @ApiPropertyOptional({
+    type: calendarEventOwner,
+    nullable: true,
+    description: "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
+  })
+  calendarEventOwner?: calendarEventOwner;
 
   @IsEnum(CALENDARS)
   @ApiProperty({

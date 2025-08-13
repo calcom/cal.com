@@ -1,14 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-
-import { generateHashedLink, isLinkExpired } from "@calcom/platform-libraries/private-links";
-import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
-
+import { PrivateLinksRepository } from "@/ee/event-types-private-links/private-links.repository";
 import { PrivateLinksInputService } from "@/ee/event-types-private-links/services/private-links-input.service";
 import {
   PrivateLinksOutputService,
   type PrivateLinkData,
 } from "@/ee/event-types-private-links/services/private-links-output.service";
-import { PrivateLinksRepository } from "@/ee/event-types-private-links/private-links.repository";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+
+import { generateHashedLink, isLinkExpired } from "@calcom/platform-libraries/private-links";
+import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
 @Injectable()
 export class PrivateLinksService {
@@ -48,7 +47,7 @@ export class PrivateLinksService {
     }
   }
 
-  async getPrivateLinks(eventTypeId: number, userId: number): Promise<PrivateLinkOutput[]> {
+  async getPrivateLinks(eventTypeId: number): Promise<PrivateLinkOutput[]> {
     try {
       const links = await this.repo.listByEventTypeId(eventTypeId);
       const mapped: PrivateLinkData[] = links.map((l) => ({
@@ -124,5 +123,3 @@ export class PrivateLinksService {
     }
   }
 }
-
-

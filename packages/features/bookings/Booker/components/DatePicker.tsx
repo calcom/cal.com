@@ -57,6 +57,7 @@ export const DatePicker = ({
   isLoading,
   classNames,
   scrollToTimeSlots,
+  showNoAvailabilityDialog,
 }: {
   event: {
     data?: {
@@ -72,6 +73,7 @@ export const DatePicker = ({
   isLoading?: boolean;
   classNames?: DatePickerClassNames;
   scrollToTimeSlots?: () => void;
+  showNoAvailabilityDialog?: boolean;
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate, layout] = useBookerStore(
@@ -148,6 +150,7 @@ export const DatePicker = ({
       scrollToTimeSlots={scrollToTimeSlots}
       periodData={periodData}
       isCompact={isCompact}
+      showNoAvailabilityDialog={showNoAvailabilityDialog}
     />
   );
 };
