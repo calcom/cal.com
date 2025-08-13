@@ -1,4 +1,4 @@
-import { sendVerificationCode } from "@calid/features/workflows/utils/phoneVerification";
+import { sendVerificationCode } from "@calid/features/modules/workflows/utils/phoneVerification";
 
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";

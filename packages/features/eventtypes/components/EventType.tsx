@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-empty-function */
-import type { Workflow } from "@calid/features/workflows/config/types";
+import type { Workflow } from "@calid/features/modules/workflows/config/types";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 

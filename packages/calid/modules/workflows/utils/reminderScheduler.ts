@@ -2,8 +2,12 @@ import type {
   ScheduleEmailReminderAction,
   Workflow,
   WorkflowStep,
-} from "@calid/features/workflows/config/types";
-import { isSMSAction, isSMSOrWhatsappAction, isWhatsappAction } from "@calid/features/workflows/config/utils";
+} from "@calid/features/modules/workflows/config/types";
+import {
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+} from "@calid/features/modules/workflows/config/utils";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";

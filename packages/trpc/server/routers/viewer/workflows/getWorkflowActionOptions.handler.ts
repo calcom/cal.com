@@ -1,4 +1,4 @@
-import { getWorkflowActionOptions } from "@calid/features/workflows/utils/getWorkflowOptions";
+import { getWorkflowActionOptions } from "@calid/features/modules/workflows/utils/getWorkflowOptions";
 
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

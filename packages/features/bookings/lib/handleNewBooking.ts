@@ -1,10 +1,10 @@
-import type { Workflow } from "@calid/features/workflows/config/types";
+import type { Workflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
-} from "@calid/features/workflows/utils/notificationDisableCheck";
-import { scheduleWorkflowReminders } from "@calid/features/workflows/utils/reminderScheduler";
-import { scheduleMandatoryReminder } from "@calid/features/workflows/utils/scheduleMandatoryReminder";
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
+import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
+import { scheduleMandatoryReminder } from "@calid/features/modules/workflows/utils/scheduleMandatoryReminder";
 import type { DestinationCalendar, User } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";

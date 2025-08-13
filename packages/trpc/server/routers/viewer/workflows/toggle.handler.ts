@@ -1,4 +1,4 @@
-import { isEmailAction } from "@calid/features/workflows/config/utils";
+import { isEmailAction } from "@calid/features/modules/workflows/config/utils";
 
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";

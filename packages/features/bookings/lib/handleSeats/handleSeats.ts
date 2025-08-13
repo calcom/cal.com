@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { scheduleWorkflowReminders } from "@calid/features/workflows/utils/reminderScheduler";
+import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";

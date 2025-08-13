@@ -1,6 +1,6 @@
 "use client";
 
-import { TimeTimeUnitInput } from "@calid/features/workflows/components/time_unit_input";
+import { TimeTimeUnitInput } from "@calid/features/modules/workflows/components/time_unit_input";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 

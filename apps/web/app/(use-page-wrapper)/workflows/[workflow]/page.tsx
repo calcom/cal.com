@@ -1,7 +1,7 @@
 // import { cookies, headers } from "next/headers";
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import LegacyPage from "@calid/features/workflows/pages/workflow";
+import LegacyPage from "@calid/features/modules/workflows/pages/workflow";
 import type { PageProps } from "app/_types";
 import { getTranslate } from "app/_utils";
 import { z } from "zod";

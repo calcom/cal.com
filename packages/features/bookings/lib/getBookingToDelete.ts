@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/workflows/utils/getWorkflows";
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

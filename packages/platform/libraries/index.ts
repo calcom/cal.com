@@ -1,4 +1,7 @@
-import { verifyPhoneNumber, sendVerificationCode } from "@calid/features/workflows/utils/phoneVerification";
+import {
+  verifyPhoneNumber,
+  sendVerificationCode,
+} from "@calid/features/modules/workflows/utils/phoneVerification";
 
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";

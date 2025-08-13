@@ -1,6 +1,6 @@
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
-import type { WorkflowType } from "@calid/features/workflows/config/types";
+import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
 
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";

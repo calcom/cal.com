@@ -1,5 +1,5 @@
-import * as twilio from "@calid/features/workflows/providers/twilio";
-import { getSenderId } from "@calid/features/workflows/utils/getSenderId";
+import * as twilio from "@calid/features/modules/workflows/providers/twilio";
+import { getSenderId } from "@calid/features/modules/workflows/utils/getSenderId";
 
 import dayjs from "@calcom/dayjs";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";

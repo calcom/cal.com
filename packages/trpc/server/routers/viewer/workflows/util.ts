@@ -1,11 +1,11 @@
-import type { Workflow as WorkflowType } from "@calid/features/workflows/config/types";
-import { isSMSOrWhatsappAction } from "@calid/features/workflows/config/utils";
-import { scheduleEmailReminder } from "@calid/features/workflows/managers/emailManager";
-import { scheduleSMSReminder } from "@calid/features/workflows/managers/smsManager";
-import { scheduleWhatsappReminder } from "@calid/features/workflows/managers/whatsappManager";
-import emailRatingTemplate from "@calid/features/workflows/templates/email/ratingTemplate";
-import emailReminderTemplate from "@calid/features/workflows/templates/email/reminder";
-import { getAllWorkflows } from "@calid/features/workflows/utils/getWorkflows";
+import type { Workflow as WorkflowType } from "@calid/features/modules/workflows/config/types";
+import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
+import { scheduleEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
+import { scheduleSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
+import { scheduleWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
+import emailRatingTemplate from "@calid/features/modules/workflows/templates/email/ratingTemplate";
+import emailReminderTemplate from "@calid/features/modules/workflows/templates/email/reminder";
+import { getAllWorkflows } from "@calid/features/modules/workflows/utils/getWorkflows";
 import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 

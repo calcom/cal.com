@@ -3,7 +3,7 @@ import {
   WORKFLOW_ACTIONS,
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
-} from "@calid/features/workflows/config/constants";
+} from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
 
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";

@@ -3,7 +3,7 @@ import {
   WORKFLOW_ACTIONS,
   TIME_UNITS,
   WORKFLOW_TRIGGER_EVENTS,
-} from "@calid/features/workflows/config/constants";
+} from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
 
 export const ZUpdateInputSchema = z.object({

@@ -1,8 +1,8 @@
-import { Icon } from "@calid/features/ui";
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
-} from "@calid/features/workflows/utils/notificationDisableCheck";
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
+import { Icon } from "@calid/features/ui";
 import { useState, Suspense } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";

@@ -1,6 +1,6 @@
-import { scheduleEmailReminder } from "@calid/features/workflows/managers/emailManager";
-import { scheduleSMSReminder } from "@calid/features/workflows/managers/smsManager";
-import { scheduleWhatsappReminder } from "@calid/features/workflows/managers/whatsappManager";
+import { scheduleEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
+import { scheduleSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
+import { scheduleWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
 
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";

@@ -1,4 +1,4 @@
-import type { Workflow } from "@calid/features/workflows/config/types";
+import type { Workflow } from "@calid/features/modules/workflows/config/types";
 
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 

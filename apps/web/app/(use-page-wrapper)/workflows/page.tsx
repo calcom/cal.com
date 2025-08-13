@@ -1,4 +1,4 @@
-import LegacyPage from "@calid/features/workflows/pages/index";
+import LegacyPage from "@calid/features/modules/workflows/pages/index";
 import { _generateMetadata, getTranslate } from "app/_utils";
 
 import Shell from "@calcom/features/shell/Shell";

@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/workflows/utils/getWorkflows";
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 import { Prisma } from "@prisma/client";
 
 import type { LocationObject } from "@calcom/app-store/locations";

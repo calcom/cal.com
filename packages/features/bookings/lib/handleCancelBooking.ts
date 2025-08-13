@@ -1,4 +1,4 @@
-import { sendCancelledReminders } from "@calid/features/workflows/utils/reminderScheduler";
+import { sendCancelledReminders } from "@calid/features/modules/workflows/utils/reminderScheduler";
 import type { Prisma, WorkflowReminder } from "@prisma/client";
 import type { z } from "zod";
 

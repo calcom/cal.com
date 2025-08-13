@@ -1,5 +1,5 @@
+import { isSMSOrWhatsappAction } from "@calid/features/modules/workflows/config/utils";
 import { Icon } from "@calid/features/ui";
-import { isSMSOrWhatsappAction } from "@calid/features/workflows/config/utils";
 
 import type { WorkflowStep } from "../config/types";
 

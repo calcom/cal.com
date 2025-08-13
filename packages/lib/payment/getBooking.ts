@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/workflows/utils/getWorkflows";
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";

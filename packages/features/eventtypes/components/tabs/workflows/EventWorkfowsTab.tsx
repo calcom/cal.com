@@ -1,7 +1,7 @@
+import SkeletonLoader from "@calid/features/modules/workflows/components/event_workflow_tab_skeleton";
+import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
+import { getActionIcon } from "@calid/features/modules/workflows/utils/getActionicon";
 import { Icon } from "@calid/features/ui";
-import SkeletonLoader from "@calid/features/workflows/components/event_workflow_tab_skeleton";
-import type { WorkflowType } from "@calid/features/workflows/config/types";
-import { getActionIcon } from "@calid/features/workflows/utils/getActionicon";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

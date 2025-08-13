@@ -1,4 +1,4 @@
-import * as twilio from "@calid/features/workflows/providers/twilio";
+import * as twilio from "@calid/features/modules/workflows/providers/twilio";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 

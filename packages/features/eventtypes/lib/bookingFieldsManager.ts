@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/workflows/utils/getWorkflows";
+import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 import type { z } from "zod";
 
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";

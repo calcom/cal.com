@@ -1,4 +1,4 @@
-import { TIME_UNITS } from "@calid/features/workflows/config/constants";
+import { TIME_UNITS } from "@calid/features/modules/workflows/config/constants";
 import { z } from "zod";
 
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";

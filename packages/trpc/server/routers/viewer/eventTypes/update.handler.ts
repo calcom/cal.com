@@ -1,7 +1,7 @@
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
-} from "@calid/features/workflows/utils/notificationDisableCheck";
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 

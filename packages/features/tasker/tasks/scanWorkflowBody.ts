@@ -1,7 +1,7 @@
 import {
   getTemplateBodyForAction,
   compareReminderBodyToTemplate,
-} from "@calid/features/workflows/config/utils";
+} from "@calid/features/modules/workflows/config/utils";
 import z from "zod";
 
 import { Task } from "@calcom/features/tasker/repository";

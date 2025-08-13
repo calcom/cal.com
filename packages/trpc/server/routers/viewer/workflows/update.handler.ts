@@ -1,4 +1,4 @@
-import { isEmailAction } from "@calid/features/workflows/config/utils";
+import { isEmailAction } from "@calid/features/modules/workflows/config/utils";
 
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";

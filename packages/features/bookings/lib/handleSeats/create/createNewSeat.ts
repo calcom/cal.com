@@ -2,7 +2,7 @@
 import {
   canDisableParticipantNotifications,
   canDisableOrganizerNotifications,
-} from "@calid/features/workflows/utils/notificationDisableCheck";
+} from "@calid/features/modules/workflows/utils/notificationDisableCheck";
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 

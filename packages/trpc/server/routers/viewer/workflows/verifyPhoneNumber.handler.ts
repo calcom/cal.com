@@ -1,4 +1,4 @@
-import { verifyPhoneNumber } from "@calid/features/workflows/utils/phoneVerification";
+import { verifyPhoneNumber } from "@calid/features/modules/workflows/utils/phoneVerification";
 
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 

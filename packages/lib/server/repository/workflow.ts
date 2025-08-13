@@ -1,8 +1,8 @@
-import type { WorkflowType } from "@calid/features/workflows/config/types";
-import type { WorkflowStep } from "@calid/features/workflows/config/types";
-import { deleteScheduledEmailReminder } from "@calid/features/workflows/managers/emailManager";
-import { deleteScheduledSMSReminder } from "@calid/features/workflows/managers/smsManager";
-import { deleteScheduledWhatsappReminder } from "@calid/features/workflows/managers/whatsappManager";
+import type { WorkflowType } from "@calid/features/modules/workflows/config/types";
+import type { WorkflowStep } from "@calid/features/modules/workflows/config/types";
+import { deleteScheduledEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
+import { deleteScheduledSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
+import { deleteScheduledWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
 import { z } from "zod";
 
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
