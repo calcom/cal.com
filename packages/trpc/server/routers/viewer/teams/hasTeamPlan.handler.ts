@@ -1,5 +1,4 @@
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type HasTeamPlanOptions = {
   ctx: {

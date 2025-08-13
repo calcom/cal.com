@@ -98,6 +98,7 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
+  showNoAvailabilityDialog?: boolean;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmRecordId?: string | null;
@@ -140,11 +141,13 @@ export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
   verifyCode: undefined;
   customClassNames?: CustomClassNames;
   timeZones?: Timezone[];
+  roundRobinHideOrgAndTeam?: boolean;
 };
 export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
   isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
   timeZones?: Timezone[];
+  roundRobinHideOrgAndTeam?: boolean;
 };
 
 export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;

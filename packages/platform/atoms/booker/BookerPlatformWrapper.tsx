@@ -58,6 +58,7 @@ export const BookerPlatformWrapper = (
     handleSlotReservation,
     onTimeslotsLoaded,
     startTime: customStartTime,
+    showNoAvailabilityDialog,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -465,6 +466,7 @@ export const BookerPlatformWrapper = (
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
         username={username}
+        showNoAvailabilityDialog={showNoAvailabilityDialog}
         entity={
           event?.data?.entity ?? {
             considerUnpublished: false,
@@ -549,6 +551,7 @@ export const BookerPlatformWrapper = (
         hasValidLicense={true}
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
+        roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
       />
     </AtomsWrapper>
   );

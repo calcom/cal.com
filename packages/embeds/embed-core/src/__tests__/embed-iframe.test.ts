@@ -11,6 +11,7 @@ afterEach(() => {
   vi.clearAllMocks();
   vi.resetModules();
   vi.useRealTimers();
+  vi.clearAllTimers();
 });
 
 describe("embedStore.router.ensureQueryParamsInUrl", async () => {

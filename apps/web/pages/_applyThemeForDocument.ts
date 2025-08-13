@@ -57,3 +57,22 @@ export const applyTheme = function () {
     console.error("Error applying theme:", e);
   }
 };
+
+// ToDesktop class application function - will be stringified and injected. So, it must not use anything from the closure
+export const applyToDesktopClass = function () {
+  try {
+    const onReady = () => {
+      if (typeof window !== "undefined" && window.todesktop && document.documentElement) {
+        document.documentElement.classList.add("todesktop");
+      } else if (document.documentElement) {
+        return;
+      } else {
+        requestAnimationFrame(onReady);
+      }
+    };
+
+    requestAnimationFrame(onReady);
+  } catch (e) {
+    console.error("Error applying todesktop class:", e);
+  }
+};

@@ -151,6 +151,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
                 src={avatar}
                 alt="Profile picture"
                 width="160"
+                height="160"
               />
             ))}
             {avatars.length > 3 && (
@@ -217,7 +218,7 @@ export const App = ({ name, description, slug }: AppImageProps) => (
 
     <div tw="flex items-center w-full">
       <div tw="flex">
-        <img src={`${WEBAPP_URL}${slug}`} alt="App icon" width="172" />
+        <img src={`${WEBAPP_URL}${slug}`} alt="App icon" width="172" height="172" />
       </div>
     </div>
     <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">

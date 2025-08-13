@@ -10,8 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateWebhooksListGetByViewer } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
-import { revalidateWebhookList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/new/actions";
+import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
@@ -36,8 +35,7 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      revalidateWebhookList();
-      revalidateWebhooksListGetByViewer();
+      revalidateWebhooksList();
       router.push("/settings/developer/webhooks");
     },
     onError(error) {

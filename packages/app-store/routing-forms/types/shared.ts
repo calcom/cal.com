@@ -16,4 +16,5 @@ export type SingleFormComponentProps = {
   enrichedWithUserProfileForm: inferSSRProps<
     typeof getServerSidePropsForSingleFormView
   >["enrichedWithUserProfileForm"];
+  permissions: inferSSRProps<typeof getServerSidePropsForSingleFormView>["permissions"];
 };

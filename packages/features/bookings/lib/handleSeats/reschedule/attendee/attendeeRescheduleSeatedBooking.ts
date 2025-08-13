@@ -51,6 +51,8 @@ const attendeeRescheduleSeatedBooking = async (
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
+    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
+
     return null;
   }
 

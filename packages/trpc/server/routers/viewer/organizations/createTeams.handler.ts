@@ -95,21 +95,18 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
     teamNames.map((item) => slugify(item)).includes(slug)
   );
 
-  await Promise.all(
-    moveTeams
-      .filter((team) => team.shouldMove)
-      .map(async ({ id: teamId, newSlug }) => {
-        await moveTeam({
-          teamId,
-          newSlug,
-          org: {
-            ...organization,
-            ownerId: organizationOwner.id,
-          },
-          creationSource,
-        });
-      })
-  );
+  // Process team migrations sequentially to avoid race conditions - Moving a team invites members to the organization again and there are known unique constraints failure in membership and profile creation if done in parallel and a user happens to be part of more than one team
+  for (const team of moveTeams.filter((team) => team.shouldMove)) {
+    await moveTeam({
+      teamId: team.id,
+      newSlug: team.newSlug,
+      org: {
+        ...organization,
+        ownerId: organizationOwner.id,
+      },
+      creationSource,
+    });
+  }
 
   if (duplicatedSlugs.length === teamNames.length) {
     return { duplicatedSlugs };

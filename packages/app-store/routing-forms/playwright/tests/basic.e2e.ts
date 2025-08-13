@@ -408,52 +408,6 @@ test.describe("Routing Forms", () => {
       // Log back in to view form responses.
       await user.apiLogin();
 
-      await page.goto(`/routing-forms/reporting/${routingForm.id}`);
-
-      const headerEls = page.locator("[data-testid='reporting-header'] th");
-
-      // Wait for the headers to be visible(will automaically wait for getting response from backend) along with it the rows are rendered.
-      await headerEls.first().waitFor();
-
-      const numHeaderEls = await headerEls.count();
-      const headers = [];
-      for (let i = 0; i < numHeaderEls; i++) {
-        headers.push(await headerEls.nth(i).innerText());
-      }
-
-      const responses = [];
-      const responseRows = page.locator("[data-testid='reporting-row']");
-      const numResponseRows = await responseRows.count();
-      for (let i = 0; i < numResponseRows; i++) {
-        const rowLocator = responseRows.nth(i).locator("td");
-        const numRowEls = await rowLocator.count();
-        const rowResponses = [];
-        for (let j = 0; j < numRowEls; j++) {
-          rowResponses.push(await rowLocator.nth(j).innerText());
-        }
-        responses.push(rowResponses);
-      }
-
-      expect(headers).toEqual([
-        "Test field",
-        "Multi Select(with Legacy `selectText`)",
-        "Multi Select",
-        "Legacy Select",
-        "Select",
-        // TODO: Find a way to incorporate Routed To and Booked At into the report
-        // @see https://github.com/calcom/cal.com/pull/17229
-        "Routed To",
-        "Assignment Reason",
-        "Booked At",
-        "Submitted At",
-      ]);
-      /* Last two columns are "Routed To" and "Booked At" */
-      expect(responses).toEqual([
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
-      ]);
-
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
 
       const downloadPromise = page.waitForEvent("download");

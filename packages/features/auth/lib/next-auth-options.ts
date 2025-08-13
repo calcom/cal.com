@@ -31,6 +31,7 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -131,7 +132,7 @@ const providers: Provider[] = [
       }
 
       await checkRateLimitAndThrowError({
-        identifier: user.email,
+        identifier: hashEmail(user.email),
       });
 
       if (!user.password?.hash && user.identityProvider !== IdentityProvider.CAL && !credentials.totpCode) {

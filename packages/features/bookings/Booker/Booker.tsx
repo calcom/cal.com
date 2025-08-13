@@ -80,6 +80,8 @@ const BookerComponent = ({
   confirmButtonDisabled,
   timeZones,
   eventMetaChildren,
+  roundRobinHideOrgAndTeam,
+  showNoAvailabilityDialog,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -403,7 +405,8 @@ const BookerComponent = ({
                   isPlatform={isPlatform}
                   isPrivateLink={!!hashedLink}
                   locale={userLocale}
-                  timeZones={timeZones}>
+                  timeZones={timeZones}
+                  roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}>
                   {eventMetaChildren}
                 </EventMeta>
                 {layout !== BookerLayouts.MONTH_VIEW &&
@@ -415,6 +418,7 @@ const BookerComponent = ({
                         slots={schedule?.data?.slots}
                         isLoading={schedule.isPending}
                         scrollToTimeSlots={scrollToTimeSlots}
+                        showNoAvailabilityDialog={showNoAvailabilityDialog}
                       />
                     </div>
                   )}
@@ -443,6 +447,7 @@ const BookerComponent = ({
                 slots={schedule?.data?.slots}
                 isLoading={schedule.isPending}
                 scrollToTimeSlots={scrollToTimeSlots}
+                showNoAvailabilityDialog={showNoAvailabilityDialog}
               />
             </BookerSection>
 
