@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import { HttpError } from "@calcom/lib/http-error";
@@ -30,7 +29,7 @@ export class AgentService {
     const [hashedApiKey, apiKey] = generateUniqueAPIKey();
     await prisma.apiKey.create({
       data: {
-        id: v4(),
+        id: uuidv4(),
         userId,
         teamId,
         // And here we pass a null to expiresAt if never expires is true

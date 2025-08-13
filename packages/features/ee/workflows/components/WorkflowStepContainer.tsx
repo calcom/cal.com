@@ -641,7 +641,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="bg-muted mt-2 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-emphasis text-sm font-medium leading-none">Cal.ai Agent</h2>
+                      <h2 className="text-emphasis text-sm font-medium leading-none">{t("cal_ai_agent")}</h2>
                       <p className="text-muted mt-2 text-sm font-medium leading-none">
                         {t("no_phone_number_connected")}.
                       </p>
@@ -689,7 +689,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="bg-muted mt-4 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-emphasis text-base font-medium">Cal.ai Agent</h3>
+                      <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
                       {getActivePhoneNumbers(
                         agentData.outboundPhoneNumbers?.map((phone) => ({
                           ...phone,
@@ -714,7 +714,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </div>
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span className="text-subtle text-sm">{t("No phone number connected")}</span>
+                          <span className="text-subtle text-sm">{t("no_phone_number_connected")}</span>
                         </div>
                       )}
                     </div>
