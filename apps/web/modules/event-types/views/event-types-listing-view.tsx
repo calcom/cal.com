@@ -10,6 +10,7 @@ import { z } from "zod";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
+import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -682,7 +683,7 @@ export const InfiniteEventTypeList = ({
                       </div>
                     </div>
                   </div>
-                  <div className="min-w-9 mx-5 flex sm:hidden">
+                  <div className="mx-5 flex min-w-9 sm:hidden">
                     <Dropdown>
                       <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
                         <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
@@ -936,7 +937,9 @@ const InfiniteScrollMain = ({
       {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
       {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
-      <EventTypeEmbedDialog />
+      <EmbedDialogProvider>
+        <EventTypeEmbedDialog />
+      </EmbedDialogProvider>
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
   );
