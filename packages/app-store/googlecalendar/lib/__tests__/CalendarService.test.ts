@@ -1284,34 +1284,49 @@ describe("Date Optimization Benchmarks", () => {
       expect(nativeDiff).toBe(dayjsDiff);
       expect(nativeDiff).toBe(testCase.expectedDiff);
 
-      // Performance test - dayjs approach
-      const dayjsStart = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        const start = dayjs(testCase.dateFrom);
-        const end = dayjs(testCase.dateTo);
-        const diff = end.diff(start, "days");
-      }
-      const dayjsTime = performance.now() - dayjsStart;
+      // Performance testing with statistical analysis to handle timing variance (important-comment)
+      // Multiple runs ensure reliability in CI environments with variable system load
+      const performanceRuns = 5;
+      const speedupRatios = [];
 
-      // Performance test - native Date approach
-      const nativeStart = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        const start = new Date(testCase.dateFrom);
-        const end = new Date(testCase.dateTo);
-        const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-      }
-      const nativeTime = performance.now() - nativeStart;
+      for (let run = 0; run < performanceRuns; run++) {
+        // Performance test - dayjs approach
+        const dayjsStart = performance.now();
+        for (let i = 0; i < iterations; i++) {
+          const start = dayjs(testCase.dateFrom);
+          const end = dayjs(testCase.dateTo);
+          const diff = end.diff(start, "days");
+        }
+        const dayjsTime = performance.now() - dayjsStart;
 
-      const speedupRatio = dayjsTime / nativeTime;
+        // Performance test - native Date approach
+        const nativeStart = performance.now();
+        for (let i = 0; i < iterations; i++) {
+          const start = new Date(testCase.dateFrom);
+          const end = new Date(testCase.dateTo);
+          const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        }
+        const nativeTime = performance.now() - nativeStart;
+
+        const speedupRatio = dayjsTime / nativeTime;
+        speedupRatios.push(speedupRatio);
+      }
+
+      const avgSpeedup = speedupRatios.reduce((a, b) => a + b, 0) / speedupRatios.length;
+      const minSpeedup = Math.min(...speedupRatios);
 
       log.info(
-        `${testCase.name} - Dayjs: ${dayjsTime.toFixed(2)}ms, Native: ${nativeTime.toFixed(
-          2
-        )}ms, Speedup: ${speedupRatio.toFixed(1)}x`
+        `${testCase.name} - Average speedup: ${avgSpeedup.toFixed(1)}x, Min: ${minSpeedup.toFixed(
+          1
+        )}x, Runs: [${speedupRatios.map((r) => r.toFixed(1)).join(", ")}]`
       );
 
-      // Assert significant performance improvement (at least 2x faster)
-      expect(speedupRatio).toBeGreaterThan(2);
+      // Assert that even the worst-case run shows meaningful improvement (important-comment)
+      // Use 1.5x as threshold to account for natural variance while still catching regressions
+      expect(minSpeedup).toBeGreaterThan(1.5);
+
+      // Also assert that average performance shows significant improvement
+      expect(avgSpeedup).toBeGreaterThan(2.0);
     }
   });
 
