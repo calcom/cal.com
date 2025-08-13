@@ -1,9 +1,10 @@
 import type { Dayjs } from "@calcom/dayjs";
 import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails";
-import { RedisService } from "@calcom/features/redis/RedisService";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { prisma } from "@calcom/prisma";
+import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { TeamRepository } from "@calcom/lib/server/repository/team";
 
 type EventDetails = {
   username: string;
@@ -38,8 +39,11 @@ const constructDataHash = (eventDetails: EventDetails) => {
   return JSON.stringify(obj);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface INoSlotsNotificationService {}
+export interface INoSlotsNotificationService {
+  teamRepo: TeamRepository;
+  membershipRepo: MembershipRepository;
+  redisClient: IRedisService;
+}
 
 export class NoSlotsNotificationService {
   constructor(public readonly dependencies: INoSlotsNotificationService) {}
@@ -59,68 +63,34 @@ export class NoSlotsNotificationService {
     if (!UPSTASH_ENV_FOUND) return;
 
     // Check org has this setting enabled
-    const orgSettings = await prisma.team.findFirst({
-      where: {
-        slug: orgDetails.currentOrgDomain,
-        isOrganization: true,
-      },
-      select: {
-        organizationSettings: {
-          select: {
-            adminGetsNoSlotsNotification: true,
-          },
-        },
-      },
+    const orgSettings = await this.dependencies.teamRepo.findOrganizationSettingsBySlug({
+      slug: orgDetails.currentOrgDomain,
     });
 
     if (!orgSettings?.organizationSettings?.adminGetsNoSlotsNotification) return;
-
-    const redis = new RedisService();
 
     const usersUniqueKey = constructRedisKey(eventDetails, orgDetails.currentOrgDomain, teamId);
     // Get only the required amount of data so the request is as small as possible
     // We may need to get more data and check the startDate occurrence of this
     // Not trigger email if the start months are the same
     const usersExistingNoSlots =
-      (await redis.lrange(usersUniqueKey, 0, NO_SLOTS_COUNT_FOR_NOTIFICATION - 1)) ?? [];
-    await redis.lpush(usersUniqueKey, constructDataHash(eventDetails));
+      (await this.dependencies.redisClient.lrange(usersUniqueKey, 0, NO_SLOTS_COUNT_FOR_NOTIFICATION - 1)) ??
+      [];
+    await this.dependencies.redisClient.lpush(usersUniqueKey, constructDataHash(eventDetails));
 
     if (!usersExistingNoSlots.length) {
-      await redis.expire(usersUniqueKey, NO_SLOTS_NOTIFICATION_FREQUENCY);
+      await this.dependencies.redisClient.expire(usersUniqueKey, NO_SLOTS_NOTIFICATION_FREQUENCY);
     }
 
     // We add one as we know we just added one to the list - saves us re-fetching the data
     if (usersExistingNoSlots.length + 1 === NO_SLOTS_COUNT_FOR_NOTIFICATION) {
       // Get all team admins to send the email too
-      const foundAdmins = await prisma.membership.findMany({
-        where: {
-          team: {
-            id: teamId,
-            parentId: {
-              not: null,
-            },
-          },
-          role: {
-            in: ["ADMIN", "OWNER"],
-          },
-        },
-        select: {
-          user: {
-            select: {
-              email: true,
-              locale: true,
-            },
-          },
-        },
+      const foundAdmins = await this.dependencies.membershipRepo.findTeamAdminsByTeamId({
+        teamId,
       });
 
-      const teamSlug = await prisma.team.findUnique({
-        where: {
-          id: teamId,
-        },
-        select: {
-          slug: true,
-        },
+      const teamSlug = await this.dependencies.teamRepo.findTeamSlugById({
+        id: teamId,
       });
       // TODO: use new tasker as we dont want this blocking loading slots (Just out of scope for this PR)
       // Tasker isn't 100% working with emails - will refactor after i have made changes to Tasker in another PR.

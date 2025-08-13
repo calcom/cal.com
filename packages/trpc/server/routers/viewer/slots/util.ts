@@ -47,6 +47,7 @@ import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISel
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
@@ -108,6 +109,7 @@ export interface IAvailableSlotsService {
   redisClient: IRedisService;
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
+  membershipRepo: MembershipRepository;
   noSlotsNotificationService: NoSlotsNotificationService;
 }
 
