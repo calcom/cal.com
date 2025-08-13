@@ -8510,7 +8510,7 @@
         ]
       }
     },
-    "/v2/calendars/{calendar}/events/{eventUid}": {
+    "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
         "summary": "Get meeting details from calendar",
@@ -8561,7 +8561,9 @@
         "tags": [
           "Cal Unified Calendars"
         ]
-      },
+      }
+    },
+    "/v2/calendars/{calendar}/events/{eventUid}": {
       "patch": {
         "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
         "summary": "Update meeting details in calendar",

@@ -8195,6 +8195,65 @@
         "tags": ["Cal Unified Calendars"]
       }
     },
+    "/v2/calendars/{calendar}/events/{eventUid}": {
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
     "/v2/calendars/ics-feed/save": {
       "post": {
         "operationId": "CalendarsController_createIcsFeed",
@@ -26155,7 +26214,7 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
-        "description": "Host's response to the invitation",
+        "description": "Response status of the attendee",
         "enum": ["accepted", "pending", "declined", "needsAction"]
       },
       "CalendarEventAttendee": {
@@ -26183,6 +26242,11 @@
             "type": "boolean",
             "nullable": true,
             "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
           }
         },
         "required": ["email"]
@@ -26208,6 +26272,21 @@
             "nullable": true,
             "example": "accepted",
             "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          }
+        },
+        "required": ["email"]
+      },
+      "calendarEventOwner": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the event host"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name of the event host"
           }
         },
         "required": ["email"]
@@ -26304,6 +26383,15 @@
               "$ref": "#/components/schemas/CalendarEventHost"
             }
           },
+          "calendarEventOwner": {
+            "nullable": true,
+            "description": "The calendar account that owns this event. This is the primary calendar where the event is stored and cannot be modified without appropriate permissions. Changing this would require moving the event to a different calendar",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/calendarEventOwner"
+              }
+            ]
+          },
           "source": {
             "example": "google",
             "$ref": "#/components/schemas/CalendarSource"
@@ -26324,6 +26412,91 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "UpdateCalendarEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          },
+          "responseStatus": {
+            "nullable": true,
+            "$ref": "#/components/schemas/CalendarEventResponseStatus"
+          },
+          "self": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the current user"
+          },
+          "optional": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee's attendance is optional"
+          },
+          "host": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Indicates if this attendee is the host"
+          }
+        }
+      },
+      "UpdateUnifiedCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "Start date and time of the calendar event with timezone information"
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "description": "End date and time of the calendar event with timezone information"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Detailed description of the calendar event"
+          },
+          "attendees": {
+            "nullable": true,
+            "description": "List of attendees. CAUTION: You must pass the entire array with all updated values. Any attendees not included in this array will be removed from the event.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateCalendarEventAttendee"
+            }
+          },
+          "status": {
+            "nullable": true,
+            "example": "accepted",
+            "$ref": "#/components/schemas/CalendarEventStatus"
+          }
+        }
       },
       "RequestEmailVerificationInput": {
         "type": "object",
