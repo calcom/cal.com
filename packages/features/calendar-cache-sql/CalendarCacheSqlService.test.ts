@@ -188,6 +188,98 @@ describe("CalendarCacheSqlService", () => {
       expect(mockSubscriptionRepo.updateSyncToken).toHaveBeenCalledWith("subscription-id", "new-sync-token");
     });
 
+    it("should filter PII data for non-Cal.com events", async () => {
+      const mockSubscription = {
+        id: "subscription-id",
+        selectedCalendar: {
+          externalId: "test@example.com",
+        },
+        nextSyncToken: "sync-token",
+      };
+
+      const mockCredential = {
+        id: 1,
+        key: {
+          access_token: "mock-token",
+        },
+      };
+
+      // Mock the Google Calendar service with non-Cal.com events
+      const mockCalendar = {
+        events: {
+          list: vi.fn().mockResolvedValue({
+            data: {
+              items: [
+                {
+                  id: "external-event-id",
+                  status: "confirmed",
+                  start: { dateTime: "2024-01-01T10:00:00Z" },
+                  end: { dateTime: "2024-01-01T11:00:00Z" },
+                  summary: "External Meeting",
+                  description: "Sensitive description",
+                  location: "Confidential location",
+                  iCalUID: "external-event@external-provider.com",
+                  creator: {
+                    email: "external@example.com",
+                    displayName: "External Creator",
+                    self: false,
+                  },
+                  organizer: {
+                    email: "organizer@example.com",
+                    displayName: "External Organizer",
+                    self: true,
+                  },
+                  attendees: [
+                    {
+                      email: "attendee@example.com",
+                      displayName: "External Attendee",
+                      responseStatus: "accepted",
+                      organizer: false,
+                      self: false,
+                    },
+                  ],
+                },
+              ],
+              nextSyncToken: "new-sync-token",
+            },
+          }),
+        },
+      };
+
+      const mockGoogleCalendarService = {
+        authedCalendar: vi.fn().mockResolvedValue(mockCalendar),
+      };
+
+      // Mock the import
+      vi.doMock("@calcom/app-store/googlecalendar/lib/CalendarService", () => ({
+        default: vi.fn().mockImplementation(() => mockGoogleCalendarService),
+      }));
+
+      vi.mocked(mockSubscriptionRepo.findByChannelId).mockResolvedValue(mockSubscription as any);
+      vi.mocked(mockSubscriptionRepo.updateSyncToken).mockResolvedValue(undefined);
+      vi.mocked(mockEventRepo.bulkUpsertEvents).mockResolvedValue(undefined);
+
+      await service.processWebhookEvents("channel-id", mockCredential as any);
+
+      // Verify that bulkUpsertEvents was called with PII fields omitted for non-Cal.com events
+      expect(mockEventRepo.bulkUpsertEvents).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            googleEventId: "external-event-id",
+            summary: null, // PII filtered out
+            description: null, // PII filtered out
+            location: null, // PII filtered out
+            creator: undefined, // PII filtered out
+            organizer: undefined, // PII filtered out
+            attendees: undefined, // PII filtered out
+            status: "confirmed", // Non-PII field preserved
+            iCalUID: "external-event@external-provider.com", // Non-PII field preserved
+          }),
+        ]),
+        "subscription-id"
+      );
+    });
+
     it("should capture participant data from Google Calendar events", async () => {
       const mockSubscription = {
         id: "subscription-id",
