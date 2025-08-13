@@ -97,6 +97,7 @@ export const AppDependencyComponent = ({
                         {t("this_app_requires_connected_account", {
                           appName,
                           dependencyName: dependency.name,
+                          interpolation: { escapeValue: false },
                         })}
                       </span>
                     </div>
@@ -112,7 +113,11 @@ export const AppDependencyComponent = ({
                 </div>
                 <div>
                   <span className="font-semibold">
-                    {t("this_app_requires_connected_account", { appName, dependencyName: dependency.name })}
+                    {t("this_app_requires_connected_account", {
+                      appName,
+                      dependencyName: dependency.name,
+                      interpolation: { escapeValue: false },
+                    })}
                   </span>
 
                   <div>

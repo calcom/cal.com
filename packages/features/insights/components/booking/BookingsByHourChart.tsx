@@ -13,15 +13,13 @@ import {
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
 
-type BookingsByHourData = {
-  hour: number;
-  count: number;
-};
+type BookingsByHourData = RouterOutputs["viewer"]["insights"]["bookingsByHourStats"][number];
 
 export const BookingsByHourChartContent = ({ data }: { data: BookingsByHourData[] }) => {
   const { t } = useLocale();
