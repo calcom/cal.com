@@ -150,7 +150,7 @@ const EventType = forwardRef<
       const description = message ? t(message) : t(err.message);
       toast({ description });
       onError?.(currentValues, err);
-      
+
       const errorObj = new Error(description);
       callbacksRef.current?.onError?.(errorObj);
     },
@@ -175,24 +175,27 @@ const EventType = forwardRef<
 
   const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
 
-  const handleFormSubmit = useCallback((customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-    if (customCallbacks) {
-      callbacksRef.current = customCallbacks;
-    }
+  const handleFormSubmit = useCallback(
+    (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+      if (customCallbacks) {
+        callbacksRef.current = customCallbacks;
+      }
 
-    if (saveButtonRef.current) {
-      saveButtonRef.current.click();
-    } else {
-      form.handleSubmit((data) => {
-        try {
-          handleSubmit(data);
-          customCallbacks?.onSuccess?.();
-        } catch (error) {
-          customCallbacks?.onError?.(error as Error);
-        }
-      })();
-    }
-  }, [handleSubmit, form]);
+      if (saveButtonRef.current) {
+        saveButtonRef.current.click();
+      } else {
+        form.handleSubmit((data) => {
+          try {
+            handleSubmit(data);
+            customCallbacks?.onSuccess?.();
+          } catch (error) {
+            customCallbacks?.onError?.(error as Error);
+          }
+        })();
+      }
+    },
+    [handleSubmit, form]
+  );
 
   const validateForm = useCallback(async () => {
     const isValid = await form.trigger();
