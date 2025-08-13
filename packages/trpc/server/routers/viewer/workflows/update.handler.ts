@@ -669,6 +669,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     },
   });
 
+  if (!workflow) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Workflow not found after update",
+    });
+  }
+
   // Remove or add booking field for sms reminder number
   const smsReminderNumberNeeded =
     activeOn.length &&
@@ -728,15 +735,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  if (workflow) {
-    // Add permissions to the workflow
-    const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
-    return {
-      workflow: workflowWithPermissions,
-    };
-  }
-
+  const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
   return {
-    workflow,
+    workflow: workflowWithPermissions,
   };
 };
