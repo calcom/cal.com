@@ -548,6 +548,7 @@ export class EventTypeRepository {
       periodEndDate: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
+      lockedTimeZone: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       canSendCalVideoTranscriptionEmails: true,
@@ -606,6 +607,12 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -672,6 +679,7 @@ export class EventTypeRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          groupId: true,
           user: {
             select: {
               timeZone: true,
@@ -837,6 +845,7 @@ export class EventTypeRepository {
       periodEndDate: true,
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
+      lockedTimeZone: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
       canSendCalVideoTranscriptionEmails: true,
@@ -895,6 +904,12 @@ export class EventTypeRepository {
         },
       },
       teamId: true,
+      hostGroups: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       team: {
         select: {
           id: true,
@@ -1198,6 +1213,12 @@ export class EventTypeRepository {
         useEventLevelSelectedCalendars: true,
         restrictionScheduleId: true,
         useBookerTimezone: true,
+        hostGroups: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         team: {
           select: {
             id: true,
@@ -1247,6 +1268,7 @@ export class EventTypeRepository {
             createdAt: true,
             weight: true,
             priority: true,
+            groupId: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },
@@ -1299,5 +1321,94 @@ export class EventTypeRepository {
     eventTypeId: number;
   }) {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
+  }
+
+  async findByIdForUserAvailability({ id }: { id: number }) {
+    const eventType = await this.prismaClient.eventType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        seatsPerTimeSlot: true,
+        bookingLimits: true,
+        useEventLevelSelectedCalendars: true,
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        },
+        hosts: {
+          select: {
+            user: {
+              select: {
+                email: true,
+                id: true,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        durationLimits: true,
+        assignAllTeamMembers: true,
+        schedulingType: true,
+        timeZone: true,
+        length: true,
+        metadata: true,
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                days: true,
+                date: true,
+                startTime: true,
+                endTime: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            startTime: true,
+            endTime: true,
+            days: true,
+            date: true,
+          },
+        },
+      },
+    });
+    if (!eventType) {
+      return eventType;
+    }
+    return {
+      ...eventType,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    };
   }
 }

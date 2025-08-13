@@ -30,6 +30,7 @@ export type Host = {
   priority: number;
   weight: number;
   scheduleId?: number | null;
+  groupId: string | null;
 };
 export type TeamMember = {
   value: string;
@@ -88,6 +89,7 @@ export type FormValues = {
   description: string;
   disableGuests: boolean;
   lockTimeZoneToggleOnBookingPage: boolean;
+  lockedTimeZone: string | null;
   requiresConfirmation: boolean;
   requiresConfirmationWillBlockSlot: boolean;
   requiresConfirmationForFreeEmail: boolean;
@@ -146,6 +148,10 @@ export type FormValues = {
   showOptimizedSlots: boolean;
   children: ChildrenEventType[];
   hosts: Host[];
+  hostGroups: {
+    id: string;
+    name: string;
+  }[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
   availability?: AvailabilityOption;
   bookerLayouts: BookerLayoutSettings;
@@ -236,5 +242,5 @@ export type FormValidationResult = {
 
 export interface EventTypePlatformWrapperRef {
   validateForm: () => Promise<FormValidationResult>;
-  handleFormSubmit: () => void;
+  handleFormSubmit: (callbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => void;
 }
