@@ -81,7 +81,7 @@ const BookerComponent = ({
   timeZones,
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
-  showNoAvailabilityDailog,
+  showNoAvailabilityDialog,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -418,7 +418,7 @@ const BookerComponent = ({
                         slots={schedule?.data?.slots}
                         isLoading={schedule.isPending}
                         scrollToTimeSlots={scrollToTimeSlots}
-                        showNoAvailabilityDailog={showNoAvailabilityDailog}
+                        showNoAvailabilityDialog={showNoAvailabilityDialog}
                       />
                     </div>
                   )}
@@ -447,7 +447,7 @@ const BookerComponent = ({
                 slots={schedule?.data?.slots}
                 isLoading={schedule.isPending}
                 scrollToTimeSlots={scrollToTimeSlots}
-                showNoAvailabilityDailog={showNoAvailabilityDailog}
+                showNoAvailabilityDialog={showNoAvailabilityDialog}
               />
             </BookerSection>
 

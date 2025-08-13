@@ -58,7 +58,7 @@ export const BookerPlatformWrapper = (
     handleSlotReservation,
     onTimeslotsLoaded,
     startTime: customStartTime,
-    showNoAvailabilityDailog,
+    showNoAvailabilityDialog,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -466,7 +466,7 @@ export const BookerPlatformWrapper = (
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
         username={username}
-        showNoAvailabilityDailog={showNoAvailabilityDailog}
+        showNoAvailabilityDialog={showNoAvailabilityDialog}
         entity={
           event?.data?.entity ?? {
             considerUnpublished: false,

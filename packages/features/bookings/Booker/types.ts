@@ -101,7 +101,7 @@ export interface BookerProps {
   /**
    * Whether to hide the no availability message
    */
-  showNoAvailabilityDailog?: boolean;
+  showNoAvailabilityDialog?: boolean;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmRecordId?: string | null;

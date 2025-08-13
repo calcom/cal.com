@@ -60,7 +60,7 @@ export type DatePickerProps = {
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
   // Whether to hide the no availability message
-  showNoAvailabilityDailog?: boolean;
+  showNoAvailabilityDialog?: boolean;
 };
 
 const Day = ({
@@ -166,7 +166,7 @@ const Days = ({
   isBookingInPast,
   periodData,
   isCompact,
-  showNoAvailabilityDailog = true,
+  showNoAvailabilityDialog = true,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -182,7 +182,7 @@ const Days = ({
   isBookingInPast: boolean;
   periodData: PeriodData;
   isCompact?: boolean;
-  showNoAvailabilityDailog?: boolean;
+  showNoAvailabilityDialog?: boolean;
 }) => {
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
@@ -353,7 +353,7 @@ const Days = ({
         !isBookingInPast &&
         includedDates &&
         includedDates?.length === 0 &&
-        showNoAvailabilityDailog && (
+        showNoAvailabilityDialog && (
           <NoAvailabilityDialog
             month={month}
             nextMonthButton={nextMonthButton}
@@ -382,7 +382,7 @@ const DatePicker = ({
     periodType: "UNLIMITED",
   },
   isCompact,
-  showNoAvailabilityDailog,
+  showNoAvailabilityDialog,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -394,7 +394,7 @@ const DatePicker = ({
       datePickerToggle?: string;
     };
     scrollToTimeSlots?: () => void;
-    showNoAvailabilityDailog?: boolean;
+    showNoAvailabilityDialog?: boolean;
   }) => {
   const minDate = passThroughProps.minDate;
   const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
@@ -494,7 +494,7 @@ const DatePicker = ({
           isBookingInPast={isBookingInPast}
           periodData={periodData}
           isCompact={isCompact}
-          showNoAvailabilityDailog={showNoAvailabilityDailog}
+          showNoAvailabilityDialog={showNoAvailabilityDialog}
         />
       </div>
     </div>
