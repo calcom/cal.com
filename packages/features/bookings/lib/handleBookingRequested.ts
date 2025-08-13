@@ -26,6 +26,19 @@ export async function handleBookingRequested(args: {
         parentId: number | null;
       } | null;
       currency: string;
+      hosts?:
+        | {
+            user: {
+              email: string;
+              destinationCalendar?:
+                | {
+                    primaryEmail: string | null;
+                  }
+                | null
+                | undefined;
+            };
+          }[]
+        | undefined;
       description: string | null;
       id: number;
       length: number;
@@ -95,7 +108,15 @@ export async function handleBookingRequested(args: {
       await scheduleWorkflowReminders({
         workflows: workflowsToTrigger,
         smsReminderNumber: null,
-        calendarEvent: evt as any,
+        calendarEvent: {
+          ...evt,
+          bookerUrl: evt.bookerUrl as string,
+          eventType: {
+            slug: evt.type,
+            hosts: booking.eventType?.hosts,
+            schedulingType: evt.schedulingType,
+          },
+        },
       });
     }
   } catch (error) {

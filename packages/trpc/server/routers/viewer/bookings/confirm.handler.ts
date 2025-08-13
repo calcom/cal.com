@@ -390,7 +390,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       await scheduleWorkflowReminders({
         workflows: workflowsToTriggerForRejected,
         smsReminderNumber: booking.smsReminderNumber,
-        calendarEvent: evt as any,
+        calendarEvent: {
+          ...evt,
+          bookerUrl: bookerUrl,
+          eventType: {
+            ...eventTypeInfo,
+            slug: booking.eventType?.slug as string,
+          },
+        },
+        hideBranding: !!booking.eventType?.owner?.hideBranding,
       });
     }
   }
