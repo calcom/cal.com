@@ -1,7 +1,3 @@
-import type { Prisma } from "@prisma/client";
-import { z } from "zod";
-
-import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -22,24 +18,6 @@ type WebhookGroup = {
   };
   webhooks: Webhook[];
 };
-
-const webhookIdAndEventTypeIdSchema = z.object({
-  // Webhook ID
-  id: z.string().optional(),
-  eventTypeId: z.number().optional(),
-  teamId: z.number().optional(),
-});
-
-const ZFindWebhooksByFiltersInputSchema = webhookIdAndEventTypeIdSchema
-  .extend({
-    appId: z.string().optional(),
-    teamId: z.number().optional(),
-    eventTypeId: z.number().optional(),
-    eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
-  })
-  .optional();
-
-export type TFindWebhooksByFiltersInputSchema = z.infer<typeof ZFindWebhooksByFiltersInputSchema>;
 
 const filterWebhooks = (webhook: Webhook) => {
   const appIds = [
@@ -200,67 +178,6 @@ export class WebhookRepository {
         time: true,
         timeUnit: true,
       },
-    });
-  }
-
-  static async findWebhooksByFilters({
-    userId,
-    input,
-  }: {
-    userId: number;
-    input?: TFindWebhooksByFiltersInputSchema;
-  }) {
-    const where: Prisma.WebhookWhereInput = {
-      /* Don't mixup zapier webhooks with normal ones */
-      AND: [{ appId: !input?.appId ? null : input.appId }],
-    };
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        teams: true,
-      },
-    });
-
-    if (Array.isArray(where.AND)) {
-      if (input?.eventTypeId) {
-        const managedParentEvt = await prisma.eventType.findFirst({
-          where: {
-            id: input.eventTypeId,
-            parentId: {
-              not: null,
-            },
-          },
-          select: {
-            parentId: true,
-          },
-        });
-
-        if (managedParentEvt?.parentId) {
-          where.AND?.push({
-            OR: [
-              { eventTypeId: input.eventTypeId },
-              { eventTypeId: managedParentEvt.parentId, active: true },
-            ],
-          });
-        } else {
-          where.AND?.push({ eventTypeId: input.eventTypeId });
-        }
-      } else {
-        where.AND?.push({
-          OR: [{ userId }, { teamId: { in: user?.teams.map((membership) => membership.teamId) } }],
-        });
-      }
-
-      if (input?.eventTriggers) {
-        where.AND?.push({ eventTriggers: { hasEvery: input.eventTriggers } });
-      }
-    }
-
-    return await prisma.webhook.findMany({
-      where,
     });
   }
 }

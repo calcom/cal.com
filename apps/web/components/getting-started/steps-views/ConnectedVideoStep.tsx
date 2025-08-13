@@ -1,3 +1,7 @@
+import { type TFunction } from "i18next";
+import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -14,8 +18,13 @@ interface ConnectedAppStepProps {
   isPageLoading: boolean;
 }
 
-const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep, isPageLoading } = props;
+const ConnectedVideoStepInner = ({
+  t,
+  setAnyInstalledVideoApps,
+}: {
+  t: TFunction;
+  setAnyInstalledVideoApps: Dispatch<SetStateAction<boolean>>;
+}) => {
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
@@ -30,47 +39,64 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
     sortByMostPopular: true,
     sortByInstalledFirst: true,
   });
-  const { data } = useMeQuery();
-  const { t } = useLocale();
+  // we want to start loading immediately, after all this is a hook.
+  const { data, status } = useMeQuery();
 
-  const metadata = userMetadata.parse(data?.metadata);
+  if (isPending) {
+    return <StepConnectionLoader />;
+  }
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
   );
+  if (hasAnyInstalledVideoApps) {
+    setAnyInstalledVideoApps(true);
+  }
 
+  if (status !== "success") {
+    return <StepConnectionLoader />;
+  }
+
+  const result = userMetadata.safeParse(data?.metadata);
+  if (!result.success) {
+    return <StepConnectionLoader />;
+  }
+  const { data: metadata } = result;
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
-    <>
-      {!isPending && (
-        <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
-          {queryConnectedVideoApps?.items &&
-            queryConnectedVideoApps?.items.map((item) => {
-              if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
-              return (
-                <li key={item.name}>
-                  {item.name && item.logo && (
-                    <AppConnectionItem
-                      type={item.type}
-                      title={item.name}
-                      isDefault={item.slug === defaultConferencingApp}
-                      description={item.description}
-                      dependencyData={item.dependencyData}
-                      logo={item.logo}
-                      slug={item.slug}
-                      installed={item.userCredentialIds.length > 0}
-                      defaultInstall={
-                        !defaultConferencingApp && item.appData?.location?.linkType === "dynamic"
-                      }
-                    />
-                  )}
-                </li>
-              );
-            })}
-        </List>
-      )}
+    <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
+      {queryConnectedVideoApps?.items &&
+        queryConnectedVideoApps?.items.map((item) => {
+          if (item.slug === "daily-video") return null; // we dont want to show daily here as it is installed by default
+          return (
+            <li key={item.name}>
+              {item.name && item.logo && (
+                <AppConnectionItem
+                  type={item.type}
+                  title={item.name}
+                  isDefault={item.slug === defaultConferencingApp}
+                  description={item.description}
+                  dependencyData={item.dependencyData}
+                  logo={item.logo}
+                  slug={item.slug}
+                  installed={item.userCredentialIds.length > 0}
+                  defaultInstall={!defaultConferencingApp && item.appData?.location?.linkType === "dynamic"}
+                />
+              )}
+            </li>
+          );
+        })}
+    </List>
+  );
+};
 
-      {isPending && <StepConnectionLoader />}
+const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
+  const { nextStep, isPageLoading } = props;
+  const { t } = useLocale();
+  const [hasAnyInstalledVideoApps, setAnyInstalledVideoApps] = useState(false);
+  return (
+    <>
+      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} t={t} />
       <Button
         EndIcon="arrow-right"
         data-testid="save-video-button"

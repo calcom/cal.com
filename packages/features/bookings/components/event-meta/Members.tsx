@@ -18,6 +18,7 @@ export interface EventMembersProps {
   profile: BookerEvent["profile"];
   entity: BookerEvent["entity"];
   isPrivateLink: boolean;
+  roundRobinHideOrgAndTeam?: boolean;
 }
 
 export const EventMembers = ({
@@ -26,6 +27,7 @@ export const EventMembers = ({
   profile,
   entity,
   isPrivateLink,
+  roundRobinHideOrgAndTeam,
 }: EventMembersProps) => {
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
@@ -39,6 +41,10 @@ export const EventMembers = ({
     (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
+
+  if (schedulingType === SchedulingType.ROUND_ROBIN && roundRobinHideOrgAndTeam) {
+    return <div className="h-6" />;
+  }
 
   const orgOrTeamAvatarItem =
     isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug

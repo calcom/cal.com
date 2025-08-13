@@ -54,6 +54,7 @@ export const EventMeta = ({
   locale,
   timeZones,
   children,
+  roundRobinHideOrgAndTeam,
 }: {
   event?: Pick<
     BookerEvent,
@@ -90,6 +91,7 @@ export const EventMeta = ({
   locale?: string | null;
   timeZones?: Timezone[];
   children?: React.ReactNode;
+  roundRobinHideOrgAndTeam?: boolean;
 }) => {
   const { timeFormat, timezone } = useBookerTime();
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
@@ -167,6 +169,7 @@ export const EventMeta = ({
             profile={event.profile}
             entity={event.entity}
             isPrivateLink={isPrivateLink}
+            roundRobinHideOrgAndTeam={roundRobinHideOrgAndTeam}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}

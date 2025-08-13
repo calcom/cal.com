@@ -2,8 +2,8 @@ import type { Prisma } from "@prisma/client";
 import type { Logger } from "tslog";
 
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
-import { findQualifiedHostsWithDelegationCredentials } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { getQualifiedHostsService } from "@calcom/lib/di/containers/QualifiedHosts";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -142,8 +142,9 @@ const _loadAndValidateUsers = async ({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
+  const qualifiedHostsService = getQualifiedHostsService();
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } =
-    await findQualifiedHostsWithDelegationCredentials({
+    await qualifiedHostsService.findQualifiedHostsWithDelegationCredentials({
       eventType,
       routedTeamMemberIds: routedTeamMemberIds || [],
       rescheduleUid,
@@ -159,7 +160,7 @@ const _loadAndValidateUsers = async ({
     },
     {} as {
       [key: number]: Awaited<
-        ReturnType<typeof findQualifiedHostsWithDelegationCredentials>
+        ReturnType<ReturnType<typeof getQualifiedHostsService>["findQualifiedHostsWithDelegationCredentials"]>
       >["qualifiedRRHosts"][number];
     }
   );

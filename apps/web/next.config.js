@@ -179,6 +179,8 @@ const nextConfig = {
     "superagent-proxy", // Dependencies of @tryvital/vital-node
     "superagent", // Dependencies of akismet
     "formidable", // Dependencies of akismet
+    "@boxyhq/saml-jackson",
+    "jose", // Dependency of @boxyhq/saml-jackson
   ],
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
