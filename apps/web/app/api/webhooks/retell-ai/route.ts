@@ -92,20 +92,12 @@ async function handleCallAnalyzed(callData: any) {
   const creditsToDeduct = Math.ceil(baseCost * 1.8);
 
   const creditService = new CreditService();
-  const hasCredits = await creditService.hasAvailableCredits({ userId, teamId });
-  if (!hasCredits) {
-    log.error(
-      `${
-        teamId ? `Team ${teamId}` : `User ${userId}`
-      } has insufficient credits for call ${call_id} (${creditsToDeduct} credits needed)`
-    );
-    return;
-  }
 
   await creditService.chargeCredits({
     userId: userId ?? undefined,
     teamId: teamId ?? undefined,
     credits: creditsToDeduct,
+    callDuration: call_cost.total_duration_seconds,
   });
 
   return {

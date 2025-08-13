@@ -134,6 +134,7 @@ export class CreditsRepository {
             bookingUid: true,
             smsSid: true,
             smsSegments: true,
+            callDuration: true,
           },
         },
       },
