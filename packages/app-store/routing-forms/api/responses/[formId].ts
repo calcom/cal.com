@@ -35,7 +35,10 @@ async function* getResponses(formId: string, fields: Fields) {
       fields.forEach((field) => {
         const fieldResponse = fieldResponses[field.id];
         const value = fieldResponse?.value || "";
-        const readableValues = getHumanReadableFieldResponseValue({ field, value });
+        const humanReadableResponseValue = getHumanReadableFieldResponseValue({ field, value });
+        const readableValues = Array.isArray(humanReadableResponseValue)
+          ? humanReadableResponseValue
+          : [humanReadableResponseValue];
         const serializedValue = readableValues.map((value) => sanitizeValue(value)).join(" | ");
         csvCells.push(serializedValue);
       });
