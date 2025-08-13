@@ -23,13 +23,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { randomString } from "@calcom/lib/random";
-import {
-  CAL_API_VERSION_HEADER,
-  SUCCESS_STATUS,
-  VERSION_2024_08_13,
-  X_CAL_CLIENT_ID,
-  X_CAL_SECRET_KEY,
-} from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
@@ -459,8 +453,6 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${managerOrganization.id}/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .set(X_CAL_CLIENT_ID, oAuthClient.id)
-          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
@@ -505,8 +497,6 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${managedOrganization.id}/bookings`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .set(X_CAL_CLIENT_ID, oAuthClient.id)
-          .set(X_CAL_SECRET_KEY, oAuthClient.secret)
           .expect(200)
           .then(async (response) => {
             const responseBody: GetBookingsOutput_2024_08_13 = response.body;
