@@ -7,7 +7,7 @@ import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { localStorage } from "@calcom/lib/webstorage";
 
-import { useBookerStoreContext } from "../BookerStoreProvider";
+import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
@@ -25,9 +25,9 @@ export const LargeCalendar = ({
     data?: Pick<BookerEvent, "length"> | null;
   };
 }) => {
-  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const setSelectedTimeslot = useBookerStoreContext((state) => state.setSelectedTimeslot);
-  const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const selectedDate = useBookerStore((state) => state.selectedDate);
+  const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
+  const selectedEventDuration = useBookerStore((state) => state.selectedDuration);
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");

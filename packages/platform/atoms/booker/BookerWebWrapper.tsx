@@ -20,7 +20,7 @@ import { useCalendars } from "@calcom/features/bookings/Booker/components/hooks/
 import { useSlots } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import { useVerifyCode } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import { useVerifyEmail } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
-import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
@@ -78,9 +78,9 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     timezone,
   });
 
-  const [bookerState, _] = useBookerStoreContext((state) => [state.state, state.setState], shallow);
-  const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
-  const [month] = useBookerStoreContext((state) => [state.month, state.setMonth], shallow);
+  const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
+  const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+  const [month] = useBookerStore((state) => [state.month, state.setMonth], shallow);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();

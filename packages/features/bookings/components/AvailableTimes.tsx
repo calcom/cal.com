@@ -18,8 +18,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { useBookerStoreContext } from "../Booker/BookerStoreProvider";
 import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
+import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import type { Slots } from "../types";
@@ -112,8 +112,8 @@ const SlotItem = ({
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
   const { timeFormat, timezone } = useBookerTime();
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
-  const layout = useBookerStoreContext((state) => state.layout);
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const layout = useBookerStore((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
@@ -127,7 +127,7 @@ const SlotItem = ({
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
 
-  const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -37,8 +37,8 @@ export const useBookingForm = ({
   prefillFormParams,
   clientId,
 }: IUseBookingForm) => {
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const bookingData = useBookerStore((state) => state.bookingData);
   const { t } = useLocale();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
 

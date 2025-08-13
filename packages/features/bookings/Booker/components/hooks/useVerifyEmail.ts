@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -21,8 +21,8 @@ export const useVerifyEmail = ({
   onVerifyEmail,
 }: IUseVerifyEmailProps) => {
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
-  const verifiedEmail = useBookerStoreContext((state) => state.verifiedEmail);
-  const setVerifiedEmail = useBookerStoreContext((state) => state.setVerifiedEmail);
+  const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
+  const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
   const debouncedEmail = useDebounce(email, 600);
   const { data: session } = useSession();
 

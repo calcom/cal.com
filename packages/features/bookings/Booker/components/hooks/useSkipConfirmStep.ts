@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getBookingResponsesSchemaWithOptionalChecks } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 
 import type { BookerEvent } from "../../../types";
@@ -18,7 +18,7 @@ const useSkipConfirmStep = (
   const bookingFormValues = bookingForm.getValues();
 
   const [canSkip, setCanSkip] = useState(false);
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
 
   useEffect(() => {
     const checkSkipStep = async () => {

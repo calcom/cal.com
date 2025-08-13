@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { useBookerStoreContext } from "../BookerStoreProvider";
+import { useBookerStore } from "../store";
 import type { BookerAreas, BookerLayout } from "../types";
 
 /**
@@ -44,7 +44,7 @@ export const BookerSection = forwardRef<HTMLDivElement, BookerSectionProps>(func
   { children, area, visible, className, ...props },
   ref
 ) {
-  const layout = useBookerStoreContext((state) => state.layout);
+  const layout = useBookerStore((state) => state.layout);
   let gridClassName: string;
 
   if (typeof area === "string") {

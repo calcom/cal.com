@@ -1,6 +1,6 @@
 import React, { Fragment } from "react";
 
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
@@ -130,8 +130,8 @@ export const EventMetaBlock = ({
  */
 export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
-  const isInstantMeeting = useBookerStoreContext((store) => store.isInstantMeeting);
+  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const isInstantMeeting = useBookerStore((store) => store.isInstantMeeting);
 
   return (
     <>

@@ -8,7 +8,6 @@ import { expect, vi } from "vitest";
 import PhoneInput from "@calcom/features/components/phone-input/PhoneInput";
 
 import { getBookingFieldsWithSystemFields } from "../../../lib/getBookingFields";
-import { BookerStoreProvider } from "../../BookerStoreProvider";
 import { BookingFields } from "./BookingFields";
 
 // Mock PhoneInput to avoid calling the lazy import
@@ -61,11 +60,9 @@ const renderComponent = ({
     });
     formMethods = form;
     return (
-      <BookerStoreProvider>
-        <TooltipProvider>
-          <FormProvider {...form}>{children}</FormProvider>
-        </TooltipProvider>
-      </BookerStoreProvider>
+      <TooltipProvider>
+        <FormProvider {...form}>{children}</FormProvider>
+      </TooltipProvider>
     );
   };
   const result = render(<BookingFields {...props} />, { wrapper: Wrapper });
