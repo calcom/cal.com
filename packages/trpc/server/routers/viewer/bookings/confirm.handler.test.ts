@@ -7,6 +7,7 @@ import {
   getScenarioData,
   TestData,
   getDate,
+  mockSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import { describe, it, beforeEach, vi, expect } from "vitest";
@@ -180,6 +181,10 @@ describe("confirmHandler", () => {
         apps: [TestData.apps["daily-video"]],
       })
     );
+
+    mockSuccessfulVideoMeetingCreation({
+      metadataLookupKey: "dailyvideo",
+    });
 
     const ctx = {
       user: {
