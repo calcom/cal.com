@@ -21,7 +21,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: equitybee/team-label-action@main
         with:
           repo-token: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN }}

@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout GitHub Pages Branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: calcom/test-results
           ref: gh-pages
