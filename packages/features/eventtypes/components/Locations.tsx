@@ -25,6 +25,7 @@ import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
@@ -355,6 +356,7 @@ const Locations: React.FC<LocationsProps> = ({
                               labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
@@ -370,10 +372,29 @@ const Locations: React.FC<LocationsProps> = ({
                               labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
                       />
+
+                      {!isPlatform && (
+                        <Controller
+                          name="calVideoSettings.enableAutomaticRecordingForOrganizer"
+                          defaultValue={!!eventType.calVideoSettings?.enableAutomaticRecordingForOrganizer}
+                          render={({ field: { onChange, value } }) => {
+                            return (
+                              <SettingsToggle
+                                title={t("enable_automatic_recording")}
+                                labelClassName="text-sm"
+                                checked={value}
+                                onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                              />
+                            );
+                          }}
+                        />
+                      )}
 
                       <Controller
                         name="calVideoSettings.enableAutomaticTranscription"
@@ -385,6 +406,7 @@ const Locations: React.FC<LocationsProps> = ({
                               labelClassName="text-sm leading-6 whitespace-normal break-words"
                               checked={value}
                               onCheckedChange={onChange}
+                              Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                             />
                           );
                         }}
@@ -401,6 +423,7 @@ const Locations: React.FC<LocationsProps> = ({
                                 labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}
@@ -417,6 +440,7 @@ const Locations: React.FC<LocationsProps> = ({
                                 labelClassName="text-sm leading-6 whitespace-normal break-words"
                                 checked={value}
                                 onCheckedChange={onChange}
+                                Badge={<UpgradeTeamsBadge checkForActiveStatus />}
                               />
                             );
                           }}

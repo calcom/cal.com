@@ -55,15 +55,14 @@ export class SharedRoutingFormResponseService {
     // Extract event type information from the routed URL
     const { eventTypeId, crmParams } = await this.extractEventTypeAndCrmParams(user.id, redirectUrl);
 
-    const paramsForGetAvailableSlots = {
+    // Get available slots using the slots service with CRM parameters
+    const slots = await this.slotsService.getAvailableSlotsWithRouting({
       type: ById_2024_09_04_type,
       eventTypeId,
       ...slotsQuery,
       ...crmParams,
-    } as const;
+    });
 
-    // Get available slots using the slots service with CRM parameters
-    const slots = await this.slotsService.getAvailableSlots(paramsForGetAvailableSlots);
     const teamMemberIds = crmParams.routedTeamMemberIds ?? [];
     const teamMemberEmail = crmParams.teamMemberEmail ?? undefined;
     const skipContactOwner = crmParams.skipContactOwner ?? undefined;
@@ -163,7 +162,9 @@ export class SharedRoutingFormResponseService {
 
     if (!eventType?.id) {
       // This could only happen if the event-type earlier selected as route action was deleted
-      throw new InternalServerErrorException("Chosen event type not found.");
+      throw new InternalServerErrorException(
+        `Chosen event type identified by slug ${eventTypeSlug} not found.`
+      );
     }
 
     // Extract CRM parameters from URL
