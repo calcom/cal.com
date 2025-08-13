@@ -70,7 +70,7 @@ This script automatically detects your operating system (Linux or macOS) and set
 From the root of the project, run:
 
 ```bash
-./scripts/run-k6-local.sh
+.tests/scripts/run-k6-local.sh
 ```
 
 You’ll see an interactive menu:
@@ -89,10 +89,10 @@ Alternatively, you can run directly from the CLI:
 
 ```bash
 # Run smoke tests
-./scripts/run-k6-local.sh smoke
+.tests/scripts/run-k6-local.sh smoke
 
 # Run all tests
-./scripts/run-k6-local.sh all
+.tests/scripts/run-k6-local.sh all
 ```
 
 #### Customizing
@@ -102,7 +102,7 @@ You can override the following environment variables:
 ```bash
 BASE_URL=http://localhost:3000 \
 TOKEN=your_token_here \
-./scripts/run-k6-local.sh load
+.tests/scripts/run-k6-local.sh load
 ```
 
 Supported env vars:  
