@@ -1,4 +1,4 @@
-import type { SortingState, ColumnSort, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import type { SortingState, ColumnSort } from "@tanstack/react-table";
 import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
@@ -269,7 +269,7 @@ export type SystemFilterSegment = {
   type: "system";
 };
 
-export type SystemFilterSegmentInternal = Required<SystemFilterSegment> & {
+export type SystemFilterSegmentInternal = SystemFilterSegment & {
   tableIdentifier: string;
 };
 
@@ -303,31 +303,20 @@ export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
 
 export type UseSegmentsProps = {
   tableIdentifier: string;
-  activeFilters: ActiveFilters;
-  sorting: SortingState;
-  columnVisibility: VisibilityState;
-  columnSizing: ColumnSizingState;
-  pageSize: number;
-  searchTerm: string;
-  defaultPageSize: number;
-  segmentId: SegmentIdentifier | null;
-  setSegmentId: (segmentId: SegmentIdentifier | null) => void;
-  setActiveFilters: (activeFilters: ActiveFilters) => void;
-  setSorting: (sorting: SortingState) => void;
-  setColumnVisibility: (columnVisibility: VisibilityState) => void;
-  setColumnSizing: (columnSizing: ColumnSizingState) => void;
-  setPageSize: (pageSize: number) => void;
-  setPageIndex: (pageIndex: number) => void;
-  setSearchTerm: (searchTerm: string | null) => void;
-  segments?: FilterSegmentOutput[];
-  preferredSegmentId?: SegmentIdentifier | null;
+  providedSegments?: FilterSegmentOutput[];
   systemSegments?: SystemFilterSegment[];
 };
 
 export type UseSegmentsReturn = {
   segments: CombinedFilterSegment[];
-  selectedSegment: CombinedFilterSegment | undefined;
-  canSaveSegment: boolean;
-  setAndPersistSegmentId: (segmentId: SegmentIdentifier | null) => void;
+  preferredSegmentId: SegmentIdentifier | null;
+  isSuccess: boolean;
+  setPreference: ({
+    tableIdentifier,
+    segmentId,
+  }: {
+    tableIdentifier: string;
+    segmentId: SegmentIdentifier | null;
+  }) => void;
   isSegmentEnabled: boolean;
 };

@@ -3,9 +3,11 @@
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
+// eslint-disable-next-line no-restricted-imports
+import isEqual from "lodash/isEqual";
 import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
@@ -97,7 +99,16 @@ export function DataTableProvider({
   preferredSegmentId,
   systemSegments,
 }: DataTableProviderProps) {
+  const pathname = usePathname() as string | null;
+  const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
+  if (!tableIdentifier) {
+    throw new Error("tableIdentifier is required");
+  }
+
   const filterToOpen = useRef<string | undefined>(undefined);
+  const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
+  const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
+  const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
   const [activeFilters, setActiveFilters] = useQueryState("activeFilters", activeFiltersParser);
   const [sorting, setSorting] = useQueryState("sorting", sortingParser);
   const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
@@ -105,63 +116,181 @@ export function DataTableProvider({
     columnVisibilityParser
   );
   const [columnSizing, setColumnSizing] = useQueryState<ColumnSizingState>("widths", columnSizingParser);
-  const [segmentIdString, setSegmentIdString] = useQueryState("segment", segmentIdParser);
-
-  const segmentId = useMemo((): SegmentIdentifier | null => {
-    const fallback = preferredSegmentId ?? { id: -1, type: "user" };
-    if (!segmentIdString || segmentIdString === "") {
-      return fallback;
-    }
-
-    if (segmentIdString && segmentIdString.startsWith(SYSTEM_SEGMENT_PREFIX)) {
-      return {
-        id: segmentIdString,
-        type: "system",
-      };
-    }
-
-    const numericId = parseInt(segmentIdString, 10);
-    if (!isNaN(numericId)) {
-      return { id: numericId, type: "user" };
-    }
-
-    return fallback;
-  }, [segmentIdString, preferredSegmentId]);
-
-  const setSegmentId = useCallback(
-    (id: SegmentIdentifier | null) => {
-      if (id === null) {
-        setSegmentIdString(null);
-      } else {
-        setSegmentIdString(String(id.id));
-      }
-    },
-    [setSegmentIdString]
+  const initialSegmentId = useMemo(
+    () => (preferredSegmentId ? String(preferredSegmentId.id) : null),
+    [preferredSegmentId]
   );
-  const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);
-  const [pageSize, setPageSize] = useQueryState("size", pageSizeParser);
-  const [searchTerm, setSearchTerm] = useQueryState("q", searchTermParser);
+  const [segmentId, setSegmentId] = useQueryState(
+    "segment",
+    initialSegmentId ? segmentIdParser.withDefault(initialSegmentId) : segmentIdParser
+  );
+  console.log("💡 segmentId:", segmentId);
+  const {
+    segments,
+    preferredSegmentId: fetchedPreferredSegmentId,
+    setPreference: setSegmentPreference,
+    isSegmentEnabled,
+    isSuccess: isSegmentFetchedSuccessfully,
+  } = useSegments({
+    tableIdentifier,
+    providedSegments,
+    systemSegments,
+  });
+
+  const findSelectedSegment = useCallback(
+    (segmentId: string) => {
+      return segments.find((segment) => {
+        if (
+          segment.type === "system" &&
+          segmentId &&
+          segmentId.startsWith(SYSTEM_SEGMENT_PREFIX) &&
+          segment.id === segmentId
+        ) {
+          return true;
+        } else if (segment.type === "user") {
+          const segmentIdNumber = parseInt(segmentId, 10);
+          return segment.id === segmentIdNumber;
+        }
+      });
+    },
+    [segments]
+  );
+
+  const segmentIdObject = useMemo(() => {
+    if (segmentId && segmentId.startsWith(SYSTEM_SEGMENT_PREFIX)) {
+      return {
+        id: segmentId,
+        type: "system" as const,
+      };
+    } else {
+      const segmentIdNumber = parseInt(segmentId, 10);
+      if (!Number.isNaN(segmentIdNumber)) {
+        return {
+          id: segmentIdNumber,
+          type: "user" as const,
+        };
+      }
+    }
+    return null;
+  }, [segmentId]);
+
+  const [selectedSegment, setSelectedSegment] = useState<CombinedFilterSegment | undefined>(
+    findSelectedSegment(segmentId)
+  );
+
+  const setSegment = useCallback(
+    (segmentId: SegmentIdentifier | null) => {
+      console.log("💡 setSegment 0", segmentId);
+      if (!segmentId) {
+        console.log("💡 setSegment 1");
+        setSegmentId(null);
+        setSelectedSegment(undefined);
+        setSegmentPreference({
+          tableIdentifier,
+          segmentId: null,
+        });
+        return;
+      }
+
+      const segment = findSelectedSegment(String(segmentId.id));
+      if (!segment) {
+        console.log("💡 setSegment 2");
+        // If segmentId is invalid (or not found), clear the segmentId from the query params,
+        // but we still keep all the other states like activeFilters, etc.
+        // This is useful when someone shares a URL that is inaccessible to someone else.
+        setSegmentId(null);
+        setSelectedSegment(undefined);
+        setSegmentPreference({
+          tableIdentifier,
+          segmentId: null,
+        });
+        return;
+      }
+
+      console.log("💡 setSegment 3");
+      setSegmentId(String(segmentId.id));
+      setSelectedSegment(segment);
+      setSegmentPreference({
+        tableIdentifier,
+        segmentId,
+      });
+
+      // apply the segment
+      setActiveFilters(segment.activeFilters);
+      if (segment.sorting) {
+        setSorting(segment.sorting);
+      }
+      if (segment.columnVisibility) {
+        setColumnVisibility(segment.columnVisibility);
+      }
+      if (segment.columnSizing) {
+        setColumnSizing(segment.columnSizing);
+      }
+      if (segment.perPage) {
+        setPageSize(segment.perPage);
+      }
+      if (segment.searchTerm) {
+        setSearchTerm(segment.searchTerm);
+      }
+      setPageIndex(0);
+    },
+    [
+      setSegmentId,
+      setSelectedSegment,
+      setSegmentPreference,
+      tableIdentifier,
+      findSelectedSegment,
+      setActiveFilters,
+      setSorting,
+      setColumnVisibility,
+      setColumnSizing,
+      setPageSize,
+      setSearchTerm,
+      setPageIndex,
+    ]
+  );
+
+  useEffect(() => {
+    if (!isSegmentFetchedSuccessfully) {
+      return;
+    }
+    // If the preferred segment id has been fetched
+    // and no segment id has been selected yet,
+    // then we set it.
+    if (fetchedPreferredSegmentId && !segmentId) {
+      console.log("💡 setting segment 1", {
+        fetchedPreferredSegmentId,
+        segmentId,
+      });
+      setSegment(fetchedPreferredSegmentId);
+    }
+    // We intentionally have only `isSegmentFetchedSuccessfully`
+    // in the dependency array.
+  }, [isSegmentFetchedSuccessfully]);
+
+  const clearSystemSegmentSelectionIfExists = useCallback(() => {
+    if (selectedSegment?.type === "system") {
+      console.log("💡 setting segment 2");
+      setSegment(null);
+    }
+  }, [selectedSegment, setSegment]);
 
   const setDebouncedSearchTerm = useMemo(
     () => debounce((value: string | null) => setSearchTerm(value ? value.trim() : null), 500),
     [setSearchTerm]
   );
 
-  const pathname = usePathname() as string | null;
-  const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
-  if (!tableIdentifier) {
-    throw new Error("tableIdentifier is required");
-  }
-
   const addFilter = useCallback(
     (columnId: string) => {
+      console.log("💡 addFilter", columnId);
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
         // do not reset the page to 0 here,
         // because we don't have the filter value yet (`v: undefined`)
         setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
+        clearSystemSegmentSelectionIfExists();
       }
     },
-    [activeFilters, setActiveFilters]
+    [activeFilters, setActiveFilters, clearSystemSegmentSelectionIfExists]
   );
 
   const setPageIndexWrapper = useCallback(
@@ -171,6 +300,7 @@ export function DataTableProvider({
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
+      console.log("💡 updateFilter", columnId, value);
       setPageIndex(null);
       setActiveFilters((prev) => {
         let added = false;
@@ -186,32 +316,65 @@ export function DataTableProvider({
         }
         return newFilters;
       });
+      clearSystemSegmentSelectionIfExists();
     },
-    [setActiveFilters, setPageIndex]
+    [setActiveFilters, setPageIndex, clearSystemSegmentSelectionIfExists]
   );
 
   const removeFilter = useCallback(
     (columnId: string) => {
+      console.log("💡 removeFilter", columnId);
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => filter.f !== columnId);
         return remainingFilters.length === 0 ? null : remainingFilters;
       });
+      clearSystemSegmentSelectionIfExists();
     },
-    [setActiveFilters, setPageIndex]
+    [setActiveFilters, setPageIndex, clearSystemSegmentSelectionIfExists]
   );
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number | null) => {
+      console.log("💡 setPageSizeAndGoToFirstPage", newPageSize);
       setPageSize(newPageSize === defaultPageSize ? null : newPageSize);
       setPageIndex(null);
+      clearSystemSegmentSelectionIfExists();
     },
-    [setPageSize, setPageIndex, defaultPageSize]
+    [setPageSize, setPageIndex, defaultPageSize, clearSystemSegmentSelectionIfExists]
   );
 
-  const { segments, selectedSegment, canSaveSegment, setAndPersistSegmentId, isSegmentEnabled } = useSegments(
-    {
-      tableIdentifier,
+  const clearAll = useCallback(
+    (exclude?: string[]) => {
+      console.log("💡 setting segment 3");
+      setSegment(null);
+      setPageIndex(null);
+      setActiveFilters((prev) => {
+        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
+        return remainingFilters.length === 0 ? null : remainingFilters;
+      });
+    },
+    [setActiveFilters, setPageIndex, setSegment]
+  );
+
+  // Check if current state differs from selected segment
+  const hasStateChanged = useMemo(() => {
+    console.log("💡 hasStateChanged - useMemo");
+    if (!selectedSegment) return false;
+
+    return (
+      !isEqual(activeFilters, selectedSegment.activeFilters) ||
+      !isEqual(sorting, selectedSegment.sorting) ||
+      !isEqual(columnVisibility, selectedSegment.columnVisibility) ||
+      !isEqual(columnSizing, selectedSegment.columnSizing) ||
+      !isEqual(pageSize, selectedSegment.perPage) ||
+      !isEqual(searchTerm || "", selectedSegment.searchTerm || "")
+    );
+  }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm]);
+
+  const canSaveSegment = useMemo(() => {
+    console.log("💡 canSaveSegment", {
+      selectedSegment,
       activeFilters,
       sorting,
       columnVisibility,
@@ -219,32 +382,31 @@ export function DataTableProvider({
       pageSize,
       searchTerm,
       defaultPageSize,
-      segmentId,
-      setSegmentId,
-      setActiveFilters,
-      setSorting,
-      setColumnVisibility,
-      setColumnSizing,
-      setPageSize,
-      setPageIndex,
-      setSearchTerm,
-      segments: providedSegments,
-      preferredSegmentId,
-      systemSegments,
+      hasStateChanged,
+    });
+    if (selectedSegment) {
+      return hasStateChanged;
     }
-  );
-
-  const clearAll = useCallback(
-    (exclude?: string[]) => {
-      setAndPersistSegmentId(null);
-      setPageIndex(null);
-      setActiveFilters((prev) => {
-        const remainingFilters = prev.filter((filter) => exclude?.includes(filter.f));
-        return remainingFilters.length === 0 ? null : remainingFilters;
-      });
-    },
-    [setActiveFilters, setPageIndex, setAndPersistSegmentId]
-  );
+    // if no segment is selected, we can save the segment if there are any active filters, sorting, etc.
+    return (
+      activeFilters.length > 0 ||
+      sorting.length > 0 ||
+      Object.keys(columnVisibility).length > 0 ||
+      Object.keys(columnSizing).length > 0 ||
+      pageSize !== defaultPageSize ||
+      searchTerm?.length > 0
+    );
+  }, [
+    selectedSegment,
+    activeFilters,
+    sorting,
+    columnVisibility,
+    columnSizing,
+    pageSize,
+    searchTerm,
+    defaultPageSize,
+    hasStateChanged,
+  ]);
 
   const ctaContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -279,8 +441,8 @@ export function DataTableProvider({
         offset: pageIndex * pageSize,
         segments,
         selectedSegment,
-        segmentId,
-        setSegmentId: setAndPersistSegmentId,
+        segmentId: segmentIdObject,
+        setSegmentId: setSegment,
         canSaveSegment,
         isSegmentEnabled,
         searchTerm,
