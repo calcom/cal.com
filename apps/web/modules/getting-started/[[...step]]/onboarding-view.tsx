@@ -10,8 +10,7 @@ import { z } from "zod";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { trpc } from "@calcom/trpc";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/components/card";
@@ -85,13 +84,14 @@ const stepRouteSchema = z.object({
 
 type PageProps = {
   hasPendingInvites: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
 };
+
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
-
+  const user = props.user;
   const router = useRouter();
-  const [user] = trpc.viewer.me.get.useSuspenseQuery();
   const { t } = useLocale();
   const [isNextStepLoading, startTransition] = useTransition();
 
