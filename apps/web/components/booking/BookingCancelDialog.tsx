@@ -149,6 +149,7 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
                 {props.attendees?.map((attendee, index) => (
                   <div key={index}>
                     <button
+                      variant="fab"
                       className="text-foreground hover:text-foreground hover:underline"
                       onClick={() => copyToClipboard(attendee.email)}
                       title="Copy email">
@@ -234,10 +235,15 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
         )} */}
 
         <div className="flex justify-end  space-x-3">
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="fab" color="secondary" onClick={handleClose}>
             {t("nevermind")}
           </Button>
-          <Button variant="destructive" loading={loading} onClick={handleCancel} className="text-white min-w-[7.5rem]">
+          <Button
+            variant="fab"
+            color="primary"
+            loading={loading}
+            onClick={handleCancel}
+            className="min-w-[7.5rem] text-white">
             {t("cancel_event")}
           </Button>
         </div>

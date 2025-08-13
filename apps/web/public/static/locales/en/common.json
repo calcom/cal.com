@@ -2201,6 +2201,7 @@
   "redirect_url_warning": "Adding a redirect will disable the success page. Make sure to mention \"Booking Confirmed\" on your custom success page.",
   "event_trends": "Event Trends",
   "clear_filters": "Clear Filters",
+  "clear_all_filters": "Clear all filters",
   "clear": "Clear",
   "hold": "Hold",
   "on_booking_option": "Collect payment on booking",

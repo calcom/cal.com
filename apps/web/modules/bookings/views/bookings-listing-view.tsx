@@ -256,9 +256,7 @@ function BookingsContent({ status }: BookingsProps) {
             const { booking, recurringInfo, isToday } = props.row.original;
             return (
               <BookingListItem
-                expandedBooking={expandedBooking}
-                setExpandedBooking={setExpandedBooking}
-                key={booking.id}
+                key={booking.id && expandedBooking}
                 isToday={isToday}
                 loggedInUser={{
                   userId: user?.id,
@@ -269,6 +267,8 @@ function BookingsContent({ status }: BookingsProps) {
                 listingStatus={status}
                 recurringInfo={recurringInfo}
                 {...booking}
+                expandedBooking={expandedBooking}
+                setExpandedBooking={setExpandedBooking}
               />
             );
           } else if (props.row.original.type === "today") {
@@ -287,7 +287,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t]);
+  }, [user, status, t, expandedBooking]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
@@ -391,8 +391,8 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
 
-        <div className="flex h-[32px] flex-row gap-4">
-            <Button color="secondary" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
+        <div className="flex h-[32px] flex-row gap-4 ">
+          <Button color="secondary" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
               <Icon name="filter" className="h-4 w-4" />
               <span>{t("filter")}</span>
             </Button>
@@ -425,7 +425,7 @@ function BookingsContent({ status }: BookingsProps) {
                 ToolbarLeft={
                   <>
                     {showFilters && (
-                      <div className="flex flex-row gap-2">
+                      <div className="p-4 bg-muted rounded-md flex flex-row gap-2">
                         <DataTableFilters.FilterBar table={table} />
                         <DataTableFilters.ClearFiltersButton />
                       </div>

@@ -27,20 +27,19 @@ export function RescheduleDialog({link}: {link: string}) {
       <DialogContent
         className="
           bg-white rounded-lg shadow-xl
-          fixed left-[50%] top-[50%] 
-             w-[900px] max-w-[90vw] max-h-[80vh]
+          fixed 
+             w-[1200px] max-w-[90vw] max-h-[80vh] h-[800px] 
           -translate-x-1/2 -translate-y-1/2
           overflow-auto
         "
-        style={{ maxHeight: 'calc(100vh - 40px)' }}
       >
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900 text-center mb-1">
+          <DialogTitle className="text-base font-semibold text-gray-900 mb-1">
           { t("reschedule_booking") }
           </DialogTitle>
         </DialogHeader>
 
-        <div className="w-full h-[400px]">
+        <div className="w-full h-[600px]">
           <iframe
             src={link}
             className="w-full h-full border rounded-md"

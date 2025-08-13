@@ -122,11 +122,13 @@ export function BookingExpandedCard(props: BookingItemProps) {
             <div>
               <div className="text-foreground mb-2 text-sm font-medium">Invitee Details</div>
               <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                <span>{firstAttendee?.name}</span>
-                <span>•</span>
-                <span>{firstAttendee?.timeZone}</span>
-                <span>•</span>
-                <span>{firstAttendee?.email}</span>
+                <div className="min-w-[40vh] overflow-auto">
+                  <span>{firstAttendee?.name}</span>
+                  <span>•</span>
+                  <span>{firstAttendee?.timeZone}</span>
+                  <span>•</span>
+                  <span>{firstAttendee?.email}</span>
+                </div>
                 <button
                   onClick={() => {
                     copyToClipboard(firstAttendee?.email || "");
@@ -198,7 +200,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
           {/* Action Buttons for Expanded View */}
           {showExpandedActions && (
             <div className="flex flex-col items-end space-y-2">
-              <Button
+              {/* <Button
                 color="secondary"
                 variant="fab"
                 onClick={(e) => {
@@ -207,7 +209,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
                   setShowMeetingNotes(true);
                 }}>
                 {t("your_notes")}
-              </Button>
+              </Button> */}
               {isBookingInPast && (
                 <Button
                   color="secondary"
@@ -258,6 +260,9 @@ const NoShowAttendeesDialog = ({
       );
       showToast(t(data.message), "success");
       await utils.viewer.bookings.invalidate();
+
+      setLoading(false);
+      setDialog();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -265,8 +270,13 @@ const NoShowAttendeesDialog = ({
   });
 
   return (
-    <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={() => setDialog(false)} // Close on backdrop click
+    >
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onClick={(e) => e.stopPropagation()}>
         <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
           <h2 className="mb-2 text-xl font-semibold">Mark as No-Show</h2>
           <p className="mb-6 text-sm text-gray-600">Select attendees to mark as no-show</p>
@@ -275,7 +285,7 @@ const NoShowAttendeesDialog = ({
             {noShowAttendees.map((attendee, index) => (
               <div key={index} className="flex items-center justify-between rounded-lg p-2 hover:bg-gray-50">
                 <div className="flex items-center space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600">
+                  <div className="bg-cal-active flex h-7 w-7 items-center justify-center rounded-full">
                     <span className="text-sm font-medium text-white">
                       {(attendee.name || attendee?.email).charAt(0)}
                     </span>
@@ -287,7 +297,6 @@ const NoShowAttendeesDialog = ({
                   key={attendee.email}
                   checked={attendee.noShow}
                   onCheckedChange={(e) => {
-                    console.log("Checkbox changed:", e);
                     setNoShowAttendees((prev) =>
                       prev.map((a) => (a.email === attendee.email ? { ...a, noShow: e } : a))
                     );
@@ -302,24 +311,24 @@ const NoShowAttendeesDialog = ({
               Cancel
             </Button>
             <Button
+              loading={loading}
               onClick={(e) => {
                 e.preventDefault();
-                console.log("No Show Attendees:", noShowAttendees);
                 setLoading(true);
                 noShowAttendees.forEach((attendee) => {
-                  noShowMutation.mutate({
-                    bookingUid,
-                    attendees: [{ email: attendee.email, noShow: attendee.noShow }],
-                  });
+                  if (attendees.find((e) => e.email === attendee.email).noShow != attendee.noShow) {
+                    noShowMutation.mutate({
+                      bookingUid,
+                      attendees: [{ email: attendee.email, noShow: attendee.noShow }],
+                    });
+                  }
                 });
-                setLoading(false);
-                setDialog();
               }}>
               Mark as No-Show
             </Button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

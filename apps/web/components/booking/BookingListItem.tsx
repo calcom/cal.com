@@ -2,6 +2,7 @@ import { Button } from "@calid/features/ui";
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
 import { useState, Dispatch, SetStateAction } from "react";
+import { flushSync } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -125,7 +126,7 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
-function BookingListItem(booking: BookingItemProps) {
+export default function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
@@ -198,8 +199,8 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
-  const [expandedBooking, setExpandedBooking] = useState<number | null>(booking.id);
-  // const {setExpandedBooking } = booking;
+  // const [expandedBooking, setExpandedBooking] = useState<number | null>(booking.id);
+  const { expandedBooking, setExpandedBooking } = booking;
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
@@ -546,11 +547,9 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="border-default my-1.5 flex w-full flex-col items-start justify-between rounded-lg border bg-white shadow-sm hover:shadow-md dark:bg-slate-800">
+      <div className="border-muted my-1.5 flex w-full flex-col items-start justify-between rounded-lg border bg-white shadow-sm hover:shadow-md dark:bg-slate-800">
         <div data-testid="booking-item" data-today={String(booking.isToday)} className="group w-full">
-          <div
-            onClick={() => setExpandedBooking(expandedBooking === booking.id ? null : booking.id)}
-            className="cursor-pointer">
+          <div className="cursor-pointer">
             <div className="flex flex-col pb-4">
               <div className="flex flex-col sm:flex-row">
                 {/* <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
@@ -562,6 +561,11 @@ function BookingListItem(booking: BookingItemProps) {
           </div> */}
                 <div
                   data-testid="title-and-attendees"
+                  onClick={() =>
+                    flushSync(() => {
+                      setExpandedBooking(expandedBooking === booking.id ? null : booking.id);
+                    })
+                  }
                   className={`w-full px-4${isRejected ? " line-through" : ""}`}>
                   {/* <Link href={bookingLink}> */}
                   {/* Time and Badges for mobile */}
@@ -719,7 +723,7 @@ function BookingListItem(booking: BookingItemProps) {
                 </div>
 
                 <div className="flex flex-col">
-                  <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0 ltr:pr-4 rtl:pl-4">
+                  <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
 
                     {/* <Button
@@ -1443,5 +1447,3 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
     </Tooltip>
   );
 };
-
-export default BookingListItem;

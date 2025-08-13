@@ -16,7 +16,7 @@ export const SkeletonLoader = () => {
     <SettingsHeader
       title={t("profile")}
       description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+      borderInShellHeader={false}>
       <SkeletonContainer>
         <div className="border-subtle space-y-6 rounded-b-lg border border-t-0 px-4 py-8">
           <div className="flex items-center">
