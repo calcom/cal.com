@@ -8,9 +8,6 @@ export type Params = Record<string, string | string[] | undefined>;
 export interface LegacyRequest {
   headers: Record<string, string>;
   cookies: Record<string, string>;
-  url?: string;
-  method?: string;
-  [key: string]: unknown;
 }
 
 export interface NextJsLegacyContext {
@@ -62,7 +59,10 @@ export function decodeParams(params: Params): Params {
 }
 
 export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
+  return {
+    headers: buildLegacyHeaders(headers),
+    cookies: buildLegacyCookies(cookies),
+  } as NextApiRequest;
 };
 
 export const buildLegacyCtx = (
@@ -77,7 +77,7 @@ export const buildLegacyCtx = (
     // because Next.js App Router does not auto-decode query params while Pages Router does
     // e.g., params: { name: "John%20Doe" } => params: { name: "John Doe" }
     params: decodeParams(params),
-    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
+    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as LegacyRequest,
     res: new Proxy(Object.create(null), {
       // const { req, res } = ctx - valid
       // res.anything - throw

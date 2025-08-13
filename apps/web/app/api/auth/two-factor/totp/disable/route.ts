@@ -12,15 +12,12 @@ import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/client";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(request: NextRequest) {
   const body = await parseRequestData(request);
-  const req = {
-    headers: buildLegacyHeaders(await headers()),
-    cookies: buildLegacyCookies(await cookies()),
-  } as any;
-  const session = await getServerSession({ req: { headers: req.headers, cookies: req.cookies } as any });
+  const req = buildLegacyRequest(await headers(), await cookies());
+  const session = await getServerSession({ req });
 
   if (!session) {
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });

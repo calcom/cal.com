@@ -6,15 +6,12 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { TRPCContext } from "@calcom/trpc/types/server/createContext";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import type { AnyRouter } from "@trpc/server";
 
 export const getTRPCContext = async (_headers?: ReadonlyHeaders, _cookies?: ReadonlyRequestCookies) => {
-  const req = {
-    headers: buildLegacyHeaders(_headers ?? (await headers())),
-    cookies: buildLegacyCookies(_cookies ?? (await cookies())),
-  } as any;
+  const req = buildLegacyRequest(_headers ?? (await headers()), _cookies ?? (await cookies()));
   return await createContext({ req, res: {} as any }, getServerSession);
 };
 

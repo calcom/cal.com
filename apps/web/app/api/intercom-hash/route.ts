@@ -5,15 +5,12 @@ import crypto from "node:crypto";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function getHandler() {
   const headersList = await headers();
   const cookiesList = await cookies();
-  const req = {
-    headers: buildLegacyHeaders(headersList),
-    cookies: buildLegacyCookies(cookiesList),
-  } as any;
+  const req = buildLegacyRequest(headersList, cookiesList);
 
   const session = await getServerSession({ req });
   const secret = process.env.INTERCOM_SECRET;

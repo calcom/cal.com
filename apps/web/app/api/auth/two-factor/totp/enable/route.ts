@@ -10,14 +10,11 @@ import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function postHandler(request: NextRequest) {
   const body = await parseRequestData(request);
-  const reqForSession = {
-    headers: buildLegacyHeaders(await headers()),
-    cookies: buildLegacyCookies(await cookies()),
-  } as any;
+  const reqForSession = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req: reqForSession });
 
   if (!session) {

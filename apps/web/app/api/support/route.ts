@@ -7,7 +7,7 @@ import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
 
 const contactFormSchema = z.object({
@@ -22,12 +22,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
   }
 
-  const req = {
-    headers: buildLegacyHeaders(await headers()),
-    cookies: (await cookies())
-      .getAll()
-      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
-  } as any;
+  const req = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session found" }, { status: 401 });

@@ -14,16 +14,11 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
-import { buildLegacyHeaders } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function postHandler(req: NextRequest) {
   const body = await parseRequestData(req);
-  const reqForSession = {
-    headers: buildLegacyHeaders(await headers()),
-    cookies: (await cookies())
-      .getAll()
-      .reduce((acc, cookie) => ({ ...acc, [cookie.name]: cookie.value }), {}),
-  } as any;
+  const reqForSession = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req: reqForSession });
 
   if (!session) {
