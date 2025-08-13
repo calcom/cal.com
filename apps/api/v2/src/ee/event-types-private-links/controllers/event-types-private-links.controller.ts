@@ -67,10 +67,9 @@ export class EventTypesPrivateLinksController {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all private links for an event type" })
   async getPrivateLinks(
-    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @GetUser("id") userId: number
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<GetPrivateLinksOutput> {
-    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId, userId);
+    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId);
 
     return {
       status: SUCCESS_STATUS,

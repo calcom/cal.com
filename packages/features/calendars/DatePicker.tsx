@@ -59,6 +59,8 @@ export type DatePickerProps = {
   periodData?: PeriodData;
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
+  // Whether to show the no availability dialog
+  showNoAvailabilityDialog?: boolean;
 };
 
 const Day = ({
@@ -164,6 +166,7 @@ const Days = ({
   isBookingInPast,
   periodData,
   isCompact,
+  showNoAvailabilityDialog = true,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -345,14 +348,18 @@ const Days = ({
           )}
         </div>
       ))}
-      {!props.isLoading && !isBookingInPast && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityDialog
-          month={month}
-          nextMonthButton={nextMonthButton}
-          browsingDate={browsingDate}
-          periodData={periodData}
-        />
-      )}
+      {!props.isLoading &&
+        !isBookingInPast &&
+        includedDates &&
+        includedDates?.length === 0 &&
+        showNoAvailabilityDialog && (
+          <NoAvailabilityDialog
+            month={month}
+            nextMonthButton={nextMonthButton}
+            browsingDate={browsingDate}
+            periodData={periodData}
+          />
+        )}
     </>
   );
 };
@@ -374,6 +381,7 @@ const DatePicker = ({
     periodType: "UNLIMITED",
   },
   isCompact,
+  showNoAvailabilityDialog,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -484,6 +492,7 @@ const DatePicker = ({
           isBookingInPast={isBookingInPast}
           periodData={periodData}
           isCompact={isCompact}
+          showNoAvailabilityDialog={showNoAvailabilityDialog}
         />
       </div>
     </div>
