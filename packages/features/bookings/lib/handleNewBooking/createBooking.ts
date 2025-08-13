@@ -6,6 +6,8 @@ import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-fo
 import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -70,6 +72,69 @@ async function getAssociatedBookingForFormResponse(formResponseId: number) {
     },
   });
   return formResponse?.routedToBookingUid ?? null;
+}
+
+/**
+ * Check for overlapping bookings to prevent double bookings
+ */
+export async function checkForOverlappingBookings({
+  eventTypeId,
+  startTime,
+  endTime,
+  rescheduleUid,
+}: {
+  eventTypeId: number;
+  startTime: Date;
+  endTime: Date;
+  rescheduleUid?: string;
+}) {
+  const overlappingBookings = await prisma.booking.findFirst({
+    where: {
+      eventTypeId,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+      },
+      // Check for overlapping time ranges
+      OR: [
+        // New booking starts during an existing booking
+        {
+          startTime: { lte: startTime },
+          endTime: { gt: startTime },
+        },
+        // New booking ends during an existing booking
+        {
+          startTime: { lt: endTime },
+          endTime: { gte: endTime },
+        },
+        // New booking completely contains an existing booking
+        {
+          startTime: { gte: startTime },
+          endTime: { lte: endTime },
+        },
+        // New booking is completely contained within an existing booking
+        {
+          startTime: { lte: startTime },
+          endTime: { gte: endTime },
+        },
+      ],
+      // Exclude the booking being rescheduled
+      ...(rescheduleUid && { uid: { not: rescheduleUid } }),
+    },
+    select: {
+      id: true,
+      uid: true,
+      startTime: true,
+      endTime: true,
+      status: true,
+    },
+  });
+
+  if (overlappingBookings) {
+    throw new HttpError({
+      statusCode: 409,
+      message: ErrorCode.BookingConflict,
+    });
+  }
 }
 
 // Define the function with underscore prefix
@@ -173,6 +238,14 @@ async function saveBooking(
    * Reschedule(Cancellation + Creation) with an update of reroutingFormResponse should be atomic
    */
   return prisma.$transaction(async (tx) => {
+    // Check for overlapping bookings before creating the new booking
+    await checkForOverlappingBookings({
+      eventTypeId: newBookingData.eventTypeId!,
+      startTime: newBookingData.startTime,
+      endTime: newBookingData.endTime,
+      rescheduleUid: originalRescheduledBooking?.uid,
+    });
+
     if (originalBookingUpdateDataForCancellation) {
       await tx.booking.update(originalBookingUpdateDataForCancellation);
     }
