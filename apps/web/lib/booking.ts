@@ -3,7 +3,7 @@ import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBooki
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export const getEventTypesFromDB = async (id: number) => {
@@ -140,7 +140,8 @@ export const handleSeatsEventTypeOnBooking = async (
     }>
   >,
   seatReferenceUid?: string,
-  isHost?: boolean
+  isHost?: boolean,
+  userId?: number
 ) => {
   bookingInfo["responses"] = {};
   type seatAttendee = {
@@ -181,7 +182,26 @@ export const handleSeatsEventTypeOnBooking = async (
     bookingInfo["responses"] = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
   }
 
-  if (!eventType.seatsShowAttendees && !isHost) {
+  // Check if user is admin/owner of the team
+  let isAdminOrOwner = false;
+  if (userId && bookingInfo?.eventType?.teamId) {
+    const membership = await prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId: bookingInfo.eventType.teamId,
+        },
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    isAdminOrOwner = !!membership;
+  }
+
+  if (!eventType.seatsShowAttendees && !isHost && !isAdminOrOwner) {
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
         return (
