@@ -112,7 +112,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
     async function setupManagerOrganization() {
       managerOrganization = await organizationsRepositoryFixture.create({
-        name: "organization bookings",
+        name: "manager organization bookings",
         isPlatform: true,
       });
       managerOrgTeam1 = await teamRepositoryFixture.create({
@@ -316,7 +316,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
     async function setupManagedOrganization() {
       managedOrganization = await organizationsRepositoryFixture.create({
-        name: "organization bookings",
+        name: "managed organization bookings",
         isPlatform: true,
       });
       await managedOrganizationsRepositoryFixture.createManagedOrganization(
@@ -541,6 +541,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(managerOrganization.id);
+      await teamRepositoryFixture.delete(managedOrganization.id);
       await userRepositoryFixture.deleteByEmail(managerOrgUser1.email);
       await userRepositoryFixture.deleteByEmail(nonOrgUser1.email);
       await bookingsRepositoryFixture.deleteAllBookings(managerOrgUser1.id, managerOrgUser1.email);
