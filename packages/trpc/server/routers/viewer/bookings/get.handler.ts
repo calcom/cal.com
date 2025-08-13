@@ -99,9 +99,6 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
-        ...(user.orgId && {
-          teamId: user.orgId,
-        }),
       },
       select: {
         id: true,
