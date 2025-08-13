@@ -59,7 +59,7 @@ export type DatePickerProps = {
   periodData?: PeriodData;
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
-  // Whether to hide the no availability message
+  // Whether to show the no availability dialog
   showNoAvailabilityDialog?: boolean;
 };
 
@@ -182,7 +182,6 @@ const Days = ({
   isBookingInPast: boolean;
   periodData: PeriodData;
   isCompact?: boolean;
-  showNoAvailabilityDialog?: boolean;
 }) => {
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
@@ -394,7 +393,6 @@ const DatePicker = ({
       datePickerToggle?: string;
     };
     scrollToTimeSlots?: () => void;
-    showNoAvailabilityDialog?: boolean;
   }) => {
   const minDate = passThroughProps.minDate;
   const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");

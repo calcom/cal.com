@@ -98,9 +98,6 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
-  /**
-   * Whether to hide the no availability message
-   */
   showNoAvailabilityDialog?: boolean;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
