@@ -22,7 +22,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -550,6 +550,66 @@ export async function handleConfirmation(args: {
 
       // I don't need to await for this
       Promise.all(bookingPaidSubscribers);
+
+      const bookingEventType = booking.eventTypeId
+        ? await prisma.eventType.findUnique({
+            where: { id: booking.eventTypeId },
+            include: {
+              hosts: {
+                include: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          })
+        : null;
+
+      if (bookingEventType) {
+        const workflows = await getAllWorkflowsFromEventType(bookingEventType);
+        const workflowsToTriggerForPaid = workflows.filter(
+          (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_PAID
+        );
+
+        if (workflowsToTriggerForPaid.length > 0) {
+          try {
+            const calendarEventForWorkflow = {
+              ...evt,
+              eventType: {
+                slug: bookingEventType.slug,
+                schedulingType: bookingEventType.schedulingType,
+                hosts:
+                  bookingEventType.hosts?.map((host) => ({
+                    user: {
+                      email: host.user.email,
+                      destinationCalendar: host.user.destinationCalendar,
+                    },
+                  })) || [],
+              },
+              bookerUrl: evt.bookerUrl || "",
+            };
+
+            await scheduleWorkflowReminders({
+              workflows: workflowsToTriggerForPaid,
+              smsReminderNumber: null,
+              calendarEvent: calendarEventForWorkflow,
+              isNotConfirmed: false,
+              isRescheduleEvent: false,
+              hideBranding: false,
+            });
+          } catch (error) {
+            log.error("Error while scheduling workflow reminders for booking paid", safeStringify(error));
+          }
+        }
+      }
     }
   } catch (error) {
     // Silently fail
