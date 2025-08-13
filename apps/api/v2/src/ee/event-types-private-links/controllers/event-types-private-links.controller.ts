@@ -5,7 +5,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { EventTypeOwnershipGuard } from "@/modules/event-types/guards/event-type-ownership.guard";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags, OmitType } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -13,13 +13,11 @@ import {
   CreatePrivateLinkOutput,
   DeletePrivateLinkOutput,
   GetPrivateLinksOutput,
-  UpdatePrivateLinkInput,
+  UpdatePrivateLinkBody,
   UpdatePrivateLinkOutput,
 } from "@calcom/platform-types";
 
 import { PrivateLinksService } from "../services/private-links.service";
-
-class UpdatePrivateLinkBody extends OmitType(UpdatePrivateLinkInput, ["linkId"] as const) {}
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/private-links",

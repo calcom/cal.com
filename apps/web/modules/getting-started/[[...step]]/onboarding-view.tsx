@@ -162,20 +162,20 @@ const OnboardingPage = (props: PageProps) => {
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
-                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} />
+                  <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
                 )}
                 {currentStep === "connected-calendar" && (
                   <ConnectedCalendars nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
                 )}
 
                 {currentStep === "connected-video" && (
-                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
+                  <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} user={user} />
                 )}
 
                 {currentStep === "setup-availability" && (
                   <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
                 )}
-                {currentStep === "user-profile" && <UserProfile />}
+                {currentStep === "user-profile" && <UserProfile user={user} />}
               </Suspense>
             </StepCard>
 
