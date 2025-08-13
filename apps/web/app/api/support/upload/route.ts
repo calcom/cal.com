@@ -8,7 +8,7 @@ import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
-import { buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { plain, upsertPlainCustomer } from "@lib/plain/plain";
 
 const log = logger.getSubLogger({ prefix: ["/api/support/upload"] });
@@ -29,10 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing required parameters: name and size" }, { status: 400 });
   }
 
-  const req = {
-    headers: buildLegacyHeaders(await headers()),
-    cookies: buildLegacyCookies(await cookies()),
-  } as any;
+  const req = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session found" }, { status: 401 });

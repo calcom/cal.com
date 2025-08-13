@@ -3,11 +3,10 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 const RedirectPage = async () => {
-  const req = {
-    headers: Object.fromEntries((await headers()).entries()),
-    cookies: Object.fromEntries((await cookies()).getAll().map((c) => [c.name, c.value])),
-  } as any;
+  const req = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
