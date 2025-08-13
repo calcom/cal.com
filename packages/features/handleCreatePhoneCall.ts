@@ -1,7 +1,7 @@
-import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import { RetellAIService, validatePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
-import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
-import type { TCreatePhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { PROMPT_TEMPLATES } from "@calcom/features/calAIPhone/promptTemplates";
+import { RetellAIService, validatePhoneNumber } from "@calcom/features/calAIPhone/retellAIService";
+import { templateTypeEnum } from "@calcom/features/calAIPhone/zod-utils";
+import type { TCreatePhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
