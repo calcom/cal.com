@@ -198,62 +198,70 @@ export class BusyTimesService {
       );
 
       if (!calendarBusyTimesQuery.success) {
-        throw new Error(
-          `Failed to fetch busy calendar times for selected calendars ${selectedCalendars.map(
-            (calendar) => calendar.id
-          )}`
+        if (bypassBusyCalendarTimes) {
+          logger.warn(
+            `Calendar busy times fetch failed but bypassing due to bypassBusyCalendarTimes flag for user ${username}`,
+            {
+              selectedCalendarIds: selectedCalendars.map((calendar) => calendar.id),
+            }
+          );
+        } else {
+          throw new Error(
+            `Failed to fetch busy calendar times for selected calendars ${selectedCalendars.map(
+              (calendar) => calendar.id
+            )}`
+          );
+        }
+      } else {
+        const calendarBusyTimes = calendarBusyTimesQuery.data;
+        const endConnectedCalendarsGet = performance.now();
+        logger.debug(
+          `Connected Calendars get took ${
+            endConnectedCalendarsGet - startConnectedCalendarsGet
+          } ms for user ${username}`,
+          JSON.stringify({
+            eventTypeId,
+            startTimeDate,
+            endTimeDate,
+            calendarBusyTimes,
+          })
+        );
+
+        const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
+          const [start, end] = key.split("<>");
+          return {
+            start: dayjs(start),
+            end: dayjs(end),
+          };
+        });
+
+        if (rescheduleUid) {
+          const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
+          if (originalRescheduleBooking) {
+            openSeatsDateRanges.push({
+              start: dayjs(originalRescheduleBooking.startTime),
+              end: dayjs(originalRescheduleBooking.endTime),
+            });
+          }
+        }
+
+        const result = subtract(
+          calendarBusyTimes.map((value) => ({
+            ...value,
+            end: dayjs(value.end),
+            start: dayjs(value.start),
+          })),
+          openSeatsDateRanges
+        );
+
+        busyTimes.push(
+          ...result.map((busyTime) => ({
+            ...busyTime,
+            start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
+            end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
+          }))
         );
       }
-
-      const calendarBusyTimes = calendarBusyTimesQuery.data;
-      const endConnectedCalendarsGet = performance.now();
-      logger.debug(
-        `Connected Calendars get took ${
-          endConnectedCalendarsGet - startConnectedCalendarsGet
-        } ms for user ${username}`,
-        JSON.stringify({
-          eventTypeId,
-          startTimeDate,
-          endTimeDate,
-          calendarBusyTimes,
-        })
-      );
-
-      const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
-        const [start, end] = key.split("<>");
-        return {
-          start: dayjs(start),
-          end: dayjs(end),
-        };
-      });
-
-      if (rescheduleUid) {
-        const originalRescheduleBooking = bookings.find((booking) => booking.uid === rescheduleUid);
-        // calendar busy time from original rescheduled booking should not be blocked
-        if (originalRescheduleBooking) {
-          openSeatsDateRanges.push({
-            start: dayjs(originalRescheduleBooking.startTime),
-            end: dayjs(originalRescheduleBooking.endTime),
-          });
-        }
-      }
-
-      const result = subtract(
-        calendarBusyTimes.map((value) => ({
-          ...value,
-          end: dayjs(value.end),
-          start: dayjs(value.start),
-        })),
-        openSeatsDateRanges
-      );
-
-      busyTimes.push(
-        ...result.map((busyTime) => ({
-          ...busyTime,
-          start: busyTime.start.subtract(afterEventBuffer || 0, "minute").toDate(),
-          end: busyTime.end.add(beforeEventBuffer || 0, "minute").toDate(),
-        }))
-      );
 
       /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
