@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import Icon from "@calid/features/ui/components/icon/Icon";
+import {Icon} from "@calid/features/ui";
 import { useCallback, useState } from "react";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";

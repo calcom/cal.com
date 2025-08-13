@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@calid/features/ui/components/logo";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -36,63 +37,66 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
       href: "/settings/my-account",
       icon: "user",
       children: [
-        { name: "profile", href: "/settings/my-account/profile" },
-        { name: "general", href: "/settings/my-account/general" },
-        { name: "calendars", href: "/settings/my-account/calendars" },
-        { name: "conferencing", href: "/settings/my-account/conferencing" },
-        { name: "appearance", href: "/settings/my-account/appearance" },
-        { name: "out_of_office", href: "/settings/my-account/out-of-office" },
-        { name: "push_notifications", href: "/settings/my-account/push-notifications" },
+        { name: "profile", href: "/settings/my-account/profile", icon: "user" },
+        { name: "general", href: "/settings/my-account/general", icon: "settings" },
+        { name: "calendars", href: "/settings/my-account/calendars", icon: "calendar" },
+        { name: "conferencing", href: "/settings/my-account/conferencing", icon: "video" },
+        { name: "appearance", href: "/settings/my-account/appearance", icon: "paintbrush" },
+        { name: "out_of_office", href: "/settings/my-account/out-of-office", icon: "sun" },
+        { name: "push_notifications", href: "/settings/my-account/push-notifications", icon: "bell" },
         // TODO
-        // { name: "referrals", href: "/settings/my-account/referrals" },
+        // { name: "referrals", href: "/settings/my-account/referrals", icon: "gift" },
       ],
     },
     {
       name: "security",
       href: "/settings/security",
-      icon: "key",
+      icon: "shield",
       children: [
-        { name: "password", href: "/settings/security/password" },
-        { name: "impersonation", href: "/settings/security/impersonation" },
-        { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+        { name: "password", href: "/settings/security/password", icon: "key" },
+        { name: "impersonation", href: "/settings/security/impersonation", icon: "venetian-mask" },
+        { name: "2fa_auth", href: "/settings/security/two-factor-auth", icon: "fingerprint" },
       ],
     },
     {
       name: "billing",
       href: "/settings/billing",
       icon: "credit-card",
-      children: [{ name: "manage_billing", href: "/settings/billing" }],
+      children: [{ name: "manage_billing", href: "/settings/billing", icon: "credit-card" }],
     },
     {
       name: "developer",
       href: "/settings/developer",
       icon: "terminal",
       children: [
-        //
-        { name: "webhooks", href: "/settings/developer/webhooks" },
-        { name: "api_keys", href: "/settings/developer/api-keys" },
-        { name: "admin_api", href: "/settings/organizations/admin-api" },
+        { name: "webhooks", href: "/settings/developer/webhooks", icon: "webhook" },
+        { name: "api_keys", href: "/settings/developer/api-keys", icon: "key" },
+        { name: "admin_api", href: "/settings/organizations/admin-api", icon: "code" },
         // TODO: Add profile level for embeds
-        // { name: "embeds", href: "/v2/settings/developer/embeds" },
+        // { name: "embeds", href: "/v2/settings/developer/embeds", icon: "code" },
       ],
     },
     {
       name: "organization",
       href: "/settings/organizations",
+      icon: "building",
       children: [
         {
           name: "profile",
           href: "/settings/organizations/profile",
+          icon: "building",
         },
         {
           name: "general",
           href: "/settings/organizations/general",
+          icon: "settings",
         },
         ...(orgBranding
           ? [
               {
                 name: "members",
                 href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+                icon: "users",
                 isExternalLink: true,
               },
             ]
@@ -100,23 +104,32 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "privacy",
           href: "/settings/organizations/privacy",
+          icon: "shield-check",
         },
         {
           name: "billing",
           href: "/settings/organizations/billing",
+          icon: "credit-card",
         },
-        { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
+        {
+          name: "OAuth Clients",
+          href: "/settings/organizations/platform/oauth-clients",
+          icon: "link-2",
+        },
         {
           name: "SSO",
           href: "/settings/organizations/sso",
+          icon: "fingerprint",
         },
         {
           name: "directory_sync",
           href: "/settings/organizations/dsync",
+          icon: "refresh-cw",
         },
         {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          icon: "terminal",
         },
       ],
     },
@@ -135,19 +148,18 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "admin",
       href: "/settings/admin",
-      icon: "lock",
+      icon: "shield-check",
       children: [
-        //
-        { name: "features", href: "/settings/admin/flags" },
-        { name: "license", href: "/auth/setup?step=1" },
-        { name: "impersonation", href: "/settings/admin/impersonation" },
-        { name: "apps", href: "/settings/admin/apps/calendar" },
-        { name: "users", href: "/settings/admin/users" },
-        { name: "organizations", href: "/settings/admin/organizations" },
-        { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
-        { name: "oAuth", href: "/settings/admin/oAuth" },
-        { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
-        { name: "Playground", href: "/settings/admin/playground" },
+        { name: "features", href: "/settings/admin/flags", icon: "flag" },
+        { name: "license", href: "/auth/setup?step=1", icon: "scroll-text" },
+        { name: "impersonation", href: "/settings/admin/impersonation", icon: "venetian-mask" },
+        { name: "apps", href: "/settings/admin/apps/calendar", icon: "grid-3x3" },
+        { name: "users", href: "/settings/admin/users", icon: "users" },
+        { name: "organizations", href: "/settings/admin/organizations", icon: "building" },
+        { name: "lockedSMS", href: "/settings/admin/lockedSMS", icon: "smartphone" },
+        { name: "oAuth", href: "/settings/admin/oAuth", icon: "link-2" },
+        { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms", icon: "layers" },
+        { name: "Playground", href: "/settings/admin/playground", icon: "rocket" },
       ],
     },
   ];
@@ -276,11 +288,11 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/event-types"
-      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
+      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-subtle group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
-        className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180 md:mt-0"
+        className="h-4 w-4 stroke-[2px] md:mt-0 ltr:mr-[10px] rtl:ml-[10px] rtl:rotate-180"
       />
       <Skeleton title={name} as="p" className="min-h-4 max-w-36 truncate" loadingClassName="ms-3">
         {name}
@@ -408,7 +420,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     {!team.parentId && (
                       <img
                         src={getPlaceholderAvatar(team.logoUrl, team.name)}
-                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                         alt={team.name || "Team logo"}
                       />
                     )}
@@ -549,7 +561,7 @@ const SettingsSidebarContainer = ({
     <nav
       style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
       className={classNames(
-        "no-scrollbar bg-muted fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "no-scrollbar bg-cal-gradient border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-4",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -557,6 +569,10 @@ const SettingsSidebarContainer = ({
       )}
       aria-label={t("settings_navigation")}>
       <>
+        <div className="flex h-6 w-full flex-row pl-2 py-4 mb-6">
+          <Logo small icon/>
+        </div>
+
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return (
@@ -564,38 +580,39 @@ const SettingsSidebarContainer = ({
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                    <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
-                      {tab && tab.icon && (
+                    <div className="[&[aria-current='page']]:bg-cal-active text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-lg font-medium leading-none [&[aria-current='page']]:text-white">
+                      {/* {tab && tab.icon && (
                         <Icon
                           name={tab.icon}
                           className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
                         />
-                      )}
-                      {!tab.icon && tab?.avatar && (
+                      )} */}
+                      {/* {!tab.icon && tab?.avatar && (
                         <img
                           className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
                           alt="Organization Logo"
                         />
-                      )}
+                      )} */}
                       <Skeleton
                         title={tab.name}
                         as="p"
-                        className="text-subtle truncate text-sm font-medium leading-5"
+                        className="text-subtle truncate text-xs font-semibold leading-5"
                         loadingClassName="ms-3">
                         {t(tab.name)}
                       </Skeleton>
                     </div>
                   </div>
-                  <div className="my-3 space-y-px">
+                  <div className="my-3 ml-1 space-y-px">
                     {tab.children?.map((child, index) => (
                       <VerticalTabItem
+                        icon={child.icon}
                         key={child.href}
                         name={t(child.name)}
                         isExternalLink={child.isExternalLink}
                         href={child.href || "/"}
-                        textClassNames="text-emphasis font-medium text-sm"
-                        className={`me-5 h-7 w-auto !px-2 ${
+                        textClassNames="text-subtle font-medium text-xs"
+                        className={`h-7 w-auto ${
                           tab.children && index === tab.children?.length - 1 && "!mb-3"
                         }`}
                         disableChevron
@@ -609,11 +626,11 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-cal-active text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-white [&[aria-current='page']]:text-white">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                           />
                         )}
                         <Skeleton
@@ -647,7 +664,7 @@ const SettingsSidebarContainer = ({
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
+                            className="text-subtle h-[16px] w-[16px] stroke-[2px] md:mt-0 ltr:mr-3 rtl:ml-3"
                           />
                         )}
                         <Skeleton
@@ -718,7 +735,7 @@ const SettingsSidebarContainer = ({
                                   {!otherTeam.parentId && (
                                     <img
                                       src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0 ltr:mr-2 rtl:ml-2"
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
@@ -842,8 +859,7 @@ export default function SettingsLayoutAppDirClient({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex ">
-        <div
-          className={classNames("w-full justify-center", rest.containerClassName)}>
+        <div className={classNames("w-full justify-center", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>

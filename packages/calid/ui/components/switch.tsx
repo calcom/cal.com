@@ -55,9 +55,9 @@ export const Switch = (
           {...primitiveProps}
           id={id}
           className={cn(
-            size === "sm" ? "h-3 w-[20px]" : "h-4 w-[28px]",
+            size === "sm" ? "h-3 w-[20px]" : "h-3.5 w-[24px]",
             "focus:ring-brand-default data-[state=checked]:bg-brand-default dark:data-[state=checked]:bg-brand-emphasis data-[state=unchecked]:bg-emphasis peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-inner transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-            size === "sm" ? "h-4 w-7" : "h-6 w-11",
+            size === "sm" ? "h-4 w-7" : "h-5 w-10",
             classNames?.container
           )}>
           <SwitchPrimitives.Thumb
@@ -65,7 +65,7 @@ export const Switch = (
               "bg-default data-[state=checked]:bg-brand-accent shadow-switch-thumb pointer-events-none block rounded-full shadow-lg ring-0 transition-transform",
               size === "sm"
                 ? "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
-                : "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
+                : "h-4 w-4 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
               classNames?.thumb
             )}
           />

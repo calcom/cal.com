@@ -74,13 +74,13 @@ export const UsernameAvailabilityField = ({
       control={formMethods.control}
       name="username"
       render={({ field: { ref, onChange, value } }) => (
-        <div className="flex flex-col">
+        <div className="flex w-full flex-col">
           <Label className="text-default mb-2" >
             Username
           </Label>
 
-          <div className="flex flex-row items-end">
-            <div className="bg-subtle border-emphasis rounded-y flex h-[40px] content-center  items-center justify-center rounded-l px-3 text-sm">
+          <div className="flex w-full flex-row items-end">
+            <div className="bg-subtle border-emphasis rounded-y flex h-[40px] content-center  items-center justify-center rounded-l px-3 text-xs">
               {usernamePrefix}/
             </div>
             <UsernameAvailability
