@@ -5,7 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { List } from "@calcom/ui/components/list";
@@ -16,14 +16,17 @@ import { StepConnectionLoader } from "../components/StepConnectionLoader";
 interface ConnectedAppStepProps {
   nextStep: () => void;
   isPageLoading: boolean;
+  user: RouterOutputs["viewer"]["me"]["get"];
 }
 
 const ConnectedVideoStepInner = ({
   t,
   setAnyInstalledVideoApps,
+  user,
 }: {
   t: TFunction;
   setAnyInstalledVideoApps: Dispatch<SetStateAction<boolean>>;
+  user: RouterOutputs["viewer"]["me"]["get"];
 }) => {
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
@@ -39,8 +42,6 @@ const ConnectedVideoStepInner = ({
     sortByMostPopular: true,
     sortByInstalledFirst: true,
   });
-  // we want to start loading immediately, after all this is a hook.
-  const { data, status } = useMeQuery();
 
   if (isPending) {
     return <StepConnectionLoader />;
@@ -53,11 +54,7 @@ const ConnectedVideoStepInner = ({
     setAnyInstalledVideoApps(true);
   }
 
-  if (status !== "success") {
-    return <StepConnectionLoader />;
-  }
-
-  const result = userMetadata.safeParse(data?.metadata);
+  const result = userMetadata.safeParse(user.metadata);
   if (!result.success) {
     return <StepConnectionLoader />;
   }
@@ -91,12 +88,12 @@ const ConnectedVideoStepInner = ({
 };
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
-  const { nextStep, isPageLoading } = props;
+  const { nextStep, isPageLoading, user } = props;
   const { t } = useLocale();
   const [hasAnyInstalledVideoApps, setAnyInstalledVideoApps] = useState(false);
   return (
     <>
-      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} t={t} />
+      <ConnectedVideoStepInner setAnyInstalledVideoApps={setAnyInstalledVideoApps} t={t} user={user} />
       <Button
         EndIcon="arrow-right"
         data-testid="save-video-button"
