@@ -1,3 +1,4 @@
+import type { NextApiRequest } from "next";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
@@ -60,11 +61,8 @@ export function decodeParams(params: Params): Params {
   }, {} as Params);
 }
 
-export const buildLegacyRequest = (
-  headers: ReadonlyHeaders,
-  cookies: ReadonlyRequestCookies
-): LegacyRequest => {
-  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) };
+export const buildLegacyRequest = (headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
+  return { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) } as NextApiRequest;
 };
 
 export const buildLegacyCtx = (

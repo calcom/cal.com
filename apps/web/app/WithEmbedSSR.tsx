@@ -9,10 +9,10 @@ export type EmbedProps = {
 };
 
 const withEmbedSsrAppDir =
-  <T = Record<string, unknown>,>(
+  <T extends Record<string, any>>(
     getServerSideProps: (
       context: NextJsLegacyContext
-    ) => Promise<{ props: T } | { redirect: { destination: string } } | { notFound: true }>
+    ) => Promise<{ props: T } | { redirect: any } | { notFound: true }>
   ) =>
   async (context: NextJsLegacyContext): Promise<T> => {
     const { embed, layout } = context.query;

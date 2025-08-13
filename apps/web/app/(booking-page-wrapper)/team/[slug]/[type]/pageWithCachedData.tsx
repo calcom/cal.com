@@ -15,7 +15,7 @@ import { loadTranslations } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
 
-import { buildLegacyCtx, buildLegacyHeaders, buildLegacyCookies } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import CachedClientView, { type TeamBookingPageProps } from "~/team/type-view-cached";
@@ -51,7 +51,7 @@ async function _getOrgContext(params: Params) {
 
   const { slug: teamSlug, type: meetingSlug } = result.data;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(
-    { headers: buildLegacyHeaders(await headers()), cookies: buildLegacyCookies(await cookies()) } as any,
+    buildLegacyRequest(await headers(), await cookies()),
     params?.orgSlug ?? undefined
   );
 
@@ -154,9 +154,7 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   const { rescheduleUid } = legacyCtx.query;
   let bookingForReschedule: GetBookingType | null = null;
   if (rescheduleUid) {
-    const session = await getServerSession({
-      req: { headers: legacyCtx.req.headers, cookies: legacyCtx.req.cookies } as any,
-    });
+    const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
     bookingForReschedule = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
     if (enrichedEventType.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
 

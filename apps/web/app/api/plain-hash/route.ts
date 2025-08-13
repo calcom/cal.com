@@ -8,6 +8,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_PLAIN_CHAT_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
 const responseSchema = z.object({
   hash: z.string(),
   email: z.string().email(),
@@ -24,11 +26,7 @@ async function handler() {
     return NextResponse.json({ error: "Plain Chat is not enabled" }, { status: 404 });
   }
 
-  const reqForSession = {
-    headers: (await headers()) as any,
-    cookies: (await cookies()) as any,
-  } as any;
-  const session = await getServerSession({ req: reqForSession });
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized - No session email found" }, { status: 401 });
   }

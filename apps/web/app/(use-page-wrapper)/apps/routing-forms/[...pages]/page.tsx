@@ -4,6 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { routingFormsComponents } from "@calcom/app-store/routing-forms/pages/app-routing.client-config";
+import type { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.server-config";
 
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -24,7 +25,9 @@ export const generateMetadata = async ({ params }: { params: Promise<{ pages: st
   );
 };
 
-const getData = withAppDirSsr(getServerSideProps);
+type GetServerSidePropsResult =
+  (typeof routingServerSidePropsConfig)[keyof typeof routingServerSidePropsConfig];
+const getData = withAppDirSsr<GetServerSidePropsResult>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
