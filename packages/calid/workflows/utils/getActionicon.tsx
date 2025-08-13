@@ -1,8 +1,7 @@
-import { classNames } from "@calcom/lib";
 import { Icon } from "@calid/features/ui";
+import { isSMSOrWhatsappAction } from "@calid/features/workflows/config/utils";
 
 import type { WorkflowStep } from "../config/types";
-import { isSmsOrWhatsappAction } from "../config/utils";
 
 const DEFAULT_STYLE_CLASSES = "mr-1.5 inline h-3 w-3";
 
@@ -15,7 +14,7 @@ const COMMUNICATION_TYPES = {
 type CommunicationType = (typeof COMMUNICATION_TYPES)[keyof typeof COMMUNICATION_TYPES];
 
 function determineStepCommunicationType(stepAction: WorkflowStep["action"]): CommunicationType {
-  return isSmsOrWhatsappAction(stepAction) ? COMMUNICATION_TYPES.MOBILE : COMMUNICATION_TYPES.EMAIL;
+  return isSMSOrWhatsappAction(stepAction) ? COMMUNICATION_TYPES.MOBILE : COMMUNICATION_TYPES.EMAIL;
 }
 
 function analyzeCommunicationPattern(workflowSteps: WorkflowStep[]): CommunicationType {

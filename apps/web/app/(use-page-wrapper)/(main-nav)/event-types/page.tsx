@@ -63,6 +63,11 @@ const Page = async ({ searchParams }: PageProps) => {
       subtitle={t("event_types_page_subtitle")}
       CTA={<EventTypesCTA userEventGroupsData={userEventGroupsData} />}>
       <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+
+      {/* <div className="flex w-full">
+         <EventTypesCTA userEventGroupsData={userEventGroupsData} />
+        <EventTypes userEventGroupsData={userEventGroupsData} user={session.user} />
+      </div> */}
     </ShellMainAppDir>
   );
 };

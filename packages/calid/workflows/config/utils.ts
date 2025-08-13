@@ -356,3 +356,7 @@ export const generateWorkflowTitle = (workflow: WorkflowType, t: TFunction): str
 export const filterTeamsFromProfiles = (profiles: any[]): any[] => {
   return profiles.filter((profile) => !!profile.teamId);
 };
+
+export function shouldScheduleEmailReminder(action: WorkflowActions) {
+  return action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST;
+}

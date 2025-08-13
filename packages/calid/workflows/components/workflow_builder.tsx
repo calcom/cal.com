@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@calid/features/lib/cn";
 import {
   Select,
   SelectContent,
@@ -8,44 +9,54 @@ import {
   SelectValue,
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   Input,
   Label,
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger,
   Textarea,
   Button,
   Checkbox,
+  Badge,
 } from "@calid/features/ui";
 import { Icon } from "@calid/features/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
 
-// Import the required types and utilities from the old implementation
+import PhoneInput from "@calcom/features/components/phone-input";
+import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { getTimeFormatStringFromUserTimeFormat, TimeFormat } from "@calcom/lib/timeFormat";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { Editor } from "@calcom/ui/components/editor";
+import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { DYNAMIC_TEXT_VARIABLES } from "../config/constants";
+import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
   isSMSAction,
+  isWhatsappAction,
   isSMSOrWhatsappAction,
   translateVariablesToEnglish,
   translateTextVariables as getTranslatedText,
+  getTemplateBodyForAction,
+  shouldScheduleEmailReminder,
 } from "../config/utils";
 import { workflowFormSchema as formSchema } from "../config/validation";
+import emailRatingTemplate from "../templates/email/ratingTemplate";
+import emailReminderTemplate from "../templates/email/reminder";
 
 // Types migrated from old implementation
 export type FormValues = {
@@ -85,49 +96,16 @@ type WorkflowStep = {
 const VariableDropdown: React.FC<{
   onSelect: (variable: string) => void;
 }> = ({ onSelect }) => {
-  const variables = [
-    "{EVENT_NAME}",
-    "{EVENT_DATE}",
-    "{EVENT_TIME}",
-    "{EVENT_END_TIME}",
-    "{TIMEZONE}",
-    "{LOCATION}",
-    "{ORGANIZER_NAME}",
-    "{ATTENDEE}",
-    "{ATTENDEE_FIRST_NAME}",
-  ];
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button color="secondary" size="sm" className="text-xs">
-          Add variable
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {variables.map((variable) => (
-          <DropdownMenuItem key={variable} onClick={() => onSelect(variable)}>
-            {variable}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  return <AddVariablesDropdown addVariable={onSelect} variables={DYNAMIC_TEXT_VARIABLES} />;
 };
 
 export interface WorkflowBuilderProps {
-  setHeaderMeta?: (meta: any) => void;
   template?: any;
   editWorkflow?: any;
   workflowId?: number;
 }
 
-export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
-  setHeaderMeta,
-  template,
-  editWorkflow,
-  workflowId,
-}) => {
+export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, editWorkflow, workflowId }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
@@ -148,6 +126,10 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false);
+
+  // Add ref to prevent infinite loops
+  const dataLoadedRef = useRef(false);
+  const isInitialLoadRef = useRef(true);
 
   // Get workflow data from tRPC
   const {
@@ -177,6 +159,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     { enabled: !!workflowData?.id }
   );
 
+  // Get workflow action options
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
+
+  // Get time format
+  const timeFormat = user ? getTimeFormatStringFromUserTimeFormat(user.timeFormat) : TimeFormat.TWELVE_HOUR;
+
   // Get event type options
   const isOrg = workflowData?.team?.isOrganization ?? false;
   const teamId = workflowData?.teamId ?? undefined;
@@ -190,21 +178,17 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   // Process event type options
   const allEventTypeOptions = useMemo(() => {
     let options = eventTypeData?.eventTypeOptions ?? [];
-    const distinctEventTypes = new Set();
 
-    if (!teamId && isMixedEventType) {
-      options = [...options, ...selectedOptions];
-      options = options.filter((option) => {
-        const duplicate = distinctEventTypes.has(option.value);
-        distinctEventTypes.add(option.value);
-        return !duplicate;
-      });
+    if (!teamId && isMixedEventType && isInitialLoadRef.current) {
+      const distinctEventTypes = new Set(options.map((opt) => opt.value));
+      const additionalOptions = selectedOptions.filter((opt) => !distinctEventTypes.has(opt.value));
+      options = [...options, ...additionalOptions];
     }
 
     return options;
-  }, [eventTypeData?.eventTypeOptions, teamId, isMixedEventType, selectedOptions]);
+  }, [eventTypeData?.eventTypeOptions, teamId, isMixedEventType]);
 
-  const teamOptions = eventTypeData?.teamOptions ?? [];
+  const teamOptions = useMemo(() => eventTypeData?.teamOptions ?? [], [eventTypeData?.teamOptions]);
 
   // Permission check
   const readOnly = useMemo(() => {
@@ -214,7 +198,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     );
   }, [workflowData?.team?.members, session.data?.user.id]);
 
-  // UI state variables (keeping from new implementation)
+  // UI state variables
   const [workflowName, setWorkflowName] = useState("");
   const [trigger, setTrigger] = useState<WorkflowTriggerEvents | "">("");
   const [triggerTiming, setTriggerTiming] = useState("immediately");
@@ -223,9 +207,122 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   const [showEventTypeSection, setShowEventTypeSection] = useState(false);
   const [showTriggerSection, setShowTriggerSection] = useState(false);
   const [showActionsSection, setShowActionsSection] = useState(false);
-  const [actions, setActions] = useState<any[]>([]);
 
-  // Update mutation from old implementation
+  // Step-specific states for verification
+  const [verificationCodes, setVerificationCodes] = useState<{ [stepId: string]: string }>({});
+  const [numberVerificationStatus, setNumberVerificationStatus] = useState<{ [stepId: string]: boolean }>({});
+  const [emailVerificationStatus, setEmailVerificationStatus] = useState<{ [stepId: string]: boolean }>({});
+  // FIXED: Add states to track when OTP was sent
+  const [otpSentForPhone, setOtpSentForPhone] = useState<{ [stepId: string]: boolean }>({});
+  const [otpSentForEmail, setOtpSentForEmail] = useState<{ [stepId: string]: boolean }>({});
+
+  // Enhanced actions state to match WorkflowStep structure
+  const [actions, setActions] = useState<WorkflowStep[]>([]);
+
+  // Template update tracker - FIXED: Changed to object to track individual step updates
+  const [updateTemplate, setUpdateTemplate] = useState<{ [stepId: string]: number }>({});
+  const [firstRender, setFirstRender] = useState(true);
+
+  // Get trigger and template options
+  const triggerOptions = getWorkflowTriggerOptions(t);
+
+  // Verification mutations - FIXED: Added proper success handlers for verification status updates
+  const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
+    onSuccess: async (data, variables) => {
+      showToast(t("verification_code_sent"), "success");
+      // FIXED: Track that OTP was sent for this phone number
+      if (variables?.phoneNumber) {
+        actions.forEach((step) => {
+          if (step.sendTo === variables.phoneNumber) {
+            setOtpSentForPhone((prev) => ({ ...prev, [step.id.toString()]: true }));
+          }
+        });
+      }
+    },
+    onError: async (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
+    onSuccess: async (isVerified, variables) => {
+      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+
+      // FIXED: Update verification status immediately for UI feedback
+      if (isVerified && variables?.phoneNumber) {
+        // Find the step with this phone number and update its verification status
+        setNumberVerificationStatus((prev) => {
+          const newStatus = { ...prev };
+          actions.forEach((step) => {
+            if (step.sendTo === variables.phoneNumber) {
+              newStatus[step.id.toString()] = true;
+              // Clear OTP sent status when verified
+              setOtpSentForPhone((prevOtp) => ({ ...prevOtp, [step.id.toString()]: false }));
+              setVerificationCodes((prevCodes) => ({ ...prevCodes, [step.id.toString()]: "" }));
+            }
+          });
+          return newStatus;
+        });
+      }
+
+      utils.viewer.workflows.getVerifiedNumbers.invalidate();
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
+
+  const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+    onSuccess(data, variables) {
+      showToast(t("email_sent"), "success");
+      // FIXED: Track that OTP was sent for this email
+      if (variables?.email) {
+        actions.forEach((step) => {
+          if (step.sendTo === variables.email) {
+            setOtpSentForEmail((prev) => ({ ...prev, [step.id.toString()]: true }));
+          }
+        });
+      }
+    },
+    onError: () => {
+      showToast(t("email_not_sent"), "error");
+    },
+  });
+
+  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
+    onSuccess: (isVerified, variables) => {
+      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+
+      // FIXED: Update verification status immediately for UI feedback
+      if (isVerified && variables?.email) {
+        // Find the step with this email and update its verification status
+        setEmailVerificationStatus((prev) => {
+          const newStatus = { ...prev };
+          actions.forEach((step) => {
+            if (step.sendTo === variables.email) {
+              newStatus[step.id.toString()] = true;
+              // Clear OTP sent status when verified
+              setOtpSentForEmail((prevOtp) => ({ ...prevOtp, [step.id.toString()]: false }));
+              setVerificationCodes((prevCodes) => ({ ...prevCodes, [step.id.toString()]: "" }));
+            }
+          });
+          return newStatus;
+        });
+      }
+
+      utils.viewer.workflows.getVerifiedEmails.invalidate();
+    },
+    onError: (err) => {
+      if (err.message === "invalid_code") {
+        showToast(t("code_provided_invalid"), "error");
+      }
+    },
+  });
+
+  // Update mutation
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
@@ -236,7 +333,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
           }),
           "success"
         );
-        router.push("/workflows");
       }
     },
     onError: (err) => {
@@ -247,10 +343,48 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     },
   });
 
-  // Set form data function from old implementation
+  // Helper functions
+  const getNumberVerificationStatus = useCallback(
+    (step: WorkflowStep) => {
+      return !!verifiedNumbersData?.find((number) => number.phoneNumber === step.sendTo);
+    },
+    [verifiedNumbersData]
+  );
+
+  const getEmailVerificationStatus = useCallback(
+    (step: WorkflowStep) => {
+      return !!verifiedEmailsData?.find((email) => email === step.sendTo);
+    },
+    [verifiedEmailsData]
+  );
+
+  // FIXED: Helper function to validate phone number
+  const isValidPhoneNumber = useCallback((phoneNumber: string) => {
+    // Basic phone number validation - should have at least 10 digits
+    const cleanNumber = phoneNumber?.replace(/\D/g, "") || "";
+    return cleanNumber.length >= 10;
+  }, []);
+
+  // FIXED: Helper function to validate email
+  const isValidEmail = useCallback((email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email || "");
+  }, []);
+
+  // FIXED: Helper function to trigger template update for specific step
+  const triggerTemplateUpdate = useCallback((stepId: number) => {
+    setUpdateTemplate((prev) => ({
+      ...prev,
+      [stepId.toString()]: (prev[stepId.toString()] || 0) + 1,
+    }));
+  }, []);
+
+  // Set form data function
   const setFormData = useCallback(
     (workflowDataInput: RouterOutputs["viewer"]["workflows"]["get"] | undefined) => {
-      if (workflowDataInput) {
+      if (workflowDataInput && !dataLoadedRef.current) {
+        dataLoadedRef.current = true;
+
         if (
           workflowDataInput.userId &&
           workflowDataInput.activeOn.find((active) => !!active.eventType.teamId)
@@ -268,48 +402,44 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
               value: String(active.team.id) || "",
               label: active.team.slug || "",
             }));
-            setSelectedOptions(activeOn || []);
           } else {
-            setSelectedOptions(
-              workflowDataInput.activeOn?.flatMap((active) => {
-                if (workflowDataInput.teamId && active.eventType.parentId) return [];
-                return {
-                  value: String(active.eventType.id),
-                  label: active.eventType.title,
-                };
-              }) || []
-            );
             activeOn = workflowDataInput.activeOn
-              ? workflowDataInput.activeOn.map((active) => ({
-                  value: active.eventType.id.toString(),
-                  label: active.eventType.slug,
-                }))
-              : undefined;
+              ? workflowDataInput.activeOn.flatMap((active) => {
+                  if (workflowDataInput.teamId && active.eventType.parentId) return [];
+                  return {
+                    value: active.eventType.id.toString(),
+                    label: active.eventType.title,
+                  };
+                })
+              : [];
           }
         }
 
+        setSelectedOptions(activeOn || []);
+
         // Translate dynamic variables into local language
-        const steps = workflowDataInput.steps?.map((step) => {
-          const updatedStep = {
-            ...step,
-            numberRequired: step.numberRequired ?? false,
-            senderName: step.sender,
-            sender: isSMSAction(step.action) ? step.sender ?? SENDER_ID : SENDER_ID,
-          };
-          if (step.reminderBody) {
-            updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
-              locale: i18n.language,
-              t,
-            });
-          }
-          if (step.emailSubject) {
-            updatedStep.emailSubject = getTranslatedText(step.emailSubject || "", {
-              locale: i18n.language,
-              t,
-            });
-          }
-          return updatedStep;
-        });
+        const steps =
+          workflowDataInput.steps?.map((step) => {
+            const updatedStep = {
+              ...step,
+              numberRequired: step.numberRequired ?? false,
+              senderName: step.sender,
+              sender: isSMSAction(step.action) ? step.sender ?? SENDER_ID : SENDER_ID,
+            };
+            if (step.reminderBody) {
+              updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
+                locale: i18n.language,
+                t,
+              });
+            }
+            if (step.emailSubject) {
+              updatedStep.emailSubject = getTranslatedText(step.emailSubject || "", {
+                locale: i18n.language,
+                t,
+              });
+            }
+            return updatedStep;
+          }) || [];
 
         // Update form values
         form.setValue("name", workflowDataInput.name);
@@ -327,87 +457,41 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         setTimeUnit(workflowDataInput.timeUnit || "HOUR");
         setTriggerTiming(workflowDataInput.time ? "custom" : "immediately");
 
-        // Convert steps to actions format
-        const convertedActions =
-          steps?.map((step, index) => ({
-            id: step.id.toString(),
-            type: getActionTypeFromWorkflowAction(step.action),
-            expanded: index === 0, // First action expanded by default
-            senderName: step.senderName || "OneHash",
-            messageTemplate: step.template,
-            emailSubject: step.emailSubject || "",
-            emailBody: step.reminderBody || "",
-            includeCalendar: step.includeCalendarEvent,
-            phoneNumber: step.sendTo || "",
-            countryCode: "+1", // MANUAL: May need to extract from sendTo
-            verificationCode: "",
-            senderId: step.sender,
-            textMessage: step.reminderBody || "",
-            sendTo: step.sendTo,
-            stepNumber: step.stepNumber,
-            action: step.action,
-          })) || [];
+        // Set actions to the workflow steps
+        setActions(steps);
 
-        setActions(convertedActions);
+        // Initialize verification status
+        const numberStatus: { [key: string]: boolean } = {};
+        const emailStatus: { [key: string]: boolean } = {};
+
+        steps.forEach((step) => {
+          const stepId = step.id.toString();
+          if (isSMSOrWhatsappAction(step.action) && step.sendTo) {
+            numberStatus[stepId] = getNumberVerificationStatus(step);
+          }
+          if (step.action === WorkflowActions.EMAIL_ADDRESS && step.sendTo) {
+            emailStatus[stepId] = getEmailVerificationStatus(step);
+          }
+        });
+
+        setNumberVerificationStatus(numberStatus);
+        setEmailVerificationStatus(emailStatus);
 
         // Show sections based on existing data
         setShowEventTypeSection(true);
         setShowTriggerSection(true);
-        setShowActionsSection(convertedActions.length > 0);
+        setShowActionsSection(steps.length > 0);
 
         setIsAllDataLoaded(true);
+        isInitialLoadRef.current = false;
       }
     },
-    [form, isOrg, teamOptions, allEventTypeOptions, i18n.language, t]
+    [form, isOrg, teamOptions, i18n.language, t, getNumberVerificationStatus, getEmailVerificationStatus]
   );
 
-  // Helper function to convert WorkflowActions to action type
-  const getActionTypeFromWorkflowAction = (action: WorkflowActions): string => {
-    switch (action) {
-      case WorkflowActions.EMAIL_HOST:
-        return "email-host";
-      case WorkflowActions.EMAIL_ATTENDEE:
-        return "email-attendees";
-      case WorkflowActions.EMAIL_ADDRESS:
-        return "email-specific";
-      case WorkflowActions.SMS_ATTENDEE:
-        return "sms-attendees";
-      case WorkflowActions.SMS_NUMBER:
-        return "sms-specific";
-      case WorkflowActions.WHATSAPP_ATTENDEE:
-        return "whatsapp-attendee";
-      case WorkflowActions.WHATSAPP_NUMBER:
-        return "whatsapp-specific";
-      default:
-        return "email-attendees";
-    }
-  };
-
-  // Helper function to convert action type back to WorkflowActions
-  const getWorkflowActionFromActionType = (type: string): WorkflowActions => {
-    switch (type) {
-      case "email-host":
-        return WorkflowActions.EMAIL_HOST;
-      case "email-attendees":
-        return WorkflowActions.EMAIL_ATTENDEE;
-      case "email-specific":
-        return WorkflowActions.EMAIL_ADDRESS;
-      case "sms-attendees":
-        return WorkflowActions.SMS_ATTENDEE;
-      case "sms-specific":
-        return WorkflowActions.SMS_NUMBER;
-      case "whatsapp-attendee":
-        return WorkflowActions.WHATSAPP_ATTENDEE;
-      case "whatsapp-specific":
-        return WorkflowActions.WHATSAPP_NUMBER;
-      default:
-        return WorkflowActions.EMAIL_ATTENDEE;
-    }
-  };
-
-  // Load initial data
+  // Load initial data only once
   useEffect(() => {
-    if (!isPendingWorkflow && workflowData) {
+    if (!isPendingWorkflow && workflowData && !dataLoadedRef.current) {
       setFormData(workflowData);
     }
   }, [isPendingWorkflow, workflowData, setFormData]);
@@ -431,61 +515,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     }
   }, [trigger, triggerTiming, customTime]);
 
-  // Trigger options
-  const triggerOptions = [
-    {
-      value: "NEW_EVENT",
-      label: "When new event is booked",
-    },
-    {
-      value: "EVENT_CANCELLED",
-      label: "When event is canceled",
-    },
-    {
-      value: "BEFORE_EVENT",
-      label: "Before event starts",
-    },
-    {
-      value: "AFTER_EVENT",
-      label: "After event ends",
-    },
-    {
-      value: "RESCHEDULE_EVENT",
-      label: "When event is rescheduled",
-    },
-  ];
-
-  const actionOptions = [
-    {
-      value: "email-host",
-      label: "Send email to host",
-    },
-    {
-      value: "email-attendees",
-      label: "Send email to attendees",
-    },
-    {
-      value: "email-specific",
-      label: "Send email to a specific email address",
-    },
-    {
-      value: "sms-attendees",
-      label: "Send SMS to attendees",
-    },
-    {
-      value: "sms-specific",
-      label: "Send SMS to a specific number",
-    },
-    {
-      value: "whatsapp-attendee",
-      label: "Send WhatsApp message to attendee",
-    },
-    {
-      value: "whatsapp-specific",
-      label: "Send WhatsApp message to a specific number",
-    },
-  ];
-
   const getTriggerText = () => {
     const selectedTrigger = triggerOptions.find((t) => t.value === trigger);
     if (!selectedTrigger) return "";
@@ -504,82 +533,277 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     }
   };
 
-  const handleEventTypeSelection = (categoryId: string, typeId: string) => {
-    const isSelected = selectedOptions.some((option) => option.value === typeId);
-    let newOptions;
-    if (isSelected) {
-      newOptions = selectedOptions.filter((option) => option.value !== typeId);
-    } else {
-      const option = allEventTypeOptions.find((opt) => opt.value === typeId);
-      if (option) {
-        newOptions = [...selectedOptions, option];
-      } else {
-        newOptions = selectedOptions;
-      }
-    }
-    setSelectedOptions(newOptions);
-    form.setValue("activeOn", newOptions);
-  };
+  // Event type selection handler
+  const handleEventTypeSelection = useCallback(
+    (categoryId: string, typeId: string) => {
+      setSelectedOptions((prev) => {
+        const isSelected = prev.some((option) => option.value === typeId);
+        let newOptions;
+        if (isSelected) {
+          newOptions = prev.filter((option) => option.value !== typeId);
+        } else {
+          const option = allEventTypeOptions.find((opt) => opt.value === typeId);
+          if (option) {
+            newOptions = [...prev, option];
+          } else {
+            return prev;
+          }
+        }
+
+        form.setValue("activeOn", newOptions);
+        return newOptions;
+      });
+    },
+    [allEventTypeOptions, form]
+  );
 
   const addAction = useCallback(() => {
-    const newAction = {
-      id: Date.now().toString(),
-      type: "email-attendees",
-      expanded: true,
-      senderName: "OneHash",
-      messageTemplate: WorkflowTemplates.REMINDER,
-      emailSubject: "",
-      emailBody: "",
-      includeCalendar: false,
-      phoneNumber: "",
-      countryCode: "+1",
-      verificationCode: "",
-      senderId: "",
-      textMessage: "",
+    const newStep: WorkflowStep = {
+      id: -Date.now(), // Use negative ID for new steps
       stepNumber: actions.length + 1,
       action: WorkflowActions.EMAIL_ATTENDEE,
+      workflowId: workflowId!,
+      sendTo: null,
+      reminderBody: null,
+      emailSubject: null,
+      template: WorkflowTemplates.REMINDER,
+      numberRequired: false,
+      sender: SENDER_ID,
+      senderName: SENDER_NAME,
+      numberVerificationPending: false,
+      includeCalendarEvent: false,
+      verifiedAt: null,
     };
-    setActions([...actions, newAction]);
-  }, [actions]);
 
-  const removeAction = useCallback((actionId: string) => {
-    setActions((prev) => prev.filter((action) => action.id !== actionId));
-  }, []);
+    // Set default template content
+    const template = getTemplateBodyForAction({
+      action: newStep.action,
+      locale: i18n.language,
+      t,
+      template: WorkflowTemplates.REMINDER,
+      timeFormat,
+    });
+    newStep.reminderBody = template;
 
-  const updateAction = useCallback((actionId: string, field: string, value: any) => {
-    setActions((prev) =>
-      prev.map((action) =>
-        action.id === actionId
-          ? {
-              ...action,
-              [field]: value,
-              // Update the corresponding WorkflowAction when type changes
-              ...(field === "type" ? { action: getWorkflowActionFromActionType(value) } : {}),
+    if (shouldScheduleEmailReminder(newStep.action)) {
+      newStep.emailSubject = emailReminderTemplate({
+        isEditingMode: true,
+        locale: i18n.language,
+        action: newStep.action,
+        timeFormat,
+      }).emailSubject;
+    }
+
+    setActions((prev) => [...prev, newStep]);
+
+    // Update form
+    const updatedSteps = [...form.getValues("steps"), newStep];
+    form.setValue("steps", updatedSteps);
+
+    // FIXED: Trigger template update for new step
+    triggerTemplateUpdate(newStep.id);
+  }, [actions.length, workflowId, i18n.language, t, timeFormat, form, triggerTemplateUpdate]);
+
+  const removeAction = useCallback(
+    (stepId: number) => {
+      setActions((prev) => {
+        const filtered = prev.filter((action) => action.id !== stepId);
+        // Update step numbers
+        const reordered = filtered.map((step, index) => ({
+          ...step,
+          stepNumber: index + 1,
+        }));
+
+        // Update form
+        form.setValue("steps", reordered);
+        return reordered;
+      });
+
+      // Clean up verification states
+      const stepIdStr = stepId.toString();
+      setVerificationCodes((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      setNumberVerificationStatus((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      setEmailVerificationStatus((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      // FIXED: Clean up OTP sent states
+      setOtpSentForPhone((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      setOtpSentForEmail((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      // FIXED: Clean up template update tracking
+      setUpdateTemplate((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+    },
+    [form]
+  );
+
+  // FIXED: Complete rewrite of updateAction to prevent template body duplication
+  const updateAction = useCallback(
+    (stepId: number, field: keyof WorkflowStep, value: any) => {
+      setActions((prev) =>
+        prev.map((action) => {
+          if (action.id === stepId) {
+            const updatedAction = { ...action, [field]: value };
+
+            // Handle action type changes
+            if (field === "action") {
+              const newAction = value as WorkflowActions;
+
+              // FIXED: Get fresh template content and completely replace reminderBody
+              const freshTemplate = getTemplateBodyForAction({
+                action: newAction,
+                locale: i18n.language,
+                t,
+                template: WorkflowTemplates.REMINDER,
+                timeFormat,
+              });
+              updatedAction.reminderBody = freshTemplate; // Complete replacement
+
+              // Reset template to REMINDER for new actions
+              updatedAction.template = WorkflowTemplates.REMINDER;
+
+              // Set sender and other action-specific fields
+              if (isSMSAction(newAction)) {
+                updatedAction.sender = SENDER_ID;
+                updatedAction.senderName = SENDER_ID;
+              } else if (isWhatsappAction(newAction)) {
+                updatedAction.sender = "";
+                updatedAction.senderName = SENDER_NAME;
+              } else {
+                updatedAction.sender = SENDER_ID;
+                updatedAction.senderName = SENDER_NAME;
+              }
+
+              // Reset sendTo when action changes
+              updatedAction.sendTo = null;
+
+              // Clear OTP sent states when action changes
+              const stepIdStr = stepId.toString();
+              setOtpSentForPhone((prev) => ({ ...prev, [stepIdStr]: false }));
+              setOtpSentForEmail((prev) => ({ ...prev, [stepIdStr]: false }));
+              setVerificationCodes((prev) => ({ ...prev, [stepIdStr]: "" }));
+
+              // Set email subject for email actions
+              if (shouldScheduleEmailReminder(newAction)) {
+                updatedAction.emailSubject = emailReminderTemplate({
+                  isEditingMode: true,
+                  locale: i18n.language,
+                  action: newAction,
+                  timeFormat,
+                }).emailSubject;
+              }
+
+              // Trigger template update for this specific step
+              triggerTemplateUpdate(stepId);
             }
-          : action
-      )
-    );
-  }, []);
 
-  const toggleActionExpanded = useCallback((actionId: string) => {
-    setActions((prev) =>
-      prev.map((action) => (action.id === actionId ? { ...action, expanded: !action.expanded } : action))
-    );
+            // Handle template changes - FIXED: Prevent duplication here
+            if (field === "template") {
+              const newTemplate = value as WorkflowTemplates;
+              const action = updatedAction.action;
+
+              // FIXED: Get fresh template body and COMPLETELY REPLACE existing content
+              const freshTemplateBody = getTemplateBodyForAction({
+                action,
+                locale: i18n.language,
+                t,
+                template: newTemplate,
+                timeFormat,
+              });
+              // CRITICAL FIX: Always replace, never append
+              updatedAction.reminderBody = freshTemplateBody;
+
+              // Update email subject for email actions
+              if (shouldScheduleEmailReminder(action)) {
+                if (newTemplate === WorkflowTemplates.REMINDER) {
+                  updatedAction.emailSubject = emailReminderTemplate({
+                    isEditingMode: true,
+                    locale: i18n.language,
+                    action,
+                    timeFormat,
+                  }).emailSubject;
+                } else if (newTemplate === WorkflowTemplates.RATING) {
+                  updatedAction.emailSubject = emailRatingTemplate({
+                    isEditingMode: true,
+                    locale: i18n.language,
+                    action,
+                    timeFormat,
+                  }).emailSubject;
+                }
+              }
+
+              // Trigger template update for this specific step
+              triggerTemplateUpdate(stepId);
+            }
+
+            return updatedAction;
+          }
+          return action;
+        })
+      );
+
+      // FIXED: Update form only once to prevent duplicate updates
+      const currentSteps = form.getValues("steps");
+      const updatedSteps = currentSteps.map((step) => {
+        if (step.id === stepId) {
+          // Handle template changes specially to prevent duplication
+          if (field === "template") {
+            const newTemplate = value as WorkflowTemplates;
+            const freshTemplateBody = getTemplateBodyForAction({
+              action: step.action,
+              locale: i18n.language,
+              t,
+              template: newTemplate,
+              timeFormat,
+            });
+            return { ...step, [field]: value, reminderBody: freshTemplateBody };
+          }
+          return { ...step, [field]: value };
+        }
+        return step;
+      });
+      form.setValue("steps", updatedSteps);
+    },
+    [form, i18n.language, t, timeFormat, triggerTemplateUpdate]
+  );
+
+  const toggleActionExpanded = useCallback((stepId: number) => {
+    // This is just for UI state, we can track it separately if needed
+    // For now, all actions will be expanded
   }, []);
 
   const insertVariable = useCallback(
-    (actionId: string, field: string, variable: string) => {
-      const action = actions.find((a) => a.id === actionId);
+    (stepId: number, field: string, variable: string) => {
+      const action = actions.find((a) => a.id === stepId);
       if (action) {
-        const currentValue = action[field as keyof typeof action] as string;
-        updateAction(actionId, field, currentValue + variable);
+        const currentValue = (action[field as keyof WorkflowStep] as string) || "";
+        const newValue = `${currentValue}{${variable.toUpperCase().replace(/ /g, "_")}}`;
+        updateAction(stepId, field as keyof WorkflowStep, newValue);
       }
     },
     [actions, updateAction]
   );
 
-  const isEmailAction = (type: string) => type.includes("email");
-  const isSMSActionType = (type: string) => type.includes("sms") || type.includes("whatsapp");
+  const isEmailAction = (action: WorkflowActions) =>
+    action === WorkflowActions.EMAIL_ATTENDEE ||
+    action === WorkflowActions.EMAIL_HOST ||
+    action === WorkflowActions.EMAIL_ADDRESS;
+
+  const isSMSActionType = (action: WorkflowActions) => isSMSAction(action) || isWhatsappAction(action);
 
   // Real save handler using tRPC mutation
   const handleSaveWorkflow = useCallback(async () => {
@@ -587,26 +811,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     let isEmpty = false;
     let isVerified = true;
 
-    // Convert actions back to steps format
+    // Validate and prepare steps
     const steps = actions.map((action, index) => {
       const step = {
-        id: parseInt(action.id) || -(index + 1), // Use negative IDs for new steps
+        ...action,
         stepNumber: index + 1,
-        action: action.action,
-        workflowId: workflowId!,
-        sendTo: action.sendTo || action.phoneNumber || null,
-        reminderBody: action.emailBody || action.textMessage || null,
-        emailSubject: action.emailSubject || null,
-        template: action.messageTemplate || WorkflowTemplates.REMINDER,
-        numberRequired: isSMSActionType(action.type),
-        sender: isSMSActionType(action.type) ? action.senderId || SENDER_ID : SENDER_ID,
-        senderName: action.senderName || SENDER_NAME,
-        numberVerificationPending: false,
-        includeCalendarEvent: action.includeCalendar || false,
-        verifiedAt: new Date(),
       };
 
-      // Validation logic from old implementation
+      // Validation logic
       const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
       const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
 
@@ -684,545 +896,782 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
     form,
   ]);
 
+  // Helper function to send verification code
+  const handleSendVerificationCode = useCallback(
+    (step: WorkflowStep) => {
+      if (isSMSOrWhatsappAction(step.action) && step.sendTo) {
+        sendVerificationCodeMutation.mutate({
+          phoneNumber: step.sendTo,
+        });
+      }
+    },
+    [sendVerificationCodeMutation]
+  );
+
+  // Helper function to verify phone number - FIXED: Pass phoneNumber to mutation variables
+  const handleVerifyPhoneNumber = useCallback(
+    (step: WorkflowStep) => {
+      const stepId = step.id.toString();
+      const code = verificationCodes[stepId];
+
+      if (code && step.sendTo) {
+        verifyPhoneNumberMutation.mutate({
+          phoneNumber: step.sendTo,
+          code,
+          teamId: workflowData?.team?.id,
+        });
+      }
+    },
+    [verificationCodes, verifyPhoneNumberMutation, workflowData?.team?.id]
+  );
+
+  // Helper function to send email verification
+  const handleSendEmailVerification = useCallback(
+    (step: WorkflowStep) => {
+      if (step.sendTo) {
+        sendEmailVerificationCodeMutation.mutate({
+          email: step.sendTo,
+          isVerifyingEmail: true,
+        });
+      }
+    },
+    [sendEmailVerificationCodeMutation]
+  );
+
+  // Helper function to verify email - FIXED: Pass email to mutation variables
+  const handleVerifyEmail = useCallback(
+    (step: WorkflowStep) => {
+      const stepId = step.id.toString();
+      const code = verificationCodes[stepId];
+
+      if (code && step.sendTo) {
+        verifyEmailCodeMutation.mutate({
+          code,
+          email: step.sendTo,
+          teamId: workflowData?.team?.id,
+        });
+      }
+    },
+    [verificationCodes, verifyEmailCodeMutation, workflowData?.team?.id]
+  );
+
   // Loading and error states
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
-  if (!session.data) {
-    return <div>Please log in to access this feature.</div>;
-  }
-
-  if (isError) {
-    return <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />;
-  }
-
-  if (isPending) {
-    return <div>Loading...</div>; // MANUAL: Replace with proper loading skeleton
-  }
-
   return (
-    <div className="bg-card flex justify-center p-6 p-8">
-      <div className="bg-card mx-auto w-full p-6">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <div className="bg-card w-full space-y-6 rounded-lg border p-6">
-            {/* Workflow name section */}
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="workflow-name">Workflow name</Label>
-                <Input
-                  id="workflow-name"
-                  value={workflowName}
-                  onChange={(e) => setWorkflowName(e.target.value)}
-                  className="mt-2"
-                  placeholder="Enter workflow name"
-                  disabled={readOnly}
-                />
+    <Shell withoutMain backPath="/workflows">
+      <ShellMain
+        backPath="/workflows"
+        title={workflowData && workflowData.name ? workflowData.name : "Untitled"}
+        subtitle={t("workflows_edit_description")}
+        CTA={
+          !readOnly && (
+            <div>
+              <Button
+                data-testid="save-workflow"
+                onClick={handleSaveWorkflow}
+                loading={updateMutation.isPending}>
+                {t("save")}
+              </Button>
+            </div>
+          )
+        }
+        heading={
+          isAllDataLoaded && (
+            <div className="flex">
+              <div className={cn(workflowData && !workflowData.name ? "text-muted" : "")}>
+                {workflowData && workflowData.name ? workflowData.name : "untitled"}
               </div>
-
-              {/* Event Type Selection */}
-              {showEventTypeSection && (
-                <div className="animate-slide-in-up">
-                  <div>
-                    <Label>
-                      {isOrg ? "Which teams will this apply to?" : "Which event types will this apply to?"}
-                    </Label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button color="secondary" className="mt-2 w-full justify-between" disabled={readOnly}>
-                          {selectedOptions.length > 0
-                            ? `${selectedOptions.length} ${isOrg ? "teams" : "event types"} selected`
-                            : `Select ${isOrg ? "teams" : "event types"}...`}
-                          <Icon name="chevron-down" className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-80">
-                        <div className="space-y-4 p-4">
-                          {(isOrg ? teamOptions : allEventTypeOptions).map((option) => (
-                            <div key={option.value} className="mb-2 flex items-center space-x-2">
-                              <Checkbox
-                                id={option.value}
-                                checked={selectedOptions.some((selected) => selected.value === option.value)}
-                                onCheckedChange={() => handleEventTypeSelection("", option.value)}
-                                disabled={readOnly}
-                              />
-                              <Label htmlFor={option.value} className="text-sm">
-                                {option.label}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+              {workflowData && workflowData.team && (
+                <Badge className="ml-4 mt-1" variant="default">
+                  {workflowData.team.name}
+                </Badge>
+              )}
+              {readOnly && (
+                <Badge className="ml-4 mt-1" variant="default">
+                  {t("readonly")}
+                </Badge>
               )}
             </div>
-          </div>
+          )
+        }>
+        {!session.data ? (
+          <div>Please log in to access this feature.</div>
+        ) : isError ? (
+          <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
+        ) : isPending ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="bg-card flex justify-center p-6 p-8">
+            <div className="bg-card mx-auto w-full p-6">
+              <div className="mx-auto max-w-2xl space-y-6">
+                <div className="bg-card w-full space-y-6 rounded-lg border p-6">
+                  {/* Workflow name section */}
+                  <div className="space-y-6">
+                    <div>
+                      <Label htmlFor="workflow-name">Workflow name</Label>
+                      <Input
+                        id="workflow-name"
+                        value={workflowName}
+                        onChange={(e) => setWorkflowName(e.target.value)}
+                        className="mt-2"
+                        placeholder="Enter workflow name"
+                        disabled={readOnly}
+                      />
+                    </div>
 
-          {/* Trigger Section */}
-          {showTriggerSection && (
-            <div className="animate-slide-in-up">
-              <Card className="animate-slide-in-up">
-                <CardHeader>
-                  <CardTitle>When this happens</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Select
-                      value={trigger}
-                      onValueChange={(val: WorkflowTriggerEvents) => setTrigger(val)}
-                      disabled={readOnly}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Select an occurrence" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {triggerOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {trigger && (
-                    <div className="animate-fade-in space-y-4">
-                      <div>
-                        <Label className="text-sm">
-                          How long {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
-                          {triggerOptions
-                            .find((t) => t.value === trigger)
-                            ?.label.toLowerCase()
-                            .replace("when ", "")
-                            .replace("before ", "")
-                            .replace("after ", "")}
-                          ?
-                        </Label>
-
-                        <div className="mt-2 space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              id="immediately"
-                              name="timing"
-                              value="immediately"
-                              checked={triggerTiming === "immediately"}
-                              onChange={(e) => setTriggerTiming(e.target.value)}
-                              disabled={readOnly}
-                            />
-                            <Label htmlFor="immediately" className="text-muted-foreground text-sm">
-                              Immediately when{" "}
-                              {triggerOptions
-                                .find((t) => t.value === trigger)
-                                ?.label.toLowerCase()
-                                .replace("when ", "")
-                                .replace("before ", "")
-                                .replace("after ", "")}
-                            </Label>
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="radio"
-                              id="custom"
-                              name="timing"
-                              value="custom"
-                              checked={triggerTiming === "custom"}
-                              onChange={(e) => setTriggerTiming(e.target.value)}
-                              disabled={readOnly}
-                            />
-                            <div className="flex flex-1 items-center space-x-2">
-                              <Input
-                                value={customTime}
-                                onChange={(e) => setCustomTime(e.target.value)}
-                                className="w-20"
-                                placeholder="24"
-                                onClick={() => setTriggerTiming("custom")}
-                                disabled={readOnly}
-                              />
-                              <Select
-                                value={timeUnit}
-                                onValueChange={(val: TimeUnit) => setTimeUnit(val)}
+                    {/* Event Type Selection */}
+                    {showEventTypeSection && (
+                      <div className="animate-slide-in-up">
+                        <div>
+                          <Label>
+                            {isOrg
+                              ? "Which teams will this apply to?"
+                              : "Which event types will this apply to?"}
+                          </Label>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                color="secondary"
+                                className="mt-2 w-full justify-between"
                                 disabled={readOnly}>
-                                <SelectTrigger className="w-24">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="MINUTE">minutes</SelectItem>
-                                  <SelectItem value="HOUR">hours</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <span className="text-muted-foreground text-sm">
-                                {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
+                                {selectedOptions.length > 0
+                                  ? `${selectedOptions.length} ${isOrg ? "teams" : "event types"} selected`
+                                  : `Select ${isOrg ? "teams" : "event types"}...`}
+                                <Icon name="chevron-down" className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-80">
+                              <div className="space-y-4 p-4">
+                                {(isOrg ? teamOptions : allEventTypeOptions).map((option) => (
+                                  <div key={option.value} className=" flex items-center space-x-2">
+                                    <Checkbox
+                                      id={option.value}
+                                      checked={selectedOptions.some(
+                                        (selected) => selected.value === option.value
+                                      )}
+                                      onCheckedChange={() => handleEventTypeSelection("", option.value)}
+                                      disabled={readOnly}
+                                    />
+                                    <Label htmlFor={option.value} className="text-sm">
+                                      {option.label}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Trigger Section */}
+                {showTriggerSection && (
+                  <div className="animate-slide-in-up">
+                    <Card className="animate-slide-in-up">
+                      <CardHeader>
+                        <CardTitle>When this happens</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <Select
+                            value={trigger}
+                            onValueChange={(val: WorkflowTriggerEvents) => setTrigger(val)}
+                            disabled={readOnly}>
+                            <SelectTrigger className="mt-2">
+                              <SelectValue placeholder="Select an occurrence" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-default">
+                              {triggerOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {trigger && (
+                          <div className="animate-fade-in space-y-4">
+                            <div>
+                              <Label className="text-sm">
+                                How long {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
                                 {triggerOptions
                                   .find((t) => t.value === trigger)
                                   ?.label.toLowerCase()
                                   .replace("when ", "")
                                   .replace("before ", "")
                                   .replace("after ", "")}
-                              </span>
+                                ?
+                              </Label>
+
+                              <div className="mt-2 space-y-3">
+                                {trigger !== "BEFORE_EVENT" && trigger !== "AFTER_EVENT" && (
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="radio"
+                                      id="immediately"
+                                      name="timing"
+                                      value="immediately"
+                                      checked={triggerTiming === "immediately"}
+                                      onChange={(e) => setTriggerTiming(e.target.value)}
+                                      disabled={readOnly}
+                                    />
+                                    <Label htmlFor="immediately" className="text-muted-foreground text-sm">
+                                      Immediately when{" "}
+                                      {triggerOptions
+                                        .find((t) => t.value === trigger)
+                                        ?.label.toLowerCase()
+                                        .replace("when ", "")
+                                        .replace("before ", "")
+                                        .replace("after ", "")}
+                                    </Label>
+                                  </div>
+                                )}
+
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="radio"
+                                    id="custom"
+                                    name="timing"
+                                    value="custom"
+                                    checked={triggerTiming === "custom"}
+                                    onChange={(e) => setTriggerTiming(e.target.value)}
+                                    disabled={readOnly}
+                                  />
+                                  <div className="flex flex-1 items-center space-x-2">
+                                    <Input
+                                      value={customTime}
+                                      onChange={(e) => setCustomTime(e.target.value)}
+                                      className="w-20"
+                                      placeholder="24"
+                                      onClick={() => setTriggerTiming("custom")}
+                                      disabled={readOnly}
+                                    />
+                                    <Select
+                                      value={timeUnit}
+                                      onValueChange={(val: TimeUnit) => setTimeUnit(val)}
+                                      disabled={readOnly}>
+                                      <SelectTrigger className="w-24">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-default">
+                                        <SelectItem value="MINUTE">minutes</SelectItem>
+                                        <SelectItem value="HOUR">hours</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <span className="text-muted-foreground text-sm">
+                                      {trigger === "BEFORE_EVENT" ? "before" : "after"}{" "}
+                                      {triggerOptions
+                                        .find((t) => t.value === trigger)
+                                        ?.label.toLowerCase()
+                                        .replace("when ", "")
+                                        .replace("before ", "")
+                                        .replace("after ", "")}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Actions Section - Enhanced with proper WorkflowStep implementation */}
+                {showActionsSection && (
+                  <div className="animate-slide-in-up">
+                    <Card className="animate-slide-in-up">
+                      <CardHeader>
+                        <CardTitle>Do this</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {actions.map((step) => {
+                          const stepId = step.id.toString();
+                          const isNumberVerified = numberVerificationStatus[stepId] || false;
+                          const isEmailVerified = emailVerificationStatus[stepId] || false;
+                          const verificationCode = verificationCodes[stepId] || "";
+                          const templateOptions = getWorkflowTemplateOptions(t, step.action);
+                          // FIXED: Get step-specific template update counter
+                          const stepTemplateUpdate = updateTemplate[stepId] || 0;
+                          // FIXED: Check if OTP was sent and if input is valid
+                          const isPhoneOtpSent = otpSentForPhone[stepId] || false;
+                          const isEmailOtpSent = otpSentForEmail[stepId] || false;
+                          const isPhoneValid = isValidPhoneNumber(step.sendTo || "");
+                          const isEmailValid = isValidEmail(step.sendTo || "");
+
+                          return (
+                            <Card key={step.id} className="border">
+                              <Collapsible open={true}>
+                                <div className="p-4">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex flex-1 items-center space-x-3">
+                                      <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
+                                        <span className="text-xs font-medium">
+                                          {isEmailAction(step.action) ? "📧" : "📱"}
+                                        </span>
+                                      </div>
+                                      <Select
+                                        value={step.action}
+                                        onValueChange={(value: WorkflowActions) =>
+                                          updateAction(step.id, "action", value)
+                                        }
+                                        disabled={readOnly}>
+                                        <SelectTrigger className="w-fit">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-default">
+                                          {actionOptions?.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                              {option.label}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      {actions.length > 1 && !readOnly && (
+                                        <Button
+                                          color="destructive"
+                                          size="sm"
+                                          onClick={() => removeAction(step.id)}
+                                          className="p-2">
+                                          <Icon name="trash-2" className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <CollapsibleContent className="mt-4">
+                                    <div className="space-y-4">
+                                      {/* Phone Number Input for SMS/WhatsApp specific actions */}
+                                      {(step.action === WorkflowActions.SMS_NUMBER ||
+                                        step.action === WorkflowActions.WHATSAPP_NUMBER) && (
+                                        <div className="bg-muted rounded-md p-4">
+                                          <Label className="pt-4">
+                                            {step.action === WorkflowActions.WHATSAPP_NUMBER
+                                              ? "WhatsApp Number"
+                                              : "Phone Number"}
+                                          </Label>
+                                          <div className="block sm:flex">
+                                            <Controller
+                                              name={`steps.${step.stepNumber - 1}.sendTo`}
+                                              control={form.control}
+                                              render={({ field: { value, onChange } }) => (
+                                                <PhoneInput
+                                                  placeholder={t("phone_number")}
+                                                  className="min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                                                  required
+                                                  disabled={readOnly}
+                                                  value={value || ""}
+                                                  onChange={(val) => {
+                                                    const isAlreadyVerified = !!verifiedNumbersData?.find(
+                                                      (number) =>
+                                                        number.phoneNumber?.replace(/\s/g, "") ===
+                                                        val?.replace(/\s/g, "")
+                                                    );
+                                                    setNumberVerificationStatus((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: isAlreadyVerified,
+                                                    }));
+                                                    // FIXED: Clear OTP sent status when phone number changes
+                                                    setOtpSentForPhone((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: false,
+                                                    }));
+                                                    setVerificationCodes((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: "",
+                                                    }));
+                                                    updateAction(step.id, "sendTo", val);
+                                                    onChange(val);
+                                                  }}
+                                                />
+                                              )}
+                                            />
+                                            <Button
+                                              color="secondary"
+                                              disabled={isNumberVerified || readOnly || !isPhoneValid}
+                                              className={cn(
+                                                "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                                                isNumberVerified ? "hidden" : "mt-3 sm:mt-0"
+                                              )}
+                                              onClick={() => handleSendVerificationCode(step)}>
+                                              {t("send_code")}
+                                            </Button>
+                                          </div>
+
+                                          {isNumberVerified ? (
+                                            <div className="mt-1">
+                                              <Badge variant="success">{t("number_verified")}</Badge>
+                                            </div>
+                                          ) : (
+                                            !readOnly &&
+                                            step.sendTo &&
+                                            isPhoneValid &&
+                                            isPhoneOtpSent && (
+                                              <>
+                                                <div className="mt-3 flex">
+                                                  <Input
+                                                    className="h-[36px] rounded-r-none border-r-transparent"
+                                                    placeholder="Verification code"
+                                                    disabled={readOnly}
+                                                    value={verificationCode}
+                                                    onChange={(e) => {
+                                                      setVerificationCodes((prev) => ({
+                                                        ...prev,
+                                                        [stepId]: e.target.value,
+                                                      }));
+                                                    }}
+                                                    required
+                                                  />
+                                                  <Button
+                                                    color="secondary"
+                                                    className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none"
+                                                    disabled={verifyPhoneNumberMutation.isPending || readOnly}
+                                                    onClick={() => handleVerifyPhoneNumber(step)}>
+                                                    {t("verify")}
+                                                  </Button>
+                                                </div>
+                                              </>
+                                            )
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Email Address Input for EMAIL_ADDRESS action */}
+                                      {step.action === WorkflowActions.EMAIL_ADDRESS && (
+                                        <div className="bg-muted rounded-md p-4">
+                                          <Label>Email address</Label>
+                                          <div className="block sm:flex">
+                                            <Input
+                                              type="email"
+                                              required
+                                              className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                                              placeholder="recipient@example.com"
+                                              value={step.sendTo || ""}
+                                              disabled={readOnly}
+                                              onChange={(e) => {
+                                                const isAlreadyVerified = !!verifiedEmailsData?.find(
+                                                  (email) => email === e.target.value
+                                                );
+                                                setEmailVerificationStatus((prev) => ({
+                                                  ...prev,
+                                                  [stepId]: isAlreadyVerified,
+                                                }));
+                                                // FIXED: Clear OTP sent status when email changes
+                                                setOtpSentForEmail((prev) => ({
+                                                  ...prev,
+                                                  [stepId]: false,
+                                                }));
+                                                setVerificationCodes((prev) => ({
+                                                  ...prev,
+                                                  [stepId]: "",
+                                                }));
+                                                updateAction(step.id, "sendTo", e.target.value);
+                                              }}
+                                            />
+                                            <Button
+                                              color="secondary"
+                                              disabled={isEmailVerified || readOnly || !isEmailValid}
+                                              className={cn(
+                                                "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                                                isEmailVerified ? "hidden" : "mt-3 sm:mt-0"
+                                              )}
+                                              onClick={() => handleSendEmailVerification(step)}>
+                                              {t("send_code")}
+                                            </Button>
+                                          </div>
+
+                                          {isEmailVerified ? (
+                                            <div className="mt-1">
+                                              <Badge variant="success">{t("email_verified")}</Badge>
+                                            </div>
+                                          ) : (
+                                            !readOnly &&
+                                            step.sendTo &&
+                                            isEmailValid &&
+                                            isEmailOtpSent && (
+                                              <>
+                                                <div className="mt-3 flex">
+                                                  <Input
+                                                    className="h-[36px] rounded-r-none border-r-transparent"
+                                                    placeholder="Verification code"
+                                                    disabled={readOnly}
+                                                    value={verificationCode}
+                                                    onChange={(e) => {
+                                                      setVerificationCodes((prev) => ({
+                                                        ...prev,
+                                                        [stepId]: e.target.value,
+                                                      }));
+                                                    }}
+                                                    required
+                                                  />
+                                                  <Button
+                                                    color="secondary"
+                                                    className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none"
+                                                    disabled={verifyEmailCodeMutation.isPending || readOnly}
+                                                    onClick={() => handleVerifyEmail(step)}>
+                                                    {t("verify")}
+                                                  </Button>
+                                                </div>
+                                              </>
+                                            )
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Sender Configuration for SMS (not WhatsApp) */}
+                                      {isSMSAction(step.action) && (
+                                        <div className="bg-muted rounded-md p-4">
+                                          <div className="pt-4">
+                                            <div className="flex items-center">
+                                              <Label>{t("sender_id")}</Label>
+                                              <Icon
+                                                name="info"
+                                                className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500"
+                                              />
+                                            </div>
+                                            <Input
+                                              type="text"
+                                              placeholder={SENDER_ID}
+                                              disabled={readOnly}
+                                              maxLength={11}
+                                              value={step.sender}
+                                              onChange={(e) =>
+                                                updateAction(step.id, "sender", e.target.value)
+                                              }
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Sender Name for WhatsApp and Email */}
+                                      {(isWhatsappAction(step.action) || isEmailAction(step.action)) && (
+                                        <div className="bg-muted rounded-md p-4">
+                                          <div className="pt-4">
+                                            <Label>
+                                              {isWhatsappAction(step.action)
+                                                ? t("sender_name")
+                                                : "Sender name"}
+                                            </Label>
+                                            <Input
+                                              type="text"
+                                              disabled={readOnly}
+                                              placeholder={SENDER_NAME}
+                                              value={step.senderName || ""}
+                                              onChange={(e) =>
+                                                updateAction(step.id, "senderName", e.target.value)
+                                              }
+                                            />
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Number Required Checkbox for SMS/WhatsApp attendee actions */}
+                                      {(step.action === WorkflowActions.SMS_ATTENDEE ||
+                                        step.action === WorkflowActions.WHATSAPP_ATTENDEE) && (
+                                        <div className="mt-2">
+                                          <Controller
+                                            name={`steps.${step.stepNumber - 1}.numberRequired`}
+                                            control={form.control}
+                                            render={() => (
+                                              <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                  disabled={readOnly}
+                                                  checked={step.numberRequired || false}
+                                                  onCheckedChange={(checked) =>
+                                                    updateAction(step.id, "numberRequired", checked)
+                                                  }
+                                                />
+                                                <Label className="text-sm">
+                                                  {t("make_phone_number_required")}
+                                                </Label>
+                                              </div>
+                                            )}
+                                          />
+                                        </div>
+                                      )}
+
+                                      {/* Template Selection */}
+                                      <div className="mt-5">
+                                        <Label>Message template</Label>
+                                        <Select
+                                          value={step.template}
+                                          onValueChange={(value: WorkflowTemplates) =>
+                                            updateAction(step.id, "template", value)
+                                          }
+                                          disabled={readOnly}>
+                                          <SelectTrigger className="mt-1">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent className="bg-default">
+                                            {templateOptions.map((option) => (
+                                              <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+
+                                      {/* Message Content */}
+                                      <div className="bg-muted rounded-md p-4">
+                                        {/* Email Subject for Email Actions */}
+                                        {isEmailAction(step.action) && (
+                                          <div className="mb-6">
+                                            <div className="flex items-center">
+                                              <Label className={cn("flex-none", readOnly ? "mb-2" : "mb-0")}>
+                                                {t("email_subject")}
+                                              </Label>
+                                              {!readOnly && (
+                                                <div className="flex-grow text-right">
+                                                  <VariableDropdown
+                                                    onSelect={(variable) =>
+                                                      insertVariable(step.id, "emailSubject", variable)
+                                                    }
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
+                                            <Textarea
+                                              rows={2}
+                                              disabled={readOnly}
+                                              className="my-0 focus:ring-transparent"
+                                              required
+                                              value={step.emailSubject || ""}
+                                              onChange={(e) =>
+                                                updateAction(step.id, "emailSubject", e.target.value)
+                                              }
+                                            />
+                                          </div>
+                                        )}
+
+                                        {/* Message Body */}
+                                        <div className="mb-2 flex items-center pb-1">
+                                          <Label className="mb-0 flex-none">
+                                            {isEmailAction(step.action) ? t("email_body") : t("text_message")}
+                                          </Label>
+                                        </div>
+
+                                        {/* FIXED: Enhanced Editor component with template and step-specific key */}
+                                        <div className="rounded-md border">
+                                          <Editor
+                                            key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
+                                            getText={() => step.reminderBody || ""}
+                                            setText={(text: string) => {
+                                              updateAction(step.id, "reminderBody", text);
+                                            }}
+                                            variables={DYNAMIC_TEXT_VARIABLES}
+                                            addVariableButtonTop={isSMSAction(step.action)}
+                                            height="200px"
+                                            updateTemplate={!!stepTemplateUpdate}
+                                            firstRender={firstRender}
+                                            setFirstRender={setFirstRender}
+                                            editable={
+                                              !readOnly &&
+                                              !isWhatsappAction(step.action) &&
+                                              (true || isSMSAction(step.action)) // Assume team plan for now
+                                            }
+                                            excludedToolbarItems={
+                                              !isSMSAction(step.action)
+                                                ? []
+                                                : ["blockType", "bold", "italic", "link"]
+                                            }
+                                            plainText={isSMSAction(step.action)}
+                                          />
+                                        </div>
+
+                                        {/* Include Calendar Event for Email Actions */}
+                                        {isEmailAction(step.action) && (
+                                          <div className="mt-2">
+                                            <Controller
+                                              name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
+                                              control={form.control}
+                                              render={() => (
+                                                <div className="flex items-center space-x-2">
+                                                  <Checkbox
+                                                    disabled={readOnly}
+                                                    checked={step.includeCalendarEvent || false}
+                                                    onCheckedChange={(checked) =>
+                                                      updateAction(step.id, "includeCalendarEvent", checked)
+                                                    }
+                                                  />
+                                                  <Label className="text-sm">
+                                                    {t("include_calendar_event")}
+                                                  </Label>
+                                                </div>
+                                              )}
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </CollapsibleContent>
+                                </div>
+                              </Collapsible>
+                            </Card>
+                          );
+                        })}
+
+                        {!readOnly && (
+                          <Button
+                            color="secondary"
+                            onClick={addAction}
+                            className="w-full border-2 border-dashed">
+                            <Icon name="plus" className="mr-2 h-4 w-4" />
+                            Add action
+                          </Button>
+                        )}
+
+                        <div className="flex justify-end pt-4">
+                          <div className="flex space-x-2">
+                            <Button
+                              color="secondary"
+                              onClick={() => router.push("/workflows")}
+                              disabled={updateMutation.isPending}>
+                              Cancel
+                            </Button>
+                            {!readOnly && (
+                              <Button
+                                onClick={handleSaveWorkflow}
+                                className="px-8"
+                                loading={updateMutation.isPending}>
+                                Save Workflow
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Read-only indicator */}
+                {readOnly && (
+                  <div className="rounded-md bg-yellow-50 p-4">
+                    <div className="flex">
+                      <Icon name="info" className="h-5 w-5 text-yellow-400" aria-hidden="true" />
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-yellow-800">Read-only Access</h3>
+                        <div className="mt-2 text-sm text-yellow-700">
+                          <p>
+                            You have read-only access to this workflow. Contact a team admin to make changes.
+                          </p>
                         </div>
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Actions Section */}
-          {showActionsSection && (
-            <div className="animate-slide-in-up">
-              <Card className="animate-slide-in-up">
-                <CardHeader>
-                  <CardTitle>Do this</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {actions.map((action) => (
-                    <Card key={action.id} className="border">
-                      <Collapsible
-                        open={action.expanded}
-                        onOpenChange={() => toggleActionExpanded(action.id)}>
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-1 items-center space-x-3">
-                              <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100">
-                                <span className="text-xs font-medium">
-                                  {isEmailAction(action.type) ? "📧" : "📱"}
-                                </span>
-                              </div>
-                              <Select
-                                value={action.type}
-                                onValueChange={(value) => updateAction(action.id, "type", value)}
-                                disabled={readOnly}>
-                                <SelectTrigger className="w-64">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {actionOptions.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <CollapsibleTrigger asChild>
-                                <Button color="secondary" size="sm" className="p-2">
-                                  <Icon
-                                    name="chevron-down"
-                                    className={`h-4 w-4 transition-transform ${
-                                      action.expanded ? "rotate-180" : ""
-                                    }`}
-                                  />
-                                </Button>
-                              </CollapsibleTrigger>
-                              {actions.length > 1 && !readOnly && (
-                                <Button
-                                  color="destructive"
-                                  size="sm"
-                                  onClick={() => removeAction(action.id)}
-                                  className="p-2">
-                                  <Icon name="trash-2" className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          <CollapsibleContent className="mt-4">
-                            <div className="space-y-4">
-                              {isEmailAction(action.type) && (
-                                <>
-                                  <div>
-                                    <Label htmlFor={`sender-${action.id}`}>Sender name</Label>
-                                    <Input
-                                      id={`sender-${action.id}`}
-                                      value={action.senderName}
-                                      onChange={(e) => updateAction(action.id, "senderName", e.target.value)}
-                                      className="mt-1"
-                                      disabled={readOnly}
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <Label htmlFor={`template-${action.id}`}>Choose a template</Label>
-                                    <Select
-                                      value={action.messageTemplate}
-                                      onValueChange={(value) =>
-                                        updateAction(action.id, "messageTemplate", value)
-                                      }
-                                      disabled={readOnly}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value={WorkflowTemplates.CUSTOM}>Custom</SelectItem>
-                                        <SelectItem value={WorkflowTemplates.REMINDER}>Reminder</SelectItem>
-                                        <SelectItem value={WorkflowTemplates.THANKYOU}>Thank You</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  {action.type === "email-specific" && (
-                                    <div>
-                                      <Label htmlFor={`email-${action.id}`}>Email address</Label>
-                                      <Input
-                                        id={`email-${action.id}`}
-                                        value={action.sendTo || ""}
-                                        onChange={(e) => updateAction(action.id, "sendTo", e.target.value)}
-                                        className="mt-1"
-                                        placeholder="recipient@example.com"
-                                        disabled={readOnly}
-                                      />
-                                      {/* MANUAL: Add email verification status indicator */}
-                                    </div>
-                                  )}
-
-                                  <div>
-                                    <div className="flex items-center justify-between">
-                                      <Label htmlFor={`subject-${action.id}`}>Subject Line</Label>
-                                      {!readOnly && (
-                                        <VariableDropdown
-                                          onSelect={(variable) =>
-                                            insertVariable(action.id, "emailSubject", variable)
-                                          }
-                                        />
-                                      )}
-                                    </div>
-                                    <Input
-                                      id={`subject-${action.id}`}
-                                      value={action.emailSubject}
-                                      onChange={(e) =>
-                                        updateAction(action.id, "emailSubject", e.target.value)
-                                      }
-                                      className="mt-1"
-                                      disabled={readOnly}
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <div className="flex items-center justify-between">
-                                      <Label htmlFor={`body-${action.id}`}>Email Body</Label>
-                                      {!readOnly && (
-                                        <VariableDropdown
-                                          onSelect={(variable) =>
-                                            insertVariable(action.id, "emailBody", variable)
-                                          }
-                                        />
-                                      )}
-                                    </div>
-                                    <Textarea
-                                      id={`body-${action.id}`}
-                                      value={action.emailBody}
-                                      onChange={(e) => updateAction(action.id, "emailBody", e.target.value)}
-                                      className="min-h-32 mt-1"
-                                      placeholder="Enter email content..."
-                                      disabled={readOnly}
-                                    />
-                                  </div>
-
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`calendar-${action.id}`}
-                                      checked={action.includeCalendar}
-                                      onCheckedChange={(checked) =>
-                                        updateAction(action.id, "includeCalendar", checked)
-                                      }
-                                      disabled={readOnly}
-                                    />
-                                    <Label htmlFor={`calendar-${action.id}`} className="text-sm">
-                                      Include Calendar Event
-                                    </Label>
-                                  </div>
-                                </>
-                              )}
-
-                              {isSMSActionType(action.type) && (
-                                <>
-                                  {(action.type === "sms-specific" ||
-                                    action.type === "whatsapp-specific") && (
-                                    <div>
-                                      <Label htmlFor={`phone-${action.id}`}>
-                                        {action.type.includes("whatsapp")
-                                          ? "WhatsApp Number"
-                                          : "Phone Number"}
-                                      </Label>
-                                      <div className="mt-1 flex">
-                                        <Select
-                                          value={action.countryCode}
-                                          onValueChange={(value) =>
-                                            updateAction(action.id, "countryCode", value)
-                                          }
-                                          disabled={readOnly}>
-                                          <SelectTrigger className="w-20">
-                                            <SelectValue />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            <SelectItem value="+1">+1</SelectItem>
-                                            <SelectItem value="+44">+44</SelectItem>
-                                            <SelectItem value="+91">+91</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                        <Input
-                                          id={`phone-${action.id}`}
-                                          value={action.phoneNumber}
-                                          onChange={(e) => {
-                                            updateAction(action.id, "phoneNumber", e.target.value);
-                                            updateAction(
-                                              action.id,
-                                              "sendTo",
-                                              `${action.countryCode}${e.target.value}`
-                                            );
-                                          }}
-                                          className="ml-2 flex-1"
-                                          placeholder="Phone number"
-                                          disabled={readOnly}
-                                        />
-                                        {!readOnly && (
-                                          <Button size="sm" className="ml-2">
-                                            {/* MANUAL: Implement phone verification */}
-                                            Send Code
-                                          </Button>
-                                        )}
-                                      </div>
-                                      {/* MANUAL: Add verification status indicator based on verifiedNumbersData */}
-                                    </div>
-                                  )}
-
-                                  {action.phoneNumber && !readOnly && (
-                                    <div>
-                                      <Label htmlFor={`verification-${action.id}`}>Verification code</Label>
-                                      <div className="mt-1 flex">
-                                        <Input
-                                          id={`verification-${action.id}`}
-                                          value={action.verificationCode}
-                                          onChange={(e) =>
-                                            updateAction(action.id, "verificationCode", e.target.value)
-                                          }
-                                          className="flex-1"
-                                          placeholder="Enter verification code"
-                                        />
-                                        <Button size="sm" className="ml-2">
-                                          {/* MANUAL: Implement verification logic */}
-                                          Verify
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  <div>
-                                    <Label htmlFor={`sender-id-${action.id}`}>Sender ID</Label>
-                                    <Input
-                                      id={`sender-id-${action.id}`}
-                                      value={action.senderId}
-                                      onChange={(e) => updateAction(action.id, "senderId", e.target.value)}
-                                      className="mt-1"
-                                      disabled={readOnly}
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <Label htmlFor={`template-${action.id}`}>Choose a template</Label>
-                                    <Select
-                                      value={action.messageTemplate}
-                                      onValueChange={(value) =>
-                                        updateAction(action.id, "messageTemplate", value)
-                                      }
-                                      disabled={readOnly}>
-                                      <SelectTrigger className="mt-1">
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value={WorkflowTemplates.CUSTOM}>Custom</SelectItem>
-                                        <SelectItem value={WorkflowTemplates.REMINDER}>Reminder</SelectItem>
-                                        <SelectItem value={WorkflowTemplates.THANKYOU}>Thank You</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
-
-                                  <div>
-                                    <div className="flex items-center justify-between">
-                                      <Label htmlFor={`text-message-${action.id}`}>
-                                        {action.type.includes("whatsapp")
-                                          ? "WhatsApp Message"
-                                          : "Text Message"}
-                                      </Label>
-                                      {!readOnly && (
-                                        <VariableDropdown
-                                          onSelect={(variable) =>
-                                            insertVariable(action.id, "textMessage", variable)
-                                          }
-                                        />
-                                      )}
-                                    </div>
-                                    <Textarea
-                                      id={`text-message-${action.id}`}
-                                      value={action.textMessage}
-                                      onChange={(e) => updateAction(action.id, "textMessage", e.target.value)}
-                                      className="min-h-32 mt-1"
-                                      placeholder={`Enter ${
-                                        action.type.includes("whatsapp") ? "WhatsApp" : "text"
-                                      } message...`}
-                                      disabled={readOnly}
-                                    />
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </CollapsibleContent>
-                        </div>
-                      </Collapsible>
-                    </Card>
-                  ))}
-
-                  {!readOnly && (
-                    <Button color="secondary" onClick={addAction} className="w-full border-2 border-dashed">
-                      <Icon name="plus" className="mr-2 h-4 w-4" />
-                      Add action
-                    </Button>
-                  )}
-
-                  <div className="flex justify-end pt-4">
-                    <div className="flex space-x-2">
-                      <Button
-                        color="secondary"
-                        onClick={() => router.push("/workflows")}
-                        disabled={updateMutation.isPending}>
-                        Cancel
-                      </Button>
-                      {!readOnly && (
-                        <Button
-                          onClick={handleSaveWorkflow}
-                          className="px-8"
-                          loading={updateMutation.isPending}>
-                          Save Workflow
-                        </Button>
-                      )}
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Read-only indicator */}
-          {readOnly && (
-            <div className="rounded-md bg-yellow-50 p-4">
-              <div className="flex">
-                <Icon name="info" className="h-5 w-5 text-yellow-400" aria-hidden="true" />
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">Read-only Access</h3>
-                  <div className="mt-2 text-sm text-yellow-700">
-                    <p>You have read-only access to this workflow. Contact a team admin to make changes.</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </div>
+        )}
+      </ShellMain>
+    </Shell>
   );
 };

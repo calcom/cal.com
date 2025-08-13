@@ -1,13 +1,7 @@
-import Shell from "@calcom/features/shell/Shell";
-
 import { WorkflowBuilder } from "../components/workflow_builder";
 
-const WorkflowBuilderPage = () => {
-  return (
-    <Shell>
-      <WorkflowBuilder />
-    </Shell>
-  );
+const WorkflowBuilderPage = ({ workflow }: { workflow: number }) => {
+  return <WorkflowBuilder workflowId={workflow} />;
 };
 
 export default WorkflowBuilderPage;

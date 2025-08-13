@@ -77,14 +77,25 @@ const determineScheduledTimestamp = (
   const timeUnitNormalized: timeUnitLowerCase | undefined =
     timeOffset.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
 
-  if (triggerType === WorkflowTriggerEvents.BEFORE_EVENT) {
-    return timeOffset.time && timeUnitNormalized
-      ? dayjs(eventStart).subtract(timeOffset.time, timeUnitNormalized)
-      : null;
-  } else if (triggerType === WorkflowTriggerEvents.AFTER_EVENT) {
-    return timeOffset.time && timeUnitNormalized
-      ? dayjs(eventEnd).add(timeOffset.time, timeUnitNormalized)
-      : null;
+  // Handle time-based scheduling for all trigger types
+  if (timeOffset.time && timeUnitNormalized) {
+    switch (triggerType) {
+      case WorkflowTriggerEvents.BEFORE_EVENT:
+        return dayjs(eventStart).subtract(timeOffset.time, timeUnitNormalized);
+
+      case WorkflowTriggerEvents.AFTER_EVENT:
+        return dayjs(eventEnd).add(timeOffset.time, timeUnitNormalized);
+
+      case WorkflowTriggerEvents.NEW_EVENT:
+      case WorkflowTriggerEvents.EVENT_CANCELLED:
+      case WorkflowTriggerEvents.RESCHEDULE_EVENT:
+        // For traditionally immediate events, schedule relative to event start time
+        // You can modify this logic based on your specific requirements
+        return dayjs(eventStart).add(timeOffset.time, timeUnitNormalized);
+
+      default:
+        return null;
+    }
   }
 
   return null;
@@ -498,6 +509,8 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
   } = params;
 
   const { startTime, endTime, uid: eventUid } = evt;
+
+  // Always calculate scheduled timestamp, even for traditionally immediate events
   const scheduledTimestamp = determineScheduledTimestamp(triggerEvent, startTime, endTime, timeSpan);
 
   const recipientConfiguration = resolveRecipientDetails(action, evt, sendTo);
@@ -527,17 +540,17 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
 
   const replyToAddress = determineReplyToAddress(sendTo, evt);
 
-  if (
-    triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-    triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  // Determine if this should be immediate or scheduled based on timestamp availability
+  const shouldSendImmediately =
+    !scheduledTimestamp ||
+    (scheduledTimestamp &&
+      (scheduledTimestamp.isBefore(dayjs()) || scheduledTimestamp.isSame(dayjs(), "minute")));
+
+  if (shouldSendImmediately) {
+    // Send immediately for all trigger types when no valid future timestamp exists
     await handleImmediateEmailDispatch(sendTo, emailDispatcher, replyToAddress, triggerEvent);
-  } else if (
-    (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
-      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
-    scheduledTimestamp
-  ) {
+  } else {
+    // Schedule for future delivery when valid timestamp exists
     await handleScheduledEmailDispatch(
       sendTo,
       emailDispatcher,

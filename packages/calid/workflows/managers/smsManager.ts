@@ -73,6 +73,12 @@ const calculateScheduledDateTime = (
       return dayjs(eventStartTime).subtract(time, normalizedUnit);
     case WorkflowTriggerEvents.AFTER_EVENT:
       return dayjs(eventEndTime).add(time, normalizedUnit);
+    case WorkflowTriggerEvents.NEW_EVENT:
+    case WorkflowTriggerEvents.EVENT_CANCELLED:
+    case WorkflowTriggerEvents.RESCHEDULE_EVENT:
+      // For traditionally immediate events, schedule relative to event start time
+      // You can modify this logic based on your specific requirements
+      return dayjs(eventStartTime).add(time, normalizedUnit);
     default:
       return null;
   }
@@ -307,6 +313,8 @@ export const scheduleSMSReminder = async (parameters: ScheduleTextReminderArgs):
   );
 
   const targetAttendee = determineTargetAttendee(actionType, eventData, phoneDestination);
+
+  // Always calculate scheduled dispatch time, even for traditionally immediate events
   const scheduledDispatch = calculateScheduledDateTime(triggerType, eventStart, eventEnd, {
     time: timeConfiguration.time ?? undefined,
     timeUnit: timeConfiguration.timeUnit ?? undefined,
@@ -332,18 +340,14 @@ export const scheduleSMSReminder = async (parameters: ScheduleTextReminderArgs):
 
   if (messageContent.length === 0 || !phoneDestination || !numberVerified) return;
 
-  const immediateEvents: WorkflowTriggerEvents[] = [
-    WorkflowTriggerEvents.NEW_EVENT,
-    WorkflowTriggerEvents.EVENT_CANCELLED,
-    WorkflowTriggerEvents.RESCHEDULE_EVENT,
-  ];
+  // Determine if this should be immediate or scheduled based on timestamp availability
+  const shouldSendImmediately =
+    !scheduledDispatch ||
+    (scheduledDispatch &&
+      (scheduledDispatch.isBefore(dayjs()) || scheduledDispatch.isSame(dayjs(), "minute")));
 
-  const scheduledEvents: WorkflowTriggerEvents[] = [
-    WorkflowTriggerEvents.BEFORE_EVENT,
-    WorkflowTriggerEvents.AFTER_EVENT,
-  ];
-
-  if (immediateEvents.includes(triggerType)) {
+  if (shouldSendImmediately) {
+    // Send immediately for all trigger types when no valid future timestamp exists
     await executeImmediateNotification(
       phoneDestination,
       messageContent,
@@ -352,7 +356,8 @@ export const scheduleSMSReminder = async (parameters: ScheduleTextReminderArgs):
       teamReference,
       eventData.eventType.id
     );
-  } else if (scheduledEvents.includes(triggerType) && scheduledDispatch) {
+  } else {
+    // Schedule for future delivery when valid timestamp exists
     if (typeof stepReference === "number") {
       await processScheduledReminder(
         phoneDestination,

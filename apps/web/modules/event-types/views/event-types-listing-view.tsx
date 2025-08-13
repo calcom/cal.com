@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@calid/features/ui";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -50,7 +51,6 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calid/features/ui";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -978,7 +978,9 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
      * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
      */
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
     localStorage.removeItem("onBoardingRedirect");
     redirectUrl && router.push(redirectUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
