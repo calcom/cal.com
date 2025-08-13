@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails";
 import { RedisService } from "@calcom/features/redis/RedisService";
 
-import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
+import { NoSlotsNotificationService } from "./handleNotificationWhenNoSlots";
 
 vi.mock("@calcom/features/redis/RedisService", () => {
   const mockedRedis = vi.fn();
@@ -84,14 +84,16 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     };
 
     // Call the function with teamId
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
 
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
 
     // Mock length to be one then recall to trigger email
     mocked.lrange.mockResolvedValueOnce([""]);
 
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
+    const service2 = new NoSlotsNotificationService({});
+    await service2.handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalled();
   });
   it("Should not send a notification if the org has them disabled", async () => {
@@ -113,7 +115,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       isValidOrgDomain: true,
     };
 
-    await handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({ eventDetails, orgDetails, teamId: 123 });
 
     expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).not.toHaveBeenCalled();
   });
@@ -153,7 +156,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     mocked.lrange.mockResolvedValueOnce([""]); // This will trigger email sending
 
     // Call with specific teamId
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       teamId: 123, // specific teamId
@@ -205,7 +209,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
 
     mocked.lrange.mockResolvedValueOnce([""]);
 
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       // teamId intentionally omitted
@@ -233,7 +238,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
 
     mocked.lrange.mockResolvedValueOnce([""]);
 
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       teamId: 123,
@@ -263,7 +269,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
       isValidOrgDomain: true,
     };
 
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       teamId: 123,
@@ -318,7 +325,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
 
     mocked.lrange.mockResolvedValueOnce([""]);
 
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       teamId: 123,
@@ -375,7 +383,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
 
     // First notification cycle - simulate having one previous occurrence
     mocked.lrange.mockResolvedValueOnce([""]); // One previous occurrence
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       teamId: 123,
@@ -391,7 +400,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     // This better simulates the real Redis state after the first notification
     mocked.lrange.mockResolvedValueOnce(["", ""]); // Two occurrences now
 
-    await handleNotificationWhenNoSlots({
+    const service2 = new NoSlotsNotificationService({});
+    await service2.handleNotificationWhenNoSlots({
       eventDetails,
       orgDetails,
       teamId: 123,
@@ -436,7 +446,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
 
     // First event type notification
     mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous occurrence for first event
-    await handleNotificationWhenNoSlots({
+    const service = new NoSlotsNotificationService({});
+    await service.handleNotificationWhenNoSlots({
       eventDetails: { ...baseEventDetails, eventSlug: "event1" },
       orgDetails,
       teamId: 123,
@@ -451,7 +462,8 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     // For the second event type, also simulate one previous occurrence
     // This needs to be a separate mock since it's a different key in Redis
     mocked.lrange.mockResolvedValueOnce([""]); // Simulate one previous occurrence for second event
-    await handleNotificationWhenNoSlots({
+    const service2 = new NoSlotsNotificationService({});
+    await service2.handleNotificationWhenNoSlots({
       eventDetails: { ...baseEventDetails, eventSlug: "event2" },
       orgDetails,
       teamId: 123,

@@ -14,6 +14,7 @@ import { eventTypeRepositoryModule } from "../modules/EventType";
 import { featuresRepositoryModule } from "../modules/Features";
 import { filterHostsModule } from "../modules/FilterHosts";
 import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
+import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";
 import { oooRepositoryModule } from "../modules/Ooo";
 import { qualifiedHostsModule } from "../modules/QualifiedHosts";
 import { routingFormResponseRepositoryModule } from "../modules/RoutingFormResponse";
@@ -42,6 +43,7 @@ container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
 container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
 container.load(DI_TOKENS.FILTER_HOSTS_SERVICE_MODULE, filterHostsModule);
 container.load(DI_TOKENS.QUALIFIED_HOSTS_SERVICE_MODULE, qualifiedHostsModule);
+container.load(DI_TOKENS.NO_SLOTS_NOTIFICATION_SERVICE_MODULE, noSlotsNotificationModule);
 
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
