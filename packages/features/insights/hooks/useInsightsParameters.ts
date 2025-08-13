@@ -19,7 +19,7 @@ import {
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsParameters() {
-  const { isAll, teamId, userId } = useInsightsOrgTeams();
+  const { isAll, teamId, userId, scope, selectedTeamId } = useInsightsOrgTeams();
 
   const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
     | number[]
@@ -58,6 +58,8 @@ export function useInsightsParameters() {
     isAll,
     teamId,
     userId,
+    scope,
+    selectedTeamId,
     memberUserIds,
     memberUserId,
     eventTypeId,

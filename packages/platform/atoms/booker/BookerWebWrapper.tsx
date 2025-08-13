@@ -64,7 +64,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
-
   useInitializeBookerStore({
     ...props,
     eventId: props.entity.eventTypeId ?? event?.data?.id,
@@ -78,6 +77,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+  const [month] = useBookerStore((state) => [state.month, state.setMonth], shallow);
 
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
@@ -127,7 +127,10 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       !!bookerLayout.extraDays &&
       dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
     (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
+      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()) ||
+    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
+      (!dayjs(date).isValid() || dayjs().isSame(dayjs(month), "month")) &&
+      dayjs().isAfter(dayjs(month).startOf("month").add(2, "week")));
 
   const monthCount =
     ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
