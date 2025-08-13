@@ -91,25 +91,21 @@ export async function executeAIPhoneCall(payload: string) {
     if (data.userId || data.teamId) {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const creditService = new CreditService();
-      const credits = await creditService.getAllCredits({
+
+      const hasCredits = await creditService.hasAvailableCredits({
         userId: data.userId || undefined,
         teamId: data.teamId || undefined,
       });
 
-      const availableCredits =
-        (credits?.totalRemainingMonthlyCredits || 0) + (credits?.additionalCredits || 0);
-      const requiredCredits = 5;
-
-      if (availableCredits < requiredCredits) {
+      if (!hasCredits) {
         logger.warn(`Insufficient credits for AI phone call`, {
           userId: data.userId,
           teamId: data.teamId,
-          availableCredits,
-          requiredCredits,
           workflowReminderId: data.workflowReminderId,
+          bookingUid: workflowReminder.booking?.uid,
         });
         throw new Error(
-          `Insufficient credits to make AI phone call. Need ${requiredCredits} credits, have ${availableCredits}. Please purchase more credits.`
+          `Insufficient credits to make AI phone call. Please purchase more credits. user: ${data?.userId}, team: ${data?.teamId}`
         );
       }
     }
