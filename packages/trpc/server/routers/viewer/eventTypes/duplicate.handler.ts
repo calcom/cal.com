@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
@@ -165,7 +166,19 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     }
 
     const eventTypeRepo = new EventTypeRepository(prisma);
-    const newEventType = await eventTypeRepo.create(data);
+    let newEventType;
+    try {
+      newEventType = await eventTypeRepo.create(data);
+    } catch (error: unknown) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
+        // unique constraint violation
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Unique constraint violation while creating a duplicate event.",
+        });
+      }
+      throw error;
+    }
 
     // Create custom inputs
     if (customInputs) {
