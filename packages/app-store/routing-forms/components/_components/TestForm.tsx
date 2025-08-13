@@ -133,26 +133,23 @@ export const TestForm = ({
 
     // Create a copy of the route with substituted variables for display
     let displayRoute = route;
-    if (route && form.fields) {
-      // Substitute variables for both eventTypeRedirectUrl and externalRedirectUrl
-      if (route.action.type === "eventTypeRedirectUrl" || route.action.type === "externalRedirectUrl") {
-        const substitutedUrl = substituteVariables(route.action.value, response, form.fields);
-        displayRoute = {
-          ...route,
-          action: {
-            ...route.action,
-            value: substitutedUrl,
-          },
-        };
+    if (route && form.fields && route.action.type === "eventTypeRedirectUrl") {
+      const substitutedUrl = substituteVariables(route.action.value, response, form.fields);
+      displayRoute = {
+        ...route,
+        action: {
+          ...route.action,
+          value: substitutedUrl,
+        },
+      };
 
-        if (route.action.type === "eventTypeRedirectUrl" && "team" in form) {
-          eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-            eventTypeRedirectUrl: substitutedUrl,
-            form,
-            allURLSearchParams: new URLSearchParams(),
-          });
-          setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
-        }
+      if ("team" in form) {
+        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: substitutedUrl,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        });
+        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
       }
     }
 

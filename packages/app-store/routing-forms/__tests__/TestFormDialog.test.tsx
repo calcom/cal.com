@@ -51,6 +51,7 @@ function mockEventTypeRedirectUrlMatchingRoute() {
     action: {
       type: "eventTypeRedirectUrl",
       value: "john/30min",
+      eventTypeId: 123,
     },
   });
 }
@@ -255,6 +256,12 @@ describe("TestFormDialog", () => {
 
     it("submits the form and shows test results for Event Type", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
+      mockFindTeamMembersMatchingAttributeLogicResponse({
+        result: {
+          users: [{ email: "test@example.com" }],
+        },
+        checkedFallback: false,
+      });
       render(
         <TestFormRenderer
           isMobile={true}
@@ -451,7 +458,7 @@ describe("TestFormDialog", () => {
       expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("{name}");
     });
 
-    it("should substitute variables in external redirect URL", async () => {
+    it("should NOT substitute variables in external redirect URL", async () => {
       // Mock a route with variables for external redirect
       mockMatchingRoute({
         action: {
@@ -474,11 +481,9 @@ describe("TestFormDialog", () => {
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("submit"));
 
-      // Verify the URL shows the substituted value with proper slugification
-      expect(screen.getByTestId("test-routing-result")).toHaveTextContent(
-        "https://example.com/user/john-doe"
-      );
-      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("{name}");
+      // Verify the URL shows the variable as-is, without substitution
+      expect(screen.getByTestId("test-routing-result")).toHaveTextContent("https://example.com/user/{name}");
+      expect(screen.getByTestId("test-routing-result")).not.toHaveTextContent("john-doe");
     });
   });
 });
