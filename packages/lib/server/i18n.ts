@@ -33,9 +33,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
     const response = await fetchWithTimeout(
       url,
       {
-        cache: process.env.NODE_ENV === "production" ? "force-cache" : "no-store",
+        cache: "no-store",
       },
-      3000
+      process.env.NODE_ENV === "development" ? 30000 : 3000
     );
 
     if (!response.ok) {

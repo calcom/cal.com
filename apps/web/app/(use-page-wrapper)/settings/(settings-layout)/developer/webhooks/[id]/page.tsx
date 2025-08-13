@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { getTranslate, _generateMetadata } from "app/_utils";
-import { unstable_cache } from "next/cache";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { EditWebhookView } from "@calcom/features/webhooks/pages/webhook-edit-view";
@@ -16,24 +15,12 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
     `/settings/developer/webhooks/${(await params).id}`
   );
 
-const getCachedWebhook = (id?: string) => {
-  const fn = unstable_cache(
-    async () => {
-      return await WebhookRepository.findByWebhookId(id);
-    },
-    undefined,
-    { revalidate: 3600, tags: [`viewer.webhook.get:${id}`] }
-  );
-
-  return fn();
-};
-
 const Page = async ({ params: _params }: PageProps) => {
   const t = await getTranslate();
   const params = await _params;
   const id = typeof params?.id === "string" ? params.id : undefined;
 
-  const webhook = await getCachedWebhook(id);
+  const webhook = await WebhookRepository.findByWebhookId(id);
 
   return (
     <SettingsHeader
