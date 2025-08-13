@@ -75,7 +75,12 @@ import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService"
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { AssignmentReasonEnum } from "@calcom/prisma/enums";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
@@ -2295,6 +2300,45 @@ async function handler(
       webhookData,
       isDryRun,
     });
+
+    const workflowsToTriggerForRequested = workflows.filter(
+      (workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REQUESTED
+    );
+
+    if (workflowsToTriggerForRequested.length > 0) {
+      try {
+        const calendarEventForWorkflow = {
+          ...evt,
+          rescheduleReason,
+          metadata,
+          eventType: {
+            slug: eventType.slug,
+            schedulingType: eventType.schedulingType,
+            hosts: eventType.hosts,
+          },
+          bookerUrl,
+        };
+
+        await scheduleWorkflowReminders({
+          workflows: workflowsToTriggerForRequested,
+          smsReminderNumber: smsReminderNumber || null,
+          calendarEvent: calendarEventForWorkflow,
+          isNotConfirmed: true,
+          isRescheduleEvent: !!rescheduleUid,
+          isFirstRecurringEvent: input.bookingData.allRecurringDates
+            ? input.bookingData.isFirstRecurringSlot
+            : undefined,
+          hideBranding: !!eventType.owner?.hideBranding,
+          seatReferenceUid: evt.attendeeSeatId,
+          isDryRun,
+        });
+      } catch (error) {
+        loggerWithEventDetails.error(
+          "Error while scheduling workflow reminders for booking requested",
+          JSON.stringify({ error })
+        );
+      }
+    }
   }
 
   try {
