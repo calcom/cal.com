@@ -1,6 +1,6 @@
 "use client";
 
-import { Profile } from "@calid/features/ui";
+import { Profile } from "@calid/features/ui/Profile";
 import type { HorizontalTabItemProps } from "@calid/features/ui";
 import { HorizontalTabs } from "@calid/features/ui";
 // import { Button } from "@calcom/ui/components/button";
@@ -82,7 +82,7 @@ const Actions = ({
   return (
     <>
       <div className="flex items-center">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <FormAction
             variant="ghost"
             data-testid="toggle-form"
