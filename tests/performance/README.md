@@ -55,6 +55,65 @@ k6 run tests/performance/stress/booking.js
 k6 run tests/performance/spike/booking.js
 ```
 
+### Running Tests with Docker Script
+
+You can also run the performance tests using the provided `run-k6-local.sh` script.  
+This script automatically detects your operating system (Linux or macOS) and sets up the appropriate Docker flags for running k6 tests.
+
+#### Prerequisites
+
+- Docker installed and running
+- Cal.com running locally (default: `http://localhost:3000`)
+
+#### Usage
+
+From the root of the project, run:
+
+```bash
+./scripts/run-k6-local.sh
+```
+
+You’ll see an interactive menu:
+
+```
+Select a test:
+  1) smoke
+  2) load
+  3) stress
+  4) spike
+  5) all
+  0) exit
+```
+
+Alternatively, you can run directly from the CLI:
+
+```bash
+# Run smoke tests
+./scripts/run-k6-local.sh smoke
+
+# Run all tests
+./scripts/run-k6-local.sh all
+```
+
+#### Customizing
+
+You can override the following environment variables:
+
+```bash
+BASE_URL=http://localhost:3000 \
+TOKEN=your_token_here \
+./scripts/run-k6-local.sh load
+```
+
+Supported env vars:  
+- `BASE_URL`  
+- `TOKEN`  
+- `TEST_USER_FREE`  
+- `TEST_PASSWORD_FREE`  
+- `TEST_USER_PRO`  
+- `TEST_PASSWORD_PRO`
+
+
 ## Test Scenarios
 
 The test suite focuses specifically on the booking flow, which is the most critical user journey in Cal.com:

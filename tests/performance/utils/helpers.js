@@ -14,7 +14,7 @@ export function viewBookingPage(username, eventSlug) {
 
     check(response, {
       "Booking page loaded": (r) => r.status === 200,
-      "Has booking form": (r) => r.body.includes('data-testid="day"') || r.body.includes('booking'),
+      "Has booking form": (r) => r.body.includes('data-testid="day"') || r.body.includes("booking"),
       "Response time acceptable": (r) => r.timings.duration < 5000,
     });
 
