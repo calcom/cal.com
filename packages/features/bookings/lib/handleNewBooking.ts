@@ -1705,7 +1705,6 @@ async function handler(
       changedOrganizer,
       previousHostDestinationCalendar,
       isBookingRequestedReschedule,
-      skipDeleteEventsAndMeetings,
       skipDeleteEventsAndMeetings
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
