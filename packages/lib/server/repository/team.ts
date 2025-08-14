@@ -333,4 +333,22 @@ export class TeamRepository {
       },
     });
   }
+
+  async findParentOrganizationByTeamId(teamId: number) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        isOrganization: true,
+      },
+    });
+  }
 }
