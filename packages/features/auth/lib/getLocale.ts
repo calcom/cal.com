@@ -4,7 +4,9 @@ import type { GetTokenParams } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
 
 import { i18n } from "@calcom/config/next-i18next.config";
-import type { ReadonlyHeaders, ReadonlyRequestCookies } from "@calcom/web/app/_types";
+
+type ReadonlyHeaders = Awaited<ReturnType<typeof import("next/headers").headers>>;
+type ReadonlyRequestCookies = Awaited<ReturnType<typeof import("next/headers").cookies>>;
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
