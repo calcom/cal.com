@@ -550,22 +550,30 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
     const bookingRepo = new BookingRepository(prisma);
+
+    const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+
     const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
       startTime: new Date(dayjs(reqBody.start).utc().format()),
       filterForUnconfirmed: !isConfirmedByDefault,
+      excludeUnpaidBookings: false, // Don't exclude unpaid bookings initially
     });
 
     if (existingBooking) {
+      const isPaidBooking = existingBooking.paid || existingBooking.payment.length === 0;
+
+      const shouldShowPaymentForm = requiresPayment && !isPaidBooking;
+
       const bookingResponse = {
         ...existingBooking,
         user: {
           ...existingBooking.user,
           email: null,
         },
-        paymentRequired: false,
+        paymentRequired: shouldShowPaymentForm,
         seatReferenceUid: "",
       };
 
