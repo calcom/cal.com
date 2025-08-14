@@ -67,6 +67,13 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       label: "after_guests_cal_video_no_show",
     },
   ],
+  "cal-video": [
+    { value: WebhookTriggerEvents.CAL_VIDEO_STARTED, label: "cal_video_started" },
+    { value: WebhookTriggerEvents.CAL_VIDEO_ENDED, label: "cal_video_ended" },
+    { value: WebhookTriggerEvents.CAL_VIDEO_RECORDING_STARTED, label: "cal_video_recording_started" },
+    { value: WebhookTriggerEvents.CAL_VIDEO_RECORDING_STOPPED, label: "cal_video_recording_stopped" },
+    { value: WebhookTriggerEvents.CAL_VIDEO_RECORDING_READY, label: "cal_video_recording_ready" },
+  ],
   "routing-forms": [
     { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
     { value: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT, label: "form_submitted_no_event" },
@@ -218,6 +225,71 @@ function getWebhookVariables(t: (key: string) => string) {
         },
       ],
     },
+    {
+      category: t("webhook_cal_video"),
+      variables: [
+        {
+          name: "calVideo.sessionId",
+          variable: "{{calVideo.sessionId}}",
+          type: "String",
+          description: t("webhook_cal_video_session_id"),
+        },
+        {
+          name: "calVideo.actualDuration",
+          variable: "{{calVideo.actualDuration}}",
+          type: "Number",
+          description: t("webhook_cal_video_actual_duration"),
+        },
+        {
+          name: "calVideo.recordingUrl",
+          variable: "{{calVideo.recordingUrl}}",
+          type: "String",
+          description: t("webhook_cal_video_recording_url"),
+        },
+        {
+          name: "calVideo.participants.length",
+          variable: "{{calVideo.participants.length}}",
+          type: "Number",
+          description: t("webhook_cal_video_participant_count"),
+        },
+        {
+          name: "calVideo.participants.0.name",
+          variable: "{{calVideo.participants.0.name}}",
+          type: "String",
+          description: t("webhook_cal_video_participant_name"),
+        },
+        {
+          name: "calVideo.participants.0.email",
+          variable: "{{calVideo.participants.0.email}}",
+          type: "String",
+          description: t("webhook_cal_video_participant_email"),
+        },
+        {
+          name: "calVideo.participants.0.joinedAt",
+          variable: "{{calVideo.participants.0.joinedAt}}",
+          type: "Datetime",
+          description: t("webhook_cal_video_participant_joined_at"),
+        },
+        {
+          name: "calVideo.participants.0.leftAt",
+          variable: "{{calVideo.participants.0.leftAt}}",
+          type: "Datetime",
+          description: t("webhook_cal_video_participant_left_at"),
+        },
+        {
+          name: "calVideo.videoQuality.resolution",
+          variable: "{{calVideo.videoQuality.resolution}}",
+          type: "String",
+          description: t("webhook_cal_video_resolution"),
+        },
+        {
+          name: "calVideo.videoQuality.connectionQuality",
+          variable: "{{calVideo.videoQuality.connectionQuality}}",
+          type: "String",
+          description: t("webhook_cal_video_connection_quality"),
+        },
+      ],
+    },
   ];
 }
 
@@ -239,8 +311,14 @@ const WebhookForm = (props: {
   onCancel?: () => void;
   noRoutingFormTriggers: boolean;
   selectOnlyInstantMeetingOption?: boolean;
+  enableCalVideoTriggers?: boolean;
 }) => {
-  const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
+  const {
+    apps = [],
+    selectOnlyInstantMeetingOption = false,
+    overrideTriggerOptions,
+    enableCalVideoTriggers = true,
+  } = props;
   const { t } = useLocale();
   const webhookVariables = getWebhookVariables(t);
 
@@ -255,7 +333,24 @@ const WebhookForm = (props: {
       }
     }
   }
+
+  if (enableCalVideoTriggers) {
+    triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["cal-video"]);
+  }
+
   const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
+
+  const groupedTriggerOptions = {
+    booking: translatedTriggerOptions.filter((option) =>
+      WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"].some((core) => core.value === option.value)
+    ),
+    calVideo: translatedTriggerOptions.filter((option) =>
+      WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["cal-video"].some((video) => video.value === option.value)
+    ),
+    routingForms: translatedTriggerOptions.filter((option) =>
+      WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["routing-forms"].some((form) => form.value === option.value)
+    ),
+  };
 
   const getEventTriggers = () => {
     if (props.webhook) return props.webhook.eventTriggers;
@@ -369,6 +464,7 @@ const WebhookForm = (props: {
             </div>
           )}
         />
+
         <Controller
           name="eventTriggers"
           control={formMethods.control}
@@ -379,7 +475,8 @@ const WebhookForm = (props: {
                 <Label className="font-sm text-emphasis font-medium">
                   <>{t("event_triggers")}</>
                 </Label>
-                <Select
+
+                {/* <Select
                   grow
                   options={translatedTriggerOptions}
                   isMulti
@@ -408,7 +505,112 @@ const WebhookForm = (props: {
                       formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
                     }
                   }}
-                />
+                /> */}
+
+                {/* Enhanced UI with grouped options */}
+                <div className="space-y-4">
+                  {/* Core Booking Events */}
+                  <div>
+                    <div className="mb-2 text-sm font-medium text-gray-700">{t("booking_events")}</div>
+                    <Select
+                      grow
+                      options={groupedTriggerOptions.booking}
+                      isMulti
+                      placeholder={t("select_booking_triggers")}
+                      styles={{
+                        indicatorsContainer: (base) => ({
+                          ...base,
+                          alignItems: "flex-start",
+                        }),
+                      }}
+                      value={selectValue.filter((v) =>
+                        groupedTriggerOptions.booking.some((option) => option.value === v.value)
+                      )}
+                      onChange={(selectedBookingEvents) => {
+                        const otherEvents = value.filter(
+                          (v) => !groupedTriggerOptions.booking.some((option) => option.value === v)
+                        );
+                        const newValue = [...otherEvents, ...selectedBookingEvents.map((e) => e.value)];
+                        onChange(newValue);
+
+                        // Handle time section logic
+                        const noShowWebhookTriggerExists = newValue.some(
+                          (trigger) =>
+                            trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                            trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                        );
+
+                        if (noShowWebhookTriggerExists) {
+                          formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
+                          formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
+                            shouldDirty: true,
+                          });
+                        } else {
+                          formMethods.setValue("time", undefined, { shouldDirty: true });
+                          formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Cal Video Events */}
+                  {enableCalVideoTriggers && (
+                    <div>
+                      <div className="mb-2 text-sm font-medium text-gray-700">{t("cal_video_events")}</div>
+                      <Select
+                        grow
+                        options={groupedTriggerOptions.calVideo}
+                        isMulti
+                        placeholder={t("select_cal_video_triggers")}
+                        styles={{
+                          indicatorsContainer: (base) => ({
+                            ...base,
+                            alignItems: "flex-start",
+                          }),
+                        }}
+                        value={selectValue.filter((v) =>
+                          groupedTriggerOptions.calVideo.some((option) => option.value === v.value)
+                        )}
+                        onChange={(selectedCalVideoEvents) => {
+                          const otherEvents = value.filter(
+                            (v) => !groupedTriggerOptions.calVideo.some((option) => option.value === v)
+                          );
+                          const newValue = [...otherEvents, ...selectedCalVideoEvents.map((e) => e.value)];
+                          onChange(newValue);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Routing Forms Events */}
+                  {groupedTriggerOptions.routingForms.length > 0 && (
+                    <div>
+                      <div className="mb-2 text-sm font-medium text-gray-700">{t("routing_form_events")}</div>
+                      <Select
+                        grow
+                        options={groupedTriggerOptions.routingForms}
+                        isMulti
+                        placeholder={t("select_routing_form_triggers")}
+                        styles={{
+                          indicatorsContainer: (base) => ({
+                            ...base,
+                            alignItems: "flex-start",
+                          }),
+                        }}
+                        value={selectValue.filter((v) =>
+                          groupedTriggerOptions.routingForms.some((option) => option.value === v.value)
+                        )}
+                        onChange={(selectedFormEvents) => {
+                          const otherEvents = value.filter(
+                            (v) => !groupedTriggerOptions.routingForms.some((option) => option.value === v)
+                          );
+                          const newValue = [...otherEvents, ...selectedFormEvents.map((e) => e.value)];
+                          onChange(newValue);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             );
           }}

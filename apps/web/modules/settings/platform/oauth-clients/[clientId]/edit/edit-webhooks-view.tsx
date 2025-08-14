@@ -102,6 +102,8 @@ export default function EditOAuthClientWebhooks() {
                 onCancel={() => {
                   router.push("/settings/platform/");
                 }}
+                apps={["cal-video"]}
+                enableCalVideoTriggers={true}
                 noRoutingFormTriggers={true}
                 webhook={
                   webhook

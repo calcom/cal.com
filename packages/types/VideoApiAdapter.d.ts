@@ -45,6 +45,18 @@ export type VideoApiAdapter =
       checkIfRoomNameMatchesInRecording?(roomName: string, recordingId: string): Promise<boolean>;
 
       getMeetingInformation?(roomName: string): Promise<any>;
+
+      triggerVideoStartedWebhook?: (sessionId: string, bookingId: number) => Promise<void>;
+
+      triggerVideoEndedWebhook?: (sessionId: string, bookingId: number, duration: number) => Promise<void>;
+
+      triggerRecordingStartedWebhook?: (sessionId: string, bookingId: number) => Promise<void>;
+
+      triggerRecordingReadyWebhook?: (
+        sessionId: string,
+        bookingId: number,
+        recordingUrl: string
+      ) => Promise<void>;
     }
   | undefined;
 
