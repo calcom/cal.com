@@ -87,8 +87,10 @@ async function handleCallAnalyzed(callData: any) {
 
   const baseCost = call_cost.combined_cost;
   // in cents
-  const creditsToDeduct = Math.ceil(baseCost * 1.8);
-
+  const rawMultiplier = process.env.CAL_AI_CALL_CREDITS_MULTIPLIER ?? "1.8";
+  const multiplier = Number.parseFloat(rawMultiplier);
+  const safeMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1.8;
+  const creditsToDeduct = Math.ceil(baseCost * safeMultiplier);
   const creditService = new CreditService();
 
   await creditService.chargeCredits({

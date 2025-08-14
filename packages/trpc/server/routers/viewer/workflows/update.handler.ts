@@ -334,7 +334,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
           const agent = await ctx.prisma.agent.findUnique({
             where: { id: oldStep.agentId ?? undefined },
-            include: {
+            select: {
+              id: true,
               outboundPhoneNumbers: {
                 select: {
                   id: true,
@@ -376,39 +377,57 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           if (agent.outboundPhoneNumbers) {
             for (const phoneNumber of agent.outboundPhoneNumbers) {
               if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-                phoneNumberOperations.push(
-                  aiPhoneService
-                    .cancelPhoneNumberSubscription({
-                      phoneNumberId: phoneNumber.id,
-                      userId: user.id,
-                    })
-                    .catch((error) => {
-                      const message = `Failed to cancel phone number subscription ${
-                        phoneNumber.phoneNumber
-                      }: ${error instanceof Error ? error.message : "Unknown error"}`;
-                      externalErrors.push(message);
-                      log.error(message);
-                    })
-                );
+                try {
+                  phoneNumberOperations.push(
+                    aiPhoneService
+                      .cancelPhoneNumberSubscription({
+                        phoneNumberId: phoneNumber.id,
+                        userId: user.id,
+                      })
+                      .catch((error) => {
+                        const message = `Failed to cancel phone number subscription ${
+                          phoneNumber.phoneNumber
+                        }: ${error instanceof Error ? error.message : "Unknown error"}`;
+                        externalErrors.push(message);
+                        log.error(message);
+                      })
+                  );
+                } catch (error) {
+                  const message = `Failed to cancel phone number subscription ${phoneNumber.phoneNumber}: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                  }`;
+                  externalErrors.push(message);
+                  log.error(message);
+                  phoneNumberOperations.push(Promise.resolve());
+                }
               } else if (
                 phoneNumber.subscriptionStatus === null ||
                 phoneNumber.subscriptionStatus === undefined
               ) {
-                phoneNumberOperations.push(
-                  aiPhoneService
-                    .deletePhoneNumber({
-                      phoneNumber: phoneNumber.phoneNumber,
-                      userId: user.id,
-                      deleteFromDB: true,
-                    })
-                    .catch((error) => {
-                      const message = `Failed to delete phone number ${phoneNumber.phoneNumber}: ${
-                        error instanceof Error ? error.message : "Unknown error"
-                      }`;
-                      externalErrors.push(message);
-                      log.error(message);
-                    })
-                );
+                try {
+                  phoneNumberOperations.push(
+                    aiPhoneService
+                      .deletePhoneNumber({
+                        phoneNumber: phoneNumber.phoneNumber,
+                        userId: user.id,
+                        deleteFromDB: true,
+                      })
+                      .catch((error) => {
+                        const message = `Failed to delete phone number ${phoneNumber.phoneNumber}: ${
+                          error instanceof Error ? error.message : "Unknown error"
+                        }`;
+                        externalErrors.push(message);
+                        log.error(message);
+                      })
+                  );
+                } catch (error) {
+                  const message = `Failed to delete phone number ${phoneNumber.phoneNumber}: ${
+                    error instanceof Error ? error.message : "Unknown error"
+                  }`;
+                  externalErrors.push(message);
+                  log.error(message);
+                  phoneNumberOperations.push(Promise.resolve());
+                }
               }
               // Skip cancelled phone numbers - they don't need any action
             }

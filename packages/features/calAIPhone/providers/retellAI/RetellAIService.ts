@@ -74,7 +74,9 @@ export class RetellAIService {
     return this.phoneNumberService.importPhoneNumber(data);
   }
 
-  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<RetellPhoneNumber> {
+  async createPhoneNumber(
+    data: AIPhoneServiceCreatePhoneNumberParams
+  ): Promise<RetellPhoneNumber & { provider: string }> {
     return this.phoneNumberService.createPhoneNumber(data);
   }
 

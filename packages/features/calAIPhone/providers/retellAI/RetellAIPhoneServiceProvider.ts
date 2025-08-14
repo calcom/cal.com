@@ -113,7 +113,7 @@ export class RetellAIPhoneServiceProvider
 
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams<AIPhoneServiceProviderType.RETELL_AI>
-  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> & { provider: string }> {
     const result = await this.service.createPhoneNumber({
       area_code: data.area_code,
       nickname: data.nickname,

@@ -57,9 +57,10 @@ function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutS
 
   const result = checkoutSessionMetadataSchema.safeParse(session.metadata);
   if (!result.success) {
+    log.error(`Invalid checkout session metadata: ${safeStringify(result.error.issues)}`);
     throw new HttpError({
       statusCode: 400,
-      message: `Invalid checkout session metadata: ${result.error}`,
+      message: "Invalid checkout session metadata",
     });
   }
 

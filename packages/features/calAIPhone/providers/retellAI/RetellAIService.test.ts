@@ -614,7 +614,10 @@ describe("RetellAIService", () => {
         nickname: "Test Phone",
       });
 
-      expect(result).toEqual(mockPhoneNumber);
+      expect(result).toEqual({
+        ...mockPhoneNumber,
+        provider: "retellAI",
+      });
       expect(mockRepository.createPhoneNumber).toHaveBeenCalledWith({
         area_code: 415,
         nickname: "Test Phone",

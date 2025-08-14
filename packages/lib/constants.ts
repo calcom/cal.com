@@ -233,7 +233,8 @@ export const NEXTJS_CACHE_TTL = 3600; // 1 hour
 
 export const DEFAULT_GROUP_ID = "default_group_id";
 
-export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = parseInt(
-  process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE || "5",
-  10
-);
+const _rawCalAiPrice = process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE;
+export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = (() => {
+  const parsed = _rawCalAiPrice !== undefined ? Number(_rawCalAiPrice) : NaN;
+  return Number.isFinite(parsed) ? parsed : 5;
+})();

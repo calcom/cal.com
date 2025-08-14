@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
-import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -26,8 +26,8 @@ export class AgentService {
     private agentRepository: AgentRepositoryInterface
   ) {}
 
-  private async generateUniqueAPIKey({ userId, teamId }: { userId: number; teamId?: number }) {
-    const [hashedApiKey, apiKey] = generateUniqueAPIKey();
+  private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
+    const [hashedApiKey, apiKey] = generateHashedApiKey();
     await prisma.apiKey.create({
       data: {
         id: uuidv4(),
@@ -99,32 +99,41 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new Error("Agent does not have an LLM configured.");
+        throw new HttpError({
+          statusCode: 404,
+          message: "Agent does not have an LLM configured.",
+        });
       }
       const llmDetails = await this.retellRepository.getLLM(llmId);
 
       if (!llmDetails) {
-        throw new Error("LLM details not found.");
+        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
       }
 
-      const doesEventTypeIdExist = llmDetails.general_tools?.find(
-        (tool) =>
-          "event_type_id" in tool &&
-          tool.event_type_id === data.eventTypeId &&
-          tool.type === "check_availability_cal"
+      const existing: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>[] =
+        llmDetails.general_tools ?? [];
+
+      const hasCheckAvailability = existing.some(
+        (t) => t.type === "check_availability_cal" && t.event_type_id === data.eventTypeId
       );
 
-      if (doesEventTypeIdExist) {
+      if (hasCheckAvailability) {
         // If the event type ID does exist in the general tools, we don't need to update the agent general tools
         return;
       }
 
-      const apiKey = await this.generateUniqueAPIKey({
-        userId: data.userId,
-        teamId: data.teamId || undefined,
-      });
+      const reusableKey = existing.find(
+        (t) => "cal_api_key" in t && typeof t.cal_api_key === "string"
+      )?.cal_api_key;
 
-      const newGeneralTools: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI> = [
+      const apiKey =
+        reusableKey ??
+        (await this.createApiKey({
+          userId: data.userId,
+          teamId: data.teamId || undefined,
+        }));
+
+      const newGeneralTools: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>[] = [
         {
           type: "end_call",
           name: "end_call",
@@ -146,15 +155,16 @@ export class AgentService {
         },
       ];
 
-      await this.retellRepository.updateLLM(llmId, {
-        general_tools: newGeneralTools,
-      });
+      await this.retellRepository.updateLLM(llmId, { general_tools: newGeneralTools });
     } catch (error) {
       this.logger.error("Failed to update agent general tools in external AI service", {
         agentId,
         error,
       });
-      throw new Error(`Failed to update agent general tools ${agentId}`);
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to update agent general tools ${agentId}`,
+      });
     }
   }
 
@@ -169,11 +179,11 @@ export class AgentService {
     }
   ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new Error("Agent ID is required and cannot be empty");
+      throw new HttpError("Agent ID is required and cannot be empty");
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new Error("Update data is required");
+      throw new HttpError({ statusCode: 400, message: "Update data is required" });
     }
 
     try {
@@ -185,7 +195,10 @@ export class AgentService {
         data,
         error,
       });
-      throw new Error(`Failed to update agent ${agentId}`);
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to update agent ${agentId}`,
+      });
     }
   }
 

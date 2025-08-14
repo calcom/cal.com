@@ -378,9 +378,7 @@ export function AgentConfigurationSheet({
             <SheetTitle className="mb-6">{t("cal_ai_agent_configuration")}</SheetTitle>
             <ToggleGroup
               onValueChange={(val) => {
-                if (val) {
-                  setActiveTab(val as "prompt" | "phoneNumber");
-                }
+                setActiveTab((val || "prompt") as "prompt" | "phoneNumber");
               }}
               value={activeTab}
               options={[
@@ -548,7 +546,9 @@ export function AgentConfigurationSheet({
                                 !phone.subscriptionStatus
                             )[0].subscriptionStatus && (
                               <span className="text-muted text-xs">
-                                {t("phone_number_cost", { price: 5 })}
+                                {t("phone_number_cost", {
+                                  price: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
+                                })}
                               </span>
                             )}
                           </div>
@@ -667,7 +667,9 @@ export function AgentConfigurationSheet({
             <div className="mb-4">
               <h3 className="text-emphasis text-lg font-bold">{t("buy_new_number")}</h3>
               <p className="text-default text-sm">
-                {t("buy_number_cost_x_per_month", { priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE })}
+                {t("buy_number_cost_x_per_month", {
+                  priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
+                })}
               </p>
             </div>
             <BaseDialogFooter showDivider className="relative">
@@ -685,7 +687,9 @@ export function AgentConfigurationSheet({
                 }
                 loading={buyNumberMutation.isPending}
                 disabled={buyNumberMutation.isPending}>
-                {t("buy_number_for_x_per_month", { priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE })}
+                {t("buy_number_for_x_per_month", {
+                  priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE,
+                })}
               </Button>
             </BaseDialogFooter>
           </div>
@@ -859,7 +863,7 @@ export function AgentConfigurationSheet({
 
             <BaseDialogFooter showDivider className="relative">
               <Button onClick={() => setIsImportDialogOpen(false)} color="secondary">
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
               <Button
                 type="submit"
