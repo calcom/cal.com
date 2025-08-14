@@ -1,7 +1,3 @@
-import { Badge } from "@calid/features/ui/components/badge";
-import { Button, buttonClasses } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon/Icon";
-import { Popover, PopoverContent, PopoverTrigger } from "@calid/features/ui/components/popover";
 import { format } from "date-fns";
 import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
@@ -9,6 +5,8 @@ import { useState, useEffect, useCallback } from "react";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
   CommandList,
@@ -17,6 +15,8 @@ import {
   CommandSeparator,
 } from "@calcom/ui/components/command";
 import { DateRangePicker } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import {
@@ -154,38 +154,22 @@ export const DateRangeFilter = ({
       <PopoverTrigger asChild>
         <Button
           color="secondary"
-          className="flex items-center space-x-2"
-          data-testid={`filter-popover-trigger-${column.id}`}>
-          <Icon name="calendar-range" className="h-4 w-4" />
-
-          {showColumnName && <></>}
-          {!showColumnName && <span>{selectedValue}</span>}
-
-          {/* <Badge variant="gray" className="ml-2">
-                {selectedValue}
-              </Badge> */}
-
-          <Icon name="chevron-down" className="h-4 w-4" />
-        </Button>
-
-        <Button
-          color="secondary"
+          className="items-center capitalize"
           StartIcon="calendar-range"
           EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>
-          {showColumnName ? (
+          {showColumnName && (
             <>
               <span>{column.title}</span>
-              <Badge variant="secondary" className="ml-2">
+              <Badge variant="gray" className="ml-2">
                 {selectedValue}
               </Badge>
             </>
-          ) : (
-            <span>{selectedValue}</span>
           )}
+          {!showColumnName && <span>{selectedValue}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="flex w-fit p-1" align="end">
+      <PopoverContent className="flex w-fit p-0" align="end">
         {isCustomPreset && (
           <div className="border-subtle border-r">
             <DateRangePicker

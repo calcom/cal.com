@@ -1,8 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
-import { Button } from "@calid/features/ui/components/button";
 import startCase from "lodash/startCase";
 
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import type { IconName } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 
@@ -140,23 +140,13 @@ export function FilterPopover({ column }: FilterPopoverProps) {
       <PopoverTrigger asChild>
         <Button
           color="secondary"
-          className="flex items-center space-x-2"
+          className="h-[34px] items-center"
+          StartIcon={icon}
+          EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>
-          <Icon name={icon} className="h-4 w-4" />
-
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />
-
-          <Icon name="chevron-down" className="h-4 w-4" />
         </Button>
-
-        {/* <Button
-          color="secondary"
-          className="h-[34px] items-center"
-          StartIcon={}
-          EndIcon=""
-          >
-        </Button> */}
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">
         <FilterOptions column={column} />

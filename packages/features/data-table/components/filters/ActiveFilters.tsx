@@ -1,7 +1,6 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { useEffect } from "react";
 // eslint-disable-next-line no-restricted-imports
 import { Fragment } from "react";
 
@@ -16,15 +15,8 @@ interface ActiveFiltersProps<TData> {
 }
 
 export function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
-  const { activeFilters, addFilter } = useDataTable();
+  const { activeFilters } = useDataTable();
   const filterableColumns = useFilterableColumns(table);
-
-  useEffect(() => {
-    console.log("Active filters:", activeFilters);
-    filterableColumns.forEach((column) => {
-      addFilter(column.id);
-    });
-  }, [filterableColumns, activeFilters, addFilter]); // Empty dependency array means this runs once on mount
 
   return (
     <>
@@ -38,7 +30,7 @@ export function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
               key={column.id}
               column={column}
               options={column.dateRangeOptions}
-              showColumnName={false}
+              showColumnName
               showClearButton
             />
           );

@@ -281,7 +281,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/event-types"
-      className="hover:bg-emphasis todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-2 py-4 text-sm font-medium leading-4 transition"
+      className="hover:bg-emphasis todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group flex h-6 max-h-6 w-full flex-row items-center rounded-md px-2 py-4 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
@@ -562,7 +562,7 @@ const SettingsSidebarContainer = ({
       )}
       aria-label={t("settings_navigation")}>
       <>
-        <Logo className="px-2 py-4" small icon />
+        <Logo className="my-4 px-2" small icon />
         <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return (
@@ -593,7 +593,6 @@ const SettingsSidebarContainer = ({
                           tab.children && index === tab.children?.length - 1 && "!mb-3"
                         }`}
                         disableChevron
-                        icon={child.icon}
                       />
                     ))}
                   </div>

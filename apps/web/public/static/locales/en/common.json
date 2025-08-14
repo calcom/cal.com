@@ -1081,7 +1081,7 @@
   "visit_roadmap": "Roadmap",
   "featured_categories": "Featured Categories",
   "feature_flags": "Feature Flags",
-  "admin_flags_description": "Here you can toggle your Cal.com instance features.",
+  "admin_flags_description": "Here you can toggle your Cal ID instance features.",
   "popular_categories": "Popular Categories",
   "number_apps_one": "{{count}} App",
   "number_apps_other": "{{count}} Apps",

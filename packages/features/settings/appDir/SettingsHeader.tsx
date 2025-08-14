@@ -1,8 +1,8 @@
 import { Profile } from "@calid/features/ui/Profile";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -27,7 +27,7 @@ export default function Header({
     <div>
       <header
         className={classNames(
-          "border-subtle mx-auto mb-4 block justify-between sm:flex",
+          "border-subtle mx-auto block justify-between sm:flex lg:mb-8",
           borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>

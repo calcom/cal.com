@@ -98,7 +98,7 @@ export const NavigationItem: React.FC<{
               "[&[aria-current='page']]:bg-emphasis",
               "[&[aria-current='page']]:text-emphasis mt-1.5 text-sm",
               isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
             )}>
             {item.icon && (
@@ -134,7 +134,7 @@ export const NavigationItem: React.FC<{
             className={classNames(
               "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               item.child
-                ? `[&[aria-current='page']]:!bg-transparent`
+                ? `[&[aria-current='page']]:bg-emphasis`
                 : `[&[aria-current='page']]:bg-active [&[aria-current='page']]:text-white`,
               isChild
                 ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
@@ -142,7 +142,7 @@ export const NavigationItem: React.FC<{
                   }`
                 : "mt-1.5 text-sm [&[aria-current='page']]:text-white",
               isLocaleReady
-                ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : ""
             )}
             aria-current={current ? "page" : undefined}>

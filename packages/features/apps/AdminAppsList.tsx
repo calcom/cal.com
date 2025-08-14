@@ -158,9 +158,7 @@ const AdminAppsList = ({
   return (
     <form
       {...rest}
-      className={
-        classNames?.form ?? "bg-default max-w-80 mb-4 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
-      }
+      className={classNames?.form ?? "bg-default mb-4 w-full rounded-md px-0 pt-0 md:pt-10"}
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
@@ -172,7 +170,7 @@ const AdminAppsList = ({
         classNames={{
           root: className,
           verticalTabsItem: classNames?.verticalTabsItem,
-          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? "max-w-[500px]"),
+          container: cs("min-w-0 w-full", classNames?.appCategoryNavigationContainer ?? ""),
         }}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>
