@@ -92,6 +92,7 @@
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
+    "@types/fluent-ffmpeg": "^2.1.26",
     "@vitest/ui": "^2.1.1",
     "c8": "^7.13.0",
     "checkly": "latest",
@@ -115,6 +116,7 @@
     "vitest-mock-extended": "^2.0.2"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
     "@daily-co/daily-js": "^0.76.0",
     "@evyweb/ioctopus": "^1.2.0",
     "@next/third-parties": "^14.2.5",
@@ -123,6 +125,8 @@
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
     "eslint": "^8.34.0",
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.3",
     "p-limit": "^6.2.0",
     "turbo": "^2.5.5"
   },

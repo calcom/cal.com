@@ -12,14 +12,16 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
   calEvent: CalendarEvent;
   attendee: Person;
   downloadLink: string;
+  gifThumbnailUrl?: string;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee: Person, downloadLink: string) {
+  constructor(calEvent: CalendarEvent, attendee: Person, downloadLink: string, gifThumbnailUrl?: string) {
     super();
     this.name = "SEND_RECORDING_DOWNLOAD_LINK";
     this.calEvent = calEvent;
     this.attendee = attendee;
     this.downloadLink = downloadLink;
+    this.gifThumbnailUrl = gifThumbnailUrl;
     this.t = attendee.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
@@ -40,6 +42,7 @@ export default class AttendeeDailyVideoDownloadRecordingEmail extends BaseEmail 
         downloadLink: this.downloadLink,
         language: this.t,
         name: this.attendee.name,
+        gifThumbnailUrl: this.gifThumbnailUrl,
       }),
     };
   }

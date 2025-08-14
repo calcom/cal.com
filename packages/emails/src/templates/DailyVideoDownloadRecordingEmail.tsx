@@ -10,6 +10,7 @@ interface DailyVideoDownloadRecordingEmailProps {
   title: string;
   date: string;
   name: string;
+  gifThumbnailUrl?: string;
 }
 
 export const DailyVideoDownloadRecordingEmail = (
@@ -57,6 +58,28 @@ export const DailyVideoDownloadRecordingEmail = (
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "40px" }}>
         <>{props.language("recording_from_your_recent_call", { appName: APP_NAME })}</>
       </p>
+
+      {props.gifThumbnailUrl && (
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <a href={props.downloadLink} style={{ textDecoration: "none" }}>
+            <img
+              src={props.gifThumbnailUrl}
+              alt={props.language("recording_preview")}
+              style={{
+                maxWidth: "480px",
+                width: "100%",
+                height: "auto",
+                borderRadius: "8px",
+                border: "2px solid #e5e7eb",
+                cursor: "pointer",
+              }}
+            />
+          </a>
+          <p style={{ fontSize: "14px", color: "#6b7280", marginTop: "8px", lineHeight: "20px" }}>
+            {props.language("click_gif_to_download")}
+          </p>
+        </div>
+      )}
 
       <div
         style={{

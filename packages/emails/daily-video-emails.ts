@@ -32,17 +32,26 @@ export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, tr
   await Promise.all(emailsToSend);
 };
 
-export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+export const sendDailyVideoRecordingEmails = async (
+  calEvent: CalendarEvent,
+  downloadLink: string,
+  gifThumbnailUrl?: string
+) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
-    sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calendarEvent, downloadLink))
+    sendEmail(
+      () => new OrganizerDailyVideoDownloadRecordingEmail(calendarEvent, downloadLink, gifThumbnailUrl)
+    )
   );
 
   for (const attendee of calendarEvent.attendees) {
     emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
+      sendEmail(
+        () =>
+          new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink, gifThumbnailUrl)
+      )
     );
   }
   await Promise.all(emailsToSend);
