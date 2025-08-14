@@ -100,8 +100,13 @@ export function FilterSegmentSelect() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button color="secondary" StartIcon="list-filter" EndIcon="chevron-down" disabled>
-        {t("segment")}
+      <Button
+        color="secondary"
+        disabled
+        className="flex items-center space-x-2"
+        data-testid="save-filter-segment-button">
+        <Icon name="bookmark" className="h-4 w-4" />
+        <span>{t("segment")}</span>
       </Button>
     );
   }
@@ -112,10 +117,11 @@ export function FilterSegmentSelect() {
         <DropdownMenuTrigger asChild>
           <Button
             color="secondary"
-            StartIcon="list-filter"
-            EndIcon="chevron-down"
+            className="flex items-center space-x-2"
             data-testid="filter-segment-select">
-            {selectedSegment?.name || t("segment")}
+            <Icon name="list-filter" className="h-4 w-4" />
+            <span>{selectedSegment?.name || t("segment")}</span>
+            <Icon name="chevron-down" className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
 

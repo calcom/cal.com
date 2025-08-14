@@ -62,8 +62,15 @@
   --cal-bg-subtle: hsla(220, 14%, 94%, 1); /* gray.100 - hovering on items, subtle raising */
   --cal-bg-muted: hsla(210, 20%, 97%, 1); /* gray.50 - large items, sidebar, sections */
   --cal-bg-inverted: hsla(210, 30%, 4%, 1); /* gray.900 - tooltips */
-  --cal-bg-gradient: linear-gradient(hsla(213, 100%, 97%, 1), hsla(229, 100%, 97%, 1), hsla(270, 100%, 98%, 1));
+  --cal-bg-gradient: linear-gradient(
+    hsla(213, 100%, 97%, 1),
+    hsla(229, 100%, 97%, 1),
+    hsla(270, 100%, 98%, 1)
+  );
   --cal-bg-active: hsla(207, 100%, 45%, 1); /* active tabs */
+  --cal-bg-active-dim: hsla(207, 100%, 45%, 0.2); /* active tabs */
+  --cal-bg-destructive: hsla(4, 61%, 49%, 1); /* destructive elements */
+  --cal-bg-destructive-dim: hsla(4, 61%, 49%, 0.1); /* destructive elements */
 
   /* Background Primary */
   --cal-bg-primary: hsla(214, 30%, 16%, 1); /* stone-100 */
@@ -164,7 +171,11 @@
   --cal-bg-subtle: hsla(0, 0%, 15%, 1); /* stone-800 */
   --cal-bg-muted: hsla(0, 0%, 9%, 1); /* stone-900 */
   --cal-bg-inverted: hsla(0, 0%, 98%, 1); /* stone-50 */
-  --cal-id-bg-gradient: linear-gradient(hsla(213, 100%, 97%, 1), hsla(229, 100%, 97%, 1), hsla(270, 100%, 98%, 1));
+  --cal-id-bg-gradient: linear-gradient(
+    hsla(213, 100%, 97%, 1),
+    hsla(229, 100%, 97%, 1),
+    hsla(270, 100%, 98%, 1)
+  );
 
   /* Background Primary */
   --cal-bg-primary: hsla(0, 0%, 96%, 1); /* stone-100 */
@@ -374,8 +385,8 @@ html.todesktop.dark {
 [multiple]:focus,
 textarea:focus,
 select:focus {
-  --tw-ring-color: var(--brand-color);
-  border-color: var(--brand-color);
+  --tw-ring-color: var(--cal-bg-subtle);
+  border-color: var(--cal-bg-subtle);
 }
 
 @layer components {
@@ -669,4 +680,39 @@ select:focus {
 
 .border-active {
   border-color: var(--cal-border-active);
+}
+.bg-cal-active-dim {
+  background-color: var(--cal-bg-active-dim);
+}
+
+.text-cal-active {
+  color: var(--cal-bg-active);
+}
+
+.bg-cal-destructive {
+  background-color: var(--cal-bg-destructive);
+}
+
+.bg-cal-destructive-dim {
+  background-color: var(--cal-bg-destructive-dim);
+}
+
+.text-cal-destructive {
+  color: var(--cal-text-destructive);
+}
+
+.ring {
+  color: var(--cal-bg-active);
+}
+
+.border-active {
+  border-color: var(--cal-bg-active);;
+}
+
+.border-destructive {
+  border-color: var(--cal-bg-destructive);;
+}
+
+.data-\[state\=checked\]\:cal-bg-active[data-state="checked"] {
+  background-color: var(--cal-bg-active);
 }

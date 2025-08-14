@@ -66,8 +66,12 @@ export function DataTable<TData>({
   rowClassName,
   paginationMode = "infinite",
   hasWrapperContext = false,
+  showHeader = true,
   ...rest
-}: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
+}: DataTableProps<TData> &
+  React.ComponentPropsWithoutRef<"div"> & {
+    showHeader?: boolean;
+  }) {
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtualizer({
@@ -107,7 +111,7 @@ export function DataTable<TData>({
   return (
     <div
       className={classNames(
-        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        // !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
         className
       )}
       style={{
@@ -148,42 +152,44 @@ export function DataTable<TData>({
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
-          <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
-            {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
-              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full border-none">
-                {headerGroup.headers.map((header: Header<TData, unknown>) => {
-                  const { column } = header;
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                        ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
-                        width: `var(--header-${kebabCase(header?.id)}-size)`,
-                      }}
-                      className={classNames(
-                        "relative flex shrink-0 items-center",
-                        "bg-muted",
-                        column.getIsPinned() && "top-0 z-20 sm:sticky"
-                      )}>
-                      <TableHeadLabel header={header} />
-                      {Boolean(enableColumnResizing) && header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={classNames(
-                            "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                            header.column.getIsResizing() && "!opacity-75"
-                          )}>
-                          <div className="bg-inverted mx-auto h-full w-[1px]" />
-                        </div>
-                      )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
+          {showHeader && (
+            <TableHeader className={classNames("sticky top-0 z-10", headerClassName)}>
+              {table.getHeaderGroups().map((headerGroup: HeaderGroup<TData>) => (
+                <TableRow key={headerGroup.id} className="flex w-full border-none">
+                  {headerGroup.headers.map((header: Header<TData, unknown>) => {
+                    const { column } = header;
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                          ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
+                          width: `var(--header-${kebabCase(header?.id)}-size)`,
+                        }}
+                        className={classNames(
+                          "relative flex shrink-0 items-center",
+                          "bg-muted",
+                          column.getIsPinned() && "top-0 z-20 sm:sticky"
+                        )}>
+                        <TableHeadLabel header={header} />
+                        {Boolean(enableColumnResizing) && header.column.getCanResize() && (
+                          <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={classNames(
+                              "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0",
+                              header.column.getIsResizing() && "!opacity-75"
+                            )}>
+                            <div className="bg-inverted mx-auto h-full w-[1px]" />
+                          </div>
+                        )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+          )}
           {/* When resizing any column we will render this special memoized version of our table body */}
           {table.getState().columnSizingInfo.isResizingColumn ? (
             <MemoizedTableBody
@@ -287,10 +293,7 @@ function DataTableBody<TData>({
   }
 
   return (
-    <TableBody
-      className="border-subtle relative grid border-t"
-      data-testid={testId}
-      style={{ height: tableHeight }}>
+    <TableBody className="relative grid" data-testid={testId} style={{ height: tableHeight }}>
       {rowsToRender.map(({ row, virtualItem }) => (
         <TableRow
           ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
@@ -306,7 +309,7 @@ function DataTableBody<TData>({
               width: "100%",
             }),
           }}
-          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+          className={classNames(onRowMouseclick && "group", rowClassName)}>
           {row.getVisibleCells().map((cell) => {
             const column = cell.column;
             return (

@@ -2,7 +2,7 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -24,9 +24,13 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+
+import {Icon} from "@calcom/ui/components/icon"
+import {Button} from "@calid/features/ui"
+
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
-import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import type { HorizontalTabItemProps } from "@calid/features/ui";
+import { HorizontalTabs } from "@calid/features/ui";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -79,6 +83,7 @@ type RowData =
 function BookingsContent({ status }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const [expandedBooking, setExpandedBooking] = useState<number | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
@@ -127,9 +132,10 @@ function BookingsContent({ status }: BookingsProps) {
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
-  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
+  // const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
 
   const { limit, offset } = useDataTable();
+  const [showFilters, setShowFilters] = useState(false);
 
   const query = trpc.viewer.bookings.get.useQuery({
     limit,
@@ -141,7 +147,7 @@ function BookingsContent({ status }: BookingsProps) {
       userIds,
       attendeeName,
       attendeeEmail,
-      bookingUid,
+      // bookingUid,
       afterStartDate: dateRange?.startDate
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
@@ -228,21 +234,21 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
-        id: "bookingUid",
-        header: t("booking_uid"),
-        enableColumnFilter: true,
-        enableSorting: false,
-        cell: () => null,
-        meta: {
-          filter: {
-            type: ColumnFilterType.TEXT,
-            textOptions: {
-              allowedOperators: ["equals"],
-            },
-          },
-        },
-      }),
+      // columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+      //   id: "bookingUid",
+      //   header: t("booking_uid"),
+      //   enableColumnFilter: true,
+      //   enableSorting: false,
+      //   cell: () => null,
+      //   meta: {
+      //     filter: {
+      //       type: ColumnFilterType.TEXT,
+      //       textOptions: {
+      //         allowedOperators: ["equals"],
+      //       },
+      //     },
+      //   },
+      // }),
       columnHelper.display({
         id: "customView",
         cell: (props) => {
@@ -250,7 +256,7 @@ function BookingsContent({ status }: BookingsProps) {
             const { booking, recurringInfo, isToday } = props.row.original;
             return (
               <BookingListItem
-                key={booking.id}
+                key={booking.id && expandedBooking}
                 isToday={isToday}
                 loggedInUser={{
                   userId: user?.id,
@@ -261,17 +267,19 @@ function BookingsContent({ status }: BookingsProps) {
                 listingStatus={status}
                 recurringInfo={recurringInfo}
                 {...booking}
+                expandedBooking={expandedBooking}
+                setExpandedBooking={setExpandedBooking}
               />
             );
           } else if (props.row.original.type === "today") {
             return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+              <p className="w-full py-2 pl-2 text-sm font-semibold uppercase leading-4">
                 {t("today")}
               </p>
             );
           } else if (props.row.original.type === "next") {
             return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+              <p className="w-full py-2 pl-2 text-sm font-semibold capitalize leading-4">
                 {t("next")}
               </p>
             );
@@ -279,7 +287,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t]);
+  }, [user, status, t, expandedBooking]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
@@ -365,7 +373,7 @@ function BookingsContent({ status }: BookingsProps) {
         attendeeName: false,
         attendeeEmail: false,
         dateRange: false,
-        bookingUid: false,
+        // bookingUid: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -382,6 +390,16 @@ function BookingsContent({ status }: BookingsProps) {
             name: t(tab.name),
           }))}
         />
+
+        <div className="flex h-[32px] flex-row gap-4 ">
+          <Button color="secondary" onClick={() => setShowFilters(!showFilters)} className="flex items-center space-x-2">
+              <Icon name="filter" className="h-4 w-4" />
+              <span>{t("filter")}</span>
+            </Button>
+
+          <DataTableSegment.SaveButton />
+          <DataTableSegment.Select />
+        </div>
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
@@ -406,14 +424,12 @@ function BookingsContent({ status }: BookingsProps) {
                 paginationMode="standard"
                 ToolbarLeft={
                   <>
-                    <DataTableFilters.FilterBar table={table} />
-                  </>
-                }
-                ToolbarRight={
-                  <>
-                    <DataTableFilters.ClearFiltersButton />
-                    <DataTableSegment.SaveButton />
-                    <DataTableSegment.Select />
+                    {showFilters && (
+                      <div className="p-4 bg-muted rounded-md flex flex-row gap-2">
+                        <DataTableFilters.FilterBar table={table} />
+                        <DataTableFilters.ClearFiltersButton />
+                      </div>
+                    )}
                   </>
                 }
                 LoaderView={<SkeletonLoader />}

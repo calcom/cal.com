@@ -1,3 +1,4 @@
+import { Profile } from "@calid/features/ui/Profile";
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
@@ -26,7 +27,7 @@ export default function Header({
     <div>
       <header
         className={classNames(
-          "border-subtle mx-auto block justify-between sm:flex",
+          "border-subtle mx-auto mb-4 block justify-between sm:flex",
           borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
           borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
@@ -46,7 +47,7 @@ export default function Header({
                 <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
               )}
               {description ? (
-                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{description}</p>
+                <p className="text-subtle text-sm ltr:mr-4 rtl:ml-4">{description}</p>
               ) : (
                 <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
               )}
@@ -54,6 +55,7 @@ export default function Header({
           </div>
           <div className={classNames("flex-shrink-0 sm:ms-auto", ctaClassName)}>{CTA}</div>
         </div>
+        <Profile />
       </header>
       <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
     </div>

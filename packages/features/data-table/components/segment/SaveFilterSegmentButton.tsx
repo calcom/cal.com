@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@calid/features/ui/components/dialog";
+import { Icon } from "@calid/feautes/ui/icon/Icon";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -165,8 +166,9 @@ export function SaveFilterSegmentButton() {
 
   if (!isSegmentEnabled) {
     return (
-      <Button StartIcon="bookmark" color="secondary" disabled>
-        {t("save")}
+      <Button color="secondary" disabled className="flex items-center space-x-2">
+        <Icon name="bookmark" className="h-4 w-4" />
+        <span>{t("save")}</span>
       </Button>
     );
   }
@@ -175,11 +177,12 @@ export function SaveFilterSegmentButton() {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
-          StartIcon="bookmark"
           color="secondary"
           disabled={!canSaveSegment}
+          className="flex items-center space-x-2"
           data-testid="save-filter-segment-button">
-          {t("save")}
+          <Icon name="bookmark" className="h-4 w-4" />
+          <span>{t("save")}</span>
         </Button>
       </DialogTrigger>
 

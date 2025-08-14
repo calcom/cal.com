@@ -1,5 +1,7 @@
 "use client";
 
+// import { Button } from "@calcom/ui/components/button";
+import { Icon, Button } from "@calid/features/ui";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
   createColumnHelper,
@@ -30,9 +32,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -70,12 +70,13 @@ export default function OutOfOfficeEntriesList() {
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
-      CTA={
-        <div className="flex gap-2">
-          <OutOfOfficeToggleGroup />
-          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
-        </div>
-      }>
+      borderInShellHeader={false}
+      // CTA={
+      //   <div className="flex gap-2">
+      //     <OutOfOfficeToggleGroup />
+      //   </div>
+      // }
+    >
       <DataTableProvider useSegments={useSegments}>
         <OutOfOfficeEntriesListContent />
       </DataTableProvider>
@@ -121,6 +122,7 @@ function OutOfOfficeEntriesListContent() {
   }, [deletedEntry, selectedTab, refetch]);
 
   const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
+
   const flatData = useMemo(
     () =>
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
@@ -146,177 +148,335 @@ function OutOfOfficeEntriesListContent() {
           },
         },
       }),
-      ...(selectedTab === OutOfOfficeTab.TEAM
-        ? [
-            columnHelper.display({
-              id: "member",
-              header: `Member`,
-              size: 300,
-              cell: ({ row }) => {
-                if (!row.original || !row.original.user || isPending || isFetching) {
-                  return <SkeletonText className="h-8 w-full" />;
-                }
-                const { avatarUrl, username, email, name } = row.original.user;
-                const memberName =
-                  name ||
-                  (() => {
-                    const emailName = email.split("@")[0];
-                    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                  })();
-                return (
-                  <div className="flex items-center gap-2">
-                    <Avatar
-                      size="sm"
-                      alt={username || email}
-                      imageSrc={getUserAvatarUrl({
-                        avatarUrl,
-                      })}
-                    />
-                    <div className="">
-                      <div
-                        data-testid={`ooo-member-${username}-username`}
-                        className="text-emphasis text-sm font-medium leading-none">
-                        {memberName}
-                      </div>
-                      <div
-                        data-testid={`ooo-member-${username}-email`}
-                        className="text-subtle mt-1 text-sm leading-none">
-                        {email}
-                      </div>
-                    </div>
-                  </div>
-                );
-              },
-            }),
-          ]
-        : []),
-      columnHelper.display({
-        id: "outOfOffice",
-        header: `${t("out_of_office")} (${totalRowCount})`,
-        size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
-        cell: ({ row }) => {
-          const item = row.original;
-          return (
-            <>
-              {row.original && !isPending && !isFetching ? (
-                <div
-                  className="flex flex-row justify-between p-2"
-                  data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
-                  <div className="flex flex-row items-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
-                      {item?.reason?.emoji || "🏝️"}
-                    </div>
+      // ...(selectedTab === OutOfOfficeTab.TEAM
+      //   ? [
+      //       columnHelper.display({
+      //         id: "member",
+      //         header: `Member`,
+      //         size: 300,
+      //         cell: ({ row }) => {
+      //           if (!row.original || !row.original.user || isPending || isFetching) {
+      //             return <SkeletonText className="h-8 w-full" />;
+      //           }
+      //           const { avatarUrl, username, email, name } = row.original.user;
+      //           const memberName =
+      //             name ||
+      //             (() => {
+      //               const emailName = email.split("@")[0];
+      //               return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      //             })();
+      //           return (
+      //             <div className="border-subtle flex h-20 items-center gap-2 rounded-l-md  border-y border-l">
+      //               <Avatar
+      //                 size="sm"
+      //                 alt={username || email}
+      //                 imageSrc={getUserAvatarUrl({
+      //                   avatarUrl,
+      //                 })}
+      //               />
+      //               <div className="">
+      //                 <div
+      //                   data-testid={`ooo-member-${username}-username`}
+      //                   className="text-emphasis text-sm font-medium leading-none">
+      //                   {memberName}
+      //                 </div>
+      //                 <div
+      //                   data-testid={`ooo-member-${username}-email`}
+      //                   className="text-subtle mt-1 text-sm leading-none">
+      //                   {email}
+      //                 </div>
+      //               </div>
+      //             </div>
+      //           );
+      //         },
+      //       }),
+      //     ]
+      //   : []),
 
-                    <div className="ml-2 flex flex-col">
-                      <p className="px-2 font-bold">
-                        {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
-                      </p>
-                      <p className="px-2">
-                        {item.toUser?.username ? (
-                          <ServerTrans
-                            t={t}
-                            i18nKey="ooo_forwarding_to"
-                            values={{
-                              username: item.toUser?.username,
-                            }}
-                            components={[<span key="ooo-username" className="text-subtle font-bold" />]}
-                          />
-                        ) : (
-                          <>{t("ooo_not_forwarding")}</>
-                        )}
-                      </p>
-                      {item.notes && (
-                        <p className="px-2">
-                          <span className="text-subtle">{t("notes")}: </span>
-                          <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
-                            {item.notes}
-                          </span>
-                        </p>
-                      )}
+      // columnHelper.display({
+      //   id: "outOfOffice",
+      //   header: `${t("out_of_office")} (${totalRowCount})`,
+      //   // size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
+      //   cell: ({ row }) => {
+      //     const item = row.original;
+      //     return (
+      //       <>
+      //         {row.original && !isPending && !isFetching ? (
+      //           <div
+      //             className="border-subtle flex h-20 w-full flex-row justify-between border-y"
+      //             data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
+      //             <div className="flex flex-row items-center">
+      //               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
+      //                 {item?.reason?.emoji || "🏝️"}
+      //               </div>
+
+      //               <div className="ml-2 flex flex-col">
+      //                 <p className="px-2 font-bold">
+      //                   {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+      //                 </p>
+      //                 <p className="px-2">
+      //                   {item.toUser?.username ? (
+      //                     <ServerTrans
+      //                       t={t}
+      //                       i18nKey="ooo_forwarding_to"
+      //                       values={{
+      //                         username: item.toUser?.username,
+      //                       }}
+      //                       components={[<span key="ooo-username" className="text-subtle font-bold" />]}
+      //                     />
+      //                   ) : (
+      //                     <>{t("ooo_not_forwarding")}</>
+      //                   )}
+      //                 </p>
+      //                 {/* {item.notes && (
+      //                   <p className="px-2">
+      //                     <span className="text-subtle">{t("notes")}: </span>
+      //                     <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+      //                       {item.notes}
+      //                     </span>
+      //                   </p>
+      //                 )} */}
+      //               </div>
+      //             </div>
+      //           </div>
+      //         ) : (
+      //           <SkeletonText className="h-8 w-full" />
+      //         )}
+      //       </>
+      //     );
+      //   },
+      // }),
+
+      // // columnHelper.display({
+      // //   id: "actions",
+      // //   size: 10,
+      // //   cell: ({ row }) => {
+      // //     <div className="bg-red-50 ">hello</div>;
+      // //   },
+      // // }),
+      // columnHelper.display({
+      //   id: "actions",
+      //   // size: 90,
+      //   cell: ({ row }) => {
+      //     const item = row.original;
+      //     return (
+      //       <>
+      //         {row.original && !isPending && !isFetching ? (
+      //           <div
+      //             className="border-subtle flex h-20 w-full flex-row items-center justify-end gap-x-2 rounded-r-md border-y border-r"
+      //             data-testid="ooo-actions">
+      //             <Tooltip content={t("edit")}>
+      //               <Button
+      //                 className="self-center rounded-lg "
+      //                 type="button"
+      //                 color="secondary"
+      //                 variant="icon"
+      //                 data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
+      //                 StartIcon="pencil"
+      //                 onClick={() => {
+      //                   const startDateOffset = -1 * item.start.getTimezoneOffset();
+      //                   const endDateOffset = -1 * item.end.getTimezoneOffset();
+      //                   const outOfOfficeEntryData: BookingRedirectForm = {
+      //                     uuid: item.uuid,
+      //                     dateRange: {
+      //                       startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+      //                       endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
+      //                     },
+      //                     startDateOffset,
+      //                     endDateOffset,
+      //                     toTeamUserId: item.toUserId,
+      //                     reasonId: item.reason?.id ?? 1,
+      //                     notes: item.notes ?? undefined,
+      //                     forUserId: item.user?.id || null,
+      //                     forUserName:
+      //                       item.user?.name ||
+      //                       (item.user?.email &&
+      //                         (() => {
+      //                           const emailName = item.user?.email.split("@")[0];
+      //                           return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+      //                         })()),
+      //                     forUserAvatar: item.user?.avatarUrl,
+      //                     toUserName: item.toUser?.name || item.toUser?.username,
+      //                   };
+      //                   editOutOfOfficeEntry(outOfOfficeEntryData);
+      //                 }}
+      //                 disabled={isPending || isFetching || !item.canEditAndDelete}
+      //               />
+      //             </Tooltip>
+      //             <Tooltip content={t("delete")}>
+      //               <Button
+      //                 className="mr-4 self-center rounded-lg"
+      //                 type="button"
+      //                 color="destructive"
+      //                 variant="icon"
+      //                 disabled={
+      //                   deleteOutOfOfficeEntryMutation.isPending ||
+      //                   isPending ||
+      //                   isFetching ||
+      //                   !item.canEditAndDelete
+      //                 }
+      //                 StartIcon="trash-2"
+      //                 data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
+      //                 onClick={() => {
+      //                   deleteOutOfOfficeEntryMutation.mutate({
+      //                     outOfOfficeUid: item.uuid,
+      //                     userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
+      //                   });
+      //                 }}
+      //               />
+      //             </Tooltip>
+      //           </div>
+      //         ) : (
+      //           <SkeletonText className="h-8 w-full" />
+      //         )}
+      //       </>
+      //     );
+      //   },
+      // }),
+
+      columnHelper.display({
+        id: "combined",
+        // header: selectedTab === OutOfOfficeTab.TEAM ? `Member` : `${t("out_of_office")} (${totalRowCount})`,
+        header: <></>,
+        size: selectedTab === OutOfOfficeTab.TEAM ? 970 : 670, // Combined width
+        cell: ({ row }) => {
+          const item = row.original;
+
+          // Show skeleton if loading
+          if (!row.original || isPending || isFetching) {
+            return <SkeletonText className="h-8 w-full" />;
+          }
+
+          return (
+            <div className="flex h-20 w-full">
+              {/* Member section - only show for TEAM tab */}
+              {selectedTab === OutOfOfficeTab.TEAM && (
+                <div className="border-subtle flex w-[300px] items-center gap-2 rounded-l-md border-y border-l">
+                  <Avatar
+                    size="sm"
+                    alt={item.user?.username || item.user?.email}
+                    imageSrc={getUserAvatarUrl({
+                      avatarUrl: item.user?.avatarUrl,
+                    })}
+                  />
+                  <div className="">
+                    <div
+                      data-testid={`ooo-member-${item.user?.username}-username`}
+                      className="text-emphasis text-sm font-medium leading-none">
+                      {item.user?.name ||
+                        (() => {
+                          const emailName = item.user?.email?.split("@")[0] || "";
+                          return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                        })()}
+                    </div>
+                    <div
+                      data-testid={`ooo-member-${item.user?.username}-email`}
+                      className="text-subtle mt-1 text-sm leading-none">
+                      {item.user?.email}
                     </div>
                   </div>
                 </div>
-              ) : (
-                <SkeletonText className="h-8 w-full" />
               )}
-            </>
-          );
-        },
-      }),
-      columnHelper.display({
-        id: "actions",
-        size: 90,
-        cell: ({ row }) => {
-          const item = row.original;
-          return (
-            <>
-              {row.original && !isPending && !isFetching ? (
-                <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
-                  <Tooltip content={t("edit")}>
-                    <Button
-                      className="self-center rounded-lg border"
-                      type="button"
-                      color="secondary"
-                      variant="icon"
-                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
-                      StartIcon="pencil"
-                      onClick={() => {
-                        const startDateOffset = -1 * item.start.getTimezoneOffset();
-                        const endDateOffset = -1 * item.end.getTimezoneOffset();
-                        const outOfOfficeEntryData: BookingRedirectForm = {
-                          uuid: item.uuid,
-                          dateRange: {
-                            startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
-                            endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
-                          },
-                          startDateOffset,
-                          endDateOffset,
-                          toTeamUserId: item.toUserId,
-                          reasonId: item.reason?.id ?? 1,
-                          notes: item.notes ?? undefined,
-                          forUserId: item.user?.id || null,
-                          forUserName:
-                            item.user?.name ||
-                            (item.user?.email &&
-                              (() => {
-                                const emailName = item.user?.email.split("@")[0];
-                                return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                              })()),
-                          forUserAvatar: item.user?.avatarUrl,
-                          toUserName: item.toUser?.name || item.toUser?.username,
-                        };
-                        editOutOfOfficeEntry(outOfOfficeEntryData);
-                      }}
-                      disabled={isPending || isFetching || !item.canEditAndDelete}
-                    />
-                  </Tooltip>
-                  <Tooltip content={t("delete")}>
-                    <Button
-                      className="self-center rounded-lg border"
-                      type="button"
-                      color="destructive"
-                      variant="icon"
-                      disabled={
-                        deleteOutOfOfficeEntryMutation.isPending ||
-                        isPending ||
-                        isFetching ||
-                        !item.canEditAndDelete
-                      }
-                      StartIcon="trash-2"
-                      data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
-                      onClick={() => {
-                        deleteOutOfOfficeEntryMutation.mutate({
-                          outOfOfficeUid: item.uuid,
-                          userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
-                        });
-                      }}
-                    />
-                  </Tooltip>
+
+              {/* Out of Office section */}
+              <div
+                className={`border-subtle flex flex-1 flex-row justify-between border-y ${
+                  selectedTab === OutOfOfficeTab.TEAM ? "" : "rounded-l-md border-l"
+                }`}
+                data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
+                <div className="flex flex-row items-center">
+                  <div className="ml-4 flex h-10 w-10 items-center justify-center rounded-full bg-gray-50">
+                    {item?.reason?.emoji || "🏝️"}
+                  </div>
+
+                  <div className="ml-2 flex flex-col">
+                    <p className="px-2 font-bold">
+                      {dayjs.utc(item.start).format("ll")} - {dayjs.utc(item.end).format("ll")}
+                    </p>
+                    <p className="px-2">
+                      {item.toUser?.username ? (
+                        <ServerTrans
+                          t={t}
+                          i18nKey="ooo_forwarding_to"
+                          values={{
+                            username: item.toUser?.username,
+                          }}
+                          components={[<span key="ooo-username" className="text-subtle font-bold" />]}
+                        />
+                      ) : (
+                        <div className="text-sm text-subtle">{t("ooo_not_forwarding")}</div>
+                      )}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <SkeletonText className="h-8 w-full" />
-              )}
-            </>
+              </div>
+
+              {/* Actions section */}
+              <div
+                className="border-subtle flex w-[90px] flex-row items-center justify-end gap-x-2 rounded-r-md border-y border-r"
+                data-testid="ooo-actions">
+                <Tooltip content={t("edit")}>
+                  <Button
+                    className="self-center rounded-lg"
+                    type="button"
+                    color="minimal"
+                    variant="icon"
+                    data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
+                    StartIcon="pencil-line"
+                    onClick={() => {
+                      const startDateOffset = -1 * item.start.getTimezoneOffset();
+                      const endDateOffset = -1 * item.end.getTimezoneOffset();
+                      const outOfOfficeEntryData = {
+                        uuid: item.uuid,
+                        dateRange: {
+                          startDate: dayjs(item.start).subtract(startDateOffset, "minute").toDate(),
+                          endDate: dayjs(item.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
+                        },
+                        startDateOffset,
+                        endDateOffset,
+                        toTeamUserId: item.toUserId,
+                        reasonId: item.reason?.id ?? 1,
+                        notes: item.notes ?? undefined,
+                        forUserId: item.user?.id || null,
+                        forUserName:
+                          item.user?.name ||
+                          (item.user?.email &&
+                            (() => {
+                              const emailName = item.user?.email.split("@")[0];
+                              return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                            })()),
+                        forUserAvatar: item.user?.avatarUrl,
+                        toUserName: item.toUser?.name || item.toUser?.username,
+                      };
+                      editOutOfOfficeEntry(outOfOfficeEntryData);
+                    }}
+                    disabled={isPending || isFetching || !item.canEditAndDelete}
+                  />
+                </Tooltip>
+                <Tooltip content={t("delete")}>
+                  <Button
+                    className="mr-4 self-center rounded-lg"
+                    type="button"
+                    color="minimal"
+                    variant="icon"
+                    disabled={
+                      deleteOutOfOfficeEntryMutation.isPending ||
+                      isPending ||
+                      isFetching ||
+                      !item.canEditAndDelete
+                    }
+                    StartIcon="trash-2"
+                    data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
+                    onClick={() => {
+                      deleteOutOfOfficeEntryMutation.mutate({
+                        outOfOfficeUid: item.uuid,
+                        userId: selectedTab === OutOfOfficeTab.TEAM ? item.user?.id : undefined,
+                      });
+                    }}
+                  />
+                </Tooltip>
+              </div>
+            </div>
           );
         },
       }),
@@ -349,8 +509,9 @@ function OutOfOfficeEntriesListContent() {
   });
 
   return (
-    <>
+    <div className="mt-8">
       <DataTableWrapper
+        showHeader={false}
         testId="ooo-list-data-table"
         rowClassName={selectedTab === OutOfOfficeTab.MINE ? "hidden" : ""}
         table={table}
@@ -362,16 +523,18 @@ function OutOfOfficeEntriesListContent() {
         tableContainerRef={tableContainerRef}
         paginationMode="infinite"
         ToolbarLeft={
-          <>
+          <div className="flex flex-row gap-4">
             <DataTableToolbar.SearchBar />
             <DataTableFilters.FilterBar table={table} />
-          </>
+          </div>
         }
         ToolbarRight={
           <>
-            <DataTableFilters.ClearFiltersButton />
+
+            {/* <DataTableFilters.ClearFiltersButton />
             <DataTableSegment.SaveButton />
-            <DataTableSegment.Select />
+            <DataTableSegment.Select /> */}
+            <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
           </>
         }
         EmptyView={
@@ -418,6 +581,6 @@ function OutOfOfficeEntriesListContent() {
           currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
         />
       )}
-    </>
+    </div>
   );
 }

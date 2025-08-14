@@ -70,7 +70,7 @@ const AddCalendarButton = () => {
   const { t } = useLocale();
   return (
     <>
-      <Button color="secondary" StartIcon="plus" href="/apps/categories/calendar">
+      <Button color="primary" StartIcon="plus" href="/apps/categories/calendar">
         {t("add_calendar")}
       </Button>
     </>
@@ -80,10 +80,7 @@ const AddCalendarButton = () => {
 export const CalendarListContainerSkeletonLoader = () => {
   const { t } = useLocale();
   return (
-    <SettingsHeader
-      title={t("calendars")}
-      description={t("calendars_description")}
-      CTA={<AddCalendarButton />}>
+    <SettingsHeader title={t("calendars")} description={t("calendars_description")}>
       <SkeletonLoader />
     </SettingsHeader>
   );
@@ -136,11 +133,14 @@ export function CalendarListContainer({
     <SettingsHeader
       title={t("calendars")}
       description={t("calendars_description")}
-      CTA={<AddCalendarButton />}>
+      borderInShellHeader={false}>
       {!!data.connectedCalendars.length || !!installedCalendars?.items.length ? (
         <>
           {heading && (
             <>
+              <div className="flex flex-row justify-end mt-8">
+                <AddCalendarButton />
+              </div>
               <DestinationCalendarSettingsWebWrapper />
               <Suspense fallback={<SkeletonLoader />}>
                 <SelectedCalendarsSettingsWebWrapper

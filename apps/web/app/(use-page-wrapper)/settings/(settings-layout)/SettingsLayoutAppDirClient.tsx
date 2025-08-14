@@ -68,26 +68,30 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "api_keys", href: "/settings/developer/api-keys", icon: "key" },
         // { name: "admin_api", href: "/settings/organizations/admin-api" },
         // TODO: Add profile level for embeds
-        // { name: "embeds", href: "/v2/settings/developer/embeds" },
+        // { name: "embeds", href: "/v2/settings/developer/embeds", icon: "code" },
       ],
     },
     {
       name: "organization",
       href: "/settings/organizations",
+      icon: "building",
       children: [
         {
           name: "profile",
           href: "/settings/organizations/profile",
+          icon: "building",
         },
         {
           name: "general",
           href: "/settings/organizations/general",
+          icon: "settings",
         },
         ...(orgBranding
           ? [
               {
                 name: "members",
                 href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+                icon: "users",
                 isExternalLink: true,
               },
             ]
@@ -95,23 +99,32 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "privacy",
           href: "/settings/organizations/privacy",
+          icon: "shield-check",
         },
         {
           name: "billing",
           href: "/settings/organizations/billing",
+          icon: "credit-card",
         },
-        { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
+        {
+          name: "OAuth Clients",
+          href: "/settings/organizations/platform/oauth-clients",
+          icon: "link-2",
+        },
         {
           name: "SSO",
           href: "/settings/organizations/sso",
+          icon: "fingerprint",
         },
         {
           name: "directory_sync",
           href: "/settings/organizations/dsync",
+          icon: "refresh-cw",
         },
         {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          icon: "terminal",
         },
       ],
     },
@@ -570,6 +583,7 @@ const SettingsSidebarContainer = ({
                   <div className="my-3 space-y-1">
                     {tab.children?.map((child, index) => (
                       <VerticalTabItem
+                        icon={child.icon}
                         key={child.href}
                         name={t(child.name)}
                         isExternalLink={child.isExternalLink}
@@ -590,7 +604,7 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
-                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
+                      <div className="hover:bg-subtle [&[aria-current='page']]:bg-cal-active text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition group-hover:text-white [&[aria-current='page']]:text-white">
                         {tab && tab.icon && (
                           <Icon
                             name={tab.icon}
@@ -822,9 +836,8 @@ export default function SettingsLayoutAppDirClient({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex flex-1 [&>*]:flex-1">
-        <div
-          className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
+      <div className="flex ">
+        <div className={classNames("w-full justify-center", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </div>

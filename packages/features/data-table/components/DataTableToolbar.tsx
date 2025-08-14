@@ -52,7 +52,7 @@ function SearchBarComponent({ className }: SearchBarProps, ref: Ref<HTMLInputEle
   return (
     <Input
       ref={ref}
-      className={classNames("max-w-48", className)}
+      className={classNames("max-w-48 h-[50px]", className)}
       placeholder={t("search")}
       value={localValue}
       onChange={handleSearchChange}

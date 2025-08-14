@@ -25,4 +25,4 @@ function Icon({
   );
 }
 export { IconName, Icon };
-export default Icon;
+// export default Icon;

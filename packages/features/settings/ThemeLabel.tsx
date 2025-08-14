@@ -23,7 +23,7 @@ export default function ThemeLabel(props: ThemeLabelProps) {
         defaultChecked={defaultChecked}
         {...register(fieldName)}
       />
-      <div className="ring-inverted relative z-10 rounded-lg ring-offset-2 transition-all peer-checked:ring-2">
+      <div className="ring-ring relative z-10 rounded-lg ring-offset-2 transition-all peer-checked:ring-2">
         <img
           aria-hidden="true"
           className="cover w-full rounded-lg"

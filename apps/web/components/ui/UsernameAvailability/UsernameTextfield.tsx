@@ -13,7 +13,8 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { TextField } from "@calcom/ui/components/form";
+// import { TextField } from "@calcom/ui/components/form";
+import { TextField } from "@calid/features/ui";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -112,11 +113,12 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
       username: inputUsernameValue,
     });
   };
+  console.log("Rest props: ", rest);
 
   return (
     <div>
       <div className="flex rounded-md">
-        <div className="relative w-full">
+        <div className="relative w-full ">
           <TextField
             ref={usernameRef}
             name="username"

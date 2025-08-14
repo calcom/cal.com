@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { Icon } from "@calcom/ui/components/icon";
 
-import { buttonVariants } from "./button";
+import { buttonClasses } from "./button";
 import type { ButtonProps } from "./button";
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
@@ -37,7 +37,7 @@ const PaginationLink = ({ className, isActive, size = "icon", ...props }: Pagina
   <a
     aria-current={isActive ? "page" : undefined}
     className={cn(
-      buttonVariants({
+      buttonClasses({
         variant: isActive ? "outline" : "ghost",
         size,
       }),

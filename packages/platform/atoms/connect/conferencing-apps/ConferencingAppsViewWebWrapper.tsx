@@ -121,7 +121,7 @@ const InstalledConferencingApps = ({
 
   return (
     <AppList
-      listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
+      listClassName="rounded-lg max-w-full"
       handleDisconnect={disconnectIntegrationModalCtrl.disconnect}
       data={result}
       variant="conferencing"
@@ -173,9 +173,11 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
-      {t("add")}
-    </Button>
+    <div className="flex flex-row justify-end">
+      <Button color="primary" size="base" StartIcon="plus" href="/apps/categories/conferencing">
+        {t("add")}
+      </Button>
+    </div>
   );
 };
 
@@ -209,10 +211,10 @@ export const ConferencingAppsViewWebWrapper = () => {
     <SettingsHeader
       title={t("conferencing")}
       description={t("conferencing_description")}
-      CTA={<AddConferencingButton />}
-      borderInShellHeader={true}>
+      borderInShellHeader={false}>
       <>
-        <div className="bg-default w-full sm:mx-0 xl:mt-0">
+        <AddConferencingButton />
+        <div className="bg-default w-full mt-4">
           <Suspense fallback={<SkeletonLoader />}>
             <InstalledConferencingApps disconnectIntegrationModalCtrl={disconnectIntegrationModalCtrl} />
           </Suspense>

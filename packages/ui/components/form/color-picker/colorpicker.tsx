@@ -30,9 +30,9 @@ const ColorPicker = (props: ColorPickerProps) => {
   const [color, setColor] = useState(init);
 
   return (
-    <div className="mt-1 flex h-[38px] items-center justify-center">
+    <div className="mt-1 flex h-[38px] items-center justify-center gap-2">
       <Popover.Root>
-        <div className="border-default min-w-9 flex h-full items-center justify-center border ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0">
+        <div className=" border-default rounded-md min-w-9 flex h-full items-center justify-center border">
           <Popover.Trigger asChild>
             <button
               className="h-5 w-5 rounded-sm"
@@ -57,7 +57,7 @@ const ColorPicker = (props: ColorPickerProps) => {
 
       <HexColorInput
         className={cx(
-          "border-default text-default bg-default block h-full w-full border px-3 py-2 ltr:rounded-r-md rtl:rounded-l-md sm:text-sm",
+          "border-default rounded-md focus:ring-ring focus:ring-offset-2 text-default bg-default block h-full w-full border px-3 py-2 ltr:rounded-r-md rtl:rounded-l-md sm:text-sm",
           props.className
         )}
         color={color}

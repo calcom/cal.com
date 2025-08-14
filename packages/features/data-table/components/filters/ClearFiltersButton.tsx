@@ -20,9 +20,8 @@ export const ClearFiltersButton = ({ exclude }: { exclude?: string[] }) => {
         data-testid="clear-filters-button"
         target="_blank"
         rel="noreferrer"
-        StartIcon="x"
         onClick={() => clearAll(exclude)}>
-        {t("clear")}
+        {t("clear_all_filters")}
       </Button>
     </Tooltip>
   );

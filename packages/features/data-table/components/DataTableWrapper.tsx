@@ -63,7 +63,10 @@ export function DataTableWrapper<TData>({
   tableContainerRef: externalRef,
   paginationMode,
   onRowMouseclick,
-}: DataTableWrapperProps<TData>) {
+  showHeader = false,
+}: DataTableWrapperProps<TData> & {
+  showHeader?: boolean;
+}) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
@@ -123,6 +126,7 @@ export function DataTableWrapper<TData>({
           testId={testId}
           bodyTestId={bodyTestId}
           table={table}
+          showHeader={showHeader}
           tableContainerRef={tableContainerRef}
           isPending={isPending}
           enableColumnResizing={true}

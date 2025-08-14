@@ -1,4 +1,6 @@
-import { Button } from "@calcom/ui/components/button";
+// import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui";
+
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 type EmptyStateProps = {
@@ -52,13 +54,11 @@ export const EmptyState = ({
           {text}
         </p>
       </div>
-      <Button
-        data-testid={buttonDataTestId}
-        StartIcon={buttonStartIcon}
-        onClick={buttonOnClick}
-        className={buttonClassName}>
-        {buttonText}
-      </Button>
+      <div>
+        <Button data-testid={buttonDataTestId} onClick={buttonOnClick} className={buttonClassName}>
+          {buttonText}
+        </Button>
+      </div>
     </div>
   );
 };

@@ -154,7 +154,22 @@ export const DateRangeFilter = ({
       <PopoverTrigger asChild>
         <Button
           color="secondary"
-          className="items-center capitalize"
+          className="flex items-center space-x-2"
+          data-testid={`filter-popover-trigger-${column.id}`}>
+          <Icon name="calendar-range" className="h-4 w-4" />
+
+          {showColumnName && <></>}
+          {!showColumnName && <span>{selectedValue}</span>}
+
+          {/* <Badge variant="gray" className="ml-2">
+                {selectedValue}
+              </Badge> */}
+
+          <Icon name="chevron-down" className="h-4 w-4" />
+        </Button>
+
+        <Button
+          color="secondary"
           StartIcon="calendar-range"
           EndIcon="chevron-down"
           data-testid={`filter-popover-trigger-${column.id}`}>

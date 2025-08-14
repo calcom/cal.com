@@ -140,13 +140,23 @@ export function FilterPopover({ column }: FilterPopoverProps) {
       <PopoverTrigger asChild>
         <Button
           color="secondary"
-          className="h-[34px] items-center"
-          StartIcon={icon}
-          EndIcon="chevron-down"
+          className="flex items-center space-x-2"
           data-testid={`filter-popover-trigger-${column.id}`}>
+          <Icon name={icon} className="h-4 w-4" />
+
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />
+
+          <Icon name="chevron-down" className="h-4 w-4" />
         </Button>
+
+        {/* <Button
+          color="secondary"
+          className="h-[34px] items-center"
+          StartIcon={}
+          EndIcon=""
+          >
+        </Button> */}
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">
         <FilterOptions column={column} />

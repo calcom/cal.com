@@ -1,5 +1,7 @@
 "use client";
 
+// import { TextField } from "@calcom/ui/components/form";
+import { Button, TextField } from "@calid/features/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
 // eslint-disable-next-line no-restricted-imports
@@ -27,13 +29,12 @@ import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Alert } from "@calcom/ui/components/alert";
 import { UserAvatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
+// import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { Form } from "@calcom/ui/components/form";
 import { PasswordField } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
@@ -254,7 +255,7 @@ const ProfileView = ({ user }: Props) => {
     <SettingsHeader
       title={t("profile")}
       description={t("profile_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
+      borderInShellHeader={false}>
       <ProfileForm
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
@@ -301,60 +302,63 @@ const ProfileView = ({ user }: Props) => {
         isCALIdentityProvider={isCALIdentityProvider}
       />
 
-      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
-        <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
-        <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
-      </div>
-      {/* Delete account Dialog */}
-      <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
-        <SectionBottomActions align="end">
+      <div className="bg-cal-destructive-dim border-destructive mb-2 mt-6 rounded-lg border p-6">
+        <Label className="text-destructive mb-1 text-base font-semibold">{t("danger_zone")}</Label>
+        <p className="text-subtle mb-1 text-sm">{t("account_deletion_cannot_be_undone")}</p>
+
+        <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon="trash-2">
+            <Button
+              data-testid="delete-account"
+              color="destructive_account"
+              className="mt-1"
+              StartIcon="trash-2">
               {t("delete_account")}
             </Button>
           </DialogTrigger>
-        </SectionBottomActions>
-        <DialogContent
-          title={t("delete_account_modal_title")}
-          description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-          type="creation"
-          Icon="triangle-alert">
-          <>
-            <div className="mb-10">
-              <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
-              {isCALIdentityProvider && (
-                <PasswordField
-                  data-testid="password"
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  required
-                  label="Password"
-                  ref={passwordRef}
-                />
-              )}
+          <DialogContent
+            title={t("delete_account_modal_title")}
+            description={t("confirm_delete_account_modal", { appName: APP_NAME })}
+            type="creation"
+            Icon="triangle-alert">
+            <>
+              <div className="mb-10">
+                <p className="text-subtle mb-4 text-sm">{t("delete_account_confirmation_message")}</p>
+                {isCALIdentityProvider && (
+                  <PasswordField
+                    data-testid="password"
+                    name="password"
+                    id="password"
+                    autoComplete="current-password"
+                    required
+                    label="Password"
+                    ref={passwordRef}
+                  />
+                )}
 
-              {user?.twoFactorEnabled && isCALIdentityProvider && (
-                <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                  <TwoFactor center={false} />
-                </Form>
-              )}
+                {user?.twoFactorEnabled && isCALIdentityProvider && (
+                  <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                    <TwoFactor center={false} />
+                  </Form>
+                )}
 
-              {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-            </div>
-            <DialogFooter showDivider>
-              <DialogClose />
-              <Button
-                color="primary"
-                data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}
-                loading={deleteMeMutation.isPending}>
-                {t("delete_my_account")}
-              </Button>
-            </DialogFooter>
-          </>
-        </DialogContent>
-      </Dialog>
+                {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+              </div>
+              <DialogFooter showDivider>
+                <DialogClose />
+                <Button
+                  color="primary"
+                  data-testid="delete-account-confirm"
+                  onClick={(e) => onConfirmButton(e)}
+                  loading={deleteMeMutation.isPending}>
+                  {t("delete_my_account")}
+                </Button>
+              </DialogFooter>
+            </>
+          </DialogContent>
+        </Dialog>
+      </div>
+      {/* Delete account Dialog */}
 
       {/* If changing email, confirm password */}
       <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
@@ -597,7 +601,8 @@ const ProfileForm = ({
   const isDisabled = isSubmitting || !isDirty;
   return (
     <Form form={formMethods} handleSubmit={handleFormSubmit}>
-      <div className="border-subtle border-x px-4 pb-10 pt-8 sm:px-6">
+      <div className="border-subtle rounded-md border px-4 pb-10 pt-8 sm:px-6">
+        <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
@@ -608,7 +613,6 @@ const ProfileForm = ({
                 <>
                   <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
                   <div className="ms-4">
-                    <h2 className="mb-2 text-sm font-medium">{t("profile_picture")}</h2>
                     <div className="flex gap-2">
                       <ImageUploader
                         target="avatar"
@@ -617,6 +621,7 @@ const ProfileForm = ({
                         handleAvatarChange={(newAvatar) => {
                           onChange(newAvatar);
                         }}
+                        buttonSize="lg"
                         imageSrc={getUserAvatarUrl({ avatarUrl: value })}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
                       />
@@ -638,20 +643,17 @@ const ProfileForm = ({
           />
         </div>
         {extraField}
-        <p className="text-subtle mt-1 flex gap-1 text-sm">
+        {/* <p className=" text-subtle mt-1 flex gap-1 text-sm">
           <Icon name="info" className="mt-0.5 flex-shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
-        </p>
+        </p> */}
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>
         <div className="mt-6">
           <Label>{t("email")}</Label>
           <div className="-mt-2 flex flex-wrap items-start gap-2">
-            <div
-              className={
-                secondaryEmailFields.length > 1 ? "grid w-full grid-cols-1 gap-2 sm:grid-cols-2" : "flex-1"
-              }>
+            <div className={secondaryEmailFields.length > 1 ? "grid w-full" : "flex-1"}>
               {secondaryEmailFields.map((field, index) => (
                 <CustomEmailTextField
                   key={field.itemId}
@@ -738,16 +740,16 @@ const ProfileForm = ({
           </div>
         )}
       </div>
-      <SectionBottomActions align="end">
-        <Button
-          loading={isPending}
-          disabled={isDisabled}
-          color="primary"
-          type="submit"
-          data-testid="profile-submit-button">
-          {t("update")}
-        </Button>
-      </SectionBottomActions>
+      <Button
+        loading={isPending}
+        disabled={isDisabled}
+        color="primary"
+        className="mt-4"
+        type="submit"
+        size='lg'
+        data-testid="profile-submit-button">
+        {t("update")}
+      </Button>
     </Form>
   );
 };

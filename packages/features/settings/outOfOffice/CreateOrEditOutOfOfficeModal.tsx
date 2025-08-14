@@ -1,3 +1,8 @@
+import { Button } from "@calid/features/ui";
+import { Textarea as TextArea, Input } from "@calid/features/ui";
+// import { Button } from "@calcom/ui/components/button";
+// import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { DialogTitle, DialogContent, DialogFooter, DialogHeader } from "@calid/features/ui";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -12,9 +17,7 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { DateRangePicker, TextArea, Input } from "@calcom/ui/components/form";
+import { DateRangePicker } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
@@ -205,26 +208,34 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           })}>
           <div className="h-full px-1">
             <DialogHeader
-              title={
-                currentlyEditingOutOfOfficeEntry
+            // title={
+            //   currentlyEditingOutOfOfficeEntry
+            //     ? t("edit_an_out_of_office")
+            //     : oooType === "team"
+            //     ? t("create_ooo_dialog_team_title")
+            //     : t("create_an_out_of_office")
+            // }
+            // subtitle={
+            //   oooType === "team"
+            //     ? currentlyEditingOutOfOfficeEntry
+            //       ? t("edit_ooo_dialog_team_subtitle")
+            //       : t("create_ooo_dialog_team_subtitle")
+            //     : undefined
+            // }
+            >
+              <DialogTitle>
+                {currentlyEditingOutOfOfficeEntry
                   ? t("edit_an_out_of_office")
                   : oooType === "team"
                   ? t("create_ooo_dialog_team_title")
-                  : t("create_an_out_of_office")
-              }
-              subtitle={
-                oooType === "team"
-                  ? currentlyEditingOutOfOfficeEntry
-                    ? t("edit_ooo_dialog_team_subtitle")
-                    : t("create_ooo_dialog_team_subtitle")
-                  : undefined
-              }
-            />
+                  : t("create_an_out_of_office")}
+              </DialogTitle>
+            </DialogHeader>
 
             {/* In case of Team, Select Member for whom OOO is created */}
             {oooType === OutOfOfficeTab.TEAM && (
               <>
-                <div className="mb-4">
+                <div className="mb-4 mt-4">
                   <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
                   <div className="mt-2">
                     <Input
@@ -288,7 +299,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             )}
 
             <div>
-              <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
+              <p className="text-emphasis mb-1 mt-4 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
                 <Controller
                   name="dateRange"
@@ -348,8 +359,16 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               />
             </div>
 
-            <div className="bg-muted my-4 rounded-xl p-5">
-              <div className="flex flex-row">
+            <div className="bg-muted my-4 w-full items-center justify-between rounded-xl p-5">
+              <div className="flex w-full flex-row items-center justify-between">
+                {!hasTeamPlan && (
+                  <div className="mx-2" data-testid="upgrade-team-badge">
+                    <UpgradeTeamsBadge />
+                  </div>
+                )}
+                <div className="text-sm">
+                  {hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
+                </div>
                 <Switch
                   disabled={!hasTeamPlan}
                   data-testid="profile-redirect-switch"
@@ -361,13 +380,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       setValue("toTeamUserId", null);
                     }
                   }}
-                  label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
                 />
-                {!hasTeamPlan && (
-                  <div className="mx-2" data-testid="upgrade-team-badge">
-                    <UpgradeTeamsBadge />
-                  </div>
-                )}
               </div>
 
               {profileRedirect && (
@@ -426,28 +439,28 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               )}
             </div>
           </div>
-          <DialogFooter showDivider noSticky>
-            <div className="flex">
-              <Button
-                color="minimal"
-                type="button"
-                onClick={() => {
-                  closeModal();
-                }}
-                className="mr-1">
-                {t("cancel")}
-              </Button>
-              <Button
-                form="create-or-edit-ooo-form"
-                color="primary"
-                type="submit"
-                disabled={isSubmitting || isReasonListPending}
-                data-testid="create-or-edit-entry-ooo-redirect">
-                {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
-              </Button>
-            </div>
-          </DialogFooter>
         </form>
+        <DialogFooter>
+          <div>
+            <Button
+              color="minimal"
+              type="button"
+              onClick={() => {
+                closeModal();
+              }}
+              className="mr-1">
+              {t("cancel")}
+            </Button>
+            <Button
+              form="create-or-edit-ooo-form"
+              color="primary"
+              type="submit"
+              disabled={isSubmitting || isReasonListPending}
+              data-testid="create-or-edit-entry-ooo-redirect">
+              {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
+            </Button>
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

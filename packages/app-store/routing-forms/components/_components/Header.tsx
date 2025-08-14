@@ -1,15 +1,23 @@
 "use client";
 
+import { Profile } from "@calid/features/ui/Profile";
+import type { HorizontalTabItemProps } from "@calid/features/ui";
+import { HorizontalTabs } from "@calid/features/ui";
+// import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
-import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { FormAction, FormActionsDropdown } from "../FormActions";
@@ -74,118 +82,81 @@ const Actions = ({
   return (
     <>
       <div className="flex items-center">
-        <div className="flex gap-2">
-          <Tooltip sideOffset={4} content={t("preview")} side="bottom">
-            <Button
-              color="secondary"
-              data-testid={isMobile ? "preview-button-mobile" : "preview-button"}
+        <div className="flex gap-2 items-center">
+          <FormAction
+            variant="ghost"
+            data-testid="toggle-form"
+            action="toggle"
+            routingForm={form}
+            extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
+          />
+          <ButtonGroup combined className="border-r-subtle border-l-subtle">
+            <FormAction
+              action="_delete"
+              variant="fab"
+              routingForm={form}
+              size="xs"
               type="button"
-              variant="icon"
-              onClick={() => {
-                setIsTestPreviewOpen(!isTestPreviewOpen);
-              }}>
-              {t("preview")}
+              color="secondary">
+              {t("delete")}
+            </FormAction>
+            <Button
+              data-testid={isMobile ? "update-form-mobile" : "update-form"}
+              variant="fab"
+              size="xs"
+              className="w-[52px]"
+              loading={isSaving}
+              type="submit"
+              color="secondary">
+              {t("save")}
             </Button>
-          </Tooltip>
-          <Tooltip sideOffset={4} content={t("settings")} side="bottom">
-            <Button
-              color="secondary"
-              type="button"
-              StartIcon="settings"
-              data-testid={isMobile ? "settings-button-mobile" : "settings-button"}
-              onClick={() => {
-                setIsSettingsDialogOpen(true);
-              }}
-            />
-          </Tooltip>
+          </ButtonGroup>
           <FormActionsDropdown>
             <FormAction
-              routingForm={form}
-              color="minimal"
-              target="_blank"
-              type="button"
-              rel="noreferrer"
-              action="preview"
-              StartIcon="external-link">
-              {t("view_form")}
-            </FormAction>
-            <FormAction
               action="incompleteBooking"
+              variant="ghost"
               className="w-full"
               routingForm={form}
               color="minimal"
-              type="button"
-              StartIcon="calendar">
+              type="button">
+              <Icon name="calendar" className="h-4 w-4"></Icon>
               {t("routing_incomplete_booking_tab")}
             </FormAction>
             <FormAction
               action="copyLink"
+              variant="ghost"
               className="w-full"
               routingForm={form}
               color="minimal"
-              type="button"
-              StartIcon="link">
+              type="button">
+              <Icon name="link" className="h-4 w-4"></Icon>
               {t("copy_link_to_form")}
             </FormAction>
             <FormAction
               action="download"
+              variant="ghost"
               routingForm={form}
               className="w-full"
               color="minimal"
               type="button"
-              data-testid="download-responses"
-              StartIcon="download">
+              data-testid="download-responses">
               {t("download_responses")}
             </FormAction>
             {form?.id && (
               <FormAction
+                variant="ghost"
                 action="viewResponses"
                 routingForm={form}
                 className="w-full"
                 color="minimal"
                 type="button"
-                data-testid="view-responses"
-                StartIcon="eye">
+                data-testid="view-responses">
+                <Icon name="eye" className="h-4 w-4"></Icon>
                 {t("view_responses")}
               </FormAction>
             )}
-            <FormAction
-              action="embed"
-              routingForm={form}
-              color="minimal"
-              type="button"
-              className="w-full"
-              StartIcon="code">
-              {t("embed")}
-            </FormAction>
-            <DropdownMenuSeparator className="hidden sm:block" />
-            <FormAction
-              action="_delete"
-              routingForm={form}
-              className="w-full"
-              type="button"
-              color="destructive"
-              StartIcon="trash">
-              {t("delete")}
-            </FormAction>
-            <div className="block sm:hidden">
-              <DropdownMenuSeparator />
-              <FormAction
-                data-testid="toggle-form"
-                action="toggle"
-                routingForm={form}
-                label="Disable Form"
-                extraClassNames="hover:bg-subtle cursor-pointer rounded-[5px] pr-4 transition"
-              />
-            </div>
           </FormActionsDropdown>
-          <Button
-            data-testid={isMobile ? "update-form-mobile" : "update-form"}
-            loading={isSaving}
-            type="submit"
-            color="primary">
-            {t("save")}
-          </Button>
+          <Profile />
         </div>
       </div>
       <FormSettingsSlideover
@@ -243,58 +214,95 @@ export function Header({
     }
   };
 
+  const searchParams = useSearchParams();
+
+  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        name: "Details",
+        path: `${appUrl}/details/${routingForm.id}`,
+        "data-testid": "form-edit",
+      },
+      {
+        name: "Form",
+        path: `${appUrl}/form-edit/${routingForm.id}`,
+        "data-testid": "form-edit",
+      },
+      {
+        name: "Routing",
+        path: `${appUrl}/route-builder/${routingForm.id}`,
+        "data-testid": "route-builder",
+      },
+      {
+        name: "Embed",
+        path: `${appUrl}/form-embed/${routingForm.id}`,
+        "data-testid": "form-embed",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      name: tabConfig.name,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+      "data-testid": tabConfig["data-testid"],
+    }));
+  }, [searchParams?.toString()]);
+
   const watchedName = form.watch("name");
 
   return (
-    <div className="bg-default flex flex-col lg:grid lg:grid-cols-3 lg:items-center">
-      {/* Left - Back button and title */}
-      <div className="border-muted flex items-center gap-2 border-b px-4 py-3">
-        <Button
-          color="minimal"
-          variant="icon"
-          StartIcon="arrow-left"
-          href={`${appUrl}`}
-          data-testid="back-button"
-        />
-        <div className="flex min-w-0 items-center">
-          <span className="text-subtle min-w-content text-sm font-semibold leading-none">
-            {t("routing_form")}
-          </span>
-          <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
-          {isEditing ? (
-            <input
-              {...form.register("name")}
-              onChange={handleTitleChange}
-              onKeyDown={handleKeyDown}
-              onBlur={handleTitleSubmit}
-              className="text-default h-auto w-full whitespace-nowrap border-none p-0 text-sm font-semibold leading-none focus:ring-0"
-              autoFocus
-            />
-          ) : (
-            <div className="group flex items-center gap-1">
-              <span
-                className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded px-1 text-sm font-semibold leading-none"
-                onClick={() => setIsEditing(true)}>
-                {watchedName || "Loading..."}
-              </span>
-              <Button
-                variant="icon"
-                color="minimal"
-                onClick={() => setIsEditing(true)}
-                CustomStartIcon={
-                  <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
-                <span className="sr-only">Edit</span>
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="bg-default flex w-full flex-col">
+      <div className="bg-default flex w-full flex-col lg:grid lg:grid-cols-3 lg:items-center">
+        {/* Left - Back button and title */}
+        <div className="border-muted flex items-center py-3">
+          <Link href={`${appUrl}`} data-testid="back-button">
+            <Button type="button" color="minimal" variant="icon" data-testid="back-button">
+              <Icon name="arrow-left" className="text-subtle h-4 w-4" />
+            </Button>
+          </Link>
 
-      {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
-      <div className="border-muted flex items-center justify-between border-b px-4 py-3 lg:hidden">
+          <div className="flex min-w-0 flex-col items-start gap-2">
+            <span className="text-default text-base font-bold leading-none">
+              {watchedName || "Loading..."}
+            </span>
+            <span className="text-subtle min-w-[100px] truncate whitespace-nowrap text-sm font-semibold ">
+              {routingForm.description}
+            </span>
+            {/* {isEditing ? (
+              <input
+                {...form.register("name")}
+                onChange={handleTitleChange}
+                onKeyDown={handleKeyDown}
+                onBlur={handleTitleSubmit}
+                className="text-default h-auto w-full whitespace-nowrap border-none p-0 text-sm font-semibold leading-none focus:ring-0"
+                autoFocus
+              />
+            ) : (
+              <div className="group flex items-center">
+                <span
+                  className="text-subtle hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded text-sm font-semibold leading-none"
+                  onClick={() => setIsEditing(true)}>
+                  {routingForm.description}
+                </span>
+                <Button
+                  variant="icon"
+                  color="minimal"
+                  onClick={() => setIsEditing(true)}
+                  CustomStartIcon={
+                    <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                  }>
+                  <span className="sr-only">Edit</span>
+                </Button>
+              </div>
+            )} */}
+          </div>
+        </div>
+        <div className="flex"></div>
+
+        {/* Mobile/Tablet layout - Second row with toggle group and actions on the same row */}
         {/* Navigation Tabs - Left aligned */}
-        <div className="flex">
+        {/* <div className="flex">
           <ToggleGroup
             defaultValue={getCurrentPage()}
             value={getCurrentPage()}
@@ -313,23 +321,10 @@ export function Header({
               },
             ]}
           />
-        </div>
-
+        </div> */}
         {/* Actions - Right aligned */}
-        <div className="flex">
-          <Actions
-            form={routingForm}
-            setIsTestPreviewOpen={setIsTestPreviewOpen}
-            isTestPreviewOpen={isTestPreviewOpen}
-            isSaving={isSaving}
-            appUrl={appUrl}
-            isMobile={true}
-          />
-        </div>
-      </div>
-
-      {/* Desktop layout - Toggle group in center column */}
-      <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
+        {/* Desktop layout - Toggle group in center column */}
+        {/* <div className="border-muted hidden justify-center border-b px-4 py-3 lg:flex">
         <ToggleGroup
           defaultValue={getCurrentPage()}
           value={getCurrentPage()}
@@ -347,18 +342,25 @@ export function Header({
             },
           ]}
         />
+      </div> */}
+        {/* Desktop layout - Actions in right column */}
+        <div className="border-muted hidden justify-end px-4 lg:flex">
+          <Actions
+            form={routingForm}
+            setIsTestPreviewOpen={setIsTestPreviewOpen}
+            isTestPreviewOpen={isTestPreviewOpen}
+            isSaving={isSaving}
+            appUrl={appUrl}
+          />
+        </div>
       </div>
-
-      {/* Desktop layout - Actions in right column */}
-      <div className="border-muted hidden justify-end border-b px-4 py-3 lg:flex">
-        <Actions
-          form={routingForm}
-          setIsTestPreviewOpen={setIsTestPreviewOpen}
-          isTestPreviewOpen={isTestPreviewOpen}
-          isSaving={isSaving}
-          appUrl={appUrl}
-        />
-      </div>
+      <HorizontalTabs
+        className="bg-default border-b"
+        tabs={tabs.map((tab) => ({
+          ...tab,
+          name: t(tab.name),
+        }))}
+      />
     </div>
   );
 }

@@ -194,7 +194,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   }
 
   return (
-    <div>
+    <div >
       <div className="flex justify-items-center">
         <Label htmlFor="username">{t("username")}</Label>
       </div>

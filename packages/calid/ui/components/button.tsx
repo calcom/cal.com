@@ -58,12 +58,25 @@ export const buttonClasses = cva(
           "enabled:hover:shadow-button-solid-brand-hover",
         ],
 
+        primary_dim: [
+          // Base colors
+          "bg-cal-active-dim",
+          "text-cal-active",
+          "border:bg-cal-active",
+          // Disabled
+          "disabled:opacity-30",
+          "hover:bg-cal-active/90",
+          "border",
+          "border-active",
+          // Shadows and effects
+        ],
+
         secondary: [
           // Base colors and border
           "bg-white",
           "text-default",
           "border",
-          "border-default",
+          "border-subtle",
           // Hover state
           "enabled:hover:bg-muted",
           "enabled:hover:text-emphasis",
@@ -131,6 +144,24 @@ export const buttonClasses = cva(
           "enabled:active:shadow-outline-red-active",
           "transition-shadow",
           "duration-200",
+        ],
+
+        destructive_account: [
+          // Base colors
+          "bg-default",
+          "border",
+          "border-destructive",
+          "text-destructive",
+          // Hover state
+          "hover:bg-red-500",
+          "hover:text-white",
+          "hover:transform",
+          "!hover:scale-105", // Add transform class
+          // Transitions
+          "transition-all",
+          "duration-200",
+          // Disabled state
+          "disabled:opacity-30",
         ],
       },
       size: {
@@ -235,7 +266,11 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       disabled,
       type: !isLink ? type : undefined,
       ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+      // className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+      className: (() => {
+        const classes = classNames(buttonClasses({ color, size, loading, variant }), props.className);
+        return classes;
+      })(),
       // if we click a disabled button, we prevent going through the click handler
       onClick: disabled
         ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {

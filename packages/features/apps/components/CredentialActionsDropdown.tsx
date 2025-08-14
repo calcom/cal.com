@@ -9,14 +9,14 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  ButtonOrLink,
-} from "@calid/features/ui/components/dropdown-menu";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+//   DropdownMenuSeparator,
+//   ButtonOrLink,
+// } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { useState } from "react";
 
@@ -82,7 +82,7 @@ export default function CredentialActionsDropdown({
 
   return (
     <>
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      {/* <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
         </DropdownMenuTrigger>
@@ -137,7 +137,16 @@ export default function CredentialActionsDropdown({
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
+      <Button
+        color="minimal"
+        variant="fab"
+        size="sm"
+        StartIcon="trash-2"
+        onClick={() => {
+          setDeleteModalOpen(true);
+          setDropdownOpen(false);
+        }}></Button>
 
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent>

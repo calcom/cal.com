@@ -7,7 +7,7 @@ export * from "./badge";
 export * from "./breadcrumb";
 export * from "./button";
 export * from "./calendar";
-export * from "./card";
+// export * from "./card";
 export * from "./carousel";
 export * from "./checkbox";
 export * from "./collapsible";
@@ -22,6 +22,7 @@ export * from "./form";
 export * from "./hover-card";
 export * from "./input-otp";
 export * from "./input";
+export * from "./text_field";
 export * from "./label";
 export * from "./menubar";
 export * from "./navigation-menu";
@@ -49,6 +50,8 @@ export * from "./toggle";
 export * from "./tooltip";
 export * from "./HorizontalTabItem";
 export * from "./HorizontalTabs";
+export * from "./Profile";
+export * from "./icon/Icon";
 
 // Explicitly re-export 'toast' from './use-toast' with an alias to avoid ambiguity
 export { toast as useToast } from "./use-toast";
