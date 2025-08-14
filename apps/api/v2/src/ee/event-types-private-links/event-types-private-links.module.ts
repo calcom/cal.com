@@ -12,7 +12,7 @@ import { PrivateLinksOutputService } from "./services/private-links-output.servi
 import { PrivateLinksService } from "./services/private-links.service";
 
 @Module({
-  imports: [TokensModule, OAuthClientModule, PrismaModule, EventTypesModule_2024_06_14],
+  imports: [TokensModule, PrismaModule, EventTypesModule_2024_06_14],
   controllers: [EventTypesPrivateLinksController],
   providers: [
     PrivateLinksService,
@@ -21,5 +21,6 @@ import { PrivateLinksService } from "./services/private-links.service";
     PrivateLinksRepository,
     EventTypeOwnershipGuard,
   ],
+  exports: [PrivateLinksService],
 })
 export class EventTypesPrivateLinksModule {}
