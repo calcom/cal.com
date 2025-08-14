@@ -307,6 +307,38 @@ describe("processWorkingHours", () => {
       })
     ).toBeTruthy();
   });
+
+  it("should handle overlapping working hours with the same end time", () => {
+    const item1 = {
+      days: [1], // Monday
+      startTime: new Date(Date.UTC(2023, 5, 12, 9, 0)), // 9 AM
+      endTime: new Date(Date.UTC(2023, 5, 12, 15, 30)), // 3:30 PM
+    };
+
+    const item2 = {
+      days: [1], // Monday
+      startTime: new Date(Date.UTC(2023, 5, 12, 15, 15)), // 3:15 PM
+      endTime: new Date(Date.UTC(2023, 5, 12, 17, 0)), // 5 PM
+    };
+
+    const timeZone = "UTC";
+    const dateFrom = dayjs("2023-06-12T00:00:00Z"); // Monday
+    const dateTo = dayjs("2023-06-12T23:59:59Z"); // Monday
+
+    const results = Object.values(
+      processWorkingHours({}, { item: item1, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
+
+    const results2 = Object.values(
+      processWorkingHours(results, { item: item2, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
+
+    expect(results2.length).toBe(1);
+    expect(results2[0]).toEqual({
+      start: dayjs("2023-06-12T09:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-12T15:30:00Z").tz(timeZone),
+    });
+  });
 });
 
 describe("processDateOverrides", () => {
