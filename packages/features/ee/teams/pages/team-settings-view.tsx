@@ -189,6 +189,7 @@ const AvailabilityLockView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isTeamInOrganization = team?.parentId !== null && team?.parentId !== undefined;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
@@ -202,7 +203,7 @@ const AvailabilityLockView = ({ team }: ProfileViewProps) => {
 
   return (
     <>
-      {isAdmin && (
+      {isAdmin && isTeamInOrganization && (
         <div className="mt-6">
           <SettingsToggle
             toggleSwitchAtTheEnd={true}

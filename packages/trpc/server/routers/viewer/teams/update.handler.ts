@@ -54,6 +54,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
   }
 
+  if (input.lockDefaultAvailability !== undefined && input.lockDefaultAvailability) {
+    if (!prevTeam.parentId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Lock default availability feature is only available for teams within organizations.",
+      });
+    }
+  }
+
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
     bio: input.bio,
