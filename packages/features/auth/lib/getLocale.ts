@@ -1,10 +1,10 @@
 import { parse } from "accept-language-parser";
-import type { ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { lookup } from "bcp-47-match";
 import type { GetTokenParams } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
 
 import { i18n } from "@calcom/config/next-i18next.config";
+import type { ReadonlyHeaders, ReadonlyRequestCookies } from "@calcom/web/app/_types";
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
