@@ -34,13 +34,4 @@ export class ManagedOrganizationsRepositoryFixture {
       },
     });
   }
-
-  async createManagedOrganization(managerOrganizationId: number, managedOrganizationId: number) {
-    return this.prismaWriteClient.managedOrganization.create({
-      data: {
-        managerOrganizationId,
-        managedOrganizationId,
-      },
-    });
-  }
 }
