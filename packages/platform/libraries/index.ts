@@ -120,19 +120,10 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
-export {
-  verifyCodeUnAuthenticated,
-  type VerifyCodeUnAuthenticatedInput,
-} from "../../trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
+export { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
 
-export {
-  verifyCodeAuthenticated,
-  type VerifyCodeAuthenticatedInput,
-} from "../../trpc/server/routers/viewer/organizations/verifyCode.handler";
+export { verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
-export {
-  sendVerifyEmailCode,
-  type SendVerifyEmailCodeInput,
-} from "../../trpc/server/routers/viewer/auth/sendVerifyEmailCode.handler";
+export { sendVerifyEmailCode } from "@calcom/trpc/server/routers/viewer/auth/sendVerifyEmailCode.handler";
 
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
