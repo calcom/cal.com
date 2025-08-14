@@ -3,7 +3,7 @@ import {
   CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
-} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event";
+} from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
 import { PipeTransform, Injectable } from "@nestjs/common";
 
 export interface GoogleCalendarEventResponse {
@@ -94,22 +94,21 @@ export class GoogleCalendarEventOutputPipe
     calendarEvent.locations = this.transformLocations(googleEvent);
 
     if (googleEvent.attendees && googleEvent.attendees.length > 0) {
-      calendarEvent.attendees = googleEvent.attendees
-        .filter((attendee) => !attendee.organizer)
-        .map((attendee) => {
-          return {
-            email: attendee.email,
-            name: attendee.displayName,
-            responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
-            organizer: attendee.organizer,
-            self: attendee.self,
-            optional: attendee.optional,
-          };
-        });
+      calendarEvent.attendees = googleEvent.attendees.map((attendee) => {
+        return {
+          email: attendee.email,
+          name: attendee.displayName,
+          responseStatus: this.transformAttendeeResponseStatus(attendee.responseStatus),
+          host: attendee.organizer,
+          self: attendee.self,
+          optional: attendee.optional,
+        };
+      });
     }
 
     calendarEvent.status = this.transformEventStatus(googleEvent.status);
 
+    calendarEvent.calendarEventOwner = googleEvent.organizer;
     calendarEvent.hosts = this.transformHosts(googleEvent);
 
     calendarEvent.source = "google";
@@ -196,6 +195,8 @@ export class GoogleCalendarEventOutputPipe
           regionCode: entryPoint.regionCode,
         };
       });
+    } else if (googleEvent.location) {
+      return [{ type: "video", url: googleEvent.location }];
     } else if (googleEvent.hangoutLink) {
       return [{ type: "video", url: googleEvent.hangoutLink }];
     }

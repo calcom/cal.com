@@ -84,6 +84,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   onTimeslotsLoaded?: (slots: Record<string, Slot[]>) => void;
   startTime?: string | Date;
   roundRobinHideOrgAndTeam?: boolean;
+  silentlyHandleCalendarFailures?: boolean;
 };
 
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {

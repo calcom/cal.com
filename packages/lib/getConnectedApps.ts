@@ -71,6 +71,7 @@ export async function getConnectedApps({
   if (includeTeamInstalledApps || teamId) {
     const teamsQuery = await prisma.team.findMany({
       where: {
+        ...(teamId ? { id: teamId } : {}),
         members: {
           some: {
             userId: user.id,

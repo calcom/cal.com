@@ -1,3 +1,5 @@
+import { OrganizationsEventTypesPrivateLinksController } from "@/ee/event-types-private-links/controllers/organizations-event-types-private-links.controller";
+import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { AppsRepository } from "@/modules/apps/apps.repository";
@@ -18,7 +20,6 @@ import { OrganizationAttributesService } from "@/modules/organizations/attribute
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/attributes/options/organization-attribute-options.repository";
 import { OrganizationsAttributesOptionsController } from "@/modules/organizations/attributes/options/organizations-attributes-options.controller";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/attributes/options/services/organization-attributes-option.service";
-import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
 import { OrganizationsConferencingModule } from "@/modules/organizations/conferencing/organizations-conferencing.module";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsDelegationCredentialModule } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.module";
@@ -91,6 +92,7 @@ import { Module } from "@nestjs/common";
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     OrganizationsConferencingModule,
+    EventTypesPrivateLinksModule,
   ],
   providers: [
     OrganizationsRepository,
@@ -177,6 +179,7 @@ import { Module } from "@nestjs/common";
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
     OrganizationTeamWorkflowsController,
+    OrganizationsEventTypesPrivateLinksController,
   ],
 })
 export class OrganizationsModule {}

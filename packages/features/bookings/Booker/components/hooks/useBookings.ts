@@ -8,6 +8,7 @@ import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
@@ -117,21 +118,21 @@ export const useBookings = ({
   isBookingDryRun,
 }: IUseBookings) => {
   const router = useRouter();
-  const eventSlug = useBookerStore((state) => state.eventSlug);
-  const eventTypeId = useBookerStore((state) => state.eventId);
-  const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+  const eventSlug = useBookerStoreContext((state) => state.eventSlug);
+  const eventTypeId = useBookerStoreContext((state) => state.eventId);
+  const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
-  const bookingData = useBookerStore((state) => state.bookingData);
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
 
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
   const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
-  const duration = useBookerStore((state) => state.selectedDuration);
+  const duration = useBookerStoreContext((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
