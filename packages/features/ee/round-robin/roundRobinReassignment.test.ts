@@ -1,3 +1,5 @@
+import prismaMock from "../../../../tests/libs/__mocks__/prisma";
+
 import {
   getDate,
   createBookingScenario,
@@ -9,14 +11,50 @@ import {
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
+  expectWorkflowToBeTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, expect } from "vitest";
+import { describe, vi, expect } from "vitest";
 
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+vi.mock("@calcom/lib/EventManager");
+
+const testDestinationCalendar = {
+  integration: "test-calendar",
+  externalId: "test-calendar",
+};
+
+const testUsers = [
+  {
+    id: 1,
+    name: "user-1",
+    timeZone: "Asia/Kolkata",
+    username: "host-1",
+    email: "host1@test.com",
+    schedules: [TestData.schedules.IstWorkHours],
+    destinationCalendar: testDestinationCalendar,
+  },
+  {
+    id: 2,
+    name: "user-2",
+    timeZone: "Asia/Kolkata",
+    username: "host-2",
+    email: "host2@test.com",
+    schedules: [TestData.schedules.IstWorkHours],
+  },
+  {
+    id: 3,
+    name: "user-3",
+    timeZone: "Asia/Kolkata",
+    username: "host-3",
+    email: "host3@test.com",
+    schedules: [TestData.schedules.IstWorkHours],
+  },
+];
 
 describe("roundRobinReassignment test", () => {
   setupAndTeardown();
