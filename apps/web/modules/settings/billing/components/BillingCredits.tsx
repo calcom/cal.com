@@ -111,7 +111,6 @@ export default function BillingCredits() {
     return null;
   }
 
-  // Only show credits UI on organization billing pages
   if (orgId && !pathname?.includes("/organizations/")) {
     // Don't show credits on personal billing if user is an org member
     return null;
