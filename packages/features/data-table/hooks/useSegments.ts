@@ -7,7 +7,6 @@ import { type UseSegments, SYSTEM_SEGMENT_PREFIX } from "../lib/types";
 import { isDateRangeFilterValue } from "../lib/utils";
 
 export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, systemSegments }) => {
-  console.log("💡 useSegments");
   const { data: rawSegments, isSuccess } = trpc.viewer.filterSegments.list.useQuery(
     {
       tableIdentifier,
@@ -21,7 +20,6 @@ export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, sy
   const preferredSegmentId = useMemo(() => rawSegments?.preferredSegmentId || null, [rawSegments]);
 
   const segments = useMemo(() => {
-    console.log("💡 useSegments - segments useMemo");
     const userSegments = providedSegments || rawSegments?.segments || [];
 
     const processedSystemSegments = (systemSegments || []).map((segment) => ({

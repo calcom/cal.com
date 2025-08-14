@@ -9,6 +9,8 @@ import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useState, createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
+import { useElementByClassName } from "@calcom/lib/hooks/useElementByClassName";
+
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
 import {
   activeFiltersParser,
@@ -124,7 +126,6 @@ export function DataTableProvider({
     "segment",
     initialSegmentId ? segmentIdParser.withDefault(initialSegmentId) : segmentIdParser
   );
-  console.log("💡 segmentId:", segmentId);
   const {
     segments,
     preferredSegmentId: fetchedPreferredSegmentId,
@@ -180,9 +181,7 @@ export function DataTableProvider({
 
   const setSegment = useCallback(
     (segmentId: SegmentIdentifier | null) => {
-      console.log("💡 setSegment 0", segmentId);
       if (!segmentId) {
-        console.log("💡 setSegment 1");
         setSegmentId(null);
         setSelectedSegment(undefined);
         setSegmentPreference({
@@ -194,7 +193,6 @@ export function DataTableProvider({
 
       const segment = findSelectedSegment(String(segmentId.id));
       if (!segment) {
-        console.log("💡 setSegment 2");
         // If segmentId is invalid (or not found), clear the segmentId from the query params,
         // but we still keep all the other states like activeFilters, etc.
         // This is useful when someone shares a URL that is inaccessible to someone else.
@@ -207,7 +205,6 @@ export function DataTableProvider({
         return;
       }
 
-      console.log("💡 setSegment 3");
       setSegmentId(String(segmentId.id));
       setSelectedSegment(segment);
       setSegmentPreference({
@@ -258,10 +255,6 @@ export function DataTableProvider({
     // and no segment id has been selected yet,
     // then we set it.
     if (fetchedPreferredSegmentId && !segmentId) {
-      console.log("💡 setting segment 1", {
-        fetchedPreferredSegmentId,
-        segmentId,
-      });
       setSegment(fetchedPreferredSegmentId);
     }
     // We intentionally have only `isSegmentFetchedSuccessfully`
@@ -270,7 +263,6 @@ export function DataTableProvider({
 
   const clearSystemSegmentSelectionIfExists = useCallback(() => {
     if (selectedSegment?.type === "system") {
-      console.log("💡 setting segment 2");
       setSegment(null);
     }
   }, [selectedSegment, setSegment]);
@@ -282,7 +274,6 @@ export function DataTableProvider({
 
   const addFilter = useCallback(
     (columnId: string) => {
-      console.log("💡 addFilter", columnId);
       if (!activeFilters?.some((filter) => filter.f === columnId)) {
         // do not reset the page to 0 here,
         // because we don't have the filter value yet (`v: undefined`)
@@ -300,7 +291,6 @@ export function DataTableProvider({
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
-      console.log("💡 updateFilter", columnId, value);
       setPageIndex(null);
       setActiveFilters((prev) => {
         let added = false;
@@ -323,7 +313,6 @@ export function DataTableProvider({
 
   const removeFilter = useCallback(
     (columnId: string) => {
-      console.log("💡 removeFilter", columnId);
       setPageIndex(null);
       setActiveFilters((prev) => {
         const remainingFilters = prev.filter((filter) => filter.f !== columnId);
@@ -336,7 +325,6 @@ export function DataTableProvider({
 
   const setPageSizeAndGoToFirstPage = useCallback(
     (newPageSize: number | null) => {
-      console.log("💡 setPageSizeAndGoToFirstPage", newPageSize);
       setPageSize(newPageSize === defaultPageSize ? null : newPageSize);
       setPageIndex(null);
       clearSystemSegmentSelectionIfExists();
@@ -346,7 +334,6 @@ export function DataTableProvider({
 
   const clearAll = useCallback(
     (exclude?: string[]) => {
-      console.log("💡 setting segment 3");
       setSegment(null);
       setPageIndex(null);
       setActiveFilters((prev) => {
@@ -359,7 +346,6 @@ export function DataTableProvider({
 
   // Check if current state differs from selected segment
   const hasStateChanged = useMemo(() => {
-    console.log("💡 hasStateChanged - useMemo");
     if (!selectedSegment) return false;
 
     return (
@@ -373,17 +359,6 @@ export function DataTableProvider({
   }, [selectedSegment, activeFilters, sorting, columnVisibility, columnSizing, pageSize, searchTerm]);
 
   const canSaveSegment = useMemo(() => {
-    console.log("💡 canSaveSegment", {
-      selectedSegment,
-      activeFilters,
-      sorting,
-      columnVisibility,
-      columnSizing,
-      pageSize,
-      searchTerm,
-      defaultPageSize,
-      hasStateChanged,
-    });
     if (selectedSegment) {
       return hasStateChanged;
     }
@@ -408,13 +383,7 @@ export function DataTableProvider({
     hasStateChanged,
   ]);
 
-  const ctaContainerRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    if (ctaContainerClassName) {
-      const element = document.getElementsByClassName(ctaContainerClassName)[0] as HTMLDivElement;
-      ctaContainerRef.current = element;
-    }
-  }, [ctaContainerClassName]);
+  const ctaContainerRef = useElementByClassName<HTMLDivElement>(ctaContainerClassName);
 
   return (
     <DataTableContext.Provider
