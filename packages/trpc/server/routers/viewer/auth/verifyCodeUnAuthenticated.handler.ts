@@ -9,12 +9,14 @@ type VerifyTokenOptions = {
   input: ZVerifyCodeInputSchema;
 };
 
-export type VerifyCodeUnAuthenticatedInput = ZVerifyCodeInputSchema;
+export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOptions) => {
+  return verifyCodeUnAuthenticated(input);
+};
 
-export const verifyCodeUnAuthenticated = async (input: VerifyCodeUnAuthenticatedInput) => {
+export const verifyCodeUnAuthenticated = async (input: ZVerifyCodeInputSchema) => {
   const { email, code } = input;
 
-  if (!email || !code) throw new Error("BAD_REQUEST");
+  if (!email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
 
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
@@ -22,24 +24,7 @@ export const verifyCodeUnAuthenticated = async (input: VerifyCodeUnAuthenticated
 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
-  if (!isValidToken) throw new Error("invalid_code");
+  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
 
-  return { verified: isValidToken };
-};
-
-export const verifyCodeUnAuthenticatedHandler = async ({ input }: VerifyTokenOptions) => {
-  try {
-    const result = await verifyCodeUnAuthenticated(input);
-    return result.verified;
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "BAD_REQUEST") {
-        throw new TRPCError({ code: "BAD_REQUEST" });
-      }
-      if (error.message === "invalid_code") {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
-      }
-    }
-    throw new TRPCError({ code: "BAD_REQUEST" });
-  }
+  return isValidToken;
 };

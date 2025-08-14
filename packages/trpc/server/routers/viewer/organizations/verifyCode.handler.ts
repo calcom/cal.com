@@ -53,9 +53,13 @@ export const verifyCodeAuthenticated = async (input: VerifyCodeAuthenticatedInpu
   return { verified: isValidToken };
 };
 
-export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
-  const { user } = ctx;
-
+export const verifyCode = async ({
+  user,
+  input,
+}: {
+  user: NonNullable<TrpcSessionUser>;
+  input: ZVerifyCodeInputSchema;
+}) => {
   try {
     const result = await verifyCodeAuthenticated({
       ...input,
@@ -74,6 +78,12 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
     }
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
+};
+
+export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
+  const { user } = ctx;
+
+  return verifyCode({ user, input });
 };
 
 export default verifyCodeHandler;

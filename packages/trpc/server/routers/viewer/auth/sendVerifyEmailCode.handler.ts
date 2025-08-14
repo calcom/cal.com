@@ -13,33 +13,27 @@ type SendVerifyEmailCode = {
   req: TRPCContext["req"] | undefined;
 };
 
-export type SendVerifyEmailCodeInput = TSendVerifyEmailCodeSchema & {
-  identifier?: string;
+export const sendVerifyEmailCodeHandler = async ({ input, req }: SendVerifyEmailCode) => {
+  const identifier = req ? piiHasher.hash(getIP(req as NextApiRequest)) : hashEmail(input.email);
+  return sendVerifyEmailCode({ input, identifier });
 };
 
-export const sendVerifyEmailCode = async (input: SendVerifyEmailCodeInput) => {
-  const identifier = input.identifier || hashEmail(input.email);
-
+export const sendVerifyEmailCode = async ({
+  input,
+  identifier,
+}: {
+  input: TSendVerifyEmailCodeSchema;
+  identifier: string;
+}) => {
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: `emailVerifyByCode.${identifier}`,
   });
 
-  const email = await sendEmailVerificationByCode({
+  return await sendEmailVerificationByCode({
     email: input.email,
     username: input.username,
     language: input.language,
     isVerifyingEmail: input.isVerifyingEmail,
-  });
-
-  return email;
-};
-
-export const sendVerifyEmailCodeHandler = async ({ input, req }: SendVerifyEmailCode) => {
-  const identifier = req ? piiHasher.hash(getIP(req as NextApiRequest)) : hashEmail(input.email);
-
-  return sendVerifyEmailCode({
-    ...input,
-    identifier,
   });
 };
