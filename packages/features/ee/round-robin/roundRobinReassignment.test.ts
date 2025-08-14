@@ -295,4 +295,111 @@ describe("roundRobinReassignment test", () => {
 
     expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
   });
+
+  test("should delete calendar events from original host when round robin reassignment changes organizer", async ({
+    emails,
+  }) => {
+    const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
+    const EventManager = (await import("@calcom/lib/EventManager")).default;
+
+    const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    const deleteEventsAndMeetingsSpy = vi.spyOn(EventManager.prototype as any, "deleteEventsAndMeetings");
+
+    eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
+    deleteEventsAndMeetingsSpy.mockResolvedValue({ results: [] });
+
+    const users = testUsers;
+    const originalHost = users[0];
+    const newHost = users[1];
+
+    const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
+    const bookingToReassignUid = "booking-to-reassign-calendar-deletion";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "round-robin-event",
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            length: 45,
+            users: users.map((user) => ({ id: user.id })),
+            hosts: users.map((user) => ({ userId: user.id, isFixed: false })),
+          },
+        ],
+        bookings: [
+          {
+            id: 123,
+            eventTypeId: 1,
+            userId: originalHost.id,
+            uid: bookingToReassignUid,
+            status: BookingStatus.ACCEPTED,
+            startTime: `${dateStringPlusOne}T05:00:00.000Z`,
+            endTime: `${dateStringPlusOne}T05:15:00.000Z`,
+            attendees: [
+              getMockBookingAttendee({
+                id: 2,
+                name: "attendee",
+                email: "attendee@test.com",
+                locale: "en",
+                timeZone: "Asia/Kolkata",
+              }),
+            ],
+            references: [
+              {
+                type: "google_calendar",
+                uid: "MOCK_CALENDAR_EVENT_ID",
+                meetingId: "MOCK_CALENDAR_EVENT_ID",
+                meetingPassword: "MOCK_PASSWORD",
+                meetingUrl: "https://calendar.google.com/calendar/event?eid=MOCK_ID",
+                externalCalendarId: "MOCK_EXTERNAL_CALENDAR_ID",
+                credentialId: 1,
+              },
+            ],
+          },
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinReassignment({
+      bookingId: 123,
+    });
+
+    expect(eventManagerSpy).toBeCalledTimes(1);
+    expect(eventManagerSpy).toHaveBeenCalledWith(
+      expect.any(Object),
+      bookingToReassignUid,
+      undefined,
+      true, // changedOrganizer should be true
+      expect.arrayContaining([expect.objectContaining(testDestinationCalendar)])
+    );
+
+    expect(deleteEventsAndMeetingsSpy).toHaveBeenCalledWith({
+      event: expect.objectContaining({
+        organizer: expect.objectContaining({
+          email: originalHost.email,
+        }),
+        uid: bookingToReassignUid,
+      }),
+      bookingReferences: expect.arrayContaining([
+        expect.objectContaining({
+          type: "google_calendar",
+          uid: "MOCK_CALENDAR_EVENT_ID",
+        }),
+      ]),
+    });
+
+    expectBookingToBeInDatabase({
+      uid: bookingToReassignUid,
+      userId: newHost.id,
+    });
+
+    expectSuccessfulRoundRobinReschedulingEmails({
+      prevOrganizer: originalHost,
+      newOrganizer: newHost,
+      emails,
+    });
+  });
 });

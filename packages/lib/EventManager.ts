@@ -646,6 +646,12 @@ export default class EventManager {
       });
     } else {
       if (changedOrganizer) {
+        log.debug("RescheduleOrganizerChanged: Deleting Event and Meeting for previous booking");
+        await this.deleteEventsAndMeetings({
+          event: { ...event, destinationCalendar: previousHostDestinationCalendar },
+          bookingReferences: booking.references,
+        });
+
         log.debug("RescheduleOrganizerChanged: Creating Event and Meeting for for new booking");
         const createdEvent = await this.create(originalEvt);
         results.push(...createdEvent.results);
