@@ -63,6 +63,7 @@ export class CheckBookingLimitsService {
     timeZone,
     teamId,
     user,
+    isGlobalBookingLimits = false,
     includeManagedEvents = false,
   }: {
     eventStartDate: Date;
@@ -73,6 +74,7 @@ export class CheckBookingLimitsService {
     timeZone?: string | null;
     teamId?: number;
     user?: { id: number; email: string };
+    isGlobalBookingLimits?: boolean;
     includeManagedEvents?: boolean;
   }) {
     const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
