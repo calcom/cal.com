@@ -40,9 +40,8 @@ export class OrganizationsTeamsSchedulesController {
   @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
   @DocsTags("Orgs / Teams / Schedules")
-  @ApiOperation({ summary: "Get all team schedules" })
+  @ApiOperation({ summary: "Get all team member schedules" })
   async getTeamSchedules(
-    @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: SkipTakePagination
   ): Promise<GetSchedulesOutput_2024_06_11> {
