@@ -4,9 +4,6 @@ import {
   verifyCodeUnAuthenticated,
   verifyCodeAuthenticated,
   sendVerifyEmailCode,
-  type VerifyCodeUnAuthenticatedInput,
-  type VerifyCodeAuthenticatedInput,
-  type SendVerifyEmailCodeInput,
 } from "@calcom/platform-libraries";
 
 @Injectable()
