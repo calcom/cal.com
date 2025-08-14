@@ -5,10 +5,13 @@ import {
   verifyCodeAuthenticated,
   sendVerifyEmailCode,
 } from "@calcom/platform-libraries";
+import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+import type { TSendVerifyEmailCodeSchema } from "@calcom/trpc/server/routers/viewer/auth/sendVerifyEmailCode.schema";
+import type { VerifyCodeAuthenticatedInput } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
 
 @Injectable()
 export class VerificationAtomsService {
-  async verifyEmailCodeUnAuthenticated(input: VerifyCodeUnAuthenticatedInput) {
+  async verifyEmailCodeUnAuthenticated(input: ZVerifyCodeInputSchema) {
     try {
       return await verifyCodeUnAuthenticated(input);
     } catch (error) {
@@ -40,7 +43,7 @@ export class VerificationAtomsService {
     }
   }
 
-  async sendEmailVerificationCode(input: SendVerifyEmailCodeInput) {
+  async sendEmailVerificationCode(input: TSendVerifyEmailCodeSchema) {
     try {
       return await sendVerifyEmailCode(input);
     } catch (error) {
