@@ -214,23 +214,6 @@ export class SchedulesRepository_2024_06_11 {
     return schedules;
   }
 
-  async getSchedulesByUserIds(userIds: number[], skip: number, take: number) {
-    const schedules = await this.dbRead.prisma.schedule.findMany({
-      where: {
-        userId: {
-          in: userIds,
-        },
-      },
-      include: {
-        availability: true,
-      },
-      skip,
-      take,
-    });
-
-    return schedules;
-  }
-
   async deleteScheduleById(scheduleId: number) {
     return this.dbWrite.prisma.schedule.delete({
       where: {
