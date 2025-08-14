@@ -200,7 +200,7 @@ async function getHandler(request: NextRequest) {
 
       buffer = await optimizeImage({
         buffer,
-        contentType: detectContentType(buffer) ?? "image/jpeg",
+        contentType: (await detectContentType(buffer)) ?? "image/jpeg",
         quality: 100,
         width: logoDefinition.w,
         height: logoDefinition.h, // optional
