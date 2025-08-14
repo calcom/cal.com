@@ -1,8 +1,6 @@
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { InputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/input-schedules.service";
 import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
-import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
@@ -16,9 +14,7 @@ export class SchedulesService_2024_06_11 {
     private readonly schedulesRepository: SchedulesRepository_2024_06_11,
     private readonly inputSchedulesService: InputSchedulesService_2024_06_11,
     private readonly outputSchedulesService: OutputSchedulesService_2024_06_11,
-    private readonly usersRepository: UsersRepository,
-    private readonly teamsRepository: TeamsRepository,
-    private readonly organizationSchedulesRepository: OrganizationSchedulesRepository
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async createUserDefaultSchedule(userId: number, timeZone: string) {
@@ -76,19 +72,6 @@ export class SchedulesService_2024_06_11 {
         return this.outputSchedulesService.getResponseSchedule(schedule);
       })
     );
-  }
-
-  async getSchedulesByUserIds(teamId: number, skip = 0, take = 250) {
-    const userIds = await this.teamsRepository.getTeamUsersIds(teamId);
-    const schedules = await this.organizationSchedulesRepository.getSchedulesByUserIds(userIds, skip, take);
-
-    const responseSchedules = [];
-
-    for (const schedule of schedules) {
-      responseSchedules.push(await this.outputSchedulesService.getResponseSchedule(schedule));
-    }
-
-    return responseSchedules;
   }
 
   async updateUserSchedule(userId: number, scheduleId: number, bodySchedule: UpdateScheduleInput_2024_06_11) {
