@@ -23,6 +23,8 @@ import { OrganizationsConferencingModule } from "@/modules/organizations/confere
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsDelegationCredentialModule } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.module";
 import { OrganizationsEventTypesController } from "@/modules/organizations/event-types/organizations-event-types.controller";
+import { EventTypesPrivateLinksModule } from "@/ee/event-types-private-links/event-types-private-links.module";
+import { OrganizationsEventTypesPrivateLinksController } from "@/ee/event-types-private-links/controllers/organizations-event-types-private-links.controller";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/event-types/services/input.service";
@@ -91,6 +93,7 @@ import { Module } from "@nestjs/common";
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     OrganizationsConferencingModule,
+    EventTypesPrivateLinksModule,
   ],
   providers: [
     OrganizationsRepository,
@@ -177,6 +180,7 @@ import { Module } from "@nestjs/common";
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
     OrganizationTeamWorkflowsController,
+    OrganizationsEventTypesPrivateLinksController,
   ],
 })
 export class OrganizationsModule {}
