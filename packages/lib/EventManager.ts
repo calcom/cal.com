@@ -327,7 +327,9 @@ export default class EventManager {
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-    const isMSTeamsWithOutlookCalendar = evt.location === MSTeamsLocationType && mainHostDestinationCalendar?.integration === "office365_calendar";
+    const isMSTeamsWithOutlookCalendar =
+      evt.location === MSTeamsLocationType &&
+      mainHostDestinationCalendar?.integration === "office365_calendar";
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
