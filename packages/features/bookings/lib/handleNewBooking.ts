@@ -562,12 +562,12 @@ async function handler(
     });
 
     if (existingBooking) {
-      const isPaidBooking = existingBooking.paid || existingBooking.payment.length === 0;
+      const hasPayments = existingBooking.payment.length > 0;
+      const isPaidBooking = existingBooking.paid || !hasPayments;
 
       const shouldShowPaymentForm = requiresPayment && !isPaidBooking;
 
-      const existingPaymentUid =
-        existingBooking.payment.length > 0 ? existingBooking.payment[0].uid : undefined;
+      const firstPayment = shouldShowPaymentForm ? existingBooking.payment[0] : undefined;
 
       const bookingResponse = {
         ...existingBooking,
@@ -584,11 +584,8 @@ async function handler(
         luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
         isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
-        paymentUid: shouldShowPaymentForm ? existingPaymentUid : undefined,
-        paymentId:
-          shouldShowPaymentForm && existingBooking.payment.length > 0
-            ? existingBooking.payment[0].id
-            : undefined,
+        paymentUid: firstPayment?.uid,
+        paymentId: firstPayment?.id,
       };
     }
   }
