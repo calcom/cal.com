@@ -335,20 +335,19 @@ export class TeamRepository {
   }
 
   async findParentOrganizationByTeamId(teamId: number) {
-    return await this.prismaClient.team.findFirst({
+    const team = await this.prismaClient.team.findUnique({
       where: {
-        children: {
-          some: {
-            id: teamId,
+        id: teamId,
+      },
+      select: {
+        parent: {
+          select: {
+            id: true,
           },
         },
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        isOrganization: true,
-      },
     });
+
+    return team?.parent;
   }
 }
