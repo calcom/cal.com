@@ -12,7 +12,7 @@ import { type IconName } from "@calcom/ui/components/icon";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
-import { EventOccurences } from "./Occurences";
+import { EventOccurences } from "./Occurrences";
 import { Price } from "./Price";
 
 type EventDetailsPropsBase = {
