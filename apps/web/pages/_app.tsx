@@ -1,6 +1,6 @@
 import type { IncomingMessage } from "http";
+import type { NextPageContext } from "next";
 import { SessionProvider } from "next-auth/react";
-import type { AppContextType } from "next/dist/shared/lib/utils";
 import React from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
@@ -32,7 +32,7 @@ declare global {
   }
 }
 
-MyApp.getInitialProps = async (ctx: AppContextType) => {
+MyApp.getInitialProps = async ({ ctx }: { ctx: NextPageContext }) => {
   const { req } = ctx.ctx;
 
   let newLocale = "en";
