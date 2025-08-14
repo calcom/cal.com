@@ -64,6 +64,7 @@ const BookerPlatformWrapperComponent = (
     onTimeslotsLoaded,
     startTime: customStartTime,
     showNoAvailabilityDialog,
+    silentlyHandleCalendarFailures = false,
   } = props;
   const layout = BookerLayouts[view];
 
@@ -310,7 +311,7 @@ const BookerPlatformWrapperComponent = (
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
-    _silentCalendarFailures: props.silentlyHandleCalendarFailures,
+    _silentCalendarFailures: silentlyHandleCalendarFailures,
     ...routingParams,
   });
 
@@ -577,7 +578,6 @@ const BookerPlatformWrapperComponent = (
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
         eventMetaChildren={props.eventMetaChildren}
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
-        silentlyHandleCalendarFailures={props.silentlyHandleCalendarFailures}
       />
     </AtomsWrapper>
   );
