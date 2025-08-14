@@ -120,4 +120,14 @@ export { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
 export { verifyPhoneNumber, sendVerificationCode };
 
+export {
+  verifyCodeUnAuthenticated,
+  verifyCodeAuthenticated,
+  sendVerifyEmailCode,
+  type VerifyCodeUnAuthenticatedInput,
+  type VerifyCodeAuthenticatedInput,
+  type SendVerifyEmailCodeInput,
+  type SendVerifyEmailCodeContext,
+} from "./verification";
+
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
