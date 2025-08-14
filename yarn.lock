@@ -2500,7 +2500,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.291"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.306"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -2730,6 +2730,7 @@ __metadata:
   resolution: "@calcom/base@workspace:packages/platform/examples/base"
   dependencies:
     "@calcom/atoms": "*"
+    "@playwright/test": ^1.45.3
     "@prisma/client": 5.4.2
     "@types/node": ^20.3.1
     "@types/react": ^18
@@ -3558,13 +3559,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.291":
-  version: 0.0.291
-  resolution: "@calcom/platform-libraries@npm:0.0.291"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.306":
+  version: 0.0.306
+  resolution: "@calcom/platform-libraries@npm:0.0.306"
   dependencies:
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 09cb5db584698acccd4447b4007df2fe2d66352c6ba823ef8c354fd3458e59414a9502f6950438e1260df71613b95f1e5a14bb54e2c7ffe6cc1dafe8b643fb9d
+  checksum: 602b8b446508429096b8e03e9edbe1ff744cf7c7af3fbe8a683aaaf0d3c96d1cd30ff356f72682449ca072beadaae95fdaa5c44b26e30cfce3bb838f519216f9
   languageName: node
   linkType: hard
 
