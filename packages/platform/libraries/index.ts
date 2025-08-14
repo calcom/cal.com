@@ -122,12 +122,17 @@ export { verifyPhoneNumber, sendVerificationCode };
 
 export {
   verifyCodeUnAuthenticated,
-  verifyCodeAuthenticated,
-  sendVerifyEmailCode,
   type VerifyCodeUnAuthenticatedInput,
+} from "../../trpc/server/routers/viewer/auth/verifyCodeUnAuthenticated.handler";
+
+export {
+  verifyCodeAuthenticated,
   type VerifyCodeAuthenticatedInput,
+} from "../../trpc/server/routers/viewer/organizations/verifyCode.handler";
+
+export {
+  sendVerifyEmailCode,
   type SendVerifyEmailCodeInput,
-  type SendVerifyEmailCodeContext,
-} from "./verification";
+} from "../../trpc/server/routers/viewer/auth/sendVerifyEmailCode.handler";
 
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";

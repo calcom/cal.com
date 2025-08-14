@@ -3,12 +3,12 @@ import { createHash } from "crypto";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { totpRawCheck } from "@calcom/lib/totp";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 type VerifyCodeOptions = {
   ctx: {
@@ -17,20 +17,24 @@ type VerifyCodeOptions = {
   input: ZVerifyCodeInputSchema;
 };
 
-export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
-  const { email, code } = input;
-  const { user } = ctx;
+export type VerifyCodeAuthenticatedInput = ZVerifyCodeInputSchema & {
+  userId: number;
+  userRole?: string;
+};
 
-  if (!user || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
+export const verifyCodeAuthenticated = async (input: VerifyCodeAuthenticatedInput) => {
+  const { email, code, userId, userRole } = input;
+
+  if (!userId || !email || !code) throw new Error("BAD_REQUEST");
 
   if (!IS_PRODUCTION || process.env.NEXT_PUBLIC_IS_E2E) {
     logger.warn(`Skipping code verification in dev/E2E environment`);
-    return true;
+    return { verified: true };
   }
 
-  if (user.role === "ADMIN") {
+  if (userRole === "ADMIN") {
     logger.warn(`Skipping code verification for instance admin`);
-    return true;
+    return { verified: true };
   }
 
   await checkRateLimitAndThrowError({
@@ -44,9 +48,32 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
-  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
+  if (!isValidToken) throw new Error("invalid_code");
 
-  return isValidToken;
+  return { verified: isValidToken };
+};
+
+export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
+  const { user } = ctx;
+
+  try {
+    const result = await verifyCodeAuthenticated({
+      ...input,
+      userId: user.id,
+      userRole: user.role,
+    });
+    return result.verified;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "BAD_REQUEST") {
+        throw new TRPCError({ code: "BAD_REQUEST" });
+      }
+      if (error.message === "invalid_code") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
+      }
+    }
+    throw new TRPCError({ code: "BAD_REQUEST" });
+  }
 };
 
 export default verifyCodeHandler;
