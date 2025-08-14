@@ -48,7 +48,24 @@ export const generateVideoGifThumbnail = async (payload: string): Promise<void> 
     if (!response.body) {
       throw new Error("No response body received");
     }
-    await pipeline(Readable.fromWeb(response.body as ReadableStream), fileStream);
+
+    const reader = response.body.getReader();
+    const nodeStream = new Readable({
+      async read() {
+        try {
+          const { done, value } = await reader.read();
+          if (done) {
+            this.push(null);
+          } else {
+            this.push(value);
+          }
+        } catch (error) {
+          this.destroy(error as Error);
+        }
+      },
+    });
+
+    await pipeline(nodeStream, fileStream);
 
     let videoDuration = duration;
     if (!videoDuration) {
