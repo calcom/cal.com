@@ -33,6 +33,8 @@ import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
 import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
+import { useVerifyCode } from "../hooks/useVerifyCode";
+import { useVerifyEmail } from "../hooks/useVerifyEmail";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
@@ -369,6 +371,23 @@ export const BookerPlatformWrapper = (
     handleSlotReservation,
   });
 
+  const verifyEmail = useVerifyEmail({
+    email: bookerForm.formEmail,
+    name: bookerForm.formName,
+    requiresBookerEmailVerification: event?.data?.requiresBookerEmailVerification,
+    onVerifyEmail: bookerForm.beforeVerifyEmail,
+  });
+
+  const verifyCode = useVerifyCode({
+    onSuccess: () => {
+      if (!bookerForm.formEmail) return;
+
+      verifyEmail.setVerifiedEmail(bookerForm.formEmail);
+      verifyEmail.setEmailVerificationModalVisible(false);
+      handleBookEvent();
+    },
+  });
+
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: hasSession,
   });
@@ -527,26 +546,13 @@ export const BookerPlatformWrapper = (
             return;
           },
         }}
-        verifyEmail={{
-          isEmailVerificationModalVisible: false,
-          setEmailVerificationModalVisible: () => {
-            return;
-          },
-          setVerifiedEmail: () => {
-            return;
-          },
-          handleVerifyEmail: () => {
-            return;
-          },
-          renderConfirmNotVerifyEmailButtonCond: true,
-          isVerificationCodeSending: false,
-        }}
+        verifyEmail={verifyEmail}
         bookerForm={bookerForm}
         event={event}
         schedule={schedule}
         orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
         bookerLayout={bookerLayout}
-        verifyCode={undefined}
+        verifyCode={verifyCode}
         isPlatform
         hasValidLicense={true}
         isBookingDryRun={isBookingDryRun ?? routingParams?.isBookingDryRun}
