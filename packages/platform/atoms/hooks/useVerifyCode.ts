@@ -19,10 +19,7 @@ interface VerifyEmailInput {
 }
 
 interface VerifyEmailResponse {
-  id: number;
-  email: string;
-  userId: number;
-  teamId?: number;
+  verified: boolean;
 }
 
 export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
@@ -39,7 +36,7 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
   >({
     mutationFn: (props: VerifyEmailInput) => {
       return http
-        .post<ApiResponse<VerifyEmailResponse>>("/atoms/verification/email/verify-code", props)
+        .post<ApiResponse<{ verified: boolean }>>("/atoms/verification/email/verify-code", props)
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             return res.data;
@@ -50,8 +47,8 @@ export const useVerifyCode = ({ onSuccess }: UseVerifyCodeProps) => {
     enabled: isInit,
     onSuccess: (data) => {
       setIsPending(false);
-      setHasVerified(true);
-      onSuccess(true);
+      setHasVerified(data.data.verified);
+      onSuccess(data.data.verified);
     },
     onError: (err) => {
       setIsPending(false);

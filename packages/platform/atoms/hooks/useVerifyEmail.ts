@@ -40,12 +40,14 @@ export const useVerifyEmail = ({
     RequestEmailVerificationInput
   >({
     mutationFn: (props: RequestEmailVerificationInput) => {
-      return http.post<ApiResponse>("/atoms/verification/email/send-code", props).then((res) => {
-        if (res.data.status === SUCCESS_STATUS) {
-          return res.data;
-        }
-        throw new Error(res.data.error?.message || "Failed to send verification email");
-      });
+      return http
+        .post<ApiResponse<{ sent: boolean }>>("/atoms/verification/email/send-code", props)
+        .then((res) => {
+          if (res.data.status === SUCCESS_STATUS) {
+            return res.data;
+          }
+          throw new Error(res.data.error?.message || "Failed to send verification email");
+        });
     },
     enabled: isInit,
     onSuccess: () => {

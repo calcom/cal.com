@@ -9,8 +9,6 @@ import logger from "@calcom/lib/logger";
 import { hashEmail, piiHasher } from "@calcom/lib/server/PiiHasher";
 import { totpRawCheck } from "@calcom/lib/totp";
 
-import { TRPCError } from "@trpc/server";
-
 export interface VerifyCodeUnAuthenticatedInput {
   email: string;
   code: string;
@@ -35,7 +33,7 @@ export interface SendVerifyEmailCodeContext {
 }
 
 export const verifyCodeUnAuthenticated = async ({ email, code }: VerifyCodeUnAuthenticatedInput) => {
-  if (!email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
+  if (!email || !code) throw new Error("BAD_REQUEST");
 
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
@@ -43,7 +41,7 @@ export const verifyCodeUnAuthenticated = async ({ email, code }: VerifyCodeUnAut
 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
-  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
+  if (!isValidToken) throw new Error("invalid_code");
 
   return isValidToken;
 };
@@ -54,7 +52,7 @@ export const verifyCodeAuthenticated = async ({
   userId,
   userRole,
 }: VerifyCodeAuthenticatedInput) => {
-  if (!userId || !email || !code) throw new TRPCError({ code: "BAD_REQUEST" });
+  if (!userId || !email || !code) throw new Error("BAD_REQUEST");
 
   if (!IS_PRODUCTION || process.env.NEXT_PUBLIC_IS_E2E) {
     logger.warn(`Skipping code verification in dev/E2E environment`);
@@ -77,7 +75,7 @@ export const verifyCodeAuthenticated = async ({
 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });
 
-  if (!isValidToken) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_code" });
+  if (!isValidToken) throw new Error("invalid_code");
 
   return isValidToken;
 };
