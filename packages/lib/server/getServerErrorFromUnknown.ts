@@ -114,6 +114,7 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.EventTypeNoHosts:
     case ErrorCode.RequestBodyInvalid:
     case ErrorCode.ChargeCardFailure:
+    case ErrorCode.TwilioInvalidPhoneNumber:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:
