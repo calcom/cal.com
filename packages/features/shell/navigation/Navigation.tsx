@@ -34,16 +34,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     href: "/availability",
     icon: "clock-2",
   },
-  // ...(orgBranding
-  //   ? [
-  //       {
-  //         name: "members",
-  //         href: `/settings/organizations/${orgBranding.slug}/members`,
-  //         icon: "building",
-  //         moreOnMobile: true,
-  //       } satisfies NavigationItemType,
-  //     ]
-  //   : []),
   {
     name: "teams",
     href: "/teams",
@@ -85,6 +75,11 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "chart-no-axes-column-increasing",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
+  },
+  {
+    name: "settings",
+    href: "/settings/my-account/profile",
+    icon: "settings",
   },
 ];
 

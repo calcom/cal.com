@@ -1,4 +1,3 @@
-// import { Credits } from "@calcom/ui/components/credits";
 import BottomNav from "@calid/features/ui/BottomNav";
 import { Logo } from "@calid/features/ui/components/logo";
 import type { User as UserAuth } from "next-auth";
@@ -6,7 +5,6 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// import { IS_VISUAL_REGRESSION_TESTING } from "@calcom/lib/constants";
 import classNames from "@calcom/ui/classNames";
 
 import { Navigation } from "./navigation/Navigation";
@@ -33,19 +31,8 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 }
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
-  // const session = useSession();
-  // const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
-  // const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-
-  // const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
-
-  // const bottomNavItems = useBottomNavItems({
-  //   publicPageUrl,
-  //   isAdmin,
-  //   user,
-  // });
 
   const sidebarStylingAttributes = {
     maxHeight: `calc(100vh - ${bannersHeight}px)`,
@@ -67,10 +54,6 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           </Link>
           <Navigation isPlatformNavigation={isPlatformPages} />
         </div>
-
-        {/* {!isPlatformPages && (
-          <div className="flex justify-center">{!IS_VISUAL_REGRESSION_TESTING && <Credits />}</div>
-        )} */}
         <div>
           <BottomNav />
         </div>

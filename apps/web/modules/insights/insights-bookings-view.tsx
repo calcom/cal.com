@@ -30,11 +30,11 @@ import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsights
 import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function InsightsPage({ timeZone }: { timeZone: string }) {
+export default function InsightsBookingPage({ timeZone }: { timeZone: string }) {
   return (
     <DataTableProvider timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
-        <InsightsPageContent />
+        <InsightsBookingPageContent />
       </InsightsOrgTeamsProvider>
     </DataTableProvider>
   );
@@ -46,7 +46,7 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
   type: ColumnFilterType.DATE_RANGE,
 };
 
-function InsightsPageContent() {
+function InsightsBookingPageContent() {
   const { t } = useLocale();
   const { table } = useInsightsBookings();
   const { isAll, teamId, userId } = useInsightsOrgTeams();

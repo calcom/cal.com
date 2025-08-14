@@ -13,19 +13,22 @@ import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-ro
 import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
+import { getTimeView, getTimeLine, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";
 import { VirtualQueuesInsights } from "./virtual-queues";
+import { WorkflowEventsInsights } from "./workflow-events";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
   isAll: z.boolean().optional(),
 });
+const WorkflowMethodsSchema = z.nativeEnum(WorkflowMethods);
 
 type BuildBaseWhereConditionCtxType = {
   userIsOwnerAdminOfParentTeam: boolean;
@@ -1034,6 +1037,212 @@ export const insightsRouter = router({
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
+    }),
+  workflowsByStatus: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        type: WorkflowMethodsSchema.optional().nullable(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate, eventTypeId, userId, teamId, type } = input;
+
+      const stats: {
+        sentCount: number;
+        readCount: number;
+        failedCount: number;
+        total: number;
+      } = {
+        sentCount: 0,
+        readCount: 0,
+        failedCount: 0,
+        total: 0,
+      };
+
+      const whereConditions = [
+        startDate
+          ? {
+              createdAt: {
+                gte: dayjs.utc(startDate).startOf("day"),
+              },
+            }
+          : null,
+
+        endDate
+          ? {
+              createdAt: {
+                lte: dayjs.utc(endDate).endOf("day"),
+              },
+            }
+          : null,
+        eventTypeId ? { eventTypeId } : null,
+
+        type ? { type } : null,
+      ].filter(Boolean) as Prisma.WorkflowInsightsWhereInput[]; // Type assertion
+
+      const whereQuery: Prisma.WorkflowInsightsWhereInput = whereConditions.length
+        ? { AND: whereConditions }
+        : {};
+      const eventTypeIds: number[] = [];
+      if (userId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { userId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (teamId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { teamId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (!eventTypeId)
+        (whereQuery.AND as Prisma.WorkflowInsightsWhereInput[]).push({ eventTypeId: { in: eventTypeIds } });
+
+      const workflowInsights = await ctx.insightsDb.workflowInsights.findMany({
+        where: whereQuery,
+      });
+
+      stats.total = workflowInsights.length;
+      workflowInsights.forEach((insight) => {
+        if (insight.status === WorkflowStatus.DELIVERED) {
+          stats.sentCount += 1;
+        }
+        if (insight.status === WorkflowStatus.READ) {
+          stats.readCount += 1;
+        }
+        if (insight.status === WorkflowStatus.FAILED) {
+          stats.failedCount += 1;
+        }
+      });
+
+      return stats;
+    }),
+
+  workflowsTimeline: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        timeView: z.enum(["week", "month", "year", "day"]),
+        type: WorkflowMethodsSchema.optional().nullable(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const {
+        teamId,
+        eventTypeId,
+        userId,
+        type,
+        startDate: startDateString,
+        endDate: endDateString,
+        timeView: inputTimeView,
+      } = input;
+      // Convert to UTC
+      let startDate = dayjs.utc(startDateString).startOf("day");
+      let endDate = dayjs.utc(endDateString).endOf("day");
+      let timeView = inputTimeView;
+
+      if (timeView === "week" && endDate.diff(startDate, "day") < 14) {
+        timeView = "day";
+      }
+
+      // Ensure weeks start on Monday
+      if (timeView === "week") {
+        startDate = startDate.startOf("week");
+        endDate = endDate.endOf("week");
+      }
+
+      // Build where conditions dynamically
+      const whereConditions = [
+        { createdAt: { gte: startDate.toISOString() } },
+        { createdAt: { lte: endDate.toISOString() } },
+        eventTypeId ? { eventTypeId } : null,
+        type ? { type } : null,
+      ].filter(Boolean) as Prisma.WorkflowInsightsWhereInput[];
+
+      const whereQuery: Prisma.WorkflowInsightsWhereInput = whereConditions.length
+        ? { AND: whereConditions }
+        : {};
+
+      const eventTypeIds: number[] = [];
+      if (userId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { userId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (teamId) {
+        const _eventTypeIds = (
+          await ctx.insightsDb.eventType.findMany({
+            where: { teamId },
+            select: { id: true },
+          })
+        ).map(({ id }) => id);
+        eventTypeIds.push(..._eventTypeIds);
+      }
+
+      if (!eventTypeId)
+        (whereQuery.AND as Prisma.WorkflowInsightsWhereInput[]).push({ eventTypeId: { in: eventTypeIds } });
+
+      const timeline = (await getTimeLine(timeView, startDate, endDate)) || [];
+
+      const dateFormat = timeView === "year" ? "YYYY" : timeView === "month" ? "MMM YYYY" : "ll";
+
+      // Generate date ranges with correct week alignment
+      const dateRanges = timeline.map((date) => {
+        let startOfRange = dayjs.utc(date).startOf(timeView);
+        let endOfRange = dayjs.utc(date).endOf(timeView);
+
+        if (timeView === "week") {
+          startOfRange = dayjs.utc(date).startOf("week");
+          endOfRange = startOfRange.endOf("week");
+        }
+
+        return {
+          startDate: startOfRange.toISOString(),
+          endDate: endOfRange.toISOString(),
+          formattedDate: startOfRange.format(dateFormat),
+        };
+      });
+
+      // Fetch aggregated counts
+      const countsByStatus = await WorkflowEventsInsights.countGroupedWorkflowByStatusForRanges(
+        whereQuery,
+        dateRanges
+      );
+
+      const ranges = dateRanges.map(({ startDate, endDate, formattedDate }) => {
+        const WorkflowData = {
+          startDate,
+          endDate,
+          formattedDate,
+          Sent: 0,
+          Read: 0,
+          Failed: 0,
+          Total: 0,
+        };
+
+        const countsForDateRange = countsByStatus[formattedDate];
+        if (countsForDateRange) {
+          WorkflowData["Sent"] = countsForDateRange[WorkflowStatus.DELIVERED] || 0;
+          WorkflowData["Read"] = countsForDateRange[WorkflowStatus.READ] || 0;
+          WorkflowData["Failed"] = countsForDateRange[WorkflowStatus.FAILED] || 0;
+          WorkflowData["Total"] = WorkflowData["Sent"] + WorkflowData["Read"] + WorkflowData["Failed"];
+        }
+        return WorkflowData;
+      });
+      return ranges;
     }),
 });
 

@@ -1,3 +1,4 @@
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 
 type TimeViewType = "week" | "month" | "year" | "day";
@@ -212,3 +213,82 @@ export const formatPeriodFull = ({
       return "";
   }
 };
+
+export const getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
+  let resultTimeLine: string[] = [];
+
+  if (timeView) {
+    switch (timeView) {
+      case "day":
+        resultTimeLine = getDailyTimeline(startDate, endDate);
+        break;
+      case "week":
+        resultTimeLine = getWeekTimeline(startDate, endDate);
+        break;
+      case "month":
+        resultTimeLine = getMonthTimeline(startDate, endDate);
+        break;
+      case "year":
+        resultTimeLine = getYearTimeline(startDate, endDate);
+        break;
+      default:
+        resultTimeLine = getWeekTimeline(startDate, endDate);
+        break;
+    }
+  }
+
+  return resultTimeLine;
+};
+
+export function getDailyTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
+  const now = dayjs();
+  const endOfDay = now.endOf("day");
+  let pivotDate = dayjs(startDate);
+  const dates: string[] = [];
+  while ((pivotDate.isBefore(endDate) || pivotDate.isSame(endDate)) && pivotDate.isBefore(endOfDay)) {
+    dates.push(pivotDate.format("YYYY-MM-DD"));
+    pivotDate = pivotDate.add(1, "day");
+  }
+  return dates;
+}
+
+export function getWeekTimeline(startDate: Dayjs, endDate: Dayjs): string[] {
+  let pivotDate = dayjs(endDate);
+  const dates: string[] = [];
+
+  // Add the endDate as the last date in the timeline
+  dates.push(pivotDate.format("YYYY-MM-DD"));
+
+  // Move backwards in 6-day increments until reaching or passing the startDate
+  while (pivotDate.isAfter(startDate)) {
+    pivotDate = pivotDate.subtract(7, "day");
+    if (pivotDate.isBefore(startDate)) {
+      break;
+    }
+    dates.push(pivotDate.format("YYYY-MM-DD"));
+  }
+
+  // Reverse the array to have the timeline in ascending order
+  return dates.reverse();
+}
+
+export function getMonthTimeline(startDate: Dayjs, endDate: Dayjs) {
+  let pivotDate = dayjs(startDate);
+  const dates = [];
+  while (pivotDate.isBefore(endDate)) {
+    pivotDate = pivotDate.set("month", pivotDate.get("month") + 1);
+
+    dates.push(pivotDate.format("YYYY-MM-DD"));
+  }
+  return dates;
+}
+
+export function getYearTimeline(startDate: Dayjs, endDate: Dayjs) {
+  let pivotDate = dayjs(startDate);
+  const dates = [];
+  while (pivotDate.isBefore(endDate)) {
+    pivotDate = pivotDate.set("year", pivotDate.get("year") + 1);
+    dates.push(pivotDate.format("YYYY-MM-DD"));
+  }
+  return dates;
+}

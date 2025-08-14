@@ -84,7 +84,6 @@ function DownloadButton({
   return (
     <Button
       type="button" // Change from submit to button
-      className="p-0"
       color="secondary"
       variant="icon"
       onClick={handleDownload}
@@ -145,7 +144,7 @@ function FormCard({
                   placeholder={t("search")}
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full"
+                  className="h-full w-full"
                 />
               </div>
               <DownloadButton

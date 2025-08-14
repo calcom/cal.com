@@ -208,6 +208,8 @@ model EventType {
   restrictionScheduleId Int?
   restrictionSchedule   Schedule? @relation("restrictionSchedule", fields: [restrictionScheduleId], references: [id])
 
+  workflowInsights WorkflowInsights[]
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -1356,6 +1358,7 @@ model Workflow {
   time          Int?
   timeUnit      TimeUnit?
   steps         WorkflowStep[]
+  workflowInsights WorkflowInsights[]
 
   @@index([userId])
   @@index([teamId])
@@ -1474,6 +1477,12 @@ enum WorkflowMethods {
   EMAIL
   SMS
   WHATSAPP
+}
+
+enum WorkflowStatus {
+  DELIVERED
+  READ
+  FAILED
 }
 
 model BookingSeat {
@@ -2276,6 +2285,18 @@ model App_RoutingForms_IncompleteBookingActions {
   data         Json
   enabled      Boolean                     @default(true)
   credentialId Int?
+}
+
+model WorkflowInsights {
+  msgId       String          @unique
+  eventTypeId Int
+  eventType   EventType?      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  workflowId  Int?
+  workflow    Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  type        WorkflowMethods
+  status      WorkflowStatus
+  metadata    Json?
+  createdAt   DateTime        @default(now())
 }
 
 model InternalNotePreset {

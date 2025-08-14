@@ -89,18 +89,18 @@ export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https
 export const LOGO = "/calid-logo-icon.svg";
 export const LOGO_ICON = "/calid-logo-icon.svg";
 export const AVATAR_FALLBACK = "/avatar.svg";
-export const FAVICON_16 = "/favicon-16x16.png";
-export const FAVICON_32 = "/favicon-32x32.png";
-export const APPLE_TOUCH_ICON = "/apple-touch-icon.png";
+export const FAVICON_16 = "/calid-favicon-16x16.png";
+export const FAVICON_32 = "/calid-favicon-32x32.png";
+export const APPLE_TOUCH_ICON = "/calid-apple-touch-icon.png";
 export const MSTILE_ICON = "/mstile-150x150.png";
-export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
+export const ANDROID_CHROME_ICON_192 = "/calid-android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
-export const ROADMAP = "https://cal.com/roadmap";
+export const ROADMAP = "https://roadmap.onehash.ai";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
 export const JOIN_COMMUNITY = "https://github.com/calcom/cal.com/discussions";
 export const POWERED_BY_URL = "https://go.cal.com/booking";
-export const DOCS_URL = "https://cal.com/docs";
-export const DEVELOPER_DOCS = "https://developer.cal.com";
+export const DOCS_URL = "https://cal.id/docs";
+export const DEVELOPER_DOCS = "https://cal.id/docs/developers";
 export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
 // This results in a 80% smaller image 🤯. It is however important that for the query
