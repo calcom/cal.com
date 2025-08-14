@@ -737,6 +737,7 @@ export class AvailableSlotsService {
     startTime,
     endTime,
     bypassBusyCalendarTimes,
+    silentCalendarFailures,
     shouldServeCache,
   }: {
     input: TGetScheduleInputSchema;
@@ -753,6 +754,7 @@ export class AvailableSlotsService {
     startTime: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
     endTime: Dayjs;
     bypassBusyCalendarTimes: boolean;
+    silentCalendarFailures: boolean;
     shouldServeCache?: boolean;
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
@@ -887,6 +889,7 @@ export class AvailableSlotsService {
         duration: input.duration || 0,
         returnDateOverrides: false,
         bypassBusyCalendarTimes,
+        silentlyHandleCalendarFailures: silentCalendarFailures,
         shouldServeCache,
       },
       initialData: {
@@ -958,6 +961,7 @@ export class AvailableSlotsService {
     const {
       _enableTroubleshooter: enableTroubleshooter = false,
       _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
+      _silentCalendarFailures: silentCalendarFailures = false,
       _shouldServeCache,
       routingFormResponseId,
       queuedFormResponseId,
@@ -1069,6 +1073,7 @@ export class AvailableSlotsService {
             ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
             : endTime,
         bypassBusyCalendarTimes,
+        silentCalendarFailures,
         shouldServeCache,
       });
 
@@ -1095,6 +1100,7 @@ export class AvailableSlotsService {
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
             bypassBusyCalendarTimes,
+            silentCalendarFailures,
             shouldServeCache,
           });
           if (
@@ -1129,6 +1135,7 @@ export class AvailableSlotsService {
             startTime,
             endTime,
             bypassBusyCalendarTimes,
+            silentCalendarFailures,
             shouldServeCache,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
