@@ -103,7 +103,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
     }
   }
 
-  const paymentCredential = await prisma.credential.findFirst({
+  let paymentCredential = await prisma.credential.findFirst({
     where: {
       ...idToSearchObject,
       appId: booking.payment[0].appId,
@@ -112,6 +112,33 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
       app: true,
     },
   });
+
+  if (!paymentCredential && idToSearchObject.teamId) {
+    const teamId = idToSearchObject.teamId;
+
+    // See if the team event belongs to an org
+    const org = await prisma.team.findFirst({
+      where: {
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+      },
+    });
+
+    if (org) {
+      paymentCredential = await prisma.credential.findFirst({
+        where: {
+          teamId: org.id,
+          appId: booking.payment[0].appId,
+        },
+        include: {
+          app: true,
+        },
+      });
+    }
+  }
 
   if (!paymentCredential?.app) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
