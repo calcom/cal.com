@@ -66,10 +66,10 @@ export const DailyVideoDownloadRecordingEmail = (
               src={props.gifThumbnailUrl}
               alt={props.language("recording_preview")}
               style={{
-                maxWidth: "480px",
+                maxWidth: "500px",
                 width: "100%",
                 height: "auto",
-                borderRadius: "8px",
+                borderRadius: "16px",
                 border: "2px solid #e5e7eb",
                 cursor: "pointer",
               }}
