@@ -87,7 +87,13 @@ export function DuplicateSegmentDialog({
         <DialogHeader title={t("duplicate_segment")} />
         <Form form={form} handleSubmit={handleSubmit}>
           <div className="space-y-4">
-            <TextField required type="text" label={t("name")} {...form.register("name")} />
+            <TextField
+              required
+              data-testid="duplicate-segment-name"
+              type="text"
+              label={t("name")}
+              {...form.register("name")}
+            />
             <DialogFooter>
               <Button color="minimal" onClick={onClose}>
                 {t("cancel")}
