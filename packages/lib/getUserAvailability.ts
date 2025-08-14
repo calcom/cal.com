@@ -36,7 +36,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
 
-import { getBusyTimes } from "./getBusyTimes";
+import { getBusyTimesService } from "./di/containers/BusyTimes";
 import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "./sentryWrapper";
 
@@ -440,7 +440,8 @@ export class UserAvailabilityService {
 
     let busyTimes = [];
     try {
-      busyTimes = await getBusyTimes({
+      const busyTimesService = getBusyTimesService();
+      busyTimes = await busyTimesService.getBusyTimes({
         credentials: user.credentials,
         startTime: getBusyTimesStart,
         endTime: getBusyTimesEnd,
