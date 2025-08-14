@@ -284,12 +284,14 @@ const _getBusyTimesFromGlobalBookingLimits = async (
   timeZone: string,
   rescheduleUid?: string
 ) => {
-  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+  const busyTimesService = getBusyTimesService();
+  const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
     dateFrom.toISOString(),
     dateTo.toISOString(),
     bookingLimits
   );
 
+  // TODO imported from old PR, needs to be refactored
   const where: Prisma.BookingWhereInput = {
     userId,
     status: BookingStatus.ACCEPTED,
