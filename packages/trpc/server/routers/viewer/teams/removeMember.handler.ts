@@ -17,7 +17,7 @@ type RemoveMemberOptions = {
 
 export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `removeMember.${ctx.sourceIp}`,
+    identifier: `removeMember.${ctx.user.id}`,
   });
 
   const { memberIds, teamIds, isOrg } = input;
