@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@calid/features/ui/components/dialog";
-import { Icon } from "@calid/feautes/ui/icon/Icon";
+import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
