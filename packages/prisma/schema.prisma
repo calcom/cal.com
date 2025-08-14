@@ -480,6 +480,7 @@ model User {
   filterSegmentPreferences       UserFilterSegmentPreference[]
   creditBalance                  CreditBalance?
   whitelistWorkflows             Boolean                       @default(false)
+  bookingLimits                  Json?
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?

@@ -23,6 +23,7 @@ import { SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 
+import GlobalBookingLimitsController from "@components/settings/GlobalBookingLimitsController";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
 
 export type FormValues = {
@@ -375,6 +376,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           setValue={formMethods.setValue}
           existingSchedules={formMethods.getValues("travelSchedules") ?? []}
         />
+        <GlobalBookingLimitsController bookingLimits={user.bookingLimits} />
       </div>
     </SettingsHeader>
   );
