@@ -18,6 +18,7 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { optimizeImage, detectContentType } from "@calcom/lib/server/imageUtils";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -194,16 +195,14 @@ async function getHandler(request: NextRequest) {
     const arrayBuffer = await response.arrayBuffer();
     let buffer: Buffer = Buffer.from(arrayBuffer);
 
-    // If we need to resize the team logos (via Next.js' built-in image processing)
+    // If we need to resize the team logos using Sharp
     if (teamLogos[logoDefinition.source] && logoDefinition.w) {
-      const { detectContentType, optimizeImage } = await import("next/dist/server/image-optimizer");
-
       buffer = await optimizeImage({
         buffer,
-        contentType: detectContentType(buffer) ?? "image/jpeg",
+        contentType: (await detectContentType(buffer)) ?? "image/jpeg",
         quality: 100,
         width: logoDefinition.w,
-        height: logoDefinition.h, // optional
+        height: logoDefinition.h,
       });
     }
 
