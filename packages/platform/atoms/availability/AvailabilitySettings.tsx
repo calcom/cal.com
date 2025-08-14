@@ -13,6 +13,7 @@ import React, {
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
 import type {
@@ -672,19 +673,21 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 </div>
               </div>
               {enableOverrides && (
-                <DateOverride
-                  workingHours={schedule.workingHours}
-                  userTimeFormat={timeFormat}
-                  handleSubmit={handleSubmit}
-                  travelSchedules={travelSchedules}
-                  weekStart={
-                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                      weekStart
-                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                  }
-                  overridesModalClassNames={customClassNames?.overridesModalClassNames}
-                  classNames={customClassNames?.dateOverrideClassNames}
-                />
+                <BookerStoreProvider>
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
+                    travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                    overridesModalClassNames={customClassNames?.overridesModalClassNames}
+                    classNames={customClassNames?.dateOverrideClassNames}
+                  />
+                </BookerStoreProvider>
               )}
             </div>
             <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">

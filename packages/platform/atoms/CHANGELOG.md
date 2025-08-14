@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.3.1
+
+### Patch Changes
+
+- [#22925](https://github.com/calcom/cal.com/pull/22925) [`4c01f17`](https://github.com/calcom/cal.com/commit/4c01f171aebcc5a64453c27e950303902cc15309) Thanks [@sean-brydon](https://github.com/sean-brydon)! - Fixes an issues for the Booker atom wherein when multiple widgets were being placed on the same page, changes made in one widget would also get reflected in the others.
+
 ## 1.3.0
 
 ### Minor Changes
