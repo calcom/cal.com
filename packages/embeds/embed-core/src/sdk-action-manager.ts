@@ -70,6 +70,34 @@ export type EventDataMap = {
      */
     allBookings?: { startTime: string; endTime: string }[];
   };
+  dryRunBookingSuccessfulV2: {
+    title: string | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
+    eventTypeId: number | null | undefined;
+    status: string | undefined;
+    paymentRequired: boolean;
+    isRecurring: boolean;
+    /**
+     * This is only used for recurring bookings
+     */
+    allBookings?: { startTime: string; endTime: string }[];
+    videoCallUrl?: string;
+  };
+  dryRunRescheduleBookingSuccessfulV2: {
+    title: string | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
+    eventTypeId: number | null | undefined;
+    status: string | undefined;
+    paymentRequired: boolean;
+    isRecurring: boolean;
+    /**
+     * This is only used for recurring bookings
+     */
+    allBookings?: { startTime: string; endTime: string }[];
+    videoCallUrl?: string;
+  };
   /**
    * @deprecated Use `rescheduleBookingSuccessfulV2` instead. We restrict the data heavily there, only sending what is absolutely needed and keeping it light as well. Plus, more importantly that can be documented well.
    */

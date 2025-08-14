@@ -81,6 +81,30 @@ const getBookingSuccessfulEventPayload = (booking: {
 };
 
 const getRescheduleBookingSuccessfulEventPayload = getBookingSuccessfulEventPayload;
+
+const getDryRunBookingSuccessfulEventPayload = (booking: {
+  title?: string;
+  startTime: string;
+  endTime: string;
+  eventTypeId?: number | null;
+  status?: BookingStatus;
+  paymentRequired: boolean;
+  isRecurring: boolean;
+  videoCallUrl?: string;
+}) => {
+  return {
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    eventTypeId: booking.eventTypeId,
+    status: booking.status,
+    paymentRequired: booking.paymentRequired,
+    isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
+  };
+};
+
+const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBookingSuccessfulEventPayload;
 export interface IUseBookingLoadingStates {
   creatingBooking: boolean;
   creatingRecurringBooking: boolean;
@@ -195,6 +219,30 @@ export const useBookings = ({
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
+        const validDuration = event.data?.isDynamic
+          ? duration || event.data?.length
+          : duration && event.data?.metadata?.multipleDuration?.includes(duration)
+          ? duration
+          : event.data?.length;
+
+        if (isRescheduling) {
+          sdkActionManager?.fire(
+            "dryRunRescheduleBookingSuccessfulV2",
+            getDryRunRescheduleBookingSuccessfulEventPayload({
+              ...booking,
+              isRecurring: false,
+            })
+          );
+        } else {
+          sdkActionManager?.fire(
+            "dryRunBookingSuccessfulV2",
+            getDryRunBookingSuccessfulEventPayload({
+              ...booking,
+              isRecurring: false,
+            })
+          );
+        }
+
         router.push("/booking/dry-run-successful");
         return;
       }
@@ -342,6 +390,30 @@ export const useBookings = ({
       const booking = bookings[0] || {};
 
       if (booking.isDryRun) {
+        if (isRescheduling) {
+          sdkActionManager?.fire("dryRunRescheduleBookingSuccessfulV2", {
+            ...getDryRunRescheduleBookingSuccessfulEventPayload({
+              ...booking,
+              isRecurring: true,
+            }),
+            allBookings: bookings.map((booking) => ({
+              startTime: booking.startTime,
+              endTime: booking.endTime,
+            })),
+          });
+        } else {
+          sdkActionManager?.fire("dryRunBookingSuccessfulV2", {
+            ...getDryRunBookingSuccessfulEventPayload({
+              ...booking,
+              isRecurring: true,
+            }),
+            allBookings: bookings.map((booking) => ({
+              startTime: booking.startTime,
+              endTime: booking.endTime,
+            })),
+          });
+        }
+
         router.push("/booking/dry-run-successful");
         return;
       }
