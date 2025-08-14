@@ -2,29 +2,10 @@ import { describe, it, expect } from "vitest";
 
 import { BookingStatus } from "@calcom/prisma/enums";
 
-const getDryRunBookingSuccessfulEventPayload = (booking: {
-  title?: string;
-  startTime: string;
-  endTime: string;
-  eventTypeId?: number | null;
-  status?: BookingStatus;
-  paymentRequired: boolean;
-  isRecurring: boolean;
-  videoCallUrl?: string;
-}) => {
-  return {
-    title: booking.title,
-    startTime: booking.startTime,
-    endTime: booking.endTime,
-    eventTypeId: booking.eventTypeId,
-    status: booking.status,
-    paymentRequired: booking.paymentRequired,
-    isRecurring: booking.isRecurring,
-    videoCallUrl: booking.videoCallUrl,
-  };
-};
-
-const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBookingSuccessfulEventPayload;
+import {
+  getDryRunBookingSuccessfulEventPayload,
+  getDryRunRescheduleBookingSuccessfulEventPayload,
+} from "./useBookings";
 
 describe("Dry run event payload functions", () => {
   it("should create dry run booking payload without uid field", () => {

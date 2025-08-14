@@ -56,6 +56,28 @@ export interface IUseBookings {
   isBookingDryRun?: boolean;
 }
 
+const getBaseBookingEventPayload = (booking: {
+  title?: string;
+  startTime: string;
+  endTime: string;
+  eventTypeId?: number | null;
+  status?: BookingStatus;
+  paymentRequired: boolean;
+  isRecurring: boolean;
+  videoCallUrl?: string;
+}) => {
+  return {
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    eventTypeId: booking.eventTypeId,
+    status: booking.status,
+    paymentRequired: booking.paymentRequired,
+    isRecurring: booking.isRecurring,
+    videoCallUrl: booking.videoCallUrl,
+  };
+};
+
 const getBookingSuccessfulEventPayload = (booking: {
   title?: string;
   startTime: string;
@@ -69,42 +91,15 @@ const getBookingSuccessfulEventPayload = (booking: {
 }) => {
   return {
     uid: booking.uid,
-    title: booking.title,
-    startTime: booking.startTime,
-    endTime: booking.endTime,
-    eventTypeId: booking.eventTypeId,
-    status: booking.status,
-    paymentRequired: booking.paymentRequired,
-    isRecurring: booking.isRecurring,
-    videoCallUrl: booking.videoCallUrl,
+    ...getBaseBookingEventPayload(booking),
   };
 };
 
 const getRescheduleBookingSuccessfulEventPayload = getBookingSuccessfulEventPayload;
 
-const getDryRunBookingSuccessfulEventPayload = (booking: {
-  title?: string;
-  startTime: string;
-  endTime: string;
-  eventTypeId?: number | null;
-  status?: BookingStatus;
-  paymentRequired: boolean;
-  isRecurring: boolean;
-  videoCallUrl?: string;
-}) => {
-  return {
-    title: booking.title,
-    startTime: booking.startTime,
-    endTime: booking.endTime,
-    eventTypeId: booking.eventTypeId,
-    status: booking.status,
-    paymentRequired: booking.paymentRequired,
-    isRecurring: booking.isRecurring,
-    videoCallUrl: booking.videoCallUrl,
-  };
-};
+export const getDryRunBookingSuccessfulEventPayload = getBaseBookingEventPayload;
 
-const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBookingSuccessfulEventPayload;
+export const getDryRunRescheduleBookingSuccessfulEventPayload = getDryRunBookingSuccessfulEventPayload;
 export interface IUseBookingLoadingStates {
   creatingBooking: boolean;
   creatingRecurringBooking: boolean;
