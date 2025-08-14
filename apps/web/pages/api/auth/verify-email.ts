@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import Sendgrid from "@calcom/lib/Sendgrid";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -18,31 +17,6 @@ const verifySchema = z.object({
 });
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
-
-async function addUserToMarketingContacts(user: {
-  email: string;
-  name: string | null;
-  isPlatformManaged: boolean;
-}) {
-  if (user.isPlatformManaged) {
-    return;
-  }
-
-  try {
-    const sendgrid = new Sendgrid();
-    const nameParts = user.name?.split(" ") || [];
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
-
-    await sendgrid.addMarketingContact({
-      email: user.email,
-      first_name: firstName,
-      last_name: lastName,
-    });
-  } catch (error) {
-    console.error("Failed to add user to SendGrid marketing contacts:", error);
-  }
-}
 
 // TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
@@ -105,15 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const user = await prisma.user.findFirst({
     where: {
       email: foundToken?.identifier,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      isPlatformManaged: true,
-      completedOnboarding: true,
-      emailVerified: true,
-      metadata: true,
     },
   });
 
@@ -204,8 +169,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const hasCompletedOnboarding = user.completedOnboarding;
-
-  await addUserToMarketingContacts(user);
 
   await moveUserToMatchingOrg({ email: user.email });
 
