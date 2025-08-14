@@ -13,15 +13,9 @@ const querySchema = z.object({
 });
 
 const checkoutSessionMetadataSchema = z.object({
-  userId: z.string().transform(Number),
-  teamId: z
-    .string()
-    .optional()
-    .transform((val) => (val ? Number(val) : undefined)),
-  eventTypeId: z
-    .string()
-    .optional()
-    .transform((val) => (val ? Number(val) : undefined)),
+  userId: z.coerce.number().int().positive(),
+  teamId: z.coerce.number().int().positive().optional(),
+  eventTypeId: z.coerce.number().int().positive().optional(),
   agentId: z.string().optional(),
   workflowId: z.string().optional(),
   type: z.literal("phone_number_subscription"),

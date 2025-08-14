@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -73,11 +74,24 @@ export class AgentService {
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
     if (!agentId?.trim()) {
-      throw new Error("Agent ID is required and cannot be empty");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
     }
 
     if (!data.eventTypeId || !data.userId) {
-      throw new Error("Event type ID and user ID are required");
+      throw new HttpError({
+        statusCode: 400,
+        message: "Event type ID and user ID are required",
+      });
+    }
+
+    if (!timeZoneSchema.safeParse(data.timeZone).success) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Invalid time zone",
+      });
     }
 
     try {

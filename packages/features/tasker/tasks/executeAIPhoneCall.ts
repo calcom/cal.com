@@ -146,7 +146,6 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("No phone number found for attendee");
     }
 
-    // Prepare dynamic variables for the AI call using the same format as workflow system
     const attendee = booking.attendees[0];
     const timeZone = booking.user?.timeZone || attendee?.timeZone || "UTC";
 
@@ -203,7 +202,7 @@ export async function executeAIPhoneCall(payload: string) {
     // Update general tools before making the call so that the agent can use the check_availability_cal and book_appointment_cal tools
     await aiService.updateToolsFromAgentId(data.providerAgentId, {
       eventTypeId: booking.eventTypeId,
-      timeZone: booking.attendees[0]?.timeZone ?? "Europe/London",
+      timeZone: attendee?.timeZone ?? "Europe/London",
       userId: data.userId,
       teamId: data.teamId,
     });
