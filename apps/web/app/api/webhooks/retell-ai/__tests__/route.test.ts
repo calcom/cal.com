@@ -442,4 +442,48 @@ describe("Retell AI Webhook Handler", () => {
       });
     }
   });
+
+  it("should pass callDuration to chargeCredits when provided", async () => {
+    vi.mocked(Retell.verify).mockReturnValue(true);
+    const mockPhoneNumber: MockPhoneNumberWithUser = {
+      id: 10,
+      phoneNumber: "+15550001111",
+      userId: 42,
+      teamId: null,
+      provider: "test-provider",
+      providerPhoneNumberId: "prov-10",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      subscriptionStatus: null,
+      inboundAgentId: null,
+      outboundAgentId: null,
+      user: { id: 42, email: "u@example.com", name: "U" },
+    };
+    vi.mocked(prisma.calAiPhoneNumber.findFirst).mockResolvedValue(mockPhoneNumber);
+    mockHasAvailableCredits.mockResolvedValue(true);
+    mockChargeCredits.mockResolvedValue(undefined);
+
+    const body: RetellWebhookBody = {
+      event: "call_analyzed",
+      call: {
+        call_id: "call-dur",
+        from_number: "+15550002222",
+        to_number: "+15550001111",
+        direction: "outbound",
+        call_status: "completed",
+        start_timestamp: 123,
+        call_cost: {
+          combined_cost: 12, // -> 22 credits
+          total_duration_seconds: 125,
+        },
+      },
+    };
+    const response = await callPOST(createMockRequest(body, "valid-signature"));
+    expect(response.status).toBe(200);
+    expect(mockChargeCredits).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: 42, credits: 22, callDuration: 125 })
+    );
+  });
 });

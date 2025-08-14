@@ -41,11 +41,12 @@ async function handlePhoneNumberSubscriptionUpdate(
   const statusMap: Record<string, PhoneNumberSubscriptionStatus> = {
     active: PhoneNumberSubscriptionStatus.ACTIVE,
     past_due: PhoneNumberSubscriptionStatus.PAST_DUE,
-    cancelled: PhoneNumberSubscriptionStatus.CANCELLED,
+    canceled: PhoneNumberSubscriptionStatus.CANCELLED,
     incomplete: PhoneNumberSubscriptionStatus.INCOMPLETE,
     incomplete_expired: PhoneNumberSubscriptionStatus.INCOMPLETE_EXPIRED,
     trialing: PhoneNumberSubscriptionStatus.TRIALING,
     unpaid: PhoneNumberSubscriptionStatus.UNPAID,
+    paused: PhoneNumberSubscriptionStatus.CANCELLED,
   };
 
   const subscriptionStatus = statusMap[subscription.status] || PhoneNumberSubscriptionStatus.UNPAID;

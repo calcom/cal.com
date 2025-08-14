@@ -35,6 +35,7 @@ export class AgentService {
         // And here we pass a null to expiresAt if never expires is true
         expiresAt: null,
         hashedKey: hashedApiKey,
+        note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
       },
     });
 

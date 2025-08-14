@@ -484,4 +484,20 @@ export class PrismaPhoneNumberRepository {
       data: updateData,
     });
   }
+
+  static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
+    return await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        phoneNumber,
+      },
+      select: {
+        id: true,
+        phoneNumber: true,
+        userId: true,
+        teamId: true,
+        user: { select: { id: true, email: true, name: true } },
+        team: { select: { id: true, name: true } },
+      },
+    });
+  }
 }

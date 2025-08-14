@@ -1496,7 +1496,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
             <DialogFooter showDivider>
               <Button type="button" color="secondary" onClick={() => setIsDeleteStepDialogOpen(false)}>
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
               <Button
                 type="button"
@@ -1520,7 +1520,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }
                   setIsDeleteStepDialogOpen(false);
                 }}>
-                {t("Delete")}
+                {t("delete")}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -110,11 +110,26 @@ export async function executeAIPhoneCall(payload: string) {
       }
     }
 
+    const rateLimitIdentifier = data.teamId
+      ? `ai-phone-call:team:${data.teamId}`
+      : data.userId
+      ? `ai-phone-call:user:${data.userId}`
+      : null;
+
+    if (!rateLimitIdentifier) {
+      logger.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {
+        userId: data.userId,
+        teamId: data.teamId,
+        workflowReminderId: data.workflowReminderId,
+      });
+      throw new Error("No rate limit identifier found for AI phone call. This should not happen.");
+    }
+
     // TODO: add better rate limiting for AI phone calls
-    if (data.userId) {
+    if (rateLimitIdentifier) {
       await checkRateLimitAndThrowError({
         rateLimitingType: "core",
-        identifier: `ai-phone-call:${data.userId}`,
+        identifier: rateLimitIdentifier,
       });
     }
 

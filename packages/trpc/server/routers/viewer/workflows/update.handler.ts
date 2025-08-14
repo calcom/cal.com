@@ -3,6 +3,7 @@ import { isEmailAction } from "@calcom/features/ee/workflows/lib/actionHelperFun
 import tasker from "@calcom/features/tasker";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
+import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import type { PrismaClient } from "@calcom/prisma";
@@ -36,6 +37,7 @@ type UpdateOptions = {
   };
   input: TUpdateInputSchema;
 };
+const log = logger.getSubLogger({ prefix: ["[Workflows.update] "] });
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
@@ -330,89 +332,27 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
-          await ctx.prisma.$transaction(async (tx) => {
-            const aiPhoneService = createDefaultAIPhoneServiceProvider();
-
-            const agent = await tx.agent.findUnique({
-              where: { id: oldStep.agentId ?? undefined },
-              include: {
-                outboundPhoneNumbers: {
-                  select: {
-                    id: true,
-                    phoneNumber: true,
-                    subscriptionStatus: true,
-                  },
+          const agent = await ctx.prisma.agent.findUnique({
+            where: { id: oldStep.agentId ?? undefined },
+            include: {
+              outboundPhoneNumbers: {
+                select: {
+                  id: true,
+                  phoneNumber: true,
+                  subscriptionStatus: true,
                 },
               },
+            },
+          });
+
+          if (!agent) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Agent ${oldStep.agentId} not found for cleanup`,
             });
+          }
 
-            if (!agent) {
-              throw new TRPCError({
-                code: "NOT_FOUND",
-                message: `Agent ${oldStep.agentId} not found for cleanup`,
-              });
-            }
-
-            // Collect all phone number operations
-            const phoneNumberOperations: Promise<any>[] = [];
-
-            if (agent.outboundPhoneNumbers) {
-              for (const phoneNumber of agent.outboundPhoneNumbers) {
-                // Check subscription status and handle accordingly
-                if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-                  // Cancel active subscription
-                  phoneNumberOperations.push(
-                    aiPhoneService.cancelPhoneNumberSubscription({
-                      phoneNumberId: phoneNumber.id,
-                      userId: user.id,
-                    })
-                  );
-                } else if (
-                  phoneNumber.subscriptionStatus === null ||
-                  phoneNumber.subscriptionStatus === undefined
-                ) {
-                  // Delete imported or inactive phone number (skip cancelled ones)
-                  phoneNumberOperations.push(
-                    aiPhoneService.deletePhoneNumber({
-                      phoneNumber: phoneNumber.phoneNumber,
-                      userId: user.id,
-                      deleteFromDB: true,
-                    })
-                  );
-                }
-                // Skip cancelled phone numbers - they don't need any action
-              }
-            }
-
-            // Execute all phone number operations
-            try {
-              await Promise.all(phoneNumberOperations);
-            } catch (error) {
-              throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Failed to cleanup phone numbers: ${
-                  error instanceof Error ? error.message : "Unknown error"
-                }`,
-              });
-            }
-
-            // Delete the agent
-            try {
-              await aiPhoneService.deleteAgent({
-                id: agent.id,
-                userId: user.id,
-                teamId: userWorkflow.teamId ?? undefined,
-              });
-            } catch (error) {
-              throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: `Failed to delete agent: ${
-                  error instanceof Error ? error.message : "Unknown error"
-                }`,
-              });
-            }
-
-            // Delete all workflow reminders from deleted steps within transaction
+          await ctx.prisma.$transaction(async (tx) => {
             await tx.workflowReminder.deleteMany({
               where: {
                 id: {
@@ -421,13 +361,80 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               },
             });
 
-            // Delete the workflow step within transaction
             await tx.workflowStep.delete({
               where: {
                 id: oldStep.id,
               },
             });
           });
+
+          const aiPhoneService = createDefaultAIPhoneServiceProvider();
+          const externalErrors: string[] = [];
+
+          const phoneNumberOperations: Promise<any>[] = [];
+
+          if (agent.outboundPhoneNumbers) {
+            for (const phoneNumber of agent.outboundPhoneNumbers) {
+              if (phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
+                phoneNumberOperations.push(
+                  aiPhoneService
+                    .cancelPhoneNumberSubscription({
+                      phoneNumberId: phoneNumber.id,
+                      userId: user.id,
+                    })
+                    .catch((error) => {
+                      const message = `Failed to cancel phone number subscription ${
+                        phoneNumber.phoneNumber
+                      }: ${error instanceof Error ? error.message : "Unknown error"}`;
+                      externalErrors.push(message);
+                      log.error(message);
+                    })
+                );
+              } else if (
+                phoneNumber.subscriptionStatus === null ||
+                phoneNumber.subscriptionStatus === undefined
+              ) {
+                phoneNumberOperations.push(
+                  aiPhoneService
+                    .deletePhoneNumber({
+                      phoneNumber: phoneNumber.phoneNumber,
+                      userId: user.id,
+                      deleteFromDB: true,
+                    })
+                    .catch((error) => {
+                      const message = `Failed to delete phone number ${phoneNumber.phoneNumber}: ${
+                        error instanceof Error ? error.message : "Unknown error"
+                      }`;
+                      externalErrors.push(message);
+                      log.error(message);
+                    })
+                );
+              }
+              // Skip cancelled phone numbers - they don't need any action
+            }
+          }
+
+          await Promise.all(phoneNumberOperations);
+
+          try {
+            await aiPhoneService.deleteAgent({
+              id: agent.id,
+              userId: user.id,
+              teamId: userWorkflow.teamId ?? undefined,
+            });
+          } catch (error) {
+            const message = `Failed to delete agent ${agent.id} from external service: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`;
+            externalErrors.push(message);
+            log.error(message);
+          }
+
+          // If there were external errors, we should log them for manual cleanup
+          // but the operation is considered successful since DB is consistent
+          if (externalErrors.length > 0) {
+            log.error(`External service cleanup errors for workflow step ${oldStep.id}:`, externalErrors);
+          }
         } else {
           // For non-AI phone steps, just delete reminders and step
           await ctx.prisma.$transaction(async (tx) => {
