@@ -86,6 +86,6 @@ export const viewerRouter = router({
   credits: creditsRouter,
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
-  ai: aiRouter,
+  aiVoiceAgent: aiRouter,
   phoneNumber: phoneNumberRouter,
 });

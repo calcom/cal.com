@@ -1,5 +1,5 @@
-import { prisma } from "@calcom/prisma";
-import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
+import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 
 import type { LazyModule, SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
@@ -13,18 +13,12 @@ const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const subscription = data.object;
 
-  // Check if this is a phone number subscription first
-  const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
-    where: {
-      stripeSubscriptionId: subscription.id,
-    },
-    select: {
-      id: true,
-    },
+  const phoneNumber = await PrismaPhoneNumberRepository.findByStripeSubscriptionId({
+    stripeSubscriptionId: subscription.id,
   });
 
   if (phoneNumber) {
-    return await handlePhoneNumberSubscriptionDeleted(subscription, phoneNumber);
+    return await handleCalAIPhoneNumberSubscriptionDeleted(subscription, phoneNumber);
   }
 
   // Fall back to product-based handling for other subscriptions
@@ -66,25 +60,21 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   return await handler(data);
 };
 
-async function handlePhoneNumberSubscriptionDeleted(
+async function handleCalAIPhoneNumberSubscriptionDeleted(
   subscription: Data["object"],
-  phoneNumber: { id: number }
+  phoneNumber: NonNullable<Awaited<ReturnType<typeof PrismaPhoneNumberRepository.findByStripeSubscriptionId>>>
 ) {
   if (!subscription.id) {
     throw new HttpCode(400, "Subscription ID not found");
   }
 
   try {
-    await prisma.calAiPhoneNumber.update({
-      where: {
-        id: phoneNumber.id,
-      },
-      data: {
-        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        outboundAgent: {
-          disconnect: true,
-        },
-      },
+    const aiService = createDefaultAIPhoneServiceProvider();
+
+    await aiService.cancelPhoneNumberSubscription({
+      phoneNumberId: phoneNumber.id,
+      userId: phoneNumber.userId,
+      teamId: phoneNumber.teamId,
     });
 
     return { success: true, subscriptionId: subscription.id };

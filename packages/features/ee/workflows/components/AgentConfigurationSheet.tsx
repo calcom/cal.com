@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { CAL_AI_PHONE_NUMBER_MONTHLY_PRICE } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
@@ -171,7 +172,7 @@ export function AgentConfigurationSheet({
         await utils.viewer.me.get.invalidate();
         setIsBuyDialogOpen(false);
         if (agentId) {
-          utils.viewer.ai.get.invalidate({ id: agentId });
+          utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
         }
       } else {
         showToast(data.message || t("something_went_wrong"), "error");
@@ -190,7 +191,7 @@ export function AgentConfigurationSheet({
 
       await utils.viewer.me.get.invalidate();
       if (agentId) {
-        await utils.viewer.ai.get.invalidate({ id: agentId });
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -205,7 +206,7 @@ export function AgentConfigurationSheet({
 
       await utils.viewer.me.get.invalidate();
       if (agentId) {
-        await utils.viewer.ai.get.invalidate({ id: agentId });
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -220,7 +221,7 @@ export function AgentConfigurationSheet({
       setNumberToDelete(null);
 
       if (agentId) {
-        await utils.viewer.ai.get.invalidate({ id: agentId });
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: agentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -229,7 +230,7 @@ export function AgentConfigurationSheet({
     },
   });
 
-  const agentQuery = trpc.viewer.ai.get.useQuery(
+  const agentQuery = trpc.viewer.aiVoiceAgent.get.useQuery(
     { id: agentId! },
     {
       enabled: !!agentId,
@@ -237,7 +238,7 @@ export function AgentConfigurationSheet({
     }
   );
 
-  const updateAgentMutation = trpc.viewer.ai.update.useMutation({
+  const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: () => {
       if (agentId) {
         agentQuery.refetch();
@@ -377,7 +378,9 @@ export function AgentConfigurationSheet({
             <SheetTitle className="mb-6">{t("cal_ai_agent_configuration")}</SheetTitle>
             <ToggleGroup
               onValueChange={(val) => {
-                setActiveTab(val as "prompt" | "phoneNumber");
+                if (val) {
+                  setActiveTab(val as "prompt" | "phoneNumber");
+                }
               }}
               value={activeTab}
               options={[
@@ -663,7 +666,9 @@ export function AgentConfigurationSheet({
           <div className="flex flex-col">
             <div className="mb-4">
               <h3 className="text-emphasis text-lg font-bold">{t("buy_new_number")}</h3>
-              <p className="text-default text-sm">{t("buy_number_cost_5_per_month")}</p>
+              <p className="text-default text-sm">
+                {t("buy_number_cost_x_per_month", { priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE })}
+              </p>
             </div>
             <BaseDialogFooter showDivider className="relative">
               <Button onClick={() => setIsBuyDialogOpen(false)} color="secondary">
@@ -680,7 +685,7 @@ export function AgentConfigurationSheet({
                 }
                 loading={buyNumberMutation.isPending}
                 disabled={buyNumberMutation.isPending}>
-                {t("buy_number_for_5_per_month")}
+                {t("buy_number_for_x_per_month", { priceInDollars: CAL_AI_PHONE_NUMBER_MONTHLY_PRICE })}
               </Button>
             </BaseDialogFooter>
           </div>

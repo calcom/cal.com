@@ -115,6 +115,7 @@ export const aiRouter = router({
       return await aiService.updateAgentConfiguration({
         id,
         userId: ctx.user.id,
+        teamId,
         name,
         generalPrompt: retellUpdates.generalPrompt,
         beginMessage: retellUpdates.beginMessage,

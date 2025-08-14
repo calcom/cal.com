@@ -160,6 +160,7 @@ export class RetellAIService {
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;

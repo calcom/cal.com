@@ -232,3 +232,8 @@ export const DATABASE_CHUNK_SIZE = parseInt(process.env.DATABASE_CHUNK_SIZE || "
 export const NEXTJS_CACHE_TTL = 3600; // 1 hour
 
 export const DEFAULT_GROUP_ID = "default_group_id";
+
+export const CAL_AI_PHONE_NUMBER_MONTHLY_PRICE = parseInt(
+  process.env.NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE || "5",
+  10
+);

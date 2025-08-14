@@ -143,11 +143,19 @@ export class PrismaPhoneNumberRepository {
     provider,
     userId,
     teamId,
+    stripeCustomerId,
+    stripeSubscriptionId,
+    subscriptionStatus,
+    providerPhoneNumberId,
   }: {
     phoneNumber: string;
     provider: string;
     userId: number;
     teamId?: number;
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: PhoneNumberSubscriptionStatus;
+    providerPhoneNumberId?: string;
   }) {
     return await prisma.calAiPhoneNumber.create({
       select: {
@@ -163,12 +171,17 @@ export class PrismaPhoneNumberRepository {
         stripeCustomerId: true,
         inboundAgentId: true,
         outboundAgentId: true,
+        providerPhoneNumberId: true,
       },
       data: {
         provider,
         userId,
         teamId,
         phoneNumber,
+        stripeCustomerId,
+        stripeSubscriptionId,
+        subscriptionStatus,
+        providerPhoneNumberId,
       },
     });
   }
@@ -177,6 +190,24 @@ export class PrismaPhoneNumberRepository {
     return await prisma.calAiPhoneNumber.delete({
       where: {
         phoneNumber,
+      },
+    });
+  }
+
+  static async findByStripeSubscriptionId({ stripeSubscriptionId }: { stripeSubscriptionId: string }) {
+    return await prisma.calAiPhoneNumber.findFirst({
+      where: {
+        stripeSubscriptionId,
+      },
+      select: {
+        id: true,
+        phoneNumber: true,
+        provider: true,
+        userId: true,
+        teamId: true,
+        subscriptionStatus: true,
+        stripeCustomerId: true,
+        stripeSubscriptionId: true,
       },
     });
   }

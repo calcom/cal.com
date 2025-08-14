@@ -1,3 +1,4 @@
+import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/client";
 
@@ -13,27 +14,20 @@ const handler = async (data: Data) => {
     throw new HttpCode(400, "Subscription ID not found");
   }
 
-  // Check if this is a phone number subscription first
-  const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
-    where: {
-      stripeSubscriptionId: subscription.id,
-    },
-    select: {
-      id: true,
-      phoneNumber: true,
-    },
+  const phoneNumber = await PrismaPhoneNumberRepository.findByStripeSubscriptionId({
+    stripeSubscriptionId: subscription.id,
   });
 
   if (!phoneNumber) {
     throw new HttpCode(202, "Phone number not found");
   }
 
-  return await handlePhoneNumberSubscriptionUpdate(subscription, phoneNumber);
+  return await handleCalAIPhoneNumberSubscriptionUpdate(subscription, phoneNumber);
 };
 
 type Subscription = Data["object"];
 
-async function handlePhoneNumberSubscriptionUpdate(
+async function handleCalAIPhoneNumberSubscriptionUpdate(
   subscription: Subscription,
   phoneNumber: { id: number; phoneNumber: string }
 ) {

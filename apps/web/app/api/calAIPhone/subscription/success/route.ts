@@ -4,13 +4,17 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
 });
+const log = logger.getSubLogger({ prefix: ["[calAIPhone] subscription/success"] });
 
 const checkoutSessionMetadataSchema = z.object({
   userId: z.coerce.number().int().positive(),
@@ -18,7 +22,7 @@ const checkoutSessionMetadataSchema = z.object({
   eventTypeId: z.coerce.number().int().positive().optional(),
   agentId: z.string().optional(),
   workflowId: z.string().optional(),
-  type: z.literal("phone_number_subscription"),
+  type: z.literal(CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION),
 });
 
 type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
@@ -71,7 +75,7 @@ function redirectToSuccess(metadata: CheckoutSessionMetadata) {
 }
 
 function handleError(error: unknown) {
-  console.error("Error handling phone number subscription success:", error);
+  log.error("Error handling phone number subscription success:", safeStringify(error));
 
   const url = new URL(`${WEBAPP_URL}/workflows`);
   url.searchParams.set("error", "true");

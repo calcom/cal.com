@@ -236,6 +236,7 @@ export class RetellAIPhoneServiceProvider
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     enabled?: boolean;
     generalPrompt?: string | null;

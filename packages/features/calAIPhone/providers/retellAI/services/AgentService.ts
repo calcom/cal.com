@@ -313,6 +313,7 @@ export class AgentService {
   async updateAgentConfiguration({
     id,
     userId,
+    teamId,
     name,
     generalPrompt,
     beginMessage,
@@ -322,6 +323,7 @@ export class AgentService {
   }: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;
@@ -335,6 +337,7 @@ export class AgentService {
     const agent = await this.agentRepository.findByIdWithAdminAccess({
       id,
       userId,
+      teamId,
     });
 
     if (!agent) {
