@@ -15,7 +15,6 @@ import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -187,6 +186,20 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: recordings,
+    };
+  }
+
+  @Get("/:bookingUid/session-details")
+  @UseGuards(BookingUidGuard)
+  @ApiOperation({
+    summary: "Get the session details for the booking",
+    description: `Fetches the session details for the booking \`:bookingUid\``,
+  })
+  async getBookingSessionDetails(@Param("bookingUid") bookingUid: string): Promise<any> {
+    const sessionDetails = await this.calVideoService.getSessionDetails(bookingUid);
+    return {
+      status: SUCCESS_STATUS,
+      data: sessionDetails,
     };
   }
 

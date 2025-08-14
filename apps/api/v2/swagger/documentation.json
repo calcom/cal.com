@@ -7936,6 +7936,48 @@
         ]
       }
     },
+    "/v2/bookings/{bookingUid}/session-details": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingSessionDetails",
+        "summary": "Get the session details for the booking",
+        "description": "Fetches the session details for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
     "/v2/bookings/{bookingUid}/transcripts": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
@@ -21856,7 +21898,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ]
           },
           "recipient": {
@@ -22218,7 +22261,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_address",
             "description": "Action to perform, send an email to a specific email address",
@@ -22303,7 +22347,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_attendee",
             "description": "Action to perform, send an email to the attendees of the event",
@@ -22379,7 +22424,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_host",
             "description": "Action to perform, send an email to the host of the event",
@@ -22474,7 +22520,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_attendee",
             "description": "Action to perform",
@@ -22543,7 +22590,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_number",
             "description": "Action to perform, send a text message via whatsapp to a specific phone number",
@@ -22621,7 +22669,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_number",
             "description": "Action to perform, send a text message to a specific phone number",
@@ -22699,7 +22748,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_attendee",
             "description": "Action to perform, send a text message to the phone numbers of the attendees",
@@ -22888,7 +22938,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_address",
             "description": "Action to perform, send an email to a specific email address",
@@ -22978,7 +23029,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_attendee",
             "description": "Action to perform, send an email to the attendees of the event",
@@ -23059,7 +23111,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_host",
             "description": "Action to perform, send an email to the host of the event",
@@ -23140,7 +23193,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_attendee",
             "description": "Action to perform, send a text message to the phone numbers of the attendees",
@@ -23218,7 +23272,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_number",
             "description": "Action to perform, send a text message via whatsapp to a specific phone number",
@@ -23301,7 +23356,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_attendee",
             "description": "Action to perform",
@@ -23375,7 +23431,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_number",
             "description": "Action to perform, send a text message to a specific phone number",
