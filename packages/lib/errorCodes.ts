@@ -26,4 +26,5 @@ export enum ErrorCode {
   EventTypeNoHosts = "event_type_no_hosts",
   RequestBodyInvalid = "request_body_invalid_error",
   PrivateLinkExpired = "private_link_expired",
+  TwilioInvalidPhoneNumber = "twilio_invalid_phone_number_error",
 }
