@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
@@ -227,7 +226,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       // unique constraint violation
       throw new TRPCError({
         code: "BAD_REQUEST",
