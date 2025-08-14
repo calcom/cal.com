@@ -1,35 +1,26 @@
+import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { VERSION_2024_06_14, VERSION_2024_06_11 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { OutputSchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/output-schedules.service";
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SCHEDULE_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  GetSchedulesOutput_2024_06_11,
-  SkipTakePagination,
-} from "@calcom/platform-types";
+import { GetSchedulesOutput_2024_06_11, SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams/:teamId/schedules",
   version: [VERSION_2024_06_14, VERSION_2024_06_11],
 })
-@UseGuards(ApiAuthGuard, PermissionsGuard)
+@UseGuards(ApiAuthGuard, PermissionsGuard, RolesGuard, PlatformPlanGuard)
 @DocsTags("Teams / Schedules")
 @ApiHeader({
   name: "cal-api-version",
@@ -48,6 +39,8 @@ export class TeamsSchedulesController_2024_06_11 {
     private readonly outputSchedulesService: OutputSchedulesService_2024_06_11
   ) {}
 
+  @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Get("/")
   @Permissions([SCHEDULE_READ])
   @ApiOperation({
@@ -60,19 +53,11 @@ export class TeamsSchedulesController_2024_06_11 {
   ): Promise<GetSchedulesOutput_2024_06_11> {
     const { skip, take } = queryParams;
 
-    const usersIds = await this.teamsRepository.getTeamUsersIds(teamId);
-
-    const schedules = await this.schedulesService.getSchedulesByUserIds(usersIds, skip, take);
-
-    const responseSchedules = [];
-
-    for (const schedule of schedules) {
-      responseSchedules.push(await this.outputSchedulesService.getResponseSchedule(schedule));
-    }
+    const schedules = await this.schedulesService.getSchedulesByUserIds(teamId, skip, take);
 
     return {
       status: SUCCESS_STATUS,
-      data: responseSchedules,
+      data: schedules,
     };
   }
 }
