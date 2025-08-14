@@ -78,7 +78,7 @@ export class SchedulesService_2024_06_11 {
     );
   }
 
-  async getSchedulesByUserIds(teamId: number, skip: number, take: number) {
+  async getSchedulesByUserIds(teamId: number, skip = 0, take = 250) {
     const userIds = await this.teamsRepository.getTeamUsersIds(teamId);
     const schedules = await this.organizationSchedulesRepository.getSchedulesByUserIds(userIds, skip, take);
 

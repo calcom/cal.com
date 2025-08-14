@@ -35,6 +35,7 @@ export class OrganizationsTeamsSchedulesController {
     private organizationTeamsSchedulesService: OrganizationsTeamsSchedulesService
   ) {}
 
+  @UseGuards(IsTeamInOrg)
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
@@ -47,7 +48,11 @@ export class OrganizationsTeamsSchedulesController {
   ): Promise<GetSchedulesOutput_2024_06_11> {
     const { skip, take } = queryParams;
 
-    const schedules = await this.organizationTeamsSchedulesService.getOrganizationTeamSchedules(orgId, teamId, skip, take);
+    const schedules = await this.organizationTeamsSchedulesService.getOrganizationTeamSchedules(
+      teamId,
+      skip,
+      take
+    );
 
     return {
       status: SUCCESS_STATUS,
