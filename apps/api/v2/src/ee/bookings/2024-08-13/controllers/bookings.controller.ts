@@ -56,6 +56,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
   GetBookingRecordingsOutput,
   GetBookingTranscriptsOutput,
+  GetBookingSessionDetailsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -195,7 +196,9 @@ export class BookingsController_2024_08_13 {
     summary: "Get the session details for the booking",
     description: `Fetches the session details for the booking \`:bookingUid\``,
   })
-  async getBookingSessionDetails(@Param("bookingUid") bookingUid: string): Promise<any> {
+  async getBookingSessionDetails(
+    @Param("bookingUid") bookingUid: string
+  ): Promise<GetBookingSessionDetailsOutput> {
     const sessionDetails = await this.calVideoService.getSessionDetails(bookingUid);
     return {
       status: SUCCESS_STATUS,

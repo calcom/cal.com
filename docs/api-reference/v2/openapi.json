@@ -7592,6 +7592,46 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/session-details": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getBookingSessionDetails",
+        "summary": "Get the session details for the booking",
+        "description": "Fetches the session details for the booking `:bookingUid`",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingSessionDetailsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/bookings/{bookingUid}/transcripts": {
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
@@ -20169,7 +20209,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ]
           },
           "recipient": {
@@ -20469,7 +20510,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_address",
             "description": "Action to perform, send an email to a specific email address",
@@ -20542,7 +20584,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_attendee",
             "description": "Action to perform, send an email to the attendees of the event",
@@ -20606,7 +20649,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_host",
             "description": "Action to perform, send an email to the host of the event",
@@ -20686,7 +20730,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_attendee",
             "description": "Action to perform",
@@ -20736,7 +20781,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_number",
             "description": "Action to perform, send a text message via whatsapp to a specific phone number",
@@ -20794,7 +20840,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_number",
             "description": "Action to perform, send a text message to a specific phone number",
@@ -20852,7 +20899,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_attendee",
             "description": "Action to perform, send a text message to the phone numbers of the attendees",
@@ -21011,7 +21059,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_address",
             "description": "Action to perform, send an email to a specific email address",
@@ -21089,7 +21138,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_attendee",
             "description": "Action to perform, send an email to the attendees of the event",
@@ -21158,7 +21208,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "email_host",
             "description": "Action to perform, send an email to the host of the event",
@@ -21227,7 +21278,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_attendee",
             "description": "Action to perform, send a text message to the phone numbers of the attendees",
@@ -21286,7 +21338,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_number",
             "description": "Action to perform, send a text message via whatsapp to a specific phone number",
@@ -21349,7 +21402,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "whatsapp_attendee",
             "description": "Action to perform",
@@ -21404,7 +21458,8 @@
               "sms_attendee",
               "sms_number",
               "whatsapp_attendee",
-              "whatsapp_number"
+              "whatsapp_number",
+              "cal_ai_phone_call"
             ],
             "default": "sms_number",
             "description": "Action to perform, send a text message to a specific phone number",
@@ -25013,6 +25068,97 @@
             "items": {
               "$ref": "#/components/schemas/RecordingItem"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "SessionParticipantItem": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "example": "8"
+          },
+          "participant_id": {
+            "type": "string",
+            "example": "f269d7f3-afce-4d39-8df6-69d134fe6af7"
+          },
+          "user_name": {
+            "type": "string",
+            "example": "Team Free Example"
+          },
+          "join_time": {
+            "type": "number",
+            "example": 1755161937
+          },
+          "duration": {
+            "type": "number",
+            "example": 31
+          }
+        },
+        "required": ["user_id", "participant_id", "user_name", "join_time", "duration"]
+      },
+      "SessionDetailsItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "50455614-55b3-4e66-835d-102f562a5070"
+          },
+          "room": {
+            "type": "string",
+            "example": "k6ahwPBbTu2Qr5ZuCvn0"
+          },
+          "start_time": {
+            "type": "number",
+            "example": 1755161937
+          },
+          "duration": {
+            "type": "number",
+            "example": 31
+          },
+          "ongoing": {
+            "type": "boolean",
+            "example": false
+          },
+          "max_participants": {
+            "type": "number",
+            "example": 1
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionParticipantItem"
+            }
+          }
+        },
+        "required": ["id", "room", "start_time", "duration", "ongoing", "max_participants", "participants"]
+      },
+      "SessionDetailsDataWrapper": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionDetailsItem"
+            }
+          }
+        },
+        "required": ["data"]
+      },
+      "GetBookingSessionDetailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SessionDetailsDataWrapper"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]

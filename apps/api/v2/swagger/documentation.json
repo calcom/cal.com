@@ -7967,7 +7967,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetBookingSessionDetailsOutput"
                 }
               }
             }
@@ -27472,6 +27472,119 @@
             "items": {
               "$ref": "#/components/schemas/RecordingItem"
             }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "SessionParticipantItem": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "example": "8"
+          },
+          "participant_id": {
+            "type": "string",
+            "example": "f269d7f3-afce-4d39-8df6-69d134fe6af7"
+          },
+          "user_name": {
+            "type": "string",
+            "example": "Team Free Example"
+          },
+          "join_time": {
+            "type": "number",
+            "example": 1755161937
+          },
+          "duration": {
+            "type": "number",
+            "example": 31
+          }
+        },
+        "required": [
+          "user_id",
+          "participant_id",
+          "user_name",
+          "join_time",
+          "duration"
+        ]
+      },
+      "SessionDetailsItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "50455614-55b3-4e66-835d-102f562a5070"
+          },
+          "room": {
+            "type": "string",
+            "example": "k6ahwPBbTu2Qr5ZuCvn0"
+          },
+          "start_time": {
+            "type": "number",
+            "example": 1755161937
+          },
+          "duration": {
+            "type": "number",
+            "example": 31
+          },
+          "ongoing": {
+            "type": "boolean",
+            "example": false
+          },
+          "max_participants": {
+            "type": "number",
+            "example": 1
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionParticipantItem"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "room",
+          "start_time",
+          "duration",
+          "ongoing",
+          "max_participants",
+          "participants"
+        ]
+      },
+      "SessionDetailsDataWrapper": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionDetailsItem"
+            }
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "GetBookingSessionDetailsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SessionDetailsDataWrapper"
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": [
