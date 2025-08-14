@@ -7,6 +7,8 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+
 import {
   createBookingScenario,
   getDate,
@@ -3274,6 +3276,205 @@ describe("handleNewBooking", () => {
                 bookingData: mockBookingData,
               })
           ).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
+        },
+        timeout
+      );
+
+      test(
+        `Payment retry scenario - should return existing payment UID instead of creating duplicate booking
+            1. First booking creates unpaid booking with payment record
+            2. Second booking attempt with same details should return existing payment UID
+            3. Should not create duplicate booking in database
+            4. Should set paymentRequired flag correctly
+        `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential(), getStripeAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const scenarioData = getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                title: "Paid Event",
+                description: "It's a test Paid Event",
+                slotInterval: 30,
+                requiresConfirmation: false,
+                metadata: {
+                  apps: {
+                    stripe: {
+                      price: 100,
+                      enabled: true,
+                      currency: "usd",
+                    },
+                  },
+                },
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["stripe-payment"]],
+          });
+
+          await createBookingScenario(scenarioData);
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+          });
+          const { paymentUid } = mockPaymentApp({
+            metadataLookupKey: "stripe",
+            appStoreLookupKey: "stripepayment",
+          });
+          mockCalendarToHaveNoBusySlots("googlecalendar");
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "New York" },
+              },
+            },
+          });
+
+          const firstBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expect(firstBooking).toEqual(
+            expect.objectContaining({
+              paymentUid: expect.any(String),
+              paymentRequired: true,
+              uid: expect.any(String),
+            })
+          );
+
+          const firstBookingInDb = await prismaMock.booking.findUnique({
+            where: { uid: firstBooking.uid },
+            include: { payment: true },
+          });
+
+          expect(firstBookingInDb).toBeTruthy();
+          expect(firstBookingInDb?.payment).toHaveLength(1);
+          expect(firstBookingInDb?.paid).toBe(false);
+
+          const secondBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expect(secondBooking.uid).toBe(firstBooking.uid);
+          expect(secondBooking.paymentUid).toBe(firstBooking.paymentUid);
+          expect(secondBooking.paymentRequired).toBe(true);
+
+          const bookingsInDb = await prismaMock.booking.findMany({
+            where: {
+              eventTypeId: 1,
+              attendees: {
+                some: {
+                  email: booker.email,
+                },
+              },
+            },
+            include: { payment: true },
+          });
+
+          expect(bookingsInDb).toHaveLength(1);
+          expect(bookingsInDb[0].payment).toHaveLength(1);
+          expect(bookingsInDb[0].uid).toBe(firstBooking.uid);
+        },
+        timeout
+      );
+
+      test(
+        `Free event retry scenario - should work normally without payment logic
+            1. First booking creates confirmed booking (no payment)
+            2. Second booking attempt should return same booking
+            3. paymentRequired should be false
+        `,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const scenarioData = getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                title: "Free Event",
+                description: "It's a test Free Event",
+                slotInterval: 30,
+                requiresConfirmation: false,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["google-calendar"]],
+          });
+
+          await createBookingScenario(scenarioData);
+          mockCalendarToHaveNoBusySlots("googlecalendar");
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: "New York" },
+              },
+            },
+          });
+
+          const firstBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expect(firstBooking).toEqual(
+            expect.objectContaining({
+              paymentRequired: false,
+              uid: expect.any(String),
+            })
+          );
+
+          const secondBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          expect(secondBooking.uid).toBe(firstBooking.uid);
+          expect(secondBooking.paymentRequired).toBe(false);
+          expect(secondBooking.paymentUid).toBeUndefined();
         },
         timeout
       );
