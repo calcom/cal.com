@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import dayjs from "@calcom/dayjs";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
@@ -21,6 +23,8 @@ export class CheckBookingLimitsService {
     eventId: number,
     rescheduleUid?: string | undefined,
     timeZone?: string | null,
+    user?: { id: number; email: string },
+    isGlobalBookingLimits?: boolean,
     includeManagedEvents?: boolean
   ) {
     const parsedBookingLimits = parseBookingLimit(bookingLimits);
@@ -34,6 +38,8 @@ export class CheckBookingLimitsService {
         eventStartDate,
         eventId,
         timeZone,
+        user,
+        isGlobalBookingLimits,
         rescheduleUid,
         includeManagedEvents,
       })
@@ -79,6 +85,17 @@ export class CheckBookingLimitsService {
     const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
     let bookingsInPeriod;
+    let whereInput: Prisma.BookingWhereInput = {
+      eventTypeId: eventId,
+    };
+    if (user?.id && isGlobalBookingLimits) {
+      whereInput = {
+        userId: user.id,
+        eventType: {
+          schedulingType: null,
+        },
+      };
+    }
 
     if (teamId && user) {
       bookingsInPeriod = await this.dependencies.bookingRepo.getAllAcceptedTeamBookingsOfUser({

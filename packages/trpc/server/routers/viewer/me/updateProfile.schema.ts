@@ -3,10 +3,12 @@ import { z } from "zod";
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
+import { intervalLimitsType } from "@calcom/prisma/zod-utils";
 
 export const updateUserMetadataAllowedKeys = z.object({
   sessionTimeout: z.number().optional(), // Minutes
   defaultBookerLayouts: bookerLayouts.optional(),
+  bookingLimits: intervalLimitsType.optional(),
 });
 
 export const ZUpdateProfileInputSchema = z.object({
