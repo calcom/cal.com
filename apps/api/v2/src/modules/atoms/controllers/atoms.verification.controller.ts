@@ -1,4 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
+import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
+import { SendVerificationEmailOutput } from "@/modules/atoms/outputs/send-verification-email.output";
+import { VerifyEmailCodeOutput } from "@/modules/atoms/outputs/verify-email-code.output";
 import { VerificationAtomsService } from "@/modules/atoms/services/verification-atom.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -16,23 +20,6 @@ import {
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
-
-interface RequestEmailVerificationInput {
-  email: string;
-  username?: string;
-  language?: string;
-  isVerifyingEmail?: boolean;
-}
-
-interface VerifyEmailInput {
-  email: string;
-  code: string;
-}
-
-interface VerifyEmailResponse {
-  verified: boolean;
-}
 
 @Controller({
   path: "/v2/atoms",
@@ -47,8 +34,8 @@ export class AtomsVerificationController {
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
   async sendEmailVerificationCode(
-    @Body() body: RequestEmailVerificationInput
-  ): Promise<ApiResponse<{ sent: boolean }>> {
+    @Body() body: SendVerificationEmailInput
+  ): Promise<SendVerificationEmailOutput> {
     const result = await this.verificationService.sendEmailVerificationCode({
       email: body.email,
       username: body.username,
@@ -65,7 +52,7 @@ export class AtomsVerificationController {
   @Post("/verification/email/verify-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
-  async verifyEmailCode(@Body() body: VerifyEmailInput): Promise<ApiResponse<VerifyEmailResponse>> {
+  async verifyEmailCode(@Body() body: VerifyEmailCodeInput): Promise<VerifyEmailCodeOutput> {
     const verified = await this.verificationService.verifyEmailCodeUnAuthenticated({
       email: body.email,
       code: body.code,
@@ -82,9 +69,9 @@ export class AtomsVerificationController {
   @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   async verifyEmailCodeAuthenticated(
-    @Body() body: VerifyEmailInput,
+    @Body() body: VerifyEmailCodeInput,
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<VerifyEmailResponse>> {
+  ): Promise<VerifyEmailCodeOutput> {
     const verified = await this.verificationService.verifyEmailCodeAuthenticated({
       email: body.email,
       code: body.code,
