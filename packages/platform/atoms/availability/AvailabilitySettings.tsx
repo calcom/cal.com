@@ -69,6 +69,12 @@ export type CustomClassNames = {
   subtitlesClassName?: string;
   scheduleClassNames?: scheduleClassNames;
   overridesModalClassNames?: string;
+  dateOverrideClassNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+    button?: string;
+  };
   hiddenSwitchClassname?: {
     container?: string;
     thumb?: string;
@@ -196,6 +202,7 @@ const DateOverride = ({
   travelSchedules,
   weekStart,
   overridesModalClassNames,
+  classNames,
   handleSubmit,
   disabled,
 }: {
@@ -204,6 +211,12 @@ const DateOverride = ({
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
+  classNames?: {
+    container?: string;
+    title?: string;
+    description?: string;
+    button?: string;
+  };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   disabled?: boolean;
 }) => {
@@ -220,8 +233,8 @@ const DateOverride = ({
   };
 
   return (
-    <div className="p-6">
-      <h3 className="text-emphasis font-medium leading-6">
+    <div className={cn("p-6", classNames?.container)}>
+      <h3 className={cn("text-emphasis font-medium leading-6", classNames?.title)}>
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
@@ -229,7 +242,9 @@ const DateOverride = ({
           </span>
         </Tooltip>
       </h3>
-      <p className="text-subtle mb-4 text-sm">{t("date_overrides_subtitle")}</p>
+      <p className={cn("text-subtle mb-4 text-sm", classNames?.description)}>
+        {t("date_overrides_subtitle")}
+      </p>
       <div className="space-y-2">
         <DateOverrideList
           excludedDates={excludedDates}
@@ -253,7 +268,11 @@ const DateOverride = ({
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
           Trigger={
-            <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
+            <Button
+              className={classNames?.button}
+              color="secondary"
+              StartIcon="plus"
+              data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -336,24 +355,27 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
 
     const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
 
-    const handleFormSubmit = useCallback((customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
-      if (customCallbacks) {
-        callbacksRef.current = customCallbacks;
-      }
+    const handleFormSubmit = useCallback(
+      (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+        if (customCallbacks) {
+          callbacksRef.current = customCallbacks;
+        }
 
-      if (saveButtonRef.current) {
-        saveButtonRef.current.click();
-      } else {
-        form.handleSubmit(async (data) => {
-          try {
-            await handleSubmit(data);
-            callbacksRef.current?.onSuccess?.();
-          } catch (error) {
-            callbacksRef.current?.onError?.(error as Error);
-          }
-        })();
-      }
-    }, [form, handleSubmit]);
+        if (saveButtonRef.current) {
+          saveButtonRef.current.click();
+        } else {
+          form.handleSubmit(async (data) => {
+            try {
+              await handleSubmit(data);
+              callbacksRef.current?.onSuccess?.();
+            } catch (error) {
+              callbacksRef.current?.onError?.(error as Error);
+            }
+          })();
+        }
+      },
+      [form, handleSubmit]
+    );
 
     const validateForm = useCallback(async () => {
       const isValid = await form.trigger();
@@ -705,6 +727,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   }
                   overridesModalClassNames={customClassNames?.overridesModalClassNames}
                   disabled={schedule.isDefault && schedule.lockedDefaultAvailability}
+                  classNames={customClassNames?.dateOverrideClassNames}
                 />
               )}
             </div>

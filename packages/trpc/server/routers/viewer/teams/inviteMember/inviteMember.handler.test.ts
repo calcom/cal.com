@@ -1,3 +1,8 @@
+/**
+ * This file is deprecated in favour of inviteMember.handler.integration-test.ts
+ *
+ * It mocks a lot of things that are untested and integration tests make more sense for this handler
+ */
 import { scenarios as checkRateLimitAndThrowErrorScenarios } from "../../../../../../../tests/libs/__mocks__/checkRateLimitAndThrowError";
 import { mock as getTranslationMock } from "../../../../../../../tests/libs/__mocks__/getTranslation";
 import {
@@ -409,7 +414,7 @@ describe("inviteMemberHandler", () => {
 
       // Call inviteMembersWithNoInviterPermissionCheck directly with isDirectUserAction=false
       const { inviteMembersWithNoInviterPermissionCheck } = await import("./inviteMember.handler");
-      
+
       const result = await inviteMembersWithNoInviterPermissionCheck({
         inviterName: loggedInUser.name,
         teamId: team.id,
@@ -487,7 +492,7 @@ describe("inviteMemberHandler", () => {
 
       // Call inviteMembersWithNoInviterPermissionCheck directly with isDirectUserAction=false
       const { inviteMembersWithNoInviterPermissionCheck } = await import("./inviteMember.handler");
-      
+
       const result = await inviteMembersWithNoInviterPermissionCheck({
         inviterName: "Test Inviter",
         teamId: team.id,
@@ -517,6 +522,7 @@ describe("inviteMemberHandler", () => {
       );
     });
   });
+
   it("When rate limit exceeded, it should throw error", async () => {
     const userToBeInvited = buildExistingUser({
       id: 1,

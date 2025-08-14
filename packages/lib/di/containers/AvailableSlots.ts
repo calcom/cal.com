@@ -5,20 +5,22 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-import { availableSlotsModule } from "../modules/available-slots";
-import { bookingRepositoryModule } from "../modules/booking";
-import { busyTimesModule } from "../modules/busy-times";
-import { cacheModule } from "../modules/cache";
-import { checkBookingLimitsModule } from "../modules/check-booking-limits";
-import { eventTypeRepositoryModule } from "../modules/eventType";
-import { featuresRepositoryModule } from "../modules/features";
-import { getUserAvailabilityModule } from "../modules/get-user-availability";
-import { oooRepositoryModule } from "../modules/ooo";
-import { routingFormResponseRepositoryModule } from "../modules/routingFormResponse";
-import { scheduleRepositoryModule } from "../modules/schedule";
-import { selectedSlotsRepositoryModule } from "../modules/selectedSlots";
-import { teamRepositoryModule } from "../modules/team";
-import { userRepositoryModule } from "../modules/user";
+import { availableSlotsModule } from "../modules/AvailableSlots";
+import { bookingRepositoryModule } from "../modules/Booking";
+import { busyTimesModule } from "../modules/BusyTimes";
+import { cacheModule } from "../modules/Cache";
+import { checkBookingLimitsModule } from "../modules/CheckBookingLimits";
+import { eventTypeRepositoryModule } from "../modules/EventType";
+import { featuresRepositoryModule } from "../modules/Features";
+import { filterHostsModule } from "../modules/FilterHosts";
+import { getUserAvailabilityModule } from "../modules/GetUserAvailability";
+import { oooRepositoryModule } from "../modules/Ooo";
+import { qualifiedHostsModule } from "../modules/QualifiedHosts";
+import { routingFormResponseRepositoryModule } from "../modules/RoutingFormResponse";
+import { scheduleRepositoryModule } from "../modules/Schedule";
+import { selectedSlotsRepositoryModule } from "../modules/SelectedSlots";
+import { teamRepositoryModule } from "../modules/Team";
+import { userRepositoryModule } from "../modules/User";
 
 const container = createContainer();
 container.load(DI_TOKENS.REDIS_CLIENT, redisModule);
@@ -37,6 +39,9 @@ container.load(DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE, checkBookingLimits
 container.load(DI_TOKENS.AVAILABLE_SLOTS_SERVICE_MODULE, availableSlotsModule);
 container.load(DI_TOKENS.GET_USER_AVAILABILITY_SERVICE_MODULE, getUserAvailabilityModule);
 container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
+container.load(DI_TOKENS.BUSY_TIMES_SERVICE_MODULE, busyTimesModule);
+container.load(DI_TOKENS.FILTER_HOSTS_SERVICE_MODULE, filterHostsModule);
+container.load(DI_TOKENS.QUALIFIED_HOSTS_SERVICE_MODULE, qualifiedHostsModule);
 
 export function getAvailableSlotsService() {
   return container.get<AvailableSlotsService>(DI_TOKENS.AVAILABLE_SLOTS_SERVICE);
