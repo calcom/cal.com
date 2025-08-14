@@ -273,7 +273,8 @@ const DateOverride = ({
               className={classNames?.button}
               color="secondary"
               StartIcon="plus"
-              data-testid="add-override">
+              data-testid="add-override"
+              disabled={disabled}>
               {t("add_an_override")}
             </Button>
           }
