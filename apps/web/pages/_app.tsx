@@ -33,7 +33,7 @@ declare global {
 }
 
 MyApp.getInitialProps = async ({ ctx }: { ctx: NextPageContext }) => {
-  const { req } = ctx.ctx;
+  const { req } = ctx;
 
   let newLocale = "en";
 
