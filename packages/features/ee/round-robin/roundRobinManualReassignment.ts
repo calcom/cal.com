@@ -92,6 +92,13 @@ export const roundRobinManualReassignment = async ({
     throw new Error("Event type not found");
   }
 
+  if (eventType.hostGroups && eventType.hostGroups.length > 1) {
+    roundRobinReassignLogger.error(
+      `Event type ${eventTypeId} has more than one round robin group, reassignment is not allowed`
+    );
+    throw new Error("Reassignment not allowed with more than one round robin group");
+  }
+  
   let eventTypeHosts: typeof eventType.hosts;
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED && !!eventType.parentId;
   const parentEventType = isManagedEventType ? await getEventTypesFromDB(eventType.parentId ?? -1) : null;

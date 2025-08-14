@@ -139,6 +139,7 @@ const EventType = forwardRef<
       form.reset(currentValues);
       toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
       onSuccess?.(currentValues);
+      callbacksRef.current?.onSuccess?.();
     },
     async onSettled() {
       return;
@@ -146,8 +147,12 @@ const EventType = forwardRef<
     onError: (err: Error) => {
       const currentValues = form.getValues();
       const message = err?.message;
-      toast({ description: message ? t(message) : t(err.message) });
+      const description = message ? t(message) : t(err.message);
+      toast({ description });
       onError?.(currentValues, err);
+
+      const errorObj = new Error(description);
+      callbacksRef.current?.onError?.(errorObj);
     },
     teamId: team?.id,
   });
@@ -159,6 +164,7 @@ const EventType = forwardRef<
         updateMutation.mutate(data);
       } else {
         toast({ description: t("event_type_updated_successfully", { eventTypeTitle: eventType.title }) });
+        callbacksRef.current?.onSuccess?.();
       }
     },
     onFormStateChange: onFormStateChange,
@@ -167,13 +173,29 @@ const EventType = forwardRef<
   // Create a ref for the save button to trigger its click
   const saveButtonRef = useRef<HTMLButtonElement>(null);
 
-  const handleFormSubmit = useCallback(() => {
-    if (saveButtonRef.current) {
-      saveButtonRef.current.click();
-    } else {
-      form.handleSubmit(handleSubmit)();
-    }
-  }, [handleSubmit, form]);
+  const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
+
+  const handleFormSubmit = useCallback(
+    (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+      if (customCallbacks) {
+        callbacksRef.current = customCallbacks;
+      }
+
+      if (saveButtonRef.current) {
+        saveButtonRef.current.click();
+      } else {
+        form.handleSubmit((data) => {
+          try {
+            handleSubmit(data);
+            customCallbacks?.onSuccess?.();
+          } catch (error) {
+            customCallbacks?.onError?.(error as Error);
+          }
+        })();
+      }
+    },
+    [handleSubmit, form]
+  );
 
   const validateForm = useCallback(async () => {
     const isValid = await form.trigger();
