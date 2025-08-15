@@ -89,6 +89,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
+    parentId: true,
     team: {
       select: {
         parentId: true,
@@ -513,6 +514,33 @@ export const getPublicEvent = async (
     users = [];
   }
 
+  if (
+    event.parentId &&
+    eventWithUserProfiles.team &&
+    (!eventWithUserProfiles.team.brandColor || !eventWithUserProfiles.team.darkBrandColor)
+  ) {
+    const parentEventType = await prisma.eventType.findUnique({
+      where: { id: event.parentId },
+      select: {
+        team: {
+          select: {
+            brandColor: true,
+            darkBrandColor: true,
+          },
+        },
+      },
+    });
+
+    if (parentEventType?.team) {
+      if (parentEventType.team.brandColor && !eventWithUserProfiles.team.brandColor) {
+        eventWithUserProfiles.team.brandColor = parentEventType.team.brandColor;
+      }
+      if (parentEventType.team.darkBrandColor && !eventWithUserProfiles.team.darkBrandColor) {
+        eventWithUserProfiles.team.darkBrandColor = parentEventType.team.darkBrandColor;
+      }
+    }
+  }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -810,6 +838,29 @@ const getPublicEventRefactored = async (
 
   if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
     users = [];
+  }
+
+  if (event.parentId && event.team && (!event.team.brandColor || !event.team.darkBrandColor)) {
+    const parentEventType = await prisma.eventType.findUnique({
+      where: { id: event.parentId },
+      select: {
+        team: {
+          select: {
+            brandColor: true,
+            darkBrandColor: true,
+          },
+        },
+      },
+    });
+
+    if (parentEventType?.team) {
+      if (parentEventType.team.brandColor && !event.team.brandColor) {
+        event.team.brandColor = parentEventType.team.brandColor;
+      }
+      if (parentEventType.team.darkBrandColor && !event.team.darkBrandColor) {
+        event.team.darkBrandColor = parentEventType.team.darkBrandColor;
+      }
+    }
   }
 
   const eventDataShared = await processEventDataShared({
