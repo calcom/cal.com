@@ -164,6 +164,8 @@
   "download_transcript_email_subject": "Download Transcript: {{title}} at {{date}}",
   "download_your_recording": "Download your recording",
   "download_your_transcripts": "Download your Transcripts",
+  "recording_preview": "Recording preview",
+  "click_gif_to_download": "Click the preview to download the full recording",
   "your_meeting_has_been_booked": "Your meeting has been booked",
   "event_type_has_been_rescheduled_on_time_date": "Your {{title}} has been rescheduled to {{date}}.",
   "event_type_has_been_updated": "Your {{title}} has been updated.",
