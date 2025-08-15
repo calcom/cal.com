@@ -4,27 +4,25 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 const querySchema = z.object({
   session_id: z.string().min(1),
 });
+const log = logger.getSubLogger({ prefix: ["[calAIPhone] subscription/success"] });
 
 const checkoutSessionMetadataSchema = z.object({
-  userId: z.string().transform(Number),
-  teamId: z
-    .string()
-    .optional()
-    .transform((val) => (val ? Number(val) : undefined)),
-  eventTypeId: z
-    .string()
-    .optional()
-    .transform((val) => (val ? Number(val) : undefined)),
+  userId: z.coerce.number().int().positive(),
+  teamId: z.coerce.number().int().positive().optional(),
+  eventTypeId: z.coerce.number().int().positive().optional(),
   agentId: z.string().optional(),
   workflowId: z.string().optional(),
-  type: z.literal("phone_number_subscription"),
+  type: z.literal(CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION),
 });
 
 type CheckoutSessionMetadata = z.infer<typeof checkoutSessionMetadataSchema>;
@@ -59,9 +57,10 @@ function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutS
 
   const result = checkoutSessionMetadataSchema.safeParse(session.metadata);
   if (!result.success) {
+    log.error(`Invalid checkout session metadata: ${safeStringify(result.error.issues)}`);
     throw new HttpError({
       statusCode: 400,
-      message: `Invalid checkout session metadata: ${result.error}`,
+      message: "Invalid checkout session metadata",
     });
   }
 
@@ -77,7 +76,7 @@ function redirectToSuccess(metadata: CheckoutSessionMetadata) {
 }
 
 function handleError(error: unknown) {
-  console.error("Error handling phone number subscription success:", error);
+  log.error("Error handling phone number subscription success:", safeStringify(error));
 
   const url = new URL(`${WEBAPP_URL}/workflows`);
   url.searchParams.set("error", "true");

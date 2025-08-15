@@ -110,11 +110,26 @@ export async function executeAIPhoneCall(payload: string) {
       }
     }
 
+    const rateLimitIdentifier = data.teamId
+      ? `ai-phone-call:team:${data.teamId}`
+      : data.userId
+      ? `ai-phone-call:user:${data.userId}`
+      : null;
+
+    if (!rateLimitIdentifier) {
+      logger.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {
+        userId: data.userId,
+        teamId: data.teamId,
+        workflowReminderId: data.workflowReminderId,
+      });
+      throw new Error("No rate limit identifier found for AI phone call. This should not happen.");
+    }
+
     // TODO: add better rate limiting for AI phone calls
-    if (data.userId) {
+    if (rateLimitIdentifier) {
       await checkRateLimitAndThrowError({
         rateLimitingType: "core",
-        identifier: `ai-phone-call:${data.userId}`,
+        identifier: rateLimitIdentifier,
       });
     }
 
@@ -131,7 +146,6 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("No phone number found for attendee");
     }
 
-    // Prepare dynamic variables for the AI call using the same format as workflow system
     const attendee = booking.attendees[0];
     const timeZone = booking.user?.timeZone || attendee?.timeZone || "UTC";
 
@@ -188,7 +202,7 @@ export async function executeAIPhoneCall(payload: string) {
     // Update general tools before making the call so that the agent can use the check_availability_cal and book_appointment_cal tools
     await aiService.updateToolsFromAgentId(data.providerAgentId, {
       eventTypeId: booking.eventTypeId,
-      timeZone: booking.attendees[0]?.timeZone ?? "Europe/London",
+      timeZone: attendee?.timeZone ?? "Europe/London",
       userId: data.userId,
       teamId: data.teamId,
     });

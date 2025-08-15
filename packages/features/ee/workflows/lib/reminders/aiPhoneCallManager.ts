@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
+import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type { BookingInfo } from "./smsReminderManager";
 
@@ -110,6 +111,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
           outboundPhoneNumbers: {
             select: {
               phoneNumber: true,
+              subscriptionStatus: true,
             },
           },
         },
@@ -117,13 +119,17 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     },
   });
 
+  const activePhoneNumbers = workflowStep?.agent?.outboundPhoneNumbers?.filter(
+    (phoneNumber) => phoneNumber.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+  );
+
   if (!workflowStep?.agent) {
     logger.warn(`No agent configured for workflow step ${workflowStepId}`);
     return;
   }
 
-  if (!workflowStep.agent.outboundPhoneNumbers?.length) {
-    logger.warn(`No outbound phone number configured for agent ${workflowStep.agent.id}`);
+  if (!workflowStep.agent.outboundPhoneNumbers?.length || !activePhoneNumbers?.length) {
+    logger.warn(`No active outbound phone number configured for agent ${workflowStep.agent.id}`);
     return;
   }
 
@@ -167,7 +173,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         workflowReminderId: workflowReminder.id,
         scheduledDate: scheduledDate.toDate(),
         agentId: workflowStep.agent.id,
-        phoneNumber: workflowStep.agent.outboundPhoneNumbers[0].phoneNumber,
+        phoneNumber: activePhoneNumbers[0].phoneNumber,
         attendeePhoneNumber,
         bookingUid: uid,
         userId,
@@ -195,7 +201,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         workflowReminderId: workflowReminder.id,
         scheduledDate: currentDate.toDate(),
         agentId: workflowStep.agent.id,
-        phoneNumber: workflowStep.agent.outboundPhoneNumbers[0].phoneNumber,
+        phoneNumber: activePhoneNumbers[0].phoneNumber,
         attendeePhoneNumber,
         bookingUid: uid,
         userId,

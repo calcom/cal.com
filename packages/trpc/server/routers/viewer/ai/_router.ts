@@ -22,7 +22,7 @@ export const aiRouter = router({
       return await aiService.listAgents({
         userId: ctx.user.id,
         teamId: input?.teamId,
-        scope: input?.scope,
+        scope: input?.scope ?? "all",
       });
     }),
 
@@ -115,6 +115,7 @@ export const aiRouter = router({
       return await aiService.updateAgentConfiguration({
         id,
         userId: ctx.user.id,
+        teamId,
         name,
         generalPrompt: retellUpdates.generalPrompt,
         beginMessage: retellUpdates.beginMessage,

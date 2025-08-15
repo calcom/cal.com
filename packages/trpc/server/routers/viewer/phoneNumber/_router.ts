@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { z } from "zod";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
@@ -65,7 +66,7 @@ export const phoneNumberRouter = router({
   import: authedProcedure
     .input(
       z.object({
-        phoneNumber: z.string(),
+        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
         terminationUri: z.string(),
         sipTrunkAuthUsername: z.string().optional(),
         sipTrunkAuthPassword: z.string().optional(),
@@ -121,7 +122,7 @@ export const phoneNumberRouter = router({
   delete: authedProcedure
     .input(
       z.object({
-        phoneNumber: z.string(),
+        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
         teamId: z.number().optional(),
       })
     )
@@ -141,7 +142,7 @@ export const phoneNumberRouter = router({
   update: authedProcedure
     .input(
       z.object({
-        phoneNumber: z.string(),
+        phoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
         inboundAgentId: z.string().nullish().default(null),
         outboundAgentId: z.string().nullish().default(null),
         teamId: z.number().optional(),

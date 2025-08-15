@@ -191,7 +191,9 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   /**
    * Create a phone number
    */
-  createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams<T>): Promise<AIPhoneServicePhoneNumber<T>>;
+  createPhoneNumber(
+    data: AIPhoneServiceCreatePhoneNumberParams<T>
+  ): Promise<AIPhoneServicePhoneNumber<T> & { provider: string }>;
 
   /**
    * Delete a phone number
@@ -295,6 +297,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
   updateAgentConfiguration(params: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     enabled?: boolean;
     generalPrompt?: string | null;

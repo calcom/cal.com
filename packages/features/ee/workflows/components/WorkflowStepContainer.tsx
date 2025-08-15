@@ -147,7 +147,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
-  const createAgentMutation = trpc.viewer.ai.create.useMutation({
+  const createAgentMutation = trpc.viewer.aiVoiceAgent.create.useMutation({
     onSuccess: async (data) => {
       showToast(t("agent_created_successfully"), "success");
 
@@ -158,7 +158,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
         step.agentId = data.id;
 
-        await utils.viewer.ai.get.invalidate({ id: data.id });
+        await utils.viewer.aiVoiceAgent.get.invalidate({ id: data.id });
       }
       setIsAgentConfigurationSheetOpen(true);
     },
@@ -169,16 +169,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
 
-  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.ai.get.useQuery(
+  const { data: agentData, isPending: isAgentLoading } = trpc.viewer.aiVoiceAgent.get.useQuery(
     { id: stepAgentId || "" },
     { enabled: !!stepAgentId }
   );
 
-  const updateAgentMutation = trpc.viewer.ai.update.useMutation({
+  const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
       showToast(t("agent_updated_successfully"), "success");
       if (stepAgentId) {
-        utils.viewer.ai.get.invalidate({ id: stepAgentId });
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -191,7 +191,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       showToast(t("phone_number_unsubscribed_successfully"), "success");
       setIsUnsubscribeDialogOpen(false);
       if (stepAgentId) {
-        utils.viewer.ai.get.invalidate({ id: stepAgentId });
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -1496,7 +1496,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
             <DialogFooter showDivider>
               <Button type="button" color="secondary" onClick={() => setIsDeleteStepDialogOpen(false)}>
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
               <Button
                 type="button"
@@ -1520,7 +1520,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }
                   setIsDeleteStepDialogOpen(false);
                 }}>
-                {t("Delete")}
+                {t("delete")}
               </Button>
             </DialogFooter>
           </DialogContent>

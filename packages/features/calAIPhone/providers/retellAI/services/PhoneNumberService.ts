@@ -2,10 +2,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+import { AIPhoneServiceProviderType } from "../../../interfaces/AIPhoneService.interface";
 import type {
   AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceImportPhoneNumberParamsExtended,
-  AIPhoneServiceProviderType,
   AIPhoneServicePhoneNumber,
 } from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
@@ -81,9 +81,13 @@ export class PhoneNumberService {
 
   async createPhoneNumber(
     data: AIPhoneServiceCreatePhoneNumberParams
-  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
+  ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI> & { provider: string }> {
     try {
-      return await this.retellRepository.createPhoneNumber(data);
+      const phoneNumber = await this.retellRepository.createPhoneNumber(data);
+      return {
+        ...phoneNumber,
+        provider: AIPhoneServiceProviderType.RETELL_AI,
+      };
     } catch (error) {
       this.logger.error("Failed to create phone number in external AI service", {
         data,

@@ -74,7 +74,9 @@ export class RetellAIService {
     return this.phoneNumberService.importPhoneNumber(data);
   }
 
-  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<RetellPhoneNumber> {
+  async createPhoneNumber(
+    data: AIPhoneServiceCreatePhoneNumberParams
+  ): Promise<RetellPhoneNumber & { provider: string }> {
     return this.phoneNumberService.createPhoneNumber(data);
   }
 
@@ -160,6 +162,7 @@ export class RetellAIService {
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;

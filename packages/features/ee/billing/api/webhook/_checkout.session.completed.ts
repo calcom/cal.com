@@ -1,18 +1,20 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
+import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+import { CHECKOUT_SESSION_TYPES } from "../../constants";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
 
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;
 
-  if (session.metadata?.type === "phone_number_subscription") {
-    return await handlePhoneNumberSubscription(session);
+  if (session.metadata?.type === CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION) {
+    return await handleCalAIPhoneNumberSubscription(session);
   }
 
   // Handle credit purchases (existing logic)
@@ -75,7 +77,9 @@ async function saveToCreditBalance({
   }
 }
 
-async function handlePhoneNumberSubscription(session: any) {
+async function handleCalAIPhoneNumberSubscription(
+  session: SWHMap["checkout.session.completed"]["data"]["object"]
+) {
   const userId = session.metadata?.userId ? parseInt(session.metadata.userId, 10) : null;
   const teamId = session.metadata?.teamId ? parseInt(session.metadata.teamId, 10) : null;
   const agentId = session.metadata?.agentId || null;
@@ -109,9 +113,11 @@ async function handlePhoneNumberSubscription(session: any) {
 
   const aiService = createDefaultAIPhoneServiceProvider();
 
-  const retellPhoneNumber = await aiService.createPhoneNumber({ nickname: `${userId}-${Date.now()}` });
+  const calAIPhoneNumber = await aiService.createPhoneNumber({
+    nickname: `userId:${userId}${teamId ? `-teamId:${teamId}` : ""}-${Date.now()}`,
+  });
 
-  if (!retellPhoneNumber?.phone_number) {
+  if (!calAIPhoneNumber?.phone_number) {
     console.error("Failed to create phone number - invalid response from Retell");
     throw new HttpCode(500, "Failed to create phone number - invalid response");
   }
@@ -124,16 +130,15 @@ async function handlePhoneNumberSubscription(session: any) {
     throw new HttpCode(400, "Invalid subscription data");
   }
 
-  const newNumber = await prisma.calAiPhoneNumber.create({
-    data: {
-      userId,
-      teamId,
-      phoneNumber: retellPhoneNumber.phone_number,
-      provider: "retell",
-      stripeCustomerId: session.customer as string,
-      stripeSubscriptionId: subscriptionId,
-      subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
-    },
+  const newNumber = await PrismaPhoneNumberRepository.createPhoneNumber({
+    userId,
+    teamId,
+    phoneNumber: calAIPhoneNumber.phone_number,
+    provider: calAIPhoneNumber.provider,
+    stripeCustomerId: session.customer as string,
+    stripeSubscriptionId: subscriptionId,
+    subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+    providerPhoneNumberId: calAIPhoneNumber.phone_number_id,
   });
 
   try {
@@ -152,7 +157,7 @@ async function handlePhoneNumberSubscription(session: any) {
     console.log("Found agent:", { agentId: agent.id, providerAgentId: agent.providerAgentId });
 
     // Assign agent to the new number via Retell API
-    await aiService.updatePhoneNumber(retellPhoneNumber.phone_number, {
+    await aiService.updatePhoneNumber(calAIPhoneNumber.phone_number, {
       outbound_agent_id: agent.providerAgentId,
     });
 
@@ -171,7 +176,7 @@ async function handlePhoneNumberSubscription(session: any) {
     console.error("Agent linking error details:", {
       error,
       agentId,
-      phoneNumber: retellPhoneNumber.phone_number,
+      phoneNumber: calAIPhoneNumber.phone_number,
       userId,
     });
   }

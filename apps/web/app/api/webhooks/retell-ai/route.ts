@@ -7,7 +7,7 @@ import { z } from "zod";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
+import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
 
@@ -60,18 +60,16 @@ const RetellWebhookSchema = z.object({
 
 async function handleCallAnalyzed(callData: any) {
   const { from_number, call_id, call_cost } = callData;
-  if (!call_cost || typeof call_cost.combined_cost !== "number") {
-    log.error(`No call_cost.combined_cost in payload for call ${call_id}`);
+  if (!call_cost || typeof call_cost.combined_cost !== "number" || call_cost.combined_cost <= 0) {
+    log.error(
+      `No call_cost.combined_cost in payload for call ${call_id} or call_cost is invalid: ${safeStringify(
+        call_cost
+      )}`
+    );
     return;
   }
 
-  const phoneNumber = await prisma.calAiPhoneNumber.findFirst({
-    where: { phoneNumber: from_number },
-    include: {
-      user: { select: { id: true, email: true, name: true } },
-      team: { select: { id: true, name: true } },
-    },
-  });
+  const phoneNumber = await PrismaPhoneNumberRepository.findByPhoneNumber({ phoneNumber: from_number });
 
   if (!phoneNumber) {
     log.error(`No phone number found for ${from_number}, cannot deduct credits`);
@@ -89,8 +87,10 @@ async function handleCallAnalyzed(callData: any) {
 
   const baseCost = call_cost.combined_cost;
   // in cents
-  const creditsToDeduct = Math.ceil(baseCost * 1.8);
-
+  const rawMultiplier = process.env.CAL_AI_CALL_CREDITS_MULTIPLIER ?? "1.8";
+  const multiplier = Number.parseFloat(rawMultiplier);
+  const safeMultiplier = Number.isFinite(multiplier) && multiplier > 0 ? multiplier : 1.8;
+  const creditsToDeduct = Math.ceil(baseCost * safeMultiplier);
   const creditService = new CreditService();
 
   await creditService.chargeCredits({
