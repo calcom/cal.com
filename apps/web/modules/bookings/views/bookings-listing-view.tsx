@@ -17,6 +17,7 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
+  ZBooleanFilterValue,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -128,6 +129,7 @@ function BookingsContent({ status }: BookingsProps) {
   const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
   const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
   const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
+  const isMine = useFilterValue("isMine", ZBooleanFilterValue)
 
   const { limit, offset } = useDataTable();
 
@@ -142,6 +144,7 @@ function BookingsContent({ status }: BookingsProps) {
       attendeeName,
       attendeeEmail,
       bookingUid,
+      isMine,
       afterStartDate: dateRange?.startDate
         ? dayjs(dateRange?.startDate).startOf("day").toISOString()
         : undefined,
@@ -201,6 +204,18 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
+      columnHelper.accessor((row) => row, {
+      id: "isMine",
+      header: "Mine",
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.BOOLEAN,
+        },
+      },
+    }),
       columnHelper.accessor((row) => row, {
         id: "attendeeEmail",
         header: t("attendee_email_variable"),
@@ -363,6 +378,7 @@ function BookingsContent({ status }: BookingsProps) {
         teamId: false,
         userId: false,
         attendeeName: false,
+        isMine: false,
         attendeeEmail: false,
         dateRange: false,
         bookingUid: false,

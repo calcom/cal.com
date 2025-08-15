@@ -8,6 +8,7 @@ import { useQueryState } from "nuqs";
 import { createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
 import { useSegmentsNoop } from "./hooks/useSegmentsNoop";
+import { ColumnFilterType } from "@calcom/features/data-table"
 import {
   activeFiltersParser,
   sortingParser,
@@ -119,15 +120,26 @@ export function DataTableProvider({
   }
 
   const addFilter = useCallback(
-    (columnId: string) => {
-      if (!activeFilters?.some((filter) => filter.f === columnId)) {
-        // do not reset the page to 0 here,
-        // because we don't have the filter value yet (`v: undefined`)
-        setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
+  (columnId: string, filterType?: ColumnFilterType) => {
+    if (!activeFilters?.some((filter) => filter.f === columnId)) {
+      let initialValue: FilterValue | undefined;
+
+      if (filterType === ColumnFilterType.BOOLEAN) {
+        initialValue = {
+          type: ColumnFilterType.BOOLEAN,
+          data: true
+        };
       }
-    },
-    [activeFilters, setActiveFilters]
-  );
+      // do not reset the page to 0 here,
+      // because we don't have the filter value yet (`v: undefined`)
+      setActiveFilters([...activeFilters, { 
+        f: columnId, 
+        v: initialValue 
+      }]);
+    }
+  },
+  [activeFilters, setActiveFilters]
+);
 
   const setPageIndexWrapper = useCallback(
     (newPageIndex: number | null) => setPageIndex(newPageIndex || null),

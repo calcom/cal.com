@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ZTextFilterValue } from "@calcom/features/data-table/lib/types";
+import { ZTextFilterValue, ZBooleanFilterValue } from "@calcom/features/data-table/lib/types";
 
 export const ZGetInputSchema = z.object({
   filters: z.object({
@@ -11,6 +11,7 @@ export const ZGetInputSchema = z.object({
     attendeeEmail: z.union([z.string(), ZTextFilterValue]).optional(),
     attendeeName: z.union([z.string(), ZTextFilterValue]).optional(),
     bookingUid: z.string().optional(),
+    isMine: ZBooleanFilterValue.optional(),
     afterStartDate: z.string().optional(),
     beforeEndDate: z.string().optional(),
     afterUpdatedDate: z.string().optional(),
