@@ -486,12 +486,20 @@ export const insightsRouter = router({
       }
     }),
   popularEvents: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ input, ctx }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getPopularEventsStats();
+        return await insightsBookingService.getPopularEventsStats(
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -553,34 +561,64 @@ export const insightsRouter = router({
       }
     }),
   membersWithMostCancelledBookings: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ input, ctx }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("cancelled", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount(
+          "cancelled",
+          "DESC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
   membersWithMostBookings: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ input, ctx }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount(
+          "all",
+          "DESC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
   membersWithLeastBookings: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ input, ctx }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("all", "ASC");
+        return await insightsBookingService.getMembersStatsWithCount(
+          "all",
+          "ASC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
@@ -765,33 +803,69 @@ export const insightsRouter = router({
       return eventTypeList;
     }),
   recentRatings: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getRecentRatingsStats();
+      return await insightsBookingService.getRecentRatingsStats(
+        limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+      );
     }),
   membersWithMostNoShow: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ input, ctx }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
 
       try {
-        return await insightsBookingService.getMembersStatsWithCount("noShow", "DESC");
+        return await insightsBookingService.getMembersStatsWithCount(
+          "noShow",
+          "DESC",
+          limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+        );
       } catch (e) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
   membersWithHighestRatings: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getMembersRatingStats("DESC");
+      return await insightsBookingService.getMembersRatingStats(
+        "DESC",
+        limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+      );
     }),
   membersWithLowestRatings: userBelongsToTeamProcedure
-    .input(bookingRepositoryBaseInputSchema)
+    .input(
+      bookingRepositoryBaseInputSchema.extend({
+        limit: z.number().max(1000).optional(),
+        offset: z.number().optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
+      const { limit, offset } = input;
       const insightsBookingService = createInsightsBookingService(ctx, input);
-      return await insightsBookingService.getMembersRatingStats("ASC");
+      return await insightsBookingService.getMembersRatingStats(
+        "ASC",
+        limit || offset ? { limit: limit ?? 10, offset: offset ?? 0 } : undefined
+      );
     }),
   rawData: userBelongsToTeamProcedure
     .input(

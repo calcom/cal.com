@@ -8,7 +8,7 @@ import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-type FeedbackData = RouterOutputs["viewer"]["insights"]["recentRatings"];
+type FeedbackData = RouterOutputs["viewer"]["insights"]["recentRatings"]["data"];
 
 export const RecentFeedbackTableContent = ({ data }: { data: FeedbackData }) => {
   const { t } = useLocale();
