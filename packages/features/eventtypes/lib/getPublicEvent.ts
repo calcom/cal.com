@@ -877,9 +877,11 @@ type GetProfileFromEventInput = Omit<Event, "hosts"> & {
 
 export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const { team, subsetOfHosts: hosts, owner } = event;
-  const profile = team || nonTeamprofile;
+  const nonTeamProfile = hosts?.[0]?.user || owner;
+  const profile = team || nonTeamProfile;
   if (!profile) throw new Error("Event has no owner");
 
+  const styleProfile = team || event?.parent?.team || nonTeamProfile;
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
@@ -892,11 +894,11 @@ export function getProfileFromEvent(event: GetProfileFromEventInput) {
     image: team
       ? getOrgOrTeamAvatar(team)
       : getUserAvatarUrl({
-          avatarUrl: nonTeamprofile?.avatarUrl,
+          avatarUrl: nonTeamProfile?.avatarUrl,
         }),
-    brandColor: profile.brandColor,
-    darkBrandColor: profile.darkBrandColor,
-    theme: profile.theme,
+    brandColor: styleProfile.brandColor,
+    darkBrandColor: styleProfile.darkBrandColor,
+    theme: styleProfile.theme,
     bookerLayouts: bookerLayoutsSchema.parse(
       eventMetaData?.bookerLayouts ||
         (userMetaData && "defaultBookerLayouts" in userMetaData ? userMetaData.defaultBookerLayouts : null)
