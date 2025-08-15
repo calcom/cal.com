@@ -15,19 +15,36 @@ import { router } from "../../../trpc";
 const permissionStringSchema = z.custom<PermissionString>((val) => {
   if (typeof val !== "string") return false;
 
-  const [resource, action] = val.split(".");
-
-  const isValidResource = Object.values(Resource).includes(resource as Resource);
-
-  if (action === "_resource") {
+  // Handle special case for _resource
+  if (val.endsWith("._resource")) {
     return true;
   }
 
-  const isValidAction =
-    Object.values(CrudAction).includes(action as CrudAction) ||
-    Object.values(CustomAction).includes(action as CustomAction);
+  // Find the longest matching resource from the end
+  const resourceValues = Object.values(Resource);
+  let matchedResource: string | null = null;
+  let remainingAction: string | null = null;
 
-  return isValidResource && isValidAction;
+  // Sort resources by length (longest first) to match the most specific resource
+  const sortedResources = resourceValues.sort((a, b) => b.length - a.length);
+
+  for (const resource of sortedResources) {
+    if (val.startsWith(resource + ".")) {
+      matchedResource = resource;
+      remainingAction = val.substring(resource.length + 1);
+      break;
+    }
+  }
+
+  if (!matchedResource || !remainingAction) {
+    return false;
+  }
+
+  const isValidAction =
+    Object.values(CrudAction).includes(remainingAction as CrudAction) ||
+    Object.values(CustomAction).includes(remainingAction as CustomAction);
+
+  return isValidAction;
 }, "Invalid permission string format. Must be 'resource.action' where resource and action are valid enums");
 
 // Schema for creating/updating roles

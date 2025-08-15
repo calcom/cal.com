@@ -955,6 +955,22 @@ export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
     userEventGroupsData?.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.filter((profile) => {
+        // For personal profiles (teamId is null), always allow creation
+        if (!profile.teamId) {
+          return true;
+        }
+
+        // For team profiles, check if user has eventType.create permission
+        // This will be populated by the server-side PBAC check
+        // Fallback to role-based check (admin/owner) if canCreateEventTypes is not set
+        if (profile.canCreateEventTypes !== undefined) {
+          return profile.canCreateEventTypes;
+        }
+
+        // Fallback: allow admin and owner roles
+        return profile.membershipRole === "ADMIN" || profile.membershipRole === "OWNER";
+      })
       ?.map((profile) => {
         return {
           teamId: profile.teamId,
