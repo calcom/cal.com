@@ -199,8 +199,6 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
-  const session = useSession();
-  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -210,6 +208,8 @@ const OrgAppearanceViewWrapper = () => {
     },
     [error]
   );
+  const session = useSession();
+  const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
   if (isPending) {
     return <AppearanceSkeletonLoader />;
