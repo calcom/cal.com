@@ -4,7 +4,7 @@ import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-key
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import type {
   AIPhoneServiceUpdateModelParams,

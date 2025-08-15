@@ -31,6 +31,13 @@ export class BillingService {
   }) {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
+    if (!phoneNumberPriceId) {
+      throw new HttpError({
+        statusCode: 500,
+        message: "Phone number price ID not configured",
+      });
+    }
+
     const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
     if (!stripeCustomerId) {
       throw new HttpError({

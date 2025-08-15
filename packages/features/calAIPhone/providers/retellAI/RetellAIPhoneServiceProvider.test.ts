@@ -497,7 +497,7 @@ describe("RetellAIPhoneServiceProvider", () => {
       const result = await testProvider.importPhoneNumber(importData);
 
       expect(importPhoneNumberMock).toHaveBeenCalledWith(importData);
-      expect(result).toEqual({ phone_number: "+1234567890", provider: "retellAI" });
+      expect(result).toEqual({ phone_number: "+1234567890" });
     });
   });
 
@@ -574,7 +574,7 @@ describe("RetellAIPhoneServiceProvider", () => {
       const result = await testProvider.getPhoneNumber(phoneNumber);
 
       expect(getPhoneNumberMock).toHaveBeenCalledWith(phoneNumber);
-      expect(result).toEqual({ phone_number: "+1234567890", provider: "retellAI" });
+      expect(result).toEqual({ phone_number: "+1234567890" });
     });
   });
 
@@ -612,7 +612,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         inbound_agent_id: "new-inbound-agent",
         outbound_agent_id: "new-outbound-agent",
       });
-      expect(result).toEqual({ phone_number: "+1234567890", provider: "retellAI" });
+      expect(result).toEqual({ phone_number: "+1234567890" });
     });
 
     it("should handle partial updates", async () => {

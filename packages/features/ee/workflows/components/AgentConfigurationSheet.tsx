@@ -316,10 +316,14 @@ export function AgentConfigurationSheet({
   // };
 
   const handleImportPhoneNumber = (values: PhoneNumberFormValues) => {
+    if (!agentId) {
+      showToast(t("agent_required_for_import"), "error");
+      return;
+    }
     const mutationPayload = {
       ...values,
       workflowId: workflowId,
-      agentId: agentId, // Pass the agentId to the router
+      agentId: agentId,
       teamId: teamId,
     };
     importNumberMutation.mutate(mutationPayload);
@@ -357,8 +361,7 @@ export function AgentConfigurationSheet({
 
       agentForm.setValue("generalPrompt", newPrompt);
 
-      // Set cursor position after the inserted variable
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         if (generalPromptRef.current) {
           generalPromptRef.current.focus();
           generalPromptRef.current.setSelectionRange(
@@ -366,7 +369,7 @@ export function AgentConfigurationSheet({
             cursorPosition + variableName.length
           );
         }
-      }, 0);
+      });
     }
   };
 

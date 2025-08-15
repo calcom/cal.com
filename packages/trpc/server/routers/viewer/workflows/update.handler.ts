@@ -456,22 +456,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
         } else {
           // For non-AI phone steps, just delete reminders and step
-          await ctx.prisma.$transaction(async (tx) => {
-            // Delete all workflow reminders from deleted steps
-            await tx.workflowReminder.deleteMany({
-              where: {
-                id: {
-                  in: remindersFromStep.map((reminder) => reminder.id),
-                },
-              },
-            });
-
-            // Delete the workflow step
-            await tx.workflowStep.delete({
-              where: {
-                id: oldStep.id,
-              },
-            });
+          await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
+          await prisma.workflowStep.delete({
+            where: {
+              id: oldStep.id,
+            },
           });
         }
       } else if (
