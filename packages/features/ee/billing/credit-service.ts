@@ -559,6 +559,11 @@ export class CreditService {
       ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
       : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
+    if (!priceId) {
+      log.warn("Monthly price ID not configured", { teamId, isOrganization: team.isOrganization });
+      return 0;
+    }
+
     const monthlyPrice = await billingService.getPrice(priceId || "");
     const pricePerSeat = monthlyPrice.unit_amount ?? 0;
 

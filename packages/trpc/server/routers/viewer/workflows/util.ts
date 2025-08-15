@@ -38,6 +38,7 @@ import { WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { CalEventResponses } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -746,7 +747,7 @@ export async function scheduleBookingReminders(
         },
         metadata: booking.metadata,
         customReplyToEmail: booking.eventType?.customReplyToEmail,
-        responses: booking.responses,
+        responses: booking.responses as CalEventResponses | null,
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||

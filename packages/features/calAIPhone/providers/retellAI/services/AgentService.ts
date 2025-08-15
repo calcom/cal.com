@@ -110,11 +110,11 @@ export class AgentService {
         throw new HttpError({ statusCode: 404, message: "LLM details not found." });
       }
 
-      const existing: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>[] =
-        llmDetails.general_tools ?? [];
+      const existing = llmDetails?.general_tools ?? [];
 
       const hasCheckAvailability = existing.some(
-        (t) => t.type === "check_availability_cal" && t.event_type_id === data.eventTypeId
+        (t) =>
+          t.type === "check_availability_cal" && "event_type_id" in t && t.event_type_id === data.eventTypeId
       );
 
       if (hasCheckAvailability) {
@@ -133,7 +133,7 @@ export class AgentService {
           teamId: data.teamId || undefined,
         }));
 
-      const newGeneralTools: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>[] = [
+      const newGeneralTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>>[] = [
         {
           type: "end_call",
           name: "end_call",
@@ -179,7 +179,7 @@ export class AgentService {
     }
   ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new HttpError("Agent ID is required and cannot be empty");
+      throw new HttpError({ statusCode: 400, message: "Agent ID is required and cannot be empty" });
     }
 
     if (!data || Object.keys(data).length === 0) {

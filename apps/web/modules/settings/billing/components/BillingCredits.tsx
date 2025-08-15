@@ -7,6 +7,7 @@ import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
@@ -28,7 +29,6 @@ type MonthOption = {
   endDate: string;
 };
 
-// returns the last 12 months starting from May 2025 (when credits were introduced)
 const getMonthOptions = (): MonthOption[] => {
   const options: MonthOption[] = [];
   const minDate = dayjs.utc("2025-05-01");
@@ -56,6 +56,7 @@ export default function BillingCredits() {
   const router = useRouter();
   const pathname = usePathname();
   const session = useSession();
+  const orgBranding = useOrgBranding();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -71,7 +72,23 @@ export default function BillingCredits() {
   const params = useParamsWithFallback();
   const orgId = session.data?.user?.org?.id;
 
-  const teamId = params.id ? Number(params.id) : orgId;
+  const teamId: number | undefined = params.id
+    ? Number(params.id)
+    : typeof orgId === "number"
+    ? orgId
+    : undefined;
+
+  const tokens = (pathname ?? "").split("/").filter(Boolean);
+  const settingsIndex = tokens.indexOf("settings");
+  const isOrganizationsPath = settingsIndex >= 0 && tokens[settingsIndex + 1] === "organizations";
+
+  if (!IS_SMS_CREDITS_ENABLED) {
+    return null;
+  }
+
+  if (orgId && !isOrganizationsPath && !orgBranding?.slug) {
+    return null;
+  }
 
   const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
 
@@ -106,15 +123,6 @@ export default function BillingCredits() {
       setIsDownloading(false);
     }
   };
-
-  if (!IS_SMS_CREDITS_ENABLED) {
-    return null;
-  }
-
-  if (orgId && !pathname?.includes("/organizations/")) {
-    // Don't show credits on personal billing if user is an org member
-    return null;
-  }
 
   if (isLoading && teamId) return <BillingCreditsSkeleton />;
   if (!creditsData) return null;

@@ -44,7 +44,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  let redirect_uri = `${WEBAPP_URL}/settings/billing`;
+  let redirectUrl = `${WEBAPP_URL}/settings/billing`;
 
   if (teamId) {
     // Check if the team is an organization
@@ -54,9 +54,9 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     });
 
     if (team?.isOrganization) {
-      redirect_uri = `${WEBAPP_URL}/settings/organizations/billing`;
+      redirectUrl = `${WEBAPP_URL}/settings/organizations/billing`;
     } else {
-      redirect_uri = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
+      redirectUrl = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
     }
   }
 
@@ -65,8 +65,8 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,
     quantity,
-    successUrl: redirect_uri,
-    cancelUrl: redirect_uri,
+    successUrl: redirectUrl,
+    cancelUrl: redirectUrl,
     metadata: {
       ...(teamId && { teamId: teamId.toString() }),
       userId: ctx.user.id.toString(),
