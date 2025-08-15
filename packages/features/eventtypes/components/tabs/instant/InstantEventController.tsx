@@ -403,7 +403,8 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
                 noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}
                 onCancel={() => setCreateModalOpen(false)}
-                apps={installedApps?.items.map((app) => app.slug)}
+                apps={[...installedApps?.items.map((app) => app.slug), "cal-video"]}
+                enableCalVideoTriggers={true}
                 selectOnlyInstantMeetingOption={true}
               />
             </DialogContent>
@@ -414,7 +415,8 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
               <WebhookForm
                 noRoutingFormTriggers={true}
                 webhook={webhookToEdit}
-                apps={installedApps?.items.map((app) => app.slug)}
+                apps={[...installedApps?.items.map((app) => app.slug), "cal-video"]}
+                enableCalVideoTriggers={true}
                 onCancel={() => setEditModalOpen(false)}
                 onSubmit={(values: WebhookFormSubmitData) => {
                   if (

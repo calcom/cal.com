@@ -84,7 +84,8 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
       <WebhookForm
         noRoutingFormTriggers={false}
         onSubmit={onCreateWebhook}
-        apps={installedApps?.items.map((app) => app.slug)}
+        apps={[...installedApps?.items.map((app) => app.slug), "cal-video"]}
+        enableCalVideoTriggers={true}
       />
     </SettingsHeader>
   );
