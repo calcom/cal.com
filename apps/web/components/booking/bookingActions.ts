@@ -146,9 +146,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
+    
     // Reassign if round robin with no or one host groups
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+    (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)) ||
+    (booking.eventType.schedulingType === SchedulingType.MANAGED &&
+      booking.eventType.allowManagedEventReassignment)
       ? {
           id: "reassign",
           label: t("reassign"),
