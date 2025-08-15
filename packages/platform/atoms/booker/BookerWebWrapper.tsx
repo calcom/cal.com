@@ -124,12 +124,13 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: disableAutoFillOnBookingPage ? null : session?.user.email,
-    sessionUsername: disableAutoFillOnBookingPage ? null : session?.user.username,
-    sessionName: disableAutoFillOnBookingPage ? null : session?.user.name,
+    sessionEmail: session?.user.email,
+    sessionUsername: session?.user.username,
+    sessionName: session?.user.name,
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
+    disableAutoFillOnBookingPage,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
