@@ -5,6 +5,7 @@ import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
+import { getCalcomUrl } from "@calcom/lib/getCalcomUrl";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { truncateOnWord } from "@calcom/lib/text";
@@ -32,7 +33,7 @@ const _generateMetadataWithoutImage = async (
   const description = getDescription(t);
   const titleSuffix = `| ${APP_NAME}`;
   const displayedTitle = title.includes(titleSuffix) || hideBranding ? title : `${title} ${titleSuffix}`;
-  const metadataBase = new URL(IS_CALCOM ? "https://cal.com" : WEBAPP_URL);
+  const metadataBase = new URL(IS_CALCOM ? getCalcomUrl() : WEBAPP_URL);
 
   return {
     title: title.length === 0 ? APP_NAME : displayedTitle,
