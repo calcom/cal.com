@@ -1,5 +1,6 @@
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
+import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
@@ -57,6 +58,15 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
         code: "UNAUTHORIZED",
       });
     }
+  }
+
+  // Check if this is the user's default schedule and if they are a member of any team with locked default availability
+  const isDefaultSchedule = user.defaultScheduleId === input.scheduleId;
+  const isSettingAsDefault = input.isDefault;
+
+  // Check for locked default availability if this is the default schedule OR if we're setting it as default
+  if (isDefaultSchedule || isSettingAsDefault) {
+    await checkLockedDefaultAvailabilityRestriction(user.id);
   }
 
   let updatedUser;
