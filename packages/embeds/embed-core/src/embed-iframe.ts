@@ -278,14 +278,23 @@ export const useEmbedType = () => {
   return state;
 };
 
+let makeBodyVisibleTimerId: ReturnType<typeof setTimeout> | null = null;
+
 function makeBodyVisible() {
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
   // Ensure that it stays visible and not reverted by React
-  runAsap(() => {
+  makeBodyVisibleTimerId = runAsap(() => {
     makeBodyVisible();
   });
+}
+
+function cleanupMakeBodyVisible() {
+  if (makeBodyVisibleTimerId) {
+    clearTimeout(makeBodyVisibleTimerId);
+    makeBodyVisibleTimerId = null;
+  }
 }
 
 /**
@@ -790,3 +799,5 @@ export function updateEmbedBookerState({
 }
 
 main();
+
+export { cleanupMakeBodyVisible };
