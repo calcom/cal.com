@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
   mapUserToValue,
+  MembersSegmentWithToggle,
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
@@ -948,12 +949,31 @@ export const EventTeamAssignmentTab = ({
         </>
       )}
       {team && isManagedEventType && (
-        <ChildrenEventTypes
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          childrenEventTypeOptions={childrenEventTypeOptions}
-          customClassNames={customClassNames?.childrenEventTypes}
-        />
+        <>
+          <ChildrenEventTypes
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            childrenEventTypeOptions={childrenEventTypeOptions}
+            customClassNames={customClassNames?.childrenEventTypes}
+          />
+          {assignAllTeamMembers && isSegmentApplicable && (
+            <div className="border-subtle mt-6 space-y-5 rounded-lg border px-4 py-6 sm:px-6">
+              <div className="flex flex-col gap-4">
+                <MembersSegmentWithToggle
+                  teamId={team.id}
+                  assignRRMembersUsingSegment={getValues("assignRRMembersUsingSegment")}
+                  setAssignRRMembersUsingSegment={(value) =>
+                    setValue("assignRRMembersUsingSegment", value, { shouldDirty: true })
+                  }
+                  rrSegmentQueryValue={getValues("rrSegmentQueryValue")}
+                  setRrSegmentQueryValue={(value) =>
+                    setValue("rrSegmentQueryValue", value, { shouldDirty: true })
+                  }
+                />
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
