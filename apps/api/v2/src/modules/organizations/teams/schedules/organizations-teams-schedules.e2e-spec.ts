@@ -237,20 +237,19 @@ describe("Organizations Teams Schedules Endpoints", () => {
           expect(Array.isArray(responseBody.data.data)).toBe(true);
           expect(responseBody.data.data.length).toBeGreaterThan(0);
 
-          const userOneSchedule = responseBody.data.data.filter(
-            (schedule) => schedule.id === userSchedule.id
-          );
-          const userTwoSchedule = responseBody.data.data.filter(
-            (schedule) => schedule.id === user2Schedule.id
-          );
+          const userOneSchedule = responseBody.data.data.find((schedule) => schedule.id === userSchedule.id);
+          const userTwoSchedule = responseBody.data.data.find((schedule) => schedule.id === user2Schedule.id);
 
-          expect(userOneSchedule[0].id).toEqual(userSchedule.id);
-          expect(userOneSchedule[0].name).toEqual(userSchedule.name);
-          expect(userOneSchedule[0].timeZone).toEqual(userSchedule.timeZone);
+          expect(userOneSchedule).toBeDefined();
+          expect(userTwoSchedule).toBeDefined();
 
-          expect(userTwoSchedule[0].id).toEqual(user2Schedule.id);
-          expect(userTwoSchedule[0].name).toEqual(user2Schedule.name);
-          expect(userOneSchedule[0].timeZone).toEqual(userSchedule.timeZone);
+          expect(userOneSchedule?.id).toEqual(userSchedule.id);
+          expect(userOneSchedule?.name).toEqual(userSchedule.name);
+          expect(userOneSchedule?.timeZone).toEqual(userSchedule.timeZone);
+
+          expect(userTwoSchedule?.id).toEqual(user2Schedule.id);
+          expect(userTwoSchedule?.name).toEqual(user2Schedule.name);
+          expect(userOneSchedule?.timeZone).toEqual(user2Schedule.timeZone);
         });
     });
 

@@ -20,10 +20,6 @@ import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Team, Schedule } from "@calcom/prisma/client";
 
-// first I need to create two users with two schedules
-// then setup a non org team and created memberships for both users, one as admin and one as member
-// then I need to setup my test and check if the endpoint works or not
-
 describe("Teams Schedules Endpoints", () => {
   describe("User Authentication - User is Team Admin", () => {
     let app: INestApplication;
@@ -122,20 +118,19 @@ describe("Teams Schedules Endpoints", () => {
           expect(Array.isArray(responseBody.data.data)).toBe(true);
           expect(responseBody.data.data.length).toBeGreaterThan(0);
 
-          const userOneSchedule = responseBody.data.data.filter(
-            (schedule) => schedule.id === userSchedule.id
-          );
-          const userTwoSchedule = responseBody.data.data.filter(
-            (schedule) => schedule.id === user2Schedule.id
-          );
+          const userOneSchedule = responseBody.data.data.find((schedule) => schedule.id === userSchedule.id);
+          const userTwoSchedule = responseBody.data.data.find((schedule) => schedule.id === user2Schedule.id);
 
-          expect(userOneSchedule[0].id).toEqual(userSchedule.id);
-          expect(userOneSchedule[0].name).toEqual(userSchedule.name);
-          expect(userOneSchedule[0].timeZone).toEqual(userSchedule.timeZone);
+          expect(userOneSchedule).toBeDefined();
+          expect(userTwoSchedule).toBeDefined();
 
-          expect(userTwoSchedule[0].id).toEqual(user2Schedule.id);
-          expect(userTwoSchedule[0].name).toEqual(user2Schedule.name);
-          expect(userOneSchedule[0].timeZone).toEqual(userSchedule.timeZone);
+          expect(userOneSchedule?.id).toEqual(userSchedule.id);
+          expect(userOneSchedule?.name).toEqual(userSchedule.name);
+          expect(userOneSchedule?.timeZone).toEqual(userSchedule.timeZone);
+
+          expect(userTwoSchedule?.id).toEqual(user2Schedule.id);
+          expect(userTwoSchedule?.name).toEqual(user2Schedule.name);
+          expect(userOneSchedule?.timeZone).toEqual(user2Schedule.timeZone);
         });
     });
 
