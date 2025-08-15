@@ -1,7 +1,7 @@
-import type { User, Team, EventType } from "@prisma/client";
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
 
 import prisma from "@calcom/prisma";
+import type { User, Team, EventType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { listWithTeamHandler } from "./listWithTeam.handler";

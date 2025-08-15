@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
@@ -12,6 +10,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TPublishInputSchema } from "./publish.schema";
+import { Prisma } from "@calcom/prisma/client";
 
 type PublishOptions = {
   ctx: {

@@ -13,7 +13,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { createParamDecorator, INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -43,6 +42,7 @@ import {
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
+import { User } from "@calcom/prisma/client";
 import { Team } from "@calcom/prisma/client";
 
 jest

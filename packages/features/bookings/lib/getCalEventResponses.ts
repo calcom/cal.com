@@ -1,4 +1,3 @@
-import type { EventType, Prisma } from "@prisma/client";
 import type z from "zod";
 
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
@@ -6,6 +5,7 @@ import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/get
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { HttpError } from "@calcom/lib/http-error";
+import type { EventType, Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

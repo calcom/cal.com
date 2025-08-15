@@ -22,47 +22,45 @@ export type TGetInputSchema = z.infer<typeof ZGetInputSchema>;
 
 const deleteScheduledWhatsappReminder = deleteScheduledSMSReminder;
 
-const { include: includedFields } = {
-  include: {
-    activeOn: {
-      select: {
-        eventType: {
-          select: {
-            id: true,
-            title: true,
-            parentId: true,
-            _count: {
-              select: {
-                children: true,
-              },
+const includedFields = {
+  activeOn: {
+    select: {
+      eventType: {
+        select: {
+          id: true,
+          title: true,
+          parentId: true,
+          _count: {
+            select: {
+              children: true,
             },
           },
         },
       },
     },
-    activeOnTeams: {
-      select: {
-        team: {
-          select: {
-            id: true,
-            name: true,
-          },
+  },
+  activeOnTeams: {
+    select: {
+      team: {
+        select: {
+          id: true,
+          name: true,
         },
       },
     },
-    steps: true,
-    team: {
-      select: {
-        id: true,
-        slug: true,
-        name: true,
-        members: true,
-        logoUrl: true,
-        isOrganization: true,
-      },
+  },
+  steps: true,
+  team: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      members: true,
+      logoUrl: true,
+      isOrganization: true,
     },
   },
-} satisfies Prisma.WorkflowDefaultArgs;
+} satisfies Prisma.WorkflowInclude;
 
 export class WorkflowRepository {
   private static log = logger.getSubLogger({ prefix: ["workflow"] });

@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
@@ -7,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";

@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
@@ -210,6 +210,7 @@ export async function patchHandler(req: NextApiRequest) {
     hosts = [],
     bookingLimits,
     durationLimits,
+    locations,
     /** FIXME: Updating event-type children from API not supported for now  */
     children: _,
     ...parsedBody
@@ -217,8 +218,10 @@ export async function patchHandler(req: NextApiRequest) {
 
   const data: Prisma.EventTypeUpdateArgs["data"] = {
     ...parsedBody,
+    teamId: parsedBody.teamId === null ? undefined : parsedBody.teamId,
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    locations: locations === null ? Prisma.DbNull : locations,
   };
 
   if (hosts) {

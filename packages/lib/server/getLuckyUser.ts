@@ -1,5 +1,3 @@
-import type { Prisma, User } from "@prisma/client";
-
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
@@ -10,6 +8,7 @@ import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
+import type { Prisma, User } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";

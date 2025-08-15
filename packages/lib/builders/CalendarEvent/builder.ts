@@ -1,41 +1,60 @@
-import type { Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getRescheduleLink } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { CalendarEventClass } from "./class";
 
-const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "builder"] });
 const translator = short();
 const userSelect = {
-  select: {
-    id: true,
-    email: true,
-    name: true,
-    username: true,
-    timeZone: true,
-    credentials: true,
-    bufferTime: true,
-    destinationCalendar: true,
-    locale: true,
-  },
-} satisfies Prisma.UserArgs;
+  id: true,
+  email: true,
+  name: true,
+  username: true,
+  timeZone: true,
+  credentials: true,
+  bufferTime: true,
+  destinationCalendar: true,
+  locale: true,
+} satisfies Prisma.UserSelect;
 
-type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
-type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
+// Single source of truth for user type
+type User = Prisma.UserGetPayload<{ select: typeof userSelect }>;
+
+// Base fields that are common between attendees and team members
+interface PersonAttendeeCommonFields {
+  id: number;
+  email: string;
+  name: string | null;
+  locale: string | null;
+  timeZone: string;
+  username: string | null;
+}
+
+// Team members extend the common fields with language
+interface TeamMember extends PersonAttendeeCommonFields {
+  language: {
+    translate: any;
+    locale: string;
+  };
+}
+
+// Add type for event type users that matches Prisma schema
+type EventTypeUser = Prisma.UserGetPayload<{
+  select: typeof userSelect;
+}>;
+
 interface ICalendarEventBuilder {
   calendarEvent: CalendarEventClass;
   eventType: Awaited<ReturnType<CalendarEventBuilder["getEventFromEventId"]>>;
-  users: Awaited<ReturnType<CalendarEventBuilder["getUserById"]>>[];
+  users: User[];
   attendeesList: PersonAttendeeCommonFields[];
-  teamMembers: Awaited<ReturnType<CalendarEventBuilder["getTeamMembers"]>>;
+  teamMembers: TeamMember[];
   rescheduleLink: string;
 }
 
@@ -80,7 +99,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     if (!users.length && this.eventType.userId) {
       const eventTypeUser = await this.getUserById(this.eventType.userId);
       if (!eventTypeUser) {
-        throw new Error("buildUsersFromINnerClass.eventTypeUser.notFound");
+        throw new Error("buildUsersFromInnerClass.eventTypeUser.notFound");
       }
       users.push(eventTypeUser);
     }
@@ -95,31 +114,24 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     ];
   }
 
-  private async getUserById(userId: number) {
-    let resultUser: User | null;
+  private async getUserById(userId: number): Promise<User> {
     try {
-      resultUser = await prisma.user.findUniqueOrThrow({
-        where: {
-          id: userId,
-        },
-        ...userSelect,
+      return await prisma.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: userSelect,
       });
     } catch (error) {
       throw new Error("getUsersById.users.notFound");
     }
-    return resultUser;
   }
 
   private async getEventFromEventId(eventTypeId: number) {
-    let resultEventType;
     try {
-      resultEventType = await prisma.eventType.findUniqueOrThrow({
-        where: {
-          id: eventTypeId,
-        },
+      return await prisma.eventType.findUniqueOrThrow({
+        where: { id: eventTypeId },
         select: {
           id: true,
-          users: userSelect,
+          users: { select: userSelect },
           team: {
             select: {
               id: true,
@@ -154,38 +166,45 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     } catch (error) {
       throw new Error("Error while getting eventType");
     }
-    log.debug("getEventFromEventId.resultEventType", safeStringify(resultEventType));
-    return resultEventType;
   }
 
   public async buildTeamMembers() {
     this.teamMembers = await this.getTeamMembers();
   }
 
-  private async getTeamMembers() {
+  private async getTeamMembers(): Promise<TeamMember[]> {
+    if (!this.users.length) {
+      return [];
+    }
     // Users[0] its organizer so we are omitting with slice(1)
-    const teamMemberPromises = this.users.slice(1).map(async function (user) {
-      return {
+    const teamMemberPromises = this.users.slice(1).map(async (user) => {
+      if (!user) return null;
+      const member: TeamMember = {
         id: user.id,
-        username: user.username,
-        email: user.email || "", // @NOTE: Should we change this "" to teamMemberId?
-        name: user.name || "",
+        username: user.username ?? null,
+        email: user.email ?? "",
+        name: user.name ?? "",
         timeZone: user.timeZone,
+        locale: user.locale ?? "en",
         language: {
           translate: await getTranslation(user.locale ?? "en", "common"),
           locale: user.locale ?? "en",
         },
-        locale: user.locale,
-      } as PersonAttendeeCommonFields;
+      };
+      return member;
     });
-    return await Promise.all(teamMemberPromises);
+    const members = await Promise.all(teamMemberPromises);
+    return members.filter((member): member is TeamMember => member !== null);
   }
 
   public buildUIDCalendarEvent() {
-    if (this.users && this.users.length > 0) {
+    if (!this.users?.length) {
       throw new Error("call buildUsers before calling this function");
     }
     const [mainOrganizer] = this.users;
+    if (!mainOrganizer?.username) {
+      throw new Error("Organizer username is required");
+    }
     const seed = `${mainOrganizer.username}:${dayjs(this.calendarEvent.startTime)
       .utc()
       .format()}:${new Date().getTime()}`;
@@ -232,14 +251,8 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   }
 
   public async setUsersFromId(userId: User["id"]) {
-    let resultUser: User | null;
     try {
-      resultUser = await prisma.user.findUniqueOrThrow({
-        where: {
-          id: userId,
-        },
-        ...userSelect,
-      });
+      const resultUser = await this.getUserById(userId);
       this.setUsers([resultUser]);
     } catch (error) {
       throw new Error("getUsersById.users.notFound");

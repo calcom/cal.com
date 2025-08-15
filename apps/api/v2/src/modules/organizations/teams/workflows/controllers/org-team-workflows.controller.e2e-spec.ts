@@ -18,7 +18,6 @@ import { GetWorkflowOutput, GetWorkflowsOutput } from "@/modules/workflows/outpu
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User, Team } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -31,6 +30,7 @@ import { WorkflowRepositoryFixture } from "test/fixtures/repository/workflow.rep
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { User, Team } from "@calcom/prisma/client";
 
 describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
   let app: INestApplication;

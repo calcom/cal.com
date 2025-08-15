@@ -6,14 +6,13 @@ import * as EmailManager from "@calcom/emails/email-manager";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import prisma from "@calcom/prisma";
 import { CreditType } from "@calcom/prisma/enums";
 
-import { CreditService as OriginalCreditService } from "./credit-service";
+import { CreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
 
-const MOCK_TX = prisma;
+const MOCK_TX = {};
 
 vi.mock("@calcom/prisma", () => {
   return {
@@ -63,38 +62,24 @@ vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
   cancelScheduledMessagesAndScheduleEmails: vi.fn(),
 }));
 
-// Create a testable version of CreditService that exposes protected methods
-class CreditService extends OriginalCreditService {
-  public async _getTeamWithAvailableCredits(
-    params: Parameters<OriginalCreditService["_getTeamWithAvailableCredits"]>[0]
-  ) {
-    return super._getTeamWithAvailableCredits(params);
-  }
+const creditService = new CreditService();
 
-  public async _getUserOrTeamToCharge(
-    params: Parameters<OriginalCreditService["_getUserOrTeamToCharge"]>[0]
-  ) {
-    return super._getUserOrTeamToCharge(params);
-  }
+vi.spyOn(creditService, "_getAllCreditsForTeam").mockResolvedValue({
+  totalRemainingMonthlyCredits: 5,
+  additionalCredits: 0,
+});
 
-  public async _createExpenseLog(props: Parameters<OriginalCreditService["_createExpenseLog"]>[0]) {
-    return super._createExpenseLog(props);
-  }
+vi.spyOn(creditService, "_getTeamWithAvailableCredits").mockResolvedValue({
+  availableCredits: 3,
+});
 
-  public async _handleLowCreditBalance(
-    params: Parameters<OriginalCreditService["_handleLowCreditBalance"]>[0]
-  ) {
-    return super._handleLowCreditBalance(params);
-  }
+vi.spyOn(creditService, "_getAllCredits").mockResolvedValue({
+  additionalCredits: 1,
+});
 
-  public async _getAllCreditsForTeam(params: Parameters<OriginalCreditService["_getAllCreditsForTeam"]>[0]) {
-    return super._getAllCreditsForTeam(params);
-  }
-
-  public async _getAllCredits(params: Parameters<OriginalCreditService["_getAllCredits"]>[0]) {
-    return super._getAllCredits(params);
-  }
-}
+CreditsRepository.findCreditBalance.mockResolvedValueOnce({
+  limitReachedAt: null,
+});
 
 describe("CreditService", () => {
   let creditService: CreditService;

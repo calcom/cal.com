@@ -38,7 +38,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
@@ -65,6 +64,7 @@ import {
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = Request & {
   userId?: number;

@@ -1,7 +1,6 @@
-import type { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -44,7 +43,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
           "EventType"."price", "EventType"."currency",
           "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
           "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
-          "EventType"."canSendCalVideoTranscriptionEmails"
+          "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL AND "EventType"."userId" = ${userId}
         UNION
@@ -54,7 +53,7 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."price", "EventType"."currency",
         "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."lockedTimeZone", "EventType"."requiresConfirmation",
         "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
-        "EventType"."canSendCalVideoTranscriptionEmails"
+        "EventType"."canSendCalVideoTranscriptionEmails", "EventType"."seatsPerTimeSlot"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL
         AND "EventType"."userId" IS NOT NULL

@@ -1,9 +1,8 @@
 import { z } from "zod";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { CreationSource } from "@calcom/prisma/enums";
-import { RedirectType } from "@calcom/prisma/enums";
-import { _UserModel as User } from "@calcom/prisma/zod";
+import { RedirectType, CreationSource } from "@calcom/prisma/enums";
+import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
@@ -15,7 +14,7 @@ export type UserAdminRouterOutputs = inferRouterOutputs<UserAdminRouter>;
 
 const userIdSchema = z.object({ userId: z.coerce.number() });
 
-const userBodySchema = User.pick({
+const userBodySchema = UserSchema.pick({
   name: true,
   email: true,
   username: true,

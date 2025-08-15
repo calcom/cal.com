@@ -1,19 +1,24 @@
 import { z } from "zod";
 
 import { MembershipRole } from "@calcom/prisma/enums";
-import { _MembershipModel as Membership, _TeamModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
+import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
 
 import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
-export const schemaMembershipBaseBodyParams = Membership.omit({});
+export const schemaMembershipBaseBodyParams = MembershipSchema.omit({});
 
 const schemaMembershipRequiredParams = z.object({
   teamId: z.number(),
 });
 
-export const membershipCreateBodySchema = Membership.omit({ id: true })
+export const membershipCreateBodySchema = MembershipSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
   .partial({
     accepted: true,
     role: true,
@@ -26,11 +31,13 @@ export const membershipCreateBodySchema = Membership.omit({ id: true })
     ...v,
   }));
 
-export const membershipEditBodySchema = Membership.omit({
+export const membershipEditBodySchema = MembershipSchema.omit({
   /** To avoid complication, let's avoid updating these, instead you can delete and create a new invite */
   teamId: true,
   userId: true,
   id: true,
+  createdAt: true,
+  updatedAt: true,
 })
   .partial({
     accepted: true,
@@ -43,7 +50,7 @@ export const schemaMembershipBodyParams = schemaMembershipBaseBodyParams.merge(
   schemaMembershipRequiredParams
 );
 
-export const schemaMembershipPublic = Membership.merge(z.object({ team: _TeamModel }).partial());
+export const schemaMembershipPublic = MembershipSchema.merge(z.object({ team: TeamSchema }).partial());
 
 /** We extract userId and teamId from compound ID string */
 export const membershipIdSchema = schemaQueryIdAsString

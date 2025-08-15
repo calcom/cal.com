@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
 import type { TFunction } from "i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
@@ -21,6 +20,8 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
+
+import type { Prisma } from "./client";
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -129,7 +130,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
   z.object({
-    apps: z.unknown().optional(),
+    apps: z.record(z.string(), z.any()).optional(),
   })
 );
 

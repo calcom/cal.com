@@ -1,9 +1,18 @@
-import { PrismaClient } from "@prisma/client";
 import { describe, it, expect, vi, beforeAll } from "vitest";
 
 import { isCurrentlyAvailable } from "./getPublicEvent";
 
-const prisma = new PrismaClient();
+const prismaMock = {
+  schedule: {
+    findUniqueOrThrow: vi.fn(),
+  },
+};
+
+vi.mock("@calcom/prisma", () => {
+  return {
+    PrismaClient: vi.fn(() => prismaMock),
+  };
+});
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2024-09-01T10:00:00Z"));
@@ -19,12 +28,12 @@ describe("isCurrentlyAvailable", () => {
       },
     ];
 
-    vi.spyOn(prisma.schedule, "findUniqueOrThrow").mockResolvedValue({
+    vi.spyOn(prismaMock.schedule, "findUniqueOrThrow").mockResolvedValue({
       availability: mockAvailability,
     });
 
     const result = await isCurrentlyAvailable({
-      prisma,
+      prisma: prismaMock,
       instantMeetingScheduleId: 1,
       availabilityTimezone: "Europe/London",
       length: 30,
@@ -42,12 +51,12 @@ describe("isCurrentlyAvailable", () => {
       },
     ];
 
-    vi.spyOn(prisma.schedule, "findUniqueOrThrow").mockResolvedValue({
+    vi.spyOn(prismaMock.schedule, "findUniqueOrThrow").mockResolvedValue({
       availability: mockAvailability,
     });
 
     const result = await isCurrentlyAvailable({
-      prisma,
+      prisma: prismaMock,
       instantMeetingScheduleId: 1,
       availabilityTimezone: "Europe/London",
       length: 30,
@@ -65,12 +74,12 @@ describe("isCurrentlyAvailable", () => {
       },
     ];
 
-    vi.spyOn(prisma.schedule, "findUniqueOrThrow").mockResolvedValue({
+    vi.spyOn(prismaMock.schedule, "findUniqueOrThrow").mockResolvedValue({
       availability: mockAvailability,
     });
 
     const result = await isCurrentlyAvailable({
-      prisma,
+      prisma: prismaMock,
       instantMeetingScheduleId: 1,
       availabilityTimezone: "Europe/London",
       length: 30,
@@ -88,12 +97,12 @@ describe("isCurrentlyAvailable", () => {
       },
     ];
 
-    vi.spyOn(prisma.schedule, "findUniqueOrThrow").mockResolvedValue({
+    vi.spyOn(prismaMock.schedule, "findUniqueOrThrow").mockResolvedValue({
       availability: mockAvailability,
     });
 
     const result = await isCurrentlyAvailable({
-      prisma,
+      prisma: prismaMock,
       instantMeetingScheduleId: 1,
       availabilityTimezone: "Europe/London",
       length: 60,
@@ -118,12 +127,12 @@ describe("isCurrentlyAvailable", () => {
       },
     ];
 
-    vi.spyOn(prisma.schedule, "findUniqueOrThrow").mockResolvedValue({
+    vi.spyOn(prismaMock.schedule, "findUniqueOrThrow").mockResolvedValue({
       availability: mockAvailability,
     });
 
     const result = await isCurrentlyAvailable({
-      prisma,
+      prisma: prismaMock,
       instantMeetingScheduleId: 1,
       availabilityTimezone: "Europe/London",
       length: 30,
