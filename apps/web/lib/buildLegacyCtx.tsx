@@ -1,8 +1,7 @@
 import type { SearchParams } from "app/_types";
 import { type Params } from "app/_types";
+import type { ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
-import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
-import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 const createProxifiedObject = (object: Record<string, string>) =>
   new Proxy(object, {

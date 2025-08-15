@@ -4384,6 +4384,292 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links": {
+      "post": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_createPrivateLink",
+        "summary": "Create a private link for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePrivateLinkInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      },
+      "get": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_getPrivateLinks",
+        "summary": "Get all private links for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetPrivateLinksOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId}": {
+      "patch": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_updatePrivateLink",
+        "summary": "Update a private link for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsEventTypesPrivateLinksController_deletePrivateLink",
+        "summary": "Delete a private link for a team event type",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "linkId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePrivateLinkOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Event Types / Private Links"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
@@ -23789,6 +24075,213 @@
           }
         }
       },
+      "CreatePrivateLinkInput": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date for time-based links",
+            "format": "date-time",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times the link can be used. If omitted and expiresAt is not provided, defaults to 1 (one time use).",
+            "example": 10,
+            "minimum": 1,
+            "default": 1
+          }
+        }
+      },
+      "TimeBasedPrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "format": "uri",
+            "example": "https://cal.com/d/abc123def456/30min"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Expiration date for this time-based link",
+            "format": "date-time",
+            "example": "2025-12-31T23:59:59.000Z"
+          }
+        },
+        "required": [
+          "linkId",
+          "eventTypeId",
+          "isExpired",
+          "bookingUrl",
+          "expiresAt"
+        ]
+      },
+      "UsageBasedPrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "linkId": {
+            "type": "string",
+            "description": "The private link ID",
+            "example": "abc123def456"
+          },
+          "eventTypeId": {
+            "type": "number",
+            "description": "Event type ID this link belongs to",
+            "example": 123
+          },
+          "isExpired": {
+            "type": "boolean",
+            "description": "Whether the link is currently expired",
+            "example": false
+          },
+          "bookingUrl": {
+            "type": "string",
+            "description": "Full booking URL for this private link",
+            "format": "uri",
+            "example": "https://cal.com/d/abc123def456/30min"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "Maximum number of times this link can be used",
+            "example": 10
+          },
+          "usageCount": {
+            "type": "number",
+            "description": "Current usage count for this link",
+            "example": 3
+          }
+        },
+        "required": [
+          "linkId",
+          "eventTypeId",
+          "isExpired",
+          "bookingUrl",
+          "maxUsageCount",
+          "usageCount"
+        ]
+      },
+      "CreatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Created private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetPrivateLinksOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "description": "Array of private links for the event type (mix of time-based and usage-based)",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+                },
+                {
+                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdatePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "description": "Updated private link data (either time-based or usage-based)",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
+              },
+              {
+                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeletePrivateLinkOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Response status",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "description": "Deleted link information",
+            "properties": {
+              "linkId": {
+                "type": "string",
+                "example": "abc123def456"
+              },
+              "message": {
+                "type": "string",
+                "example": "Private link deleted successfully"
+              }
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "StripConnectOutputDto": {
         "type": "object",
         "properties": {
@@ -25636,6 +26129,23 @@
           "status",
           "data"
         ]
+      },
+      "UpdatePrivateLinkBody": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "New expiration date for time-based links",
+            "example": "2024-12-31T23:59:59.000Z"
+          },
+          "maxUsageCount": {
+            "type": "number",
+            "description": "New maximum number of times the link can be used",
+            "example": 10,
+            "minimum": 1
+          }
+        }
       },
       "MeOrgOutput": {
         "type": "object",
@@ -28275,230 +28785,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamMembershipOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "CreatePrivateLinkInput": {
-        "type": "object",
-        "properties": {
-          "expiresAt": {
-            "type": "string",
-            "description": "Expiration date for time-based links",
-            "format": "date-time",
-            "example": "2024-12-31T23:59:59.000Z"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "Maximum number of times the link can be used. If omitted and expiresAt is not provided, defaults to 1 (one time use).",
-            "example": 10,
-            "minimum": 1,
-            "default": 1
-          }
-        }
-      },
-      "TimeBasedPrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "linkId": {
-            "type": "string",
-            "description": "The private link ID",
-            "example": "abc123def456"
-          },
-          "eventTypeId": {
-            "type": "number",
-            "description": "Event type ID this link belongs to",
-            "example": 123
-          },
-          "isExpired": {
-            "type": "boolean",
-            "description": "Whether the link is currently expired",
-            "example": false
-          },
-          "bookingUrl": {
-            "type": "string",
-            "description": "Full booking URL for this private link",
-            "format": "uri",
-            "example": "https://cal.com/d/abc123def456/30min"
-          },
-          "expiresAt": {
-            "type": "string",
-            "description": "Expiration date for this time-based link",
-            "format": "date-time",
-            "example": "2025-12-31T23:59:59.000Z"
-          }
-        },
-        "required": [
-          "linkId",
-          "eventTypeId",
-          "isExpired",
-          "bookingUrl",
-          "expiresAt"
-        ]
-      },
-      "UsageBasedPrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "linkId": {
-            "type": "string",
-            "description": "The private link ID",
-            "example": "abc123def456"
-          },
-          "eventTypeId": {
-            "type": "number",
-            "description": "Event type ID this link belongs to",
-            "example": 123
-          },
-          "isExpired": {
-            "type": "boolean",
-            "description": "Whether the link is currently expired",
-            "example": false
-          },
-          "bookingUrl": {
-            "type": "string",
-            "description": "Full booking URL for this private link",
-            "format": "uri",
-            "example": "https://cal.com/d/abc123def456/30min"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "Maximum number of times this link can be used",
-            "example": 10
-          },
-          "usageCount": {
-            "type": "number",
-            "description": "Current usage count for this link",
-            "example": 3
-          }
-        },
-        "required": [
-          "linkId",
-          "eventTypeId",
-          "isExpired",
-          "bookingUrl",
-          "maxUsageCount",
-          "usageCount"
-        ]
-      },
-      "CreatePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Created private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetPrivateLinksOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "array",
-            "description": "Array of private links for the event type (mix of time-based and usage-based)",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-                },
-                {
-                  "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-                }
-              ]
-            }
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdatePrivateLinkBody": {
-        "type": "object",
-        "properties": {
-          "expiresAt": {
-            "format": "date-time",
-            "type": "string",
-            "description": "New expiration date for time-based links",
-            "example": "2024-12-31T23:59:59.000Z"
-          },
-          "maxUsageCount": {
-            "type": "number",
-            "description": "New maximum number of times the link can be used",
-            "example": 10,
-            "minimum": 1
-          }
-        }
-      },
-      "UpdatePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "description": "Updated private link data (either time-based or usage-based)",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TimeBasedPrivateLinkOutput"
-              },
-              {
-                "$ref": "#/components/schemas/UsageBasedPrivateLinkOutput"
-              }
-            ]
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeletePrivateLinkOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Response status",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "description": "Deleted link information",
-            "properties": {
-              "linkId": {
-                "type": "string",
-                "example": "abc123def456"
-              },
-              "message": {
-                "type": "string",
-                "example": "Private link deleted successfully"
-              }
-            }
           }
         },
         "required": [

@@ -68,11 +68,7 @@ export class PrivateLinksService {
     }
   }
 
-  async updatePrivateLink(
-    eventTypeId: number,
-    userId: number,
-    input: UpdatePrivateLinkInput
-  ): Promise<PrivateLinkOutput> {
+  async updatePrivateLink(eventTypeId: number, input: UpdatePrivateLinkInput): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformUpdateInput(input);
       const updatedResult = await this.repo.update(eventTypeId, {
@@ -106,7 +102,7 @@ export class PrivateLinksService {
     }
   }
 
-  async deletePrivateLink(eventTypeId: number, userId: number, linkId: string): Promise<void> {
+  async deletePrivateLink(eventTypeId: number, linkId: string): Promise<void> {
     try {
       const { count } = await this.repo.delete(eventTypeId, linkId);
       if (count === 0) {
