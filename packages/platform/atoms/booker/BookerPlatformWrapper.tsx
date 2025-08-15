@@ -322,7 +322,7 @@ const BookerPlatformWrapperComponent = (
   }, [schedule.data, schedule.isPending, schedule.error, onTimeslotsLoaded]);
 
   const bookerForm = useBookingForm({
-    event: event?.data,
+    bookingFields: event?.data?.bookingFields,
     sessionEmail:
       session?.data?.email && clientId
         ? session.data.email.replace(`+${clientId}`, "")
