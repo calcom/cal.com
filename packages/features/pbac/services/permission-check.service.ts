@@ -1,7 +1,6 @@
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import prisma from "@calcom/prisma";
+import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
@@ -14,26 +13,39 @@ import type {
   CustomAction,
 } from "../domain/types/permission-registry";
 import { PERMISSION_REGISTRY, filterResourceConfig } from "../domain/types/permission-registry";
-import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";
+
+interface Dependencies {
+  repository: IPermissionRepository;
+  featuresRepository: FeaturesRepository;
+  membershipRepository: MembershipRepository;
+  permissionService: PermissionService;
+}
 
 export class PermissionCheckService {
   private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
-  private readonly featuresRepository: FeaturesRepository;
-  private readonly permissionService: PermissionService;
 
-  constructor(
-    private readonly repository: IPermissionRepository = new PermissionRepository(),
-    featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
-    permissionService: PermissionService = new PermissionService()
-  ) {
-    this.featuresRepository = featuresRepository;
-    this.permissionService = permissionService;
+  constructor(private readonly dependencies: Dependencies) {}
+
+  static async build() {
+    const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
+    const featuresRepository = new FeaturesRepository();
+    const { PermissionRepository } = await import("../infrastructure/repositories/PermissionRepository");
+    const repository = new PermissionRepository();
+    const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
+    const membershipRepository = new MembershipRepository();
+
+    return new PermissionCheckService({
+      repository,
+      featuresRepository,
+      membershipRepository,
+      permissionService: new PermissionService(),
+    });
   }
 
   async getUserPermissions(userId: number): Promise<TeamPermissions[]> {
-    const memberships = await this.repository.getUserMemberships(userId);
+    const memberships = await this.dependencies.repository.getUserMemberships(userId);
     return memberships;
   }
 
@@ -51,7 +63,7 @@ export class PermissionCheckService {
     resource: Resource;
   }): Promise<PermissionString[]> {
     try {
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+      const isPBACEnabled = await this.dependencies.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
@@ -65,7 +77,7 @@ export class PermissionCheckService {
 
       // Get team-level permissions
       if (membership?.customRoleId) {
-        const teamActions = await this.repository.getResourcePermissionsByRoleId(
+        const teamActions = await this.dependencies.repository.getResourcePermissionsByRoleId(
           membership.customRoleId,
           resource
         );
@@ -74,7 +86,7 @@ export class PermissionCheckService {
 
       // Get org-level permissions as fallback
       if (membership?.team?.parentId && orgMembership?.customRoleId) {
-        const orgActions = await this.repository.getResourcePermissionsByRoleId(
+        const orgActions = await this.dependencies.repository.getResourcePermissionsByRoleId(
           orgMembership.customRoleId,
           resource
         );
@@ -116,20 +128,20 @@ export class PermissionCheckService {
     fallbackRoles: MembershipRole[];
   }): Promise<boolean> {
     try {
-      const validationResult = this.permissionService.validatePermission(permission);
+      const validationResult = this.dependencies.permissionService.validatePermission(permission);
       if (!validationResult.isValid) {
         this.logger.error(validationResult.error);
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await this.dependencies.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
 
       if (!membership) return false;
 
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+      const isPBACEnabled = await this.dependencies.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
@@ -165,20 +177,20 @@ export class PermissionCheckService {
     fallbackRoles: MembershipRole[];
   }): Promise<boolean> {
     try {
-      const validationResult = this.permissionService.validatePermissions(permissions);
+      const validationResult = this.dependencies.permissionService.validatePermissions(permissions);
       if (!validationResult.isValid) {
         this.logger.error(validationResult.error);
         return false;
       }
 
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await this.dependencies.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
 
       if (!membership) return false;
 
-      const isPBACEnabled = await this.featuresRepository.checkIfTeamHasFeature(
+      const isPBACEnabled = await this.dependencies.featuresRepository.checkIfTeamHasFeature(
         teamId,
         this.PBAC_FEATURE_FLAG
       );
@@ -207,7 +219,7 @@ export class PermissionCheckService {
 
     // First check team-level permissions
     if (membership?.customRoleId) {
-      const hasTeamPermission = await this.repository.checkRolePermission(
+      const hasTeamPermission = await this.dependencies.repository.checkRolePermission(
         membership.customRoleId,
         permission
       );
@@ -216,7 +228,7 @@ export class PermissionCheckService {
       // Check if user has manage permission for this resource
       const [resource] = permission.split(".");
       const managePermission = `${resource}.manage` as PermissionString;
-      const hasManagePermission = await this.repository.checkRolePermission(
+      const hasManagePermission = await this.dependencies.repository.checkRolePermission(
         membership.customRoleId,
         managePermission
       );
@@ -227,7 +239,7 @@ export class PermissionCheckService {
     if (orgMembership?.customRoleId) {
       const [resource] = permission.split(".");
       const managePermission = `${resource}.manage` as PermissionString;
-      return this.repository.checkRolePermission(orgMembership.customRoleId, managePermission);
+      return this.dependencies.repository.checkRolePermission(orgMembership.customRoleId, managePermission);
     }
 
     return false;
@@ -246,7 +258,7 @@ export class PermissionCheckService {
 
     // First check team-level permissions
     if (membership?.customRoleId) {
-      const hasTeamPermissions = await this.repository.checkRolePermissions(
+      const hasTeamPermissions = await this.dependencies.repository.checkRolePermissions(
         membership.customRoleId,
         permissions
       );
@@ -258,7 +270,7 @@ export class PermissionCheckService {
         const [resource] = permission.split(".");
         if (!resourcesWithManage.has(resource)) {
           const managePermission = `${resource}.manage` as PermissionString;
-          const hasManagePermission = await this.repository.checkRolePermission(
+          const hasManagePermission = await this.dependencies.repository.checkRolePermission(
             membership.customRoleId,
             managePermission
           );
@@ -279,7 +291,7 @@ export class PermissionCheckService {
 
     // If no team permissions, check org-level permissions
     if (orgMembership?.customRoleId) {
-      const hasOrgPermissions = await this.repository.checkRolePermissions(
+      const hasOrgPermissions = await this.dependencies.repository.checkRolePermissions(
         orgMembership.customRoleId,
         permissions
       );
@@ -291,7 +303,7 @@ export class PermissionCheckService {
         const [resource] = permission.split(".");
         if (!resourcesWithManage.has(resource)) {
           const managePermission = `${resource}.manage` as PermissionString;
-          const hasManagePermission = await this.repository.checkRolePermission(
+          const hasManagePermission = await this.dependencies.repository.checkRolePermission(
             orgMembership.customRoleId,
             managePermission
           );
@@ -316,13 +328,16 @@ export class PermissionCheckService {
     let orgMembership = null;
 
     if (query.membershipId) {
-      membership = await this.repository.getMembershipByMembershipId(query.membershipId);
+      membership = await this.dependencies.repository.getMembershipByMembershipId(query.membershipId);
     } else if (query.userId && query.teamId) {
-      membership = await this.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
+      membership = await this.dependencies.repository.getMembershipByUserAndTeam(query.userId, query.teamId);
     }
 
     if (membership?.team.parentId) {
-      orgMembership = await this.repository.getOrgMembership(membership.userId, membership.team.parentId);
+      orgMembership = await this.dependencies.repository.getOrgMembership(
+        membership.userId,
+        membership.team.parentId
+      );
     }
 
     return { membership, orgMembership };
@@ -337,13 +352,13 @@ export class PermissionCheckService {
    */
   async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
     try {
-      const validationResult = this.permissionService.validatePermission(permission);
+      const validationResult = this.dependencies.permissionService.validatePermission(permission);
       if (!validationResult.isValid) {
         this.logger.error(validationResult.error);
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermission(userId, permission);
+      return await this.dependencies.repository.getTeamIdsWithPermission(userId, permission);
     } catch (error) {
       this.logger.error(error);
       return [];
@@ -355,13 +370,13 @@ export class PermissionCheckService {
    */
   async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
     try {
-      const validationResult = this.permissionService.validatePermissions(permissions);
+      const validationResult = this.dependencies.permissionService.validatePermissions(permissions);
       if (!validationResult.isValid) {
         this.logger.error(validationResult.error);
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermissions(userId, permissions);
+      return await this.dependencies.repository.getTeamIdsWithPermissions(userId, permissions);
     } catch (error) {
       this.logger.error(error);
       return [];
