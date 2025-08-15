@@ -6,9 +6,10 @@ import type { LocationFormValues, FormValues } from "@calcom/features/eventtypes
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import { TextField } from "@calcom/ui/components/form";
 
 import LocationInput from "./LocationInput";
-import LocationOptionContainer from "./LocationOptionContainer";
+import LocationOptionContainer from "./LocationSettingsContainer";
 import type { LocationCustomClassNames } from "./types";
 
 const DefaultLocationSettings = ({
@@ -36,7 +37,11 @@ const DefaultLocationSettings = ({
   return (
     <LocationOptionContainer>
       <LocationInput
-        label={eventLocationType.organizerInputLabel}
+        label={
+          "organizerInputLabel" in eventLocationType
+            ? eventLocationType?.organizerInputLabel || t("value")
+            : t("value")
+        }
         data-testid={`${eventLocationType.type}-location-input`}
         defaultValue={defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined}
         eventLocationType={eventLocationType}
@@ -54,22 +59,40 @@ const DefaultLocationSettings = ({
         as="div"
         id="location-error"
       />
-      <CheckboxField
-        name={`locations[${index}].displayLocationPublicly`}
-        data-testid="display-location"
-        disabled={disableLocationProp}
-        defaultChecked={defaultLocation?.displayLocationPublicly}
-        description={t("display_location_label")}
-        className={customClassNames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
-        onChange={(e) => {
-          const fieldValues = getValues("locations")[index];
-          updateLocationField(index, {
-            ...fieldValues,
-            displayLocationPublicly: e.target.checked,
-          });
-        }}
-        informationIconText={t("display_location_info_badge")}
-      />
+      {eventLocationType.organizerInputType === "text" ||
+        (eventLocationType.organizerInputType === "phone" && (
+          <CheckboxField
+            name={`locations[${index}].displayLocationPublicly`}
+            data-testid="display-location"
+            disabled={disableLocationProp}
+            defaultChecked={defaultLocation?.displayLocationPublicly}
+            description={t("display_location_label")}
+            className={customClassNames?.organizerContactInput?.publicDisplayCheckbox?.checkbox}
+            onChange={(e) => {
+              const fieldValues = getValues("locations")[index];
+              updateLocationField(index, {
+                ...fieldValues,
+                displayLocationPublicly: e.target.checked,
+              });
+            }}
+            informationIconText={t("display_location_info_badge")}
+          />
+        ))}
+      {eventLocationType?.customLabel && (
+        <TextField
+          label={t("location_custom_label_input_label")}
+          name={`locations[${index}].customLabel`}
+          type="text"
+          defaultValue={defaultLocation?.customLabel}
+          onChange={(e) => {
+            const fieldValues = getValues("locations")[index];
+            updateLocationField(index, {
+              ...fieldValues,
+              customLabel: e.target.value,
+            });
+          }}
+        />
+      )}
     </LocationOptionContainer>
   );
 };
