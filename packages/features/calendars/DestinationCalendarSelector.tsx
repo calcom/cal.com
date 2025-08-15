@@ -98,7 +98,7 @@ const DestinationCalendarSelector = ({
       );
 
       setSelectedOption({
-        value: `${selected.integration}:${selected.externalId}`,
+        value: `${selectedIntegration?.integration.type || "unknown"}:${selected.externalId}`,
         label: `${selected.name} ` || "",
         subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
           selectedIntegration?.primary?.name

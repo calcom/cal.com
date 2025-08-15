@@ -906,6 +906,8 @@ model SelectedCalendar {
   eventTypeId Int?
   eventType   EventType? @relation(fields: [eventTypeId], references: [id])
 
+  calendarSubscription CalendarSubscription?
+
   // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
   // We currently ensure uniqueness by checking for the existence of the record before creating a new one
   // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
@@ -1590,6 +1592,114 @@ model TeamFeatures {
 
   @@id([teamId, featureId])
   @@index([teamId, featureId])
+}
+
+model CalendarSubscription {
+  id                 String @id @default(uuid())
+  selectedCalendarId String @unique
+
+  // Webhook subscription details
+  googleChannelId          String?
+  googleChannelKind        String?
+  googleChannelResourceId  String?
+  googleChannelResourceUri String?
+  googleChannelExpiration  String?
+  nextSyncToken            String?
+
+  // Sync management
+  lastFullSync  DateTime?
+  syncErrors    Int       @default(0)
+  maxSyncErrors Int       @default(5)
+  backoffUntil  DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
+  events           CalendarEvent[]
+
+  @@index([googleChannelExpiration, syncErrors, backoffUntil])
+  @@index([nextSyncToken])
+  @@index([selectedCalendarId])
+}
+
+model CalendarEvent {
+  id                     String @id @default(uuid())
+  calendarSubscriptionId String
+
+  // Google Calendar event data
+  googleEventId String
+  iCalUID       String?
+  etag          String
+  sequence      Int     @default(0)
+
+  // Event details
+  summary     String?
+  description String?
+  location    String?
+  start       DateTime
+  end         DateTime
+  isAllDay    Boolean  @default(false)
+  // Event timezone (from event payload or inferred from calendar)
+  timeZone    String?
+
+  // Participants (denormalized across three relations using shared model)
+  creator   CalendarEventParticipant?  @relation("CreatorParticipants")
+  organizer CalendarEventParticipant?  @relation("OrganizerParticipants")
+  attendees CalendarEventParticipant[] @relation("AttendeeParticipants")
+
+  // Event metadata
+  status       String @default("confirmed") // confirmed, tentative, cancelled
+  transparency String @default("opaque") // opaque, transparent
+  visibility   String @default("default") // default, public, private
+
+  // Recurring events
+  recurringEventId  String?
+  originalStartTime DateTime?
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  googleCreatedAt DateTime?
+  googleUpdatedAt DateTime?
+
+  // Relations
+  calendarSubscription CalendarSubscription @relation(fields: [calendarSubscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([calendarSubscriptionId, googleEventId])
+  @@index([calendarSubscriptionId, start, end])
+  @@index([calendarSubscriptionId, iCalUID])
+  @@index([start, end, status]) // For availability queries
+  @@index([googleEventId])
+}
+
+model CalendarEventParticipant {
+  id            String  @id @default(uuid())
+  // Three optional FKs for the three roles
+  creatorOfId   String? @unique
+  organizerOfId String? @unique
+  attendeeOfId  String?
+
+  email          String?
+  displayName    String?
+  responseStatus String?
+  isOrganizer    Boolean @default(false)
+  isSelf         Boolean @default(false)
+
+  // Back-relations with distinct names
+  creatorOf   CalendarEvent? @relation("CreatorParticipants", fields: [creatorOfId], references: [id], onDelete: Cascade)
+  organizerOf CalendarEvent? @relation("OrganizerParticipants", fields: [organizerOfId], references: [id], onDelete: Cascade)
+  attendeeOf  CalendarEvent? @relation("AttendeeParticipants", fields: [attendeeOfId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorOfId], map: "calendar_event_creator_unique")
+  @@unique([organizerOfId], map: "calendar_event_organizer_unique")
+  @@unique([attendeeOfId, email])
+  @@index([creatorOfId])
+  @@index([organizerOfId])
+  @@index([attendeeOfId])
+  @@index([email])
 }
 
 enum FeatureType {

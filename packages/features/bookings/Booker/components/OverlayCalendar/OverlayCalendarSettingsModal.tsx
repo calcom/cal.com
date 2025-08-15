@@ -105,7 +105,7 @@ export function OverlayCalendarSettingsModal({
                                     {item.integration.name || item.integration.title}
                                   </Link>
                                 </ListItemTitle>
-                                <ListItemText component="p">{item.primary.email}</ListItemText>
+                                <ListItemText component="p">{item.primary?.email || ""}</ListItemText>
                               </div>
                             </div>
                             <div className="border-subtle w-full border-t pt-4">
