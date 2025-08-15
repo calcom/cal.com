@@ -1,5 +1,17 @@
 ## 1.1.2
 
+## 1.4.0
+
+### Minor Changes
+
+- [#23119](https://github.com/calcom/cal.com/pull/23119) [`eb1ed10`](https://github.com/calcom/cal.com/commit/eb1ed107ba54a4ae99d0b3aa741ae3076d0ec629) Thanks [@ThyMinimalDev](https://github.com/ThyMinimalDev)! - Added Booker atom prop silentlyHandleCalendarFailures, which ensure the booker still displays slots when the third party calendars credentials are invalid or expired
+
+## 1.3.1
+
+### Patch Changes
+
+- [#22925](https://github.com/calcom/cal.com/pull/22925) [`4c01f17`](https://github.com/calcom/cal.com/commit/4c01f171aebcc5a64453c27e950303902cc15309) Thanks [@sean-brydon](https://github.com/sean-brydon)! - Fixes an issues for the Booker atom wherein when multiple widgets were being placed on the same page, changes made in one widget would also get reflected in the others.
+
 ## 1.3.0
 
 ### Minor Changes
