@@ -158,6 +158,10 @@ export class AgentService {
 
       await this.retellRepository.updateLLM(llmId, { general_tools: newGeneralTools });
     } catch (error) {
+      if (error instanceof HttpError) {
+        throw error;
+      }
+
       this.logger.error("Failed to update agent general tools in external AI service", {
         agentId,
         error,
