@@ -515,6 +515,10 @@ export async function getLuckyUser<
     weight?: number | null;
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
+  // Early return if only one available user to avoid unnecessary data fetching
+  if (getLuckyUserParams.availableUsers.length === 1) {
+    return getLuckyUserParams.availableUsers[0];
+  }
   const {
     bookingsOfAvailableUsersOfInterval,
     bookingsOfNotAvailableUsersOfInterval,
@@ -573,7 +577,7 @@ export function getLuckyUser_requiresDataToBePreFetched<
     oooData,
   } = getLuckyUserParams;
 
-  // there is only one user
+  // Early return if only one user is available
   if (availableUsers.length === 1) {
     return { luckyUser: availableUsers[0], usersAndTheirBookingShortfalls: [] };
   }
