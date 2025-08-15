@@ -89,6 +89,19 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     seatsShowAvailabilityCount: true,
     bookingFields: true,
     teamId: true,
+    parentId: true,
+    parent: {
+      select: {
+        team: {
+          select: {
+            brandColor: true,
+            darkBrandColor: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    },
     team: {
       select: {
         parentId: true,
@@ -513,6 +526,15 @@ export const getPublicEvent = async (
     users = [];
   }
 
+  if (event.parentId && event.parent?.team && eventWithUserProfiles.team) {
+    if (event.parent.team.brandColor && !eventWithUserProfiles.team.brandColor) {
+      eventWithUserProfiles.team.brandColor = event.parent.team.brandColor;
+    }
+    if (event.parent.team.darkBrandColor && !eventWithUserProfiles.team.darkBrandColor) {
+      eventWithUserProfiles.team.darkBrandColor = event.parent.team.darkBrandColor;
+    }
+  }
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -810,6 +832,15 @@ const getPublicEventRefactored = async (
 
   if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
     users = [];
+  }
+
+  if (event.parentId && event.parent?.team && event.team) {
+    if (event.parent.team.brandColor && !event.team.brandColor) {
+      event.team.brandColor = event.parent.team.brandColor;
+    }
+    if (event.parent.team.darkBrandColor && !event.team.darkBrandColor) {
+      event.team.darkBrandColor = event.parent.team.darkBrandColor;
+    }
   }
 
   const eventDataShared = await processEventDataShared({
