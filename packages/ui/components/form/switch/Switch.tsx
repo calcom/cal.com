@@ -75,8 +75,8 @@ export const Switch = (
           <Label.Root
             htmlFor={id}
             className={cx(
-              "text-emphasis align-text-top font-medium",
-              size === "sm" ? "m-1 text-xs" : "m-2 text-sm",
+              "text-emphasis font-medium",
+              size === "sm" ? "m-1 text-xs" : "ml-2 mt-1 text-sm",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
               labelOnLeading && "flex-1"
             )}>

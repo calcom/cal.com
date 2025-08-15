@@ -88,6 +88,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             id="name"
             name="name"
             type="text"
+            placeholder="John Doe"
             autoComplete="off"
             autoCorrect="off"
           />
@@ -121,7 +122,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         className="mt-8 flex w-full flex-row justify-center"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
-        {t("next_step_text")}
+        {t("connect_your_calendar")}
       </Button>
     </form>
   );

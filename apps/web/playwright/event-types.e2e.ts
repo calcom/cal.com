@@ -77,10 +77,7 @@ test.describe("Event Types tests", () => {
 
       // fix the race condition
       await page.waitForSelector('[data-testid="event-title"]');
-      await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-        "aria-current",
-        "page"
-      );
+      await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();

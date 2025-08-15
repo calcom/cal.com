@@ -15,4 +15,5 @@ export type TextEditorProps = {
   setFirstRender?: Dispatch<SetStateAction<boolean>>;
   editable?: boolean;
   plainText?: boolean;
+  label?: string;
 };
