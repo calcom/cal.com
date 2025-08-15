@@ -51,20 +51,14 @@ export function usePermissions(): UsePermissionsReturn {
       return "all";
     }
 
-    // Check if user has manage permission for this resource
-    const hasManagePermission = permissions.includes(`${resource}.manage`);
-    if (hasManagePermission) {
-      return "all";
-    }
-
-    // Filter out internal keys like _resource and manage when checking for individual permissions
-    const crudPermissions = Object.keys(resourceConfig)
-      .filter((action) => !action.startsWith("_") && action !== "manage")
+    // Filter out internal keys like _resource when checking permissions
+    const allResourcePerms = Object.keys(resourceConfig)
+      .filter((action) => !action.startsWith("_"))
       .map((action) => `${resource}.${action}`);
-    const hasAllCrudPerms = crudPermissions.every((p) => permissions.includes(p));
+    const hasAllPerms = allResourcePerms.every((p) => permissions.includes(p));
     const hasReadPerm = permissions.includes(`${resource}.${CrudAction.Read}`);
 
-    if (hasAllCrudPerms) return "all";
+    if (hasAllPerms) return "all";
     if (hasReadPerm) return "read";
     return "none";
   };

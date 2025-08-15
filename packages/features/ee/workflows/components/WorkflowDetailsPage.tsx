@@ -27,7 +27,6 @@ interface WorkflowPermissions {
   canView: boolean;
   canUpdate: boolean;
   canDelete: boolean;
-  canManage: boolean;
   readOnly: boolean; // Keep for backward compatibility
 }
 
@@ -62,7 +61,6 @@ export default function WorkflowDetailsPage(props: Props) {
     canView: !teamId ? true : !props.readOnly,
     canUpdate: !teamId ? true : !props.readOnly,
     canDelete: !teamId ? true : !props.readOnly,
-    canManage: !teamId ? true : !props.readOnly,
     readOnly: !teamId ? false : props.readOnly,
   };
 
@@ -119,7 +117,7 @@ export default function WorkflowDetailsPage(props: Props) {
       numberVerificationPending: false,
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
-      agentId: null
+      agentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
