@@ -90,18 +90,6 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     bookingFields: true,
     teamId: true,
     parentId: true,
-    parent: {
-      select: {
-        team: {
-          select: {
-            brandColor: true,
-            darkBrandColor: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
-    },
     team: {
       select: {
         parentId: true,
@@ -526,12 +514,30 @@ export const getPublicEvent = async (
     users = [];
   }
 
-  if (event.parentId && event.parent?.team && eventWithUserProfiles.team) {
-    if (event.parent.team.brandColor && !eventWithUserProfiles.team.brandColor) {
-      eventWithUserProfiles.team.brandColor = event.parent.team.brandColor;
-    }
-    if (event.parent.team.darkBrandColor && !eventWithUserProfiles.team.darkBrandColor) {
-      eventWithUserProfiles.team.darkBrandColor = event.parent.team.darkBrandColor;
+  if (
+    event.parentId &&
+    eventWithUserProfiles.team &&
+    (!eventWithUserProfiles.team.brandColor || !eventWithUserProfiles.team.darkBrandColor)
+  ) {
+    const parentEventType = await prisma.eventType.findUnique({
+      where: { id: event.parentId },
+      select: {
+        team: {
+          select: {
+            brandColor: true,
+            darkBrandColor: true,
+          },
+        },
+      },
+    });
+
+    if (parentEventType?.team) {
+      if (parentEventType.team.brandColor && !eventWithUserProfiles.team.brandColor) {
+        eventWithUserProfiles.team.brandColor = parentEventType.team.brandColor;
+      }
+      if (parentEventType.team.darkBrandColor && !eventWithUserProfiles.team.darkBrandColor) {
+        eventWithUserProfiles.team.darkBrandColor = parentEventType.team.darkBrandColor;
+      }
     }
   }
 
@@ -834,12 +840,26 @@ const getPublicEventRefactored = async (
     users = [];
   }
 
-  if (event.parentId && event.parent?.team && event.team) {
-    if (event.parent.team.brandColor && !event.team.brandColor) {
-      event.team.brandColor = event.parent.team.brandColor;
-    }
-    if (event.parent.team.darkBrandColor && !event.team.darkBrandColor) {
-      event.team.darkBrandColor = event.parent.team.darkBrandColor;
+  if (event.parentId && event.team && (!event.team.brandColor || !event.team.darkBrandColor)) {
+    const parentEventType = await prisma.eventType.findUnique({
+      where: { id: event.parentId },
+      select: {
+        team: {
+          select: {
+            brandColor: true,
+            darkBrandColor: true,
+          },
+        },
+      },
+    });
+
+    if (parentEventType?.team) {
+      if (parentEventType.team.brandColor && !event.team.brandColor) {
+        event.team.brandColor = parentEventType.team.brandColor;
+      }
+      if (parentEventType.team.darkBrandColor && !event.team.darkBrandColor) {
+        event.team.darkBrandColor = parentEventType.team.darkBrandColor;
+      }
     }
   }
 
