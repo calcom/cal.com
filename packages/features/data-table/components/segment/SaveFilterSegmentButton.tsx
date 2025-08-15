@@ -57,7 +57,7 @@ export function SaveFilterSegmentButton() {
   } = useDataTable();
 
   const [saveMode, setSaveMode] = useState<"create" | "update">(() =>
-    selectedSegment ? "update" : "create"
+    selectedSegment && selectedSegment.type === "user" ? "update" : "create"
   );
 
   // When the dialog is not open,
@@ -66,7 +66,7 @@ export function SaveFilterSegmentButton() {
     if (isOpen) {
       return;
     }
-    setSaveMode(selectedSegment ? "update" : "create");
+    setSaveMode(selectedSegment && selectedSegment.type === "user" ? "update" : "create");
   }, [selectedSegment, isOpen]);
 
   const { data: teams } = trpc.viewer.teams.list.useQuery();
@@ -75,7 +75,7 @@ export function SaveFilterSegmentButton() {
     onSuccess: ({ id }) => {
       utils.viewer.filterSegments.list.invalidate();
       showToast(t("filter_segment_saved"), "success");
-      setSegmentId(id);
+      setSegmentId({ id, type: "user" });
       setIsOpen(false);
     },
     onError: () => {
@@ -110,12 +110,7 @@ export function SaveFilterSegmentButton() {
       searchTerm,
     };
 
-    if (saveMode === "update") {
-      if (!selectedSegment) {
-        // theoretically this should never happen
-        showToast(t("segment_not_found"), "error");
-        return;
-      }
+    if (saveMode === "update" && selectedSegment && selectedSegment.type === "user") {
       const scope = selectedSegment.scope;
       if (scope === "TEAM") {
         updateSegment({
@@ -156,7 +151,7 @@ export function SaveFilterSegmentButton() {
       // Reset form state when dialog closes
       setIsTeamSegment(false);
       setSelectedTeamId(undefined);
-      setSaveMode(selectedSegment ? "update" : "create");
+      setSaveMode(selectedSegment && selectedSegment.type === "user" ? "update" : "create");
       form.reset();
     }
     setIsOpen(open);
@@ -184,7 +179,7 @@ export function SaveFilterSegmentButton() {
       <DialogContent data-testid="save-filter-segment-dialog">
         <DialogHeader title={t("save_segment")} />
         <Form form={form} handleSubmit={onSubmit}>
-          {selectedSegment ? (
+          {selectedSegment && selectedSegment.type === "user" ? (
             <div className="mb-4">
               <RadioGroup
                 defaultValue="update"

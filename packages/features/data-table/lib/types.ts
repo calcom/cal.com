@@ -1,9 +1,11 @@
-import type { SortingState, ColumnSort, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
+import type { SortingState, ColumnSort } from "@tanstack/react-table";
 import { z } from "zod";
 
 import type { IconName } from "@calcom/ui/components/icon";
 
 export type { SortingState } from "@tanstack/react-table";
+
+export const SYSTEM_SEGMENT_PREFIX = "system_";
 
 export enum ColumnFilterType {
   SINGLE_SELECT = "ss",
@@ -255,9 +257,33 @@ export type FilterSegmentOutput = {
   team: { id: number; name: string } | null;
 };
 
+export type SystemFilterSegment = {
+  id: string;
+  name: string;
+  activeFilters: ActiveFilters;
+  sorting?: SortingState;
+  columnVisibility?: Record<string, boolean>;
+  columnSizing?: Record<string, number>;
+  perPage?: number;
+  searchTerm?: string | null;
+  type: "system";
+};
+
+export type SystemFilterSegmentInternal = SystemFilterSegment & {
+  tableIdentifier: string;
+};
+
+export type UserFilterSegment = FilterSegmentOutput & {
+  type: "user";
+};
+
+export type CombinedFilterSegment = SystemFilterSegmentInternal | UserFilterSegment;
+
+export type SegmentIdentifier = { id: string; type: "system" } | { id: number; type: "user" };
+
 export type FilterSegmentsListResponse = {
   segments: FilterSegmentOutput[];
-  preferredSegmentId: number | null;
+  preferredSegmentId: SegmentIdentifier | null;
 };
 
 export type SegmentStorage = {
@@ -277,30 +303,20 @@ export type UseSegments = (props: UseSegmentsProps) => UseSegmentsReturn;
 
 export type UseSegmentsProps = {
   tableIdentifier: string;
-  activeFilters: ActiveFilters;
-  sorting: SortingState;
-  columnVisibility: VisibilityState;
-  columnSizing: ColumnSizingState;
-  pageSize: number;
-  searchTerm: string;
-  defaultPageSize: number;
-  segmentId: number;
-  setSegmentId: (segmentId: number | null) => void;
-  setActiveFilters: (activeFilters: ActiveFilters) => void;
-  setSorting: (sorting: SortingState) => void;
-  setColumnVisibility: (columnVisibility: VisibilityState) => void;
-  setColumnSizing: (columnSizing: ColumnSizingState) => void;
-  setPageSize: (pageSize: number) => void;
-  setPageIndex: (pageIndex: number) => void;
-  setSearchTerm: (searchTerm: string | null) => void;
-  segments?: FilterSegmentOutput[];
-  preferredSegmentId?: number | null;
+  providedSegments?: FilterSegmentOutput[];
+  systemSegments?: SystemFilterSegment[];
 };
 
 export type UseSegmentsReturn = {
-  segments: FilterSegmentOutput[];
-  selectedSegment: FilterSegmentOutput | undefined;
-  canSaveSegment: boolean;
-  setAndPersistSegmentId: (segmentId: number | null) => void;
+  segments: CombinedFilterSegment[];
+  preferredSegmentId: SegmentIdentifier | null;
+  isSuccess: boolean;
+  setPreference: ({
+    tableIdentifier,
+    segmentId,
+  }: {
+    tableIdentifier: string;
+    segmentId: SegmentIdentifier | null;
+  }) => void;
   isSegmentEnabled: boolean;
 };
