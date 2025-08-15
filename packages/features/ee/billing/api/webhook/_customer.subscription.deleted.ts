@@ -67,6 +67,9 @@ async function handleCalAIPhoneNumberSubscriptionDeleted(
   if (!subscription.id) {
     throw new HttpCode(400, "Subscription ID not found");
   }
+  if (!phoneNumber.userId) {
+    throw new HttpCode(400, "Phone number does not belong to a user");
+  }
 
   try {
     const aiService = createDefaultAIPhoneServiceProvider();
@@ -74,7 +77,7 @@ async function handleCalAIPhoneNumberSubscriptionDeleted(
     await aiService.cancelPhoneNumberSubscription({
       phoneNumberId: phoneNumber.id,
       userId: phoneNumber.userId,
-      teamId: phoneNumber.teamId,
+      teamId: phoneNumber.teamId ?? undefined,
     });
 
     return { success: true, subscriptionId: subscription.id };

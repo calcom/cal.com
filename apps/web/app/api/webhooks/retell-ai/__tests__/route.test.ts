@@ -7,13 +7,13 @@ import type { CalAiPhoneNumber, User, Team } from "@calcom/prisma/client";
 
 import { POST } from "../route";
 
-type MockPhoneNumberWithUser = CalAiPhoneNumber & {
+type MockPhoneNumberWithUser = Omit<CalAiPhoneNumber, "user" | "team"> & {
   user: Pick<User, "id" | "email" | "name">;
-  team?: null;
+  team: null;
 };
 
-type MockPhoneNumberWithTeam = CalAiPhoneNumber & {
-  user?: null;
+type MockPhoneNumberWithTeam = Omit<CalAiPhoneNumber, "user" | "team"> & {
+  user: null;
   team: Pick<Team, "id" | "name">;
 };
 
