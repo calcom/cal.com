@@ -59,6 +59,8 @@ export class CreditService {
     bookingUid,
     smsSid,
     smsSegments,
+    phoneNumber,
+    email,
   }: {
     userId?: number;
     teamId?: number;
@@ -66,6 +68,8 @@ export class CreditService {
     bookingUid?: string;
     smsSid?: string;
     smsSegments?: number;
+    phoneNumber?: string;
+    email?: string;
   }) {
     return await prisma
       .$transaction(async (tx) => {
@@ -99,6 +103,8 @@ export class CreditService {
           credits,
           creditType,
           smsSegments,
+          phoneNumber,
+          email,
           tx,
         });
 
@@ -302,9 +308,12 @@ export class CreditService {
     credits: number | null;
     creditType: CreditType;
     smsSegments?: number;
+    phoneNumber?: string;
+    email?: string;
     tx: PrismaTransaction;
   }) {
-    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, tx } = props;
+    const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, phoneNumber, email, tx } =
+      props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
       await CreditsRepository.findCreditBalance({ teamId, userId }, tx);
 
@@ -345,6 +354,8 @@ export class CreditService {
           bookingUid,
           smsSid,
           smsSegments,
+          phoneNumber,
+          email,
         },
         tx
       );
