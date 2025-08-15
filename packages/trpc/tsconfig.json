@@ -19,20 +19,20 @@
     "declarationMap": false,
     "resolveJsonModule": true,
     "declarationDir": "types/server",
-    "moduleResolution": "node",
-    "paths": {
-      "~/*": ["./*"],
-      "@calcom/app-store": ["../app-store"],
-      "@calcom/app-store/*": ["../app-store/*"],
-      "@calcom/dayjs": ["../dayjs"],
-      "@calcom/dayjs/*": ["../dayjs/*"],
-      "@calcom/features": ["../features"],
-      "@calcom/features/*": ["../features/*"],
-      "@calcom/lib": ["../lib"],
-      "@calcom/lib/*": ["../lib/*"],
-      "@calcom/prisma": ["../prisma"],
-      "@calcom/prisma/*": ["../prisma/*"],
-      "@calcom/repository/*": ["../lib/server/repository/*"]
-    }
+    "moduleResolution": "node"
+    // "paths": {
+    //   "~/*": ["./*"],
+    //   "@calcom/app-store": ["../app-store"],
+    //   "@calcom/app-store/*": ["../app-store/*"],
+    //   "@calcom/dayjs": ["../dayjs"],
+    //   "@calcom/dayjs/*": ["../dayjs/*"],
+    //   "@calcom/features": ["../features"],
+    //   "@calcom/features/*": ["../features/*"],
+    //   "@calcom/lib": ["../lib"],
+    //   "@calcom/lib/*": ["../lib/*"],
+    //   "@calcom/prisma": ["../prisma"],
+    //   "@calcom/prisma/*": ["../prisma/*"],
+    //   "@calcom/repository/*": ["../lib/server/repository/*"]
+    // }
   }
 }
