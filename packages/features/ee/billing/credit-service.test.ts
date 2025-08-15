@@ -421,6 +421,7 @@ describe("CreditService", () => {
       });
 
       it("should calculate credits based on active members and price", async () => {
+        vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "price_team_monthly");
         const mockTeamRepo = {
           findTeamWithMembers: vi.fn().mockResolvedValue({
             id: 1,
@@ -448,6 +449,7 @@ describe("CreditService", () => {
       });
 
       it("should calculate credits with 20% multiplier for organizations", async () => {
+        vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "price_org_monthly");
         const mockTeamRepo = {
           findTeamWithMembers: vi.fn().mockResolvedValue({
             id: 1,
