@@ -148,11 +148,15 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       id: id,
     },
     create: {
-      user: {
-        connect: {
-          id: user.id,
-        },
-      },
+      ...(teamId
+        ? {}
+        : {
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          }),
       fields,
       name: name,
       description,
@@ -202,7 +206,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       const router = await prisma.app_RoutingForms_Form.findFirst({
         where: {
           id: field.routerId,
-          userId: user.id,
+          ...entityPrismaWhereClause({ userId: user.id }),
         },
       });
       if (router) {
@@ -229,7 +233,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       const router = await prisma.app_RoutingForms_Form.findFirst({
         where: {
           id: route.id,
-          userId: user.id,
+          ...entityPrismaWhereClause({ userId: user.id }),
         },
       });
       if (router) {
