@@ -264,6 +264,7 @@ export const fieldSchema = baseFieldSchema.merge(
       )
       .optional(),
     disableOnPrefill: z.boolean().default(false).optional(),
+    allowedCountryCodes: z.array(z.string()).optional(),
   })
 );
 
