@@ -153,6 +153,17 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
     hidden: true,
     assignAllTeamMembers: true,
     rescheduleWithSameRoundRobinHost: true,
+    parent: {
+      select: {
+        team: {
+          select: {
+            theme: true,
+            brandColor: true,
+            darkBrandColor: true,
+          },
+        },
+      },
+    },
   } satisfies Prisma.EventTypeSelect;
 };
 
@@ -866,7 +877,6 @@ type GetProfileFromEventInput = Omit<Event, "hosts"> & {
 
 export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const { team, subsetOfHosts: hosts, owner } = event;
-  const nonTeamprofile = hosts?.[0]?.user || owner;
   const profile = team || nonTeamprofile;
   if (!profile) throw new Error("Event has no owner");
 
