@@ -15,6 +15,7 @@ export type DefaultEventLocationType = {
   messageForOrganizer: string;
   category: "in person" | "conferencing" | "other" | "phone";
   linkType: "static";
+  customLabel?: boolean;
 
   iconUrl: string;
   urlRegExp?: string;
@@ -39,6 +40,7 @@ export type DefaultEventLocationType = {
   | {
       organizerInputType: "phone" | "text" | null;
       organizerInputPlaceholder?: string | null;
+      organizerInputLabel?: string | null;
       attendeeInputType?: null;
       attendeeInputPlaceholder?: null;
     }
@@ -53,7 +55,7 @@ export type DefaultEventLocationType = {
 export type EventLocationTypeFromApp = Ensure<
   EventLocationTypeFromAppMeta,
   "defaultValueVariable" | "variable"
->;
+> & { customLabel?: string; organizerInputLabel?: string };
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
@@ -144,18 +146,21 @@ export const defaultLocations: DefaultEventLocationType[] = [
     category: "conferencing",
     messageForOrganizer: "",
     linkType: "static",
+    customLabel: true,
   },
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Link,
     label: "link_meeting",
     organizerInputType: "text",
+    organizerInputLabel: "meeting_link",
     variable: "locationLink",
     messageForOrganizer: "Provide a Meeting Link",
     defaultValueVariable: "link",
     iconUrl: "/link.svg",
     category: "other",
     linkType: "static",
+    customLabel: true,
   },
   {
     default: true,
@@ -179,6 +184,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     label: "organizer_phone_number",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
+    organizerInputLabel: "phone_number",
     variable: "locationPhoneNumber",
     defaultValueVariable: "hostPhoneNumber",
     iconUrl: "/phone.svg",
