@@ -10,14 +10,14 @@ import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 
-import LocationOptionContainer from "./LocationOptionContainer";
+import LocationSettingsContainer from "./LocationSettingsContainer";
 
 const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
   return (
-    <LocationOptionContainer>
+    <LocationSettingsContainer>
       <Controller
         name="calVideoSettings.disableRecordingForGuests"
         defaultValue={!!calVideoSettings?.disableRecordingForGuests}
@@ -136,7 +136,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
         as="div"
         id="calVideoSettings.redirectUrlOnExit-error"
       />
-    </LocationOptionContainer>
+    </LocationSettingsContainer>
   );
 };
 

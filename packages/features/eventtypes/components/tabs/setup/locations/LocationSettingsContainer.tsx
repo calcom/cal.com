@@ -1,4 +1,4 @@
-const LocationOptionContainer = ({ children }: { children: React.ReactNode }) => {
+const LocationSettingsContainer = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="bg-muted mt-2 space-y-2 rounded-lg p-4">
       <div className="w-full">
@@ -8,4 +8,4 @@ const LocationOptionContainer = ({ children }: { children: React.ReactNode }) =>
   );
 };
 
-export default LocationOptionContainer;
+export default LocationSettingsContainer;
