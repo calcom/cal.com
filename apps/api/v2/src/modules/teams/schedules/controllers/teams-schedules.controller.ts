@@ -1,10 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -16,15 +14,13 @@ import { GetSchedulesOutput_2024_06_11, SkipTakePagination } from "@calcom/platf
   path: "/v2/teams/:teamId/schedules",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, PlatformPlanGuard, IsTeamInOrg)
+@UseGuards(ApiAuthGuard, RolesGuard)
 @DocsTags("Teams / Schedules")
 @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
 export class TeamsSchedulesController {
   constructor(private teamsSchedulesService: TeamsSchedulesService) {}
 
-  @UseGuards(IsTeamInOrg)
   @Roles("TEAM_ADMIN")
-  @PlatformPlan("ESSENTIALS")
   @Get("/")
   @ApiOperation({
     summary: "Get all team member schedules",
