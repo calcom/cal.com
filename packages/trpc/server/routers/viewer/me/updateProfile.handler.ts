@@ -7,6 +7,7 @@ import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/li
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import Sendgrid from "@calcom/lib/Sendgrid";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -27,6 +28,32 @@ import { getDefaultScheduleId } from "../availability/util";
 import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
+
+async function addUserToMarketingContacts(user: {
+  email: string;
+  name: string | null;
+  isPlatformManaged: boolean;
+}) {
+  if (user.isPlatformManaged) {
+    return;
+  }
+
+  try {
+    const sendgrid = new Sendgrid();
+    const nameParts = user.name?.split(" ") || [];
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    await sendgrid.addMarketingContact({
+      email: user.email,
+      first_name: firstName,
+      last_name: lastName,
+    });
+  } catch (error) {
+    log.error("Failed to add user to SendGrid marketing contacts:", error);
+  }
+}
+
 type UpdateProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -233,6 +260,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       createdDate: true,
       avatarUrl: true,
       locale: true,
+      isPlatformManaged: true,
       schedules: {
         select: {
           id: true,
@@ -260,6 +288,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       }
     }
     throw e; // make sure other errors are rethrown
+  }
+
+  if (input.completedOnboarding && !user.completedOnboarding && updatedUser) {
+    await addUserToMarketingContacts({
+      email: updatedUser.email,
+      name: updatedUser.name,
+      isPlatformManaged: updatedUser.isPlatformManaged,
+    });
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
