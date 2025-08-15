@@ -2,8 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -55,34 +54,18 @@ export async function handleBookingRequested(args: {
   });
 
   try {
-    const subscribersBookingRequested = await getWebhooks({
-      userId: booking.userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
-      teamId: booking.eventType?.teamId,
-      orgId,
-    });
-
     const webhookPayload = getWebhookPayloadForBooking({
       booking,
       evt,
     });
 
-    const promises = subscribersBookingRequested.map((sub) =>
-      sendPayload(
-        sub.secret,
-        WebhookTriggerEvents.BOOKING_REQUESTED,
-        new Date().toISOString(),
-        sub,
-        webhookPayload
-      ).catch((e) => {
-        log.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_REQUESTED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-          safeStringify(e)
-        );
-      })
-    );
-    await Promise.all(promises);
+    await WebhookService.sendWebhook({
+      userId: booking.userId,
+      eventTypeId: booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+      teamId: booking.eventType?.teamId,
+      orgId,
+    }, webhookPayload);
   } catch (error) {
     // Silently fail
     log.error("Error in handleBookingRequested", safeStringify(error));

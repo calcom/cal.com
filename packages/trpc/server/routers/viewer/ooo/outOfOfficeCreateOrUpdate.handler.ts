@@ -4,10 +4,9 @@ import { v4 as uuidv4 } from "uuid";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -322,8 +321,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     triggerEvent: WebhookTriggerEvents.OOO_CREATED,
   };
 
-  const subscribers = await getWebhooks(subscriberOptions);
-
   const payload: OOOEntryPayloadType = {
     oooEntry: {
       id: createdOrUpdatedOutOfOffice.id,
@@ -359,21 +356,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
   };
 
-  await Promise.all(
-    subscribers.map(async (subscriber) => {
-      sendPayload(
-        subscriber.secret,
-        WebhookTriggerEvents.OOO_CREATED,
-        dayjs().toISOString(),
-        {
-          appId: subscriber.appId,
-          subscriberUrl: subscriber.subscriberUrl,
-          payloadTemplate: subscriber.payloadTemplate,
-        },
-        payload
-      );
-    })
-  );
+  await WebhookService.sendWebhook(subscriberOptions, payload);
 
   return {};
 };
