@@ -8,6 +8,11 @@ export const WORKFLOW_TRIGGER_EVENTS = [
   WorkflowTriggerEvents.RESCHEDULE_EVENT,
   WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  WorkflowTriggerEvents.BOOKING_REJECTED,
+  WorkflowTriggerEvents.BOOKING_REQUESTED,
+  WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
+  WorkflowTriggerEvents.BOOKING_PAID,
+  WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
 ] as const;
 
 export const WORKFLOW_ACTIONS = [
