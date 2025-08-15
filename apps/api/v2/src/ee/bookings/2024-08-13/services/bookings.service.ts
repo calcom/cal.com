@@ -575,11 +575,24 @@ export class BookingsService_2024_08_13 {
       | GetSeatedBookingOutput_2024_08_13
       | GetRecurringSeatedBookingOutput_2024_08_13
     )[] = [];
+
+    const rescheduledBookingUids = orderedBookings
+      .filter((booking) => booking?.rescheduled)
+      .map((booking) => booking!.uid);
+
+    const rescheduleBookings = rescheduledBookingUids?.length
+      ? await this.bookingsRepository.getByFromRescheduleMany(rescheduledBookingUids)
+      : [];
+    const rescheduleMap = new Map(rescheduleBookings.map((booking) => [booking.fromReschedule, booking]));
+
     for (const booking of orderedBookings) {
       if (!booking) {
         continue;
       }
+      const rescheduledTo = rescheduleMap.get(booking.uid);
 
+      const rescheduledToUid = rescheduledTo?.uid;
+      const rescheduledByEmail = booking.rescheduled ? rescheduledTo?.rescheduledBy : booking.rescheduledBy;
       const formatted = {
         ...booking,
         eventType: booking.eventType,
@@ -587,6 +600,8 @@ export class BookingsService_2024_08_13 {
         startTime: new Date(booking.startTime),
         endTime: new Date(booking.endTime),
         absentHost: !!booking.noShowHost,
+        rescheduledToUid,
+        rescheduledByEmail,
       };
 
       const isRecurring = !!formatted.recurringEventId;
@@ -596,9 +611,9 @@ export class BookingsService_2024_08_13 {
       } else if (isRecurring && isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
       } else if (isSeated) {
-        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted, false));
       } else {
-        formattedBookings.push(await this.outputService.getOutputBooking(formatted));
+        formattedBookings.push(await this.outputService.getOutputBooking(formatted, false));
       }
     }
 

@@ -819,6 +819,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
 
+  // Partial Index Booking_fromReschedule_idx
   @@index([eventTypeId])
   @@index([userId])
   @@index([destinationCalendarId])
