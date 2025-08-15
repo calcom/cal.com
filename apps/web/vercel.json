@@ -41,10 +41,6 @@
     },
     "pages/api/trpc/workflows/[trpc].ts": {
       "maxDuration": 800
-    },
-    "pages/api/trpc/highPerf/[trpc].ts": {},
-    "pages/api/trpc/appRoutingForms/[trpc].ts": {},
-    "pages/router/embed.tsx": {},
-    "pages/api/book/event.ts": {}
+    }
   }
 }

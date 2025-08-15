@@ -1,5 +1,0 @@
-{
-  "functions": {
-    "pages/api/slots/*.ts": {}
-  }
-}
