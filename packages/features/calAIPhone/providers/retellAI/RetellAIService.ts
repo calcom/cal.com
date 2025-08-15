@@ -74,7 +74,9 @@ export class RetellAIService {
     return this.phoneNumberService.importPhoneNumber(data);
   }
 
-  async createPhoneNumber(data: AIPhoneServiceCreatePhoneNumberParams): Promise<RetellPhoneNumber> {
+  async createPhoneNumber(
+    data: AIPhoneServiceCreatePhoneNumberParams
+  ): Promise<RetellPhoneNumber & { provider: string }> {
     return this.phoneNumberService.createPhoneNumber(data);
   }
 
@@ -160,6 +162,7 @@ export class RetellAIService {
   async updateAgentConfiguration(params: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;
@@ -175,10 +178,19 @@ export class RetellAIService {
     });
   }
 
+  async updateToolsFromAgentId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ): Promise<void> {
+    return this.agentService.updateToolsFromAgentId(agentId, data);
+  }
+
   async deleteAgent(params: { id: string; userId: number; teamId?: number }) {
     return this.agentService.deleteAgent({
       ...params,
-      deleteAIConfiguration: (config) => this.deleteAIConfiguration(config),
+      deleteAIConfiguration: async (config) => {
+        await this.deleteAIConfiguration(config);
+      },
     });
   }
 

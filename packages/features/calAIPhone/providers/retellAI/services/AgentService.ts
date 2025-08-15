@@ -1,7 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -9,11 +12,11 @@ import type {
   AIPhoneServiceAgent,
   AIPhoneServiceModel,
   AIPhoneServiceTools,
-} from "../../interfaces/AIPhoneService.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import { RetellAIServiceMapper } from "../RetellAIServiceMapper";
-import type { RetellAIRepository } from "../types";
-import { getLlmId, Language } from "../types";
+import type { RetellAIRepository, Language } from "../types";
+import { getLlmId } from "../types";
 
 export class AgentService {
   private logger = logger.getSubLogger({ prefix: ["AgentService"] });
@@ -22,6 +25,27 @@ export class AgentService {
     private retellRepository: RetellAIRepository,
     private agentRepository: AgentRepositoryInterface
   ) {}
+
+  private async createApiKey({ userId, teamId }: { userId: number; teamId?: number }) {
+    const [hashedApiKey, apiKey] = generateHashedApiKey();
+    await prisma.apiKey.create({
+      data: {
+        id: uuidv4(),
+        userId,
+        teamId,
+        // And here we pass a null to expiresAt if never expires is true
+        expiresAt: null,
+        hashedKey: hashedApiKey,
+        note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
+      },
+    });
+
+    const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
+
+    const prefixedApiKey = `${apiKeyPrefix}${apiKey}`;
+
+    return prefixedApiKey;
+  }
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
@@ -45,6 +69,110 @@ export class AgentService {
     }
   }
 
+  async updateToolsFromAgentId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ) {
+    if (!agentId?.trim()) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Agent ID is required and cannot be empty",
+      });
+    }
+
+    if (!data.eventTypeId || !data.userId) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Event type ID and user ID are required",
+      });
+    }
+
+    if (!timeZoneSchema.safeParse(data.timeZone).success) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Invalid time zone",
+      });
+    }
+
+    try {
+      const agent = await this.getAgent(agentId);
+      const llmId = getLlmId(agent);
+
+      if (!llmId) {
+        throw new HttpError({
+          statusCode: 404,
+          message: "Agent does not have an LLM configured.",
+        });
+      }
+      const llmDetails = await this.retellRepository.getLLM(llmId);
+
+      if (!llmDetails) {
+        throw new HttpError({ statusCode: 404, message: "LLM details not found." });
+      }
+
+      const existing = llmDetails?.general_tools ?? [];
+
+      const hasCheckAvailability = existing.some(
+        (t): t is Extract<typeof t, { event_type_id: number }> =>
+          t.type === "check_availability_cal" && "event_type_id" in t && t.event_type_id === data.eventTypeId
+      );
+
+      if (hasCheckAvailability) {
+        // If the event type ID does exist in the general tools, we don't need to update the agent general tools
+        return;
+      }
+
+      const reusableKey = existing.find(
+        (t): t is Extract<typeof t, { cal_api_key: string }> =>
+          "cal_api_key" in t && typeof t.cal_api_key === "string"
+      )?.cal_api_key;
+
+      const apiKey =
+        reusableKey ??
+        (await this.createApiKey({
+          userId: data.userId,
+          teamId: data.teamId || undefined,
+        }));
+
+      const newGeneralTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [
+        {
+          type: "end_call",
+          name: "end_call",
+          description: "Hang up the call, triggered only after appointment successfully scheduled.",
+        },
+        {
+          name: "check_availability",
+          type: "check_availability_cal",
+          event_type_id: data.eventTypeId,
+          cal_api_key: apiKey,
+          timezone: data.timeZone,
+        },
+        {
+          name: "book_appointment",
+          type: "book_appointment_cal",
+          event_type_id: data.eventTypeId,
+          cal_api_key: apiKey,
+          timezone: data.timeZone,
+        },
+      ];
+
+      await this.retellRepository.updateLLM(llmId, { general_tools: newGeneralTools });
+    } catch (error) {
+      if (error instanceof HttpError) {
+        throw error;
+      }
+
+      this.logger.error("Failed to update agent general tools in external AI service", {
+        agentId,
+        error,
+      });
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to update agent general tools ${agentId}`,
+      });
+    }
+  }
+
   async updateAgent(
     agentId: string,
     data: {
@@ -56,11 +184,11 @@ export class AgentService {
     }
   ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new Error("Agent ID is required and cannot be empty");
+      throw new HttpError({ statusCode: 400, message: "Agent ID is required and cannot be empty" });
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new Error("Update data is required");
+      throw new HttpError({ statusCode: 400, message: "Update data is required" });
     }
 
     try {
@@ -72,7 +200,10 @@ export class AgentService {
         data,
         error,
       });
-      throw new Error(`Failed to update agent ${agentId}`);
+      throw new HttpError({
+        statusCode: 500,
+        message: `Failed to update agent ${agentId}`,
+      });
     }
   }
 
@@ -200,6 +331,7 @@ export class AgentService {
   async updateAgentConfiguration({
     id,
     userId,
+    teamId,
     name,
     generalPrompt,
     beginMessage,
@@ -209,6 +341,7 @@ export class AgentService {
   }: {
     id: string;
     userId: number;
+    teamId?: number;
     name?: string;
     generalPrompt?: string | null;
     beginMessage?: string | null;
@@ -222,6 +355,7 @@ export class AgentService {
     const agent = await this.agentRepository.findByIdWithAdminAccess({
       id,
       userId,
+      teamId,
     });
 
     if (!agent) {

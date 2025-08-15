@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import type {
   AIPhoneServiceProviderType,
   AIPhoneServiceCall,
-} from "../../interfaces/AIPhoneService.interface";
+} from "../../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { RetellAIRepository, RetellDynamicVariables } from "../types";
 
@@ -110,6 +110,8 @@ export class CallService {
         message: "Agent must have a phone number assigned to make calls.",
       });
     }
+
+    // TODO:update tools before call
 
     const call = await this.createPhoneCall({
       from_number: agentPhoneNumber,

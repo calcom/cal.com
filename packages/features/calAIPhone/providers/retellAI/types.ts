@@ -97,9 +97,14 @@ export type RetellAgentWithDetails = {
   name: string;
   providerAgentId: string;
   enabled: boolean;
-  userId: number;
+  userId: number | null;
   teamId: number | null;
-  outboundPhoneNumbers: Agent["outboundPhoneNumbers"];
+  outboundPhoneNumbers: Array<{
+    id: number;
+    phoneNumber: string;
+    subscriptionStatus: string | null;
+    provider: string | null;
+  }>;
   retellData: {
     agentId: RetellAgent["agent_id"];
     agentName: RetellAgent["agent_name"];

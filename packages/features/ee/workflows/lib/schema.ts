@@ -38,7 +38,8 @@ export const formSchema = z.object({
         .refine((val) => onlyLettersNumbersSpaces(val))
         .optional()
         .nullable(),
-      senderName: z.string().optional().nullable(),
+      senderName: z.string().nullish(),
+      agentId: z.string().nullish(),
     })
     .array(),
   selectAll: z.boolean(),

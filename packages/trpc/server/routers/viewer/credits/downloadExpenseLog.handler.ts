@@ -12,7 +12,7 @@ type DownloadExpenseLogOptions = {
   input: TDownloadExpenseLogSchema;
 };
 
-const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments"];
+const headers = ["Date", "Credits", "Type", "Booking UID", "Number of Segments", "Call Duration"];
 
 export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseLogOptions) => {
   const { teamId, startDate, endDate } = input;
@@ -44,6 +44,7 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     log.creditType,
     log.bookingUid ?? "",
     log.smsSegments?.toString() ?? "-",
+    log.callDuration?.toString() ?? "-",
   ]);
 
   const csvData = [headers, ...rows].map((row) => row.join(",")).join("\n");

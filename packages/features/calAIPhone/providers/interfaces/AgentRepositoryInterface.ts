@@ -79,7 +79,7 @@ export interface AgentData {
   name: string;
   providerAgentId: string;
   enabled: boolean;
-  userId: number;
+  userId: number | null;
   teamId: number | null;
   createdAt: Date;
   updatedAt: Date;

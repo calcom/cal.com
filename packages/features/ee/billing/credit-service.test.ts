@@ -421,6 +421,7 @@ describe("CreditService", () => {
       });
 
       it("should calculate credits based on active members and price", async () => {
+        vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "price_team_monthly");
         const mockTeamRepo = {
           findTeamWithMembers: vi.fn().mockResolvedValue({
             id: 1,
@@ -445,6 +446,35 @@ describe("CreditService", () => {
 
         const result = await creditService.getMonthlyCredits(1);
         expect(result).toBe(1500); // (3 members * 1000 price) / 2
+      });
+
+      it("should calculate credits with 20% multiplier for organizations", async () => {
+        vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "price_org_monthly");
+        const mockTeamRepo = {
+          findTeamWithMembers: vi.fn().mockResolvedValue({
+            id: 1,
+            isOrganization: true,
+            members: [{ accepted: true }, { accepted: true }],
+          }),
+        };
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+
+        const mockTeamBillingService = {
+          getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
+        };
+        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+          mockTeamBillingService.getSubscriptionStatus
+        );
+
+        const mockStripeBillingService = {
+          getPrice: vi.fn().mockResolvedValue({ unit_amount: 3700 }),
+        };
+        vi.spyOn(StripeBillingService.prototype, "getPrice").mockImplementation(
+          mockStripeBillingService.getPrice
+        );
+
+        const result = await creditService.getMonthlyCredits(1);
+        expect(result).toBe(1480); // (2 members * 3700 price) * 0.2
       });
     });
 
