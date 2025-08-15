@@ -9,11 +9,11 @@ import { POST } from "../route";
 
 type MockPhoneNumberWithUser = CalAiPhoneNumber & {
   user: Pick<User, "id" | "email" | "name">;
-  team?: never;
+  team?: null;
 };
 
 type MockPhoneNumberWithTeam = CalAiPhoneNumber & {
-  user?: never;
+  user?: null;
   team: Pick<Team, "id" | "name">;
 };
 
@@ -184,6 +184,7 @@ describe("Retell AI Webhook Handler", () => {
       inboundAgentId: null,
       outboundAgentId: null,
       user: { id: 1, email: "test@example.com", name: "Test User" },
+      team: null,
     };
 
     vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
@@ -237,6 +238,7 @@ describe("Retell AI Webhook Handler", () => {
       inboundAgentId: null,
       outboundAgentId: null,
       team: { id: 5, name: "Test Team" },
+      user: null,
     };
 
     vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockTeamPhoneNumber);
@@ -336,6 +338,7 @@ describe("Retell AI Webhook Handler", () => {
       inboundAgentId: null,
       outboundAgentId: null,
       user: { id: 1, email: "test@example.com", name: "Test User" },
+      team: null,
     };
 
     vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
@@ -409,6 +412,7 @@ describe("Retell AI Webhook Handler", () => {
         inboundAgentId: null,
         outboundAgentId: null,
         user: { id: 1, email: "test@example.com", name: "Test User" },
+        team: null,
       };
 
       vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
@@ -458,6 +462,7 @@ describe("Retell AI Webhook Handler", () => {
       inboundAgentId: null,
       outboundAgentId: null,
       user: { id: 42, email: "u@example.com", name: "U" },
+      team: null,
     };
     vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
     mockHasAvailableCredits.mockResolvedValue(true);

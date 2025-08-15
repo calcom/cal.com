@@ -85,7 +85,7 @@ type AgentConfigurationSheetProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   agentId?: string | null;
-  agentData?: RouterOutputs["viewer"]["ai"]["get"];
+  agentData?: RouterOutputs["viewer"]["aiVoiceAgent"]["get"];
   onUpdate: (data: AgentFormValues) => void;
   readOnly?: boolean;
   teamId?: number;

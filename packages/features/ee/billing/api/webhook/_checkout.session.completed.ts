@@ -132,13 +132,13 @@ async function handleCalAIPhoneNumberSubscription(
 
   const newNumber = await PrismaPhoneNumberRepository.createPhoneNumber({
     userId,
-    teamId,
+    teamId: teamId ?? undefined,
     phoneNumber: calAIPhoneNumber.phone_number,
     provider: calAIPhoneNumber.provider,
     stripeCustomerId: session.customer as string,
     stripeSubscriptionId: subscriptionId,
     subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
-    providerPhoneNumberId: calAIPhoneNumber.phone_number_id,
+    providerPhoneNumberId: calAIPhoneNumber.phone_number,
   });
 
   try {
