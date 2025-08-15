@@ -51,6 +51,7 @@ type CreateBookingParams = {
   originalRescheduledBooking: OriginalRescheduledBooking;
   creationSource?: CreationSource;
   tracking?: Tracking;
+  isReschedulingPaidBooking?: boolean;
 };
 
 function updateEventDetails(
@@ -85,6 +86,7 @@ const _createBooking = async ({
   rescheduledBy,
   creationSource,
   tracking,
+  isReschedulingPaidBooking,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) => {
   updateEventDetails(evt, originalRescheduledBooking);
   const associatedBookingForFormResponse = routingFormResponseId
@@ -103,6 +105,7 @@ const _createBooking = async ({
     originalRescheduledBooking,
     creationSource,
     tracking,
+    isReschedulingPaidBooking,
   });
 
   return await saveBooking(
@@ -159,7 +162,7 @@ async function saveBooking(
     }
   }
 
-  if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
+  if (typeof paymentAppData.price === "number" && paymentAppData.price > 0 && !originalRescheduledBooking) {
     await prisma.credential.findFirstOrThrow({
       where: {
         appId: paymentAppData.appId,
@@ -217,6 +220,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     rescheduledBy,
     creationSource,
     tracking,
+    isReschedulingPaidBooking,
   } = params;
 
   const attendeesData = getAttendeesData(evt);
@@ -235,7 +239,10 @@ function buildNewBookingData(params: CreateBookingParams) {
     endTime: dayjs.utc(evt.endTime).toDate(),
     description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),
-    status: eventType.isConfirmedByDefault ? BookingStatus.ACCEPTED : BookingStatus.PENDING,
+    status:
+      eventType.isConfirmedByDefault || isReschedulingPaidBooking
+        ? BookingStatus.ACCEPTED
+        : BookingStatus.PENDING,
     oneTimePassword: evt.oneTimePassword,
     location: evt.location,
     eventType: eventTypeRel,
