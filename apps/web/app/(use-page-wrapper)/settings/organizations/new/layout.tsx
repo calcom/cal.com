@@ -1,21 +1,16 @@
-import type { GetServerSidePropsResult } from "next";
+import { _generateMetadata } from "app/_utils";
+import { notFound } from "next/navigation";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
-export const getServerSideProps = async (): Promise<GetServerSidePropsResult<{ isOrg: boolean }>> => {
+export default async function Layout({ children }: { children: React.ReactNode }) {
   const featuresRepository = new FeaturesRepository(prisma);
   const organizations = await featuresRepository.checkIfFeatureIsEnabledGlobally("organizations");
-  // Check if organizations are enabled
+
   if (!organizations) {
-    return {
-      notFound: true,
-    };
+    return notFound();
   }
 
-  return {
-    props: {
-      isOrg: true,
-    },
-  };
-};
+  return children;
+}
