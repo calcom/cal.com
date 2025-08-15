@@ -1379,6 +1379,112 @@ export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { fro
   });
 }
 
+export const expectSeatedBookingSuccess = async (params: {
+  createdBooking: Record<string, unknown>;
+  mockRequestData: Record<string, unknown>;
+  organizer: { email: string; name: string; timeZone: string };
+  booker: { email: string; name: string; timeZone?: string };
+  seatsPerTimeSlot: number;
+  emails: {
+    get: () => Array<{
+      icalEvent?: { filename: string; content: string };
+      to: string;
+      from: string | { email: string; name: string };
+      subject: string;
+      html: string;
+    }>;
+  };
+}) => {
+  const { createdBooking, mockRequestData, organizer, booker, emails } = params;
+
+  await expectBookingToBeInDatabase({
+    description: "",
+    uid: createdBooking.uid as string,
+    eventTypeId: mockRequestData.eventTypeId as number,
+    status: "ACCEPTED",
+  });
+
+  expectSuccessfulBookingCreationEmails({
+    booking: { uid: createdBooking.uid as string },
+    booker,
+    organizer,
+    emails,
+    iCalUID: createdBooking.iCalUID as string,
+  });
+};
+
+export const expectRoundRobinBookingSuccess = async (params: {
+  createdBooking: Record<string, unknown>;
+  mockRequestData: Record<string, unknown>;
+  organizer: { email: string; name: string; timeZone: string };
+  booker: { email: string; name: string; timeZone?: string };
+  teamMembers: Array<{ email: string; name: string }>;
+  emails: {
+    get: () => Array<{
+      icalEvent?: { filename: string; content: string };
+      to: string;
+      from: string | { email: string; name: string };
+      subject: string;
+      html: string;
+    }>;
+  };
+}) => {
+  const { createdBooking, mockRequestData, organizer, booker, emails } = params;
+
+  await expectBookingToBeInDatabase({
+    description: "",
+    uid: createdBooking.uid as string,
+    eventTypeId: mockRequestData.eventTypeId as number,
+    status: "ACCEPTED",
+  });
+
+  expectSuccessfulBookingCreationEmails({
+    booking: { uid: createdBooking.uid as string },
+    booker,
+    organizer,
+    emails,
+    iCalUID: createdBooking.iCalUID as string,
+  });
+};
+
+export const expectRecurringBookingSuccess = async (params: {
+  createdBookings: Array<Record<string, unknown>>;
+  mockRequestData: Record<string, unknown>;
+  organizer: { email: string; name: string; timeZone: string };
+  booker: { email: string; name: string; timeZone?: string };
+  recurringCount: number;
+  emails: {
+    get: () => Array<{
+      icalEvent?: { filename: string; content: string };
+      to: string;
+      from: string | { email: string; name: string };
+      subject: string;
+      html: string;
+    }>;
+  };
+}) => {
+  const { createdBookings, mockRequestData, organizer, booker, emails, recurringCount } = params;
+
+  expect(createdBookings).toHaveLength(recurringCount);
+
+  for (const booking of createdBookings) {
+    await expectBookingToBeInDatabase({
+      description: "",
+      uid: booking.uid as string,
+      eventTypeId: mockRequestData.eventTypeId as number,
+      status: "ACCEPTED",
+    });
+  }
+
+  expectSuccessfulBookingCreationEmails({
+    booking: { uid: createdBookings[0].uid as string },
+    booker,
+    organizer,
+    emails,
+    iCalUID: createdBookings[0].iCalUID as string,
+  });
+};
+
 export function expectICalUIDAsString(iCalUID: string | undefined | null) {
   if (typeof iCalUID !== "string") {
     throw new Error("iCalUID is not a string");
