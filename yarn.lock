@@ -3358,6 +3358,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/lawpay@workspace:packages/app-store/lawpay":
+  version: 0.0.0-use.local
+  resolution: "@calcom/lawpay@workspace:packages/app-store/lawpay"
+  dependencies:
+    "@calcom/app-store": "*"
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+    "@calcom/ui": "*"
+    zod: ^3.22.4
+  languageName: unknown
+  linkType: soft
+
 "@calcom/lib@*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"

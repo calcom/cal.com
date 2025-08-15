@@ -1,0 +1,24 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .lawpay-bg { fill: #1e4a72; }
+      .lawpay-text { fill: white; font-family: 'Times New Roman', serif; font-weight: normal; }
+      .lawpay-underline { stroke: white; stroke-width: 0.5; fill: none; }
+      .lawpay-registered { font-size: 2px; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="lawpay-bg" width="32" height="32" rx="4"/>
+  
+  <!-- LawPay Text -->
+  <text class="lawpay-text" x="3" y="20" font-size="8" letter-spacing="0.2">
+    <tspan>L</tspan><tspan dx="0.2">AW</tspan><tspan dx="0.4" font-size="9">P</tspan><tspan dx="0.2">AY</tspan>
+  </text>
+  
+  <!-- Registered trademark symbol -->
+  <text class="lawpay-text lawpay-registered" x="28" y="16">®</text>
+  
+  <!-- Underline -->
+  <line class="lawpay-underline" x1="3" y1="22" x2="29" y2="22"/>
+</svg>
