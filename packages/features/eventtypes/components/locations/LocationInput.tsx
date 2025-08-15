@@ -15,7 +15,7 @@ const LocationInput = (props: {
   index: number;
   customClassNames?: LocationInputCustomClassNames;
   disableLocationProp?: boolean;
-  label?: string;
+  label: string;
 }) => {
   const { t } = useLocale();
   const { eventLocationType, index, customClassNames, disableLocationProp, label, ...remainingProps } = props;
