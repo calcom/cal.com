@@ -891,6 +891,9 @@ model SelectedCalendar {
   googleChannelResourceUri String?
   googleChannelExpiration  String?
 
+  outlookSubscriptionId         String?
+  outlookSubscriptionExpiration String?
+
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?
 
