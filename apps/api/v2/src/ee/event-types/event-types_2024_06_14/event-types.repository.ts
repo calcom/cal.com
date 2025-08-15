@@ -76,10 +76,38 @@ export class EventTypesRepository_2024_06_14 {
   }
 
   async getEventTypeById(eventTypeId: number) {
-    return this.dbRead.prisma.eventType.findUnique({
+    const eventType = await this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       include: { users: true, schedule: true, destinationCalendar: true, calVideoSettings: true },
     });
+
+    if (!eventType) {
+      return null;
+    }
+
+    // If the eventType doesn't have a scheduleId, try to get the user's default schedule
+    if (!eventType.scheduleId && eventType.userId) {
+      const user = await this.dbRead.prisma.user.findUnique({
+        where: { id: eventType.userId },
+        select: { defaultScheduleId: true },
+      });
+
+      if (user?.defaultScheduleId) {
+        const defaultSchedule = await this.dbRead.prisma.schedule.findUnique({
+          where: { id: user.defaultScheduleId },
+          include: { availability: true },
+        });
+
+        if (defaultSchedule) {
+          return {
+            ...eventType,
+            schedule: defaultSchedule,
+          };
+        }
+      }
+    }
+
+    return eventType;
   }
 
   async getEventTypeByIdIncludeUsersAndTeam(eventTypeId: number) {
@@ -105,8 +133,8 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
-  async getUserEventTypeBySlug(userId: number, slug: string) {
-    return this.dbRead.prisma.eventType.findUnique({
+   async getUserEventTypeBySlug(userId: number, slug: string) {
+    const eventType = await this.dbRead.prisma.eventType.findUnique({
       where: {
         userId_slug: {
           userId: userId,
@@ -115,6 +143,34 @@ export class EventTypesRepository_2024_06_14 {
       },
       include: { users: true, schedule: true, destinationCalendar: true },
     });
+
+    if (!eventType) {
+      return null;
+    }
+
+    // If the eventType doesn't have a scheduleId, try to get the user's default schedule
+    if (!eventType.scheduleId) {
+      const user = await this.dbRead.prisma.user.findUnique({
+        where: { id: userId },
+        select: { defaultScheduleId: true },
+      });
+
+      if (user?.defaultScheduleId) {
+        const defaultSchedule = await this.dbRead.prisma.schedule.findUnique({
+          where: { id: user.defaultScheduleId },
+          include: { availability: true },
+        });
+
+        if (defaultSchedule) {
+          return {
+            ...eventType,
+            schedule: defaultSchedule,
+          };
+        }
+      }
+    }
+
+    return eventType;
   }
 
   async getUserEventTypeBySlugWithOwnerAndTeam(userId: number, slug: string) {
