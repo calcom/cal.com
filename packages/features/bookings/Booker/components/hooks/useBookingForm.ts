@@ -23,6 +23,7 @@ export interface IUseBookingForm {
     name: string | null;
   };
   clientId?: string;
+  disableAutoFillOnBookingPage?: boolean;
 }
 
 export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
@@ -36,6 +37,7 @@ export const useBookingForm = ({
   extraOptions,
   prefillFormParams,
   clientId,
+  disableAutoFillOnBookingPage = false,
 }: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -75,6 +77,7 @@ export const useBookingForm = ({
     extraOptions,
     prefillFormParams,
     clientId,
+    disableAutoFillOnBookingPage,
   });
 
   const bookingForm = useForm<BookingFormValues>({

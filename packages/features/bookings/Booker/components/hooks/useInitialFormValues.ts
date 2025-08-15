@@ -22,6 +22,7 @@ type UseInitialFormValuesProps = {
     name: string | null;
   };
   clientId?: string;
+  disableAutoFillOnBookingPage?: boolean;
 };
 
 // Add this stable hash function
@@ -63,6 +64,7 @@ export function useInitialFormValues({
   extraOptions,
   prefillFormParams,
   clientId,
+  disableAutoFillOnBookingPage = false,
 }: UseInitialFormValuesProps) {
   const stableHashExtraOptions = getStableHash(extraOptions);
 
@@ -104,18 +106,24 @@ export function useInitialFormValues({
         guests: prefillFormParams.guests,
       });
 
+      disableAutoFillOnBookingPage = true;
+
       const defaultUserValues = {
         email:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].email
             : !!parsedQuery["email"]
             ? parsedQuery["email"]
+            : disableAutoFillOnBookingPage
+            ? ""
             : email ?? "",
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
             : !!parsedQuery["name"]
             ? parsedQuery["name"]
+            : disableAutoFillOnBookingPage
+            ? ""
             : name ?? username ?? "",
       };
 

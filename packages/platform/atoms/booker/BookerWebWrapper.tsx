@@ -119,6 +119,9 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
+  const disableAutoFillOnBookingPage =
+    event.data?.team?.parent?.organizationSettings?.disableAutoFillOnBookingPage ?? false;
+
   const bookerForm = useBookingForm({
     event: event.data,
     sessionEmail: session?.user.email,
@@ -127,6 +130,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
+    disableAutoFillOnBookingPage,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
