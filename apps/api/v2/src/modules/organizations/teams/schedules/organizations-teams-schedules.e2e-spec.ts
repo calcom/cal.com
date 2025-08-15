@@ -18,6 +18,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
 import { ApiSuccessResponse, ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 import { Team, Schedule } from "@calcom/prisma/client";
 
@@ -36,6 +37,8 @@ describe("Organizations Teams Schedules Endpoints", () => {
     let org: Team;
     let orgTeam: Team;
     let nonOrgTeam: Team;
+
+    let userSchedule: Schedule;
     let user2Schedule: Schedule;
 
     const userEmail = `organizations-teams-schedules-admin-${randomString()}@api.com`;
@@ -71,6 +74,16 @@ describe("Organizations Teams Schedules Endpoints", () => {
       user2 = await userRepositoryFixture.create({
         email: userEmail2,
         username: userEmail2,
+      });
+
+      userSchedule = await scheduleRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        name: `organizations-teams-schedules-user-schedule-${randomString()}`,
+        timeZone: "America/New_York",
       });
 
       user2Schedule = await scheduleRepositoryFixture.create({
@@ -211,6 +224,33 @@ describe("Organizations Teams Schedules Endpoints", () => {
           const responseBody: ApiSuccessResponse<ScheduleOutput_2024_06_11[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.find((d) => d.id === user2Schedule.id)?.name).toEqual(user2Schedule.name);
+        });
+    });
+
+    it("should get all the schedules of members in a team", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${orgTeam.id}/schedules`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<GetSchedulesOutput_2024_06_11> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(Array.isArray(responseBody.data.data)).toBe(true);
+          expect(responseBody.data.data.length).toBeGreaterThan(0);
+
+          const userOneSchedule = responseBody.data.data.filter(
+            (schedule) => schedule.id === userSchedule.id
+          );
+          const userTwoSchedule = responseBody.data.data.filter(
+            (schedule) => schedule.id === user2Schedule.id
+          );
+
+          expect(userOneSchedule[0].id).toEqual(userSchedule.id);
+          expect(userOneSchedule[0].name).toEqual(userSchedule.name);
+          expect(userOneSchedule[0].timeZone).toEqual(userSchedule.timeZone);
+
+          expect(userTwoSchedule[0].id).toEqual(user2Schedule.id);
+          expect(userTwoSchedule[0].name).toEqual(user2Schedule.name);
+          expect(userOneSchedule[0].timeZone).toEqual(userSchedule.timeZone);
         });
     });
 
