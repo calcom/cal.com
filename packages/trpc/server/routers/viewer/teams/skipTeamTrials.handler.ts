@@ -29,17 +29,18 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       },
     });
 
-    const ownedTeams = await prisma.team.findMany({
+    const memberships = await prisma.membership.findMany({
       where: {
-        members: {
-          some: {
-            userId: ctx.user.id,
-            accepted: true,
-            role: "OWNER",
-          },
-        },
+        userId: ctx.user.id,
+        accepted: true,
+        role: "OWNER",
+      },
+      select: {
+        team: true,
       },
     });
+
+    const ownedTeams = memberships.map((membership) => membership.team);
 
     for (const team of ownedTeams) {
       const teamBillingService = new InternalTeamBilling(team);
