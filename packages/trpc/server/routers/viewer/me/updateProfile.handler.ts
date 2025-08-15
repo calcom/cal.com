@@ -48,10 +48,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
 
+  const usernameAliases = input?.usernameAliases || [];
+  delete input.usernameAliases;
+
   const data: Prisma.UserUpdateInput = {
     ...rest,
     metadata: userMetadata,
     secondaryEmails: undefined,
+    usernameAliases: undefined,
   };
 
   let isPremiumUsername = false;
@@ -314,6 +318,78 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           // We know email has been changed here so we can use input
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           emailTo: input.email!,
+        },
+      });
+    }
+  }
+
+  // Handle username aliases
+  if (usernameAliases.length) {
+    // Find the primary username alias (if any)
+    const primaryUsernameAlias = usernameAliases.find((alias) => alias.usernamePrimary && !alias.isDeleted);
+
+    // Delete username aliases marked for deletion
+    const aliasesToDelete = usernameAliases.filter((alias) => alias.isDeleted).map((alias) => alias.id);
+    if (aliasesToDelete.length) {
+      await prisma.usernameAlias.deleteMany({
+        where: {
+          id: {
+            in: aliasesToDelete,
+          },
+          userId: updatedUser.id,
+        },
+      });
+    }
+
+    // Update remaining aliases
+    const aliasesToUpdate = usernameAliases.filter((alias) => !alias.isDeleted);
+    if (aliasesToUpdate.length) {
+      for (const alias of aliasesToUpdate) {
+        await prisma.usernameAlias.update({
+          where: {
+            id: alias.id,
+            userId: updatedUser.id,
+          },
+          data: {
+            username: alias.username,
+            // Don't try to update usernamePrimary field since it doesn't exist in the database yet
+          },
+        });
+      }
+
+      // If there's a primary alias, update the user's username
+      if (primaryUsernameAlias) {
+        await prisma.user.update({
+          where: {
+            id: updatedUser.id,
+          },
+          data: {
+            username: primaryUsernameAlias.username,
+          },
+        });
+
+        // Update the updatedUser object to reflect the new username
+        updatedUser.username = primaryUsernameAlias.username;
+      }
+    }
+  }
+
+  // If the user's username has changed, check if there's a matching alias
+  // If not, create one automatically
+  if (data.username && data.username !== user.username) {
+    const existingAlias = await prisma.usernameAlias.findFirst({
+      where: {
+        userId: user.id,
+        username: data.username,
+      },
+    });
+
+    if (!existingAlias) {
+      // Create a new alias for the new username
+      await prisma.usernameAlias.create({
+        data: {
+          userId: user.id,
+          username: data.username,
         },
       });
     }

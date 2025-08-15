@@ -43,6 +43,16 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     },
   });
 
+  const usernameAliases = await prisma.usernameAlias.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+
   let passwordAdded = false;
   if (user.identityProvider !== IdentityProvider.CAL && input?.includePasswordAdded) {
     const userWithPassword = await prisma.user.findUnique({
@@ -142,6 +152,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     ...profileData,
     secondaryEmails,
+    usernameAliases,
     isPremium: userMetadataPrased?.isPremium,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
