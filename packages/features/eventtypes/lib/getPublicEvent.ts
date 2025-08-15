@@ -106,6 +106,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
+            hideTeamProfileLink: true,
           },
         },
         isPrivate: true,
@@ -542,7 +543,10 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
-      hideProfileLink: eventWithUserProfiles.team?.hideTeamProfileLink ?? false,
+      hideProfileLink:
+        eventWithUserProfiles.team?.hideTeamProfileLink ??
+        eventWithUserProfiles.team?.parent?.hideTeamProfileLink ??
+        false,
       ...(orgDetails
         ? {
             logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
@@ -842,7 +846,10 @@ const getPublicEventRefactored = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
-      hideProfileLink: eventWithUserProfiles.team?.hideTeamProfileLink ?? false,
+      hideProfileLink:
+        eventWithUserProfiles.team?.hideTeamProfileLink ??
+        eventWithUserProfiles.team?.parent?.hideTeamProfileLink ??
+        false,
       ...(orgDetails
         ? {
             logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
