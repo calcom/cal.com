@@ -72,176 +72,180 @@ export default function BillingCredits() {
   const params = useParamsWithFallback();
   const orgId = session.data?.user?.org?.id;
 
-  const teamId: number | undefined = params.id
-    ? Number(params.id)
+  const parsedTeamId = Number(params.id);
+  const teamId: number | undefined = Number.isFinite(parsedTeamId)
+    ? parsedTeamId
     : typeof orgId === "number"
     ? orgId
     : undefined;
 
   const tokens = (pathname ?? "").split("/").filter(Boolean);
   const settingsIndex = tokens.indexOf("settings");
-  const isOrganizationsPath = settingsIndex >= 0 && tokens[settingsIndex + 1] === "organizations";
+  const isOrgScopedPath =
+    settingsIndex >= 0 && ["organizations", "teams"].includes(tokens[settingsIndex + 1]);
 
   if (!IS_SMS_CREDITS_ENABLED) {
     return null;
   }
 
-  if (orgId && !isOrganizationsPath && !orgBranding?.slug) {
-    return null;
-  }
-
-  const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
-
-  const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
-    onSuccess: (data) => {
-      if (data.sessionUrl) {
-        router.push(data.sessionUrl);
-      }
-    },
-    onError: () => {
-      showToast(t("credit_purchase_failed"), "error");
-    },
-  });
-
-  const handleDownload = async () => {
-    setIsDownloading(true);
-    try {
-      const result = await utils.viewer.credits.downloadExpenseLog.fetch({
-        teamId,
-        startDate: selectedMonth.startDate,
-        endDate: selectedMonth.endDate,
-      });
-      if (result?.csvData) {
-        const filename = `credit-expense-log-${selectedMonth.value.toLowerCase().replace(" ", "-")}.csv`;
-        downloadAsCsv(result.csvData, filename);
-      } else {
-        showToast(t("error_downloading_expense_log"), "error");
-      }
-    } catch (error) {
-      showToast(t("error_downloading_expense_log"), "error");
-    } finally {
-      setIsDownloading(false);
+  if (orgId && !isOrgScopedPath && !orgBranding?.slug) {
+    {
+      return null;
     }
-  };
 
-  if (isLoading && teamId) return <BillingCreditsSkeleton />;
-  if (!creditsData) return null;
+    const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
 
-  const onSubmit = (data: { quantity: number }) => {
-    buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
-  };
+    const buyCreditsMutation = trpc.viewer.credits.buyCredits.useMutation({
+      onSuccess: (data) => {
+        if (data.sessionUrl) {
+          router.push(data.sessionUrl);
+        }
+      },
+      onError: () => {
+        showToast(t("credit_purchase_failed"), "error");
+      },
+    });
 
-  const teamCreditsPercentageUsed =
-    creditsData.credits.totalMonthlyCredits > 0
-      ? (creditsData.credits.totalRemainingMonthlyCredits / creditsData.credits.totalMonthlyCredits) * 100
-      : 0;
+    const handleDownload = async () => {
+      setIsDownloading(true);
+      try {
+        const result = await utils.viewer.credits.downloadExpenseLog.fetch({
+          teamId,
+          startDate: selectedMonth.startDate,
+          endDate: selectedMonth.endDate,
+        });
+        if (result?.csvData) {
+          const filename = `credit-expense-log-${selectedMonth.value.toLowerCase().replace(" ", "-")}.csv`;
+          downloadAsCsv(result.csvData, filename);
+        } else {
+          showToast(t("error_downloading_expense_log"), "error");
+        }
+      } catch (error) {
+        showToast(t("error_downloading_expense_log"), "error");
+      } finally {
+        setIsDownloading(false);
+      }
+    };
 
-  return (
-    <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
-      <div>
-        <h2 className="text-base font-semibold">{t("credits")}</h2>
-        <ServerTrans
-          t={t}
-          i18nKey="view_and_manage_credits_description"
-          components={[
-            <Link
-              key="Credit System"
-              className="underline underline-offset-2"
-              target="_blank"
-              href="https://cal.com/help/billing-and-usage/messaging-credits">
-              Learn more
-            </Link>,
-          ]}
-        />
-        <div className="-mx-6 mt-6">
-          <hr className="border-subtle" />
-        </div>
-        <div className="mt-6">
-          {creditsData.credits.totalMonthlyCredits > 0 ? (
-            <div className="mb-4">
-              <Label>{t("monthly_credits")}</Label>
-              <ProgressBar
-                color="green"
-                percentageValue={teamCreditsPercentageUsed}
-                label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
-              />
-              <div className="text-subtle">
-                <div>
-                  {t("total_credits", {
-                    totalCredits: creditsData.credits.totalMonthlyCredits,
-                  })}
-                </div>
-                <div>
-                  {t("remaining_credits", {
-                    remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
-                  })}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <></>
-          )}
-          <Label>
-            {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
-          </Label>
-          <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
-          <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
-          </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex">
-            <div className="-mb-1 mr-auto">
-              <Label>{t("buy_additional_credits")}</Label>
-              <div className="flex flex-col">
-                <TextField
-                  required
-                  type="number"
-                  {...register("quantity", {
-                    required: t("error_required_field"),
-                    min: { value: 50, message: t("minimum_of_credits_required") },
-                    valueAsNumber: true,
-                  })}
-                  label=""
-                  containerClassName="w-60"
-                  onChange={(e) => setValue("quantity", Number(e.target.value))}
-                  min={50}
-                  addOnSuffix={<>{t("credits")}</>}
-                />
-                {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
-              </div>
-            </div>
-            <div className="mt-auto">
-              <Button
-                color="primary"
+    if (isLoading && teamId) return <BillingCreditsSkeleton />;
+    if (!creditsData) return null;
+
+    const onSubmit = (data: { quantity: number }) => {
+      buyCreditsMutation.mutate({ quantity: data.quantity, teamId });
+    };
+
+    const teamCreditsPercentageUsed =
+      creditsData.credits.totalMonthlyCredits > 0
+        ? (creditsData.credits.totalRemainingMonthlyCredits / creditsData.credits.totalMonthlyCredits) * 100
+        : 0;
+
+    return (
+      <div className="border-subtle mt-8 space-y-6 rounded-lg border px-6 py-6 pb-6 text-sm sm:space-y-8">
+        <div>
+          <h2 className="text-base font-semibold">{t("credits")}</h2>
+          <ServerTrans
+            t={t}
+            i18nKey="view_and_manage_credits_description"
+            components={[
+              <Link
+                key="Credit System"
+                className="underline underline-offset-2"
                 target="_blank"
-                EndIcon="external-link"
-                type="submit"
-                data-testid="buy-credits">
-                {t("buy_credits")}
-              </Button>
-            </div>
-          </form>
-          <div className="-mx-6 mb-6 mt-6">
-            <hr className="border-subtle mb-3 mt-3" />
+                href="https://cal.com/help/billing-and-usage/messaging-credits">
+                Learn more
+              </Link>,
+            ]}
+          />
+          <div className="-mx-6 mt-6">
+            <hr className="border-subtle" />
           </div>
-          <div className="flex">
-            <div className="mr-auto">
-              <Label className="mb-4">{t("download_expense_log")}</Label>
-              <div className="mt-2 flex flex-col">
-                <Select
-                  options={monthOptions}
-                  value={selectedMonth}
-                  onChange={(option) => option && setSelectedMonth(option)}
+          <div className="mt-6">
+            {creditsData.credits.totalMonthlyCredits > 0 ? (
+              <div className="mb-4">
+                <Label>{t("monthly_credits")}</Label>
+                <ProgressBar
+                  color="green"
+                  percentageValue={teamCreditsPercentageUsed}
+                  label={`${Math.max(0, Math.round(teamCreditsPercentageUsed))}%`}
                 />
+                <div className="text-subtle">
+                  <div>
+                    {t("total_credits", {
+                      totalCredits: creditsData.credits.totalMonthlyCredits,
+                    })}
+                  </div>
+                  <div>
+                    {t("remaining_credits", {
+                      remainingCredits: creditsData.credits.totalRemainingMonthlyCredits,
+                    })}
+                  </div>
+                </div>
               </div>
+            ) : (
+              <></>
+            )}
+            <Label>
+              {creditsData.credits.totalMonthlyCredits ? t("additional_credits") : t("available_credits")}
+            </Label>
+            <div className="mt-2 text-sm">{creditsData.credits.additionalCredits}</div>
+            <div className="-mx-6 mb-6 mt-6">
+              <hr className="border-subtle mb-3 mt-3" />
             </div>
-            <div className="mt-auto">
-              <Button onClick={handleDownload} loading={isDownloading} StartIcon="file-down">
-                {t("download")}
-              </Button>
+            <form onSubmit={handleSubmit(onSubmit)} className="flex">
+              <div className="-mb-1 mr-auto">
+                <Label>{t("buy_additional_credits")}</Label>
+                <div className="flex flex-col">
+                  <TextField
+                    required
+                    type="number"
+                    {...register("quantity", {
+                      required: t("error_required_field"),
+                      min: { value: 50, message: t("minimum_of_credits_required") },
+                      valueAsNumber: true,
+                    })}
+                    label=""
+                    containerClassName="w-60"
+                    onChange={(e) => setValue("quantity", Number(e.target.value))}
+                    min={50}
+                    addOnSuffix={<>{t("credits")}</>}
+                  />
+                  {errors.quantity && <InputError message={errors.quantity.message ?? t("invalid_input")} />}
+                </div>
+              </div>
+              <div className="mt-auto">
+                <Button
+                  color="primary"
+                  target="_blank"
+                  EndIcon="external-link"
+                  type="submit"
+                  data-testid="buy-credits">
+                  {t("buy_credits")}
+                </Button>
+              </div>
+            </form>
+            <div className="-mx-6 mb-6 mt-6">
+              <hr className="border-subtle mb-3 mt-3" />
+            </div>
+            <div className="flex">
+              <div className="mr-auto">
+                <Label className="mb-4">{t("download_expense_log")}</Label>
+                <div className="mt-2 flex flex-col">
+                  <Select
+                    options={monthOptions}
+                    value={selectedMonth}
+                    onChange={(option) => option && setSelectedMonth(option)}
+                  />
+                </div>
+              </div>
+              <div className="mt-auto">
+                <Button onClick={handleDownload} loading={isDownloading} StartIcon="file-down">
+                  {t("download")}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }

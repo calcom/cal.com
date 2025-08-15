@@ -113,7 +113,7 @@ export class AgentService {
       const existing = llmDetails?.general_tools ?? [];
 
       const hasCheckAvailability = existing.some(
-        (t) =>
+        (t): t is Extract<typeof t, { event_type_id: number }> =>
           t.type === "check_availability_cal" && "event_type_id" in t && t.event_type_id === data.eventTypeId
       );
 
@@ -123,7 +123,8 @@ export class AgentService {
       }
 
       const reusableKey = existing.find(
-        (t) => "cal_api_key" in t && typeof t.cal_api_key === "string"
+        (t): t is Extract<typeof t, { cal_api_key: string }> =>
+          "cal_api_key" in t && typeof t.cal_api_key === "string"
       )?.cal_api_key;
 
       const apiKey =
@@ -133,7 +134,7 @@ export class AgentService {
           teamId: data.teamId || undefined,
         }));
 
-      const newGeneralTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>>[] = [
+      const newGeneralTools: NonNullable<AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>> = [
         {
           type: "end_call",
           name: "end_call",
