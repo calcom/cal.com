@@ -5,10 +5,10 @@ import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { PasswordField } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
+import { PasswordField } from "@calcom/ui/components/form";
+import { TextField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
 
 export default function AppleCalendarSetup() {
