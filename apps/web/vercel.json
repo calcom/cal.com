@@ -42,17 +42,9 @@
     "pages/api/trpc/workflows/[trpc].ts": {
       "maxDuration": 800
     },
-    "pages/api/trpc/highPerf/[trpc].ts": {
-      "memory": 3008
-    },
-    "pages/api/trpc/appRoutingForms/[trpc].ts": {
-      "memory": 2048
-    },
-    "pages/router/embed.tsx": {
-      "memory": 2048
-    },
-    "pages/api/book/event.ts": {
-      "memory": 2048
-    }
+    "pages/api/trpc/highPerf/[trpc].ts": {},
+    "pages/api/trpc/appRoutingForms/[trpc].ts": {},
+    "pages/router/embed.tsx": {},
+    "pages/api/book/event.ts": {}
   }
 }
