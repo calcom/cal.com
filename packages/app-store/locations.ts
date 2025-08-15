@@ -55,7 +55,7 @@ export type DefaultEventLocationType = {
 export type EventLocationTypeFromApp = Ensure<
   EventLocationTypeFromAppMeta,
   "defaultValueVariable" | "variable"
-> & { customLabel?: string; organizerInputLabel?: string };
+> & { customLabel?: boolean; organizerInputLabel?: string };
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
@@ -209,6 +209,7 @@ export type LocationObject = {
   address?: string;
   displayLocationPublicly?: boolean;
   credentialId?: number;
+  customLabel?: string;
 } & Partial<
   Record<
     "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "somewhereElse",
@@ -289,7 +290,7 @@ export const guessEventLocationType = (locationTypeOrValue: string | undefined |
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
-type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link">;
+type PrivacyFilteredLocationObject = Optional<LocationObject, "address" | "link" | "customLabel">;
 
 export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFilteredLocationObject[] => {
   const locationsAfterPrivacyFilter = locations.map((location) => {
