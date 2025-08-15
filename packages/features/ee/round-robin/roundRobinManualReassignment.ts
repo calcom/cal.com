@@ -98,7 +98,7 @@ export const roundRobinManualReassignment = async ({
     );
     throw new Error("Reassignment not allowed with more than one round robin group");
   }
-  
+
   let eventTypeHosts: typeof eventType.hosts;
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED && !!eventType.parentId;
   const parentEventType = isManagedEventType ? await getEventTypesFromDB(eventType.parentId ?? -1) : null;
@@ -111,6 +111,7 @@ export const roundRobinManualReassignment = async ({
       weight: 100,
       schedule: null,
       createdAt: new Date(0),
+      groupId: null,
     }));
 
   if (parentEventType) {
