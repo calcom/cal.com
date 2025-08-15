@@ -1,6 +1,7 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -43,9 +44,21 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  const redirect_uri = teamId
-    ? `${WEBAPP_URL}/settings/teams/${teamId}/billing`
-    : `${WEBAPP_URL}/settings/billing`;
+  let redirect_uri = `${WEBAPP_URL}/settings/billing`;
+
+  if (teamId) {
+    // Check if the team is an organization
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { isOrganization: true },
+    });
+
+    if (team?.isOrganization) {
+      redirect_uri = `${WEBAPP_URL}/settings/organizations/billing`;
+    } else {
+      redirect_uri = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
+    }
+  }
 
   const billingService = new StripeBillingService();
 

@@ -1,7 +1,8 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -53,6 +54,8 @@ const getMonthOptions = (): MonthOption[] => {
 export default function BillingCredits() {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const session = useSession();
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [selectedMonth, setSelectedMonth] = useState<MonthOption>(monthOptions[0]);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -66,7 +69,9 @@ export default function BillingCredits() {
   } = useForm<{ quantity: number }>({ defaultValues: { quantity: 50 } });
 
   const params = useParamsWithFallback();
-  const teamId = params.id ? Number(params.id) : undefined;
+  const orgId = session.data?.user?.org?.id;
+
+  const teamId = params.id ? Number(params.id) : orgId;
 
   const { data: creditsData, isLoading } = trpc.viewer.credits.getAllCredits.useQuery({ teamId });
 
@@ -103,6 +108,11 @@ export default function BillingCredits() {
   };
 
   if (!IS_SMS_CREDITS_ENABLED) {
+    return null;
+  }
+
+  if (orgId && !pathname?.includes("/organizations/")) {
+    // Don't show credits on personal billing if user is an org member
     return null;
   }
 
@@ -206,7 +216,7 @@ export default function BillingCredits() {
             <hr className="border-subtle mb-3 mt-3" />
           </div>
           <div className="flex">
-            <div className="mr-auto ">
+            <div className="mr-auto">
               <Label className="mb-4">{t("download_expense_log")}</Label>
               <div className="mt-2 flex flex-col">
                 <Select
