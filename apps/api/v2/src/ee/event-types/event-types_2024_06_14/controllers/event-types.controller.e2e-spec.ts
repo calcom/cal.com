@@ -93,6 +93,7 @@ describe("Event types Endpoints", () => {
     const name = `event-types-2024-06-14-user-${randomString()}`;
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
+    let hiddenEventType: EventTypeOutput_2024_06_14;
     let user: User;
     let orgUser: User;
     let falseTestUser: User;
@@ -574,6 +575,35 @@ describe("Event types Endpoints", () => {
         });
     });
 
+    it("should create a hidden event type", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class hidden",
+        slug: "coding-class-hidden",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        hidden: true,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const createdEventType = responseBody.data;
+      expect(createdEventType).toHaveProperty("id");
+      expect(createdEventType.title).toEqual(body.title);
+      expect(createdEventType.hidden).toEqual(body.hidden);
+      hiddenEventType = responseBody.data;
+    });
+
     it(`/GET/event-types by username`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${username}`)
@@ -619,6 +649,30 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+    });
+
+    it(`/GET/event-types by username including hidden`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types/all`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(2);
+
+      const fetchedEventType = responseBody.data?.find(
+        (responseEventType) => responseEventType.id === eventType.id
+      );
+      const fetchedHiddenEventType = responseBody.data?.find(
+        (responseEventType) => responseEventType.id === hiddenEventType.id
+      );
+      expect(fetchedEventType?.id).toEqual(eventType.id);
+      expect(fetchedHiddenEventType?.id).toEqual(hiddenEventType.id);
     });
 
     it(`/GET/event-types by username and orgSlug`, async () => {
