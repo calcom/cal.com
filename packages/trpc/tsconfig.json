@@ -20,6 +20,7 @@
     "resolveJsonModule": true,
     "declarationDir": "types/server",
     "moduleResolution": "node",
+    "baseUrl": ".",
     "paths": {
       "~/*": ["./*"],
       "@calcom/app-store": ["../app-store"],
