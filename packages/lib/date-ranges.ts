@@ -65,7 +65,7 @@ export function processWorkingHours(
     let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
 
     const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay;
+    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
 
     start = start.add(offsetDiff, "minute");
     end = end.add(offsetDiff, "minute");
@@ -107,33 +107,193 @@ export function processWorkingHours(
           start: dayjs.min(existingRange.start, startResult),
           end: endResult,
         };
-
-        if (endTimeToKeyMap) {
-          const oldEndTime = existingRange.end.valueOf();
-          const newEndTime = endResult.valueOf();
-
-          if (oldEndTime !== newEndTime) {
-            const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
-            const filteredKeys = oldKeys.filter((k) => k !== key);
-            if (filteredKeys.length === 0) {
-              endTimeToKeyMap.delete(oldEndTime);
-            } else {
-              endTimeToKeyMap.set(oldEndTime, filteredKeys);
-            }
-
-            if (!endTimeToKeyMap.has(newEndTime)) {
-              endTimeToKeyMap.set(newEndTime, []);
-            }
-            endTimeToKeyMap.get(newEndTime)!.push(key);
-          }
-        }
-
         foundOverlapping = true;
         break;
       }
     }
 
     if (foundOverlapping) {
+      continue;
+    }
+
+    // Pre-compute timestamps outside the loop
+    const startValue = startResult.valueOf();
+    const endValue = endResult.valueOf();
+
+    let foundOverlapOrAdjacent = false;
+    // Use sorted array or Map for O(log N) overlap detection
+    const sortedRanges = Object.entries(results)
+      .map(([key, range]) => ({
+        key: Number(key),
+        ...range,
+        startValue: range.start.valueOf(),
+        endValue: range.end.valueOf(),
+      }))
+      .sort((a, b) => a.startValue - b.startValue);
+
+    // Binary search for overlaps instead of linear scan
+    const ADJACENCY_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+
+    let low = 0;
+    let high = sortedRanges.length - 1;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const range = sortedRanges[mid];
+
+      if (range.endValue + ADJACENCY_THRESHOLD_MS < startValue) {
+        low = mid + 1;
+      } else if (range.startValue > endValue + ADJACENCY_THRESHOLD_MS) {
+        high = mid - 1;
+      } else {
+        const isOverlapping =
+          (startValue <= range.endValue && endValue >= range.startValue) ||
+          Math.abs(startValue - range.endValue) <= ADJACENCY_THRESHOLD_MS ||
+          Math.abs(endValue - range.startValue) <= ADJACENCY_THRESHOLD_MS;
+
+        if (isOverlapping) {
+          const mergedStartValue = Math.min(range.startValue, startValue);
+          const mergedEndValue = Math.max(range.endValue, endValue);
+
+          const mergedStart = mergedStartValue === range.startValue ? range.start : startResult;
+          const mergedEnd = mergedEndValue === range.endValue ? range.end : endResult;
+
+          const newKey = mergedEnd.valueOf();
+          results[newKey] = {
+            start: mergedStart,
+            end: mergedEnd,
+          };
+
+          if (endTimeToKeyMap) {
+            const oldEndTime = range.end.valueOf();
+
+            const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+            const filteredKeys = oldKeys.filter((k) => k !== range.key);
+            if (filteredKeys.length === 0) {
+              endTimeToKeyMap.delete(oldEndTime);
+            } else {
+              endTimeToKeyMap.set(oldEndTime, filteredKeys);
+            }
+
+            const keySet = new Set(endTimeToKeyMap.get(newKey) || []);
+            keySet.add(newKey);
+            endTimeToKeyMap.set(newKey, Array.from(keySet));
+          }
+
+          // Remove the old entry
+          delete results[range.key];
+          foundOverlapOrAdjacent = true;
+          break;
+        }
+
+        let left = mid - 1;
+        let right = mid + 1;
+
+        while (left >= 0 || right < sortedRanges.length) {
+          if (left >= 0) {
+            const leftRange = sortedRanges[left];
+            if (leftRange.endValue + ADJACENCY_THRESHOLD_MS < startValue) {
+              left = -1;
+            } else {
+              const isOverlapping =
+                (startValue <= range.endValue && endValue >= range.startValue) ||
+                Math.abs(startValue - range.endValue) <= ADJACENCY_THRESHOLD_MS ||
+                Math.abs(endValue - range.startValue) <= ADJACENCY_THRESHOLD_MS;
+
+              if (isOverlapping) {
+                const mergedStartValue = Math.min(leftRange.startValue, startValue);
+                const mergedEndValue = Math.max(leftRange.endValue, endValue);
+
+                const mergedStart = mergedStartValue === leftRange.startValue ? leftRange.start : startResult;
+                const mergedEnd = mergedEndValue === leftRange.endValue ? leftRange.end : endResult;
+
+                const newKey = mergedEnd.valueOf();
+                results[newKey] = {
+                  start: mergedStart,
+                  end: mergedEnd,
+                };
+
+                if (endTimeToKeyMap) {
+                  const oldEndTime = leftRange.end.valueOf();
+                  const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+                  const filteredKeys = oldKeys.filter((k) => k !== leftRange.key);
+                  if (filteredKeys.length === 0) {
+                    endTimeToKeyMap.delete(oldEndTime);
+                  } else {
+                    endTimeToKeyMap.set(oldEndTime, filteredKeys);
+                  }
+
+                  const keySet = new Set(endTimeToKeyMap.get(newKey) || []);
+                  keySet.add(newKey);
+                  endTimeToKeyMap.set(newKey, Array.from(keySet));
+                }
+
+                // Remove the old entry
+                delete results[leftRange.key];
+                foundOverlapOrAdjacent = true;
+                break;
+              }
+              left--;
+            }
+          }
+
+          if (right < sortedRanges.length) {
+            const rightRange = sortedRanges[right];
+            if (rightRange.startValue > endValue + ADJACENCY_THRESHOLD_MS) {
+              right = sortedRanges.length;
+            } else {
+              const isOverlapping =
+                (startValue <= range.endValue && endValue >= range.startValue) ||
+                Math.abs(startValue - range.endValue) <= ADJACENCY_THRESHOLD_MS ||
+                Math.abs(endValue - range.startValue) <= ADJACENCY_THRESHOLD_MS;
+
+              if (isOverlapping) {
+                const mergedStartValue = Math.min(rightRange.startValue, startValue);
+                const mergedEndValue = Math.max(rightRange.endValue, endValue);
+
+                const mergedStart =
+                  mergedStartValue === rightRange.startValue ? rightRange.start : startResult;
+                const mergedEnd = mergedEndValue === rightRange.endValue ? rightRange.end : endResult;
+
+                const newKey = mergedEnd.valueOf();
+                results[newKey] = {
+                  start: mergedStart,
+                  end: mergedEnd,
+                };
+
+                if (endTimeToKeyMap) {
+                  const oldEndTime = rightRange.end.valueOf();
+                  const oldKeys = endTimeToKeyMap.get(oldEndTime) || [];
+                  const filteredKeys = oldKeys.filter((k) => k !== rightRange.key);
+                  if (filteredKeys.length === 0) {
+                    endTimeToKeyMap.delete(oldEndTime);
+                  } else {
+                    endTimeToKeyMap.set(oldEndTime, filteredKeys);
+                  }
+
+                  const keySet = new Set(endTimeToKeyMap.get(newKey) || []);
+                  keySet.add(newKey);
+                  endTimeToKeyMap.set(newKey, Array.from(keySet));
+                }
+
+                // Remove the old entry
+                delete results[rightRange.key];
+                foundOverlapOrAdjacent = true;
+                break;
+              }
+              right++;
+            }
+          }
+
+          if (left < 0 && right >= sortedRanges.length) {
+            break;
+          }
+        }
+        break;
+      }
+    }
+
+    if (foundOverlapOrAdjacent) {
       continue;
     }
 
@@ -159,7 +319,9 @@ export function processWorkingHours(
         if (!endTimeToKeyMap.has(endTimeKey)) {
           endTimeToKeyMap.set(endTimeKey, []);
         }
-        endTimeToKeyMap.get(endTimeKey)!.push(newKey);
+        const keySet = new Set(endTimeToKeyMap.get(endTimeKey) || []);
+        keySet.add(newKey);
+        endTimeToKeyMap.set(endTimeKey, Array.from(keySet));
       }
 
       delete results[oldKey];
@@ -176,7 +338,6 @@ export function processWorkingHours(
       if (!endTimeToKeyMap.has(endTimeKey)) {
         endTimeToKeyMap.set(endTimeKey, []);
       }
-      endTimeToKeyMap.get(endTimeKey)!.push(newKey);
     }
   }
 
