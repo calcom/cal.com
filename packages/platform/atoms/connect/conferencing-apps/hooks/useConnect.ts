@@ -18,14 +18,22 @@ export type UseGetOauthAuthUrlProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
+  orgId?: number;
 };
 
-export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo, teamId }: UseGetOauthAuthUrlProps) => {
+export const useGetZoomOauthAuthUrl = ({
+  returnTo,
+  onErrorReturnTo,
+  teamId,
+  orgId,
+}: UseGetOauthAuthUrlProps) => {
   const { organizationId } = useAtomsContext();
   let pathname = `conferencing/${ZOOM}/oauth/auth-url`;
 
   if (teamId) {
     pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${ZOOM}/oauth/auth-url`;
+  } else if (orgId) {
+    pathname = `organizations/${organizationId}/conferencing/${ZOOM}/oauth/auth-url`;
   }
 
   const queryParams = new URLSearchParams();
@@ -54,12 +62,15 @@ export const useOffice365GetOauthAuthUrl = ({
   returnTo,
   onErrorReturnTo,
   teamId,
+  orgId,
 }: UseGetOauthAuthUrlProps) => {
   const { organizationId } = useAtomsContext();
   let pathname = `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
 
   if (teamId) {
     pathname = `organizations/${organizationId}/teams/${teamId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
+  } else if (orgId) {
+    pathname = `organizations/${organizationId}/conferencing/${OFFICE_365_VIDEO}/oauth/auth-url`;
   }
 
   // Add query parameters
@@ -91,6 +102,7 @@ export type UseConnectGoogleMeetProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
+  orgId?: number;
 };
 
 export const useConnectNonOauthApp = (
