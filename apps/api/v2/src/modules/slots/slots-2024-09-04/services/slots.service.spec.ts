@@ -310,6 +310,52 @@ describe("SlotsService_2024_09_04", () => {
       });
     });
 
+    it("should handle eventTypeId with default availability fallback", async () => {
+      const input = {
+        type: "byEventTypeId" as const,
+        eventTypeId: 123,
+        start: "2024-01-15T00:00:00.000Z",
+        end: "2024-01-16T00:00:00.000Z",
+        timeZone: "America/New_York",
+      };
+
+      const transformedQuery = {
+        isTeamEvent: false,
+        startTime: "2024-01-15T00:00:00.000Z",
+        endTime: "2024-01-16T23:59:59.000Z",
+        eventTypeId: 123,
+        eventTypeSlug: "test-event",
+        usernameList: [],
+        timeZone: "America/New_York",
+        orgSlug: null,
+        rescheduleUid: null,
+        routedTeamMemberIds: null,
+        skipContactOwner: false,
+        teamMemberEmail: null,
+        routingFormResponseId: undefined,
+      };
+
+      (slotsInputService.transformRoutingGetSlotsQuery as jest.Mock).mockResolvedValue(transformedQuery);
+      (availableSlotsService.getAvailableSlots as jest.Mock).mockResolvedValue({ 
+        slots: {
+          "2024-01-15": [{ time: "2024-01-15T10:00:00.000Z" }, { time: "2024-01-15T11:00:00.000Z" }],
+        } 
+      });
+
+      const result = await service.getAvailableSlotsWithRouting(input);
+
+      expect(availableSlotsService.getAvailableSlots).toHaveBeenCalledWith({
+        input: transformedQuery,
+        ctx: {},
+      });
+
+      expect(result).toEqual({
+        slots: {
+          "2024-01-15": [{ time: "2024-01-15T10:00:00.000Z" }, { time: "2024-01-15T11:00:00.000Z" }],
+        },
+      });
+    });
+
     it("should handle empty routedTeamMemberIds array", async () => {
       const input = {
         type: "byEventTypeId" as const,
