@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
@@ -84,31 +86,42 @@ export const sendSMS = async ({
     });
   }
 
-  if (isWhatsapp) {
-    const messageOptions: any = {
-      contentSid: contentSid,
-      to: getSMSNumber(phoneNumber, isWhatsapp),
-      from: getDefaultSender(isWhatsapp),
-      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
-      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    };
+  try {
+    if (isWhatsapp) {
+      const messageOptions: any = {
+        contentSid: contentSid,
+        to: getSMSNumber(phoneNumber, isWhatsapp),
+        from: getDefaultSender(isWhatsapp),
+        statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+        messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      };
 
-    if (contentVariables) {
-      messageOptions.contentVariables = JSON.stringify(contentVariables);
+      if (contentVariables) {
+        messageOptions.contentVariables = JSON.stringify(contentVariables);
+      }
+
+      const response = await twilio.messages.create(messageOptions);
+      return response;
+    } else {
+      const response = await twilio.messages.create({
+        body: body,
+        messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+        to: getSMSNumber(phoneNumber),
+        from: sender || getDefaultSender(),
+        statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      });
+
+      return response;
     }
-
-    const response = await twilio.messages.create(messageOptions);
-    return response;
-  } else {
-    const response = await twilio.messages.create({
-      body: body,
-      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-      to: getSMSNumber(phoneNumber),
-      from: sender || getDefaultSender(),
-      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
-    });
-
-    return response;
+  } catch (error: unknown) {
+    // 21211: Invalid 'To' phone number - when recipient number format is invalid
+    if (error instanceof Error && "code" in error && error.code === 21211) {
+      throw new ErrorWithCode(
+        ErrorCode.TwilioInvalidPhoneNumber,
+        error.message ?? `Invalid phone number: ${error}`
+      );
+    }
+    throw error;
   }
 };
 
@@ -171,35 +184,46 @@ export const scheduleSMS = async ({
     });
   }
 
-  if (isWhatsapp) {
-    const messageOptions: any = {
-      contentSid: contentSid,
-      to: getSMSNumber(phoneNumber, isWhatsapp),
-      scheduleType: "fixed",
-      sendAt: scheduledDate,
-      from: getDefaultSender(isWhatsapp),
-      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
-      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-    };
+  try {
+    if (isWhatsapp) {
+      const messageOptions: any = {
+        contentSid: contentSid,
+        to: getSMSNumber(phoneNumber, isWhatsapp),
+        scheduleType: "fixed",
+        sendAt: scheduledDate,
+        from: getDefaultSender(isWhatsapp),
+        statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+        messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+      };
 
-    if (contentVariables) {
-      messageOptions.contentVariables = JSON.stringify(contentVariables);
+      if (contentVariables) {
+        messageOptions.contentVariables = JSON.stringify(contentVariables);
+      }
+
+      const response = await twilio.messages.create(messageOptions);
+      return response;
+    } else {
+      const response = await twilio.messages.create({
+        body,
+        messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
+        to: getSMSNumber(phoneNumber),
+        scheduleType: "fixed",
+        sendAt: scheduledDate,
+        from: sender || getDefaultSender(),
+        statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
+      });
+
+      return response;
     }
-
-    const response = await twilio.messages.create(messageOptions);
-    return response;
-  } else {
-    const response = await twilio.messages.create({
-      body,
-      messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
-      to: getSMSNumber(phoneNumber),
-      scheduleType: "fixed",
-      sendAt: scheduledDate,
-      from: sender || getDefaultSender(),
-      statusCallback: getStatusCallbackUrl(userId, teamId, bookingUid),
-    });
-
-    return response;
+  } catch (error: unknown) {
+    // 21211: Invalid 'To' phone number - when recipient number format is invalid
+    if (error instanceof Error && "code" in error && error.code === 21211) {
+      throw new ErrorWithCode(
+        ErrorCode.TwilioInvalidPhoneNumber,
+        error.message ?? `Invalid phone number: ${error}`
+      );
+    }
+    throw error;
   }
 };
 
