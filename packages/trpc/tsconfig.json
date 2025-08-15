@@ -21,7 +21,7 @@
     "declarationDir": "types/server",
     "moduleResolution": "node",
     "paths": {
-      "~/*": ["/*"],
+      "~/*": ["./*"],
       "@calcom/app-store": ["../app-store"],
       "@calcom/app-store/*": ["../app-store/*"],
       "@calcom/dayjs": ["../dayjs"],
