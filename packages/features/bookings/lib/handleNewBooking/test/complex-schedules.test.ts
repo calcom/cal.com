@@ -191,7 +191,6 @@ describe("handleNewBooking", () => {
               uid: "GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
             },
           ],
           iCalUID: createdBooking.iCalUID,

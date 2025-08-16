@@ -68,6 +68,9 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => {
         iCalUID: calEvent.iCalUID || "GOOGLE_CALENDAR_EVENT_ID",
         password: "MOCK_PASSWORD",
         url: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+        createdEvent: {
+          hangoutLink: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+        },
       };
     }
 
@@ -662,7 +665,6 @@ describe("handleNewBooking", () => {
               uid: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingId: "OFFICE_365_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
               // Verify Delegation credential was used
               delegationCredentialId: delegationCredential.id,
             },

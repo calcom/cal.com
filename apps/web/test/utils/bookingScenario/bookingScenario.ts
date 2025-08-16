@@ -1793,6 +1793,9 @@ export async function mockCalendar(
                   normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
                   "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
               },
+              hangoutLink:
+                normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
+                "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
               uid: normalizedCalendarData.create?.uid || "GOOGLE_CALENDAR_EVENT_ID",
               id: normalizedCalendarData.create?.id || "GOOGLE_CALENDAR_EVENT_ID",
               iCalUID:
