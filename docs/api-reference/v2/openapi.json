@@ -8471,6 +8471,8 @@
           }
         },
         "tags": ["Cal Unified Calendars"]
+<<<<<<< HEAD
+=======
       }
     },
     "/v2/calendars/{calendar}/events/{eventUid}": {
@@ -8530,6 +8532,7 @@
           }
         },
         "tags": ["Cal Unified Calendars"]
+>>>>>>> main
       }
     },
     "/v2/calendars/ics-feed/save": {
@@ -9771,6 +9774,8 @@
           }
         },
         "tags": ["Event Types / Webhooks"]
+<<<<<<< HEAD
+=======
       }
     },
     "/v2/event-types/{eventTypeId}/private-links": {
@@ -9955,6 +9960,7 @@
           }
         },
         "tags": ["Event Types Private Links"]
+>>>>>>> main
       }
     },
     "/v2/organizations/{orgId}/organizations": {
@@ -23827,6 +23833,8 @@
           }
         },
         "required": ["status", "data"]
+<<<<<<< HEAD
+=======
       },
       "UpdatePrivateLinkBody": {
         "type": "object",
@@ -23844,6 +23852,7 @@
             "minimum": 1
           }
         }
+>>>>>>> main
       },
       "MeOrgOutput": {
         "type": "object",
@@ -26492,7 +26501,11 @@
       },
       "CalendarEventResponseStatus": {
         "type": "string",
+<<<<<<< HEAD
+        "description": "Host's response to the invitation",
+=======
         "description": "Response status of the attendee",
+>>>>>>> main
         "enum": ["accepted", "pending", "declined", "needsAction"]
       },
       "CalendarEventAttendee": {
@@ -26553,6 +26566,8 @@
           }
         },
         "required": ["email"]
+<<<<<<< HEAD
+=======
       },
       "calendarEventOwner": {
         "type": "object",
@@ -26568,6 +26583,7 @@
           }
         },
         "required": ["email"]
+>>>>>>> main
       },
       "CalendarSource": {
         "type": "string",
@@ -26690,6 +26706,8 @@
           }
         },
         "required": ["status", "data"]
+<<<<<<< HEAD
+=======
       },
       "UpdateCalendarEventAttendee": {
         "type": "object",
@@ -26775,6 +26793,7 @@
             "$ref": "#/components/schemas/CalendarEventStatus"
           }
         }
+>>>>>>> main
       },
       "RequestEmailVerificationInput": {
         "type": "object",

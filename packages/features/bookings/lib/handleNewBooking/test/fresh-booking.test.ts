@@ -158,7 +158,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
           },
@@ -212,7 +212,6 @@ describe("handleNewBooking", () => {
               uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               meetingPassword: "MOCK_PASSWORD",
-              meetingUrl: "https://UNUSED_URL",
             },
           ],
           iCalUID: createdBooking.iCalUID,
@@ -324,7 +323,7 @@ describe("handleNewBooking", () => {
           });
 
           // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "GOOGLE_CALENDAR_EVENT_ID",
               uid: "MOCK_ID",
@@ -377,7 +376,6 @@ describe("handleNewBooking", () => {
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -487,7 +485,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
@@ -540,7 +538,6 @@ describe("handleNewBooking", () => {
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -773,7 +770,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "GOOGLE_CALENDAR_EVENT_ID",
@@ -827,7 +824,6 @@ describe("handleNewBooking", () => {
                 uid: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,
@@ -932,7 +928,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("applecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("applecalendar", {
             create: {
               uid: "MOCK_ID",
               id: "MOCKED_APPLE_CALENDAR_EVENT_ID",
@@ -987,7 +983,6 @@ describe("handleNewBooking", () => {
                 uid: "MOCKED_APPLE_CALENDAR_EVENT_ID",
                 meetingId: "MOCKED_APPLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
           });
@@ -3189,7 +3184,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             },
@@ -3243,7 +3238,6 @@ describe("handleNewBooking", () => {
                 uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
               },
             ],
             iCalUID: createdBooking.iCalUID,

@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { Calendar, CalendarClass } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import appStore from "..";
+import { CalendarServiceMap } from "../calendar.services.generated";
 
 interface CalendarApp {
   lib: {
@@ -26,6 +26,9 @@ const isCalendarService = (x: unknown): x is CalendarApp =>
 export const getCalendar = async (
   credential: CredentialForCalendarService | null
 ): Promise<Calendar | null> => {
+  const perfStartTime = performance.now();
+  console.log(`[PERF] getCalendar started at ${perfStartTime}ms for type: ${credential?.type}`);
+
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {
@@ -36,19 +39,31 @@ export const getCalendar = async (
     calendarType = calendarType.split("_crm")[0];
   }
 
-  const calendarAppImportFn = appStore[calendarType.split("_").join("") as keyof typeof appStore];
+  const calendarStoreAccessStart = performance.now();
+  const calendarAppImportFn =
+    CalendarServiceMap[calendarType.split("_").join("") as keyof typeof CalendarServiceMap];
+  const calendarStoreAccessEnd = performance.now();
+  console.log(`[PERF] CalendarServiceMap access took ${calendarStoreAccessEnd - calendarStoreAccessStart}ms`);
 
   if (!calendarAppImportFn) {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
 
-  const calendarApp = await calendarAppImportFn();
+  const dynamicImportStart = performance.now();
+  const calendarApp = await calendarAppImportFn;
+  const dynamicImportEnd = performance.now();
+  console.log(`[PERF] dynamic import of ${calendarType} took ${dynamicImportEnd - dynamicImportStart}ms`);
 
-  if (!isCalendarService(calendarApp)) {
+  const CalendarService = calendarApp.default;
+
+  if (!CalendarService || typeof CalendarService !== "function") {
     log.warn(`calendar of type ${calendarType} is not implemented`);
     return null;
   }
-  const CalendarService = calendarApp.lib.CalendarService;
-  return new CalendarService(credential);
+  log.info("Got CalendarService", CalendarService);
+
+  const perfEndTime = performance.now();
+  console.log(`[PERF] getCalendar total time: ${perfEndTime - perfStartTime}ms`);
+  return new CalendarService(credential as any);
 };
