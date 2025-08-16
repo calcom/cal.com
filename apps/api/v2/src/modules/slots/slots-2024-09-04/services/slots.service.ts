@@ -54,11 +54,14 @@ export class SlotsService_2024_09_04 {
 
   private async fetchAndFormatSlots(queryTransformed: InternalSlotsQuery, format?: SlotFormat) {
     try {
+      const perfStartTime = performance.now();
+      console.log(`[PERF] API v2 getAvailableSlots started at ${perfStartTime}ms`);
       const availableSlots: TimeSlots = await this.availableSlotsService.getAvailableSlots({
         input: queryTransformed,
         ctx: {},
       });
 
+      const formattingStart = performance.now();
       const formatted = await this.slotsOutputService.getAvailableSlots(
         availableSlots,
         queryTransformed.eventTypeId,
