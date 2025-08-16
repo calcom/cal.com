@@ -2,8 +2,8 @@
 
 import { isSupportedCountry } from "libphonenumber-js";
 import { useState, useEffect } from "react";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { trpc } from "@calcom/trpc/react";
@@ -40,38 +40,32 @@ function BasePhoneInput({
   return (
     <PhoneInput
       {...rest}
-      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      enableSearch
-      disableSearchIcon
-      country={defaultCountry}
+      value={value}
+      defaultCountry={value ? undefined : defaultCountry}
       inputProps={{
         name: name,
         required: rest.required,
         placeholder: rest.placeholder,
       }}
       onChange={(value) => {
-        onChange(`+${value}`);
+        onChange(`${value}`);
       }}
-      containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+      style={{ padding: "0px 12px" }}
+      className={classNames(
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default focus-within:ring-brand-default rounded-md border  focus-within:outline-none disabled:cursor-not-allowed",
         className
       )}
-      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
-      buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
-      searchClass="!text-default !bg-default hover:!bg-emphasis"
-      dropdownClass="!text-default !bg-default"
-      inputStyle={{ width: "inherit", border: 0 }}
-      searchStyle={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        padding: "6px 12px",
-        gap: "8px",
-        width: "296px",
-        height: "28px",
-        marginLeft: "-4px",
+      inputClassName="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
+      countrySelectorStyleProps={{
+        buttonClassName: "text-emphasis !bg-default ",
+        buttonStyle: {
+          border: "1px",
+        },
+        dropdownStyleProps: {
+          listItemClassName: "!text-default !bg-default",
+        },
       }}
-      dropdownStyle={{ width: "max-content" }}
+      inputStyle={{ border: 0, color: "inherit" }}
     />
   );
 }
@@ -87,38 +81,32 @@ function BasePhoneInputWeb({
   return (
     <PhoneInput
       {...rest}
-      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
-      enableSearch
-      disableSearchIcon
+      value={value}
+      defaultCountry={value ? undefined : defaultCountry}
       inputProps={{
         name: name,
         required: rest.required,
         placeholder: rest.placeholder,
       }}
       onChange={(value) => {
-        onChange(`+${value}`);
+        onChange(`${value}`);
       }}
-      containerClass={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+      style={{ padding: "0px 12px" }}
+      className={classNames(
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default focus-within:ring-brand-default rounded-md border  focus-within:outline-none disabled:cursor-not-allowed",
         className
       )}
-      inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
-      buttonClass="text-emphasis !bg-default hover:!bg-emphasis"
-      searchClass="!text-default !bg-default hover:!bg-emphasis"
-      dropdownClass="!text-default !bg-default"
-      inputStyle={{ width: "inherit", border: 0 }}
-      searchStyle={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        padding: "6px 12px",
-        gap: "8px",
-        width: "296px",
-        height: "28px",
-        marginLeft: "-4px",
+      inputClassName="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
+      countrySelectorStyleProps={{
+        buttonClassName: "text-emphasis !bg-default ",
+        buttonStyle: {
+          border: "1px",
+        },
+        dropdownStyleProps: {
+          listItemClassName: "!text-default !bg-default",
+        },
       }}
-      dropdownStyle={{ width: "max-content" }}
+      inputStyle={{ border: 0, color: "inherit" }}
     />
   );
 }
