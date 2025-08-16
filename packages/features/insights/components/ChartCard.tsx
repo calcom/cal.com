@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, type ReactNode } from "react";
 
 import classNames from "@calcom/ui/classNames";
@@ -19,7 +21,7 @@ export function ChartCard({
   legendSize,
   children,
 }: {
-  title: string;
+  title: string | React.ReactNode;
   subtitle?: string;
   cta?: { label: string; onClick: () => void };
   legend?: Array<LegendItem>;
@@ -29,7 +31,11 @@ export function ChartCard({
   return (
     <div className="bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1 pb-1">
       <div className="flex h-11 w-full shrink-0 items-center justify-between gap-2 px-4">
-        <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
+        {typeof title === "string" ? (
+          <h2 className="text-emphasis mr-4 shrink-0 text-sm font-semibold">{title}</h2>
+        ) : (
+          title
+        )}
         <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
           {legend && legend.length > 0 && <Legend items={legend} size={legendSize} />}
           {cta && (
@@ -51,9 +57,21 @@ export function ChartCard({
   );
 }
 
-export function ChartCardItem({ count, children }: { count?: number | string; children: ReactNode }) {
+export function ChartCardItem({
+  count,
+  className,
+  children,
+}: {
+  count?: number | string;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0">
+    <div
+      className={classNames(
+        "text-default border-muted flex items-center justify-between border-b px-3 py-3.5 last:border-b-0",
+        className
+      )}>
       <div className="text-sm font-medium">{children}</div>
       {count !== undefined && <div className="text-sm font-medium">{count}</div>}
     </div>
@@ -66,13 +84,13 @@ function Legend({ items, size = "default" }: { items: LegendItem[]; size?: Legen
       {items.map((item, index) => (
         <Fragment key={item.label}>
           <div
-            className="relative flex items-center gap-2 rounded-md px-1.5 py-1"
+            className="relative flex items-center gap-2 rounded-md px-1.5 py-0.5"
             style={{ backgroundColor: `${item.color}33` }}>
             <div className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
             <Tooltip content={item.label}>
               <p
                 className={classNames(
-                  "text-default truncate text-sm font-medium leading-none",
+                  "text-default truncate py-0.5 text-sm font-medium leading-none",
                   size === "sm" ? "w-16" : ""
                 )}>
                 {item.label}

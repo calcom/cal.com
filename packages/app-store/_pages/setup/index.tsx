@@ -14,6 +14,7 @@ export const AppSetupMap = {
   stripe: dynamic(() => import("../../stripepayment/pages/setup")),
   paypal: dynamic(() => import("../../paypal/pages/setup")),
   hitpay: dynamic(() => import("../../hitpay/pages/setup")),
+  btcpayserver: dynamic(() => import("../../btcpayserver/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
