@@ -156,7 +156,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
               ))}
             </ul>
           </div>
-          <div className="text-default mb-16 mt-4 hidden text-center text-sm md:block">
+          <div className="text-default mb-16 mt-4 block text-center text-sm">
             {t("temporarily_out_of_office")}{" "}
             <Link href="settings/my-account/out-of-office" className="underline">
               {t("add_a_redirect")}
