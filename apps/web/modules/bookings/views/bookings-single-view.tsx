@@ -2,6 +2,7 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -634,7 +635,9 @@ export default function Success(props: PageProps) {
                                   )}
                                   {attendee.phoneNumber && (
                                     <p data-testid={`attendee-phone-${attendee.phoneNumber}`}>
-                                      {attendee.phoneNumber}
+                                      {parsePhoneNumberFromString(
+                                        attendee.phoneNumber
+                                      )?.formatInternational() ?? attendee.phoneNumber}
                                     </p>
                                   )}
                                   {!isSmsCalEmail(attendee.email) && (
