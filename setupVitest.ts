@@ -10,3 +10,22 @@ const fetchMocker = createFetchMock(vi);
 fetchMocker.enableMocks();
 
 expect.extend(matchers);
+
+vi.mock("@calcom/exchangecalendar/lib/CalendarService", () => ({
+  default: class MockExchangeCalendarService {
+    constructor() {}
+    async createEvent() {
+      return { uid: "mock", id: "mock", password: "", type: "", url: "", additionalInfo: {} };
+    }
+    async updateEvent() {
+      return { uid: "mock", id: "mock", password: "", type: "", url: "", additionalInfo: {} };
+    }
+    async deleteEvent() {}
+    async getAvailability() {
+      return [];
+    }
+    async listCalendars() {
+      return [];
+    }
+  },
+}));
