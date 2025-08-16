@@ -2908,7 +2908,7 @@ describe("handleNewBooking", () => {
           metadataLookupKey: "dailyvideo",
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: { uid: "NEW_EVENT_ID" },
           update: { uid: "UPDATED_EVENT_ID" },
         });
