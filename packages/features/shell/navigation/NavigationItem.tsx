@@ -16,6 +16,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
   useEffect(() => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       const stored = sessionStorage.getItem(`nav-expansion-${itemName}`);
       if (stored !== null) {
         setIsExpanded(JSON.parse(stored));
@@ -26,6 +27,7 @@ const usePersistedExpansionState = (itemName: string) => {
   const setPersistedExpansion = (expanded: boolean) => {
     setIsExpanded(expanded);
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       sessionStorage.setItem(`nav-expansion-${itemName}`, JSON.stringify(expanded));
     } catch (_error) {}
   };
@@ -86,7 +88,41 @@ export const NavigationItem: React.FC<{
   return (
     <Fragment>
       {isParentNavigationItem ? (
-        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+        <Tooltip
+          side="right"
+          content={
+            <div className="pointer-events-auto flex flex-col space-y-1 p-1">
+              <span className="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t(item.name)}
+              </span>
+
+              <div className="flex flex-col">
+                {item.child?.map((childItem) => (
+                  <Link
+                    key={childItem.name}
+                    href={childItem.href}
+                    aria-current={
+                      isCurrent({ isChild: true, item: childItem, pathname }) ? "page" : undefined
+                    }
+                    className={classNames(
+                      "group relative block rounded-md px-3 py-1 text-sm font-medium transition-all duration-200 ease-in-out",
+                      "text-gray-700",
+                      "hover:bg-black hover:text-white",
+                      isCurrent({ isChild: true, item: childItem, pathname }) && "bg-emphasis text-white"
+                    )}>
+                    {t(childItem.name)}
+                    <span
+                      className={classNames(
+                        "pointer-events-none absolute bottom-1 left-3 right-3 h-0.5 origin-left scale-x-0 rounded transition-transform duration-200",
+                        "group-hover:scale-x-100"
+                      )}
+                    />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          }
+          className="lg:hidden">
           <button
             data-test-id={item.name}
             aria-label={t(item.name)}
@@ -120,7 +156,10 @@ export const NavigationItem: React.FC<{
               <SkeletonText className="h-[20px] w-full" />
             )}
             {shouldShowChevron && (
-              <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="ml-auto h-4 w-4" />
+              <Icon
+                name={isExpanded ? "chevron-up" : "chevron-down"}
+                className="ml-auto hidden h-4 w-4 lg:inline"
+              />
             )}
           </button>
         </Tooltip>
