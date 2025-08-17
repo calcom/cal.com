@@ -18,7 +18,7 @@ export function isTwilioError(error: unknown): error is Error & {
     typeof error.code === "number" &&
     typeof error.status === "number" &&
     typeof error.moreInfo === "string" &&
-    error.moreInfo.includes("twilio") &&
+    error.moreInfo.includes("twilio") && // e.g., `moreInfo: 'https://www.twilio.com/docs/errors/21211'`
     // Twilio error codes span multiple series:
     // - 10000: General API errors (trial limitations, invalid requests)
     // - 20000: Messaging and Voice errors (phone numbers, delivery issues)
