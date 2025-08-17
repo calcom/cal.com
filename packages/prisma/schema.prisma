@@ -1146,20 +1146,22 @@ enum AppCategories {
 
 model App {
   // The slug for the app store public page inside `/apps/[slug]`
-  slug        String          @id @unique
+  slug           String          @id @unique
   // The directory name for `/packages/app-store/[dirName]`
-  dirName     String          @unique
+  dirName        String          @unique
   // Needed API Keys
-  keys        Json?
+  keys           Json?
   // One or multiple categories to which this app belongs
-  categories  AppCategories[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  credentials Credential[]
-  payments    Payment[]
-  Webhook     Webhook[]
-  ApiKey      ApiKey[]
-  enabled     Boolean         @default(false)
+  categories     AppCategories[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  credentials    Credential[]
+  payments       Payment[]
+  Webhook        Webhook[]
+  ApiKey         ApiKey[]
+  enabled        Boolean         @default(false)
+  description    String?
+  extendsFeature String?
 
   @@index([enabled])
 }
