@@ -3,15 +3,22 @@
  * @param error - The error to check
  * @returns True if the error is a Twilio error
  */
-export function isTwilioError(error: unknown): error is Error & { code: number; status: number } {
+export function isTwilioError(error: unknown): error is Error & {
+  code: number;
+  status: number;
+  moreInfo: string;
+} {
   return (
     error instanceof Error &&
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
     "status" in error &&
+    "moreInfo" in error &&
     typeof error.code === "number" &&
     typeof error.status === "number" &&
+    typeof error.moreInfo === "string" &&
+    error.moreInfo.includes("twilio") &&
     // Twilio error codes span multiple series:
     // - 10000: General API errors (trial limitations, invalid requests)
     // - 20000: Messaging and Voice errors (phone numbers, delivery issues)
