@@ -608,10 +608,8 @@ export function AgentConfigurationSheet({
                     </div>
                     {/* Only show US restriction for Retell purchased numbers, not imported ones */}
                     {agentData.outboundPhoneNumbers.filter(
-                      (phone) =>
-                        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE ||
-                        !phone.subscriptionStatus
-                    )[0].provider === "retell" && (
+                      (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
+                    )[0].provider === "retellAI" && (
                       <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />
                     )}
                   </>
@@ -675,6 +673,7 @@ export function AgentConfigurationSheet({
                 })}
               </p>
             </div>
+            <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />
             <BaseDialogFooter showDivider className="relative">
               <Button onClick={() => setIsBuyDialogOpen(false)} color="secondary">
                 {t("cancel")}
