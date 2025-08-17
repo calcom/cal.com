@@ -681,13 +681,16 @@ export function AgentConfigurationSheet({
               </Button>
               <Button
                 StartIcon="external-link"
-                onClick={() =>
+                onClick={() => {
+                  if (!agentId) {
+                    return;
+                  }
                   buyNumberMutation.mutate({
                     agentId: agentId,
                     workflowId: workflowId,
-                    teamId: teamId,
-                  })
-                }
+                    teamId: teamId ?? undefined,
+                  });
+                }}
                 loading={buyNumberMutation.isPending}
                 disabled={buyNumberMutation.isPending}>
                 {t("buy_number_for_x_per_month", {

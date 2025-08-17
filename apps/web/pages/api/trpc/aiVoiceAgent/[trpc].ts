@@ -1,4 +1,4 @@
 import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
-import { aiRouter } from "@calcom/trpc/server/routers/viewer/ai/_router";
+import { aiVoiceAgentRouter } from "@calcom/trpc/server/routers/viewer/aiVoiceAgent/_router";
 
-export default createNextApiHandler(aiRouter);
+export default createNextApiHandler(aiVoiceAgentRouter);

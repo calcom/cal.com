@@ -9,15 +9,27 @@ import type {
 import type { AgentRepositoryInterface } from "../../interfaces/AgentRepositoryInterface";
 import type { RetellAIRepository, RetellDynamicVariables } from "../types";
 
+interface RetellAIServiceInterface {
+  updateToolsFromAgentId(
+    agentId: string,
+    data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
+  ): Promise<void>;
+}
+
 const MIN_CREDIT_REQUIRED_FOR_TEST_CALL = 5;
 
 export class CallService {
   private logger = logger.getSubLogger({ prefix: ["CallService"] });
+  private retellAIService?: RetellAIServiceInterface;
 
   constructor(
     private retellRepository: RetellAIRepository,
     private agentRepository: AgentRepositoryInterface
   ) {}
+
+  setRetellAIService(service: RetellAIServiceInterface): void {
+    this.retellAIService = service;
+  }
 
   async createPhoneCall(data: {
     from_number: string;
@@ -62,11 +74,15 @@ export class CallService {
     phoneNumber,
     userId,
     teamId,
+    timeZone,
+    eventTypeId,
   }: {
     agentId: string;
     phoneNumber?: string;
     userId: number;
     teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
       throw new HttpError({
@@ -111,11 +127,33 @@ export class CallService {
       });
     }
 
-    // TODO:update tools before call
+    await this.retellAIService.updateToolsFromAgentId(agent.providerAgentId, {
+      eventTypeId,
+      timeZone,
+      userId,
+      teamId,
+    });
 
     const call = await this.createPhoneCall({
       from_number: agentPhoneNumber,
       to_number: toNumber,
+      retell_llm_dynamic_variables: {
+        EVENT_NAME: "Test Call with Agent",
+        EVENT_DATE: "Monday, January 15, 2025",
+        EVENT_TIME: "2:00 PM",
+        EVENT_END_TIME: "2:30 PM",
+        TIMEZONE: timeZone,
+        LOCATION: "Phone Call",
+        ORGANIZER_NAME: "Cal.com AI Agent",
+        ATTENDEE_NAME: "Test User",
+        ATTENDEE_FIRST_NAME: "Test",
+        ATTENDEE_LAST_NAME: "User",
+        ATTENDEE_EMAIL: "testuser@example.com",
+        ATTENDEE_TIMEZONE: timeZone,
+        ADDITIONAL_NOTES: "This is a test call to verify the AI phone agent",
+        EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "2:00 PM",
+        EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "2:30 PM",
+      },
     });
 
     return {

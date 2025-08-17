@@ -32,7 +32,7 @@ export const phoneNumberRouter = router({
       z
         .object({
           teamId: z.number().optional(),
-          agentId: z.string().nullish(),
+          agentId: z.string(),
           workflowId: z.string().optional(),
         })
         .optional()
@@ -43,7 +43,7 @@ export const phoneNumberRouter = router({
 
       const checkoutSession = await aiService.generatePhoneNumberCheckoutSession({
         userId,
-        teamId: input?.teamId,
+        teamId: input?.teamId ?? undefined,
         agentId: input?.agentId,
         workflowId: input?.workflowId,
       });

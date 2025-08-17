@@ -256,6 +256,8 @@ export class RetellAIPhoneServiceProvider
     phoneNumber?: string;
     userId: number;
     teamId?: number;
+    timeZone: string;
+    eventTypeId: number;
   }): Promise<{
     callId: string;
     status: string;

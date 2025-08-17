@@ -49,6 +49,9 @@ export class RetellAIService {
       phoneNumberRepository,
       transactionManager
     );
+
+    // Inject RetellAIService reference into CallService
+    this.callService.setRetellAIService(this);
   }
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {

@@ -18,7 +18,7 @@ const log = logger.getSubLogger({ prefix: ["[calAIPhone] subscription/success"] 
 
 const checkoutSessionMetadataSchema = z.object({
   userId: z.coerce.number().int().positive(),
-  teamId: z.coerce.number().int().positive().optional(),
+  teamId: z.coerce.number().int().optional(),
   eventTypeId: z.coerce.number().int().positive().optional(),
   agentId: z.string().optional(),
   workflowId: z.string().optional(),

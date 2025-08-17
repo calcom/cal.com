@@ -2,11 +2,13 @@ import { z } from "zod";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import type { RetellLLMGeneralTools } from "@calcom/features/calAIPhone/providers/retellAI/types";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import prisma from "@calcom/prisma";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
-export const aiRouter = router({
+export const aiVoiceAgentRouter = router({
   list: authedProcedure
     .input(
       z
@@ -151,12 +153,23 @@ export const aiRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const aiService = createDefaultAIPhoneServiceProvider();
+      const timeZone = ctx.user.timeZone ?? "Europe/London";
+      const eventTypeRepo = new EventTypeRepository(prisma);
+      const eventType = await eventTypeRepo.getFirstEventTypeByUserId({ userId: ctx.user.id });
+      if (!eventType?.id) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No event type found for user",
+        });
+      }
 
       return await aiService.createTestCall({
         agentId: input.agentId,
         phoneNumber: input.phoneNumber,
         userId: ctx.user.id,
         teamId: input.teamId,
+        timeZone,
+        eventTypeId: eventType.id,
       });
     }),
 });
