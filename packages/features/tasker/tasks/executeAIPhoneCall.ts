@@ -15,17 +15,26 @@ interface ExecuteAIPhoneCallPayload {
   teamId: number | null;
   providerAgentId: string;
 }
+const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
 export async function executeAIPhoneCall(payload: string) {
   let data: ExecuteAIPhoneCallPayload;
   try {
     data = JSON.parse(payload);
   } catch (error) {
-    logger.error("Failed to parse AI phone call payload", { error, payload });
+    log.error("Failed to parse AI phone call payload", { error, payload });
     throw new Error("Invalid JSON payload");
   }
 
-  logger.info(`Executing AI phone call for workflow reminder ${data.workflowReminderId}`, data);
+  const featuresRepository = new FeaturesRepository(prisma);
+  const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
+
+  if (!calAIVoiceAgents) {
+    log.warn("Cal AI voice agents are disabled - skipping AI phone call");
+    return;
+  }
+
+  log.info(`Executing AI phone call for workflow reminder ${data.workflowReminderId}`, data);
 
   try {
     // Check if the workflow reminder still exists and is scheduled
@@ -83,7 +92,7 @@ export async function executeAIPhoneCall(payload: string) {
     });
 
     if (!workflowReminder || !workflowReminder.scheduled) {
-      logger.warn(`Workflow reminder ${data.workflowReminderId} not found or not scheduled`);
+      log.warn(`Workflow reminder ${data.workflowReminderId} not found or not scheduled`);
       throw new Error("Reminder not found or not scheduled");
     }
 
@@ -98,7 +107,7 @@ export async function executeAIPhoneCall(payload: string) {
       });
 
       if (!hasCredits) {
-        logger.warn(`Insufficient credits for AI phone call`, {
+        log.warn(`Insufficient credits for AI phone call`, {
           userId: data.userId,
           teamId: data.teamId,
           workflowReminderId: data.workflowReminderId,
@@ -117,7 +126,7 @@ export async function executeAIPhoneCall(payload: string) {
       : null;
 
     if (!rateLimitIdentifier) {
-      logger.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {
+      log.warn(`No rate limit identifier found for AI phone call. This should not happen.`, {
         userId: data.userId,
         teamId: data.teamId,
         workflowReminderId: data.workflowReminderId,
@@ -135,14 +144,14 @@ export async function executeAIPhoneCall(payload: string) {
 
     const booking = workflowReminder.booking;
     if (!booking) {
-      logger.warn(`No booking found for workflow reminder ${data.workflowReminderId}`);
+      log.warn(`No booking found for workflow reminder ${data.workflowReminderId}`);
       throw new Error("No booking found");
     }
 
     const numberToCall = data.toNumber;
 
     if (!numberToCall) {
-      logger.warn(`No phone number found for attendee in booking ${booking.uid}`);
+      log.warn(`No phone number found for attendee in booking ${booking.uid}`);
       throw new Error("No phone number found for attendee");
     }
 
@@ -213,7 +222,7 @@ export async function executeAIPhoneCall(payload: string) {
       retell_llm_dynamic_variables: dynamicVariables,
     });
 
-    logger.info("AI phone call created successfully:", call);
+    log.info("AI phone call created successfully:", call);
 
     // Update the workflow reminder with the call reference
     await prisma.workflowReminder.update({
@@ -224,7 +233,7 @@ export async function executeAIPhoneCall(payload: string) {
       },
     });
 
-    logger.info(`AI phone call executed successfully for workflow reminder ${data.workflowReminderId}`, {
+    log.info(`AI phone call executed successfully for workflow reminder ${data.workflowReminderId}`, {
       callId: call.call_id,
       agentId: data.agentId,
       fromNumber: data.fromNumber,
@@ -234,7 +243,7 @@ export async function executeAIPhoneCall(payload: string) {
   } catch (error) {
     console.error("=== AI PHONE CALL TASK FAILED ===");
     console.error("Error:", error);
-    logger.error("Error executing AI phone call:", error);
+    log.error("Error executing AI phone call:", error);
     throw error;
   }
 }
