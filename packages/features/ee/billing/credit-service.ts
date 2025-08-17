@@ -78,6 +78,8 @@ export class CreditService {
         return {
           bookingUid: existingLog.bookingUid,
           duplicate: true,
+          userId,
+          teamId,
         };
       }
     }
