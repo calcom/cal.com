@@ -4,6 +4,7 @@ import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBooking
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { isTwilioError } from "@calcom/lib/isTwilioError";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
 
@@ -250,6 +251,14 @@ async function handler(req: NextApiRequest) {
     );
   } catch (error: unknown) {
     const knownError = error as Error;
+
+    if (isTwilioError(knownError) && knownError.status === 400) {
+      throw new HttpError({
+        statusCode: 400,
+        message: knownError.message ?? "Invalid phone number format",
+      });
+    }
+
     if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
       throw new HttpError({ statusCode: 400, message: knownError.message });
     }
