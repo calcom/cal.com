@@ -6,14 +6,6 @@ import { ForbiddenException } from "@nestjs/common";
 import { ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
-jest.mock("@calcom/prisma/client", () => ({
-  MembershipRole: {
-    OWNER: "OWNER",
-    ADMIN: "ADMIN",
-    MEMBER: "MEMBER",
-  },
-}));
-
 describe("PlatformPlanGuard", () => {
   let guard: PlatformPlanGuard;
   let reflector: Reflector;

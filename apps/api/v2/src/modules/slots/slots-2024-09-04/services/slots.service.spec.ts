@@ -11,20 +11,6 @@ import { Test, TestingModule } from "@nestjs/testing";
 
 import { SlotsService_2024_09_04 } from "./slots.service";
 
-jest.mock("@/lib/services/available-slots.service", () => ({
-  AvailableSlotsService: jest.fn().mockImplementation(() => ({
-    getAvailableSlots: jest.fn(),
-  })),
-}));
-
-jest.mock("@calcom/prisma/client", () => ({
-  MembershipRole: {
-    OWNER: "OWNER",
-    ADMIN: "ADMIN",
-    MEMBER: "MEMBER",
-  },
-}));
-
 describe("SlotsService_2024_09_04", () => {
   let service: SlotsService_2024_09_04;
   let eventTypesRepository: EventTypesRepository_2024_06_14;
