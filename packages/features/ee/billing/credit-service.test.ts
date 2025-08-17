@@ -740,6 +740,8 @@ describe("CreditService", () => {
       expect(result).toEqual({
         bookingUid: "booking-123",
         duplicate: true,
+        teamId: undefined,
+        userId: 1,
       });
 
       expect(CreditsRepository.findCreditExpenseLogByExternalRef).toHaveBeenCalledWith(
