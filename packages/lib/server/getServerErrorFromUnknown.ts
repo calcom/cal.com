@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { isTwilioError } from "@calcom/lib/isTwilioError";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
@@ -40,6 +41,13 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   if (cause instanceof TRPCError) {
     const statusCode = getHTTPStatusCodeFromError(cause);
     return new HttpError({ statusCode, message: cause.message });
+  }
+  if (isTwilioError(cause)) {
+    return new HttpError({
+      statusCode: cause.status,
+      message: cause.message,
+      cause,
+    });
   }
   if (isZodError(cause)) {
     return new HttpError({
@@ -114,7 +122,6 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.EventTypeNoHosts:
     case ErrorCode.RequestBodyInvalid:
     case ErrorCode.ChargeCardFailure:
-    case ErrorCode.TwilioInvalidPhoneNumber:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:

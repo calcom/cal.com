@@ -17,7 +17,6 @@ const test400Codes = [
   ErrorCode.BookerLimitExceeded,
   ErrorCode.BookerLimitExceededReschedule,
   ErrorCode.ChargeCardFailure,
-  ErrorCode.TwilioInvalidPhoneNumber,
 ];
 
 const test404Codes = [
