@@ -1430,6 +1430,8 @@ async function handler(
     eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
+  const skipDeleteEventsAndMeetings = changedOrganizer;
+
   const isBookingRequestedReschedule =
     !!originalRescheduledBooking &&
     !!originalRescheduledBooking.rescheduled &&
@@ -1702,7 +1704,8 @@ async function handler(
       undefined,
       changedOrganizer,
       previousHostDestinationCalendar,
-      isBookingRequestedReschedule
+      isBookingRequestedReschedule,
+      skipDeleteEventsAndMeetings
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
