@@ -85,10 +85,10 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
     <div className="border-subtle relative flex h-64 flex-col rounded-md border p-5">
       <div className="flex">
         <img
-          src={app.logo}
+          src={app?.logo || ""}
           alt={`${app.name} Logo`}
           className={classNames(
-            app.logo.includes("-dark") && "dark:invert",
+            app?.logo && app?.logo.includes("-dark") && "dark:invert",
             "mb-4 h-12 w-12 rounded-sm" // TODO: Maybe find a better way to handle this @Hariom?
           )}
         />
