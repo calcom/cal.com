@@ -182,6 +182,16 @@ async function handler(request: NextRequest) {
   try {
     const payload = RetellWebhookSchema.parse(body);
     const callData = payload.call;
+    if (callData.direction === "inbound") {
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Inbound calls are not charged or supported for now. Ignoring call ${callData.call_id}`,
+        },
+        { status: 200 }
+      );
+    }
+
     log.info(`Received Retell AI webhook: ${payload.event} for call ${callData.call_id}`);
 
     const result = await handleCallAnalyzed(callData);
