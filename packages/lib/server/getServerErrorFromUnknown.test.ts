@@ -65,6 +65,44 @@ describe("getServerErrorFromUnknown", () => {
     expect(result.name).toBe("HttpError");
   });
 
+  test("should handle a Twilio error with 400 status", () => {
+    const message = "The 'To' number +77123456789 is not a valid phone number.";
+    const twilioError = {
+      message,
+      code: 21211,
+      status: 400,
+      moreInfo: "https://www.twilio.com/docs/errors/21211",
+    };
+    Object.setPrototypeOf(twilioError, Error.prototype);
+
+    const result = getServerErrorFromUnknown(twilioError);
+
+    expect(result).toBeInstanceOf(HttpError);
+    expect(result.statusCode).toBe(400);
+    expect(result.message).toBe(message);
+    expect(result.cause).toEqual(twilioError);
+    expect(result.name).toBe("HttpError");
+  });
+
+  test("should handle a Twilio error with 500 status", () => {
+    const message = "Internal Twilio service error";
+    const twilioError = {
+      message,
+      code: 30001,
+      status: 500,
+      moreInfo: "https://www.twilio.com/docs/errors/30001",
+    };
+    Object.setPrototypeOf(twilioError, Error.prototype);
+
+    const result = getServerErrorFromUnknown(twilioError);
+
+    expect(result).toBeInstanceOf(HttpError);
+    expect(result.statusCode).toBe(500);
+    expect(result.message).toBe(message);
+    expect(result.cause).toEqual(twilioError);
+    expect(result.name).toBe("HttpError");
+  });
+
   test("ErrorWithCode should preserve data property", () => {
     const rescheduleData = {
       rescheduleUid: "abc123",
