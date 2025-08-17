@@ -60,6 +60,7 @@ export class CreditService {
     smsSid,
     smsSegments,
     callDuration,
+    externalRef,
   }: {
     userId?: number;
     teamId?: number;
@@ -68,7 +69,18 @@ export class CreditService {
     smsSid?: string;
     smsSegments?: number;
     callDuration?: number;
+    externalRef?: string;
   }) {
+    if (externalRef) {
+      const existingLog = await CreditsRepository.findCreditExpenseLogByExternalRef(externalRef);
+      if (existingLog) {
+        log.warn("Credit expense log already exists", { externalRef, existingLog });
+        return {
+          bookingUid: existingLog.bookingUid,
+          duplicate: true,
+        };
+      }
+    }
     return await prisma
       .$transaction(async (tx) => {
         let teamIdToCharge = credits === 0 && teamId ? teamId : undefined;
@@ -103,6 +115,7 @@ export class CreditService {
           smsSegments,
           callDuration,
           tx,
+          externalRef,
         });
 
         let lowCreditBalanceResult = null;
@@ -307,6 +320,7 @@ export class CreditService {
     smsSegments?: number;
     callDuration?: number;
     tx: PrismaTransaction;
+    externalRef?: string;
   }) {
     const { credits, creditType, bookingUid, smsSid, teamId, userId, smsSegments, callDuration, tx } = props;
     let creditBalance: { id: string; additionalCredits: number } | null | undefined =
@@ -350,6 +364,7 @@ export class CreditService {
           smsSid,
           smsSegments,
           callDuration,
+          externalRef: props.externalRef,
         },
         tx
       );

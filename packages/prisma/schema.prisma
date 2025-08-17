@@ -609,6 +609,7 @@ model CreditExpenseLog {
   smsSid          String?
   smsSegments     Int?
   callDuration    Int?
+  externalRef     String?       @unique
 }
 
 enum CreditType {

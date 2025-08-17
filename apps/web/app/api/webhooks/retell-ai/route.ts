@@ -93,17 +93,34 @@ async function handleCallAnalyzed(callData: any) {
   const creditsToDeduct = Math.ceil(baseCost * safeMultiplier);
   const creditService = new CreditService();
 
-  await creditService.chargeCredits({
-    userId: userId ?? undefined,
-    teamId: teamId ?? undefined,
-    credits: creditsToDeduct,
-    callDuration: call_cost.total_duration_seconds,
-  });
+  try {
+    await creditService.chargeCredits({
+      userId: userId ?? undefined,
+      teamId: teamId ?? undefined,
+      credits: creditsToDeduct,
+      callDuration: call_cost.total_duration_seconds,
+      externalRef: `retell:${call_id}`,
+    });
+  } catch (e) {
+    log.error("Error charging credits for Retell AI call", {
+      error: e,
+      call_id,
+      call_cost,
+      userId,
+      teamId,
+    });
+    return {
+      success: false,
+      message: `Error charging credits for Retell AI call: ${
+        e instanceof Error ? e.message : "Unknown error"
+      }`,
+    };
+  }
 
   return {
     success: true,
-    message: `Successfully charged ${creditsToDeduct} credits for ${
-      teamId ? `team ${teamId}` : `user ${userId}`
+    message: `Successfully charged ${creditsToDeduct} credits for ${teamId ? `team:${teamId}` : ""} ${
+      userId ? `user:${userId}` : ""
     }, call ${call_id} (base cost: ${baseCost} cents)`,
   };
 }
@@ -171,7 +188,7 @@ async function handler(request: NextRequest) {
 
     return NextResponse.json(
       {
-        success: true,
+        success: result?.success ?? true,
         message: result?.message ?? `Processed ${payload.event} for call ${callData.call_id}`,
       },
       { status: 200 }

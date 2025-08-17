@@ -213,11 +213,15 @@ describe("Retell AI Webhook Handler", () => {
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.success).toBe(true);
-    expect(mockChargeCredits).toHaveBeenCalledWith({
-      userId: 1,
-      teamId: undefined,
-      credits: 180,
-    });
+    expect(mockChargeCredits).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 1,
+        teamId: undefined,
+        credits: 180,
+        callDuration: undefined,
+        externalRef: "retell:test-call-id",
+      })
+    );
   });
 
   it("should handle team phone numbers", async () => {
@@ -265,11 +269,15 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(request);
 
     expect(response.status).toBe(200);
-    expect(mockChargeCredits).toHaveBeenCalledWith({
-      userId: undefined,
-      teamId: 5,
-      credits: 90,
-    });
+    expect(mockChargeCredits).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: undefined,
+        teamId: 5,
+        credits: 90,
+        callDuration: undefined,
+        externalRef: "retell:test-call-id",
+      })
+    );
   });
 
   it("should handle missing call cost", async () => {
@@ -437,11 +445,15 @@ describe("Retell AI Webhook Handler", () => {
       const request = createMockRequest(body, "valid-signature");
       await callPOST(request);
 
-      expect(mockChargeCredits).toHaveBeenCalledWith({
-        userId: 1,
-        teamId: undefined,
-        credits: expectedCredits,
-      });
+      expect(mockChargeCredits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 1,
+          teamId: undefined,
+          credits: expectedCredits,
+          callDuration: undefined,
+          externalRef: expect.stringMatching(/^retell:test-call-/),
+        })
+      );
     }
   });
 
@@ -488,5 +500,177 @@ describe("Retell AI Webhook Handler", () => {
     expect(mockChargeCredits).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 42, credits: 22, callDuration: 125 })
     );
+  });
+
+  describe("Idempotency", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should pass externalRef with correct format to chargeCredits", async () => {
+      vi.mocked(Retell.verify).mockReturnValue(true);
+      const mockPhoneNumber: MockPhoneNumberWithUser = {
+        id: 1,
+        phoneNumber: "+1234567890",
+        userId: 1,
+        teamId: null,
+        provider: "test-provider",
+        providerPhoneNumberId: "test-provider-id",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: null,
+        inboundAgentId: null,
+        outboundAgentId: null,
+        user: { id: 1, email: "test@example.com", name: "Test User" },
+        team: null,
+      };
+      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockChargeCredits.mockResolvedValue({ userId: 1 });
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "test-idempotency-call",
+          from_number: "+1234567890",
+          to_number: "+0987654321",
+          direction: "outbound",
+          call_status: "completed",
+          start_timestamp: 1234567890,
+          call_cost: {
+            combined_cost: 100,
+            total_duration_seconds: 60,
+          },
+        },
+      };
+
+      const response = await callPOST(createMockRequest(body, "valid-signature"));
+
+      expect(response.status).toBe(200);
+      expect(mockChargeCredits).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 1,
+          teamId: undefined,
+          credits: 180,
+          callDuration: 60,
+          externalRef: "retell:test-idempotency-call",
+        })
+      );
+    });
+
+    it("should handle duplicate webhook calls idempotently", async () => {
+      vi.mocked(Retell.verify).mockReturnValue(true);
+      const mockPhoneNumber: MockPhoneNumberWithUser = {
+        id: 1,
+        phoneNumber: "+1234567890",
+        userId: 1,
+        teamId: null,
+        provider: "test-provider",
+        providerPhoneNumberId: "test-provider-id",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: null,
+        inboundAgentId: null,
+        outboundAgentId: null,
+        user: { id: 1, email: "test@example.com", name: "Test User" },
+        team: null,
+      };
+      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "duplicate-call-id",
+          from_number: "+1234567890",
+          to_number: "+0987654321",
+          direction: "outbound",
+          call_status: "completed",
+          start_timestamp: 1234567890,
+          call_cost: {
+            combined_cost: 100,
+            total_duration_seconds: 60,
+          },
+        },
+      };
+
+      // First call - should charge normally
+      mockChargeCredits.mockResolvedValue({ userId: 1 });
+      const response1 = await callPOST(createMockRequest(body, "valid-signature"));
+      expect(response1.status).toBe(200);
+      const data1 = await response1.json();
+      expect(data1.success).toBe(true);
+      expect(data1.message).toContain("Successfully charged 180 credits");
+
+      // Second call - should return duplicate
+      mockChargeCredits.mockResolvedValue({ bookingUid: null, duplicate: true });
+      const response2 = await callPOST(createMockRequest(body, "valid-signature"));
+      expect(response2.status).toBe(200);
+      const data2 = await response2.json();
+      expect(data2.success).toBe(true);
+      expect(data2.message).toContain("Successfully charged 180 credits");
+
+      // Verify chargeCredits was called twice with same externalRef
+      expect(mockChargeCredits).toHaveBeenCalledTimes(2);
+      expect(mockChargeCredits).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ externalRef: "retell:duplicate-call-id" })
+      );
+      expect(mockChargeCredits).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ externalRef: "retell:duplicate-call-id" })
+      );
+    });
+
+    it("should handle errors from chargeCredits gracefully", async () => {
+      vi.mocked(Retell.verify).mockReturnValue(true);
+      const mockPhoneNumber: MockPhoneNumberWithUser = {
+        id: 1,
+        phoneNumber: "+1234567890",
+        userId: 1,
+        teamId: null,
+        provider: "test-provider",
+        providerPhoneNumberId: "test-provider-id",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: null,
+        inboundAgentId: null,
+        outboundAgentId: null,
+        user: { id: 1, email: "test@example.com", name: "Test User" },
+        team: null,
+      };
+      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+
+      // Mock chargeCredits to throw an error
+      mockChargeCredits.mockRejectedValue(new Error("Credit service error"));
+
+      const body: RetellWebhookBody = {
+        event: "call_analyzed",
+        call: {
+          call_id: "error-call-id",
+          from_number: "+1234567890",
+          to_number: "+0987654321",
+          direction: "outbound",
+          call_status: "completed",
+          start_timestamp: 1234567890,
+          call_cost: {
+            combined_cost: 100,
+            total_duration_seconds: 60,
+          },
+        },
+      };
+
+      const response = await callPOST(createMockRequest(body, "valid-signature"));
+
+      // Should still return 200 to prevent retries
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.success).toBe(false);
+      expect(data.message).toContain("Error charging credits for Retell AI call");
+    });
   });
 });

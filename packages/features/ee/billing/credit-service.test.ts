@@ -111,6 +111,8 @@ describe("CreditService", () => {
     };
     (Stripe as any).mockImplementation(() => stripeMock);
     creditService = new CreditService();
+
+    vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue(null);
   });
 
   describe("Team credits", () => {
@@ -712,6 +714,134 @@ describe("CreditService", () => {
       expect(MembershipRepository.findAllAcceptedPublishedTeamMemberships).toHaveBeenCalledWith(1, MOCK_TX);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledTimes(1);
       expect(CreditsRepository.findCreditBalance).toHaveBeenCalledWith({ teamId: 2 }, MOCK_TX);
+    });
+  });
+
+  describe("Idempotency", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should detect duplicate charges by externalRef", async () => {
+      vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue({
+        id: "existing-log-id",
+        credits: 10,
+        creditType: CreditType.ADDITIONAL,
+        date: new Date(),
+        bookingUid: "booking-123",
+      });
+
+      const result = await creditService.chargeCredits({
+        userId: 1,
+        credits: 10,
+        externalRef: "retell:duplicate-call-123",
+      });
+
+      expect(result).toEqual({
+        bookingUid: "booking-123",
+        duplicate: true,
+      });
+
+      expect(CreditsRepository.findCreditExpenseLogByExternalRef).toHaveBeenCalledWith(
+        "retell:duplicate-call-123"
+      );
+      expect(CreditsRepository.createCreditExpenseLog).not.toHaveBeenCalled();
+      expect(CreditsRepository.updateCreditBalance).not.toHaveBeenCalled();
+    });
+
+    it("should create expense log with externalRef when not duplicate", async () => {
+      vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue(null);
+
+      vi.mocked(CreditsRepository.findCreditBalanceWithTeamOrUser).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+        user: {
+          id: 1,
+          name: "Test User",
+          email: "test@example.com",
+          locale: "en",
+        },
+        team: null,
+      });
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.spyOn(CreditService.prototype, "_getUserOrTeamToCharge").mockResolvedValue({
+        userId: 1,
+        remainingCredits: 90,
+        creditType: CreditType.ADDITIONAL,
+      });
+
+      await creditService.chargeCredits({
+        userId: 1,
+        credits: 10,
+        bookingUid: "booking-456",
+        externalRef: "retell:new-call-456",
+      });
+
+      expect(CreditsRepository.findCreditExpenseLogByExternalRef).toHaveBeenCalledWith("retell:new-call-456");
+
+      expect(CreditsRepository.createCreditExpenseLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          credits: 10,
+          creditType: CreditType.ADDITIONAL,
+          bookingUid: "booking-456",
+          externalRef: "retell:new-call-456",
+        }),
+        MOCK_TX
+      );
+    });
+
+    it("should work normally without externalRef", async () => {
+      vi.mocked(CreditsRepository.findCreditBalanceWithTeamOrUser).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+        team: {
+          id: 1,
+          name: "Test Team",
+          members: [],
+        },
+        user: null,
+      });
+
+      vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
+        id: "1",
+        additionalCredits: 100,
+        limitReachedAt: null,
+        warningSentAt: null,
+      });
+
+      vi.spyOn(CreditService.prototype, "_getAllCreditsForTeam").mockResolvedValue({
+        totalMonthlyCredits: 500,
+        totalRemainingMonthlyCredits: 100,
+        additionalCredits: 100,
+      });
+
+      await creditService.chargeCredits({
+        teamId: 1,
+        credits: 10,
+        bookingUid: "booking-789",
+      });
+
+      expect(CreditsRepository.findCreditExpenseLogByExternalRef).not.toHaveBeenCalled();
+
+      expect(CreditsRepository.createCreditExpenseLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          credits: 10,
+          bookingUid: "booking-789",
+          externalRef: undefined,
+        }),
+        MOCK_TX
+      );
     });
   });
 });
