@@ -1415,6 +1415,9 @@ export class EventTypeRepository {
         userId,
         teamId: null,
       },
+      select: {
+        id: true,
+      },
     });
   }
 }

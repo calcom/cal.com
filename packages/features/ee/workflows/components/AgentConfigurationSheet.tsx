@@ -607,11 +607,11 @@ export function AgentConfigurationSheet({
                       </div>
                     </div>
                     {/* Only show US restriction for Retell purchased numbers, not imported ones */}
-                    {agentData.outboundPhoneNumbers.filter(
-                      (phone) => phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE
-                    )[0].provider === "retellAI" && (
-                      <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />
-                    )}
+                    {agentData.outboundPhoneNumbers.some(
+                      (phone) =>
+                        phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE &&
+                        phone.provider === "retellAI"
+                    ) && <Alert severity="info" title={t("you_can_only_call_numbers_in_the_us")} />}
                   </>
                 ) : (
                   <div className="border-subtle rounded-xl border p-8">

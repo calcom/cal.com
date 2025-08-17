@@ -127,6 +127,14 @@ export class CallService {
       });
     }
 
+    if (!this.retellAIService) {
+      this.logger.error("RetellAIService not configured before createTestCall");
+      throw new HttpError({
+        statusCode: 500,
+        message: "Internal configuration error: AI phone service not initialized",
+      });
+    }
+
     await this.retellAIService.updateToolsFromAgentId(agent.providerAgentId, {
       eventTypeId,
       timeZone,

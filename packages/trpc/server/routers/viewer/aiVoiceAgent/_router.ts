@@ -5,6 +5,8 @@ import type { RetellLLMGeneralTools } from "@calcom/features/calAIPhone/provider
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import prisma from "@calcom/prisma";
 
+import { TRPCError } from "@trpc/server";
+
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
