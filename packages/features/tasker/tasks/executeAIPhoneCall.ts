@@ -97,7 +97,6 @@ export async function executeAIPhoneCall(payload: string) {
       throw new Error("Reminder not found or not scheduled");
     }
 
-    // Check if user/team has sufficient credits before making the call
     if (data.userId || data.teamId) {
       const { CreditService } = await import("@calcom/features/ee/billing/credit-service");
       const creditService = new CreditService();
@@ -159,7 +158,6 @@ export async function executeAIPhoneCall(payload: string) {
     const attendee = booking.attendees[0];
     const timeZone = booking.user?.timeZone || attendee?.timeZone || "UTC";
 
-    // Get form responses if available
     const { responses } = getCalEventResponses({
       bookingFields: booking.eventType?.bookingFields ?? null,
       booking: {
@@ -168,7 +166,6 @@ export async function executeAIPhoneCall(payload: string) {
       },
     });
 
-    // Split attendee name into first and last name
     const attendeeNameWords = attendee?.name?.trim().split(" ") || [];
     const attendeeNameWordCount = attendeeNameWords.length;
     const attendeeFirstName = attendeeNameWords[0] || "";

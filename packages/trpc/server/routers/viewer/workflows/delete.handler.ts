@@ -81,7 +81,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
           try {
             // Check subscription status and handle accordingly
             if (phoneNumber.subscriptionStatus === "ACTIVE") {
-              // Cancel active subscription
               await aiPhoneService.cancelPhoneNumberSubscription({
                 phoneNumberId: phoneNumber.id,
                 userId: ctx.user.id,
@@ -90,7 +89,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
               phoneNumber.subscriptionStatus === null ||
               phoneNumber.subscriptionStatus === undefined
             ) {
-              // Delete imported or inactive phone number
               await aiPhoneService.deletePhoneNumber({
                 phoneNumber: phoneNumber.phoneNumber,
                 userId: ctx.user.id,
@@ -99,12 +97,10 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
             }
           } catch (error) {
             console.error(`Failed to handle phone number ${phoneNumber.phoneNumber}:`, error);
-            // Continue with deletion even if phone handling fails
           }
         }
       }
 
-      // Delete the agent
       if (step.agent) {
         try {
           await aiPhoneService.deleteAgent({
