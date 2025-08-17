@@ -1,6 +1,7 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { getVideoAdapters } from "@calcom/app-store/_utils/getVideo";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
@@ -13,42 +14,11 @@ import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
-
-// factory
-const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
-  const videoAdapters: VideoApiAdapter[] = [];
-
-  for (const cred of withCredentials) {
-    const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-
-    const appStore = await import("@calcom/app-store").then((m) => m.default);
-    const appImportFn = appStore[appName as keyof typeof appStore];
-
-    // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
-    const app = appImportFn ? await appImportFn() : null;
-
-    if (!app) {
-      log.error(`Couldn't get adapter for ${appName}`);
-      continue;
-    }
-
-    if ("lib" in app && "VideoApiAdapter" in app.lib) {
-      const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
-      const videoAdapter = makeVideoApiAdapter(cred);
-      videoAdapters.push(videoAdapter);
-    } else {
-      log.error(`App ${appName} doesn't have 'lib.VideoApiAdapter' defined`);
-    }
-  }
-
-  return videoAdapters;
-};
 
 const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
   Promise.all((await getVideoAdapters(withCredentials)).map((c) => c?.getAvailability())).then((results) =>
