@@ -2,7 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { AnalyticsService, AnalyticsServiceClass } from "@calcom/types/AnalyticsService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import appStore from "..";
+import { AnalyticsServiceMap } from "../analytics.apps.generated";
 
 const log = logger.getSubLogger({ prefix: ["AnalyticsManager"] });
 
@@ -30,7 +30,7 @@ export const getAnalyticsService = async ({
 
   const analyticsName = analyticsType.split("_")[0];
 
-  const analyticsAppImportFn = appStore[analyticsName as keyof typeof appStore];
+  const analyticsAppImportFn = AnalyticsServiceMap[analyticsName];
 
   if (!analyticsAppImportFn) {
     log.warn(`analytics app not implemented`);
