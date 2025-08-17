@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HttpError } from "@calcom/lib/http-error";
 
 import { CallService } from "../CallService";
 import { setupBasicMocks, createMockCall, createMockDatabaseAgent, TestError } from "./test-utils";
@@ -17,6 +16,7 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
 describe("CallService", () => {
   let service: CallService;
   let mocks: ReturnType<typeof setupBasicMocks>;
+  let mockRetellAIService: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -35,7 +35,12 @@ describe("CallService", () => {
 
     vi.mocked(checkRateLimitAndThrowError).mockResolvedValue(undefined);
 
+    mockRetellAIService = {
+      updateToolsFromAgentId: vi.fn().mockResolvedValue(undefined),
+    };
+
     service = new CallService(mocks.mockRetellRepository, mocks.mockAgentRepository);
+    service.setRetellAIService(mockRetellAIService);
   });
 
   afterEach(() => {
@@ -89,6 +94,8 @@ describe("CallService", () => {
       agentId: "agent-123",
       phoneNumber: "+0987654321",
       userId: 1,
+      timeZone: "America/New_York",
+      eventTypeId: 123,
     };
 
     const mockAgentWithPhoneNumber = createMockDatabaseAgent({
@@ -113,9 +120,23 @@ describe("CallService", () => {
         message: "Call initiated to +0987654321 with call_id call-123",
       });
 
+      expect(mockRetellAIService.updateToolsFromAgentId).toHaveBeenCalledWith(
+        mockAgentWithPhoneNumber.providerAgentId,
+        {
+          eventTypeId: 123,
+          timeZone: "America/New_York",
+          userId: 1,
+          teamId: undefined,
+        }
+      );
+
       expect(mocks.mockRetellRepository.createPhoneCall).toHaveBeenCalledWith({
         from_number: "+1234567890",
         to_number: "+0987654321",
+        retell_llm_dynamic_variables: expect.objectContaining({
+          EVENT_NAME: "Test Call with Agent",
+          TIMEZONE: "America/New_York",
+        }),
       });
     });
 
@@ -133,6 +154,16 @@ describe("CallService", () => {
         status: "registered",
         message: "Call initiated to +0987654321 with call_id call-123",
       });
+
+      expect(mockRetellAIService.updateToolsFromAgentId).toHaveBeenCalledWith(
+        mockAgentWithPhoneNumber.providerAgentId,
+        {
+          eventTypeId: 123,
+          timeZone: "America/New_York",
+          userId: 1,
+          teamId: 5,
+        }
+      );
     });
 
     it("should throw error if insufficient credits", async () => {
@@ -154,6 +185,8 @@ describe("CallService", () => {
         service.createTestCall({
           agentId: "agent-123",
           userId: 1,
+          timeZone: "America/New_York",
+          eventTypeId: 123,
         })
       ).rejects.toThrow("Phone number is required for test call");
     });

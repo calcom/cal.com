@@ -70,12 +70,19 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
 }));
 
+vi.mock("@calcom/ee/api-keys/lib/apiKeys", () => ({
+  generateUniqueAPIKey: vi.fn().mockReturnValue(["hashed-key", "api-key"]),
+}));
+
 // Mock Prisma client with transaction support
 vi.mock("@calcom/prisma", () => ({
   default: {
     $transaction: vi.fn(),
     calAiPhoneNumber: {
       create: vi.fn(),
+    },
+    apiKey: {
+      create: vi.fn().mockResolvedValue({ id: "api-key-123" }),
     },
   },
 }));
@@ -894,11 +901,48 @@ describe("RetellAIService", () => {
         call_status: "initiated",
       });
 
+      mockRepository.getAgent.mockResolvedValue({
+        agent_id: "agent-123",
+        agent_name: "Test Agent",
+        voice_id: "test-voice",
+        response_engine: {
+          type: "retell-llm",
+          llm_id: "llm-123",
+        },
+        language: "en",
+        responsiveness: 1,
+        interruption_sensitivity: 1,
+      });
+
+      mockRepository.getLLM.mockResolvedValue({
+        llm_id: "llm-123",
+        general_prompt: "Test prompt",
+        begin_message: "Hello",
+        general_tools: [],
+      });
+
+      mockRepository.updateLLM.mockResolvedValue({
+        llm_id: "llm-123",
+        general_prompt: "Test prompt",
+        begin_message: "Hello",
+        general_tools: [
+          {
+            type: "check_availability_cal",
+            name: "check_availability",
+            event_type_id: 123,
+            cal_api_key: "test-key",
+            timezone: "America/New_York",
+          },
+        ],
+      });
+
       const result = await service.createTestCall({
         agentId: "1",
         phoneNumber: "+14155555678",
         userId: 1,
         teamId: 2,
+        timeZone: "America/New_York",
+        eventTypeId: 123,
       });
 
       expect(mockGetAllCredits).toHaveBeenCalledWith({
