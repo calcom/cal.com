@@ -1,6 +1,6 @@
 import { CustomI18nProvider } from "app/CustomI18nProvider";
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps, SearchParams } from "app/_types";
+import type { PageProps, Params, SearchParams } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
@@ -21,21 +21,25 @@ import CachedTeamBooker, {
 } from "./pageWithCachedData";
 import { getTeamId } from "./queries";
 
-async function isCachedTeamBookingEnabled(teamId: number, searchParams: SearchParams): Promise<boolean> {
+async function isCachedTeamBookingEnabled(params: Params, searchParams: SearchParams): Promise<boolean> {
+  if (searchParams.experimentalTeamBookingPageCache !== "true") return false;
+
+  const { teamSlug, currentOrgDomain, isValidOrgDomain } = await getOrgContext(params);
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const teamId = await getTeamId(teamSlug, orgSlug);
+
+  if (!teamId) return false;
+
   const featuresRepository = new FeaturesRepository(prisma);
   const isTeamFeatureEnabled = await featuresRepository.checkIfTeamHasFeature(
     teamId,
     "team-booking-page-cache"
   );
-  return isTeamFeatureEnabled && searchParams.experimentalTeamBookingPageCache === "true";
+  return isTeamFeatureEnabled;
 }
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const { teamSlug, currentOrgDomain, isValidOrgDomain } = await getOrgContext(await params);
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-
-  const teamId = await getTeamId(teamSlug, orgSlug);
-  if (teamId && (await isCachedTeamBookingEnabled(teamId, await searchParams))) {
+  if (await isCachedTeamBookingEnabled(await params, await searchParams)) {
     return await generateCachedMetadata({ params, searchParams });
   }
 
@@ -78,11 +82,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  const { teamSlug, currentOrgDomain, isValidOrgDomain } = await getOrgContext(await params);
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-
-  const teamId = await getTeamId(teamSlug, orgSlug);
-  if (teamId && (await isCachedTeamBookingEnabled(teamId, await searchParams))) {
+  if (await isCachedTeamBookingEnabled(await params, await searchParams)) {
     return await CachedTeamBooker({ params, searchParams });
   }
 
