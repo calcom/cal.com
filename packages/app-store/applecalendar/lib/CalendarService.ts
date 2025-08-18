@@ -1,7 +1,7 @@
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const BaseCalendarService = require("../../../lib/CalendarService");
+const BaseCalendarService = require("../../../lib/CalendarService").default;
 
 export default class AppleCalendarService extends BaseCalendarService {
   constructor(credential: CredentialPayload) {
