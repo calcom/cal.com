@@ -45,4 +45,7 @@ export const DI_TOKENS = {
   NO_SLOTS_NOTIFICATION_SERVICE_MODULE: Symbol("NoSlotsNotificationServiceModule"),
   MEMBERSHIP_REPOSITORY: Symbol("MembershipRepository"),
   MEMBERSHIP_REPOSITORY_MODULE: Symbol("MembershipRepositoryModule"),
+  LUCKY_USER_SERVICE: Symbol("LuckyUserService"),
+  HOST_REPOSITORY: Symbol("HostRepository"),
+  ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
 };

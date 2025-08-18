@@ -944,4 +944,47 @@ export class BookingRepository {
       },
     });
   }
+
+  async findManyByUserIdsAndEventTypeId({
+    userIds,
+    eventTypeId,
+    startTime,
+    endTime,
+    timestampField,
+  }: {
+    userIds: number[];
+    eventTypeId: number;
+    startTime: Date;
+    endTime: Date;
+    timestampField: "createdAt" | "startTime";
+  }) {
+    const whereClause = {
+      userId: {
+        in: userIds,
+      },
+      eventTypeId,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+      },
+      [timestampField]: {
+        gte: startTime,
+        lte: endTime,
+      },
+    };
+
+    return this.prismaClient.booking.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        createdAt: true,
+        userId: true,
+        status: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
 }

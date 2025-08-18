@@ -1028,4 +1028,37 @@ export class UserRepository {
       },
     });
   }
+
+  async findUsersWithBookingsForEventType({
+    userIds,
+    eventTypeId,
+  }: {
+    userIds: number[];
+    eventTypeId: number;
+  }) {
+    return await this.prismaClient.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      select: {
+        id: true,
+        bookings: {
+          where: {
+            eventTypeId,
+            status: {
+              in: ["ACCEPTED", "PENDING"],
+            },
+          },
+          select: {
+            id: true,
+            eventTypeId: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+  }
 }
