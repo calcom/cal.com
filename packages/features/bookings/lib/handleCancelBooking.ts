@@ -13,6 +13,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/lib/EventManager";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
 import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -108,7 +109,14 @@ async function handler(input: CancelBookingInput) {
   }
 
   // Check if user is a host or owner of the event type
-  const userIsHost = bookingToDelete.eventType?.hosts?.find((host) => host.user.id === userId);
+  const userIsHost = checkIfUserIsHost(
+    userId,
+    {
+      user: bookingToDelete.user,
+      attendees: bookingToDelete.attendees,
+    },
+    bookingToDelete.eventType
+  );
   const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;
 

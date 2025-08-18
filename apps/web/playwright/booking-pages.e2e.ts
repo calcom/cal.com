@@ -692,6 +692,7 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
 
   test("Direct access to reschedule/{bookingId} should redirect to success page", async ({ page }) => {
     await page.goto(`/reschedule/${bookingId}`);
+    await expect(page).toHaveURL(`/reschedule/${bookingId}`);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -700,6 +701,7 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
 
   test("Using rescheduleUid query parameter should redirect to success page", async ({ page }) => {
     await page.goto(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
+    await expect(page).toHaveURL(`/${user.username}/no-cancel-no-reschedule?rescheduleUid=${bookingId}`);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -726,6 +728,7 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     await user.apiLogin();
 
     await page.goto(`/booking/${bookingId}`);
+    await expect(page).toHaveURL(`/booking/${bookingId}`);
     await page.locator('[data-testid="cancel"]').click();
     await page.locator('[data-testid="cancel_reason"]').fill("Host cancellation test");
     await page.locator('[data-testid="confirm_cancel"]').click();
@@ -737,6 +740,7 @@ test.describe("Event type with disabled cancellation and rescheduling", () => {
     await user.apiLogin();
 
     await page.goto(`/booking/${bookingId}`);
+    await expect(page).toHaveURL(`/booking/${bookingId}`);
     await page.locator('[data-testid="reschedule-link"]').click();
     await page.waitForURL((url) => url.searchParams.has("rescheduleUid"));
     await selectFirstAvailableTimeSlotNextMonth(page);

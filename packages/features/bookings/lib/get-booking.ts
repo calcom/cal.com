@@ -71,11 +71,18 @@ async function getBooking(
         select: {
           disableRescheduling: true,
           ...(includeHostsAndOwner && {
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
             hosts: {
               select: {
                 user: {
                   select: {
                     id: true,
+                    email: true,
                   },
                 },
               },
@@ -302,6 +309,7 @@ export const getBookingForSeatedEvent = async (uid: string) => {
     eventType: {
       disableRescheduling: false,
       hosts: [],
+      users: [],
       owner: null,
     },
     // mask attendee emails for seated events

@@ -10,6 +10,7 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -68,13 +69,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   // We will only check the database if the user is not the owner or has team or org permissions
   if (userId && !isHostOrOwner) {
-    const hostCheck = await prisma.host.findFirst({
-      where: {
-        userId,
-        eventTypeId: eventData.id,
-      },
+    const userIsHost = await BookingRepository.checkIfUserIsHost({
+      userId,
+      eventTypeId: eventData.id,
     });
-    isHostOrOwner = !!hostCheck;
+    isHostOrOwner = !!userIsHost;
   }
 
   if (rescheduleUid && eventData.disableRescheduling && !isHostOrOwner) {

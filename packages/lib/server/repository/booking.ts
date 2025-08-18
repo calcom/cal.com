@@ -836,4 +836,84 @@ export class BookingRepository {
       },
     });
   }
+
+  /**
+   * Checks if a user is a host of a booking
+   * @param userId - The ID of the user to check
+   * @param bookingId - The booking ID to check against
+   * @returns boolean - True if the user is a host, false otherwise
+   */
+  static async checkIfUserIsHost({
+    userId,
+    bookingId,
+  }: {
+    userId: number;
+    bookingId: number;
+  }): Promise<boolean> {
+    if (!userId || !bookingId) return false;
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        userId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        eventType: {
+          select: {
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    id: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            owner: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!booking) return false;
+
+    if (booking.userId === userId) return true;
+
+    if (booking.eventType?.owner?.id === userId) return true;
+
+    if (!booking.attendees || !booking.eventType) return false;
+
+    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+
+    if (booking.eventType.users) {
+      const isUserAndAttendee = booking.eventType.users.some(
+        (user) => user.id === userId && user.email && attendeeEmails.has(user.email)
+      );
+      if (isUserAndAttendee) return true;
+    }
+
+    if (booking.eventType.hosts) {
+      const isHostAndAttendee = booking.eventType.hosts.some(
+        (host) => host.user.id === userId && host.user.email && attendeeEmails.has(host.user.email)
+      );
+      if (isHostAndAttendee) return true;
+    }
+
+    return false;
+  }
 }

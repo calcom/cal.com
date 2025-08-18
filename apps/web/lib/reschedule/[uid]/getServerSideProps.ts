@@ -7,6 +7,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { checkIfUserIsHost } from "@calcom/lib/event-types/utils/checkIfUserIsHost";
 import { checkTeamOrOrgPermissions } from "@calcom/lib/event-types/utils/checkTeamOrOrgPermissions";
 import { getSafe } from "@calcom/lib/getSafe";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -56,6 +57,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           users: {
             select: {
               username: true,
+              email: true,
+              id: true,
             },
           },
           slug: true,
@@ -81,6 +84,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
               user: {
                 select: {
                   id: true,
+                  email: true,
                 },
               },
             },
@@ -125,7 +129,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // Check if user is a host or owner of the event type
   const userId = session?.user?.id;
-  const userIsHost = booking?.eventType?.hosts?.find((host) => host.user.id === userId);
+  const userIsHost = userId
+    ? checkIfUserIsHost(
+        userId,
+        {
+          user: booking.user,
+          attendees: booking.attendees,
+        },
+        {
+          users: booking.eventType?.users,
+          hosts: booking.eventType?.hosts,
+        }
+      )
+    : false;
   const userIsOwnerOfEventType = userId !== undefined && booking?.eventType?.owner?.id === userId;
 
   const hasTeamOrOrgPermissions = await checkTeamOrOrgPermissions(
@@ -195,9 +211,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       };
     }
-    const userIsHost = booking?.eventType.hosts.find((host) => {
-      if (host.user.id === userId) return true;
-    });
+    const userIsHost = userId
+      ? checkIfUserIsHost(
+          userId,
+          {
+            user: booking.user,
+            attendees: booking.attendees,
+          },
+          {
+            users: booking.eventType?.users,
+            hosts: booking.eventType?.hosts,
+          }
+        )
+      : false;
 
     const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
