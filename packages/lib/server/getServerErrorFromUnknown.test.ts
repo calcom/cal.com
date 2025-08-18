@@ -78,8 +78,8 @@ describe("getServerErrorFromUnknown", () => {
     const result = getServerErrorFromUnknown(twilioError);
 
     expect(result).toBeInstanceOf(HttpError);
-    expect(result.statusCode).toBe(400);
-    expect(result.message).toBe(message);
+    expect(result.statusCode).toBe(202);
+    expect(result.message).toBe("Twilio request accepted successfully but failed on Twilio's side");
     expect(result.cause).toEqual(twilioError);
     expect(result.name).toBe("HttpError");
   });
@@ -97,8 +97,8 @@ describe("getServerErrorFromUnknown", () => {
     const result = getServerErrorFromUnknown(twilioError);
 
     expect(result).toBeInstanceOf(HttpError);
-    expect(result.statusCode).toBe(500);
-    expect(result.message).toBe(message);
+    expect(result.statusCode).toBe(202);
+    expect(result.message).toBe("Twilio request accepted successfully but failed on Twilio's side");
     expect(result.cause).toEqual(twilioError);
     expect(result.name).toBe("HttpError");
   });
