@@ -47,6 +47,37 @@ Along with the props, calendar settings atom accepts custom styles via the **cla
 | calendarSettingsCustomClassnames        | Adds styling to the entire calendar settings atom            |
 | destinationCalendarSettingsCustomClassnames | Adds styling only to the destination calendar container   |
 | selectedCalendarSettingsCustomClassnames | Adds styling only to the selected calendar container       |
+| selectedCalendarSettingsClassNames     | An object for granular styling of selected calendars component (see detailed table below) |
+| destinationCalendarSettingsClassNames  | An object for granular styling of destination calendar component (see detailed table below) |
+
+### selectedCalendarSettingsClassNames Object Structure
+
+The `selectedCalendarSettingsClassNames` prop accepts an object with the following nested structure for granular styling of the selected calendars component:
+
+| Property Path | Description |
+|:--------------|:------------|
+| `container` | Styles the main container of the selected calendars section |
+| `header.container` | Styles the header container |
+| `header.title` | Styles the header title |
+| `header.description` | Styles the header description |
+| `selectedCalendarsListClassNames.container` | Styles the container that holds all selected calendar items |
+| `selectedCalendarsListClassNames.selectedCalendar.container` | Styles each individual calendar item container |
+| `selectedCalendarsListClassNames.selectedCalendar.header.container` | Styles the header section of each calendar item |
+| `selectedCalendarsListClassNames.selectedCalendar.header.title` | Styles the title of each calendar item |
+| `selectedCalendarsListClassNames.selectedCalendar.header.description` | Styles the description of each calendar item |
+| `selectedCalendarsListClassNames.selectedCalendar.body.container` | Styles the body section of each calendar item |
+| `selectedCalendarsListClassNames.selectedCalendar.body.description` | Styles the body description of each calendar item |
+| `noSelectedCalendarsMessage` | Styles the message shown when no calendars are connected |
+
+### destinationCalendarSettingsClassNames Object Structure
+
+The `destinationCalendarSettingsClassNames` prop accepts an object with the following nested structure for granular styling of the destination calendar component:
+
+| Property Path | Description |
+|:--------------|:------------|
+| `container` | Styles the main container of the destination calendar section |
+| `header.title` | Styles the header title text |
+| `header.description` | Styles the header description text |
 
 <p></p>
 Additionally, if you wish to select either the Destination Calendar or the Selected Calendar, we also provide atoms specifically designed for this purpose.
