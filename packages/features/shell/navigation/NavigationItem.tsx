@@ -97,28 +97,27 @@ export const NavigationItem: React.FC<{
               </span>
 
               <div className="flex flex-col">
-                {item.child?.map((childItem) => (
-                  <Link
-                    key={childItem.name}
-                    href={childItem.href}
-                    aria-current={
-                      isCurrent({ isChild: true, item: childItem, pathname }) ? "page" : undefined
-                    }
-                    className={classNames(
-                      "group relative block rounded-md px-3 py-1 text-sm font-medium transition-all duration-200 ease-in-out",
-                      "text-gray-700",
-                      "hover:bg-black hover:text-white",
-                      isCurrent({ isChild: true, item: childItem, pathname }) && "bg-emphasis text-white"
-                    )}>
-                    {t(childItem.name)}
-                    <span
+                {item.child?.map((childItem) => {
+                  const childIsCurrent =
+                    typeof childItem.isCurrent === "function"
+                      ? childItem.isCurrent({ isChild: true, item: childItem, pathname })
+                      : defaultIsCurrent({ isChild: true, item: childItem, pathname });
+
+                  return (
+                    <Link
+                      key={childItem.name}
+                      href={childItem.href}
+                      aria-current={childIsCurrent ? "page" : undefined}
                       className={classNames(
-                        "pointer-events-none absolute bottom-1 left-3 right-3 h-0.5 origin-left scale-x-0 rounded transition-transform duration-200",
-                        "group-hover:scale-x-100"
-                      )}
-                    />
-                  </Link>
-                ))}
+                        "group relative block rounded-md px-3 py-1 text-sm font-medium",
+                        childIsCurrent
+                          ? "bg-emphasis text-white"
+                          : "text-gray-700 hover:bg-black hover:text-white"
+                      )}>
+                      {t(childItem.name)}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           }
