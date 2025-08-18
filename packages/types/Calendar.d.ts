@@ -206,6 +206,8 @@ export interface CalendarEvent {
   iCalUID?: string | null;
   iCalSequence?: number | null;
   hideOrganizerEmail?: boolean;
+  disableCancelling?: boolean;
+  disableRescheduling?: boolean;
 
   // It has responses to all the fields(system + user)
   responses?: CalEventResponses | null;
