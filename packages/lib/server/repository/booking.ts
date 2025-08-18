@@ -838,16 +838,10 @@ export class BookingRepository {
    * @param bookingId - The booking ID to check against
    * @returns boolean - True if the user is a host, false otherwise
    */
-  static async checkIfUserIsHost({
-    userId,
-    bookingId,
-  }: {
-    userId: number;
-    bookingId: number;
-  }): Promise<boolean> {
+  async checkIfUserIsHost({ userId, bookingId }: { userId: number; bookingId: number }): Promise<boolean> {
     if (!userId || !bookingId) return false;
 
-    const booking = await prisma.booking.findUnique({
+    const booking = await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
       select: {
         userId: true,
@@ -893,18 +887,20 @@ export class BookingRepository {
 
     if (!booking.attendees || !booking.eventType) return false;
 
-    const attendeeEmails = new Set(booking.attendees.map((attendee) => attendee.email));
+    const attendeeEmails = new Set(booking.attendees.map((attendee: { email: string }) => attendee.email));
 
     if (booking.eventType.users) {
       const isUserAndAttendee = booking.eventType.users.some(
-        (user) => user.id === userId && user.email && attendeeEmails.has(user.email)
+        (user: { id: number; email: string }) =>
+          user.id === userId && user.email && attendeeEmails.has(user.email)
       );
       if (isUserAndAttendee) return true;
     }
 
     if (booking.eventType.hosts) {
       const isHostAndAttendee = booking.eventType.hosts.some(
-        (host) => host.user.id === userId && host.user.email && attendeeEmails.has(host.user.email)
+        (host: { user: { id: number; email: string } }) =>
+          host.user.id === userId && host.user.email && attendeeEmails.has(host.user.email)
       );
       if (isHostAndAttendee) return true;
     }

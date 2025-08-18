@@ -115,7 +115,7 @@ async function handler(input: CancelBookingInput) {
       user: bookingToDelete.user,
       attendees: bookingToDelete.attendees,
     },
-    bookingToDelete.eventType
+    bookingToDelete.eventType || undefined
   );
   const userIsOwnerOfEventType = bookingToDelete.eventType?.owner?.id === userId;
   const isHostOrOwner = !!userIsHost || !!userIsOwnerOfEventType;

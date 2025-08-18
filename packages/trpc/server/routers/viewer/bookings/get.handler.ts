@@ -104,8 +104,13 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
           attendees: booking.attendees,
         },
         {
-          users: booking.eventType?.users,
-          hosts: booking.eventType?.hosts,
+          users: booking.eventType?.users?.map((u) => u.user).filter(Boolean) as {
+            id: number;
+            email: string;
+          }[],
+          hosts: booking.eventType?.hosts?.filter((h) => h.user).map((h) => ({ user: h.user! })) as {
+            user: { id: number; email: string };
+          }[],
         }
       );
 
