@@ -15,11 +15,10 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
-import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
@@ -49,10 +48,9 @@ describe("Managed user bookings 2024-08-13", () => {
   let userRepositoryFixture: UserRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
-  let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-  let schedulesRepositoryFixture: SchedulesRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
+  let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
   const platformAdminEmail = `managed-users-bookings-2024-08-13-admin-${randomString()}@api.com`;
   let platformAdmin: User;
@@ -84,10 +82,9 @@ describe("Managed user bookings 2024-08-13", () => {
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-    eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-    schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
     profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+    bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
 
     platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
@@ -540,6 +537,221 @@ describe("Managed user bookings 2024-08-13", () => {
         secondManagedUserAttendeeBookingsResponseBody.data;
       expect(secondManagedUserBookingsCount).toEqual(4);
       expect(secondManagedUserAttendeeBookings.length).toEqual(secondManagedUserBookingsCount);
+    });
+  });
+
+  describe("platform org admin booking confirmation", () => {
+    let platformAdminAccessToken: string;
+    let secondOrganization: Team;
+    let secondOAuthClient: PlatformOAuthClient;
+    let outsideOrgManagedUser: CreateManagedUserData;
+    let outsideOrgEventTypeId: number;
+    let pendingBookingInSameOrg: string;
+    let pendingBookingOutsideOrg: string;
+
+    beforeAll(async () => {
+      const { accessToken } = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users/${platformAdmin.id}/force-refresh`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .expect(200)
+        .then((response) => response.body.data);
+
+      platformAdminAccessToken = accessToken;
+
+      secondOrganization = await teamRepositoryFixture.create({
+        name: `second-org-${randomString()}`,
+        isPlatform: true,
+        isOrganization: true,
+      });
+      secondOAuthClient = await createOAuthClient(secondOrganization.id);
+
+      const outsideOrgUserBody: CreateManagedUserInput = {
+        email: `outside-org-user-${randomString()}@api.com`,
+        timeZone: managedUsersTimeZone,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Outside Org User",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      const outsideOrgUserResponse = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${secondOAuthClient.id}/users`)
+        .set("x-cal-secret-key", secondOAuthClient.secret)
+        .send(outsideOrgUserBody)
+        .expect(201);
+
+      outsideOrgManagedUser = outsideOrgUserResponse.body.data;
+
+      const outsideOrgEventTypeBody: CreateEventTypeInput_2024_06_14 = {
+        title: "Outside org event type",
+        slug: "outside-org-event-type",
+        description: "Event type for cross-org testing",
+        lengthInMinutes: 30,
+      };
+
+      const outsideOrgEventTypeResponse = await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${outsideOrgManagedUser.accessToken}`)
+        .send(outsideOrgEventTypeBody)
+        .expect(201);
+
+      outsideOrgEventTypeId = outsideOrgEventTypeResponse.body.data.id;
+    });
+
+    it("should allow platform org admin to confirm booking for managed user in same organization", async () => {
+      const bookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 13, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "Test Attendee",
+          email: "test-attendee@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/test-meeting",
+      };
+
+      const bookingResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = bookingResponse.body.data;
+
+      await bookingsRepositoryFixture["prismaWriteClient"].booking.update({
+        where: { id: createdBooking.id },
+        data: { status: "PENDING" },
+      });
+      pendingBookingInSameOrg = createdBooking.uid;
+
+      const confirmResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${pendingBookingInSameOrg}/confirm`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${platformAdminAccessToken}`)
+        .expect(200);
+
+      expect(confirmResponse.body.status).toEqual(SUCCESS_STATUS);
+      expect(confirmResponse.body.data.status).toEqual("accepted");
+
+      const dbBooking = await bookingsRepositoryFixture.getByUid(pendingBookingInSameOrg);
+      expect(dbBooking?.status).toEqual("ACCEPTED");
+    });
+
+    it("should allow platform org admin to decline booking for managed user in same organization", async () => {
+      const bookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 14, 0, 0)).toISOString(),
+        eventTypeId: firstManagedUserEventTypeId,
+        attendee: {
+          name: "Test Attendee 2",
+          email: "test-attendee-2@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/test-meeting-2",
+      };
+
+      const bookingResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = bookingResponse.body.data;
+
+      await bookingsRepositoryFixture["prismaWriteClient"].booking.update({
+        where: { id: createdBooking.id },
+        data: { status: "PENDING" },
+      });
+      const pendingBookingUid = createdBooking.uid;
+
+      const declineBody = {
+        reason: "Platform admin declined this booking for testing",
+      };
+
+      const declineResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${pendingBookingUid}/decline`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${platformAdminAccessToken}`)
+        .send(declineBody)
+        .expect(200);
+
+      expect(declineResponse.body.status).toEqual(SUCCESS_STATUS);
+      expect(declineResponse.body.data.status).toEqual("rejected");
+
+      const dbBooking = await bookingsRepositoryFixture.getByUid(pendingBookingUid);
+      expect(dbBooking?.status).toEqual("REJECTED");
+    });
+
+    it("should prevent platform org admin from confirming booking for user outside their organization", async () => {
+      const bookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 15, 0, 0)).toISOString(),
+        eventTypeId: outsideOrgEventTypeId,
+        attendee: {
+          name: "Cross Org Attendee",
+          email: "cross-org-attendee@example.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        location: "https://meet.google.com/cross-org-meeting",
+      };
+
+      const bookingResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createdBooking = bookingResponse.body.data;
+
+      await bookingsRepositoryFixture["prismaWriteClient"].booking.update({
+        where: { id: createdBooking.id },
+        data: { status: "PENDING" },
+      });
+      pendingBookingOutsideOrg = createdBooking.uid;
+
+      const confirmResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${pendingBookingOutsideOrg}/confirm`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${platformAdminAccessToken}`)
+        .expect(401);
+
+      expect(confirmResponse.body.message).toContain("not authorized");
+
+      const dbBooking = await bookingsRepositoryFixture.getByUid(pendingBookingOutsideOrg);
+      expect(dbBooking?.status).toEqual("PENDING");
+    });
+
+    it("should prevent platform org admin from declining booking for user outside their organization", async () => {
+      const declineBody = {
+        reason: "Attempting to decline cross-org booking",
+      };
+
+      const declineResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${pendingBookingOutsideOrg}/decline`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${platformAdminAccessToken}`)
+        .send(declineBody)
+        .expect(401);
+
+      expect(declineResponse.body.message).toContain("not authorized");
+
+      const dbBooking = await bookingsRepositoryFixture.getByUid(pendingBookingOutsideOrg);
+      expect(dbBooking?.status).toEqual("PENDING");
+    });
+
+    afterAll(async () => {
+      if (outsideOrgManagedUser) {
+        await userRepositoryFixture.delete(outsideOrgManagedUser.user.id);
+      }
+      if (secondOAuthClient) {
+        await oauthClientRepositoryFixture.delete(secondOAuthClient.id);
+      }
+      if (secondOrganization) {
+        await teamRepositoryFixture.delete(secondOrganization.id);
+      }
     });
   });
 
