@@ -4,6 +4,7 @@
   "name": "@calcom/ics-feed",
   "version": "0.0.0",
   "main": "./index.ts",
+  "type": "module",
   "dependencies": {
     "@calcom/lib": "*",
     "@calcom/prisma": "*",

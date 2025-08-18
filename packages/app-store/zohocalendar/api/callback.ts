@@ -1,22 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { renewSelectedCalendarCredentialId } from "../../../../lib/connectedCalendar.js";
+import { WEBAPP_URL } from "../../../../lib/constants.js";
+import { getSafeRedirectUrl } from "../../../../lib/getSafeRedirectUrl.js";
+import { defaultHandler } from "../../../../lib/server/defaultHandler.js";
+import { defaultResponder } from "../../../../lib/server/defaultResponder.js";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import config from "../config.json";
+import config from "../config.json" with { type: "json" };
 import type { ZohoAuthCredentials } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
+const logger = (await import("../../../../lib/logger.js")).default;
 const log = logger.getSubLogger({ prefix: [`[[zohocalendar/api/callback]`] });
 
 function getOAuthBaseUrl(domain: string): string {
@@ -24,6 +22,8 @@ function getOAuthBaseUrl(domain: string): string {
 }
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  const prisma = (await import("@calcom/prisma")).default;
+  const { Prisma } = await import("@calcom/prisma/client");
   const { code, location } = req.query;
 
   const state = decodeOAuthState(req);

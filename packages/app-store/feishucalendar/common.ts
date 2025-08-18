@@ -1,4 +1,3 @@
-import type logger from "@calcom/lib/logger";
 
 import getAppKeysFromSlug from "../_utils/getAppKeysFromSlug";
 import type { FeishuAppKeys } from "./types/FeishuCalendar";
@@ -12,7 +11,7 @@ export const isExpired = (expiryDate: number) =>
 
 export async function handleFeishuError<T extends { code: number; msg: string }>(
   response: Response,
-  log: typeof logger
+  log: any
 ): Promise<T> {
   const data: T = await response.json();
   if (!response.ok || data.code !== 0) {

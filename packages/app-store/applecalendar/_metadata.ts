@@ -1,6 +1,6 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
+import _package from "./package.json" with { type: "json" };
 
 export const metadata = {
   name: "Apple Calendar",

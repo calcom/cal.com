@@ -1,8 +1,8 @@
-import logger from "@calcom/lib/logger";
 
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "./AppAccessToken";
 
+const logger = (await import("../../../../lib/logger.js")).default;
 const log = logger.getSubLogger({ prefix: [`[[LarkTenantCredential]`] });
 
 const msg = {

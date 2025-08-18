@@ -1,19 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { GaxiosResponse } from "googleapis-common";
-import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
-import { MeetLocationType } from "@calcom/app-store/locations";
-import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
-import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
-import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { uniqueBy } from "@calcom/lib/array";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type {
   Calendar,
@@ -26,8 +16,28 @@ import type {
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
-import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
-import { CalendarAuth } from "./CalendarAuth";
+import logger from "../../../lib/logger.js";
+import { CalendarAuth } from "./CalendarAuth.js";
+
+const { uniqueBy } = await import("../../../lib/array.js");
+
+const { safeStringify } = await import("../../../lib/safeStringify.js");
+
+const { getTimeMax, getTimeMin } = await import("../../../features/calendar-cache/lib/datesForCache.js");
+
+const { getLocation, getRichDescription } = await import("../../../lib/CalEventParser.js");
+
+const { SelectedCalendarRepository } = await import("../../../lib/server/repository/selectedCalendar.js");
+
+const { RRule } = await import("rrule");
+
+const { MeetLocationType } = await import("../../locations.js");
+
+const { CalendarCache } = await import("../../../features/calendar-cache/calendar-cache.js");
+
+const { AxiosLikeResponseToFetchResponse } = await import(
+  "../../_utils/oauth/AxiosLikeResponseToFetchResponse.js"
+);
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
 
@@ -952,6 +962,7 @@ export default class GoogleCalendarService implements Calendar {
     );
 
     // Delete the calendar cache to force a fresh cache
+    const prisma = (await import("@calcom/prisma")).default;
     await prisma.calendarCache.deleteMany({ where: { credentialId } });
     await this.stopWatchingCalendarsInGoogle(allChannelsForThisCalendarBeingUnwatched);
     await this.upsertSelectedCalendarsForEventTypeIds(

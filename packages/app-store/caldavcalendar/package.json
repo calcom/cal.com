@@ -3,6 +3,7 @@
   "private": true,
   "name": "@calcom/caldavcalendar",
   "version": "0.0.0",
+  "type": "module",
   "main": "./index.ts",
   "description": "Caldav is a protocol that allows different clients/servers to access scheduling information on remote servers as well as schedule meetings with other users on the same server or other servers. It extends WebDAV specification and uses iCalendar format for the data.",
   "dependencies": {

@@ -1,11 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import logger from "@calcom/lib/logger";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { getSafeRedirectUrl } from "../../../../lib/getSafeRedirectUrl.js";
+import { defaultHandler } from "../../../../lib/server/defaultHandler.js";
+import { defaultResponder } from "../../../../lib/server/defaultResponder.js";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -13,6 +11,7 @@ import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
 import type { LarkAuthCredentials } from "../types/LarkCalendar";
 
+const logger = (await import("../../../../lib/logger.js")).default;
 const log = logger.getSubLogger({ prefix: [`[[lark/api/callback]`] });
 
 const callbackQuerySchema = z.object({
@@ -20,6 +19,7 @@ const callbackQuerySchema = z.object({
 });
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+  const prisma = (await import("@calcom/prisma")).default;
   const { code } = callbackQuerySchema.parse(req.query);
   const state = decodeOAuthState(req);
 

@@ -1,9 +1,6 @@
 import { stringify } from "querystring";
 
-import dayjs from "@calcom/dayjs";
-import { getLocation } from "@calcom/lib/CalEventParser";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+const dayjs = (await import("@calcom/dayjs")).default;
 import type {
   Calendar,
   CalendarServiceEvent,
@@ -14,27 +11,25 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { getLocation } from "../../../lib/CalEventParser.js";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 export default class ZohoCalendarService implements Calendar {
   private integrationName = "";
-  private log: typeof logger;
   auth: { getToken: () => Promise<ZohoAuthCredentials> };
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "zoho_calendar";
     this.auth = this.zohoAuth(credential);
-    this.log = logger.getSubLogger({
-      prefix: [`[[lib] ${this.integrationName}`],
-    });
   }
 
   private zohoAuth = (credential: CredentialPayload) => {
     let zohoCredentials = credential.key as ZohoAuthCredentials;
 
     const refreshAccessToken = async () => {
+      const prisma = (await import("@calcom/prisma")).default;
       try {
         const appKeys = await getAppKeysFromSlug("zohocalendar");
         const { client_id, client_secret } = zohoKeysSchema.parse(appKeys);
@@ -74,7 +69,9 @@ export default class ZohoCalendarService implements Calendar {
         });
         zohoCredentials = key;
       } catch (err) {
-        this.log.error("Error refreshing zoho token", err);
+        const logger = (await import("../../../lib/logger.js")).default;
+        const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+        log.error("Error refreshing zoho token", err);
       }
       return zohoCredentials;
     };
@@ -110,7 +107,9 @@ export default class ZohoCalendarService implements Calendar {
       },
     });
 
-    return this.handleData(response, this.log);
+    const logger = (await import("../../../lib/logger.js")).default;
+    const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    return this.handleData(response, log);
   };
 
   async createEvent(event: CalendarServiceEvent): Promise<NewCalendarEventType> {
@@ -130,10 +129,14 @@ export default class ZohoCalendarService implements Calendar {
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events?${query}`, {
         method: "POST",
       });
-      eventRespData = await this.handleData(eventResponse, this.log);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      eventRespData = await this.handleData(eventResponse, log);
       eventId = eventRespData.events[0].uid as string;
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       throw error;
     }
 
@@ -148,7 +151,9 @@ export default class ZohoCalendarService implements Calendar {
         additionalInfo: {},
       };
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       await this.deleteEvent(eventId, event, calendarId);
       throw error;
     }
@@ -165,13 +170,17 @@ export default class ZohoCalendarService implements Calendar {
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
-      this.log.error("no calendar id provided in updateEvent");
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error("no calendar id provided in updateEvent");
       throw new Error("no calendar id provided in updateEvent");
     }
     try {
       // needed to fetch etag
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      const existingEventData = await this.handleData(existingEventResponse, this.log);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      const existingEventData = await this.handleData(existingEventResponse, log);
 
       const query = stringify({
         eventdata: JSON.stringify({
@@ -183,9 +192,13 @@ export default class ZohoCalendarService implements Calendar {
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
         method: "PUT",
       });
-      eventRespData = await this.handleData(eventResponse, this.log);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      eventRespData = await this.handleData(eventResponse, log);
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       throw error;
     }
 
@@ -200,7 +213,9 @@ export default class ZohoCalendarService implements Calendar {
         additionalInfo: {},
       };
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       await this.deleteEvent(eventId, event);
       throw error;
     }
@@ -215,13 +230,17 @@ export default class ZohoCalendarService implements Calendar {
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
-      this.log.error("no calendar id provided in deleteEvent");
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error("no calendar id provided in deleteEvent");
       throw new Error("no calendar id provided in deleteEvent");
     }
     try {
       // needed to fetch etag
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      const existingEventData = await this.handleData(existingEventResponse, this.log);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      const existingEventData = await this.handleData(existingEventResponse, log);
 
       const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
         method: "DELETE",
@@ -229,9 +248,13 @@ export default class ZohoCalendarService implements Calendar {
           etag: existingEventData.events[0].etag,
         },
       });
-      await this.handleData(response, this.log);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      await this.handleData(response, log);
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       throw error;
     }
   }
@@ -256,7 +279,9 @@ export default class ZohoCalendarService implements Calendar {
       method: "GET",
     });
 
-    const data = await this.handleData(response, this.log);
+    const logger = (await import("../../../lib/logger.js")).default;
+    const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    const data = await this.handleData(response, log);
 
     if (data.fb_not_enabled || data.NODATA) return [];
 
@@ -278,11 +303,15 @@ export default class ZohoCalendarService implements Calendar {
     const query = stringify({
       range: JSON.stringify(range),
     });
-    this.log.debug("getUnavailability query", query);
+    const logger = (await import("../../../lib/logger.js")).default;
+    const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    log.debug("getUnavailability query", query);
     try {
       // List all events within the range
       const response = await this.fetcher(`/calendars/${calendarId}/events?${query}`);
-      const data = await this.handleData(response, this.log);
+      const logger = (await import("../../../lib/logger.js")).default;
+    const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    const data = await this.handleData(response, log);
 
       // Check for no data scenario
       if (!data.events || data.events.length === 0) return [];
@@ -297,7 +326,9 @@ export default class ZohoCalendarService implements Calendar {
           }) || []
       );
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       return [];
     }
   }
@@ -397,7 +428,9 @@ export default class ZohoCalendarService implements Calendar {
         return busyData;
       }
     } catch (error) {
-      this.log.error(error);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error(error);
       return [];
     }
   }
@@ -405,7 +438,9 @@ export default class ZohoCalendarService implements Calendar {
   async listCalendars(): Promise<IntegrationCalendar[]> {
     try {
       const resp = await this.fetcher(`/calendars`);
-      const data = (await this.handleData(resp, this.log)) as ZohoCalendarListResp;
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      const data = (await this.handleData(resp, log)) as ZohoCalendarListResp;
       const userInfo = await this.getUserInfo();
       const result = data.calendars
         .filter((cal) => {
@@ -431,7 +466,9 @@ export default class ZohoCalendarService implements Calendar {
 
       // No primary calendar found, get primary calendar directly
       const respPrimary = await this.fetcher(`/calendars?category=own`);
-      const dataPrimary = (await this.handleData(respPrimary, this.log)) as ZohoCalendarListResp;
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      const dataPrimary = (await this.handleData(respPrimary, log)) as ZohoCalendarListResp;
       return dataPrimary.calendars.map((cal) => {
         const calendar: IntegrationCalendar = {
           externalId: cal.uid ?? "No Id",
@@ -443,12 +480,14 @@ export default class ZohoCalendarService implements Calendar {
         return calendar;
       });
     } catch (err) {
-      this.log.error("There was an error contacting zoho calendar service: ", err);
+      const logger = (await import("../../../lib/logger.js")).default;
+      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+      log.error("There was an error contacting zoho calendar service: ", err);
       throw err;
     }
   }
 
-  async handleData(response: Response, log: typeof logger) {
+  async handleData(response: Response, log: any) {
     const data = await response.json();
     if (!response.ok) {
       log.debug("zoho request with data", data);

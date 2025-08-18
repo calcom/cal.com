@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { symmetricEncrypt } from "../../../../lib/crypto.js";
+const prisma = (await import("@calcom/prisma")).default;
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { CalendarService } from "../lib";
@@ -45,7 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data,
       });
     } catch (e) {
-      logger.error("Could not add this caldav account", e);
+      const logger = await import("../../../../lib/logger.js").then(m => m.default);
+      (await logger).error("Could not add this caldav account", e);
       if (e instanceof Error) {
         let message = e.message;
         if (e.message.indexOf("Invalid credentials") > -1 && url.indexOf("dav.php") > -1) {

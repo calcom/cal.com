@@ -1,4 +1,4 @@
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultHandler } from "../../../../lib/server/defaultHandler.js";
 
 export default defaultHandler({
   GET: import("./_getAdd"),

@@ -1,13 +1,10 @@
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
-import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
-import { handleErrorsJson } from "@calcom/lib/errors";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { renewSelectedCalendarCredentialId } from "../../../../lib/connectedCalendar.js";
+import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "../../../../lib/constants.js";
+import { handleErrorsJson } from "../../../../lib/errors.js";
+import { getSafeRedirectUrl } from "../../../../lib/getSafeRedirectUrl.js";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -16,6 +13,8 @@ import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const prisma = (await import("@calcom/prisma")).default;
+  const { Prisma } = await import("@calcom/prisma/client");
   const { code } = req.query;
   const state = decodeOAuthState(req);
 
@@ -93,6 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
+    const logger = (await import("../../../../lib/logger.js")).default;
     logger.info("Office365 Calendar: Received calendar response", {
       userId: req.session?.user?.id,
       status: calRequest.status,
@@ -102,7 +102,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let calBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(calRequest);
 
-    logger.info("Office365 Calendar: handleErrorsJson completed", {
+    const loggerInstance = (await import("../../../../lib/logger.js")).default;
+    loggerInstance.info("Office365 Calendar: handleErrorsJson completed", {
       userId: req.session?.user?.id,
       calendarCount: calBody.value.length ?? 0,
     });

@@ -1,14 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
-import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { symmetricEncrypt } from "../../../../lib/crypto.js";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
-import appConfig from "../config.json";
+import appConfig from "../config.json" with { type: "json" };
 import { CalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const prisma = (await import("@calcom/prisma")).default;
   if (req.method === "POST") {
     const { urls } = req.body;
     // Get user
@@ -48,7 +47,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data,
       });
     } catch (e) {
-      logger.error("Could not add ICS feeds", e);
+      const logger = await import("../../../../lib/logger.js").then(m => m.default);
+      (await logger).error("Could not add ICS feeds", e);
       return res.status(500).json({ message: "Could not add ICS feeds" });
     }
 

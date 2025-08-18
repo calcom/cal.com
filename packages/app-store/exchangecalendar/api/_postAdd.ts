@@ -2,11 +2,10 @@ import { SoapFaultDetails } from "ews-javascript-api";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { symmetricEncrypt } from "@calcom/lib/crypto";
-import { emailSchema } from "@calcom/lib/emailSchema";
-import logger from "@calcom/lib/logger";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { symmetricEncrypt } from "../../../../lib/crypto.js";
+import { emailSchema } from "../../../../lib/emailSchema.js";
+import { defaultResponder } from "../../../../lib/server/defaultResponder.js";
+const prisma = (await import("@calcom/prisma")).default;
 
 import checkSession from "../../_utils/auth";
 import { ExchangeAuthentication, ExchangeVersion } from "../enums";
@@ -42,6 +41,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     await service?.listCalendars();
     await prisma.credential.create({ data });
   } catch (reason) {
+    const logger = (await import("../../../../lib/logger.js")).default;
     logger.info(reason);
     if (reason instanceof SoapFaultDetails && reason.message != "") {
       return res.status(500).json({ message: reason.message });

@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { defaultHandler } from "@calcom/lib/server/defaultHandler";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { WEBAPP_URL } from "../../../../lib/constants.js";
+import { defaultHandler } from "../../../../lib/server/defaultHandler.js";
+import { defaultResponder } from "../../../../lib/server/defaultResponder.js";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
-import config from "../config.json";
+import config from "../config.json" with { type: "json" };
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";

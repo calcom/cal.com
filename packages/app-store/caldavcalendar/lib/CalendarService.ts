@@ -1,7 +1,8 @@
-import BaseCalendarService from "@calcom/lib/CalendarService";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-export default class CalDavCalendarService extends BaseCalendarService {
+import CalendarService from "../../_utils/CalendarService.js";
+
+export default class CalDavCalendarService extends CalendarService {
   constructor(credential: CredentialPayload) {
     super(credential, "caldav_calendar");
   }

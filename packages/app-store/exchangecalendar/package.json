@@ -3,6 +3,7 @@
   "private": true,
   "name": "@calcom/exchangecalendar",
   "version": "0.0.0",
+  "type": "module",
   "main": "./index.ts",
   "description": "Fetch Microsoft Exchange calendars and availabilities using Exchange Web Services (EWS).",
   "dependencies": {

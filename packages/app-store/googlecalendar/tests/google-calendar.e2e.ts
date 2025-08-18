@@ -1,16 +1,20 @@
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-import dayjs from "@calcom/dayjs";
-import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+const dayjs = (await import("@calcom/dayjs")).default;
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-import { test } from "@calcom/web/playwright/lib/fixtures";
-import { selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
 import { createBookingAndFetchGCalEvent, deleteBookingAndEvent, assertValueExists } from "./testUtils";
+
+const { APP_CREDENTIAL_SHARING_ENABLED } = await import("../../../lib/constants");
+
+const { selectSecondAvailableTimeSlotNextMonth } = await import(
+  "../../../../apps/web/playwright/lib/testUtils"
+);
+
+const { test } = await import("../../../../apps/web/playwright/lib/fixtures");
 
 test.describe("Google Calendar", async () => {
   // Skip till the tests are flaky
@@ -19,6 +23,7 @@ test.describe("Google Calendar", async () => {
     let qaUsername: string;
     let qaGCalCredential: CredentialForCalendarServiceWithEmail;
     test.beforeAll(async () => {
+      const prisma = (await import("@calcom/prisma")).default;
       let runIntegrationTest = false;
       const errorMessage = "Could not run test";
 
@@ -138,6 +143,7 @@ test.describe("Google Calendar", async () => {
     });
 
     test("On reschedule, event should be updated on GCal", async ({ page }) => {
+      const prisma = (await import("@calcom/prisma")).default;
       // Reschedule the booking and check the gCalEvent's time is also changed
       // On reschedule gCal UID stays the same
       const { gCalReference, booking, authedCalendar } = await createBookingAndFetchGCalEvent(
