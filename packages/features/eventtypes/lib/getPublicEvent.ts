@@ -881,7 +881,7 @@ export function getProfileFromEvent(event: GetProfileFromEventInput) {
   const profile = team || nonTeamProfile;
   if (!profile) throw new Error("Event has no owner");
 
-  const styleProfile = team || event?.parent?.team || nonTeamProfile;
+  const styleProfile = team || event.parent?.team || nonTeamProfile;
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
   const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
