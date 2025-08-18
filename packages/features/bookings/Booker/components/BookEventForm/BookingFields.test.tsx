@@ -164,7 +164,7 @@ describe("BookingFields", () => {
     ];
 
     // Set form default value to attendee phone number location
-    const { result } = renderComponent({
+    renderComponent({
       props: {
         fields,
         locations,
@@ -179,7 +179,7 @@ describe("BookingFields", () => {
     });
 
     // Attendee phone number field should not be in the document
-    expect(screen.queryByRole("textbox", { name: /attendee phone number/i })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: /attendee_phone_number/i })).toBeNull();
   });
 
   it("should show attendee phone number field if location is not attendee phone number", async () => {
@@ -217,7 +217,7 @@ describe("BookingFields", () => {
     ];
 
     // Set form default value to Zoom location
-    const { result } = renderComponent({
+    renderComponent({
       props: {
         fields,
         locations,

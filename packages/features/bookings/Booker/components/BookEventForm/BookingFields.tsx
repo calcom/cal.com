@@ -40,6 +40,8 @@ export const BookingFields = ({
 
         // Hide attendee phone number field if location is attendee phone number
         if (field.name === SystemField.Enum.attendeePhoneNumber && locationResponse?.value === "phone") {
+          // Keep values in sync so toggling locations preserves user input
+          setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, locationResponse?.optionValue ?? "");
           return null;
         }
 
