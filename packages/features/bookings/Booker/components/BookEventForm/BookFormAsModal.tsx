@@ -3,13 +3,13 @@ import React from "react";
 
 import { useEventTypeById } from "@calcom/atoms/hooks/event-types/private/useEventTypeById";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { DialogContent } from "@calcom/ui/components/dialog";
 
 import { getDurationFormatted } from "../../../components/event-meta/Duration";
-import { useBookerStore } from "../../store";
 import { FromTime } from "../../utils/dates";
 import { useEvent } from "../../utils/event";
 import { useBookerTime } from "../hooks/useBookerTime";
@@ -27,7 +27,7 @@ const PlatformBookEventFormWrapper = ({
   onCancel: () => void;
   children: ReactNode;
 }) => {
-  const eventId = useBookerStore((state) => state.eventId);
+  const eventId = useBookerStoreContext((state) => state.eventId);
   const { data } = useEventTypeById(eventId);
 
   return (
@@ -44,8 +44,8 @@ export const BookEventFormWrapperComponent = ({
   eventLength?: number;
 }) => {
   const { i18n, t } = useLocale();
-  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
-  const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
+  const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
   const { timeFormat, timezone } = useBookerTime();
   if (!selectedTimeslot) {
     return null;
