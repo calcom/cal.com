@@ -38,6 +38,11 @@ export const BookingFields = ({
         // Don't Display Location field in case of instant meeting as only Cal Video is supported
         if (isInstantMeeting && field.name === "location") return null;
 
+        // Hide attendee phone number field if location is attendee phone number
+        if (field.name === SystemField.Enum.attendeePhoneNumber && locationResponse?.value === "phone") {
+          return null;
+        }
+
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         const rescheduleReadOnly =
