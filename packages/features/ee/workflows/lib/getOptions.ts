@@ -39,22 +39,44 @@ export function getWorkflowTriggerOptions(t: TFunction) {
   });
 }
 
+// make cleaner
+function isBookingTrigger(trigger: WorkflowTriggerEvents) {
+  return (
+    trigger === WorkflowTriggerEvents.BOOKING_CREATED ||
+    trigger === WorkflowTriggerEvents.BOOKING_CANCELLED ||
+    trigger === WorkflowTriggerEvents.BOOKING_RESCHEDULED ||
+    trigger === WorkflowTriggerEvents.BOOKING_CONFIRMED ||
+    trigger === WorkflowTriggerEvents.BOOKING_NO_SHOW ||
+    trigger === WorkflowTriggerEvents.BOOKING_UPDATED
+  );
+}
+
+function convertToTemplateOptions(t: TFunction, hasPaidPlan: boolean, templates: WorkflowTemplates[]) {
+  return templates.map((template) => {
+    return {
+      label: t(`${template.toLowerCase()}`),
+      value: template,
+      needsTeamsUpgrade: !hasPaidPlan,
+    } as { label: string; value: any; needsTeamsUpgrade: boolean };
+  });
+}
+
 export function getWorkflowTemplateOptions(
   t: TFunction,
   action: WorkflowActions | undefined,
-  hasPaidPlan: boolean
+  hasPaidPlan: boolean,
+  trigger: WorkflowTriggerEvents
 ) {
+  if (!isBookingTrigger(trigger)) {
+    return convertToTemplateOptions(t, hasPaidPlan, [WorkflowTemplates.CUSTOM]);
+  }
+
   const TEMPLATES =
     action && isWhatsappAction(action)
       ? WHATSAPP_WORKFLOW_TEMPLATES
       : action && isEmailToAttendeeAction(action)
       ? ATTENDEE_WORKFLOW_TEMPLATES
       : BASIC_WORKFLOW_TEMPLATES;
-  return TEMPLATES.map((template) => {
-    return {
-      label: t(`${template.toLowerCase()}`),
-      value: template,
-      needsTeamsUpgrade: !hasPaidPlan && template == WorkflowTemplates.CUSTOM,
-    };
-  }) as { label: string; value: any; needsTeamsUpgrade: boolean }[];
+
+  return convertToTemplateOptions(t, hasPaidPlan, TEMPLATES);
 }

@@ -137,11 +137,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
+  const trigger = form.getValues("trigger");
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(trigger, t));
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
     const template = getTemplateBodyForAction({
@@ -283,7 +284,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   //trigger
   if (!step) {
-    const trigger = form.getValues("trigger");
     const triggerString = t(`${trigger.toLowerCase()}_trigger`);
 
     const selectedTrigger = {
@@ -349,13 +349,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="mt-5">
                 <Label>{timeSectionText}</Label>
                 <TimeTimeUnitInput disabled={props.readOnly} />
-                {!props.readOnly &&
-                  form.getValues("trigger") !== WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT && (
-                    <div className="mt-1 flex text-gray-500">
-                      <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-                      <p className="text-sm">{t("testing_workflow_info_message")}</p>
-                    </div>
-                  )}
+                {!props.readOnly && trigger !== WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT && (
+                  <div className="mt-1 flex text-gray-500">
+                    <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+                    <p className="text-sm">{t("testing_workflow_info_message")}</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
