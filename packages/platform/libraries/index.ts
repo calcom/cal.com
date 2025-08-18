@@ -2,7 +2,6 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import {
   verifyPhoneNumber,
@@ -31,8 +30,6 @@ export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 
 export { getUsernameList } from "@calcom/lib/defaultEvents";
 
-const handleNewBooking = newBookingMethods.default;
-export { handleNewBooking };
 const handleInstantMeeting = instantMeetingMethods.default;
 export { handleInstantMeeting };
 
@@ -41,7 +38,6 @@ export { handleCreatePhoneCall };
 
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
-// Export the new BookingCreateService for easy access
 export { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
 export type { IBookingCreateService } from "@calcom/lib/server/service/booking/IBookingCreateService";
 
