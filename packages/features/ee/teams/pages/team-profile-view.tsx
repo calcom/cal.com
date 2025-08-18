@@ -379,6 +379,7 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
                         handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
                         imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
+                        testId="open-upload-avatar-dialog"
                       />
                       {showRemoveLogoButton && (
                         <Button color="secondary" onClick={() => onChange(null)}>

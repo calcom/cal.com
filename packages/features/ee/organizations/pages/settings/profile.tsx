@@ -264,6 +264,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                         handleAvatarChange={onChange}
                         imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                        testId="open-upload-avatar-dialog"
                       />
                       {showRemoveLogoButton && (
                         <Button color="secondary" onClick={() => onChange(null)}>

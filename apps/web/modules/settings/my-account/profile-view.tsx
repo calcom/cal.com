@@ -619,6 +619,7 @@ const ProfileForm = ({
                         }}
                         imageSrc={getUserAvatarUrl({ avatarUrl: value })}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "secondary"}
+                        testId="open-upload-avatar-dialog"
                       />
 
                       {showRemoveAvatarButton && (
