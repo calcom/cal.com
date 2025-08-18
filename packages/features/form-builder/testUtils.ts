@@ -167,7 +167,7 @@ export const pageObject = {
       fireEvent.change(priceInput, { target: { value: price.toString() } });
     },
     addOption: ({ dialog }: { dialog: TestingLibraryElement }) => {
-      fireEvent.click(dialog.getByText("Add an Option"));
+      fireEvent.click(dialog.getByTestId("add-option"));
     },
     fillInOption: async ({
       dialog,
