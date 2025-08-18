@@ -547,11 +547,12 @@ export async function getLuckyUser_requiresDataToBePreFetched<
   const { attributeWeights, virtualQueuesData } = await service.prepareQueuesAndAttributesData(
     getLuckyUserParams
   );
-  return service.getLuckyUser_requiresDataToBePreFetched({
+  const result = service.getLuckyUser_requiresDataToBePreFetched({
     ...getLuckyUserParams,
     attributeWeights,
     virtualQueuesData,
   });
+  return result.luckyUser;
 }
 
 function isFullDayEvent(date1: Date, date2: Date) {
