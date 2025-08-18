@@ -1,4 +1,5 @@
 import { useMemo, useState, Suspense } from "react";
+import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -309,7 +310,7 @@ function EventTypeSingleLayout({
         isDeleting={isDeleting}
       />
 
-      {!isPlatform && <EventTypeEmbedDialog />}
+      <EmbedDialogProvider>{!isPlatform && <EventTypeEmbedDialog />}</EmbedDialogProvider>
     </Shell>
   );
 }

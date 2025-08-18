@@ -1,3 +1,5 @@
+// import { Badge } from "@calcom/ui/components/badge";
+import { Badge } from "@calid/features/ui";
 import type { Prisma } from "@prisma/client";
 import { useMemo } from "react";
 import type { z } from "zod";
@@ -13,7 +15,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -23,6 +25,7 @@ export type EventTypeDescriptionProps = {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
   };
+  showDescription?: string;
   className?: string;
   shortenDescription?: boolean;
   isPublic?: boolean;
@@ -32,6 +35,7 @@ export const EventTypeDescription = ({
   eventType,
   className,
   shortenDescription,
+  showDescription,
   isPublic,
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
@@ -49,7 +53,7 @@ export const EventTypeDescription = ({
   return (
     <>
       <div className={classNames("text-subtle", className)}>
-        {eventType.description && (
+        {showDescription && eventType.description && (
           <div
             className={classNames(
               "text-subtle line-clamp-3 break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
@@ -65,21 +69,25 @@ export const EventTypeDescription = ({
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
-                <Badge variant="gray" startIcon="clock">
-                  {dur}m
-                </Badge>
+                <Tooltip content="Duration of the meeting" className="cursor-pointer">
+                  <Badge variant="minimal" startIcon="clock">
+                    {dur}m
+                  </Badge>
+                </Tooltip>
               </li>
             ))
           ) : (
             <li>
-              <Badge variant="gray" startIcon="clock">
-                {eventType.length}m
-              </Badge>
+              <Tooltip content="Duration of the meeting" className="cursor-pointer">
+                <Badge variant="minimal" startIcon="clock">
+                  {eventType.length}m
+                </Badge>
+              </Tooltip>
             </li>
           )}
           {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
-              <Badge variant="gray" startIcon="users">
+              <Badge variant="minimal" startIcon="users">
                 {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
                 {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
               </Badge>
@@ -87,17 +95,24 @@ export const EventTypeDescription = ({
           )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block" data-testid="repeat-eventtype">
-              <Badge variant="gray" startIcon="refresh-cw">
-                {t("repeats_up_to", {
+              <Tooltip
+                content={t("repeats_up_to", {
                   count: recurringEvent.count,
                 })}
-              </Badge>
+                className="cursor-pointer">
+                <Badge variant="minimal" startIcon="refresh-cw">
+                  {/* {t("repeats_up_to", {
+                  count: recurringEvent.count,
+                })} */}
+                  {recurringEvent.count}
+                </Badge>
+              </Tooltip>
             </li>
           )}
           {paymentAppData.enabled && (
             <li>
               <Badge
-                variant="gray"
+                variant="minimal"
                 customStartIcon={
                   <PriceIcon currency={paymentAppData.currency} className="h-3 w-3 stroke-[3px]" />
                 }>
@@ -111,7 +126,7 @@ export const EventTypeDescription = ({
           )}
           {eventType.requiresConfirmation && (
             <li className="hidden xl:block" data-testid="requires-confirmation-badge">
-              <Badge variant="gray" startIcon="clipboard">
+              <Badge variant="minimal" startIcon="clipboard">
                 {eventType.metadata?.requiresConfirmationThreshold
                   ? t("may_require_confirmation")
                   : t("requires_confirmation")}
@@ -121,7 +136,7 @@ export const EventTypeDescription = ({
           {/* TODO: Maybe add a tool tip to this? */}
           {eventType.requiresConfirmation || (recurringEvent?.count && recurringEvent.count) ? (
             <li className="block xl:hidden">
-              <Badge variant="gray" startIcon="plus">
+              <Badge variant="minimal" startIcon="plus">
                 <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>
               </Badge>
             </li>
@@ -130,7 +145,7 @@ export const EventTypeDescription = ({
           )}
           {eventType?.seatsPerTimeSlot ? (
             <li>
-              <Badge variant="gray" startIcon="user">
+              <Badge variant="minimal" startIcon="user">
                 <p>{t("event_type_seats", { numberOfSeats: eventType.seatsPerTimeSlot })} </p>
               </Badge>
             </li>

@@ -10,12 +10,14 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { metadata } from "@calcom/app-store/dailyvideo";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import ThemeLabel from "@calcom/features/settings/ThemeLabel";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,6 +29,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { SettingsToggle, ColorPicker, Form } from "@calcom/ui/components/form";
+import { BannerUploader, ImageUploader } from "@calcom/ui/components/image-uploader";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
@@ -87,6 +90,12 @@ const AppearanceView = ({
   const userThemeFormMethods = useForm({
     defaultValues: {
       theme: user.theme,
+    },
+  });
+
+  const headerUrlFormMethods = useForm({
+    defaultValues: {
+      metadata: user.metadata as z.infer<typeof userMetadata>,
     },
   });
 
@@ -268,7 +277,6 @@ const AppearanceView = ({
               </Button>
             </div>
           </Form>
-
           <Form
             form={bookerLayoutFormMethods}
             className="mt-6"
@@ -291,7 +299,6 @@ const AppearanceView = ({
               user={user}
             />
           </Form>
-
           <Form
             form={brandColorsFormMethods}
             handleSubmit={(values) => {
@@ -388,6 +395,85 @@ const AppearanceView = ({
             </div>
           </Form>
 
+          <Form
+            form={headerUrlFormMethods}
+            handleSubmit={(values) => {
+              console.log("Submitting: ", values);
+              mutation.mutate(values);
+            }}>
+            <div className="border-subtle mt-6 rounded-md border p-6">
+              <Controller
+                control={headerUrlFormMethods.control}
+                name="metadata.headerUrl"
+                render={({ field: { value, onChange } }) => {
+                  const showRemoveLogoButton = value !== null;
+                  return (
+                    <div className="flex flex-col items-start gap-2">
+                      <p className="text-emphasis mb-2 block text-base font-medium">{t("header_svg")}</p>
+
+                      {/* {metadata.headerUrl } */}
+
+                      {/* <div className="bg-muted flex h-60 w-full items-center justify-start">
+                        {!value ? (
+                          <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                            {t("no_target", { "Header" })}
+                          </p>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img className="h-full w-full" src={value} />
+                        )}
+                      </div> */}
+                      {
+                        <div className="bg-muted flex h-60 w-full items-center justify-start rounded-sm">
+                          {!value ? (
+                            <p className="text-emphasis w-full text-center text-sm sm:text-xs">
+                              {t("no_target", { target: "Header" })}
+                            </p>
+                          ) : (
+                            <img className="h-full w-full" src={value} />
+                          )}
+                        </div>
+                      }
+
+                      {/* <Avatar
+                        data-testid="profile-upload-logo"
+                        alt={headerUrlFormMethods.getValues("name")}
+                        imageSrc={getPlaceholderAvatar(
+                          value,
+                          headerUrlFormMethods.getValues("metadata.headerUrl")
+                        )}
+                        size="lg"
+                      /> */}
+                      <div className="flex gap-2">
+                        <BannerUploader
+                          target="metadata.headerUrl"
+                          id="svg-upload"
+                          buttonMsg={t("upload_image")}
+                          height={400}
+                          width={1600}
+                          handleAvatarChange={onChange}
+                          imageSrc={getPlaceholderAvatar(
+                            value,
+                            headerUrlFormMethods.getValues("metadata.headerUrl")
+                          )}
+                          triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                        />
+                        {showRemoveLogoButton && (
+                          <Button color="secondary" onClick={() => onChange(null)}>
+                            {t("remove")}
+                          </Button>
+                        )}
+
+                        <Button type="submit" color="secondary">
+                          {t("save")}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          </Form>
           {/* TODO future PR to preview brandColors */}
           {/* <Button
         color="secondary"
@@ -396,7 +482,6 @@ const AppearanceView = ({
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
-
           <div className="border-subtle mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}

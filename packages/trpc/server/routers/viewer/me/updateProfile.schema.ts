@@ -6,6 +6,7 @@ import { bookerLayouts, userMetadata } from "@calcom/prisma/zod-utils";
 
 export const updateUserMetadataAllowedKeys = z.object({
   sessionTimeout: z.number().optional(), // Minutes
+  headerUrl: z.string().optional().nullable(), 
   defaultBookerLayouts: bookerLayouts.optional(),
 });
 

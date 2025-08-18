@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { uploadLogo, uploadHeader } from "@calcom/lib/server/avatar";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
@@ -36,9 +37,11 @@ type UpdateProfileOptions = {
 };
 
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
+
+  logger.info("Upload profile input: ", input);
   const { user } = ctx;
   const billingService = new StripeBillingService();
-  const userMetadata = handleUserMetadata({ ctx, input });
+  const userMetadata = await handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const featuresRepository = new FeaturesRepository();
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
@@ -393,10 +396,27 @@ const cleanMetadataAllowedUpdateKeys = (metadata: TUpdateProfileInputSchema["met
   return cleanedMetadata.data;
 };
 
-const handleUserMetadata = ({ ctx, input }: UpdateProfileOptions) => {
+ const handleUserMetadata =async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const cleanMetadata = cleanMetadataAllowedUpdateKeys(input.metadata);
   const userMetadata = userMetadataSchema.parse(user.metadata);
+
+  logger.info("Clean meta: ", cleanMetadata);
+  if (
+    cleanMetadata.headerUrl &&
+    (cleanMetadata.headerUrl.startsWith("data:image/png;base64,") ||
+      cleanMetadata.headerUrl.startsWith("data:image/jpeg;base64,") ||
+      cleanMetadata.headerUrl.startsWith("data:image/jpg;base64,"))
+  ) {
+    const headerUrl = await resizeBase64Image(cleanMetadata.headerUrl, { maxSize: 1500 });
+    cleanMetadata.headerUrl = await uploadHeader({
+      banner: headerUrl,
+      userId: user.id,
+    });
+  } else {
+    cleanMetadata.headerUrl = null;
+  }
+
   // Required so we don't override and delete saved values
   return { ...userMetadata, ...cleanMetadata };
 };

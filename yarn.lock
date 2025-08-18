@@ -35072,7 +35072,7 @@ __metadata:
     react: ^16.8.4 || ^17.0.1 || ^18.0.0
     react-dom: ^16.8.4 || ^17.0.1 || ^18.0.0
     reactstrap: ^9.0.0
-  checksum: 6efaaaaaab0fcbb98d4843fbe3b5036a7831fd097774869fc0e175ca40c4770d7939dd3efcb2c3365c6fe539c8ba6b6bb19ddef55d93f491770a9bfdc3f1355cc5e4e
+  checksum: 6efab0fcbb98d4843fbe3b5036a7831fd097774869fc0e175ca40c4770d7939dd3efcb2c3365c6fe539c8ba6b6bb19ddef55d93f491770a9bfdc3f1355cc5e4e
   languageName: node
   linkType: hard
 

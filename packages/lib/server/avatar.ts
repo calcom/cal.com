@@ -21,6 +21,35 @@ export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; a
       data: processedData,
       objectKey,
       isBanner: false,
+      isHeader: false,
+    },
+    update: {
+    data: processedData,
+      objectKey,
+    },
+  });
+
+  return `/api/avatar/${objectKey}.png`;
+};
+
+export const uploadHeader = async ({ userId, banner: data }: { userId: number; banner: string }) => {
+  const objectKey = uuidv4();
+  const processedData = await convertSvgToPng(data);
+
+  await prisma.avatar.upsert({
+    where: {
+      teamId_userId_isHeader: {
+        teamId: 0,
+        userId,
+        isHeader: true,
+      },
+    },
+    create: {
+      userId: userId,
+      data: processedData,
+      objectKey,
+      isHeader: true,
+      isBanner: false,
     },
     update: {
       data: processedData,
@@ -49,6 +78,8 @@ export const uploadLogo = async ({
         teamId,
         userId: 0,
         isBanner,
+
+        isHeader: false,
       },
     },
     create: {
@@ -56,6 +87,7 @@ export const uploadLogo = async ({
       data: processedData,
       objectKey,
       isBanner,
+      isHeader: false,
     },
     update: {
       data: processedData,

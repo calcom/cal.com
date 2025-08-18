@@ -36,7 +36,7 @@ type UserPageProps = {
     allowSEOIndexing: boolean;
     username: string | null;
   };
-  users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl"> & {
+  users: (Pick<User, "name" | "username" | "bio" | "verified" | "avatarUrl" | "headerUrl"> & {
     profile: UserProfile;
   })[];
   themeBasis: string | null;
@@ -179,6 +179,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
         name: user.name,
         username: user.username,
         bio: user.bio,
+        headerUrl: user.metadata.headerUrl,
         avatarUrl: user.avatarUrl,
         verified: user.verified,
         profile: user.profile,

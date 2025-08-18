@@ -1774,8 +1774,10 @@ model Avatar {
   // different every time to pop the cache.
   objectKey String @unique
 
+  isHeader Boolean @default(false)
   isBanner Boolean @default(false)
 
+  @@unique([teamId, userId, isHeader])
   @@unique([teamId, userId, isBanner])
   @@map(name: "avatars")
 }

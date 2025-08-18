@@ -331,6 +331,7 @@ const schemaDefaultConferencingApp = z.object({
 
 export const userMetadata = z
   .object({
+    headerUrl: z.string().nullable().optional(),
     proPaidForByTeamId: z.number().optional(),
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
