@@ -36,10 +36,8 @@ export { handleInstantMeeting };
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
 
-export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
-
 export { getBookingCreateService } from "@calcom/lib/di/containers/BookingCreate";
-export type { IBookingCreateService } from "@calcom/lib/server/service/booking/IBookingCreateService";
+export type { BookingCreateService } from "@calcom/lib/server/service/booking/BookingCreateService";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 
