@@ -1,17 +1,19 @@
 import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
-import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import type {
+  CreateInstantBookingData,
+  CreateInstantBookingResponse,
+} from "@calcom/features/bookings/lib/dto/types";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -121,6 +123,8 @@ const triggerBrowserNotifications = async (args: {
     },
   });
 
+  const { sendNotification } = await import("@calcom/features/notifications/sendNotification");
+
   const promises = subscribers.map((sub) => {
     const subscription = sub.user?.NotificationsSubscriptions?.[0]?.subscription;
     if (!subscription) return Promise.resolve();
@@ -151,17 +155,8 @@ const triggerBrowserNotifications = async (args: {
   await Promise.allSettled(promises);
 };
 
-export type HandleInstantMeetingResponse = {
-  message: string;
-  meetingTokenId: number;
-  bookingId: number;
-  bookingUid: string;
-  expires: Date;
-  userId: number | null;
-};
-
-async function handler(req: NextApiRequest) {
-  let eventType = await getEventTypesFromDB(req.body.eventTypeId);
+async function handler(bookingData: CreateInstantBookingData) {
+  let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
   const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
     ...eventType,
@@ -173,11 +168,11 @@ async function handler(req: NextApiRequest) {
   }
 
   const schema = getBookingDataSchema({
-    view: req.body?.rescheduleUid ? "reschedule" : "booking",
+    view: bookingData?.rescheduleUid ? "reschedule" : "booking",
     bookingFields: eventType.bookingFields,
   });
   const reqBody = await getBookingData({
-    reqBody: req.body,
+    reqBody: bookingData,
     eventType,
     schema,
   });
@@ -257,7 +252,7 @@ async function handler(req: NextApiRequest) {
         data: attendeesList,
       },
     },
-    creationSource: req.body.creationSource,
+    creationSource: bookingData.creationSource,
   };
 
   const createBookingObj = {
@@ -275,7 +270,7 @@ async function handler(req: NextApiRequest) {
 
   const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
     where: {
-      id: req.body.eventTypeId,
+      id: bookingData.eventTypeId,
     },
     select: {
       instantMeetingExpiryTimeOffsetInSeconds: true,
@@ -334,7 +329,7 @@ async function handler(req: NextApiRequest) {
     bookingUid: newBooking.uid,
     expires: instantMeetingToken.expires,
     userId: newBooking.userId,
-  } satisfies HandleInstantMeetingResponse;
+  } satisfies CreateInstantBookingResponse;
 }
 
 export default handler;
