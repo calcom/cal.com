@@ -1,3 +1,4 @@
+import type logger from "@calcom/lib/logger";
 
 import getAppKeysFromSlug from "../_utils/getAppKeysFromSlug";
 import type { LarkAppKeys } from "./types/LarkCalendar";
@@ -11,7 +12,7 @@ export const isExpired = (expiryDate: number) =>
 
 export async function handleLarkError<T extends { code: number; msg: string }>(
   response: Response,
-  log: any
+  log: typeof logger
 ): Promise<T> {
   const data: T = await response.json();
   if (!response.ok || data.code !== 0) {

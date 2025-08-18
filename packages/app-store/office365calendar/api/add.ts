@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "querystring";
 
-import { WEBAPP_URL_FOR_OAUTH } from "../../../../lib/constants.js";
+import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";

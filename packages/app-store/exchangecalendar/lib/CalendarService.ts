@@ -26,6 +26,8 @@ import {
   WellKnownFolderName,
 } from "ews-javascript-api";
 
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+import logger from "@calcom/lib/logger";
 import type {
   Calendar,
   CalendarEvent,
@@ -36,17 +38,16 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-// import { symmetricDecrypt } from "../../../lib/crypto.js";
 import { ExchangeAuthentication } from "../enums";
-
-const { symmetricDecrypt } = await import("../../../lib/crypto.js");
 
 export default class ExchangeCalendarService implements Calendar {
   private integrationName = "";
+  private log: typeof logger;
   private payload;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "exchange_calendar";
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.payload = JSON.parse(
       symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
     );
@@ -80,9 +81,7 @@ export default class ExchangeCalendarService implements Calendar {
         };
       })
       .catch((reason) => {
-        const logger = (await import("../../../lib/logger.js")).default;
-        const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-        log.error(reason);
+        this.log.error(reason);
         throw reason;
       });
   }
@@ -121,9 +120,7 @@ export default class ExchangeCalendarService implements Calendar {
         };
       })
       .catch((reason) => {
-        const logger = (await import("../../../lib/logger.js")).default;
-        const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-        log.error(reason);
+        this.log.error(reason);
         throw reason;
       });
   }
@@ -161,9 +158,7 @@ export default class ExchangeCalendarService implements Calendar {
             });
           })
           .catch((reason) => {
-            const logger = (await import("../../../lib/logger.js")).default;
-        const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-        log.error(reason);
+            this.log.error(reason);
             throw reason;
           });
       });
@@ -196,9 +191,7 @@ export default class ExchangeCalendarService implements Calendar {
         });
       })
       .catch((reason) => {
-        const logger = (await import("../../../lib/logger.js")).default;
-        const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-        log.error(reason);
+        this.log.error(reason);
         throw reason;
       });
   }

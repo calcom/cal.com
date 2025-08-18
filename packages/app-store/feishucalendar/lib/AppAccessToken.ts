@@ -1,9 +1,10 @@
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 
 import { getAppKeys, isExpired, FEISHU_HOST } from "../common";
 
-const logger = (await import("../../../lib/logger.js")).default;
 const log = logger.getSubLogger({ prefix: [`[[FeishuAppCredential]`] });
 
 function makePoolingPromise<T>(
@@ -100,7 +101,6 @@ const getAppTicket = async (): Promise<string> => {
 };
 
 export const getAppAccessToken: () => Promise<string> = async () => {
-  const prisma = (await import("@calcom/prisma")).default;
   log.debug("get app access token invoked");
   const appKeys = await getValidAppKeys();
   const appAccessToken = appKeys.app_access_token;
@@ -130,8 +130,7 @@ export const getAppAccessToken: () => Promise<string> = async () => {
   const data = await resp.json();
 
   if (!resp.ok || data.code !== 0) {
-    const loggerInstance = (await import("../../../lib/logger.js")).default;
-    loggerInstance.error("feishu error with error: ", data, ", logid is:", resp.headers.get("X-Tt-Logid"));
+    logger.error("feishu error with error: ", data, ", logid is:", resp.headers.get("X-Tt-Logid"));
     // appticket invalid, mostly outdated, delete and renew one
     if (data.code === 10012) {
       await prisma.app.update({

@@ -5,8 +5,8 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import z from "zod";
 
-import { emailSchema } from "../../../../../lib/emailSchema.js";
-import { useLocale } from "../../../../../lib/hooks/useLocale.js";
+import { emailSchema } from "@calcom/lib/emailSchema";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmailField } from "@calcom/ui/components/form";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";

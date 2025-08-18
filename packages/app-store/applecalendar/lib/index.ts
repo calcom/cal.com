@@ -1,1 +1,1 @@
-export { default as CalendarService } from "./CalendarService.js";
+export { default as CalendarService } from "./CalendarService";

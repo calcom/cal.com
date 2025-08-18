@@ -1,14 +1,12 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
 import metadata from "../_metadata";
 import GoogleCalendarService from "../lib/CalendarService";
-
-const { bookTimeSlot, selectSecondAvailableTimeSlotNextMonth } = await import(
-  "../../../../apps/web/playwright/lib/testUtils.js"
-);
 
 /**
  * Creates the booking on Cal.com and makes the GCal call to fetch the event.
@@ -22,7 +20,6 @@ export const createBookingAndFetchGCalEvent = async (
   qaGCalCredential: Prisma.CredentialGetPayload<{ select: { id: true } }> | null,
   qaUsername: string
 ) => {
-  const prisma = (await import("@calcom/prisma")).default;
   await page.goto(`/${qaUsername}/15min`);
   await selectSecondAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
@@ -114,7 +111,6 @@ export const deleteBookingAndEvent = async (
   bookingUid: string,
   gCalReferenceUid?: string
 ) => {
-  const prisma = (await import("@calcom/prisma")).default;
   // After test passes we can delete the booking and GCal event
   await prisma.booking.delete({
     where: {

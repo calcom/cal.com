@@ -1,4 +1,6 @@
-const prisma = (await import("@calcom/prisma")).default;
+import { getLocation } from "@calcom/lib/CalEventParser";
+import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -10,7 +12,6 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-import { getLocation } from "../../../lib/CalEventParser.js";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import { handleFeishuError, isExpired, FEISHU_HOST } from "../common";
 import type {
@@ -33,12 +34,14 @@ function parseEventTime2Timestamp(eventTime: string): string {
 export default class FeishuCalendarService implements Calendar {
   private url = `https://${FEISHU_HOST}/open-apis`;
   private integrationName = "";
+  private log: typeof logger;
   auth: { getToken: () => Promise<string> };
   private credential: CredentialPayload;
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "feishu_calendar";
     this.auth = this.feishuAuth(credential);
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.credential = credential;
   }
 
@@ -80,9 +83,7 @@ export default class FeishuCalendarService implements Calendar {
       );
 
       const data = await handleFeishuError<RefreshTokenResp>(resp, this.log);
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.debug(
+      this.log.debug(
         "FeishuCalendarService refreshAccessToken data refresh_expires_in",
         data.data.refresh_expires_in,
         "and access token expire in",
@@ -106,9 +107,7 @@ export default class FeishuCalendarService implements Calendar {
 
       return newFeishuAuthCredentials.access_token;
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error("FeishuCalendarService refreshAccessToken error", error);
+      this.log.error("FeishuCalendarService refreshAccessToken error", error);
       throw error;
     }
   };
@@ -151,9 +150,7 @@ export default class FeishuCalendarService implements Calendar {
       eventRespData = await handleFeishuError<CreateEventResp>(eventResponse, this.log);
       eventId = eventRespData.data.event.event_id as string;
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
       throw error;
     }
 
@@ -169,9 +166,7 @@ export default class FeishuCalendarService implements Calendar {
         additionalInfo: {},
       };
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
       await this.deleteEvent(eventId, event, calendarId);
       throw error;
     }
@@ -184,9 +179,7 @@ export default class FeishuCalendarService implements Calendar {
       : undefined;
     const calendarId = mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error("no calendar id provided in createAttendees");
+      this.log.error("no calendar id provided in createAttendees");
       throw new Error("no calendar id provided in createAttendees");
     }
     const attendeeResponse = await this.fetcher(
@@ -216,9 +209,7 @@ export default class FeishuCalendarService implements Calendar {
     );
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error("no calendar id provided in updateEvent");
+      this.log.error("no calendar id provided in updateEvent");
       throw new Error("no calendar id provided in updateEvent");
     }
     try {
@@ -231,9 +222,7 @@ export default class FeishuCalendarService implements Calendar {
       );
       eventRespData = await handleFeishuError<CreateEventResp>(eventResponse, this.log);
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
       throw error;
     }
 
@@ -250,9 +239,7 @@ export default class FeishuCalendarService implements Calendar {
         additionalInfo: {},
       };
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
       await this.deleteEvent(eventId, event);
       throw error;
     }
@@ -269,9 +256,7 @@ export default class FeishuCalendarService implements Calendar {
     );
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error("no calendar id provided in deleteEvent");
+      this.log.error("no calendar id provided in deleteEvent");
       throw new Error("no calendar id provided in deleteEvent");
     }
     try {
@@ -280,9 +265,7 @@ export default class FeishuCalendarService implements Calendar {
       });
       await handleFeishuError(response, this.log);
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
       throw error;
     }
   }
@@ -331,9 +314,7 @@ export default class FeishuCalendarService implements Calendar {
         }, []) || [];
       return busyData;
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
       return [];
     }
   }
@@ -387,9 +368,7 @@ export default class FeishuCalendarService implements Calendar {
         return calendar;
       });
     } catch (err) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error("There was an error contacting feishu calendar service: ", err);
+      this.log.error("There was an error contacting feishu calendar service: ", err);
       throw err;
     }
   };

@@ -2,7 +2,8 @@
 /// <reference path="../../../types/ical.d.ts"/>
 import ICAL from "ical.js";
 
-const dayjs = (await import("@calcom/dayjs")).default;
+import dayjs from "@calcom/dayjs";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import type {
   Calendar,
   IntegrationCalendar,
@@ -11,8 +12,6 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
-import { symmetricDecrypt } from "../../../lib/crypto.js";
 
 // for Apple's Travel Time feature only (for now)
 const getTravelDurationInSeconds = (vevent: ICAL.Component) => {

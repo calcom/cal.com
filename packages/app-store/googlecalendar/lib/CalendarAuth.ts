@@ -3,32 +3,26 @@ import { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
 import { OAuth2Client, JWT } from "googleapis-common";
 
-import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-
-import logger from "../../../lib/logger.js";
-import { metadata } from "../_metadata";
-import { getGoogleAppKeys } from "./getGoogleAppKeys";
-
-const { oAuthManagerHelper } = await import("../../_utils/oauth/oAuthManagerHelper");
-
-const { invalidateCredential } = await import("../../_utils/invalidateCredential");
-
-const { OAuthManager } = await import("../../_utils/oauth/OAuthManager.js");
-
-const { OAuth2UniversalSchema } = await import("../../_utils/oauth/universalSchema.js");
-
-const {
+import {
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
   CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialError,
-} = await import("../../../lib/CalendarAppError.js");
-
-const {
+} from "@calcom/lib/CalendarAppError";
+import {
   APP_CREDENTIAL_SHARING_ENABLED,
   CREDENTIAL_SYNC_ENDPOINT,
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
-} = await import("../../../lib/constants.js");
+} from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
+
+import { invalidateCredential } from "../../_utils/invalidateCredential";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
+import { metadata } from "../_metadata";
+import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 type DelegatedTo = NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarAuth"] });

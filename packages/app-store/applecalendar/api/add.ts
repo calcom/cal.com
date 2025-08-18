@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
-const prisma = (await import("@calcom/prisma")).default;
+import logger from "@calcom/lib/logger";
+import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { CalendarService } from "../lib";
@@ -70,8 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         update: data,
       });
     } catch (reason) {
-      const logger = await import("@calcom/lib/logger").then(m => m.default);
-      (await logger).error("Could not add this apple calendar account", reason);
+      logger.error("Could not add this apple calendar account", reason);
       return res.status(500).json({ message: "unable_to_add_apple_calendar" });
     }
 

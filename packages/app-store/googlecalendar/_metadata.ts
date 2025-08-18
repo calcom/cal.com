@@ -1,7 +1,7 @@
+import { validJson } from "@calcom/lib/jsonUtils";
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json" with { type: "json" };
-const { validJson } = await import("../../../lib/jsonUtils");
+import _package from "./package.json";
 
 export const metadata = {
   name: "Google Calendar",

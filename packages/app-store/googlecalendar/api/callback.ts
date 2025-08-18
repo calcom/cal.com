@@ -15,6 +15,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -22,7 +23,6 @@ import { updateProfilePhotoGoogle } from "../../_utils/oauth/updateProfilePhotoG
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const { Prisma } = await import("@calcom/prisma/client");
   const { code } = req.query;
   const state = decodeOAuthState(req);
 

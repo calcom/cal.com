@@ -1,8 +1,8 @@
+import logger from "@calcom/lib/logger";
 
 import { FEISHU_HOST } from "../common";
 import { getAppAccessToken } from "./AppAccessToken";
 
-const logger = (await import("../../../../lib/logger.js")).default;
 const log = logger.getSubLogger({ prefix: [`[[FeishuTenantCredential]`] });
 
 const msg = {

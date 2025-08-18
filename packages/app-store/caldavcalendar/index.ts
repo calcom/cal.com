@@ -1,6 +1,6 @@
 import type { App } from "@calcom/types/App";
 
-import _package from "./package.json" with { type: "json" };
+import _package from "./package.json";
 
 export const metadata = {
   name: "CalDav (Beta)",

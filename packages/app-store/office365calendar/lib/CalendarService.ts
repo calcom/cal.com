@@ -1,7 +1,15 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
-const dayjs = (await import("@calcom/dayjs")).default;
+import { MSTeamsLocationType } from "@calcom/app-store/locations";
+import dayjs from "@calcom/dayjs";
+import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
+import {
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialConfigurationError,
+} from "@calcom/lib/CalendarAppError";
+import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type {
   Calendar,
@@ -12,18 +20,11 @@ import type {
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
-import { getLocation, getRichDescriptionHTML } from "../../../lib/CalEventParser.js";
-import {
-  CalendarAppDelegationCredentialInvalidGrantError,
-  CalendarAppDelegationCredentialConfigurationError,
-} from "../../../lib/CalendarAppError.js";
-import { handleErrorsJson, handleErrorsRaw } from "../../../lib/errors.js";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager.js";
-import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential.js";
-import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper.js";
-import { MSTeamsLocationType } from "../../locations.js";
-import metadata from "../_metadata.js";
-import { getOfficeAppKeys } from "./getOfficeAppKeys.js";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
+import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
+import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
+import metadata from "../_metadata";
+import { getOfficeAppKeys } from "./getOfficeAppKeys";
 
 interface IRequest {
   method: string;
@@ -54,6 +55,7 @@ interface BodyValue {
 export default class Office365CalendarService implements Calendar {
   private url = "";
   private integrationName = "";
+  private log: typeof logger;
   private auth: OAuthManager;
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
   private credential: CredentialForCalendarServiceWithTenantId;
@@ -117,6 +119,7 @@ export default class Office365CalendarService implements Calendar {
       },
     });
     this.credential = credential;
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
   private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
@@ -262,9 +265,7 @@ export default class Office365CalendarService implements Calendar {
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
 
       throw error;
     }
@@ -297,9 +298,7 @@ export default class Office365CalendarService implements Calendar {
 
       return { ...responseJson, iCalUID: responseJson.iCalUId };
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
 
       throw error;
     }
@@ -313,9 +312,7 @@ export default class Office365CalendarService implements Calendar {
 
       handleErrorsRaw(response);
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error(error);
+      this.log.error(error);
 
       throw error;
     }
@@ -687,17 +684,13 @@ export default class Office365CalendarService implements Calendar {
       const timezone = await handleErrorsJson<string>(response);
 
       if (!timezone) {
-        const logger = (await import("../../../lib/logger.js")).default;
-        const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-        log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
+        this.log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
         return "Europe/London";
       }
 
       return timezone;
     } catch (error) {
-      const logger = (await import("../../../lib/logger.js")).default;
-      const log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
-      log.error("Error getting main timezone from Office365 Calendar", { error });
+      this.log.error("Error getting main timezone from Office365 Calendar", { error });
       throw error;
     }
   }

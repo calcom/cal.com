@@ -1,13 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { defaultHandler } from "../../../../lib/server/defaultHandler.js";
-import { defaultResponder } from "../../../../lib/server/defaultResponder.js";
+import logger from "@calcom/lib/logger";
+import { defaultHandler } from "@calcom/lib/server/defaultHandler";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 
 import { getAppKeys } from "../common";
 import { sendPostMsg } from "../lib/BotService";
 
-const logger = (await import("../../../../lib/logger.js")).default;
 const log = logger.getSubLogger({ prefix: [`[lark/api/events]`] });
 
 const larkKeysSchema = z.object({
@@ -49,7 +50,6 @@ const p2pChatCreateEventsReqSchema = z.object({
 });
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
-  const prisma = (await import("@calcom/prisma")).default;
   log.debug("receive events", req.body);
   const appKeys = await getAppKeys();
   const { open_verification_token } = larkKeysSchema.parse(appKeys);
