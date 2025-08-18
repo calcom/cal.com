@@ -186,6 +186,18 @@ export async function getBookings({
         role: {
           in: ["ADMIN", "OWNER"],
         },
+        ...(user.orgId && {
+          OR: [
+            {
+              teamId: user.orgId,
+            },
+            {
+              team: {
+                parentId: user.orgId,
+              },
+            },
+          ],
+        }),
       },
       select: {
         id: true,
@@ -642,6 +654,12 @@ export async function getBookings({
                       ).as("hosts"),
                     ]
                   : []),
+                jsonArrayFrom(
+                  eb
+                    .selectFrom("HostGroup")
+                    .select(["HostGroup.id", "HostGroup.name"])
+                    .whereRef("HostGroup.eventTypeId", "=", "EventType.id")
+                ).as("hostGroups"),
               ])
               .whereRef("EventType.id", "=", "Booking.eventTypeId")
           ).as("eventType"),

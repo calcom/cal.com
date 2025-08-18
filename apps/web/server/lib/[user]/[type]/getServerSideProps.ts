@@ -16,7 +16,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
-import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
+import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
 import { getUsersInOrgContext } from "@server/lib/[user]/getServerSideProps";
 
@@ -139,17 +139,17 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const org = isValidOrgDomain ? currentOrgDomain : null;
-  if (!org) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
 
-    if (redirect) {
-      return redirect;
-    }
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: org,
+  });
+
+  if (redirect) {
+    return redirect;
   }
 
   const userRepo = new UserRepository(prisma);
@@ -237,18 +237,16 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
-  const isOrgContext = currentOrgDomain && isValidOrgDomain;
-  if (!isOrgContext) {
-    const redirect = await getTemporaryOrgRedirect({
-      slugs: usernames,
-      redirectType: RedirectType.User,
-      eventTypeSlug: slug,
-      currentQuery: context.query,
-    });
+  const redirect = await handleOrgRedirect({
+    slugs: usernames,
+    redirectType: RedirectType.User,
+    eventTypeSlug: slug,
+    context,
+    currentOrgDomain: isValidOrgDomain ? currentOrgDomain : null,
+  });
 
-    if (redirect) {
-      return redirect;
-    }
+  if (redirect) {
+    return redirect;
   }
 
   const [user] = await getUsersInOrgContext([username], isValidOrgDomain ? currentOrgDomain : null);

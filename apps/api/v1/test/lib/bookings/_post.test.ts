@@ -76,11 +76,13 @@ vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.contro
   checkIfUsersAreBlocked: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock("@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials", () => ({
-  findQualifiedHostsWithDelegationCredentials: vi.fn().mockResolvedValue({
-    qualifiedRRHosts: [],
-    allFallbackRRHosts: [],
-    fixedHosts: [],
+vi.mock("@calcom/lib/di/containers/QualifiedHosts", () => ({
+  getQualifiedHostsService: vi.fn().mockReturnValue({
+    findQualifiedHostsWithDelegationCredentials: vi.fn().mockResolvedValue({
+      qualifiedRRHosts: [],
+      allFallbackRRHosts: [],
+      fixedHosts: [],
+    }),
   }),
 }));
 

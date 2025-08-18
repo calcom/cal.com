@@ -1,12 +1,13 @@
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import getConnectedForms from "../lib/getConnectedForms";
-import { isFormCreateEditAllowed } from "../lib/isFormCreateEditAllowed";
 import type { TDeleteFormInputSchema } from "./deleteForm.schema";
+import { checkPermissionOnExistingRoutingForm } from "./permissions";
 
 interface DeleteFormHandlerOptions {
   ctx: {
@@ -17,11 +18,13 @@ interface DeleteFormHandlerOptions {
 }
 export const deleteFormHandler = async ({ ctx, input }: DeleteFormHandlerOptions) => {
   const { user, prisma } = ctx;
-  if (!(await isFormCreateEditAllowed({ userId: user.id, formId: input.id, targetTeamId: null }))) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-    });
-  }
+
+  await checkPermissionOnExistingRoutingForm({
+    formId: input.id,
+    userId: user.id,
+    permission: "routingForm.delete",
+    fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+  });
 
   const areFormsUsingIt = (
     await getConnectedForms(prisma, {
