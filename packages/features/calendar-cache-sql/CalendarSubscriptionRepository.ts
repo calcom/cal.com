@@ -187,8 +187,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
           },
           integration: "google_calendar",
         },
-        syncErrors: { lt: 5 },
+        syncErrors: {
+          lt: this.prismaClient.calendarSubscription.fields.maxSyncErrors,
+        },
         OR: [{ channelExpiration: null }, { channelExpiration: { lt: tomorrowTimestamp } }],
+        AND: [{ OR: [{ backoffUntil: null }, { backoffUntil: { lte: new Date() } }] }],
       },
       include: {
         selectedCalendar: {
@@ -207,13 +210,28 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
   }
 
   async setWatchError(id: string, _error: string) {
-    await this.prismaClient.calendarSubscription.update({
-      where: { id },
-      data: {
-        syncErrors: { increment: 1 },
-        backoffUntil: new Date(Date.now() + Math.pow(2, 3) * 60 * 1000),
-        updatedAt: new Date(),
-      },
+    await this.prismaClient.$transaction(async (tx) => {
+      const current = await tx.calendarSubscription.findUnique({
+        where: { id },
+        select: { syncErrors: true, maxSyncErrors: true },
+      });
+
+      const currentSyncErrors = current?.syncErrors ?? 0;
+      const maxSyncErrors = current?.maxSyncErrors ?? 5;
+      const newSyncErrors = Math.min(currentSyncErrors + 1, maxSyncErrors);
+
+      // Exponential backoff in minutes capped to 60 minutes
+      const backoffMinutes = Math.min(Math.pow(2, newSyncErrors), 60);
+      const backoffUntil = new Date(Date.now() + backoffMinutes * 60 * 1000);
+
+      await tx.calendarSubscription.update({
+        where: { id },
+        data: {
+          syncErrors: newSyncErrors,
+          backoffUntil,
+          updatedAt: new Date(),
+        },
+      });
     });
   }
 
