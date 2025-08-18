@@ -440,5 +440,50 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
     if (membership) return;
   }
 
+  // Check if the logged-in user is an admin/owner of an organization that the booking user belongs to
+  if (bookingUserId) {
+    const loggedInUserOrgMemberships = await prisma.membership.findMany({
+      where: {
+        userId: loggedInUserId,
+        role: {
+          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        },
+        team: {
+          isOrganization: true,
+        },
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    if (loggedInUserOrgMemberships.length > 0) {
+      const orgIds = loggedInUserOrgMemberships.map((m) => m.teamId);
+
+      // Check if booking user has direct membership in any of these organizations
+      const bookingUserInOrg = await prisma.membership.findFirst({
+        where: {
+          userId: bookingUserId,
+          OR: [
+            {
+              teamId: {
+                in: orgIds,
+              },
+            },
+            {
+              team: {
+                parentId: {
+                  in: orgIds,
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (bookingUserInOrg) return;
+    }
+  }
+
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
