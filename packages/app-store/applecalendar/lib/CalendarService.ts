@@ -1,8 +1,10 @@
-import BaseCalendarService from "@calcom/lib/CalendarService";
-import type { CredentialPayload } from "@calcom/types/Credential";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const BaseCalendarService = require("@calcom/lib/CalendarService");
 
-export default class AppleCalendarService extends BaseCalendarService {
-  constructor(credential: CredentialPayload) {
+class AppleCalendarService extends BaseCalendarService {
+  constructor(credential) {
     super(credential, "apple_calendar", "https://caldav.icloud.com");
   }
 }
+
+module.exports = AppleCalendarService;
