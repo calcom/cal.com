@@ -35,7 +35,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
         channelResourceId: true,
         channelResourceUri: true,
         channelExpiration: true,
-        nextSyncToken: true,
+        syncCursor: true,
         lastFullSync: true,
         syncErrors: true,
         maxSyncErrors: true,
@@ -137,7 +137,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
     await this.prismaClient.calendarSubscription.update({
       where: { id },
       data: {
-        nextSyncToken,
+        syncCursor: nextSyncToken,
         updatedAt: new Date(),
       },
     });

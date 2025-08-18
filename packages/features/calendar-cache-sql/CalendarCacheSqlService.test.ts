@@ -113,7 +113,7 @@ describe("CalendarCacheSqlService", () => {
         selectedCalendar: {
           externalId: "test@example.com",
         },
-        nextSyncToken: "sync-token",
+        syncCursor: "sync-token",
       };
 
       const mockCredential = {
@@ -194,7 +194,7 @@ describe("CalendarCacheSqlService", () => {
         selectedCalendar: {
           externalId: "test@example.com",
         },
-        nextSyncToken: "sync-token",
+        syncCursor: "sync-token",
       };
 
       const mockCredential = {
@@ -286,7 +286,7 @@ describe("CalendarCacheSqlService", () => {
         selectedCalendar: {
           externalId: "test@example.com",
         },
-        nextSyncToken: "sync-token",
+        syncCursor: "sync-token",
       };
 
       const mockCredential = {

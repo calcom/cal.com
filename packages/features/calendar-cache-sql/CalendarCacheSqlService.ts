@@ -70,7 +70,7 @@ export class CalendarCacheSqlService {
     const now = new Date();
 
     // For initial sync, first get current events with time range, then get a sync token
-    if (!subscription.nextSyncToken) {
+    if (!subscription.syncCursor) {
       console.info("Initial sync: Getting current events with time range");
       const allCurrentEvents = await this.fetchAllTimeRangedEvents(
         calendar,
@@ -108,7 +108,7 @@ export class CalendarCacheSqlService {
       const { items: incrementalItems, nextSyncToken } = await this.fetchAllIncremental(
         calendar,
         calendarId,
-        subscription.nextSyncToken!
+        subscription.syncCursor!
       );
       if (incrementalItems.length > 0) {
         const events = this.parseCalendarEvents(incrementalItems, subscription.id, false);
@@ -126,7 +126,7 @@ export class CalendarCacheSqlService {
         console.warn("Incremental sync token is stale (410). Falling back to full time-ranged sync.");
         // Clear in-memory token to avoid reusing a stale value during recovery
         // Do not persist this cleared state; only persist a fresh token after successful recovery
-        subscription.nextSyncToken = null;
+        subscription.syncCursor = null;
         // Perform a time-ranged full sync (now to +30 days), with pagination
         const allCurrentEvents = await this.fetchAllTimeRangedEvents(
           calendar,

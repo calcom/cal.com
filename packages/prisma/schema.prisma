@@ -1603,8 +1603,10 @@ model CalendarSubscription {
   channelKind        String?
   channelResourceId  String?
   channelResourceUri String?
-  channelExpiration  String?
-  nextSyncToken      String?
+  channelResource    String?
+  clientState        String?
+  channelExpiration  DateTime?
+  syncCursor         String?
 
   // Sync management
   lastFullSync  DateTime?
@@ -1621,7 +1623,7 @@ model CalendarSubscription {
   events           CalendarEvent[]
 
   @@index([channelExpiration, syncErrors, backoffUntil])
-  @@index([nextSyncToken])
+  @@index([syncCursor])
   @@index([selectedCalendarId])
 }
 
