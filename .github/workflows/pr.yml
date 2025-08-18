@@ -204,7 +204,7 @@ jobs:
   e2e-atoms:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2, build-atoms]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.atoms-changes == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && needs.changes.outputs.atoms-changes == 'true' }}
     uses: ./.github/workflows/atoms-e2e.yml
     secrets: inherit
 
