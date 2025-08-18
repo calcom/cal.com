@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import { userEventGroupsRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/userEventGroups/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -33,13 +33,13 @@ const getCachedEventGroups = unstable_cache(
       upIds?: string[] | undefined;
     }
   ) => {
-    const eventTypesCaller = await createRouterCaller(
-      eventTypesRouter,
+    const userEventGroupsCaller = await createRouterCaller(
+      userEventGroupsRouter,
       await getTRPCContext(headers, cookies)
     );
-    return await eventTypesCaller.getUserEventGroups({ filters });
+    return await userEventGroupsCaller.get({ filters });
   },
-  ["viewer.eventTypes.getUserEventGroups"],
+  ["viewer.eventTypes.userEventGroups.get"],
   { revalidate: 3600 } // seconds
 );
 
