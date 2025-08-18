@@ -365,13 +365,13 @@ export const useBookings = ({
       if (eventTypeId) {
         storeInLocalStorage({
           eventTypeId,
-          expiryTime: responseData.expires,
+          expiryTime: new Date(responseData.expires),
           bookingId: responseData.bookingId,
         });
       }
 
       updateQueryParam("bookingId", responseData.bookingId);
-      setExpiryTime(responseData.expires);
+      setExpiryTime(new Date(responseData.expires));
     },
     onError: (err, _, ctx) => {
       console.error("Error creating instant booking", err);

@@ -33,8 +33,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   const bookingCreateService = getBookingCreateService();
   const booking = await bookingCreateService.create({
-    bookingData: {
-      bookingData: req.body,
+    bookingData: req.body,
+    bookingMeta: {
       userId: session?.user?.id || -1,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,

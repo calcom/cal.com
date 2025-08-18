@@ -75,6 +75,7 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { BookingHandlerInput } from "@calcom/lib/server/service/booking/BookingCreateTypes";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -398,24 +399,6 @@ function buildTroubleshooterData({
   };
   return troubleshooterData;
 }
-
-export type PlatformParams = {
-  platformClientId?: string;
-  platformCancelUrl?: string;
-  platformBookingUrl?: string;
-  platformRescheduleUrl?: string;
-  platformBookingLocation?: string;
-  areCalendarEventsEnabled?: boolean;
-};
-
-export type BookingHandlerInput = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bookingData: Record<string, any>;
-  userId?: number;
-  // These used to come from headers but now we're passing them as params
-  hostname?: string;
-  forcedSlug?: string;
-} & PlatformParams;
 
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
@@ -765,7 +748,11 @@ export class HandleNewBookingService {
           },
         }),
       };
-      if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
+      if (
+        bookingData.allRecurringDates &&
+        bookingData.isFirstRecurringSlot &&
+        bookingData.numSlotsToCheckForAvailability
+      ) {
         const isTeamEvent =
           eventType.schedulingType === SchedulingType.COLLECTIVE ||
           eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -776,12 +763,11 @@ export class HandleNewBookingService {
 
         for (
           let i = 0;
-          i < input.bookingData.allRecurringDates.length &&
-          i < input.bookingData.numSlotsToCheckForAvailability;
+          i < bookingData.allRecurringDates.length && i < bookingData.numSlotsToCheckForAvailability;
           i++
         ) {
-          const start = input.bookingData.allRecurringDates[i].start;
-          const end = input.bookingData.allRecurringDates[i].end;
+          const start = bookingData.allRecurringDates[i].start;
+          const end = bookingData.allRecurringDates[i].end;
           if (isTeamEvent) {
             // each fixed user must be available
             for (const key in fixedUsers) {
@@ -814,7 +800,7 @@ export class HandleNewBookingService {
         }
       }
 
-      if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
+      if (!bookingData.allRecurringDates || bookingData.isFirstRecurringSlot) {
         try {
           availableUsers = await ensureAvailableUsers(
             { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
@@ -933,19 +919,20 @@ export class HandleNewBookingService {
               break; // prevent infinite loop
             }
             if (
-              input.bookingData.isFirstRecurringSlot &&
-              eventType.schedulingType === SchedulingType.ROUND_ROBIN
+              bookingData.isFirstRecurringSlot &&
+              eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+              bookingData.numSlotsToCheckForAvailability &&
+              bookingData.allRecurringDates
             ) {
               // for recurring round robin events check if lucky user is available for next slots
               try {
                 for (
                   let i = 0;
-                  i < input.bookingData.allRecurringDates.length &&
-                  i < input.bookingData.numSlotsToCheckForAvailability;
+                  i < bookingData.allRecurringDates.length && i < bookingData.numSlotsToCheckForAvailability;
                   i++
                 ) {
-                  const start = input.bookingData.allRecurringDates[i].start;
-                  const end = input.bookingData.allRecurringDates[i].end;
+                  const start = bookingData.allRecurringDates[i].start;
+                  const end = bookingData.allRecurringDates[i].end;
 
                   await ensureAvailableUsers(
                     { ...eventTypeWithUsers, users: [newLuckyUser] },
@@ -1010,10 +997,7 @@ export class HandleNewBookingService {
             .flat()
             .map((u) => u.id),
         };
-      } else if (
-        input.bookingData.allRecurringDates &&
-        eventType.schedulingType === SchedulingType.ROUND_ROBIN
-      ) {
+      } else if (bookingData.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         // all recurring slots except the first one
         const luckyUsersFromFirstBooking = luckyUsers
           ? eventTypeWithUsers.users.filter((user) =>
@@ -1272,9 +1256,9 @@ export class HandleNewBookingService {
 
     let evt: CalendarEvent = builtEvt;
 
-    if (input.bookingData.thirdPartyRecurringEventId) {
+    if (bookingData.thirdPartyRecurringEventId) {
       const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-        ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+        ?.withRecurringEventId(bookingData.thirdPartyRecurringEventId)
         .build();
 
       if (!updatedEvt) {
@@ -1835,7 +1819,7 @@ export class HandleNewBookingService {
           },
           evt,
           originalRescheduledBooking,
-          creationSource: input.bookingData.creationSource,
+          creationSource: bookingData.creationSource,
           tracking: reqBody.tracking,
         });
 
@@ -1910,9 +1894,9 @@ export class HandleNewBookingService {
         if (booking && booking.id && eventType.seatsPerTimeSlot) {
           const currentAttendee = booking.attendees.find(
             (attendee) =>
-              attendee.email === input.bookingData.responses.email ||
-              (input.bookingData.responses.attendeePhoneNumber &&
-                attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
+              attendee.email === bookingData.responses.email ||
+              (bookingData.responses.attendeePhoneNumber &&
+                attendee.phoneNumber === bookingData.responses.attendeePhoneNumber)
           );
 
           // Save description to bookingSeat
@@ -2719,9 +2703,7 @@ export class HandleNewBookingService {
         calendarEvent: evtWithMetadata,
         isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
         isRescheduleEvent: !!rescheduleUid,
-        isFirstRecurringEvent: input.bookingData.allRecurringDates
-          ? input.bookingData.isFirstRecurringSlot
-          : undefined,
+        isFirstRecurringEvent: bookingData.allRecurringDates ? bookingData.isFirstRecurringSlot : undefined,
         hideBranding: !!eventType.owner?.hideBranding,
         seatReferenceUid: evt.attendeeSeatId,
         isDryRun,
@@ -2782,13 +2764,20 @@ export class HandleNewBookingService {
   }
 }
 
+export type HandleNewBookingResponse = Awaited<ReturnType<HandleNewBookingService["handle"]>>;
+
 // Backward compatibility handler - Required for unit tests. To be removed after tests are migrated to DI.
 // DO NOT USE IN PRODUCTION CODE - Use getBookingCreateService() from DI container instead
 async function handler(input: BookingHandlerInput, bookingDataSchemaGetter?: BookingDataSchemaGetter) {
   // Import here to avoid circular dependency issues
   const { getBookingCreateService } = await import("@calcom/lib/di/containers/BookingCreate");
   const service = getBookingCreateService();
-  return service.createBooking({ bookingData: input, schemaGetter: bookingDataSchemaGetter });
+  const { bookingData, ...bookingMeta } = input;
+  return service.createBooking({
+    bookingData,
+    bookingMeta,
+    schemaGetter: bookingDataSchemaGetter,
+  });
 }
 
 export default handler;

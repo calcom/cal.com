@@ -318,13 +318,15 @@ export class BookingsController_2024_04_15 {
       const bookingService = getBookingCreateService();
       const createdBookings: BookingResponse[] = await bookingService.createRecurringBooking({
         bookingData: bookingRequest.body,
-        userId: bookingRequest.userId,
-        hostname: bookingRequest.headers?.host || "",
-        platformClientId: bookingRequest.platformClientId,
-        platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
-        platformCancelUrl: bookingRequest.platformCancelUrl,
-        platformBookingUrl: bookingRequest.platformBookingUrl,
-        platformBookingLocation: bookingRequest.platformBookingLocation,
+        bookingMeta: {
+          userId: bookingRequest.userId,
+          hostname: bookingRequest.headers?.host || "",
+          platformClientId: bookingRequest.platformClientId,
+          platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
+          platformCancelUrl: bookingRequest.platformCancelUrl,
+          platformBookingUrl: bookingRequest.platformBookingUrl,
+          platformBookingLocation: bookingRequest.platformBookingLocation,
+        },
       });
 
       createdBookings.forEach(async (booking) => {

@@ -1,15 +1,23 @@
 import { post } from "@calcom/lib/fetch-wrapper";
 
-import type { BookingCreateBody, InstantBookingResponse } from "../types";
+import type { BookingCreateBody } from "../types";
 
-export const createInstantBooking = async (data: BookingCreateBody) => {
-  const response = await post<
-    BookingCreateBody,
-    // fetch response can't have a Date type, it must be a string
-    Omit<InstantBookingResponse, "startTime" | "endTime"> & {
-      startTime: string;
-      endTime: string;
-    }
-  >("/api/book/instant-event", data);
+// Complete type for instant booking response
+export type CreateInstantBookingResponse = {
+  message: string;
+  meetingTokenId: number;
+  bookingId: number;
+  bookingUid: string;
+  expires: string; // ISO date string
+  userId: number | null;
+};
+
+export const createInstantBooking = async (
+  data: BookingCreateBody
+): Promise<CreateInstantBookingResponse> => {
+  const response = await post<BookingCreateBody, CreateInstantBookingResponse>(
+    "/api/book/instant-event",
+    data
+  );
   return response;
 };
