@@ -1,28 +1,22 @@
 import z from "zod";
 
-import { _SelectedCalendarModel as SelectedCalendar } from "@calcom/prisma/zod";
+import { SelectedCalendarSchema } from "@calcom/prisma/zod/modelSchema/SelectedCalendarSchema";
 
 import { schemaQueryIdAsString } from "./shared/queryIdString";
 import { schemaQueryIdParseInt } from "./shared/queryIdTransformParseInt";
 
-export const schemaSelectedCalendarBaseBodyParams = SelectedCalendar;
+export const schemaSelectedCalendarBaseBodyParams = SelectedCalendarSchema;
 
-export const schemaSelectedCalendarPublic = SelectedCalendar.omit({});
+export const schemaSelectedCalendarPublic = SelectedCalendarSchema.omit({});
 
 export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
-  .partial({
+  .pick({
+    integration: true,
+    externalId: true,
     userId: true,
   })
-  .omit({
-    // id will be set by the database
-    id: true,
-    // No eventTypeId support in API v1
-    eventTypeId: true,
-
-    /** No watch related fields support in API v1 */
-    watchAttempts: true,
-    unwatchAttempts: true,
-    maxAttempts: true,
+  .partial({
+    userId: true,
   });
 
 export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams

@@ -60,7 +60,7 @@ async function getTeamHostsFromDB({
         priority: true,
         user: {
           select: {
-            ...userSelect.select,
+            ...userSelect,
             credentials: {
               select: credentialForCalendarServiceSelect,
             },

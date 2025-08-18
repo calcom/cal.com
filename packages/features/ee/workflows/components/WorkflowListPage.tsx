@@ -1,12 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Membership, Workflow } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
+import type { Membership, Workflow } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
@@ -27,6 +26,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { getActionIcon } from "../lib/getActionIcon";
 import type { WorkflowStep } from "../lib/types";
 import { DeleteDialog } from "./DeleteDialog";
+import { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 
 export type WorkflowType = Workflow & {
   team: {

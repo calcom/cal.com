@@ -1,4 +1,4 @@
-import type { SelectedSlots } from "@prisma/client";
+import type { SelectedSlots } from "@calcom/prisma/client";
 
 export type SelectedSlot = Pick<
   SelectedSlots,

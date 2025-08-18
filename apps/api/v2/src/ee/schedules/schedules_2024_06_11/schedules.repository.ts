@@ -1,9 +1,9 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
 
 import type { CreateScheduleInput_2024_06_11 } from "@calcom/platform-types";
+import { Prisma } from "@calcom/prisma/client";
 
 type InputScheduleAvailabilityTransformed = {
   days: number[];

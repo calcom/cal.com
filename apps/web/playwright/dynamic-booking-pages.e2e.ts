@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {

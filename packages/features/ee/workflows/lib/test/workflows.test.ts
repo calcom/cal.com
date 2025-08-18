@@ -13,11 +13,11 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import type { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
   WorkflowMethods,

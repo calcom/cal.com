@@ -26,7 +26,6 @@ import {
   ApiResponse as DocsResponse,
   ApiQuery,
 } from "@nestjs/swagger";
-import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -38,6 +37,7 @@ import {
   GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
+import { User } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/slots",

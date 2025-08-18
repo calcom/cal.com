@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
-import { _WebhookModel as Webhook } from "@calcom/prisma/zod";
+import { WebhookSchema } from "@calcom/prisma/zod/modelSchema/WebhookSchema";
 
-const schemaWebhookBaseBodyParams = Webhook.pick({
+const schemaWebhookBaseBodyParams = WebhookSchema.pick({
   userId: true,
   eventTypeId: true,
   eventTriggers: true,
@@ -38,7 +38,7 @@ export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams
   .partial()
   .strict();
 
-export const schemaWebhookReadPublic = Webhook.pick({
+export const schemaWebhookReadPublic = WebhookSchema.pick({
   id: true,
   userId: true,
   eventTypeId: true,

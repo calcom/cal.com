@@ -55,7 +55,7 @@ export const EventMeta = ({
   timeZones,
   children,
   selectedTimeslot,
-  roundRobinHideOrgAndTeam
+  roundRobinHideOrgAndTeam,
 }: {
   event?: Pick<
     BookerEvent,

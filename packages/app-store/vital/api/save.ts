@@ -1,8 +1,8 @@
-import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { vitalSettingsUpdateSchema } from "@calcom/prisma/zod-utils";
 
 export type VitalSettingsResponse = {

@@ -1,7 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
-import { Prisma, App_RoutingForms_Form, App_RoutingForms_FormResponse } from "@prisma/client";
+
+import { Prisma, App_RoutingForms_Form, App_RoutingForms_FormResponse } from "@calcom/prisma/client";
 
 export class RoutingFormsRepositoryFixture {
   private prismaReadClient: PrismaReadService["prisma"];

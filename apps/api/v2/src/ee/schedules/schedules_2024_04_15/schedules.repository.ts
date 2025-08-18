@@ -3,7 +3,8 @@ import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
+
 
 @Injectable()
 export class SchedulesRepository_2024_04_15 {

@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "../client";
 
 function middleware(prisma: PrismaClient) {
   /***********************************/

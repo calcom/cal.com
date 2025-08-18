@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
 import prisma from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 interface _AgentRawResult {
@@ -419,7 +418,15 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
+  static async findByIdWithAdminAccess({
+    id,
+    userId,
+    teamId,
+  }: {
+    id: string;
+    userId: number;
+    teamId?: number;
+  }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;

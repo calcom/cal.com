@@ -11,7 +11,13 @@ import {
   getLocationForOrganizerDefaultConferencingAppInEvtFormat,
   SystemError,
   UserError,
-} from "../editLocation.handler";
+} from "./editLocation.handler";
+
+vi.mock("@calcom/prisma", () => {
+  return {
+    prisma: vi.fn(),
+  };
+});
 
 describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => {
   const mockTranslate = vi.fn((key: string) => key);

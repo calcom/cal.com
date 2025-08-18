@@ -1,11 +1,10 @@
-import type { Prisma } from "@prisma/client";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

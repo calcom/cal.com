@@ -2,13 +2,6 @@ import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-  PrismaClientValidationError,
-} from "@prisma/client/runtime/library";
 import { Request } from "express";
 
 import {
@@ -19,6 +12,13 @@ import {
   NOT_FOUND,
 } from "@calcom/platform-constants";
 import { Response } from "@calcom/platform-types";
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+} from "@calcom/prisma/client/runtime/library";
 
 type PrismaError =
   | PrismaClientInitializationError
