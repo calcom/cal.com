@@ -24,6 +24,7 @@ type BannerUploaderProps = {
   disabled?: boolean;
   height: number;
   width: number;
+  mimeType: string;
 };
 
 function CropContainer({
@@ -69,6 +70,7 @@ function CropContainer({
 export default function BannerUploader({
   target,
   id,
+  mimeType,
   buttonMsg,
   handleAvatarChange,
   triggerButtonColor,
@@ -175,7 +177,7 @@ export default function BannerUploader({
                 name={id}
                 placeholder={t("upload_image")}
                 className="text-default pointer-events-none absolute mt-4 opacity-0 "
-                accept="image/*"
+                accept={mimeType || "image/*"}
               />
               {t("choose_a_file")}
             </label>

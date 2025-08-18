@@ -1,3 +1,6 @@
+// import { Button } from "@calcom/ui/components/button";
+import { Button } from "@calid/features/ui";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -7,7 +10,6 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -34,6 +36,8 @@ export function Header({
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
 }) {
+  const router = useRouter();
+
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
   const [layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
@@ -61,7 +65,17 @@ export function Header({
   // In month view we only show the layout toggle.
   if (isMonthView) {
     return (
-      <div className="flex gap-2">
+      <div className="flex w-full flex-row items-center gap-2 pl-10">
+        <Button
+          onClick={() => {
+            router.back();
+          }}
+          variant="fab"
+          color="secondary"
+          className="ml-3 h-[16px]"
+          StartIcon="arrow-left"></Button>
+        <div className="flex-1"></div>
+
         {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">
             <Button

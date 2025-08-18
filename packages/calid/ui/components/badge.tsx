@@ -1,9 +1,10 @@
 import { cn } from "@calid/features/lib/cn";
+import { Icon } from "@calid/features/ui";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
-const badgeVariants = cva(
-  "inline-flex items-center h-6 rounded px-2.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+export const badgeStyles = cva(
+  "inline-flex items-center rounded border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -12,7 +13,7 @@ const badgeVariants = cva(
         destructive: "border bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
         success: "bg-white border-green-600 text-green-600",
-        minimal: "text-default border-default border",
+        minimal: "text-default border-subtle border rounded-2xl",
       },
       size: {
         sm: "px-1 py-1 text-[10px] leading-none",
@@ -84,7 +85,7 @@ export const Badge = function Badge(props: BadgeProps) {
           <Icon
             name={StartIcon}
             data-testid="start-icon"
-            className="stroke-[3px]"
+            className="stroke-[3px] mx-1"
             style={{ width: 12, height: 12 }}
           />
         ) : null)}

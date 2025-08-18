@@ -63,7 +63,7 @@ export const TeamsFilter = ({
     return t("all");
   };
 
-  if (!teams || !teams.length) return null;
+  // if (!teams || !teams.length) return null;
 
   const userId = session.data?.user?.id || 0;
   const upId = session.data?.upId || "";

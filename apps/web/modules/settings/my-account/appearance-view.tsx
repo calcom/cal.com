@@ -449,8 +449,9 @@ const AppearanceView = ({
                           target="metadata.headerUrl"
                           id="svg-upload"
                           buttonMsg={t("upload_image")}
-                          height={400}
-                          width={1600}
+                          mimeType="image/svg+xml"
+                          height={600}
+                          width={3200}
                           handleAvatarChange={onChange}
                           imageSrc={getPlaceholderAvatar(
                             value,

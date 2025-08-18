@@ -1,3 +1,6 @@
+import { Avatar } from "@calid/features/ui";
+import { useEffect } from "react";
+
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -58,9 +61,19 @@ export const EventMembers = ({
           },
         ];
 
+  useEffect(() => {
+    console.log("User: ", shownUsers);
+  }, []);
+
   return (
     <>
-      <AvatarGroup
+      {shownUsers.map((user) => (
+        <div className="mt-2 flex flex-row items-center gap-2">
+          <Avatar href={getUserAvatarUrl(user)} />
+          <p className="text-emphasis text-sm font-semibold">{user.name}</p>
+        </div>
+      ))}
+      {/* <AvatarGroup
         size="sm"
         className="border-muted"
         items={[
@@ -86,7 +99,7 @@ export const EventMembers = ({
               .map((user) => user.name)
               .filter((name) => name)
               .join(", ")}
-      </p>
+      </p> */}
     </>
   );
 };

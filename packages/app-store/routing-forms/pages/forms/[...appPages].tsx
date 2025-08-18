@@ -153,7 +153,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
       // CTA={
       // }
       subtitle={t("routing_forms_description")}>
-      <UpgradeTip
+      {/* <UpgradeTip
         plan="team"
         title={t("teams_plan_required")}
         description={t("routing_forms_are_a_great_way")}
@@ -171,7 +171,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
               </Button>
             </ButtonGroup>
           </div>
-        }>
+        }> */}
         <FormActionsProvider
           appUrl={appUrl}
           newFormDialogState={newFormDialogState}
@@ -327,7 +327,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
             </FilterResults>
           </div>
         </FormActionsProvider>
-      </UpgradeTip>
+      {/* </UpgradeTip> */}
     </ShellMain>
     // </LicenseRequired>
   );

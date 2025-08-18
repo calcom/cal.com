@@ -46,6 +46,7 @@ type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | Even
 interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;
   icon?: IconName;
+  label?: string;
   iconUrl?: string;
   // Emphasises the text in the block. For now only
   // applying in dark mode.
@@ -72,6 +73,7 @@ const defaultEventDetailsBlocks = [
 export const EventMetaBlock = ({
   customIcon,
   icon,
+  label,
   iconUrl,
   children,
   highlight,
@@ -83,32 +85,36 @@ export const EventMetaBlock = ({
   if (!React.Children.count(children)) return null;
 
   return (
-    <div
-      className={classNames(
-        "flex items-start justify-start text-sm",
-        highlight ? "text-emphasis" : "text-text",
-        className
-      )}
-      {...rest}>
-      {iconUrl ? (
-        <img
-          src={iconUrl}
-          alt=""
-          // @TODO: Use SVG's instead of images, so we can get rid of the filter.
-          className={classNames(
-            "mr-2 mt-[2px] h-4 w-4 flex-shrink-0",
-            isDark === undefined && "[filter:invert(0.5)_brightness(0.5)]",
-            (isDark === undefined || isDark) && "dark:[filter:invert(0.65)_brightness(0.9)]"
-          )}
-        />
-      ) : (
-        <>
-          {customIcon ||
-            (!!icon && (
-              <Icon name={icon} className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2" />
-            ))}
-        </>
-      )}
+    <div className="flex flex-col">
+      <div
+        className={classNames(
+          "flex items-start justify-start text-sm",
+          highlight ? "text-emphasis" : "text-text",
+          className
+        )}
+        {...rest}>
+        {iconUrl ? (
+          <img
+            src={iconUrl}
+            alt=""
+            // @TODO: Use SVG's instead of images, so we can get rid of the filter.
+            className={classNames(
+              "mr-2 mt-[2px] h-4 w-4 flex-shrink-0",
+              isDark === undefined && "[filter:invert(0.5)_brightness(0.5)]",
+              (isDark === undefined || isDark) && "dark:[filter:invert(0.65)_brightness(0.9)]"
+            )}
+          />
+        ) : (
+          <>
+            {customIcon ||
+              (!!icon && (
+                <Icon name={icon} className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2" />
+              ))}
+          </>
+        )}
+        <span>{label}</span>
+      </div>
+
       <div className={classNames("relative z-10 max-w-full break-words", contentClassName)}>{children}</div>
     </div>
   );
@@ -143,8 +149,10 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
         switch (block) {
           case EventDetailBlocks.DURATION:
             return (
-              <EventMetaBlock key={block} icon="clock" className="items-center">
-                <EventDuration event={event} />
+              <EventMetaBlock key={block} icon="clock" label={t("duration")} className="items-center">
+                <div className="mt-2">
+                  <EventDuration event={event} />
+                </div>
               </EventMetaBlock>
             );
 

@@ -1,4 +1,6 @@
+import { Button, Icon } from "@calid/features/ui";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
+import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
@@ -194,6 +196,10 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
 
+  useEffect(() => {
+    console.log("Event info: ", event);
+  }, []);
+
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
         return !isTimeSlotAvailable({
@@ -307,6 +313,24 @@ const BookerComponent = ({
     return null;
   }
 
+  const removeLastPathSection = (url) => {
+    try {
+      const u = new URL(url);
+      // Split the pathname into segments
+      const segments = u.pathname.split("/").filter(Boolean);
+      // Remove the last segment
+      segments.pop();
+      // Rebuild pathname without last section
+      u.pathname = "/" + segments.join("/");
+      // Clear query params
+      u.search = "";
+      return u.toString();
+    } catch (err) {
+      console.error("Invalid URL:", err);
+      return null;
+    }
+  };
+
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
@@ -327,7 +351,7 @@ const BookerComponent = ({
           data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
+            `bg-default dark:bg-muted grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row dark:[color-scheme:dark]`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -340,9 +364,9 @@ const BookerComponent = ({
               <BookerSection
                 area="header"
                 className={classNames(
-                  layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
+                  layout === BookerLayouts.MONTH_VIEW && "w-full fixed top-4 z-10 ltr:right-4 rtl:left-4",
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "bg-default dark:bg-muted sticky top-0 z-10"
+                    "w-full bg-default dark:bg-muted top-0 z-10"
                 )}>
                 {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
                   <></>
@@ -382,15 +406,16 @@ const BookerComponent = ({
             <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
-                className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
+                className="bg-default max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                 {!hideEventTypeDetails && orgBannerUrl && (
-                  <img
+                  <div
                     loading="eager"
-                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
+                    className="-mb-4 flex h-16 object-cover ltr:rounded-tl-md rtl:rounded-tr-md"
                     alt="org banner"
-                    src={orgBannerUrl}
-                  />
+                    style={{ backgroundImage: `url(${orgBannerUrl})` }}>
+                  </div>
                 )}
+
                 <EventMeta
                   classNames={{
                     eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
@@ -467,7 +492,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 ltr:md:border-l rtl:border-r",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"

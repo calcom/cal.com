@@ -82,9 +82,9 @@ export function UserPage(props: PageProps) {
         )}>
         <div
           className={classNames(
-            "border-subtle bg-cal-gradient text-default mb-8 flex flex-col items-center p-4 bg-center bg-cover"
+            "border-subtle bg-cal-gradient text-default mb-8 flex flex-col items-center bg-cover bg-center p-4"
           )}
-          style={{ backgroundImage: `url(${user.headerUrl})` }}>
+          style={{ backgroundImage: user.headerUrl === null ? null : `url(${user.headerUrl})` }}>
           <UserAvatar
             size="xl"
             user={{

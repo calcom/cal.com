@@ -666,6 +666,10 @@ select:focus {
   background-image: var(--cal-bg-gradient);
 }
 
+/* .bg-cal-gradient {
+  color: var(--cal-bg-gradient);
+} */
+
 .bg-cal-active {
   background-color: var(--cal-bg-active);
 }
