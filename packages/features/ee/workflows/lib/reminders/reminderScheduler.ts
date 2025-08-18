@@ -183,6 +183,47 @@ const processWorkflowStep = async (
   }
 };
 
+const isImmediateTrigger = (trigger: WorkflowTriggerEvents): boolean => {
+  return (
+    trigger === WorkflowTriggerEvents.NEW_EVENT ||
+    trigger === WorkflowTriggerEvents.EVENT_CANCELLED ||
+    trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT ||
+    trigger === WorkflowTriggerEvents.BOOKING_REQUESTED ||
+    trigger === WorkflowTriggerEvents.BOOKING_REJECTED ||
+    trigger === WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED ||
+    trigger === WorkflowTriggerEvents.BOOKING_PAID ||
+    trigger === WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED
+  );
+};
+
+const isTimeBased = (trigger: WorkflowTriggerEvents): boolean => {
+  return trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT;
+};
+
+const shouldProcessWorkflow = (
+  workflow: { trigger: WorkflowTriggerEvents },
+  isRescheduleEvent: boolean,
+  isFirstRecurringEvent: boolean
+): boolean => {
+  if (isImmediateTrigger(workflow.trigger)) {
+    if (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT) {
+      return !isRescheduleEvent && isFirstRecurringEvent;
+    }
+
+    if (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT) {
+      return isRescheduleEvent;
+    }
+
+    return true;
+  }
+
+  if (isTimeBased(workflow.trigger)) {
+    return true;
+  }
+
+  return false;
+};
+
 const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
   const {
     workflows,
@@ -202,21 +243,7 @@ const _scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) =
   for (const workflow of workflows) {
     if (workflow.steps.length === 0) continue;
 
-    const isNotBeforeOrAfterEvent =
-      workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
-      workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;
-
-    if (
-      isNotBeforeOrAfterEvent &&
-      // Check if the trigger is not a new event without a reschedule and is the first recurring event.
-      !(
-        workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-        !isRescheduleEvent &&
-        isFirstRecurringEvent
-      ) &&
-      // Check if the trigger is not a rescheduled event that is rescheduled.
-      !(workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
-    ) {
+    if (!shouldProcessWorkflow(workflow, isRescheduleEvent, isFirstRecurringEvent)) {
       continue;
     }
     for (const step of workflow.steps) {

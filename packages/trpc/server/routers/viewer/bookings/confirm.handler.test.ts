@@ -9,6 +9,7 @@ import {
   getDate,
   mockSuccessfulVideoMeetingCreation,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
@@ -21,6 +22,7 @@ describe("confirmHandler", () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
+    mockNoTranslations();
   });
 
   it("should successfully confirm booking when event type doesn't have any default location", async () => {
@@ -59,7 +61,7 @@ describe("confirmHandler", () => {
           {
             userId: organizer.id,
             trigger: "BOOKING_REJECTED",
-            action: "EMAIL_HOST",
+            action: "EMAIL_ATTENDEE",
             template: "REMINDER",
             activeOn: [1],
           },
@@ -144,7 +146,7 @@ describe("confirmHandler", () => {
           {
             userId: organizer.id,
             trigger: "BOOKING_REJECTED",
-            action: "EMAIL_HOST",
+            action: "EMAIL_ATTENDEE",
             template: "REMINDER",
             activeOn: [1],
           },

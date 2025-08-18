@@ -2158,7 +2158,7 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "BOOKING_REQUESTED",
-                action: "EMAIL_HOST",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -2294,7 +2294,7 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "BOOKING_REQUESTED",
-                action: "EMAIL_HOST",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -2869,7 +2869,7 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "BOOKING_PAYMENT_INITIATED",
-                action: "EMAIL_HOST",
+                action: "SMS_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
@@ -3037,14 +3037,14 @@ describe("handleNewBooking", () => {
               {
                 userId: organizer.id,
                 trigger: "BOOKING_PAYMENT_INITIATED",
-                action: "EMAIL_HOST",
+                action: "SMS_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
               {
                 userId: organizer.id,
                 trigger: "BOOKING_REQUESTED",
-                action: "EMAIL_HOST",
+                action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
                 activeOn: [1],
               },
