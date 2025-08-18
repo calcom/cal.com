@@ -252,13 +252,7 @@ export class CalendarCacheSqlService {
 
       const isAllDay = !event.start?.dateTime && !!event.start?.date;
 
-      const createAttendees = (event.attendees || []).map((a) => ({
-        email: a.email || null,
-        displayName: a.displayName || null,
-        responseStatus: a.responseStatus || null,
-        isOrganizer: Boolean(a.organizer),
-        isSelf: Boolean(a.self),
-      }));
+      // Participants removed from SQL cache model
 
       const isCalComEvent = this.isCalComEvent(event.iCalUID);
 
@@ -276,36 +270,7 @@ export class CalendarCacheSqlService {
         isAllDay,
         // Save event-level timezone if provided
         timeZone: (event.start?.timeZone as string | undefined) ?? null,
-        creator:
-          isCalComEvent && event.creator
-            ? {
-                create: {
-                  email: event.creator.email || null,
-                  displayName: event.creator.displayName || null,
-                  isSelf: Boolean(event.creator.self),
-                },
-              }
-            : undefined,
-        organizer:
-          isCalComEvent && event.organizer
-            ? {
-                create: {
-                  email: event.organizer.email || null,
-                  displayName: event.organizer.displayName || null,
-                  isSelf: Boolean(event.organizer.self),
-                  isOrganizer: true,
-                },
-              }
-            : undefined,
-        attendees:
-          isCalComEvent && createAttendees.length > 0
-            ? {
-                createMany: {
-                  data: createAttendees,
-                  skipDuplicates: true,
-                },
-              }
-            : undefined,
+        // Participants removed from SQL cache model
         status: event.status || "confirmed",
         transparency: event.transparency || "opaque",
         visibility: event.visibility || "default",

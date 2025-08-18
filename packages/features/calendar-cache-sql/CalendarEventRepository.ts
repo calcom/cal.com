@@ -16,8 +16,8 @@ export class CalendarEventRepository implements ICalendarEventRepository {
     tx?: PrismaTransaction
   ): Promise<CalendarEventUpsertResult> {
     const client = tx || this.prismaClient;
-    // Split participant relations from scalar fields so we can handle nested writes safely on update
-    const { creator, organizer, attendees, calendarSubscription: _ignored, ...scalarFields } = data;
+    // Only persist scalar event fields; relation connect is handled explicitly
+    const { calendarSubscription: _ignored, ...scalarFields } = data;
 
     const event = await client.calendarEvent.upsert({
       where: {
@@ -45,81 +45,6 @@ export class CalendarEventRepository implements ICalendarEventRepository {
         updatedAt: true,
       },
     });
-
-    // After upsert, update/replace participants according to input
-    const eventId = event.id;
-
-    // Creator
-    {
-      const existingCreators = await client.calendarEventParticipant.findMany({
-        where: { creatorOfId: eventId },
-      });
-      for (const row of existingCreators) {
-        await client.calendarEventParticipant.delete({ where: { id: row.id } });
-      }
-    }
-    if (creator) {
-      await client.calendarEventParticipant.create({
-        data: {
-          creatorOfId: eventId,
-          email: creator.create?.email ?? null,
-          displayName: creator.create?.displayName ?? null,
-          isSelf: creator.create?.isSelf ?? false,
-          isOrganizer: creator.create?.isOrganizer ?? false,
-        },
-      });
-    }
-
-    // Organizer
-    {
-      const existingOrganizers = await client.calendarEventParticipant.findMany({
-        where: { organizerOfId: eventId },
-      });
-      for (const row of existingOrganizers) {
-        await client.calendarEventParticipant.delete({ where: { id: row.id } });
-      }
-    }
-    if (organizer) {
-      await client.calendarEventParticipant.create({
-        data: {
-          organizerOfId: eventId,
-          email: organizer.create?.email ?? null,
-          displayName: organizer.create?.displayName ?? null,
-          isSelf: organizer.create?.isSelf ?? false,
-          isOrganizer: true,
-        },
-      });
-    }
-
-    // Attendees
-    {
-      const existingAttendees = await client.calendarEventParticipant.findMany({
-        where: { attendeeOfId: eventId },
-      });
-      for (const row of existingAttendees) {
-        await client.calendarEventParticipant.delete({ where: { id: row.id } });
-      }
-    }
-    const attendeesData = attendees?.createMany?.data;
-    const attendeesArray: Prisma.CalendarEventParticipantCreateManyAttendeeOfInput[] = attendeesData
-      ? Array.isArray(attendeesData)
-        ? attendeesData
-        : [attendeesData]
-      : [];
-
-    if (attendeesArray.length > 0) {
-      await client.calendarEventParticipant.createMany({
-        data: attendeesArray.map((a) => ({
-          attendeeOfId: eventId,
-          email: a.email ?? null,
-          displayName: a.displayName ?? null,
-          responseStatus: a.responseStatus ?? null,
-          isOrganizer: a.isOrganizer ?? false,
-          isSelf: a.isSelf ?? false,
-        })),
-        skipDuplicates: true,
-      });
-    }
 
     return event;
   }

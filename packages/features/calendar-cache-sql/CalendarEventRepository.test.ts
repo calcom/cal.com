@@ -8,9 +8,8 @@ describe("CalendarEventRepository", () => {
   let repository: CalendarEventRepository;
 
   beforeEach(async () => {
-    repository = new CalendarEventRepository(prismock);
+    repository = new CalendarEventRepository(prismock as any);
     await prismock.calendarEvent.deleteMany();
-    await prismock.calendarEventParticipant.deleteMany();
   });
 
   describe("upsertEvent", () => {
@@ -34,7 +33,7 @@ describe("CalendarEventRepository", () => {
       );
     });
 
-    it("should upsert creator and organizer without creating duplicates and replace attendees", async () => {
+    it("should upsert event scalar fields and ignore participants", async () => {
       const subscriptionId = "sub-1";
       const googleEventId = "g-1";
 
@@ -47,30 +46,12 @@ describe("CalendarEventRepository", () => {
           summary: "Event",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:00:00Z"),
-          creator: {
-            create: { email: "creator1@example.com", displayName: "Creator 1", isSelf: false },
-          },
-          organizer: {
-            create: {
-              email: "organizer1@example.com",
-              displayName: "Organizer 1",
-              isSelf: false,
-              isOrganizer: true,
-            },
-          },
-          attendees: {
-            createMany: {
-              data: [
-                { email: "a1@example.com", displayName: "A1", responseStatus: "accepted", isSelf: false },
-              ],
-              skipDuplicates: true,
-            },
-          },
+          // Participants are ignored in SQL cache
         },
         subscriptionId
       );
 
-      // Update: change creator/organizer, replace attendees
+      // Update scalar fields only
       const updated = await repository.upsertEvent(
         {
           calendarSubscription: { connect: { id: subscriptionId } },
@@ -79,46 +60,13 @@ describe("CalendarEventRepository", () => {
           summary: "Event Updated",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:30:00Z"),
-          creator: {
-            create: { email: "creator2@example.com", displayName: "Creator 2", isSelf: true },
-          },
-          organizer: {
-            create: {
-              email: "organizer2@example.com",
-              displayName: "Organizer 2",
-              isSelf: false,
-              isOrganizer: true,
-            },
-          },
-          attendees: {
-            createMany: {
-              data: [
-                { email: "a2@example.com", displayName: "A2", responseStatus: "tentative", isSelf: false },
-                { email: "a3@example.com", displayName: "A3", responseStatus: "accepted", isSelf: false },
-              ],
-              skipDuplicates: true,
-            },
-          },
+          // Participants are ignored in SQL cache
         },
         subscriptionId
       );
 
-      const eventId = updated.id || created.id;
-
-      const creatorRows = await prismock.calendarEventParticipant.findMany({
-        where: { creatorOfId: eventId },
-      });
-      const organizerRows = await prismock.calendarEventParticipant.findMany({
-        where: { organizerOfId: eventId },
-      });
-      const attendeesRows = await prismock.calendarEventParticipant.findMany({
-        where: { attendeeOfId: eventId },
-      });
-
-      expect(creatorRows.some((r: any) => r.email === "creator2@example.com")).toBe(true);
-      expect(organizerRows.some((r: any) => r.email === "organizer2@example.com")).toBe(true);
-      expect(attendeesRows.some((r: any) => r.email === "a2@example.com")).toBe(true);
-      expect(attendeesRows.some((r: any) => r.email === "a3@example.com")).toBe(true);
+      // No participant rows exist in SQL cache; ensure event updated correctly
+      expect(updated.summary).toBe("Event Updated");
 
       // Idempotency: run the same update again
       await repository.upsertEvent(
@@ -129,44 +77,20 @@ describe("CalendarEventRepository", () => {
           summary: "Event Updated",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:30:00Z"),
-          creator: {
-            create: { email: "creator2@example.com", displayName: "Creator 2", isSelf: true },
-          },
-          organizer: {
-            create: {
-              email: "organizer2@example.com",
-              displayName: "Organizer 2",
-              isSelf: false,
-              isOrganizer: true,
-            },
-          },
-          attendees: {
-            createMany: {
-              data: [
-                { email: "a2@example.com", displayName: "A2", responseStatus: "tentative", isSelf: false },
-                { email: "a3@example.com", displayName: "A3", responseStatus: "accepted", isSelf: false },
-              ],
-              skipDuplicates: true,
-            },
-          },
+          // Participants ignored
         },
         subscriptionId
       );
 
-      const finalCreator = await prismock.calendarEventParticipant.findMany({
-        where: { creatorOfId: eventId },
+      const after = await prismock.calendarEvent.findUnique({
+        where: {
+          calendarSubscriptionId_googleEventId: {
+            calendarSubscriptionId: subscriptionId,
+            googleEventId,
+          },
+        },
       });
-      const finalOrganizer = await prismock.calendarEventParticipant.findMany({
-        where: { organizerOfId: eventId },
-      });
-      const finalAttendees = await prismock.calendarEventParticipant.findMany({
-        where: { attendeeOfId: eventId },
-      });
-      expect(finalCreator.length).toBe(1);
-      expect(finalCreator[0]?.email).toBe("creator2@example.com");
-      expect(finalOrganizer.length).toBe(1);
-      expect(finalOrganizer[0]?.email).toBe("organizer2@example.com");
-      expect(finalAttendees.length).toBe(2);
+      expect(after?.summary).toBe("Event Updated");
     });
 
     it("should handle omitted participants without error on update", async () => {
@@ -181,11 +105,7 @@ describe("CalendarEventRepository", () => {
           summary: "Event",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:00:00Z"),
-          creator: { create: { email: "c1@example.com" } },
-          organizer: { create: { email: "o1@example.com", isOrganizer: true } },
-          attendees: {
-            createMany: { data: [{ email: "a1@example.com" }], skipDuplicates: true },
-          },
+          // Participants are ignored in SQL cache
         },
         subscriptionId
       );
@@ -198,19 +118,13 @@ describe("CalendarEventRepository", () => {
           summary: "Event",
           start: new Date("2024-01-01T10:00:00Z"),
           end: new Date("2024-01-01T11:00:00Z"),
-          // no creator / organizer provided
-          attendees: { createMany: { data: [], skipDuplicates: true } },
+          // no participants provided (ignored)
         },
         subscriptionId
       );
 
-      const eventId2 = updated2.id || created2.id;
-
-      // Event still exists and update did not throw; participants may be omitted
-      const afterParticipants = await prismock.calendarEventParticipant.findMany({
-        where: { creatorOfId: eventId2 },
-      });
-      expect(Array.isArray(afterParticipants)).toBe(true);
+      // Event still exists and update did not throw
+      expect(updated2).toBeTruthy();
     });
   });
 
