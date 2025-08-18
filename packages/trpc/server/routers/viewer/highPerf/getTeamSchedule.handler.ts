@@ -1,6 +1,6 @@
 import type { IncomingMessage } from "http";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/available-slots";
+import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
 
 import type { TGetTeamScheduleInputSchema } from "./getTeamSchedule.schema";
 
