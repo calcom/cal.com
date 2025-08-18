@@ -10,6 +10,8 @@ import type { SchedulingType } from "@calcom/prisma/client";
 import type { BookingCreateBody as MasterCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 
+import type { BookingCreateService } from "../handleNewBooking";
+
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
@@ -82,3 +84,5 @@ export type CreateInstantBookingResponse = {
   expires: Date;
   userId: number | null;
 };
+
+export type BookingCreateResult = Awaited<ReturnType<BookingCreateService["create"]>>;
