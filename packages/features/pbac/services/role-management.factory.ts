@@ -1,5 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
