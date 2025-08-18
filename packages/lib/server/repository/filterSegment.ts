@@ -6,7 +6,7 @@ import {
   ZColumnVisibility,
 } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
-import type { FilterSegment, UserFilterSegmentPreference } from "@calcom/prisma/client";
+import type { UserFilterSegmentPreference } from "@calcom/prisma/client";
 
 import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema } from "./filterSegment.type";
 
@@ -22,7 +22,7 @@ export interface IFilterSegmentRepository {
   }: {
     userId: number;
     input: TCreateFilterSegmentInputSchema;
-  }): Promise<FilterSegment>;
+  }): Promise<FilterSegmentOutput>;
 
   update({
     userId,
@@ -30,7 +30,7 @@ export interface IFilterSegmentRepository {
   }: {
     userId: number;
     input: TUpdateFilterSegmentInputSchema;
-  }): Promise<FilterSegment>;
+  }): Promise<FilterSegmentOutput>;
 
   delete({ userId, id }: { userId: number; id: number }): Promise<void>;
 
@@ -181,9 +181,40 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
         ...(scope === "TEAM" ? { teamId } : {}),
         userId,
       },
+      select: {
+        id: true,
+        name: true,
+        tableIdentifier: true,
+        scope: true,
+        activeFilters: true,
+        sorting: true,
+        columnVisibility: true,
+        columnSizing: true,
+        perPage: true,
+        searchTerm: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        teamId: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
-    return filterSegment;
+    // Parse the segment with Zod schemas
+    const parsedSegment: FilterSegmentOutput = {
+      ...filterSegment,
+      activeFilters: ZActiveFilters.catch([]).parse(filterSegment.activeFilters),
+      sorting: ZSortingState.catch([]).parse(filterSegment.sorting),
+      columnVisibility: ZColumnVisibility.catch({}).parse(filterSegment.columnVisibility),
+      columnSizing: ZColumnSizing.catch({}).parse(filterSegment.columnSizing),
+    };
+
+    return parsedSegment;
   }
 
   async update({ userId, input }: { userId: number; input: TUpdateFilterSegmentInputSchema }) {
@@ -235,9 +266,40 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
         perPage,
         searchTerm,
       },
+      select: {
+        id: true,
+        name: true,
+        tableIdentifier: true,
+        scope: true,
+        activeFilters: true,
+        sorting: true,
+        columnVisibility: true,
+        columnSizing: true,
+        perPage: true,
+        searchTerm: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        teamId: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
-    return updatedSegment;
+    // Parse the segment with Zod schemas
+    const parsedSegment: FilterSegmentOutput = {
+      ...updatedSegment,
+      activeFilters: ZActiveFilters.catch([]).parse(updatedSegment.activeFilters),
+      sorting: ZSortingState.catch([]).parse(updatedSegment.sorting),
+      columnVisibility: ZColumnVisibility.catch({}).parse(updatedSegment.columnVisibility),
+      columnSizing: ZColumnSizing.catch({}).parse(updatedSegment.columnSizing),
+    };
+
+    return parsedSegment;
   }
 
   async delete({ userId, id }: { userId: number; id: number }) {

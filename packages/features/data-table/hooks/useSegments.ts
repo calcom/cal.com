@@ -23,6 +23,7 @@ export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, sy
     const userSegments = providedSegments || rawSegments?.segments || [];
 
     const processedSystemSegments = (systemSegments || []).map((segment) => ({
+      perPage: 10,
       tableIdentifier,
       ...segment,
       id: `${SYSTEM_SEGMENT_PREFIX}${segment.id}`,

@@ -269,8 +269,9 @@ export type SystemFilterSegment = {
   type: "system";
 };
 
-export type SystemFilterSegmentInternal = SystemFilterSegment & {
+export type SystemFilterSegmentInternal = Omit<SystemFilterSegment, "perPage"> & {
   tableIdentifier: string;
+  perPage: number;
 };
 
 export type UserFilterSegment = FilterSegmentOutput & {
