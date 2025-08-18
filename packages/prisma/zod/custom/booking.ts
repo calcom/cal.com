@@ -54,19 +54,27 @@ export const bookingCreateBodySchema = z.object({
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
+// TODO: Plan to create different schemas for Recurring Bookings, Instant Bookings and Regular Bookings.
+// We later want to make these properties required. They were optional because they are part of general schema which is used for all types of bookings.
+const recurringBookingCreateBodyPartialSchema = z.object({
+  recurringCount: z.number().optional(),
+  isFirstRecurringSlot: z.boolean().optional(),
+  thirdPartyRecurringEventId: z.string().nullish(),
+  numSlotsToCheckForAvailability: z.number().optional(),
+  allRecurringDates: z
+    .array(
+      z.object({
+        start: z.string(),
+        end: z.string(),
+      })
+    )
+    .optional(),
+  currentRecurringIndex: z.number().optional(),
+})
+
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
-    recurringCount: z.number().optional(),
-    allRecurringDates: z
-      .array(
-        z.object({
-          start: z.string(),
-          end: z.string(),
-        })
-      )
-      .optional(),
-    currentRecurringIndex: z.number().optional(),
     appsStatus: z
       .array(
         z.object({
@@ -81,7 +89,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
-  })
+  }).merge(recurringBookingCreateBodyPartialSchema)
 );
 
 // It has only the legacy props that are part of `responses` now. The API can still hit old props

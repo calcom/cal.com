@@ -5,8 +5,8 @@ import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import type { RegularBookingService } from "../modules/RegularBookingServiceModule";
 import {
   regularBookingServiceModule,
-  loadModuleDeps,
-  moduleToken,
+  loadModule as loadRegularBookingServiceModule,
+  token as regularBookingServiceToken,
 } from "../modules/RegularBookingServiceModule";
 
 const regularBookingServiceContainer = createContainer();
@@ -14,7 +14,7 @@ const regularBookingServiceContainer = createContainer();
 regularBookingServiceContainer.load(DI_TOKENS.REGULAR_BOOKING_SERVICE_MODULE, regularBookingServiceModule);
 
 export function getRegularBookingService(): RegularBookingService {
-  loadModuleDeps(regularBookingServiceContainer);
+  loadRegularBookingServiceModule(regularBookingServiceContainer);
 
-  return regularBookingServiceContainer.get<RegularBookingService>(moduleToken);
+  return regularBookingServiceContainer.get<RegularBookingService>(regularBookingServiceToken);
 }

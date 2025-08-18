@@ -1,5 +1,4 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
@@ -11,7 +10,14 @@ export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
 } & CreateBookingMeta;
 
-export const handleNewRecurringBooking = async (input: BookingHandlerInput): Promise<BookingResponse[]> => {
+export type IRecurringBookingServiceDependencies = {
+  regularBookingService: RegularBookingService;
+};
+
+const handleNewRecurringBooking = async (
+  input: BookingHandlerInput,
+  deps: IRecurringBookingServiceDependencies
+): Promise<BookingResponse[]> => {
   const data = input.bookingData;
   const createdBookings: BookingResponse[] = [];
   const allRecurringDates: { start: string | undefined; end: string | undefined }[] = data.map((booking) => {
@@ -51,11 +57,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
       noEmail: input.noEmail !== undefined ? input.noEmail : false,
     };
 
-    const firstBookingResult = await handleNewBooking({
+    const firstBookingResult = await deps.regularBookingService.createBooking({
       bookingData: recurringEventData,
-      hostname: input.hostname || "",
-      forcedSlug: input.forcedSlug as string | undefined,
-      ...handleBookingMeta,
+      bookingMeta: {
+        hostname: input.hostname || "",
+        forcedSlug: input.forcedSlug as string | undefined,
+        ...handleBookingMeta,
+      },
     });
     luckyUsers = firstBookingResult.luckyUsers;
   }
@@ -92,11 +100,13 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
       luckyUsers,
     };
 
-    const promiseEachRecurringBooking: ReturnType<typeof handleNewBooking> = handleNewBooking({
-      hostname: input.hostname || "",
-      forcedSlug: input.forcedSlug as string | undefined,
+    const promiseEachRecurringBooking = deps.regularBookingService.createBooking({
       bookingData: recurringEventData,
-      ...handleBookingMeta,
+      bookingMeta: {
+        hostname: input.hostname || "",
+        forcedSlug: input.forcedSlug as string | undefined,
+        ...handleBookingMeta,
+      },
     });
 
     const eachRecurringBooking = await promiseEachRecurringBooking;
@@ -117,10 +127,6 @@ export const handleNewRecurringBooking = async (input: BookingHandlerInput): Pro
   return createdBookings;
 };
 
-export interface IRecurringBookingServiceDependencies {
-  regularBookingService: RegularBookingService;
-}
-
 /**
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
@@ -133,7 +139,7 @@ export class RecurringBookingService implements IBookingService {
   }): Promise<BookingResponse[]> {
     const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
     // FOLLOW-UP: Pass on dependencies to the handler
-    return handleNewRecurringBooking(handlerInput);
+    return handleNewRecurringBooking(handlerInput, this.deps);
   }
 
   async rescheduleBooking(input: {
@@ -142,6 +148,6 @@ export class RecurringBookingService implements IBookingService {
   }): Promise<BookingResponse[]> {
     const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
     // FOLLOW-UP: Pass on dependencies to the handler
-    return handleNewRecurringBooking(handlerInput);
+    return handleNewRecurringBooking(handlerInput, this.deps);
   }
 }
