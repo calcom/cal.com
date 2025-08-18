@@ -36,11 +36,11 @@ export interface ICalendarSubscriptionRepository {
   updateWatchDetails(
     id: string,
     details: {
-      googleChannelId: string;
-      googleChannelKind?: string;
-      googleChannelResourceId?: string;
-      googleChannelResourceUri?: string;
-      googleChannelExpiration: string;
+      channelId: string;
+      channelKind?: string;
+      channelResourceId?: string;
+      channelResourceUri?: string;
+      channelExpiration: string;
     }
   ): Promise<void>;
   getSubscriptionsToWatch(limit?: number): Promise<SubscriptionWithSelectedCalendar[]>;

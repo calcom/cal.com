@@ -30,11 +30,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
       select: {
         id: true,
         selectedCalendarId: true,
-        googleChannelId: true,
-        googleChannelKind: true,
-        googleChannelResourceId: true,
-        googleChannelResourceUri: true,
-        googleChannelExpiration: true,
+        channelId: true,
+        channelKind: true,
+        channelResourceId: true,
+        channelResourceUri: true,
+        channelExpiration: true,
         nextSyncToken: true,
         lastFullSync: true,
         syncErrors: true,
@@ -85,7 +85,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
   async findByChannelId(channelId: string) {
     return await this.prismaClient.calendarSubscription.findFirst({
       where: {
-        googleChannelId: channelId,
+        channelId,
       },
       include: {
         selectedCalendar: {
@@ -146,11 +146,11 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
   async updateWatchDetails(
     id: string,
     details: {
-      googleChannelId: string;
-      googleChannelKind?: string;
-      googleChannelResourceId?: string;
-      googleChannelResourceUri?: string;
-      googleChannelExpiration: string;
+      channelId: string;
+      channelKind?: string;
+      channelResourceId?: string;
+      channelResourceUri?: string;
+      channelExpiration: string;
     }
   ) {
     await this.prismaClient.calendarSubscription.update({
@@ -186,7 +186,7 @@ export class CalendarSubscriptionRepository implements ICalendarSubscriptionRepo
           integration: "google_calendar",
         },
         syncErrors: { lt: 5 },
-        OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
+        OR: [{ channelExpiration: null }, { channelExpiration: { lt: tomorrowTimestamp } }],
       },
       include: {
         selectedCalendar: {

@@ -67,7 +67,7 @@ describe("CalendarSubscriptionRepository", () => {
       const mockSubscription = {
         id: "test-id",
         selectedCalendarId: "selected-calendar-id",
-        googleChannelId: "test-channel-id",
+        channelId: "test-channel-id",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -78,7 +78,7 @@ describe("CalendarSubscriptionRepository", () => {
 
       expect(result).toEqual(
         expect.objectContaining({
-          googleChannelId: "test-channel-id",
+          channelId: "test-channel-id",
         })
       );
     });

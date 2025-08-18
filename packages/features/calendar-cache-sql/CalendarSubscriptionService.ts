@@ -158,11 +158,11 @@ export class CalendarSubscriptionService {
 
         if (watchResult?.id && watchResult?.expiration) {
           await subscriptionRepo.updateWatchDetails(subscription.id, {
-            googleChannelId: watchResult.id,
-            googleChannelKind: watchResult.kind || "",
-            googleChannelResourceId: watchResult.resourceId || "",
-            googleChannelResourceUri: watchResult.resourceUri || "",
-            googleChannelExpiration: watchResult.expiration,
+            channelId: watchResult.id,
+            channelKind: watchResult.kind || "",
+            channelResourceId: watchResult.resourceId || "",
+            channelResourceUri: watchResult.resourceUri || "",
+            channelExpiration: watchResult.expiration,
           });
         }
 

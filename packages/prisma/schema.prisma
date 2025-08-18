@@ -1598,13 +1598,13 @@ model CalendarSubscription {
   id                 String @id @default(uuid())
   selectedCalendarId String @unique
 
-  // Webhook subscription details
-  googleChannelId          String?
-  googleChannelKind        String?
-  googleChannelResourceId  String?
-  googleChannelResourceUri String?
-  googleChannelExpiration  String?
-  nextSyncToken            String?
+  // Webhook subscription details (provider-agnostic)
+  channelId          String?
+  channelKind        String?
+  channelResourceId  String?
+  channelResourceUri String?
+  channelExpiration  String?
+  nextSyncToken      String?
 
   // Sync management
   lastFullSync  DateTime?
@@ -1620,7 +1620,7 @@ model CalendarSubscription {
   selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
   events           CalendarEvent[]
 
-  @@index([googleChannelExpiration, syncErrors, backoffUntil])
+  @@index([channelExpiration, syncErrors, backoffUntil])
   @@index([nextSyncToken])
   @@index([selectedCalendarId])
 }
